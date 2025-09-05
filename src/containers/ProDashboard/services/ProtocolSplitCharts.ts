@@ -145,4 +145,57 @@ export default class SProtocolSplitCharts {
 	static async getTvlSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
 		return this.getProtocolSplitData('tvl', chains, limit, categories, groupByParent)
 	}
+
+	static async getProtocolChainData(
+		protocol: string,
+		metric:
+			| 'tvl'
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue',
+		chains?: string[],
+		limit: number = 5
+	): Promise<any> {
+		const params = new URLSearchParams()
+		params.append('protocol', protocol)
+		params.append('metric', metric)
+
+		if (chains && chains.length > 0) {
+			params.append('chains', chains.join(','))
+		}
+		if (limit) {
+			params.append('limit', String(limit))
+		}
+
+		try {
+			const response = await fetch(`/api/protocols/split/protocol-chain?${params.toString()}`)
+
+			if (!response.ok) {
+				throw new Error(`Failed to fetch protocol chain data: ${response.statusText}`)
+			}
+
+			return response.json()
+		} catch (error) {
+			console.error(`Error fetching protocol chain data for ${protocol}:`, error)
+			return {
+				series: [],
+				metadata: {
+					protocol,
+					metric,
+					chains: [],
+					totalChains: 0
+				}
+			}
+		}
+	}
 }

@@ -48,12 +48,16 @@ export interface ChartBuilderConfig {
 			| 'protocol-revenue'
 			| 'supply-side-revenue'
 			| 'tvl'
+		mode: 'chains' | 'protocol'
+		protocol?: string
 		chains: string[]
 		categories: string[]
 		groupBy: 'protocol'
 		limit: number
 		chartType: 'stackedBar' | 'stackedArea' | 'line'
 		displayAs: 'timeSeries' | 'percentage'
+		hideOthers?: boolean
+		groupByParent?: boolean
 		additionalFilters?: Record<string, any>
 	}
 	grouping?: 'day' | 'week' | 'month' | 'quarter'

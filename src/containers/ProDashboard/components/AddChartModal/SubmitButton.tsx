@@ -50,7 +50,10 @@ export function SubmitButton({
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'text' && !textContent.trim()) ||
-		(selectedMainTab === 'builder' && (!chartBuilder || chartBuilder.chains.length === 0))
+		(selectedMainTab === 'builder' &&
+			(!chartBuilder ||
+				(chartBuilder.mode === 'chains' && chartBuilder.chains.length === 0) ||
+				(chartBuilder.mode === 'protocol' && !chartBuilder.protocol)))
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'

@@ -414,7 +414,11 @@ export function useModalActions(
 					title: state.textTitle.trim() || undefined,
 					content: state.textContent.trim()
 				} as TextConfig
-			} else if (state.selectedMainTab === 'builder' && state.chartBuilder.chains.length > 0) {
+			} else if (
+				state.selectedMainTab === 'builder' &&
+				((state.chartBuilder.mode === 'chains' && state.chartBuilder.chains.length > 0) ||
+					(state.chartBuilder.mode === 'protocol' && state.chartBuilder.protocol))
+			) {
 				newItem = {
 					...editItem,
 					kind: 'builder',
@@ -498,7 +502,11 @@ export function useModalActions(
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
-			} else if (state.selectedMainTab === 'builder' && state.chartBuilder.chains.length > 0) {
+			} else if (
+				state.selectedMainTab === 'builder' &&
+				((state.chartBuilder.mode === 'chains' && state.chartBuilder.chains.length > 0) ||
+					(state.chartBuilder.mode === 'protocol' && state.chartBuilder.protocol))
+			) {
 				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
 			}
 		}

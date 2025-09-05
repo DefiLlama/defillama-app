@@ -7,6 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
@@ -402,7 +403,11 @@ function ProDashboardContent() {
 }
 
 export default function ProDashboard() {
-	return <ProDashboardContent />
+	return (
+		<AppMetadataProvider>
+			<ProDashboardContent />
+		</AppMetadataProvider>
+	)
 }
 
 const LikeDashboardButton = ({
