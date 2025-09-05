@@ -86,6 +86,19 @@ const alignSeries = (timestamps: number[], series: [number, number][]): [number,
 	return timestamps.map((t) => [t, map.get(t) || 0])
 }
 
+// Some protocol responses include synthetic keys that shouldn't be counted in TVL totals
+// Ensure we ignore them consistently when aggregating per‑protocol TVL series
+const isIgnoredChainKey = (key: string): boolean => {
+	return (
+		key === 'borrowed' ||
+		key === 'pool2' ||
+		key === 'staking' ||
+		key.includes('-borrowed') ||
+		key.includes('-pool2') ||
+		key.includes('-staking')
+	)
+}
+
 const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 
 const normalizeDailyPairs = (pairs: [number, number][]): [number, number][] => {
@@ -284,6 +297,7 @@ const getTvlData = async (
 		if (isAll) {
 			if (filterMode === 'exclude') {
 				for (const key in p.chainTvls || {}) {
+					if (isIgnoredChainKey(key)) continue
 					if (excludedChainSetForProtocols.has(key)) continue
 					const chainEntry = p.chainTvls?.[key]
 					if (chainEntry && typeof chainEntry.tvl === 'number') {
@@ -296,6 +310,7 @@ const getTvlData = async (
 		} else {
 			if (filterMode === 'exclude') {
 				for (const key in p.chainTvls || {}) {
+					if (isIgnoredChainKey(key)) continue
 					if (excludedChainSetForProtocols.has(key)) continue
 					const chainEntry = p.chainTvls?.[key]
 					if (chainEntry && typeof chainEntry.tvl === 'number') {
@@ -305,6 +320,7 @@ const getTvlData = async (
 			} else {
 				for (const ch of selectedChains) {
 					const key = mapChainForProtocols(ch)
+					if (isIgnoredChainKey(key)) continue
 					const chainEntry = p.chainTvls?.[key]
 					if (chainEntry && typeof chainEntry.tvl === 'number') {
 						score += chainEntry.tvl
@@ -369,6 +385,7 @@ const getTvlData = async (
 				const seriesToSum: [number, number][][] = []
 				if (isAll) {
 					for (const key in chainTvls) {
+						if (isIgnoredChainKey(key)) continue
 						if (filterMode === 'exclude' && excludedChainSetForProtocols.has(key)) continue
 						const arr = chainTvls[key]?.tvl || []
 						if (Array.isArray(arr) && arr.length > 0) {
@@ -382,6 +399,7 @@ const getTvlData = async (
 				} else {
 					if (filterMode === 'exclude') {
 						for (const key in chainTvls) {
+							if (isIgnoredChainKey(key)) continue
 							if (excludedChainSetForProtocols.has(key)) continue
 							const arr = chainTvls[key]?.tvl || []
 							if (Array.isArray(arr) && arr.length > 0) {
@@ -395,6 +413,7 @@ const getTvlData = async (
 					} else {
 						for (const ch of selectedChains) {
 							const key = mapChainForProtocols(ch)
+							if (isIgnoredChainKey(key)) continue
 							const arr = chainTvls[key]?.tvl || []
 							if (Array.isArray(arr) && arr.length > 0) {
 								const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
