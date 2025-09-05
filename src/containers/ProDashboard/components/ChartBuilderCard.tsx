@@ -180,7 +180,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		if (!chartData || !chartData.series) return []
 
 		let processedSeries = chartData.series
-		if (builder.grouping && builder.grouping !== 'day' && !isTvlChart) {
+		if (builder.grouping && builder.grouping !== 'day') {
 			processedSeries = chartData.series.map((s: any) => {
 				const aggregatedData: Map<number, number> = new Map()
 
@@ -257,7 +257,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart])
+	}, [chartData, config.displayAs, config.chartType, builder.grouping])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
@@ -294,7 +294,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'Selected protocol'} ${config.metric} by Chain`
 								: `${config.metric} by Protocol`)}
 					</h1>
-					{!isReadOnly && !isTvlChart && config.mode === 'chains' && (
+					{!isReadOnly && chartSeries.length > 0 && (
 						<div className="flex overflow-hidden border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
 								<button
