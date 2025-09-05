@@ -58,8 +58,8 @@ const LIMIT_OPTIONS = [
 ]
 
 const MODE_OPTIONS = [
-	{ value: 'chains', label: 'Group by Chains' },
-	{ value: 'protocol', label: 'Group by Protocol' }
+	{ value: 'chains', label: 'Group by Protocol' }, // group by protocol filter by chains
+	{ value: 'protocol', label: 'Group by Chains' } // group by chains filter by protocol
 ]
 
 export function ChartBuilderTab({
