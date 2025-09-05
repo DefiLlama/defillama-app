@@ -419,18 +419,27 @@ const LikeDashboardButton = ({
 	dashboardVisibility: 'private' | 'public'
 	dashboardId: string
 }) => {
-	const { user, isAuthenticated } = useAuthContext()
-	const { toggleLike, isLiking } = useDashboardEngagement(dashboardId)
+	const { isAuthenticated } = useAuthContext()
+	const { toggleLike, isLiking, liked, likeCount } = useDashboardEngagement(dashboardId)
 	if (dashboardVisibility === 'private') return null
-	const isLiked = user?.id && currentDashboard?.likedBy?.includes(user?.id) ? true : false
+	const isLiked = currentDashboard?.liked ? true : false
 	return (
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
 			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
-			className={`hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue ${isLiked ? 'fill-current' : 'fill-none'} flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
+			className={`hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
-			{isLiking ? <LoadingSpinner size={14} /> : <Icon name="star" height={14} width={14} className="" />}
-			<span>{currentDashboard?.likeCount || 0}</span>
+			{isLiking ? (
+				<LoadingSpinner size={14} />
+			) : (
+				<Icon
+					name="star"
+					height={14}
+					width={14}
+					className={(liked ?? isLiked) ? 'fill-current text-yellow-400' : 'fill-none'}
+				/>
+			)}
+			<span>{likeCount || currentDashboard?.likeCount || 0}</span>
 			<span className="sr-only">Likes</span>
 		</Tooltip>
 	)

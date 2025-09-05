@@ -21,7 +21,6 @@ export interface Dashboard {
 	viewCount?: number
 	likeCount?: number
 	liked?: boolean
-	likedBy?: string[]
 	created: string
 	updated: string
 	collectionId?: string
