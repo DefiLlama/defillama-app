@@ -159,12 +159,19 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 					existing.holdersRevenue30d = (existing.holdersRevenue30d || 0) + (protocol.holdersRevenue30d || 0)
 					if (!existing.chains) existing.chains = []
 					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+					if (existing.feesChange_7dover7d == null && protocol.feesChange_7dover7d != null)
+						existing.feesChange_7dover7d = protocol.feesChange_7dover7d
+					if (existing.feesChange_30dover30d == null && protocol.feesChange_30dover30d != null)
+						existing.feesChange_30dover30d = protocol.feesChange_30dover30d
+					if (existing.revenueChange_7dover7d == null && protocol.revenueChange_7dover7d != null)
+						existing.revenueChange_7dover7d = protocol.revenueChange_7dover7d
+					if (existing.revenueChange_30dover30d == null && protocol.revenueChange_30dover30d != null)
+						existing.revenueChange_30dover30d = protocol.revenueChange_30dover30d
 				} else {
 					protocolsMap.set(key, { ...protocol, chains: [payload.chain] })
 				}
 			})
 		})
-
 		return Array.from(protocolsMap.values())
 	}, [shouldFetchAll, ...queryDatas])
 

@@ -66,6 +66,18 @@ export const protocolsByChainTableColumns = [
 		key: 'average_1y',
 		category: TABLE_CATEGORIES.FEES
 	},
+	{
+		name: 'Fees Change 7d',
+		key: 'feesChange_7dover7d',
+		category: TABLE_CATEGORIES.FEES,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Fees Change 30d',
+		key: 'feesChange_30dover30d',
+		category: TABLE_CATEGORIES.FEES,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
 	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
@@ -74,6 +86,18 @@ export const protocolsByChainTableColumns = [
 		name: 'Monthly Avg 1Y Rev',
 		key: 'average_revenue_1y',
 		category: TABLE_CATEGORIES.REVENUE
+	},
+	{
+		name: 'Revenue Change 7d',
+		key: 'revenueChange_7dover7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Revenue Change 30d',
+		key: 'revenueChange_30dover30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
 	},
 	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
@@ -126,6 +150,10 @@ export const defaultColumns = JSON.stringify({
 	mcaptvl: false,
 	fees_24h: true,
 	revenue_24h: true,
+	feesChange_7dover7d: false,
+	feesChange_30dover30d: false,
+	revenueChange_7dover7d: false,
+	revenueChange_30dover30d: false,
 	fees_7d: false,
 	revenue_7d: false,
 	fees_30d: false,
