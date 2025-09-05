@@ -28,6 +28,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [chartBuilder, setChartBuilder] = useState<ChartBuilderConfig>({
 		metric: 'tvl',
 		mode: 'chains',
+		filterMode: 'include',
 		chains: [],
 		categories: [],
 		groupBy: 'protocol',
@@ -113,6 +114,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setChartBuilder({
 				metric: 'tvl',
 				mode: 'chains',
+				filterMode: 'include',
 				chains: [],
 				categories: [],
 				groupBy: 'protocol',

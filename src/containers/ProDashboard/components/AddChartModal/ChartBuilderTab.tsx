@@ -108,7 +108,8 @@ export function ChartBuilderTab({
 			chartBuilder.chains,
 			chartBuilder.limit,
 			chartBuilder.categories,
-			chartBuilder.groupByParent
+			chartBuilder.groupByParent,
+			chartBuilder.filterMode || 'include'
 		],
 		queryFn: async () => {
 			if (chartBuilder.mode === 'protocol') {
@@ -118,7 +119,8 @@ export function ChartBuilderTab({
 					chartBuilder.protocol,
 					chartBuilder.metric,
 					chartBuilder.chains.length > 0 ? chartBuilder.chains : undefined,
-					chartBuilder.limit
+					chartBuilder.limit,
+					chartBuilder.filterMode || 'include'
 				)
 
 				if (data && data.series.length > 0) {
@@ -138,7 +140,8 @@ export function ChartBuilderTab({
 				chartBuilder.chains,
 				chartBuilder.limit,
 				chartBuilder.categories,
-				chartBuilder.groupByParent
+				chartBuilder.groupByParent,
+				chartBuilder.filterMode || 'include'
 			)
 
 			if (data && data.series.length > 0) {
@@ -150,7 +153,10 @@ export function ChartBuilderTab({
 
 			return data
 		},
-		enabled: chartBuilder.mode === 'protocol' ? !!chartBuilder.protocol : chartBuilder.chains.length > 0,
+		enabled:
+			chartBuilder.mode === 'protocol'
+				? !!chartBuilder.protocol
+				: (chartBuilder.filterMode || 'include') === 'exclude' || chartBuilder.chains.length > 0,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -186,6 +192,10 @@ export function ChartBuilderTab({
 
 	const handleDisplayChange = (display: 'timeSeries' | 'percentage') => {
 		onChartBuilderChange({ displayAs: display })
+	}
+
+	const handleFilterModeChange = (mode: 'include' | 'exclude') => {
+		onChartBuilderChange({ filterMode: mode })
 	}
 
 	const handleModeChange = (mode: 'chains' | 'protocol') => {
@@ -246,6 +256,28 @@ export function ChartBuilderTab({
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Filters</h4>
 
+						<div className="mb-1.5">
+							<h5 className="pro-text2 mb-1 text-[11px] font-medium">Filter Mode</h5>
+							<div className="mb-1.5 flex gap-1">
+								{[
+									{ value: 'include', label: 'Include' },
+									{ value: 'exclude', label: 'Exclude' }
+								].map((option) => (
+									<button
+										key={option.value}
+										onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
+										className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+											(chartBuilder.filterMode || 'include') === option.value
+												? 'border-(--primary1) bg-(--primary1) text-white'
+												: 'pro-border pro-hover-bg pro-text2'
+										}`}
+									>
+										{option.label}
+									</button>
+								))}
+							</div>
+						</div>
+
 						{chartBuilder.mode === 'chains' ? (
 							<>
 								<div className="mb-1.5">
@@ -254,7 +286,11 @@ export function ChartBuilderTab({
 										options={chainOptions}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
-										placeholder="Select chains..."
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select chains to exclude...'
+												: 'Select chains...'
+										}
 										isLoading={protocolsLoading}
 										itemType="chain"
 										maxSelections={10}
@@ -267,7 +303,11 @@ export function ChartBuilderTab({
 										options={categoryOptions}
 										selectedValues={chartBuilder.categories}
 										onChange={handleCategoriesChange}
-										placeholder="Select categories..."
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select categories to exclude...'
+												: 'Select categories...'
+										}
 										isLoading={false}
 										itemType="text"
 										maxSelections={5}
@@ -319,6 +359,23 @@ export function ChartBuilderTab({
 										onChange={handleProtocolChange}
 										placeholder="Select protocol..."
 										isLoading={protocolsLoading}
+									/>
+								</div>
+
+								<div className="mb-1.5">
+									<ItemMultiSelect
+										label="Chains"
+										options={chainOptions}
+										selectedValues={chartBuilder.chains}
+										onChange={handleChainsChange}
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select chains to exclude...'
+												: 'Select chains...'
+										}
+										isLoading={protocolsLoading}
+										itemType="chain"
+										maxSelections={10}
 									/>
 								</div>
 								<div className="mb-1.5">

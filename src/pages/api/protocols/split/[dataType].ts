@@ -64,6 +64,13 @@ const mapChainForProtocols = (chain: string): string => {
 	return chain
 }
 
+const mapChainForDimensions = (chain: string): string => {
+	if (!chain) return chain
+	const lc = chain.toLowerCase()
+	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'op-mainnet'
+	return lc
+}
+
 const sumSeriesByTimestamp = (seriesList: [number, number][][]): Map<number, number> => {
 	const acc = new Map<number, number>()
 	for (const series of seriesList) {
@@ -126,6 +133,61 @@ const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]>
 	return Array.from(summed.entries()).sort((a, b) => a[0] - b[0])
 }
 
+const subtractSeries = (a: [number, number][], b: [number, number][]): [number, number][] => {
+	const mapA = new Map(a.map(([t, v]) => [t, v]))
+	for (const [t, v] of b) {
+		mapA.set(t, (mapA.get(t) || 0) - (v || 0))
+	}
+	return Array.from(mapA.entries()).sort((x, y) => x[0] - y[0]) as [number, number][]
+}
+
+const fetchAllChainTotalTvl = async (): Promise<[number, number][]> => {
+	const r = await fetch(`${CHART_API}`)
+	const j = await r.json()
+	const tvl = Array.isArray(j?.tvl) ? j.tvl : []
+	const mapped = tvl.map(([ts, v]: [string | number, number]) => [parseInt(ts as string, 10), v] as [number, number])
+	return filterOutToday(normalizeDailyPairs(mapped))
+}
+
+const fetchChainTvlSingle = async (chain: string): Promise<[number, number][]> => {
+	const r = await fetch(`${CHART_API}/${chain}`)
+	if (!r.ok) return []
+	const j = await r.json()
+	const tvl = Array.isArray(j?.tvl) ? j.tvl : []
+	const mapped = tvl.map(([ts, v]: [string | number, number]) => [parseInt(ts as string, 10), v] as [number, number])
+	return filterOutToday(normalizeDailyPairs(mapped))
+}
+
+const fetchCategorySeriesAll = async (category: string): Promise<[number, number][]> => {
+	try {
+		const r = await fetch(`${CATEGORY_CHART_API}/${toSlug(category)}`)
+		if (!r.ok) return []
+		const j = await r.json()
+		const tvl = j?.tvl || {}
+		const mapped = Object.entries(tvl).map(
+			([ts, v]: [string, any]) => [parseInt(ts, 10), Number(v) || 0] as [number, number]
+		)
+		return filterOutToday(normalizeDailyPairs(mapped))
+	} catch {
+		return []
+	}
+}
+
+const fetchCategorySeriesPerChain = async (category: string, chain: string): Promise<[number, number][]> => {
+	try {
+		const r = await fetch(`${CATEGORY_CHART_API}/${toSlug(category)}/${toSlug(chain)}`)
+		if (!r.ok) return []
+		const j = await r.json()
+		const tvl = j?.tvl || {}
+		const mapped = Object.entries(tvl).map(
+			([ts, v]: [string, any]) => [parseInt(ts, 10), Number(v) || 0] as [number, number]
+		)
+		return filterOutToday(normalizeDailyPairs(mapped))
+	} catch {
+		return []
+	}
+}
+
 const fetchCategoryTvl = async (chains: string[], categories: string[]): Promise<[number, number][]> => {
 	if (categories.length === 0) {
 		return fetchChainTotalTvl(chains)
@@ -185,7 +247,8 @@ const getTvlData = async (
 	chains: string[],
 	categories: string[],
 	topN: number,
-	groupByParent: boolean = false
+	groupByParent: boolean = false,
+	filterMode: 'include' | 'exclude' = 'include'
 ): Promise<ProtocolSplitData> => {
 	const selectedChains = (chains && chains.length > 0 ? chains : ['all']).filter(Boolean)
 	const isAll = selectedChains.some((c) => c.toLowerCase() === 'all')
@@ -206,19 +269,46 @@ const getTvlData = async (
 
 	type ChildScore = { childName: string; childSlug: string; parentId: string | null; value: number }
 	const childScores: ChildScore[] = []
+	const excludedChainSetForProtocols: Set<string> = new Set(
+		filterMode === 'exclude' ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
+	)
+
 	for (const p of protocols) {
 		const cat = (p.category || '').toLowerCase()
-		if (categoriesFilter.length > 0 && !categoriesFilter.includes(cat)) continue
+		if (categoriesFilter.length > 0) {
+			if (filterMode === 'include' && !categoriesFilter.includes(cat)) continue
+			if (filterMode === 'exclude' && categoriesFilter.includes(cat)) continue
+		}
 
 		let score = 0
 		if (isAll) {
-			score = typeof p.tvl === 'number' ? p.tvl : 0
+			if (filterMode === 'exclude') {
+				for (const key in p.chainTvls || {}) {
+					if (excludedChainSetForProtocols.has(key)) continue
+					const chainEntry = p.chainTvls?.[key]
+					if (chainEntry && typeof chainEntry.tvl === 'number') {
+						score += chainEntry.tvl
+					}
+				}
+			} else {
+				score = typeof p.tvl === 'number' ? p.tvl : 0
+			}
 		} else {
-			for (const ch of selectedChains) {
-				const key = mapChainForProtocols(ch)
-				const chainEntry = p.chainTvls?.[key]
-				if (chainEntry && typeof chainEntry.tvl === 'number') {
-					score += chainEntry.tvl
+			if (filterMode === 'exclude') {
+				for (const key in p.chainTvls || {}) {
+					if (excludedChainSetForProtocols.has(key)) continue
+					const chainEntry = p.chainTvls?.[key]
+					if (chainEntry && typeof chainEntry.tvl === 'number') {
+						score += chainEntry.tvl
+					}
+				}
+			} else {
+				for (const ch of selectedChains) {
+					const key = mapChainForProtocols(ch)
+					const chainEntry = p.chainTvls?.[key]
+					if (chainEntry && typeof chainEntry.tvl === 'number') {
+						score += chainEntry.tvl
+					}
 				}
 			}
 		}
@@ -279,6 +369,7 @@ const getTvlData = async (
 				const seriesToSum: [number, number][][] = []
 				if (isAll) {
 					for (const key in chainTvls) {
+						if (filterMode === 'exclude' && excludedChainSetForProtocols.has(key)) continue
 						const arr = chainTvls[key]?.tvl || []
 						if (Array.isArray(arr) && arr.length > 0) {
 							const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
@@ -289,15 +380,29 @@ const getTvlData = async (
 						}
 					}
 				} else {
-					for (const ch of selectedChains) {
-						const key = mapChainForProtocols(ch)
-						const arr = chainTvls[key]?.tvl || []
-						if (Array.isArray(arr) && arr.length > 0) {
-							const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
-								number,
-								number
-							][]
-							seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
+					if (filterMode === 'exclude') {
+						for (const key in chainTvls) {
+							if (excludedChainSetForProtocols.has(key)) continue
+							const arr = chainTvls[key]?.tvl || []
+							if (Array.isArray(arr) && arr.length > 0) {
+								const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
+									number,
+									number
+								][]
+								seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
+							}
+						}
+					} else {
+						for (const ch of selectedChains) {
+							const key = mapChainForProtocols(ch)
+							const arr = chainTvls[key]?.tvl || []
+							if (Array.isArray(arr) && arr.length > 0) {
+								const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
+									number,
+									number
+								][]
+								seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
+							}
 						}
 					}
 				}
@@ -331,7 +436,45 @@ const getTvlData = async (
 		}
 	}
 
-	const totalSeries = await fetchCategoryTvl(isAll ? ['all'] : selectedChains, categoriesFilter)
+	let totalSeries: [number, number][]
+	if (filterMode === 'exclude') {
+		const allTvl = await fetchAllChainTotalTvl()
+		const excludedChains = (isAll ? selectedChains : selectedChains).filter((c) => c.toLowerCase() !== 'all')
+		const excludedPerChain = await Promise.all(excludedChains.map((c) => fetchChainTvlSingle(c)))
+		const sumExcluded = Array.from(sumSeriesByTimestamp(excludedPerChain).entries()).sort((a, b) => a[0] - b[0]) as [
+			number,
+			number
+		][]
+		let base = subtractSeries(allTvl, sumExcluded)
+
+		if (categoriesFilter.length > 0) {
+			const perCategoryAll = await Promise.all(categoriesFilter.map((cat) => fetchCategorySeriesAll(cat)))
+			let excludedCatsAll = Array.from(sumSeriesByTimestamp(perCategoryAll).entries()).sort((a, b) => a[0] - b[0]) as [
+				number,
+				number
+			][]
+			if (excludedChains.length > 0) {
+				const perCatPerExcluded = await Promise.all(
+					categoriesFilter.map(async (cat) => {
+						const perChainCat = await Promise.all(excludedChains.map((ch) => fetchCategorySeriesPerChain(cat, ch)))
+						const summed = Array.from(sumSeriesByTimestamp(perChainCat).entries()).sort((a, b) => a[0] - b[0]) as [
+							number,
+							number
+						][]
+						return summed
+					})
+				)
+				const sumExcludedCatsAcrossChains = Array.from(sumSeriesByTimestamp(perCatPerExcluded).entries()).sort(
+					(a, b) => a[0] - b[0]
+				) as [number, number][]
+				excludedCatsAll = subtractSeries(excludedCatsAll, sumExcludedCatsAcrossChains)
+			}
+			base = subtractSeries(base, excludedCatsAll)
+		}
+		totalSeries = base
+	} else {
+		totalSeries = await fetchCategoryTvl(isAll ? ['all'] : selectedChains, categoriesFilter)
+	}
 
 	const timestampSet = new Set<number>()
 	totalSeries.forEach(([t]) => timestampSet.add(t))
@@ -385,7 +528,7 @@ const getTvlData = async (
 
 async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { chains, limit = '10', categories, groupByParent } = req.query
+		const { chains, limit = '10', categories, groupByParent, filterMode } = req.query
 
 		let chainsArray = chains ? (chains as string).split(',').filter(Boolean) : []
 		if (chainsArray.length === 0 || chainsArray.some((c) => c.toLowerCase() === 'all')) {
@@ -394,8 +537,9 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 		const categoriesArray = categories ? (categories as string).split(',').filter(Boolean) : []
 		const topN = Math.min(parseInt(limit as string), 20)
 		const shouldGroupByParent = groupByParent === 'true'
+		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 
-		const result = await getTvlData(chainsArray, categoriesArray, topN, shouldGroupByParent)
+		const result = await getTvlData(chainsArray, categoriesArray, topN, shouldGroupByParent, fm)
 
 		res.status(200).json(result)
 	} catch (error) {
@@ -409,7 +553,7 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { dataType, chains, limit = '10', categories, groupByParent } = req.query
+		const { dataType, chains, limit = '10', categories, groupByParent, filterMode } = req.query
 		const metric = dataType as string
 
 		if (metric === 'tvl') {
@@ -424,6 +568,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					.filter(Boolean)
 					.map((cat) => cat.toLowerCase())
 			: []
+		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const shouldGroupByParent = groupByParent === 'true'
 
 		const config = METRIC_CONFIG[metric]
@@ -432,10 +577,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const chainDataPromises = chainsArray.map(async (singleChain) => {
-			let apiChain = singleChain
-			if (singleChain === 'Optimism') {
-				apiChain = 'op-mainnet'
-			}
+			let apiChain = mapChainForDimensions(singleChain)
 
 			let apiUrl =
 				apiChain && apiChain !== 'all'
@@ -462,7 +604,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const chainResults = (await Promise.all(chainDataPromises)).filter(Boolean)
 
-		if (chainResults.length === 0) {
+		if (chainResults.length === 0 && fm === 'include') {
 			return res.status(200).json({
 				series: [],
 				metadata: {
@@ -481,25 +623,82 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const aggregatedBreakdown = new Map<number, Map<string, number>>()
 
-		for (const result of chainResults) {
-			const { data } = result
-			if (!data.totalDataChartBreakdown || !Array.isArray(data.totalDataChartBreakdown)) continue
-
-			data.totalDataChartBreakdown.forEach((item: any) => {
-				const [timestamp, protocols] = item
-				if (!protocols) return
-
-				if (!aggregatedBreakdown.has(timestamp)) {
-					aggregatedBreakdown.set(timestamp, new Map())
-				}
-
-				const timestampData = aggregatedBreakdown.get(timestamp)!
-
-				Object.entries(protocols).forEach(([protocolName, value]) => {
-					const currentValue = timestampData.get(protocolName) || 0
-					timestampData.set(protocolName, currentValue + (value as number))
-				})
+		if (fm === 'exclude') {
+			const config = METRIC_CONFIG[metric]
+			let allUrl = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
+			if (config.dataType) allUrl += `&dataType=${config.dataType}`
+			const allResp = await fetch(allUrl)
+			const allJson = await allResp.json()
+			const allBreakdown: Array<[number, Record<string, number>]> = allJson?.totalDataChartBreakdown || []
+			const allMap = new Map<number, Map<string, number>>()
+			allBreakdown.forEach(([ts, protocols]) => {
+				const m = new Map<string, number>()
+				Object.entries(protocols || {}).forEach(([name, v]) => m.set(name, v as number))
+				allMap.set(ts, m)
 			})
+
+			const excludedResults = await Promise.all(
+				chainsArray
+					.filter((c) => c.toLowerCase() !== 'all')
+					.map(async (singleChain) => {
+						let apiChain = mapChainForDimensions(singleChain)
+						let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
+						if (config.dataType) url += `&dataType=${config.dataType}`
+						try {
+							const r = await fetch(url)
+							if (!r.ok) return null
+							const j = await r.json()
+							return j
+						} catch {
+							return null
+						}
+					})
+			)
+			const excludedMaps: Map<number, Map<string, number>>[] = []
+			for (const ex of excludedResults) {
+				if (!ex || !Array.isArray(ex.totalDataChartBreakdown)) continue
+				const map = new Map<number, Map<string, number>>()
+				ex.totalDataChartBreakdown.forEach(([ts, protocols]: [number, Record<string, number>]) => {
+					const m = new Map<string, number>()
+					Object.entries(protocols || {}).forEach(([name, v]) => m.set(name, v as number))
+					map.set(ts, m)
+				})
+				excludedMaps.push(map)
+			}
+
+			// Subtract excluded from all
+			for (const [ts, allProtoMap] of allMap.entries()) {
+				const out = new Map<string, number>(allProtoMap)
+				for (const exMap of excludedMaps) {
+					const exProtoMap = exMap.get(ts)
+					if (!exProtoMap) continue
+					for (const [p, v] of exProtoMap.entries()) {
+						out.set(p, (out.get(p) || 0) - (v || 0))
+					}
+				}
+				aggregatedBreakdown.set(ts, out)
+			}
+		} else {
+			for (const result of chainResults) {
+				const { data } = result
+				if (!data.totalDataChartBreakdown || !Array.isArray(data.totalDataChartBreakdown)) continue
+
+				data.totalDataChartBreakdown.forEach((item: any) => {
+					const [timestamp, protocols] = item
+					if (!protocols) return
+
+					if (!aggregatedBreakdown.has(timestamp)) {
+						aggregatedBreakdown.set(timestamp, new Map())
+					}
+
+					const timestampData = aggregatedBreakdown.get(timestamp)!
+
+					Object.entries(protocols).forEach(([protocolName, value]) => {
+						const currentValue = timestampData.get(protocolName) || 0
+						timestampData.set(protocolName, currentValue + (value as number))
+					})
+				})
+			}
 		}
 
 		const data = {
@@ -544,6 +743,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const lastDayProtocols = lastDayData[1]
 
 		let protocolCategories: Map<string, string> = new Map()
+		let protocolCategoriesBySlug: Map<string, string> = new Map()
 		let protocolToParentId: Map<string, string> = new Map()
 		let parentIdToName: Map<string, string> = new Map()
 		let parentIdToSlug: Map<string, string> = new Map()
@@ -563,7 +763,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		protocols.forEach((protocol: any) => {
 			if (protocol.name) {
 				if (protocol.category) {
-					protocolCategories.set(protocol.name, protocol.category.toLowerCase())
+					const cat = protocol.category.toLowerCase()
+					protocolCategories.set(protocol.name, cat)
+					protocolCategoriesBySlug.set(toSlug(protocol.name), cat)
 				}
 				if (protocol.parentProtocol) {
 					protocolToParentId.set(protocol.name, protocol.parentProtocol)
@@ -571,10 +773,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			}
 		})
 
+		const getCategory = (name: string): string => {
+			return protocolCategories.get(name) || protocolCategoriesBySlug.get(toSlug(name)) || ''
+		}
+
 		let protocolEntries = Object.entries(lastDayProtocols).map(([name, value]) => ({ name, value: value as number }))
 
-		if (categoriesArray.length > 0 && protocolCategories.size > 0) {
-			protocolEntries = protocolEntries.filter((p) => categoriesArray.includes(protocolCategories.get(p.name) || ''))
+		if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
+			if (fm === 'exclude') {
+				protocolEntries = protocolEntries.filter((p) => !categoriesArray.includes(getCategory(p.name)))
+			} else {
+				protocolEntries = protocolEntries.filter((p) => categoriesArray.includes(getCategory(p.name)))
+			}
 		}
 
 		let topProtocols: string[]
@@ -651,9 +861,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			let topTotal = 0
 
 			Object.entries(protocols).forEach(([protocolName, value]) => {
-				if (categoriesArray.length > 0 && protocolCategories.size > 0) {
-					if (!categoriesArray.includes(protocolCategories.get(protocolName) || '')) {
-						return
+				if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
+					const cat = getCategory(protocolName)
+					if (fm === 'exclude') {
+						if (categoriesArray.includes(cat)) return
+					} else {
+						if (!categoriesArray.includes(cat)) return
 					}
 				}
 

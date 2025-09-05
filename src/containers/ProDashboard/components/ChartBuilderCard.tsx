@@ -33,6 +33,7 @@ interface ChartBuilderCardProps {
 				| 'supply-side-revenue'
 				| 'tvl'
 			mode: 'chains' | 'protocol'
+			filterMode?: 'include' | 'exclude'
 			protocol?: string
 			chains: string[]
 			categories: string[]
@@ -107,6 +108,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.categories,
 			config.hideOthers,
 			config.groupByParent,
+			config.filterMode || 'include',
 			timePeriod
 		],
 		queryFn: async () => {
@@ -117,7 +119,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					config.protocol,
 					config.metric,
 					config.chains.length > 0 ? config.chains : undefined,
-					config.limit
+					config.limit,
+					config.filterMode || 'include'
 				)
 
 				if (!data || !data.series) {
@@ -139,14 +142,15 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				return { series }
 			}
 
-			if (config.chains.length === 0) return { series: [] }
+			if ((config.filterMode || 'include') === 'include' && config.chains.length === 0) return { series: [] }
 
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				config.metric,
 				config.chains,
 				config.limit,
 				config.categories,
-				config.groupByParent
+				config.groupByParent,
+				config.filterMode || 'include'
 			)
 
 			if (!data || !data.series) {

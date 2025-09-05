@@ -39,6 +39,12 @@ const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metri
 
 const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 
+const normalizeChainKey = (chain: string): string => {
+	const lc = chain.toLowerCase()
+	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'OP Mainnet'
+	return chain
+}
+
 const normalizeDailyPairs = (pairs: [number, number][]): [number, number][] => {
 	const daily = new Map<number, number>()
 	for (const [ts, v] of pairs) {
@@ -76,7 +82,8 @@ const alignSeries = (timestamps: number[], series: [number, number][]): [number,
 async function getTvlProtocolChainData(
 	protocol: string,
 	chains?: string[],
-	topN: number = 5
+	topN: number = 5,
+	filterMode: 'include' | 'exclude' = 'include'
 ): Promise<ProtocolChainData> {
 	try {
 		const response = await fetch(`${PROTOCOL_API}/${protocol}`)
@@ -91,6 +98,7 @@ async function getTvlProtocolChainData(
 		const availableChains: string[] = []
 		let colorIndex = 0
 
+		const excludeSet = new Set<string>((chains || []).map((c) => normalizeChainKey(c)))
 		for (const [chainKey, chainData] of Object.entries(chainTvls)) {
 			if (
 				chainKey.includes('-borrowed') ||
@@ -103,8 +111,12 @@ async function getTvlProtocolChainData(
 				continue
 			}
 
-			if (chains && chains.length > 0 && !chains.includes(chainKey)) {
-				continue
+			if (chains && chains.length > 0) {
+				if (filterMode === 'include') {
+					if (!chains.includes(chainKey)) continue
+				} else {
+					if (excludeSet.has(chainKey)) continue
+				}
 			}
 
 			const tvlArray = (chainData as any)?.tvl || []
@@ -205,7 +217,8 @@ async function getDimensionsProtocolChainData(
 	protocol: string,
 	metric: string,
 	chains?: string[],
-	topN: number = 5
+	topN: number = 5,
+	filterMode: 'include' | 'exclude' = 'include'
 ): Promise<ProtocolChainData> {
 	const config = METRIC_CONFIG[metric]
 	if (!config) {
@@ -240,13 +253,18 @@ async function getDimensionsProtocolChainData(
 
 		const chainDataMap = new Map<string, [number, number][]>()
 
+		const excludeSet = new Set<string>((chains || []).map((c) => c))
 		breakdown.forEach((item: any) => {
 			const [timestamp, chainData] = item
 			if (!chainData || typeof chainData !== 'object') return
 
 			Object.entries(chainData).forEach(([chain, versions]: [string, any]) => {
-				if (chains && chains.length > 0 && !chains.includes(chain)) {
-					return
+				if (chains && chains.length > 0) {
+					if (filterMode === 'include') {
+						if (!chains.includes(chain)) return
+					} else {
+						if (excludeSet.has(chain)) return
+					}
 				}
 
 				if (typeof versions === 'object' && versions !== null) {
@@ -359,7 +377,7 @@ async function getDimensionsProtocolChainData(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { protocol, metric = 'tvl', chains, limit = '5' } = req.query
+		const { protocol, metric = 'tvl', chains, limit = '5', filterMode } = req.query
 
 		if (!protocol || typeof protocol !== 'string') {
 			return res.status(400).json({ error: 'Protocol parameter is required' })
@@ -367,14 +385,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const metricStr = metric as string
 		const chainsArray = chains ? (chains as string).split(',').filter(Boolean) : undefined
+		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const topN = Math.min(parseInt(limit as string), 20)
 
 		let result: ProtocolChainData
 
 		if (metricStr === 'tvl') {
-			result = await getTvlProtocolChainData(protocol, chainsArray, topN)
+			result = await getTvlProtocolChainData(protocol, chainsArray, topN, fm)
 		} else {
-			result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN)
+			result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN, fm)
 		}
 
 		res.status(200).json(result)
