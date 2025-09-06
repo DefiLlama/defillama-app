@@ -99,7 +99,7 @@ export async function getStaticPaths() {
 	return { paths, fallback: false }
 }
 
-const pageName = ['Treasury Holdings']
+const pageName = ['Digital Asset Treasuries (DATs)', 'by', 'Institution']
 
 export default function TreasuriesByAsset({
 	name,
@@ -119,8 +119,8 @@ export default function TreasuriesByAsset({
 	return (
 		<Layout
 			title={`${name} Treasury Holdings - DefiLlama`}
-			description={`Track institutions that own ${name} as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${name} treasury holdings, ${name} corporate treasury, ${name} treasury holdings by institution, ${name} treasury holdings by company, ${name} DATs`}
+			description={`Track institutions that own ${name} ($${symbol}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${name} (${symbol}) treasury holdings, ${name} (${symbol}) corporate treasury, ${name} (${symbol}) treasury holdings by institution, ${name} (${symbol}) treasury holdings by company, ${name} (${symbol}) DATs, ${name} (${symbol}) digital asset treasury`}
 			canonicalUrl={`/treasuries/${asset}`}
 			pageName={pageName}
 		>
