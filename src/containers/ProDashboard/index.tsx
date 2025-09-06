@@ -138,7 +138,7 @@ function ProDashboardContent() {
 				Back to Dashboards
 			</BasicLink>
 
-			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:p-4">
+			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:gap-4 md:p-4">
 				<div className="col-span-full flex flex-col gap-2 md:col-span-8">
 					<div className="flex flex-col gap-1">
 						<span className="flex flex-wrap items-center gap-2">
@@ -181,7 +181,7 @@ function ProDashboardContent() {
 						</div>
 					)}
 				</div>
-				<div className="col-span-full flex flex-col gap-2 md:col-span-4">
+				<div className="col-span-full flex flex-col gap-2 md:col-span-4 md:gap-4">
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						{isAuthenticated ? (
 							<>
@@ -459,14 +459,23 @@ const CopyDashboardLinkButton = ({
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
 	}
+	if (dashboardVisibility === 'private') {
+		return (
+			<Tooltip
+				content="Make dashboard public to share"
+				render={<button aria-disabled={true} />}
+				className="flex cursor-not-allowed items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled) hover:border-transparent focus-visible:border-transparent"
+			>
+				{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
+				<span>Share</span>
+			</Tooltip>
+		)
+	}
 	return (
 		<Tooltip
-			content={
-				dashboardVisibility === 'private' ? 'Make dashboard public to share' : 'Copy dashboard link to clipboard'
-			}
-			render={<button onClick={copy} disabled={dashboardVisibility === 'private'} />}
+			content="Copy dashboard link to clipboard"
+			render={<button onClick={copy} disabled={true} />}
 			className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
-			{...(dashboardVisibility === 'private' && { title: 'Make dashboard public to share' })}
 		>
 			{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
 			<span>Share</span>
