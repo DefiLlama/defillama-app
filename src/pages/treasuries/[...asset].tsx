@@ -1,5 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
@@ -73,11 +74,16 @@ export const getStaticProps = withPerformanceLogging(
 			symbol = SYMBOL_MAP[asset].toUpperCase()
 		}
 
+		const allAssets = []
+		for (const asset in res.breakdownByAsset) {
+			allAssets.push({ label: capitalizeFirstLetter(asset), to: `/treasuries/${asset}` })
+		}
+
 		if (!breakdown || !stats) {
 			return { notFound: true, props: null }
 		}
 
-		return { props: { breakdown, stats, name, symbol, asset }, revalidate: maxAgeForNext([22]) }
+		return { props: { breakdown, stats, name, symbol, asset, allAssets }, revalidate: maxAgeForNext([22]) }
 	}
 )
 
@@ -93,18 +99,22 @@ export async function getStaticPaths() {
 	return { paths, fallback: false }
 }
 
+const pageName = ['Treasury Holdings']
+
 export default function TreasuriesByAsset({
 	name,
 	breakdown,
 	stats,
 	symbol,
-	asset
+	asset,
+	allAssets
 }: {
 	name: string
 	breakdown: ITreasuryCompanies['breakdownByAsset'][string]
 	stats: ITreasuryCompanies['statsByAsset'][string]
 	symbol: string
 	asset: string
+	allAssets: Array<{ label: string; to: string }>
 }) {
 	return (
 		<Layout
@@ -112,7 +122,9 @@ export default function TreasuriesByAsset({
 			description={`Track institutions that own ${name} as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`${name} treasury holdings, ${name} corporate treasury, ${name} treasury holdings by institution, ${name} treasury holdings by company, ${name} DATs`}
 			canonicalUrl={`/treasuries/${asset}`}
+			pageName={pageName}
 		>
+			<RowLinksWithDropdown links={allAssets} activeLink={name} />
 			<div className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:p-3">
 				<h1 className="text-xl font-semibold">{name} Treasury Holdings</h1>
 				<p className="text-(--text-label)">Institutions that own {name} as part of their corporate treasury.</p>
