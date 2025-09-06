@@ -137,7 +137,7 @@ function ProDashboardContent() {
 				Back to Dashboards
 			</BasicLink>
 
-			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:p-4">
+			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:gap-4 md:p-4">
 				<div className="col-span-full flex flex-col gap-2 md:col-span-8">
 					<div className="flex flex-col gap-1">
 						<span className="flex flex-wrap items-center gap-2">
@@ -180,7 +180,7 @@ function ProDashboardContent() {
 						</div>
 					)}
 				</div>
-				<div className="col-span-full flex flex-col gap-2 md:col-span-4">
+				<div className="col-span-full flex flex-col gap-2 md:col-span-4 md:gap-4">
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						{isAuthenticated ? (
 							<>
