@@ -235,6 +235,7 @@ export const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				rel="noopener noreferrer"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
+				<span className="sr-only">open in new tab</span>
 			</a>
 		)
 	}

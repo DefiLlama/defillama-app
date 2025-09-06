@@ -6,6 +6,7 @@ import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
 
 export default function SingleSeriesChart({
+	chartName = '',
 	chartType,
 	chartData,
 	valueSymbol = '',
@@ -20,6 +21,7 @@ export default function SingleSeriesChart({
 	hideOthersInTooltip,
 	hideLegend = true,
 	hideDataZoom = false,
+	symbolOnChart = 'none',
 	onReady
 }: ISingleSeriesChartProps) {
 	const id = useId()
@@ -41,14 +43,14 @@ export default function SingleSeriesChart({
 		const chartColor = color || stringToColour()
 
 		const series = {
-			name: '',
+			name: chartName || '',
 			type: chartType,
 			stack: 'value',
 			emphasis: {
 				focus: 'series',
 				shadowBlur: 10
 			},
-			symbol: 'none',
+			symbol: symbolOnChart || 'none',
 			itemStyle: {
 				color: chartColor
 			},
@@ -64,7 +66,7 @@ export default function SingleSeriesChart({
 					}
 				])
 			},
-			data: chartData.map(([timestamp, value]) => [+timestamp * 1e3, value]),
+			data: chartData.map(([timestamp, value, ...rest]) => [+timestamp * 1e3, value, ...rest]),
 			...(hallmarks && {
 				markLine: {
 					data: hallmarks.map(([date, event], index) => [
@@ -91,7 +93,7 @@ export default function SingleSeriesChart({
 		}
 
 		return series
-	}, [chartData, color, hallmarks, isThemeDark, chartType])
+	}, [chartData, color, hallmarks, isThemeDark, chartType, chartName, symbolOnChart])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 

@@ -1,10 +1,11 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
+import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -53,16 +54,18 @@ interface ITreasuryCompanies {
 
 const SYMBOL_MAP = {
 	bitcoin: 'BTC',
-	ethereum: 'ETH'
+	ethereum: 'ETH',
+	solana: 'SOL'
 }
 
 export const getStaticProps = withPerformanceLogging(
 	'treasuries/[...asset]',
 	async ({
 		params: {
-			asset: [asset]
+			asset: [assetName]
 		}
 	}) => {
+		const asset = slug(assetName)
 		const res: ITreasuryCompanies = await fetchJson(
 			'http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies'
 		)
@@ -176,6 +179,22 @@ const columns = ({
 		header: 'Institution',
 		accessorKey: 'name',
 		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const name = getValue() as string
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="shrink-0">{index + 1}</span>
+					<BasicLink
+						href={`/digital-asset-treasury/${slug(row.original.ticker)}`}
+						title={name}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+					>
+						{name}
+					</BasicLink>
+				</span>
+			)
+		},
 		size: 228,
 		meta: {
 			align: 'start'
