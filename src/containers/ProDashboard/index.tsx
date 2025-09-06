@@ -445,14 +445,23 @@ const CopyDashboardLinkButton = ({
 		setCopied(true)
 		setTimeout(() => setCopied(false), 2000)
 	}
+	if (dashboardVisibility === 'private') {
+		return (
+			<Tooltip
+				content="Make dashboard public to share"
+				render={<button aria-disabled={true} />}
+				className="flex cursor-not-allowed items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled) hover:border-transparent focus-visible:border-transparent"
+			>
+				{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
+				<span>Share</span>
+			</Tooltip>
+		)
+	}
 	return (
 		<Tooltip
-			content={
-				dashboardVisibility === 'private' ? 'Make dashboard public to share' : 'Copy dashboard link to clipboard'
-			}
-			render={<button onClick={copy} disabled={dashboardVisibility === 'private'} />}
+			content="Copy dashboard link to clipboard"
+			render={<button onClick={copy} disabled={true} />}
 			className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
-			{...(dashboardVisibility === 'private' && { title: 'Make dashboard public to share' })}
 		>
 			{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
 			<span>Share</span>
