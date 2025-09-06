@@ -7,7 +7,7 @@ import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
-import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
+import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { ImageExportButton } from './ProTable/ImageExportButton'
 
@@ -119,7 +119,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 
 			if (color_indexOfItemId !== -1) {
-				color = EXTENDED_COLOR_PALETTE[color_indexOfItemId % EXTENDED_COLOR_PALETTE.length]
+				color = COLOR_PALETTE_2[color_indexOfItemId % COLOR_PALETTE_2.length]
 				color_indexesTaken.add(color_indexOfItemId)
 			}
 
