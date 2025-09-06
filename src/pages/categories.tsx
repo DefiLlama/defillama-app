@@ -308,7 +308,8 @@ export const descriptions = {
 	'Video Infrastructure':
 		'Protocols that provide decentralized tools and infrastructure for video streaming, transcoding, recording, playback, or media processing',
 	DePIN:
-		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance'
+		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance',
+	"Dual-Token Stablecoin": "Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability"
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
