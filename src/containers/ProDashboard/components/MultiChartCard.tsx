@@ -53,6 +53,44 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		const uniqueProtocols = new Set(validItems.filter((item) => item.protocol).map((item) => item.protocol))
 		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
 		const isSingleProtocol = uniqueProtocols.size === 1 && validItems.every((item) => item.protocol)
+		const color_uniqueItemIdsPerProtocol = new Map<string, string[]>()
+		const color_uniqueItemIdsPerChain = new Map<string, string[]>()
+		const color_uniqueItemIds = new Set<string>()
+		for (const item of validItems) {
+			if (item.protocol) {
+				color_uniqueItemIdsPerProtocol.set(item.protocol, [
+					...(color_uniqueItemIdsPerProtocol.get(item.protocol) || []),
+					item.id
+				])
+			}
+			if (item.chain) {
+				color_uniqueItemIdsPerChain.set(item.chain, [...(color_uniqueItemIdsPerChain.get(item.chain) || []), item.id])
+			}
+		}
+
+		for (const item in Object.fromEntries(color_uniqueItemIdsPerProtocol)) {
+			if (color_uniqueItemIdsPerProtocol.get(item)?.length > 1) {
+				;(color_uniqueItemIdsPerProtocol.get(item) || []).forEach((id) => {
+					color_uniqueItemIds.add(id)
+				})
+			} else {
+				color_uniqueItemIds.add(item)
+			}
+		}
+
+		for (const item in Object.fromEntries(color_uniqueItemIdsPerChain)) {
+			if (color_uniqueItemIdsPerChain.get(item)?.length > 1) {
+				;(color_uniqueItemIdsPerChain.get(item) || []).forEach((id) => {
+					color_uniqueItemIds.add(id)
+				})
+			} else {
+				color_uniqueItemIds.add(item)
+			}
+		}
+
+		const color_sortedItemIds = Array.from(color_uniqueItemIds).sort()
+		const color_indexesTaken = new Set<number>()
+
 		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
@@ -70,10 +108,20 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
-			const color =
+			let color =
 				isSingleChain || isSingleProtocol
 					? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
 					: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+
+			let color_indexOfItemId = color_sortedItemIds.indexOf(itemIdentifier)
+			if (color_indexesTaken.has(color_indexOfItemId)) {
+				color_indexOfItemId = color_sortedItemIds.findIndex((id) => cfg.id === id)
+			}
+
+			if (color_indexOfItemId !== -1) {
+				color = EXTENDED_COLOR_PALETTE[color_indexOfItemId % EXTENDED_COLOR_PALETTE.length]
+				color_indexesTaken.add(color_indexOfItemId)
+			}
 
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
