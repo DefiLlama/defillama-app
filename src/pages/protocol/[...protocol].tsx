@@ -41,6 +41,7 @@ export const getStaticProps = withPerformanceLogging(
 		return { props: data, revalidate: maxAgeForNext([22]) }
 	}
 )
+
 export async function getStaticPaths() {
 	const res = await fetchJson(PROTOCOLS_API)
 	const slugs = new Set()
