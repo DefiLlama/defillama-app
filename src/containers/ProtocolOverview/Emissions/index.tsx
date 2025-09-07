@@ -335,7 +335,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<div className="grid w-full grid-cols-1 place-content-center gap-4 text-center md:grid-cols-2 lg:grid-cols-3">
 						{data?.tokenPrice?.price ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Price</span>
+								<span className="text-(--text-label)">Price</span>
 								<div className="flex items-center gap-2">
 									<span className="text-lg font-medium">${formattedNum(data.tokenPrice.price)}</span>
 									{percentChange !== null && (
@@ -355,7 +355,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenCircSupply ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Circulating Supply</span>
+								<span className="text-(--text-label)">Circulating Supply</span>
 								<span className="text-lg font-medium">
 									{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
 								</span>
@@ -364,7 +364,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenMaxSupply ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Max Supply</span>
+								<span className="text-(--text-label)">Max Supply</span>
 								<span className="text-lg font-medium">
 									{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
 								</span>
@@ -373,14 +373,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenMcap ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Market Cap</span>
+								<span className="text-(--text-label)">Market Cap</span>
 								<span className="text-lg font-medium">${formattedNum(tokenMcap)}</span>
 							</div>
 						) : null}
 
 						{tokenVolume ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Volume (24h)</span>
+								<span className="text-(--text-label)">Volume (24h)</span>
 								<span className="text-lg font-medium">${formattedNum(tokenVolume)}</span>
 							</div>
 						) : null}
@@ -496,29 +496,23 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex w-full flex-col gap-2 text-base">
-							<h4 style={{ fontSize: '16px' }}>Current</h4>
+							<h4 className="text-base text-(--text-form)">Current</h4>
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p
-											className="text-base text-(--text-tertiary)"
-											key={cat}
-										>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
+										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>
 							<hr className="border-(--form-control-border)" />
 
-							<h4 style={{ fontSize: '16px' }}>Final</h4>
+							<h4 className="text-base text-(--text-form)">Final</h4>
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p
-											className="text-base text-(--text-tertiary)"
-											key={cat}
-										>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
+										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>
