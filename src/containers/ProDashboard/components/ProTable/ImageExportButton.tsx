@@ -164,7 +164,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 				title="Download chart as image"
 			>
 				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
-				<span className="hidden xl:inline">{smol ? '.png' : 'Image'}</span>
+				<span>{smol ? '.png' : 'Image'}</span>
 			</button>
 			{isClient && (
 				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
