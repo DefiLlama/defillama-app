@@ -133,8 +133,6 @@ export function ChartBuilderTab({
 				return data
 			}
 
-			if (chartBuilder.chains.length === 0) return null
-
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				chartBuilder.metric,
 				chartBuilder.chains,
@@ -153,10 +151,7 @@ export function ChartBuilderTab({
 
 			return data
 		},
-		enabled:
-			chartBuilder.mode === 'protocol'
-				? !!chartBuilder.protocol
-				: (chartBuilder.filterMode || 'include') === 'exclude' || chartBuilder.chains.length > 0,
+		enabled: chartBuilder.mode === 'protocol' ? !!chartBuilder.protocol : !!chartBuilder.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -628,7 +623,7 @@ export function ChartBuilderTab({
 							<div className="text-center">
 								<Icon name="bar-chart-2" height={48} width={48} className="pro-text3 mx-auto mb-2" />
 								<p className="pro-text2 text-sm">Configure chart settings to see preview</p>
-								<p className="pro-text3 mt-1 text-xs">Select metric and chains to generate chart</p>
+								<p className="pro-text3 mt-1 text-xs">Select a metric to generate chart (all chains by default)</p>
 							</div>
 						)}
 					</div>
