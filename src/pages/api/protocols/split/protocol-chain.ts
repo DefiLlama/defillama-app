@@ -384,7 +384,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const metricStr = metric as string
-		const chainsArray = chains ? (chains as string).split(',').filter(Boolean) : undefined
+		const chainsArray = chains
+			? (chains as string).split(',').filter(Boolean).includes('All')
+				? []
+				: (chains as string).split(',').filter(Boolean)
+			: undefined
 		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const topN = Math.min(parseInt(limit as string), 20)
 
