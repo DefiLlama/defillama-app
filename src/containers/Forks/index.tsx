@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
@@ -38,7 +38,7 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 					type: 'line',
 					stack: 'TVL',
 					data: finalChartData,
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			} as const,
 			totalValueUSD,

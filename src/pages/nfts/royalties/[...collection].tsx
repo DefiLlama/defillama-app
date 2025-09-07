@@ -6,7 +6,7 @@ import { formatBarChart } from '~/components/ECharts/utils'
 import { FormattedName } from '~/components/FormattedName'
 import { LocalLoader } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 
@@ -35,7 +35,7 @@ export default function Collection() {
 					stack: 'Earnings',
 					type: 'bar' as const,
 					data: [],
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			}
 		return {
@@ -49,7 +49,7 @@ export default function Collection() {
 					denominationPriceHistory: null,
 					dateInMs: false
 				}),
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		}
 	}, [collectionData])

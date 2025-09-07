@@ -17,7 +17,7 @@ import {
 	NFT_SEARCH_API,
 	NFT_VOLUME_API
 } from '~/constants'
-import { getColorFromNumber, getDominancePercent } from '~/utils'
+import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
 
@@ -174,10 +174,10 @@ export const getNFTMarketplacesData = async () => {
 
 	const marketplaces = Object.keys(volumeChartStacks)
 	const colors = {}
-	marketplaces.forEach((chain, index) => {
-		colors[chain] = getColorFromNumber(index, 10)
-	})
-
+	const allColors = getNDistinctColors(marketplaces.length)
+	for (let i = 0; i < marketplaces.length; i++) {
+		colors[marketplaces[i]] = allColors[i]
+	}
 	colors['Others'] = '#AAAAAA'
 
 	return {

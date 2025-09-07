@@ -10,7 +10,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOL_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { Flag } from '~/containers/ProtocolOverview/Flag'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
@@ -89,7 +89,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 
 		// Generate distinct colors for all protocols
 		const protocolNames = formattedData.map((p) => p.protocolName)
-		const distinctColors = getNDistinctColors(protocolNames.length, oldBlue)
+		const distinctColors = getNDistinctColors(protocolNames.length)
 		const stackColors = Object.fromEntries(protocolNames.map((name, index) => [name, distinctColors[index]]))
 
 		const chartsByProtocol = {}

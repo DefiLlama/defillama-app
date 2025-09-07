@@ -5,7 +5,7 @@ import { useQueries } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { getPercentChange, getPrevTvlFromChart, getRandomColor } from '~/utils'
+import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { Stats } from '../ChainOverview/Stats'
 import { IChainOverviewData } from '../ChainOverview/types'
@@ -73,6 +73,8 @@ const formatChartData = (chainsData: any, query: any) => {
 	for (const chart of selectedCharts) {
 		const targetChart = supportedCharts.find((c) => c.id === chart)
 		const dateInMs = chart === 'tvl'
+		let colors = getNDistinctColors(chainsData.length)
+		let i = 0
 		for (const chainData of chainsData) {
 			const name = `${chainData.chain} - ${targetChart.name}`
 			finalCharts[name] = {
@@ -80,8 +82,9 @@ const formatChartData = (chainsData: any, query: any) => {
 				stack: name,
 				data: chainData[targetChart.key].map((data) => [!dateInMs ? Number(data[0]) * 1e3 : data[0], data[1]]),
 				type: chart === 'tvl' ? 'line' : 'bar',
-				color: getRandomColor()
+				color: colors[i]
 			}
+			i++
 		}
 	}
 

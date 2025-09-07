@@ -22,7 +22,7 @@ import {
 import {
 	batchFetchHistoricalPrices,
 	capitalizeFirstLetter,
-	getColorFromNumber,
+	getNDistinctColors,
 	roundToNearestHalfHour,
 	slug
 } from '~/utils'
@@ -359,12 +359,14 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const stackColors = { documented: {}, realtime: {} }
 
-		pieChartData['documented'].forEach(({ name }, index) => {
-			stackColors['documented'][name] = getColorFromNumber(index, 6)
-		})
-		pieChartData['realtime'].forEach(({ name }, index) => {
-			stackColors['realtime'][name] = getColorFromNumber(index, 6)
-		})
+		const allDocumentedColors = getNDistinctColors(pieChartData['documented'].length)
+		for (let i = 0; i < pieChartData['documented'].length; i++) {
+			stackColors['documented'][pieChartData['documented'][i].name] = allDocumentedColors[i]
+		}
+		const allRealtimeColors = getNDistinctColors(pieChartData['realtime'].length)
+		for (let i = 0; i < pieChartData['realtime'].length; i++) {
+			stackColors['realtime'][pieChartData['realtime'][i].name] = allRealtimeColors[i]
+		}
 
 		if (protocolName == 'looksrare') {
 			tokenPrice.symbol = 'LOOKS'
@@ -501,11 +503,11 @@ export async function getLSDPageData() {
 		nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id
 	}
 
-	const colors = {}
-	lsdProtocols.forEach((protocol, index) => {
-		colors[protocol] = getColorFromNumber(index, 10)
-	})
-
+	const allColors = getNDistinctColors(lsdProtocols.length)
+	const colors: Record<string, string> = {}
+	for (let i = 0; i < lsdProtocols.length; i++) {
+		colors[lsdProtocols[i]] = allColors[i]
+	}
 	colors['Others'] = '#AAAAAA'
 
 	return {

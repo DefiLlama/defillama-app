@@ -4,7 +4,7 @@ import type { IChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { LANGS_API } from '~/constants'
 import Layout from '~/layout'
-import { getColorFromNumber, getDominancePercent } from '~/utils'
+import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -54,11 +54,11 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 		dominance: osDominance
 	} = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
 
+	const allColors = getNDistinctColors(langsUnique.length)
 	const colors = {}
-
-	langsUnique.forEach((l, index) => {
-		colors[l] = getColorFromNumber(index, 6)
-	})
+	for (let i = 0; i < langsUnique.length; i++) {
+		colors[langsUnique[i]] = allColors[i]
+	}
 
 	return {
 		props: {

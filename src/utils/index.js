@@ -1,14 +1,12 @@
-import { colord, extend } from 'colord'
-import lchPlugin from 'colord/plugins/lch'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
 import { ICONS_CDN, timeframeOptions } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
 
 export * from './blockExplorers'
 
-extend([lchPlugin])
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
@@ -296,146 +294,169 @@ export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + wo
 
 export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
-export function getRandomColor() {
-	let letters = '0123456789ABCDEF'
-	let color = '#'
-	for (let i = 0; i < 6; i++) {
-		color += letters[Math.floor(Math.random() * 16)]
-	}
-	return color
-}
-
 export function getNDistinctColors(n, colorToAvoid) {
+	if (n < CHART_COLORS.length) {
+		return CHART_COLORS.slice(0, n)
+	}
+
 	const colors = []
 	const colorToAvoidHsl = colorToAvoid ? hexToHSL(colorToAvoid) : null
 
-	// Start from red (0) for maximum distinction
-	let hue = colorToAvoidHsl ? (colorToAvoidHsl.h / 360 + 0.5) % 1 : 0 // Start from opposite hue if colorToAvoid exists
-	// Use prime number for better distribution
-	const step = 0.618033988749895 // golden ratio
+	// Pre-calculate HSL values for all chart colors to avoid repeated conversions
+	const chartColorsHsl = CHART_COLORS.map(hexToHSL)
 
-	// Function to calculate color distance in HSL space
+	// Optimized color distance calculation with early exit
 	const getColorDistance = (hsl1, hsl2) => {
-		// Calculate hue difference (accounting for circular nature)
-		let hueDiff = Math.abs(hsl1.h - hsl2.h)
-		if (hueDiff > 180) hueDiff = 360 - hueDiff
-
-		// Normalize differences
-		const hueDistance = hueDiff / 180 // 0-1
-		const satDistance = Math.abs(hsl1.s - hsl2.s) / 100 // 0-1
-		const lightDistance = Math.abs(hsl1.l - hsl2.l) / 100 // 0-1
-
-		// Weighted distance (hue is most important for distinction)
+		const hueDiff = Math.abs(hsl1.h - hsl2.h)
+		const hueDistance = (hueDiff > 180 ? 360 - hueDiff : hueDiff) / 180
+		const satDistance = Math.abs(hsl1.s - hsl2.s) / 100
+		const lightDistance = Math.abs(hsl1.l - hsl2.l) / 100
 		return hueDistance * 0.7 + satDistance * 0.2 + lightDistance * 0.1
 	}
 
-	// Function to check if a color is too similar to any existing colors
-	const isTooSimilarToAny = (colorHsl, existingColors) => {
-		// Check against colorToAvoid
-		if (colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.3) {
+	// Optimized similarity check with pre-calculated HSL values
+	const isTooSimilarToAny = (colorHsl, existingColorsHsl) => {
+		if (colorToAvoidHsl && getColorDistance(colorHsl, colorToAvoidHsl) < 0.25) {
 			return true
 		}
-
-		// Check against all existing colors
-		for (const existingColor of existingColors) {
-			const existingHsl = hexToHSL(existingColor)
-			if (getColorDistance(colorHsl, existingHsl) < 0.3) {
+		for (const existingHsl of existingColorsHsl) {
+			if (getColorDistance(colorHsl, existingHsl) < 0.25) {
 				return true
 			}
 		}
-
 		return false
 	}
 
-	// First pass: Generate n distinct colors
-	for (let i = 0; i < n; i++) {
+	// Step 1: Use all colors from CHART_COLORS first
+	const chartColorsToUse = Math.min(n, CHART_COLORS.length)
+	const usedColorsHsl = []
+
+	for (let i = 0; i < chartColorsToUse; i++) {
+		const chartColor = CHART_COLORS[i]
+		const chartColorHsl = chartColorsHsl[i]
+
+		if (!colorToAvoidHsl || getColorDistance(chartColorHsl, colorToAvoidHsl) >= 0.25) {
+			colors.push(chartColor)
+			usedColorsHsl.push(chartColorHsl)
+		} else {
+			colors.push(null)
+		}
+	}
+
+	// Step 2: Generate remaining colors with enhanced uniqueness
+	const remainingCount = n - chartColorsToUse
+	const colorFamilies = ['blue', 'red', 'green', 'brown', 'yellow', 'purple', 'orange', 'pink']
+
+	// Enhanced hue variations - more combinations to prevent duplicates
+	const familyHues = {
+		blue: [210, 240, 200, 220, 190, 230, 180, 250, 170, 260],
+		red: [0, 15, 345, 330, 10, 20, 340, 325, 5, 25],
+		green: [120, 140, 100, 160, 80, 150, 90, 170, 70, 180],
+		brown: [30, 45, 15, 60, 0, 50, 10, 70, 5, 80],
+		yellow: [60, 75, 45, 90, 30, 85, 40, 95, 35, 105],
+		purple: [270, 285, 255, 300, 240, 295, 250, 305, 245, 315],
+		orange: [30, 45, 15, 60, 0, 50, 10, 70, 5, 80],
+		pink: [320, 335, 305, 350, 290, 340, 300, 355, 295, 5]
+	}
+
+	let generatedColors = []
+	let usedColors = new Set([...colors.filter((c) => c), ...CHART_COLORS])
+
+	// Pre-calculate HSL values for all existing colors
+	const allExistingColorsHsl = [...usedColorsHsl, ...chartColorsHsl]
+
+	// Generate colors with better distribution
+	for (let i = 0; i < remainingCount; i++) {
+		const familyIndex = i % colorFamilies.length
+		const family = colorFamilies[familyIndex]
+		const hueGroup = Math.floor(i / colorFamilies.length) % familyHues[family].length
+		const baseHue = familyHues[family][hueGroup]
+
 		let attempts = 0
 		let color
 		let colorHsl
 
 		do {
-			// Use larger modulo values to prevent repetition patterns
-			// Vary saturation for better distinction while keeping colors rich
-			const saturation = 65 + (i % 7) * 5 // 7 different saturation values: 65, 70, 75, 80, 85, 90, 95
-			// Keep colors dark (lightness 20-45)
-			const lightness = 20 + (i % 6) * 5 // 6 different lightness values: 20, 25, 30, 35, 40, 45
+			// Enhanced variation system
+			const saturationGroup = Math.floor(i / (colorFamilies.length * familyHues[family].length)) % 8
+			const lightnessGroup = Math.floor(i / (colorFamilies.length * familyHues[family].length * 8)) % 6
 
-			color = hslToHex(hue * 360, saturation, lightness)
+			const saturation = 65 + saturationGroup * 4 // 65, 69, 73, 77, 81, 85, 89, 93
+			const lightness = 20 + lightnessGroup * 6 // 20, 26, 32, 38, 44, 50
+
+			// Add hue variation based on attempt
+			const hueVariation = (attempts % 7) * 3 - 9 // -9, -6, -3, 0, 3, 6, 9
+			const finalHue = (baseHue + hueVariation + 360) % 360
+
+			color = hslToHex(finalHue, saturation, lightness)
 			colorHsl = hexToHSL(color)
 
-			// Check if color is too similar to colorToAvoid or existing colors
-			const isTooSimilar = isTooSimilarToAny(colorHsl, colors)
+			// Check for exact duplicates first
+			if (usedColors.has(color)) {
+				attempts++
+				continue
+			}
+
+			// Use pre-calculated HSL values for faster comparison
+			const isTooSimilar = isTooSimilarToAny(colorHsl, allExistingColorsHsl)
 
 			if (!isTooSimilar) break
 
-			// If too similar, try different hue
-			hue = (hue + 0.2) % 1
 			attempts++
-		} while (attempts < 10) // Prevent infinite loop
+		} while (attempts < 25)
 
-		// If we still can't find a distinct color, force a very different hue
-		if (attempts >= 10) {
-			hue = (hue + 0.5) % 1 // Jump to opposite side of color wheel
-			const saturation = 65 + (i % 7) * 5
-			const lightness = 20 + (i % 6) * 5
-			color = hslToHex(hue * 360, saturation, lightness)
+		// Simplified fallback - use golden angle distribution for better performance
+		if (attempts >= 25) {
+			const forcedHue = (i * 137.5) % 360 // Golden angle for maximum distribution
+			const forcedSaturation = 70 + (i % 20)
+			const forcedLightness = 25 + (i % 25)
+			color = hslToHex(forcedHue, forcedSaturation, forcedLightness)
 		}
 
-		colors.push(color)
-		hue += step
-		hue %= 1 // Keep in [0,1] range
+		generatedColors.push(color)
+		usedColors.add(color)
+		allExistingColorsHsl.push(hexToHSL(color))
 	}
 
-	// Second pass: Replace any colors that are still too similar to colorToAvoid
-	if (colorToAvoidHsl) {
-		for (let i = 0; i < colors.length; i++) {
-			const currentColorHsl = hexToHSL(colors[i])
+	// Step 3: Replace null values (conflicting chart colors) with generated colors
+	let generatedIndex = 0
+	for (let i = 0; i < colors.length; i++) {
+		if (colors[i] === null) {
+			colors[i] = generatedColors[generatedIndex] || hslToHex(Math.random() * 360, 80, 40)
+			generatedIndex++
+		}
+	}
 
-			// Check if current color is too similar to colorToAvoid
-			if (getColorDistance(currentColorHsl, colorToAvoidHsl) < 0.3) {
-				let replacementFound = false
-				let attempts = 0
+	// Step 4: Add remaining generated colors
+	for (let i = generatedIndex; i < generatedColors.length; i++) {
+		colors.push(generatedColors[i])
+	}
 
-				// Try to find a replacement color
-				while (!replacementFound && attempts < 20) {
-					// Use a different hue strategy for replacement
-					const replacementHue = Math.random() * 360 // Random hue
-					const saturation = 65 + (attempts % 7) * 5
-					const lightness = 20 + (attempts % 6) * 5
+	// Step 5: Simplified adjacent similarity check - only check first few groups for performance
+	const maxAdjacentChecks = Math.min(10, Math.floor(colors.length / 5))
+	for (let i = 0; i < maxAdjacentChecks; i++) {
+		const group = colors.slice(i * 5, (i + 1) * 5)
+		if (group.length < 5) break
 
-					const replacementColor = hslToHex(replacementHue, saturation, lightness)
-					const replacementHsl = hexToHSL(replacementColor)
+		let similarCount = 0
+		for (let j = 0; j < group.length - 1; j++) {
+			const hsl1 = hexToHSL(group[j])
+			const hsl2 = hexToHSL(group[j + 1])
+			if (getColorDistance(hsl1, hsl2) < 0.3) {
+				similarCount++
+			}
+		}
 
-					// Check if replacement is distinct from colorToAvoid and all other colors
-					if (!isTooSimilarToAny(replacementHsl, colors)) {
-						colors[i] = replacementColor
-						replacementFound = true
-					}
-
-					attempts++
-				}
-
-				// If no replacement found, force a very different color
-				if (!replacementFound) {
-					const forcedHue = (colorToAvoidHsl.h + 180) % 360 // Opposite hue
-					const saturation = 80
-					const lightness = 30
-					colors[i] = hslToHex(forcedHue, saturation, lightness)
-				}
+		if (similarCount >= 3) {
+			// Simple swap to break similarity
+			const swapIndex = i * 5 + 2
+			if (swapIndex < colors.length - 1) {
+				;[colors[swapIndex], colors[swapIndex + 1]] = [colors[swapIndex + 1], colors[swapIndex]]
 			}
 		}
 	}
 
 	return colors
-}
-
-export function getColorFromNumber(index, length) {
-	//use defillama blue as starting
-	return colord({
-		l: 48.792 + (index / (length + 1)) * 30,
-		c: 67 + (index / (length + 1)) * 20,
-		h: 278.2 + (index / (length + 1)) * 360
-	}).toHex()
 }
 
 export const getDominancePercent = (value, total) => {

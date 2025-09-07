@@ -387,6 +387,18 @@
       "tab": "Chains"
     },
     {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project"
+    },
+    {
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
@@ -407,18 +419,6 @@
       "route": "/treasury/entities",
       "category": "Treasury",
       "description": "Treasury by entity"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project"
     },
     {
       "name": "Unlocks: Overview",

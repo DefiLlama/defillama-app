@@ -1,5 +1,5 @@
 import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -409,7 +409,7 @@ export async function getProtocolsByCategoryOrTag({
 				stack: 'TVL',
 				data: chart.slice(startIndex),
 				type: 'line',
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		},
 		chain: chainMetadata?.name ?? 'All',

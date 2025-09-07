@@ -4,7 +4,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
 import { protocolsOracleColumns } from '~/components/Table/Defi/Protocols/columns'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getOraclePageData } from '~/containers/Oracles/queries'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatChartTvlsByDay } from '~/hooks/data'
@@ -74,7 +74,7 @@ const PageView = ({ chartData, tokenLinks, token, filteredProtocols, chain, chai
 					type: 'line',
 					stack: 'TVS',
 					data: finalChartData,
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			},
 			totalValue

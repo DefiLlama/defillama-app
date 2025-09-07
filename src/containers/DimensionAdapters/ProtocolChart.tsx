@@ -6,7 +6,7 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
 
@@ -168,7 +168,7 @@ const ChartByType = ({
 				.concat(finalChartData[chartType].slice(zeroIndex))
 		}
 
-		const allColors = getNDistinctColors(allTypes.length + 1, oldBlue)
+		const allColors = getNDistinctColors(allTypes.length + 1)
 		const stackColors = Object.fromEntries(allTypes.map((_, i) => [_, allColors[i]]))
 		stackColors['Others'] = allColors[allColors.length - 1]
 

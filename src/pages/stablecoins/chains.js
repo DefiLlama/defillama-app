@@ -1,5 +1,5 @@
 import { maxAgeForNext } from '~/api'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { ChainsWithStablecoins } from '~/containers/Stablecoins/ChainsWithStablecoins'
 import { getPeggedChainsPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
@@ -60,7 +60,7 @@ export const getStaticProps = withPerformanceLogging('stablecoins/chains', async
 				MCap: {
 					name: 'Mcap',
 					stack: 'Mcap',
-					color: oldBlue,
+					color: CHART_COLORS[0],
 					data: peggedAreaTotalData.map(({ date, Mcap }) => [+date * 1e3, Mcap]),
 					type: 'line'
 				}

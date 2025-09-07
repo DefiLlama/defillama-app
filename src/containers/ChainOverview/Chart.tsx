@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
-import { formattedNum, getRandomColor } from '~/utils'
+import { formattedNum } from '~/utils'
 import {
 	BAR_CHARTS,
 	ChainChartLabels,
@@ -54,7 +54,7 @@ export default function ChainLineBarChart({
 		) as Record<ChainChartLabels, number | undefined>
 
 		const series = stacks.map((stack, index) => {
-			const stackColor = chainOverviewChartColors[stack] || getRandomColor()
+			const stackColor = chainOverviewChartColors[stack]
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
@@ -75,7 +75,7 @@ export default function ChainLineBarChart({
 				},
 				symbol: 'none',
 				itemStyle: {
-					color: stackColor || null
+					color: stackColor
 				},
 				...(type === 'line'
 					? {

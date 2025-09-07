@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
@@ -134,7 +134,13 @@ export async function getTotalBorrowedByChain({
 			...chains.map((chain) => ({ label: chain, to: `/total-borrowed/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Total Borrowed': { name: 'Total Borrowed', data: chart, type: 'line', stack: 'Total Borrowed', color: oldBlue }
+			'Total Borrowed': {
+				name: 'Total Borrowed',
+				data: chart,
+				type: 'line',
+				stack: 'Total Borrowed',
+				color: CHART_COLORS[0]
+			}
 		},
 		totalBorrowed: chart[chart.length - 1][1],
 		change24h:

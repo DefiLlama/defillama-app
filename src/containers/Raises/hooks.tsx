@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { slug, toYearMonth } from '~/utils'
 
 export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
@@ -192,7 +192,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				name: 'Funding Amount',
 				stack: 'Funding Amount',
 				data: finalMonthlyInvestment,
-				color: oldBlue,
+				color: CHART_COLORS[0],
 				type: 'bar'
 			}
 		}
@@ -202,7 +202,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				name: 'Funding Rounds',
 				stack: 'Funding Rounds',
 				data: finalFundingRoundsByMonth,
-				color: oldBlue,
+				color: CHART_COLORS[0],
 				type: 'bar'
 			}
 		}

@@ -19,7 +19,7 @@ import {
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
 import Layout from '~/layout'
-import { formattedNum, getColorFromNumber, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -613,9 +613,9 @@ const barChartColors = {
 }
 
 const liquidityChartColors = {
-	Supplied: getColorFromNumber(0, 6),
-	Borrowed: getColorFromNumber(1, 6),
-	Available: getColorFromNumber(2, 6)
+	Supplied: CHART_COLORS[0],
+	Borrowed: CHART_COLORS[1],
+	Available: CHART_COLORS[2]
 }
 
 const barChartStacks = {
