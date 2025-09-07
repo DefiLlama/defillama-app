@@ -178,6 +178,9 @@ export const CHART_TYPES = {
 	txs: { id: 'txs', title: 'Transactions', chartType: 'bar', color: '#FF6347', groupable: true },
 	options: { id: 'options', title: 'Options', chartType: 'bar', color: '#F472B6', groupable: true },
 	revenue: { id: 'revenue', title: 'Revenue', chartType: 'bar', color: '#E59421', groupable: true },
+	incentives: { id: 'incentives', title: 'Incentives', chartType: 'bar', color: '#10B981', groupable: true },
+	liquidity: { id: 'liquidity', title: 'Liquidity', chartType: 'area', color: '#0EA5E9' },
+	treasury: { id: 'treasury', title: 'Treasury', chartType: 'area', color: '#64748B' },
 	aggregators: { id: 'aggregators', title: 'DEX Aggregators', chartType: 'bar', color: '#FF9500', groupable: true },
 	perps: { id: 'perps', title: 'Perps', chartType: 'bar', color: '#B91C1C', groupable: true },
 	bridgeAggregators: {
@@ -196,6 +199,28 @@ export const CHART_TYPES = {
 	},
 	bribes: { id: 'bribes', title: 'Bribes Revenue', chartType: 'bar', color: '#059669', groupable: true },
 	tokenTax: { id: 'tokenTax', title: 'Token Tax', chartType: 'bar', color: '#7C3AED', groupable: true },
+	holdersRevenue: {
+		id: 'holdersRevenue',
+		title: 'Holders Revenue',
+		chartType: 'bar',
+		color: '#9CA3AF',
+		groupable: true
+	},
+	openInterest: { id: 'openInterest', title: 'Open Interest', chartType: 'area', color: '#0EA5E9' },
+	optionsPremium: {
+		id: 'optionsPremium',
+		title: 'Options Premium Volume',
+		chartType: 'bar',
+		color: '#F472B6',
+		groupable: true
+	},
+	optionsNotional: {
+		id: 'optionsNotional',
+		title: 'Options Notional Volume',
+		chartType: 'bar',
+		color: '#FB7185',
+		groupable: true
+	},
 	tokenPrice: { id: 'tokenPrice', title: 'Token Price', chartType: 'area', color: '#16A34A' },
 	tokenMcap: { id: 'tokenMcap', title: 'Token Market Cap', chartType: 'area', color: '#2563EB' },
 	tokenVolume: { id: 'tokenVolume', title: 'Token Volume', chartType: 'bar', color: '#F59E0B', groupable: true },
@@ -220,7 +245,29 @@ export const CHART_TYPES = {
 
 // Helper functions to extract chart types from CHART_TYPES
 export const getProtocolChartTypes = (): string[] => {
-	return ['tvl', 'volume', 'fees', 'revenue', 'tokenMcap', 'tokenPrice', 'tokenVolume', 'medianApy']
+	return [
+		'tvl',
+		'volume',
+		'fees',
+		'revenue',
+		'incentives',
+		'liquidity',
+		'treasury',
+		'holdersRevenue',
+		'bribes',
+		'tokenTax',
+		'perps',
+		'openInterest',
+		'aggregators',
+		'perpsAggregators',
+		'bridgeAggregators',
+		'optionsPremium',
+		'optionsNotional',
+		'tokenMcap',
+		'tokenPrice',
+		'tokenVolume',
+		'medianApy'
+	]
 }
 
 export const getChainChartTypes = (): string[] => {
