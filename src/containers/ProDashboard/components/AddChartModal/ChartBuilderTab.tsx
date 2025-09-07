@@ -412,7 +412,7 @@ export function ChartBuilderTab({
 									}`}
 								>
 									<Icon name={option.icon as any} height={14} width={14} />
-									<span className="text-2.5">{option.label}</span>
+									<span className="text-[10px]">{option.label}</span>
 								</button>
 							))}
 						</div>
@@ -441,7 +441,7 @@ export function ChartBuilderTab({
 				<div className="pro-border flex min-h-0 flex-1 flex-col border p-3">
 					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
 						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
-						<div className="pro-text3 text-2.5 flex items-center gap-1">
+						<div className="pro-text3 flex items-center gap-1 text-[10px]">
 							<span>ⓘ</span>
 							<span>Updates as you configure</span>
 						</div>
@@ -630,8 +630,8 @@ export function ChartBuilderTab({
 
 					<div className="pro-bg2 mt-2 flex-shrink-0 rounded p-2">
 						<div className="flex items-start gap-1">
-							<span className="pro-text3 text-2.5">ⓘ</span>
-							<p className="pro-text3 text-2.5 leading-relaxed">
+							<span className="pro-text3 text-[10px]">ⓘ</span>
+							<p className="pro-text3 text-[10px] leading-relaxed">
 								This chart shows {chartBuilder.metric}
 								{chartBuilder.mode === 'protocol'
 									? ` for ${

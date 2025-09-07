@@ -75,7 +75,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
 								<Tooltip
 									content="Deprecated"
-									className="text-2.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-white dark:bg-red-400"
+									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
 								>
 									!
 								</Tooltip>

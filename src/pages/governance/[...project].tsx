@@ -13,6 +13,7 @@ import {
 	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
 	PROTOCOL_GOVERNANCE_TALLY_API
 } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import { GovernanceTable } from '~/containers/ProtocolOverview/Governance'
 import Layout from '~/layout'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
@@ -243,9 +244,9 @@ export default function Protocol({ data, governanceType }) {
 }
 
 const barChartColors = {
-	Total: '#4f8fea',
-	Successful: '#E59421',
-	'Max Votes': '#4f8fea'
+	Total: CHART_COLORS[0],
+	Successful: CHART_COLORS[1],
+	'Max Votes': CHART_COLORS[2]
 }
 
 const simpleStack = {

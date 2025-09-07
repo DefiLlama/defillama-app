@@ -129,7 +129,7 @@ export function Select({
 			>
 				{labelType === 'smol' ? (
 					<span className="flex items-center gap-1">
-						<span className="text-2.5 flex min-w-4 items-center justify-center rounded-full border border-(--form-control-border) px-1 py-0.25 leading-none">
+						<span className="flex min-w-4 items-center justify-center rounded-full border border-(--form-control-border) px-1 py-0.25 text-[10px] leading-none">
 							{selectedValues.length}
 						</span>
 						<span>{label}</span>

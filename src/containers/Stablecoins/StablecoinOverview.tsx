@@ -10,7 +10,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
@@ -170,7 +170,7 @@ export const PeggedAssetInfo = ({
 										<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
 											<Tooltip
 												content="Deprecated"
-												className="text-2.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-white dark:bg-red-400"
+												className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
 											>
 												!
 											</Tooltip>
@@ -365,7 +365,7 @@ export const PeggedAssetInfo = ({
 								title={`Total ${symbol} Circulating`}
 								chartData={peggedAreaTotalData}
 								stacks={totalChartTooltipLabel}
-								color={oldBlue}
+								color={CHART_COLORS[0]}
 								hideDefaultLegend={true}
 							/>
 						</React.Suspense>

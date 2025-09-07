@@ -217,7 +217,7 @@ export function ProtocolOverviewLayout({
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>
-													<span className="text-2.5 text-(--text-form)">Aggregated view</span>
+													<span className="text-[10px] text-(--text-form)">Aggregated view</span>
 												</span>
 											) : (
 												<span>{value}</span>

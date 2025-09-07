@@ -1,5 +1,3 @@
-import { oldBlue } from '~/constants/colors'
-
 // MAKE SURE TO UPDATE ON SERVER TOO https://github.com/DefiLlama/defillama-server/blob/master/defi/src/updateSearch.ts
 export const protocolCharts = {
 	TVL: 'tvl',
@@ -113,47 +111,4 @@ export const BAR_CHARTS: ProtocolChartsLabels[] = [
 	'Perp Aggregator Volume',
 	'Bridge Aggregator Volume',
 	'Bridge Volume'
-]
-
-export const allColors = [
-	oldBlue,
-	'#aec7e8',
-	'#ff7f0e',
-	'#ffbb78',
-	'#2ca02c',
-	'#98df8a',
-	'#d62728',
-	'#ff9896',
-	'#9467bd',
-	'#c5b0d5',
-	'#8c564b',
-	'#c49c94',
-	'#e377c2',
-	'#f7b6d2',
-	'#7f7f7f',
-	'#c7c7c7',
-	'#bcbd22',
-	'#dbdb8d',
-	'#17becf',
-	'#9edae5',
-	'#393b79',
-	'#637939',
-	'#8c6d31',
-	'#843c39',
-	'#7b4173',
-	'#550055',
-	'#1a5555',
-	'#6a3d9a',
-	'#b2df8a',
-	'#33a02c',
-	'#fb9a99',
-	'#e31a1c',
-	'#fdbf6f',
-	'#ff7f00',
-	'#cab2d6',
-	'#6a3d9a',
-	'#ffff99',
-	'#b15928',
-	'#8dd3c7',
-	'#bebada'
 ]

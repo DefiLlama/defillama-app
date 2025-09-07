@@ -19,12 +19,13 @@ import {
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
-import { allColors, ProtocolChartsLabels } from './Chart/constants'
+import { ProtocolChartsLabels } from './Chart/constants'
 import {
 	IArticle,
 	IArticlesResponse,
@@ -796,7 +797,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {
-		chartColors[chart] = allColors[index]
+		chartColors[chart] = CHART_COLORS[index]
 	})
 
 	const hallmarks = {}

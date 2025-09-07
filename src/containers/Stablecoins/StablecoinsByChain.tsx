@@ -4,7 +4,7 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { PeggedFilters } from '~/containers/Stablecoins/Filters'
 import { stablecoinAttributeOptions } from '~/containers/Stablecoins/Filters/Attribute'
@@ -296,7 +296,7 @@ export function StablecoinsByChain({
 								valueSymbol="$"
 								hideDefaultLegend={true}
 								hallmarks={[]}
-								color={oldBlue}
+								color={CHART_COLORS[0]}
 							/>
 						</React.Suspense>
 					)}
@@ -348,7 +348,7 @@ export function StablecoinsByChain({
 					)}
 					{chartType === 'USD Inflows' && usdInflows && (
 						<React.Suspense fallback={<></>}>
-							<BarChart chartData={usdInflows} color={oldBlue} title="" />
+							<BarChart chartData={usdInflows} color={CHART_COLORS[0]} title="" />
 						</React.Suspense>
 					)}
 				</div>

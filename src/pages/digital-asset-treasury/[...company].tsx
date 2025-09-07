@@ -7,7 +7,7 @@ import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -250,7 +250,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 							chartType="line"
 							chartData={chartData.chart}
 							valueSymbol={chartData.assetSymbol}
-							color={oldBlue}
+							color={CHART_COLORS[0]}
 							chartOptions={chartOptions}
 							symbolOnChart="circle"
 						/>

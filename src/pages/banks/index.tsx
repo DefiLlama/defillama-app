@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum, toNiceDateYear } from '~/utils'
 import data from './final.json'
@@ -62,7 +62,7 @@ const Banks = () => {
 						chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}
 						title="Assets of failed banks (inflation adjusted)"
 						valueSymbol="$"
-						color={oldBlue}
+						color={CHART_COLORS[0]}
 					/>
 				</React.Suspense>
 			</div>
