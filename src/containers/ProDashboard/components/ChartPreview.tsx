@@ -19,7 +19,12 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 	const chartTypeDetails = CHART_TYPES[chartType]
 
 	const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
-	const valueSymbol = userMetricTypes.includes(chartType) ? '' : '$'
+	const percentMetricTypes = ['medianApy']
+	const valueSymbol = userMetricTypes.includes(chartType)
+		? ''
+		: percentMetricTypes.includes(chartType)
+			? '%'
+			: '$'
 
 	if (isLoading) {
 		return (

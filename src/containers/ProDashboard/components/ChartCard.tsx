@@ -33,6 +33,7 @@ interface ChartRendererProps {
 }
 
 const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
+const percentMetricTypes = ['medianApy']
 
 const ChartRenderer = memo(function ChartRenderer({
 	type,
@@ -70,7 +71,7 @@ const ChartRenderer = memo(function ChartRenderer({
 		return <div className="flex flex-1 items-center justify-center text-(--text-form)">No data available</div>
 	}
 
-	const valueSymbol = userMetricTypes.includes(type) ? '' : '$'
+	const valueSymbol = userMetricTypes.includes(type) ? '' : percentMetricTypes.includes(type) ? '%' : '$'
 
 	return (
 		<Suspense fallback={<div className="h-[300px]" />}>

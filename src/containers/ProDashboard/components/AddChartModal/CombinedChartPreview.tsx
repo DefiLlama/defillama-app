@@ -16,6 +16,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		const result = []
 		let colorIndex = 0
 		let hasNonMonetaryMetrics = false
+		let allPercentMetrics = true
 
 		composerItems.forEach((item) => {
 			if (item.data && Array.isArray(item.data) && item.data.length > 0) {
@@ -23,8 +24,13 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
 
 				const nonMonetaryTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
+				const percentMetricTypes = ['medianApy']
 				if (nonMonetaryTypes.includes(item.type)) {
 					hasNonMonetaryMetrics = true
+				}
+
+				if (!percentMetricTypes.includes(item.type)) {
+					allPercentMetrics = false
 				}
 
 				const processedData: [number, number][] = item.data
@@ -53,7 +59,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 			}
 		})
 
-		const symbol = hasNonMonetaryMetrics ? '' : '$'
+		const symbol = result.length > 0 && allPercentMetrics ? '%' : hasNonMonetaryMetrics ? '' : '$'
 
 		return { series: result, valueSymbol: symbol }
 	}, [getProtocolInfo, composerItems])

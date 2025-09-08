@@ -300,6 +300,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const hasPartialFailures = failedItems.length > 0 && validItems.length > 0
 
 	const uniqueMetricTypes = new Set(validItems.map((item) => item.type))
+	const percentMetricTypes = new Set(['medianApy'])
+	const allPercentMetrics = series.length > 0 && series.every((s: any) => percentMetricTypes.has(s.metricType))
 	const hasMultipleMetrics = uniqueMetricTypes.size > 1
 
 	const allChartsGroupable = multi.items.every((item) => {
@@ -470,7 +472,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					<MultiSeriesChart
 						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
 						series={series}
-						valueSymbol={showPercentage ? '%' : '$'}
+						valueSymbol={showPercentage ? '%' : allPercentMetrics ? '%' : '$'}
 						groupBy={
 							multi.grouping === 'week'
 								? 'weekly'
@@ -510,6 +512,33 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 											height: series.length > 5 ? 80 : 40
 										}
 									}
+								: allPercentMetrics
+								? {
+										yAxis: {
+											max: undefined,
+											min: undefined,
+											axisLabel: {
+												formatter: '{value}%'
+											}
+										},
+										tooltip: {
+											valueFormatter: (value: number) => value.toFixed(2) + '%'
+										},
+										grid: {
+											top: series.length > 5 ? 80 : 40,
+											bottom: 12,
+											left: 12,
+											right: 12,
+											outerBoundsMode: 'same',
+											outerBoundsContain: 'axisLabel'
+										},
+										legend: {
+											top: 0,
+											type: 'scroll',
+											pageButtonPosition: 'end',
+											height: series.length > 5 ? 80 : 40
+										}
+									}
 								: {
 										yAxis: {
 											max: undefined,
@@ -542,7 +571,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 											pageButtonPosition: 'end',
 											height: series.length > 5 ? 80 : 40
 										}
-									}
+								}
 						}
 					/>
 				</Suspense>
