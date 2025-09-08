@@ -80,7 +80,7 @@ export async function getPool2TVLByChain({
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			pool2Tvl,

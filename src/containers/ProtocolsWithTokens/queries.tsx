@@ -62,7 +62,7 @@ export async function getProtocolsMarketCapsByChain({
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			value: protocol.mcap ?? null
@@ -239,7 +239,7 @@ export async function getProtocolsTokenPricesByChain({
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			value: protocol.geckoId ? (prices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null

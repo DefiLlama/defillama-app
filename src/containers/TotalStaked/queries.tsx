@@ -76,7 +76,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			totalStaked,
