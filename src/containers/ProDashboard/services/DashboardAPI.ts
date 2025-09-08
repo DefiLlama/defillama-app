@@ -28,12 +28,14 @@ export interface Dashboard {
 	aiGenerated?: Record<
 		string,
 		{
+			mode: 'create' | 'iterate'
+			prompt: string
+			rated: boolean
 			rating?: number
 			feedback?: string
-			mode: 'create' | 'iterate'
+			skipped?: boolean
 			timestamp: string
 			userId: string
-			rated?: boolean
 		}
 	> | null
 }

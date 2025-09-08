@@ -5,7 +5,6 @@ import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
@@ -46,7 +45,6 @@ function ProDashboardContent() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		items,
 		protocolsLoading,
@@ -154,9 +152,7 @@ function ProDashboardContent() {
 									<span>Private</span>
 								</p>
 							)}
-							{!featureFlagsLoading &&
-							hasFeature('dashboard-gen') &&
-							currentDashboard?.aiGenerated &&
+							{currentDashboard?.aiGenerated &&
 							Object.keys(currentDashboard.aiGenerated).length > 0 ? (
 								<p className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
 									<Icon name="sparkles" height={14} width={14} />
@@ -232,7 +228,7 @@ function ProDashboardContent() {
 				</div>
 			</div>
 
-			{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && (
+			{currentDashboard?.aiGenerated && (
 				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
 			)}
 
@@ -283,7 +279,7 @@ function ProDashboardContent() {
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
 							</button>
 						)}
-						{items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
+						{items.length > 0 && (
 							<button
 								className="animate-ai-glow hidden items-center gap-2 border border-(--primary) px-4 py-2 text-base whitespace-nowrap text-(--primary) transition-colors hover:bg-(--primary) hover:text-white md:flex"
 								onClick={() => setShowIterateDashboardModal(true)}
@@ -340,7 +336,7 @@ function ProDashboardContent() {
 			{!protocolsLoading && items.length === 0 && (
 				<EmptyState
 					onAddChart={() => setShowAddModal(true)}
-					onGenerateWithAI={hasFeature('dashboard-gen') ? () => setShowIterateDashboardModal(true) : undefined}
+					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
 					isReadOnly={isReadOnly}
 				/>
 			)}
@@ -385,7 +381,8 @@ function ProDashboardContent() {
 						visibility: dashboardVisibility,
 						tags: dashboardTags,
 						description: dashboardDescription,
-						items
+						items,
+						aiGenerated: currentDashboard?.aiGenerated
 					}}
 					onGenerate={handleIterateDashboard}
 				/>

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export interface FeatureFlags {
-	'dashboard-gen'?: boolean
 	[key: string]: boolean | undefined
 }
 
