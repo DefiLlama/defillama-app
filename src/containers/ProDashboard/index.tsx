@@ -385,7 +385,8 @@ function ProDashboardContent() {
 						visibility: dashboardVisibility,
 						tags: dashboardTags,
 						description: dashboardDescription,
-						items
+						items,
+						aiGenerated: currentDashboard?.aiGenerated
 					}}
 					onGenerate={handleIterateDashboard}
 				/>

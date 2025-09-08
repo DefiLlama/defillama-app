@@ -16,6 +16,19 @@ interface GenerateDashboardModalProps {
 		tags: string[]
 		description: string
 		items: DashboardItemConfig[]
+		aiGenerated?: Record<
+			string,
+			{
+				mode: 'create' | 'iterate'
+				prompt: string
+				rated: boolean
+				rating?: number
+				feedback?: string
+				skipped?: boolean
+				timestamp: string
+				userId: string
+			}
+		>
 	}
 	onGenerate: (data: {
 		dashboardName: string
@@ -128,7 +141,8 @@ export function GenerateDashboardModal({
 							mode: 'iterate',
 							existingDashboard: {
 								dashboardName: existingDashboard?.dashboardName || '',
-								items: existingDashboard?.items || []
+								items: existingDashboard?.items || [],
+								aiGenerated: existingDashboard?.aiGenerated
 							}
 						}
 					: {

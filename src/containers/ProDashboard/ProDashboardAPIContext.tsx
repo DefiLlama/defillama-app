@@ -29,7 +29,7 @@ export interface AISessionData {
 	userId: string
 	rated: boolean
 	skipped?: boolean
-	prompt?: string
+	prompt: string
 }
 
 export interface AISessionState {
