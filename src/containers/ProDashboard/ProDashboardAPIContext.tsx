@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -158,8 +159,7 @@ interface ProDashboardContextType {
 	}) => Promise<void>
 	saveDashboardName: () => Promise<void>
 	copyDashboard: () => Promise<void>
-	showCreateDashboardModal: boolean
-	setShowCreateDashboardModal: (show: boolean) => void
+	createDashboardDialogStore: Ariakit.DialogStore
 	showGenerateDashboardModal: boolean
 	setShowGenerateDashboardModal: (show: boolean) => void
 	showIterateDashboardModal: boolean
@@ -226,9 +226,10 @@ export function ProDashboardAPIProvider({
 	const [dashboardVisibility, setDashboardVisibility] = useState<'private' | 'public'>('private')
 	const [dashboardTags, setDashboardTags] = useState<string[]>([])
 	const [dashboardDescription, setDashboardDescription] = useState<string>('')
-	const [showCreateDashboardModal, setShowCreateDashboardModal] = useState(false)
 	const [showGenerateDashboardModal, setShowGenerateDashboardModal] = useState(false)
 	const [showIterateDashboardModal, setShowIterateDashboardModal] = useState(false)
+
+	const createDashboardDialogStore = Ariakit.useDialogStore()
 
 	// Use the dashboard API hook
 	const {
@@ -482,8 +483,8 @@ export function ProDashboardAPIProvider({
 			return
 		}
 
-		setShowCreateDashboardModal(true)
-	}, [isAuthenticated])
+		createDashboardDialogStore.toggle()
+	}, [isAuthenticated, createDashboardDialogStore])
 
 	const handleCreateDashboard = useCallback(
 		async (data: {
@@ -1347,8 +1348,7 @@ export function ProDashboardAPIProvider({
 			saveDashboard,
 			saveDashboardName,
 			copyDashboard,
-			showCreateDashboardModal,
-			setShowCreateDashboardModal,
+			createDashboardDialogStore,
 			showGenerateDashboardModal,
 			setShowGenerateDashboardModal,
 			showIterateDashboardModal,
@@ -1411,8 +1411,7 @@ export function ProDashboardAPIProvider({
 			saveDashboard,
 			saveDashboardName,
 			copyDashboard,
-			showCreateDashboardModal,
-			setShowCreateDashboardModal,
+			createDashboardDialogStore,
 			showGenerateDashboardModal,
 			setShowGenerateDashboardModal,
 			showIterateDashboardModal,

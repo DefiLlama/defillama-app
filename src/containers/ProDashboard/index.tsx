@@ -66,8 +66,7 @@ function ProDashboardContent() {
 		setDashboardVisibility,
 		setDashboardTags,
 		setDashboardDescription,
-		showCreateDashboardModal,
-		setShowCreateDashboardModal,
+		createDashboardDialogStore,
 		showGenerateDashboardModal,
 		setShowGenerateDashboardModal,
 		showIterateDashboardModal,
@@ -152,8 +151,7 @@ function ProDashboardContent() {
 									<span>Private</span>
 								</p>
 							)}
-							{currentDashboard?.aiGenerated &&
-							Object.keys(currentDashboard.aiGenerated).length > 0 ? (
+							{currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 ? (
 								<p className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
 									<Icon name="sparkles" height={14} width={14} />
 									<span className="text-xs font-medium">AI Generated</span>
@@ -356,11 +354,7 @@ function ProDashboardContent() {
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardModal
-					isOpen={showCreateDashboardModal}
-					onClose={() => setShowCreateDashboardModal(false)}
-					onCreate={handleCreateDashboard}
-				/>
+				<CreateDashboardModal dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
 			</Suspense>
 
 			<Suspense fallback={<></>}>

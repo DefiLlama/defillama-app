@@ -87,9 +87,8 @@ function ProContent({
 		isLoadingDashboards,
 		createNewDashboard,
 		deleteDashboard,
-		showCreateDashboardModal,
-		setShowCreateDashboardModal,
 		handleCreateDashboard,
+		createDashboardDialogStore,
 		showGenerateDashboardModal,
 		setShowGenerateDashboardModal,
 		handleGenerateDashboard
@@ -133,7 +132,7 @@ function ProContent({
 					)}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
-					{(
+					{
 						<button
 							onClick={
 								!isAuthenticated
@@ -147,7 +146,7 @@ function ProContent({
 							<Icon name="sparkles" height={16} width={16} />
 							Generate with LlamaAI
 						</button>
-					)}
+					}
 					<button
 						onClick={
 							!isAuthenticated
@@ -184,11 +183,7 @@ function ProContent({
 			)}
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardModal
-					isOpen={showCreateDashboardModal}
-					onClose={() => setShowCreateDashboardModal(false)}
-					onCreate={handleCreateDashboard}
-				/>
+				<CreateDashboardModal dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
 			</Suspense>
 
 			<Suspense fallback={<></>}>
