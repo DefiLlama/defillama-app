@@ -20,10 +20,8 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 			{tabs.map((tab, index) => (
 				<button
 					key={tab.id}
-					className={`border px-2 py-2.5 text-xs font-medium transition-colors duration-200 md:px-4 md:py-3 md:text-sm ${
-						selectedMainTab === tab.id
-							? 'border-(--primary) bg-(--primary) text-white'
-							: 'pro-border pro-hover-bg pro-text2'
+					className={`-ml-px rounded-none border px-2 py-2.5 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:px-4 md:py-3 md:text-sm ${
+						selectedMainTab === tab.id ? 'pro-border pro-btn-blue' : 'pro-border pro-text2 pro-hover-bg hover:pro-text1'
 					}`}
 					onClick={() => !editItem && onTabChange(tab.id)}
 					disabled={!!editItem}

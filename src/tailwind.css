@@ -196,6 +196,7 @@
 	--pro-bg4: #cccccc;
 	--pro-bg7: rgba(255, 255, 255, 0.95);
 	--pro-bg8: rgba(35, 91, 255, 0.1);
+	--pro-input-bg: rgba(35, 91, 255, 0.06);
 
 	--pro-divider: rgba(0, 0, 0, 0.3);
 	--pro-border: rgba(0, 0, 0, 0.3);
@@ -212,6 +213,7 @@
 		--pro-bg4: #101a1c;
 		--pro-bg7: rgba(7, 14, 15, 0.7);
 		--pro-bg8: rgba(35, 91, 255, 0.1);
+		--pro-input-bg: rgba(35, 91, 255, 0.12);
 
 		--pro-divider: rgba(255, 255, 255, 0.1);
 		--pro-border: rgba(255, 255, 255, 0.2);
@@ -239,6 +241,9 @@
 	}
 	& .pro-bg7 {
 		background-color: var(--pro-bg7);
+	}
+	& .pro-input-bg {
+		background-color: var(--pro-input-bg);
 	}
 	/* & .pro-bg8 {
 		background-color: var(--pro-bg8);
@@ -323,6 +328,12 @@
 @utility pro-bg7 {
 	.pro-dashboard & {
 		background-color: var(--pro-bg7);
+	}
+}
+
+@utility pro-input-bg {
+	.pro-dashboard & {
+		background-color: var(--pro-input-bg);
 	}
 }
 

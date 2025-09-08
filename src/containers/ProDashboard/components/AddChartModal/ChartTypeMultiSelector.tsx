@@ -45,7 +45,7 @@ export function ChartTypeMultiSelector({
 						<>
 							<button
 								onClick={() => onChange([])}
-								className="pro-text3 text-[10px] transition-colors hover:text-(--primary)"
+								className="pro-text3 hover:text-pro-blue-400 text-[10px] transition-colors"
 							>
 								Clear
 							</button>
@@ -56,7 +56,7 @@ export function ChartTypeMultiSelector({
 					)}
 				</div>
 			</div>
-			<div className="pro-border pro-bg2 flex min-h-0 flex-1 flex-col border">
+			<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				{isLoading ? (
 					<div className="flex flex-1 items-center justify-center">
 						<LoadingSpinner size="sm" />
@@ -70,16 +70,18 @@ export function ChartTypeMultiSelector({
 									<button
 										key={option.value}
 										onClick={() => handleToggleChart(option.value)}
-										className={`flex items-center gap-1 border px-2 py-1.5 transition-all duration-200 ${
+										className={`flex items-center gap-1 rounded-md border px-2 py-1.5 transition-all duration-200 ${
 											isSelected
-												? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
-												: 'pro-text2 border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+												? 'border-pro-blue-100 bg-pro-blue-300/20 text-pro-blue-400 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20 dark:text-pro-blue-200'
+												: 'pro-border pro-text2 pro-hover-bg hover:pro-text1'
 										}`}
 										title={option.label}
 									>
 										<div
 											className={`flex h-3 w-3 shrink-0 items-center justify-center border transition-all ${
-												isSelected ? 'border-(--primary) bg-(--primary)' : 'border-gray-300 dark:border-gray-600'
+												isSelected
+													? 'border-pro-blue-100 bg-pro-blue-400 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20'
+													: 'pro-border'
 											}`}
 										>
 											{isSelected && (

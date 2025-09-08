@@ -67,7 +67,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 	if (series.length === 0 && composerItems.length > 0) {
 		return (
 			<div className="flex h-full w-full items-center justify-center">
-				<div className="text-center">
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center">
 					<div className="pro-text2 mb-2 text-sm">Chart Preview</div>
 					<div className="pro-text3 text-xs">
 						{composerItems.length} chart{composerItems.length > 1 ? 's' : ''} selected
@@ -88,7 +88,11 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 
 	return (
 		<div className="h-full w-full">
-			<Suspense fallback={<div className="pro-bg3 h-[450px] w-full animate-pulse"></div>}>
+			<Suspense
+				fallback={
+					<div className="h-[450px] w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
+				}
+			>
 				<MultiSeriesChart
 					key={`combined-${composerItems.map((i) => i.id).join('-')}`}
 					series={series}

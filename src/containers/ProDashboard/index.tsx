@@ -256,10 +256,10 @@ function ProDashboardContent() {
 							{timePeriods.map((period) => (
 								<button
 									key={period.value}
-									className={`flex-1 border px-3 py-1.5 text-sm font-medium transition-colors duration-200 md:flex-initial md:px-4 md:py-2 ${
+									className={`-ml-px flex-1 rounded-none border px-3 py-1.5 text-sm font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:flex-initial md:px-4 md:py-2 ${
 										timePeriod === period.value
-											? 'border-(--primary) bg-(--primary) text-white'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-text2 hover:pro-text1 pro-hover-bg'
 									} ${!hasChartItems ? 'cursor-not-allowed opacity-50' : ''}`}
 									onClick={() => hasChartItems && setTimePeriod(period.value)}
 									disabled={!hasChartItems}
@@ -273,7 +273,7 @@ function ProDashboardContent() {
 						{dashboardId && (
 							<button
 								onClick={() => setShowSettingsModal(true)}
-								className="bg-opacity-30 pro-hover-bg hidden bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border) md:flex"
+								className="pro-glass pro-hover-bg hidden rounded-md p-2 transition-colors md:flex"
 								title="Dashboard Settings"
 							>
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
@@ -281,7 +281,7 @@ function ProDashboardContent() {
 						)}
 						{items.length > 0 && (
 							<button
-								className="animate-ai-glow hidden items-center gap-2 border border-(--primary) px-4 py-2 text-base whitespace-nowrap text-(--primary) transition-colors hover:bg-(--primary) hover:text-white md:flex"
+								className="animate-ai-glow pro-btn-blue-outline hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
 								onClick={() => setShowIterateDashboardModal(true)}
 								title="Edit with LlamaAI"
 							>
@@ -291,7 +291,7 @@ function ProDashboardContent() {
 						)}
 						{canUndo && (
 							<button
-								className="pro-border pro-text2 hover:pro-text1 hidden items-center gap-2 border px-4 py-2 text-base whitespace-nowrap transition-colors hover:border-(--primary) md:flex"
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg hidden items-center gap-2 rounded-md border px-4 py-2 text-base whitespace-nowrap transition-colors md:flex"
 								onClick={undoAIGeneration}
 								title="Undo AI changes"
 							>
@@ -301,7 +301,7 @@ function ProDashboardContent() {
 						)}
 
 						<button
-							className="hidden items-center gap-2 bg-(--primary) px-4 py-2 text-base whitespace-nowrap text-white hover:bg-(--primary-hover) md:flex"
+							className="pro-btn-blue hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
 							onClick={() => setShowAddModal(true)}
 							disabled={isReadOnly}
 						>

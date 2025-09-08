@@ -23,8 +23,18 @@ interface ItemSelectProps {
 	itemType?: 'chain' | 'protocol' | 'text'
 }
 
-const CustomChainOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
+const CustomChainOption = ({ innerProps, label, isFocused, isSelected }) => (
+	<div
+		{...innerProps}
+		style={{
+			display: 'flex',
+			alignItems: 'center',
+			padding: '8px',
+			cursor: 'pointer',
+			backgroundColor: isSelected ? 'var(--primary)' : isFocused ? 'var(--bg-tertiary)' : 'transparent',
+			color: isSelected ? 'white' : 'var(--pro-text1)'
+		}}
+	>
 		{label === 'All Chains' ? null : (
 			<img
 				src={getItemIconUrl('chain', null, label)}
@@ -36,7 +46,7 @@ const CustomChainOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-const CustomProtocolOption = ({ innerProps, label, data }) => {
+const CustomProtocolOption = ({ innerProps, label, data, isFocused, isSelected }) => {
 	const isChild = !!data.isChild
 	const iconSize = isChild ? 18 : 20
 	const iconUrl = getItemIconUrl('protocol', data, data.value)
@@ -51,7 +61,7 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 				paddingLeft: isChild ? 40 : 10,
 				marginLeft: isChild ? 0 : 0,
 				marginRight: 4,
-				backgroundColor: 'transparent',
+				backgroundColor: isSelected ? 'var(--primary)' : isFocused ? 'var(--bg-tertiary)' : 'transparent',
 				transition: 'background-color 0.15s ease',
 				position: 'relative'
 			}}
@@ -67,7 +77,7 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 							width: 4,
 							height: 4,
 							borderRadius: '50%',
-							backgroundColor: 'var(--text-tertiary)',
+							backgroundColor: 'var(--pro-text3)',
 							opacity: 0.6
 						}}
 					/>
@@ -119,7 +129,7 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 			<span
 				style={{
 					fontWeight: isChild ? 400 : 500,
-					color: isChild ? 'var(--text-secondary)' : 'var(--text-primary)',
+					color: isSelected ? 'white' : isChild ? 'var(--pro-text2)' : 'var(--pro-text1)',
 					fontSize: isChild ? '0.95em' : '1em'
 				}}
 			>
@@ -129,8 +139,16 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 	)
 }
 
-const TextOption = ({ innerProps, label }) => (
-	<div {...innerProps} style={{ padding: '8px', cursor: 'pointer' }}>
+const TextOption = ({ innerProps, label, isFocused, isSelected }) => (
+	<div
+		{...innerProps}
+		style={{
+			padding: '8px',
+			cursor: 'pointer',
+			backgroundColor: isSelected ? 'var(--primary)' : isFocused ? 'var(--bg-tertiary)' : 'transparent',
+			color: isSelected ? 'white' : 'var(--pro-text1)'
+		}}
+	>
 		{label}
 	</div>
 )

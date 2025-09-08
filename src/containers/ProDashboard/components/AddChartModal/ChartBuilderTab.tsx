@@ -210,12 +210,12 @@ export function ChartBuilderTab({
 					value={chartBuilderName}
 					onChange={(e) => onChartBuilderNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="pro-border pro-text1 placeholder-pro-text3 pro-bg2 w-full border px-2 py-1.5 text-sm focus:border-(--primary1) focus:outline-hidden"
+					className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-				<div className="pro-border max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto border p-2 lg:w-[320px] xl:w-[360px]">
+				<div className="max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
 					<h3 className="pro-text1 text-[11px] font-semibold">Chart Configuration</h3>
 
 					<div>
@@ -231,15 +231,15 @@ export function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Mode</h4>
-						<div className="mb-1.5 flex gap-1">
+						<div className="mb-1.5 flex gap-0">
 							{MODE_OPTIONS.map((option) => (
 								<button
 									key={option.value}
 									onClick={() => handleModeChange(option.value as any)}
-									className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+									className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
 										chartBuilder.mode === option.value
-											? 'border-(--primary1) bg-(--primary1) text-white'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									}`}
 								>
 									{option.label}
@@ -253,7 +253,7 @@ export function ChartBuilderTab({
 
 						<div className="mb-1.5">
 							<h5 className="pro-text2 mb-1 text-[11px] font-medium">Filter Mode</h5>
-							<div className="mb-1.5 flex gap-1">
+							<div className="mb-1.5 flex gap-0">
 								{[
 									{ value: 'include', label: 'Include' },
 									{ value: 'exclude', label: 'Exclude' }
@@ -261,10 +261,10 @@ export function ChartBuilderTab({
 									<button
 										key={option.value}
 										onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
-										className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+										className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
 											(chartBuilder.filterMode || 'include') === option.value
-												? 'border-(--primary1) bg-(--primary1) text-white'
-												: 'pro-border pro-hover-bg pro-text2'
+												? 'pro-border pro-btn-blue'
+												: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 										}`}
 									>
 										{option.label}
@@ -325,7 +325,7 @@ export function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
 											/>
 											<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
 										</label>
@@ -337,7 +337,7 @@ export function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ groupByParent: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
 											/>
 											<span className="pro-text2 text-[10px]">Group by parent protocol</span>
 										</label>
@@ -405,10 +405,10 @@ export function ChartBuilderTab({
 								<button
 									key={option.value}
 									onClick={() => handleChartTypeChange(option.value as any)}
-									className={`flex flex-col items-center gap-0.5 border p-1 transition-colors ${
+									className={`flex flex-col items-center gap-0.5 rounded-md border p-1 transition-colors ${
 										chartBuilder.chartType === option.value
-											? 'border-(--primary1) bg-(--primary1)/10 text-(--primary1)'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'border-pro-blue-100 bg-pro-blue-300/20 text-pro-blue-400 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20 dark:text-pro-blue-200'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									}`}
 								>
 									<Icon name={option.icon as any} height={14} width={14} />
@@ -420,15 +420,15 @@ export function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Display value as</h4>
-						<div className="flex gap-1">
+						<div className="flex gap-0">
 							{DISPLAY_OPTIONS.map((option) => (
 								<button
 									key={option.value}
 									onClick={() => handleDisplayChange(option.value as any)}
-									className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+									className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
 										chartBuilder.displayAs === option.value
-											? 'border-(--primary1) bg-(--primary1) text-white'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									}`}
 								>
 									{option.label}
@@ -438,7 +438,7 @@ export function ChartBuilderTab({
 					</div>
 				</div>
 
-				<div className="pro-border flex min-h-0 flex-1 flex-col border p-3">
+				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
 						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
 						<div className="pro-text3 flex items-center gap-1 text-[10px]">
@@ -448,17 +448,21 @@ export function ChartBuilderTab({
 					</div>
 
 					<div
-						className="pro-bg2 relative flex flex-1 items-center justify-center rounded"
+						className="relative flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)"
 						style={{ minHeight: '450px' }}
 					>
 						{previewLoading ? (
 							<div className="text-center">
-								<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary1)"></div>
+								<div className="border-pro-blue-100 dark:border-pro-blue-300/20 mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2"></div>
 								<p className="pro-text2 text-sm">Loading preview...</p>
 							</div>
 						) : previewData && previewData.series.length > 0 ? (
 							<div className="absolute inset-0 p-2">
-								<Suspense fallback={<div className="pro-bg3 h-full w-full animate-pulse"></div>}>
+								<Suspense
+									fallback={
+										<div className="h-full w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
+									}
+								>
 									<MultiSeriesChart
 										height="450px"
 										key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}

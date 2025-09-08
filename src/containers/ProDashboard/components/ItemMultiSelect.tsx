@@ -17,8 +17,18 @@ interface ItemMultiSelectProps {
 	maxSelections?: number
 }
 
-const CustomChainOption = ({ innerProps, label, data }) => (
-	<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
+const CustomChainOption = ({ innerProps, label, isFocused, isSelected }) => (
+	<div
+		{...innerProps}
+		style={{
+			display: 'flex',
+			alignItems: 'center',
+			padding: '8px',
+			cursor: 'pointer',
+			backgroundColor: isSelected ? 'var(--primary)' : isFocused ? 'var(--bg-tertiary)' : 'transparent',
+			color: isSelected ? 'white' : 'var(--pro-text1)'
+		}}
+	>
 		{label === 'All Chains' ? null : (
 			<img
 				src={getItemIconUrl('chain', null, label)}
@@ -30,10 +40,20 @@ const CustomChainOption = ({ innerProps, label, data }) => (
 	</div>
 )
 
-const CustomProtocolOption = ({ innerProps, label, data }) => {
+const CustomProtocolOption = ({ innerProps, label, data, isFocused, isSelected }) => {
 	const iconUrl = getItemIconUrl('protocol', data, data.value)
 	return (
-		<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
+		<div
+			{...innerProps}
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				padding: '8px',
+				cursor: 'pointer',
+				backgroundColor: isSelected ? 'var(--primary)' : isFocused ? 'var(--bg-tertiary)' : 'transparent',
+				color: isSelected ? 'white' : 'var(--pro-text1)'
+			}}
+		>
 			{data.logo ? (
 				<img
 					src={data.logo}
@@ -70,8 +90,16 @@ const CustomProtocolOption = ({ innerProps, label, data }) => {
 	)
 }
 
-const TextOption = ({ innerProps, label }) => (
-	<div {...innerProps} style={{ padding: '8px', cursor: 'pointer' }}>
+const TextOption = ({ innerProps, label, isFocused, isSelected }) => (
+	<div
+		{...innerProps}
+		style={{
+			padding: '8px',
+			cursor: 'pointer',
+			backgroundColor: isSelected ? 'var(--primary)' : isFocused ? 'var(--bg-tertiary)' : 'transparent',
+			color: isSelected ? 'white' : 'var(--pro-text1)'
+		}}
+	>
 		{label}
 	</div>
 )
@@ -174,7 +202,7 @@ export function ItemMultiSelect({
 				<div className="mt-1 flex flex-wrap gap-1">
 					<button
 						onClick={() => onChange([])}
-						className="pro-border pro-hover-bg pro-text3 border px-2 py-0.5 text-xs transition-colors"
+						className="pro-border pro-hover-bg pro-text3 hover:pro-text1 rounded-md border px-2 py-0.5 text-xs transition-colors"
 						title="Clear all selections"
 					>
 						Clear all

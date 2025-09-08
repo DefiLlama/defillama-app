@@ -343,14 +343,16 @@ export function TableTab({
 						maxSelections={4}
 					/>
 					<div
-						className="flex cursor-pointer items-center gap-2 border border-(--divider) px-3 py-1.5 transition-colors hover:border-(--text-tertiary)"
+						className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 transition-colors"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative h-4 w-4">
 							<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 							<div
 								className={`h-4 w-4 border-2 transition-all ${
-									includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
+									includeCex
+										? 'border-pro-blue-100 bg-pro-blue-100 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20'
+										: 'pro-border bg-transparent'
 								}`}
 							>
 								{includeCex && (

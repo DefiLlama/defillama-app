@@ -94,7 +94,7 @@ export function UnifiedChartTab({
 								value={unifiedChartName}
 								onChange={(e) => onUnifiedChartNameChange(e.target.value)}
 								placeholder="Enter chart name..."
-								className="pro-border pro-text1 placeholder-pro-text3 pro-bg2 w-full border px-2 py-1 text-xs focus:border-(--primary) focus:outline-hidden"
+								className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							/>
 						</div>
 					)}
@@ -102,20 +102,20 @@ export function UnifiedChartTab({
 					<div className="mb-2">
 						<div className="mb-2 grid grid-cols-2 gap-0">
 							<button
-								className={`border px-2 py-1 text-xs font-medium transition-colors duration-200 ${
+								className={`-ml-px rounded-none border px-2 py-1 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md ${
 									selectedChartTab === 'chain'
-										? 'border-(--primary) bg-(--primary) text-white'
-										: 'pro-border pro-hover-bg pro-text2'
+										? 'pro-border pro-btn-blue'
+										: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 								}`}
 								onClick={() => onChartTabChange('chain')}
 							>
 								Chain
 							</button>
 							<button
-								className={`border px-2 py-1 text-xs font-medium transition-colors duration-200 ${
+								className={`-ml-px rounded-none border px-2 py-1 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md ${
 									selectedChartTab === 'protocol'
-										? 'border-(--primary) bg-(--primary) text-white'
-										: 'pro-border pro-hover-bg pro-text2'
+										? 'pro-border pro-btn-blue'
+										: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 								}`}
 								onClick={() => onChartTabChange('protocol')}
 							>
@@ -164,7 +164,11 @@ export function UnifiedChartTab({
 					<button
 						onClick={handleAddToSelection}
 						disabled={selectedChartTypes.length === 0 || (!selectedChain && !selectedProtocol)}
-						className="mb-2 w-full border border-(--primary) bg-(--primary) px-3 py-2 text-xs font-medium text-white transition-colors duration-200 hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
+						className={`mb-2 w-full rounded-md px-3 py-2 text-xs font-medium transition-colors duration-200 ${
+							selectedChartTypes.length === 0 || (!selectedChain && !selectedProtocol)
+								? 'pro-border pro-text3 cursor-not-allowed border opacity-50'
+								: 'pro-btn-blue'
+						}`}
 					>
 						Add to Selection{' '}
 						{selectedChartTypes.length > 0 &&
@@ -205,7 +209,7 @@ export function UnifiedChartTab({
 				<div className="pro-text2 flex-shrink-0 px-3 py-2 text-xs font-medium">Preview</div>
 
 				{composerItems.length > 0 ? (
-					<div className="pro-bg2 min-h-0 flex-1 overflow-hidden p-2">
+					<div className="min-h-0 flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2">
 						<div className="h-full w-full" key={`${composerItems.map((i) => i.id).join(',')}`}>
 							{chartCreationMode === 'combined' ? (
 								<CombinedChartPreview composerItems={composerItems} />
@@ -227,7 +231,7 @@ export function UnifiedChartTab({
 				)}
 
 				{composerItems.length > 0 && (
-					<div className="pro-border flex-shrink-0 border-t px-2 py-2">
+					<div className="flex-shrink-0 border-t border-(--cards-border) px-2 py-2">
 						<div className="thin-scrollbar flex items-center gap-2 overflow-x-auto">
 							<span className="pro-text2 shrink-0 text-xs font-medium">
 								{chartCreationMode === 'combined' ? 'Charts in Multi-Chart:' : 'Charts to Create:'}
@@ -235,7 +239,7 @@ export function UnifiedChartTab({
 							{composerItems.map((item) => (
 								<div
 									key={item.id}
-									className="pro-bg2 pro-border flex shrink-0 items-center gap-1.5 border px-2 py-1 text-xs"
+									className="flex shrink-0 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-xs"
 								>
 									<span className="pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}

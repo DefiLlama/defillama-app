@@ -52,7 +52,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		>
 			<div className="flex w-full justify-center lg:pl-[240px]">
 				<div
-					className={`pro-bg1 pro-border relative flex w-[90%] flex-col overflow-hidden border p-3 shadow-xl md:p-4 ${
+					className={`relative flex w-[90%] flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${
 						state.selectedMainTab === 'builder'
 							? 'max-h-[90vh] md:max-h-[85vh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
 							: state.selectedMainTab === 'charts'
