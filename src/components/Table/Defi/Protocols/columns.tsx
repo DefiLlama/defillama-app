@@ -6,7 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { removedCategoriesFromChainTvl } from '~/constants'
+import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { formatColumnOrder } from '../../utils'
@@ -1156,11 +1156,9 @@ export const ProtocolTvlCell = ({ value, rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategoriesFromChainTvl.forEach((removedCategory) => {
-			if (rowValues.category === removedCategory) {
-				text = `${removedCategory} protocols are not counted into Chain TVL`
-			}
-		})
+		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+			text = `${rowValues.category} protocols are not counted into Chain TVL`
+		}
 
 		if (text && rowValues.isParentProtocol) {
 			text = 'Some sub-protocols are excluded from chain tvl'

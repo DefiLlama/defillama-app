@@ -285,12 +285,13 @@ const getTvlData = async (
 	const excludedChainSetForProtocols: Set<string> = new Set(
 		filterMode === 'exclude' ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
 	)
+	const categoriesFilterSet = new Set(categoriesFilter)
 
 	for (const p of protocols) {
 		const cat = (p.category || '').toLowerCase()
-		if (categoriesFilter.length > 0) {
-			if (filterMode === 'include' && !categoriesFilter.includes(cat)) continue
-			if (filterMode === 'exclude' && categoriesFilter.includes(cat)) continue
+		if (categoriesFilterSet.size > 0) {
+			if (filterMode === 'include' && !categoriesFilterSet.has(cat)) continue
+			if (filterMode === 'exclude' && categoriesFilterSet.has(cat)) continue
 		}
 
 		let score = 0

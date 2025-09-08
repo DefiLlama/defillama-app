@@ -1,6 +1,6 @@
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
-import { removedCategoriesFromChainTvl } from '~/constants'
+import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { IChainAsset, IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 import { formattedNum, getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
@@ -279,7 +279,7 @@ export const formatProtocolsList = ({
 				strikeTvl = true
 			}
 
-			if (removedCategoriesFromChainTvl.includes(props.category)) {
+			if (removedCategoriesFromChainTvlSet.has(props.category)) {
 				strikeTvl = true
 			}
 

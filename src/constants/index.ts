@@ -191,6 +191,8 @@ export const removedCategoriesFromChainTvl = [
 	'RWA'
 ]
 
+export const removedCategoriesFromChainTvlSet = new Set(removedCategoriesFromChainTvl)
+
 export const REV_PROTOCOLS = {
 	ethereum: ['flashbots', 'eden-relay'],
 	solana: ['jito-mev-tips', 'bloxroute'],

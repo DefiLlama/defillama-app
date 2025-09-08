@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { Bookmark } from '~/components/Bookmark'
-import { feesOptions, tvlOptions } from '~/components/Filters/options'
+import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
@@ -28,7 +28,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 		for (const chain in props.currentTvlByChain ?? {}) {
 			if (chain.toLowerCase() in extraTvlsEnabled || chain == 'offers') {
-				const option = tvlOptions.find((e) => e.key === chain)
+				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
 				}
@@ -51,11 +51,17 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 		}
 
 		if (props.bribeRevenue?.totalAllTime != null) {
-			toggleOptions.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
+			const option = feesOptionsMap.get(FEES_SETTINGS.BRIBES)
+			if (option) {
+				toggleOptions.push(option)
+			}
 		}
 
 		if (props.tokenTax?.totalAllTime != null) {
-			toggleOptions.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
+			const option = feesOptionsMap.get(FEES_SETTINGS.TOKENTAX)
+			if (option) {
+				toggleOptions.push(option)
+			}
 		}
 
 		return {

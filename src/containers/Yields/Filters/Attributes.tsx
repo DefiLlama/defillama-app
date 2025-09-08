@@ -148,27 +148,32 @@ export const attributeOptions = [
 	}
 ]
 
+function filterAttributeOptions(option, pathname) {
+	switch (pathname) {
+		case '/borrow':
+			return !option.disabledOnPages.includes('/borrow')
+		case '/yields/strategy':
+			return !option.disabledOnPages.includes('/yields/strategy')
+		case '/yields/strategyFR':
+			return !option.disabledOnPages.includes('/yields/strategyFR')
+		case '/yields':
+			return !option.disabledOnPages.includes('/yields')
+		case '/yields/stablecoins':
+			return !option.disabledOnPages.includes('/yields/stablecoins')
+		case '/yields/loop':
+			return !option.disabledOnPages.includes('/yields/loop')
+		default:
+			return true
+	}
+}
+
 export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; nestedMenu?: boolean }) {
 	const router = useRouter()
 
 	const { attribute = [], ...queries } = router.query
 
 	const { attributeOptionsFiltered, selectedAttributes } = useMemo(() => {
-		const attributeOptionsFiltered = attributeOptions.filter((option) =>
-			pathname === '/borrow'
-				? !option.disabledOnPages.includes('/borrow')
-				: pathname === '/yields/strategy'
-					? !option.disabledOnPages.includes('/yields/strategy')
-					: pathname === '/yields/strategyFR'
-						? !option.disabledOnPages.includes('/yields/strategyFR')
-						: pathname === '/yields'
-							? !option.disabledOnPages.includes('/yields')
-							: pathname === '/yields/stablecoins'
-								? !option.disabledOnPages.includes('/yields/stablecoins')
-								: pathname === '/yields/loop'
-									? !option.disabledOnPages.includes('/yields/loop')
-									: true
-		)
+		const attributeOptionsFiltered = attributeOptions.filter((option) => filterAttributeOptions(option, pathname))
 
 		const values = attributeOptionsFiltered
 			.filter((o) => {
