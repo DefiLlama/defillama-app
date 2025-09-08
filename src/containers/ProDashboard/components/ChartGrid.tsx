@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
@@ -220,7 +221,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	}
 
 	return (
-		<div className="mt-2">
+		<>
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
 					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-2">
@@ -230,36 +231,36 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								className={`col-span-1 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${item.colSpan === 2 ? 'lg:col-span-2' : 'lg:col-span-1'}`}
 							>
 								<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan}>
-									<div className="flex flex-wrap items-center justify-end gap-1 px-2 pt-2 pb-0 lg:px-4 lg:pt-4">
-										<button
-											className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-											onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
-											aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-											title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
+										<Tooltip
+											content={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
+											render={<button onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)} />}
+											className="hover:pro-btn-blue px-3 py-2"
 										>
 											{item.colSpan === 1 ? (
 												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
 											) : (
 												<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
 											)}
-										</button>
+										</Tooltip>
 										{onEditItem && (
-											<button
-												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => onEditItem(item)}
-												aria-label="Edit item"
-												title="Edit item"
+											<Tooltip
+												content="Edit item"
+												render={<button onClick={() => onEditItem(item)} />}
+												className="hover:pro-btn-blue px-3 py-2"
 											>
 												<Icon name="pencil" height={14} width={14} />
-											</button>
+												<span className="sr-only">Edit item</span>
+											</Tooltip>
 										)}
-										<button
-											className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-											onClick={() => handleDeleteClick(item.id)}
-											aria-label="Remove item"
+										<Tooltip
+											content="Remove item"
+											render={<button onClick={() => handleDeleteClick(item.id)} />}
+											className="rounded-tr-md px-3 py-2 hover:bg-red-500/10 hover:text-(--error)"
 										>
 											<Icon name="x" height={14} width={14} />
-										</button>
+											<span className="sr-only">Remove item</span>
+										</Tooltip>
 									</div>
 									<div>{renderItemContent(item)}</div>
 								</SortableItem>
@@ -279,7 +280,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						)}
 						<button
 							onClick={onAddChartClick}
-							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--old-blue)"
+							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text)"
 						>
 							<svg
 								width="40"
@@ -309,6 +310,6 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				confirmText="Remove"
 				cancelText="Cancel"
 			/>
-		</div>
+		</>
 	)
 }

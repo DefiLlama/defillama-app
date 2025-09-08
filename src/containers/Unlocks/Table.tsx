@@ -194,7 +194,7 @@ export const UnlocksTable = ({
 		return columnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
 	}, [columnsInStorage])
 
-	const [sorting, setSorting] = useState<SortingState>([])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 

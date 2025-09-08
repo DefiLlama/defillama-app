@@ -43,7 +43,14 @@ const pageName = ['Forked Protocols Rankings']
 
 export default function Forks(props) {
 	return (
-		<Layout title={`Forks - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
+		<Layout
+			title={`Forks - DefiLlama`}
+			description={`Protocols rankings by their forks value. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`forks by protocol, protocol forks, forks on blockchain`}
+			canonicalUrl={`/forks`}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
 			{props.tokenLinks?.length > 0 && (
 				<RowLinksWithDropdown links={props.tokenLinks} activeLink={props.token} alternativeOthersText="Others" />
 			)}

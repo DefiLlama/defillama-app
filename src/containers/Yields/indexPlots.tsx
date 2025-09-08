@@ -13,7 +13,16 @@ const BoxplotChart = React.lazy(() => import('~/components/ECharts/BoxplotChart'
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<IChartProps>
 const BarChartYields = React.lazy(() => import('~/components/ECharts/BarChart/Yields')) as React.FC<IChartProps>
 
-export const PlotsPage = ({ pools, chainList, projectList, categoryList, median, tokens, tokenSymbolsList }) => {
+export const PlotsPage = ({
+	pools,
+	chainList,
+	projectList,
+	categoryList,
+	median,
+	tokens,
+	tokenSymbolsList,
+	usdPeggedSymbols
+}) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -49,7 +58,8 @@ export const PlotsPage = ({ pools, chainList, projectList, categoryList, median,
 				maxTvl,
 				minApy,
 				maxApy,
-				pairTokens: pair_tokens
+				pairTokens: pair_tokens,
+				usdPeggedSymbols
 			})
 
 			if (toFilter) {

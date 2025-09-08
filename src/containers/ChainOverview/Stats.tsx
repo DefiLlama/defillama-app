@@ -803,7 +803,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								{DENOMINATIONS.map((denom) => (
 									<button
 										key={`denom-${denom}`}
-										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
+										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 										data-active={denomination === denom}
 										onClick={() => updateRoute('currency', denom, router)}
 									>

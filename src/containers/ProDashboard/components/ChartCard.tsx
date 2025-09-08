@@ -2,7 +2,9 @@ import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { download } from '~/utils'
+import { Select } from '~/components/Select'
+import { Tooltip } from '~/components/Tooltip'
+import { capitalizeFirstLetter, download } from '~/utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
@@ -31,6 +33,7 @@ interface ChartRendererProps {
 }
 
 const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
+const percentMetricTypes = ['medianApy']
 
 const ChartRenderer = memo(function ChartRenderer({
 	type,
@@ -68,7 +71,7 @@ const ChartRenderer = memo(function ChartRenderer({
 		return <div className="flex flex-1 items-center justify-center text-(--text-form)">No data available</div>
 	}
 
-	const valueSymbol = userMetricTypes.includes(type) ? '' : '$'
+	const valueSymbol = userMetricTypes.includes(type) ? '' : percentMetricTypes.includes(type) ? '%' : '$'
 
 	return (
 		<Suspense fallback={<div className="h-[300px]" />}>
@@ -172,32 +175,38 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 					{!isReadOnly && (
 						<>
 							{isGroupable && (
-								<div className="flex overflow-hidden border border-(--form-control-border)">
-									{groupingOptions.map((option, index) => (
-										<button
-											key={option}
-											onClick={() => handleGroupingChange(chart.id, option)}
-											className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out xl:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
-												chart.grouping === option
-													? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-													: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
-											}`}
+								<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+									{groupingOptions.map((dataInterval) => (
+										<Tooltip
+											content={capitalizeFirstLetter(dataInterval)}
+											render={<button />}
+											className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue shrink-0 px-2 py-1 text-xs whitespace-nowrap data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+											data-active={chart.grouping === dataInterval}
+											onClick={() => handleGroupingChange(chart.id, dataInterval)}
+											key={`${chart.id}-options-groupBy-${dataInterval}`}
 										>
-											<span className="xl:hidden">{option.charAt(0).toUpperCase()}</span>
-											<span className="hidden xl:inline">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-										</button>
+											{dataInterval.slice(0, 1).toUpperCase()}
+										</Tooltip>
 									))}
 								</div>
 							)}
 							{isBarChart && (
-								<button
-									onClick={() => handleCumulativeChange(chart.id, !showCumulative)}
-									className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-									title={showCumulative ? 'Show cumulative values' : 'Show individual values'}
-								>
-									<Icon name="trending-up" height={12} width={12} />
-									<span className="hidden lg:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
-								</button>
+								<Select
+									allValues={[
+										{ name: 'Show individual values', key: 'Individual' },
+										{ name: `Show cumulative values`, key: `Cumulative` }
+									]}
+									selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
+									setSelectedValues={(value) => {
+										handleCumulativeChange(chart.id, value === 'Cumulative' ? true : false)
+									}}
+									label={showCumulative ? 'Cumulative' : 'Individual'}
+									labelType="none"
+									triggerProps={{
+										className:
+											'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+									}}
+								/>
 							)}
 						</>
 					)}
@@ -207,7 +216,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
 					)}

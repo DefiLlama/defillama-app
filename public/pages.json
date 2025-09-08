@@ -309,7 +309,7 @@
       "route": "/open-interest",
       "category": "Volume",
       "description": "Total notional value of all outstanding perpetual futures positions",
-      "totalTrackedKey": "perpsOpenInterest.protocols",
+      "totalTrackedKey": "openInterest.protocols",
       "tab": "Protocols"
     },
     {
@@ -387,6 +387,18 @@
       "tab": "Chains"
     },
     {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project"
+    },
+    {
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
@@ -403,16 +415,10 @@
       "tab": "Protocols"
     },
     {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project"
+      "name": "Treasury: Entities",
+      "route": "/treasury/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity"
     },
     {
       "name": "Unlocks: Overview",
@@ -436,18 +442,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "Borrow Aggregator: Simple",
-      "route": "/borrow",
-      "category": "Borrow Aggregator",
-      "description": "Simple view of optimal lending routes by collateral to borrow assets"
-    },
-    {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
-    },
-    {
       "name": "Hacks: Overview",
       "route": "/hacks",
       "category": "Hacks",
@@ -459,6 +453,18 @@
       "category": "Hacks",
       "description": "Net user loss, total value lost in hacks by a protocol",
       "tab": "Protocols"
+    },
+    {
+      "name": "Borrow Aggregator: Simple",
+      "route": "/borrow",
+      "category": "Borrow Aggregator",
+      "description": "Simple view of optimal lending routes by collateral to borrow assets"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
       "name": "NFTs: Collections",
@@ -498,17 +504,17 @@
       "description": "MCap-Weighted category performance to track narrative changes in the ecosystem"
     },
     {
-      "name": "Staked ETH by Protocol",
-      "route": "/lst",
-      "category": "Others",
-      "description": "Total value of ETH staked on LSTs",
-      "tab": "Protocols"
-    },
-    {
       "name": "Recently Listed Protocols",
       "route": "/recent",
       "category": "Others",
       "description": "List of recently listed protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Staked ETH by Protocol",
+      "route": "/lst",
+      "category": "Others",
+      "description": "Total value of ETH staked on LSTs",
       "tab": "Protocols"
     },
     {
@@ -530,7 +536,7 @@
       "category": "Others",
       "description": "Overview of all governance proposals by protocol",
       "tab": "Protocols"
-    }, 
+    },
     {
       "name": "Safe Harbor Agreements",
       "route": "/safe-harbor-agreements",
@@ -555,12 +561,6 @@
       "description": "View correlation relationships between different cryptocurrencies to identify market trends and diversification opportunities"
     },
     {
-      "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl",
-      "category": "Tools",
-      "description": "Calculate the percentage change in token price between two dates"
-    },
-    {
       "name": "DeFi Watchlist",
       "route": "/watchlist",
       "category": "Tools",
@@ -571,6 +571,12 @@
       "route": "/yields/watchlist",
       "category": "Tools",
       "description": "Watchlist of all pools that we track in our yields section"
+    },
+    {
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl",
+      "category": "Tools",
+      "description": "Calculate the percentage change in token price between two dates"
     },
     {
       "name": "Token Liquidity",
@@ -694,7 +700,7 @@
       "route": "/press"
     },
     {
-      "name": "Docs",
+      "name": "API Reference",
       "route": "https://api-docs.defillama.com"
     },
     {
@@ -730,7 +736,7 @@
   ],
   "Hidden": [
     {
-      "name": "API Reference",
+      "name": "Docs",
       "route": "https://api-docs.defillama.com",
       "keys": [
         "docs"

@@ -130,7 +130,7 @@ export const IconsRow = ({
 				<Ariakit.HovercardProvider>
 					<Ariakit.HovercardAnchor
 						render={<button />}
-						className="text-2.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--bg-tertiary) text-(--text-primary)"
+						className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--bg-tertiary) text-[10px] text-(--text-primary)"
 					>
 						{`+${hoverChains.length}`}
 					</Ariakit.HovercardAnchor>

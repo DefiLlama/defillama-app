@@ -46,6 +46,8 @@ export function useDashboardEngagement(dashboardId: string | null) {
 	return {
 		trackView: viewMutation.mutate,
 		toggleLike: likeMutation.mutate,
-		isLiking: likeMutation.isPending
+		isLiking: likeMutation.isPending,
+		liked: likeMutation.data?.liked,
+		likeCount: likeMutation.data?.likeCount
 	}
 }

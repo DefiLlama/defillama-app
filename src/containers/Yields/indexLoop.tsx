@@ -5,7 +5,7 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsLoopTable } from './Tables/Loop'
 import { toFilterPool } from './utils'
 
-const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) => {
+const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens, usdPeggedSymbols }) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -41,7 +41,8 @@ const YieldPageLoop = ({ pools, projectList, chainList, categoryList, tokens }) 
 				maxTvl,
 				minApy,
 				maxApy,
-				pairTokens: pair_tokens
+				pairTokens: pair_tokens,
+				usdPeggedSymbols
 			})
 
 			if (toFilter) {

@@ -20,7 +20,12 @@ export const getStaticProps = withPerformanceLogging('protocols', async () => {
 
 export default function Protocols({ protocols }) {
 	return (
-		<Layout title={`TVL Rankings - DefiLlama`}>
+		<Layout
+			title={`Protocols - DefiLlama`}
+			description={`List of all protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocols, defi protocols, protocols on blockchain`}
+			canonicalUrl={`/protocols`}
+		>
 			<ChainProtocolsTable protocols={protocols} />
 		</Layout>
 	)

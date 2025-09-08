@@ -19,12 +19,13 @@ import {
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
-import { allColors, ProtocolChartsLabels } from './Chart/constants'
+import { ProtocolChartsLabels } from './Chart/constants'
 import {
 	IArticle,
 	IArticlesResponse,
@@ -127,6 +128,7 @@ export const getProtocolMetrics = ({
 		tvlTab: tvlTab ? true : false,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
+		openInterest: metadata.openInterest ? true : false,
 		optionsPremiumVolume: metadata.optionsPremiumVolume ? true : false,
 		optionsNotionalVolume: metadata.optionsNotionalVolume ? true : false,
 		dexAggregators: metadata.dexAggregators ? true : false,
@@ -171,6 +173,7 @@ export const getProtocolOverviewPageData = async ({
 		dexVolumeData,
 		dexAggregatorVolumeData,
 		perpVolumeData,
+		openInterestData,
 		perpAggregatorVolumeData,
 		bridgeAggregatorVolumeData,
 		optionsPremiumVolumeData,
@@ -226,6 +229,7 @@ export const getProtocolOverviewPageData = async ({
 		IProtocolOverviewPageData['dexVolume'],
 		IProtocolOverviewPageData['dexAggregatorVolume'],
 		IProtocolOverviewPageData['perpVolume'],
+		IProtocolOverviewPageData['openInterest'],
 		IProtocolOverviewPageData['perpAggregatorVolume'],
 		IProtocolOverviewPageData['bridgeAggregatorVolume'],
 		IProtocolOverviewPageData['optionsPremiumVolume'],
@@ -349,6 +353,17 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChartBreakdown: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
+					.catch(() => null)
+			: Promise.resolve(null),
+		metadata.openInterest
+			? getAdapterProtocolSummary({
+					adapterType: 'derivatives',
+					protocol: metadata.displayName,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'openInterestAtEnd'
+				})
+					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.perpsAggregators
@@ -706,6 +721,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Perp Volume')
 	}
 
+	if (openInterestData) {
+		availableCharts.push('Open Interest')
+	}
+
 	if (optionsPremiumVolumeData) {
 		availableCharts.push('Options Premium Volume')
 	}
@@ -778,7 +797,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {
-		chartColors[chart] = allColors[index]
+		chartColors[chart] = CHART_COLORS[index]
 	})
 
 	const hallmarks = {}
@@ -796,9 +815,27 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	const name = protocolData.name ?? metadata.displayName ?? ''
+	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successfull Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
+	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
+	if (expenses) {
+		seoDescription += `, Expenses`
+		seoKeywords += `, ${name.toLowerCase()} expenses`
+	}
+	if (revenueData && incentives) {
+		seoDescription += `, Earnings`
+		seoKeywords += `, ${name.toLowerCase()} earnings`
+	}
+	if (incomeStatement) {
+		seoDescription += `, Income Statement`
+		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
+	}
+	seoDescription += ' and their methodologies'
+	seoKeywords += `, ${name.toLowerCase()} methodologies`
+
 	return {
 		id: String(protocolData.id),
-		name: protocolData.name ?? metadata.displayName ?? null,
+		name: name,
 		category: protocolData.category ?? null,
 		tags: protocolData.tags ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
@@ -841,6 +878,7 @@ export const getProtocolOverviewPageData = async ({
 		dexVolume: dexVolumeData,
 		dexAggregatorVolume: dexAggregatorVolumeData,
 		perpVolume: perpVolumeData,
+		openInterest: openInterestData,
 		perpAggregatorVolume: perpAggregatorVolumeData,
 		bridgeAggregatorVolume: bridgeAggregatorVolumeData,
 		optionsPremiumVolume: optionsPremiumVolumeData,
@@ -912,7 +950,9 @@ export const getProtocolOverviewPageData = async ({
 			bridgeAggregatorVolumeData?.defaultChartView ??
 			optionsPremiumVolumeData?.defaultChartView ??
 			optionsNotionalVolumeData?.defaultChartView ??
-			'daily'
+			'daily',
+		seoDescription,
+		seoKeywords
 	}
 }
 

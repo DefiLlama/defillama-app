@@ -4,7 +4,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
@@ -118,7 +118,7 @@ export default function Protocols(props) {
 					denominationPriceHistory: null,
 					dateInMs: true
 				}),
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		}
 	}, [props.chart, groupBy])

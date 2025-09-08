@@ -56,7 +56,12 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 	}
 
 	return (
-		<Layout title={`Protocols Directory - DefiLlama`}>
+		<Layout
+			title={`Protocols Directory - DefiLlama`}
+			description={`Protocols website directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocols directory, defi protocols`}
+			canonicalUrl={`/directory`}
+		>
 			<Announcement notCancellable>
 				Search any protocol to go straight into their website, avoiding scam results from google. Bookmark this page for
 				better access and security
@@ -107,7 +112,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 									value="__see_more__"
 									setValueOnClick={false}
 									hideOnClick={false}
-									className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) data-active-item:bg-(--bg-secondary)"
+									className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
 									onClick={handleSeeMore}
 								>
 									See more...

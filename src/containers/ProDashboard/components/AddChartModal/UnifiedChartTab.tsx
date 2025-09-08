@@ -1,6 +1,9 @@
 import { Icon } from '~/components/Icon'
+import { useAppMetadata } from '../../AppMetadataContext'
+import { useProDashboard } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { ItemSelect } from '../ItemSelect'
+import { ProtocolSelect } from '../ProtocolSelect'
 import { ChartTypeMultiSelector } from './ChartTypeMultiSelector'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
@@ -53,6 +56,8 @@ export function UnifiedChartTab({
 }: UnifiedChartTabProps) {
 	const protocolChartTypes = getProtocolChartTypes()
 	const chainChartTypes = getChainChartTypes()
+	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
+	const { protocols, chains } = useProDashboard()
 
 	const handleChartTypesChange = (types: string[]) => {
 		onChartTypesChange(types)
@@ -64,6 +69,18 @@ export function UnifiedChartTab({
 			onChartTypesChange([])
 		}
 	}
+
+	const instantAvailableChartTypes = (() => {
+		if (selectedChartTab === 'protocol' && selectedProtocol) {
+			const geckoId = protocols.find((p: any) => p.slug === selectedProtocol)?.geckoId
+			return availableProtocolChartTypes(selectedProtocol, { hasGeckoId: !!geckoId })
+		}
+		if (selectedChartTab === 'chain' && selectedChain) {
+			const geckoId = chains.find((c: any) => c.name === selectedChain)?.gecko_id
+			return availableChainChartTypes(selectedChain, { hasGeckoId: !!geckoId })
+		}
+		return []
+	})()
 
 	return (
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
@@ -119,14 +136,13 @@ export function UnifiedChartTab({
 						)}
 
 						{selectedChartTab === 'protocol' && (
-							<ItemSelect
+							<ProtocolSelect
 								label="Select Protocol"
 								options={protocolOptions}
 								selectedValue={selectedProtocol}
 								onChange={onProtocolChange}
 								isLoading={protocolsLoading}
 								placeholder="Select a protocol..."
-								itemType="protocol"
 							/>
 						)}
 					</div>
@@ -135,9 +151,11 @@ export function UnifiedChartTab({
 						<div className="mb-2 min-h-0 flex-1">
 							<ChartTypeMultiSelector
 								selectedChartTypes={selectedChartTypes}
-								availableChartTypes={availableChartTypes}
+								availableChartTypes={
+									instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : availableChartTypes
+								}
 								chartTypes={selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes}
-								isLoading={chartTypesLoading}
+								isLoading={metaLoading}
 								onChange={handleChartTypesChange}
 							/>
 						</div>

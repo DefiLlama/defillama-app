@@ -11,6 +11,7 @@ export interface IChainMetadata {
 	chainFees?: boolean
 	chainRevenue?: boolean
 	perps?: boolean
+	openInterest?: boolean
 	dexAggregators?: boolean
 	optionsPremiumVolume?: boolean
 	optionsNotionalVolume?: boolean
@@ -100,6 +101,8 @@ export interface IChainOverviewData {
 	} | null
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
 	charts: ChainChartLabels[]
+	description: string
+	keywords: string
 }
 
 export interface ILiteChart {

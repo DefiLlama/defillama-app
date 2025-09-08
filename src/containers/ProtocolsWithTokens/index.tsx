@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, SortingState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -93,7 +93,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 		)
 	}
 
-	const { columns } = getMetricNameAndColumns(props.type)
+	const { columns, sortingState } = getMetricNameAndColumns(props.type)
 
 	return (
 		<>
@@ -126,6 +126,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 						)}
 					</>
 				}
+				sortingState={sortingState}
 			/>
 		</>
 	)
@@ -344,17 +345,18 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 
 function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type']): {
 	columns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[]
+	sortingState: SortingState
 } {
 	switch (type) {
 		case 'mcap':
-			return { columns: mcapColumns }
+			return { columns: mcapColumns, sortingState: [{ id: 'mcap', desc: true }] }
 		case 'price':
-			return { columns: priceColumns }
+			return { columns: priceColumns, sortingState: [{ id: 'price', desc: true }] }
 		case 'fdv':
-			return { columns: fdvColumns }
+			return { columns: fdvColumns, sortingState: [{ id: 'fdv', desc: true }] }
 		case 'outstanding-fdv':
-			return { columns: outstandingFdvColumns }
+			return { columns: outstandingFdvColumns, sortingState: [{ id: 'outstanding-fdv', desc: true }] }
 		default:
-			return { columns: [] }
+			return { columns: [], sortingState: [] }
 	}
 }

@@ -75,7 +75,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 								<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{value}</span>
 								<Tooltip
 									content="Deprecated"
-									className="text-2.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-white dark:bg-red-400"
+									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
 								>
 									!
 								</Tooltip>
@@ -235,6 +235,16 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 120
 			}),
+			columnHelper.accessor('feesChange_7dover7d', {
+				header: 'Fees Change 7d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 7d fees over the previous 7d fees'
+				},
+				size: 140
+			}),
 			columnHelper.accessor('fees_30d', {
 				header: 'Fees 30d',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -254,6 +264,36 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
 				},
 				size: 125
+			}),
+			columnHelper.accessor('feesChange_30dover30d', {
+				header: 'Fees Change 30d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 30d fees over the previous 30d fees'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('revenueChange_7dover7d', {
+				header: 'Revenue Change 7d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 7d revenue over the previous 7d revenue'
+				},
+				size: 160
+			}),
+			columnHelper.accessor('revenueChange_30dover30d', {
+				header: 'Revenue Change 30d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 30d revenue over the previous 30d revenue'
+				},
+				size: 170
 			}),
 			columnHelper.accessor('fees_1y', {
 				header: 'Fees 1Y',

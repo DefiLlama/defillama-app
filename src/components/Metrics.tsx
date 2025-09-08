@@ -204,7 +204,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 					{page.tags?.map((tag) =>
 						tag === 'Hot' ? (
 							<span
-								className="text-2.5 -mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-[#D24C1F] px-1.5 py-1 text-white group-hover:hidden group-data-[pinned=true]:hidden"
+								className="-mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-[#D24C1F] px-1.5 py-1 text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden"
 								key={`tag-${page.route}-${tag}`}
 							>
 								<Icon name="flame" height={10} width={10} />
@@ -212,7 +212,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 							</span>
 						) : (
 							<span
-								className="text-2.5 -mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-1 text-white group-hover:hidden group-data-[pinned=true]:hidden"
+								className="-mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-1 text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden"
 								key={`tag-${page.route}-${tag}`}
 							>
 								<Icon name="sparkles" height={10} width={10} />

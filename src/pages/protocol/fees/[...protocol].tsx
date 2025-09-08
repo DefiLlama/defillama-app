@@ -6,7 +6,7 @@ import { feesOptions } from '~/components/Filters/options'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
@@ -259,7 +259,7 @@ export default function Protocols(props) {
 					denominationPriceHistory: null,
 					dateInMs: false
 				}),
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		}
 		if (charts.includes('Revenue')) {
@@ -273,7 +273,7 @@ export default function Protocols(props) {
 					denominationPriceHistory: null,
 					dateInMs: false
 				}),
-				color: '#E59421'
+				color: CHART_COLORS[1]
 			}
 		}
 

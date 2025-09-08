@@ -164,7 +164,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 					/>
 				</Suspense>
 			) : (
-				<p className="flex items-center justify-center text-(--text-tertiary)" style={{ height: height ?? '360px' }}>
+				<p className="flex items-center justify-center" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.
 				</p>
 			)}

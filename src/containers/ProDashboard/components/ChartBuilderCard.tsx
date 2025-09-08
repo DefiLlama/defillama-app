@@ -1,8 +1,9 @@
 import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { Icon } from '~/components/Icon'
-import { download } from '~/utils'
+import { Select } from '~/components/Select'
+import { Tooltip } from '~/components/Tooltip'
+import { capitalizeFirstLetter, download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
@@ -31,6 +32,9 @@ interface ChartBuilderCardProps {
 				| 'protocol-revenue'
 				| 'supply-side-revenue'
 				| 'tvl'
+			mode: 'chains' | 'protocol'
+			filterMode?: 'include' | 'exclude'
+			protocol?: string
 			chains: string[]
 			categories: string[]
 			groupBy: 'protocol'
@@ -79,8 +83,14 @@ function filterDataByTimePeriod(data: any[], timePeriod: string): any[] {
 }
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
-	const { handlePercentageChange, handleGroupingChange, handleHideOthersChange, isReadOnly, timePeriod } =
-		useProDashboard()
+	const {
+		handlePercentageChange,
+		handleGroupingChange,
+		handleHideOthersChange,
+		isReadOnly,
+		timePeriod,
+		getProtocolInfo
+	} = useProDashboard()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const config = builder.config
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
@@ -90,23 +100,57 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
 			'chartBuilder',
+			config.mode,
 			config.metric,
+			config.protocol,
 			config.chains,
 			config.limit,
 			config.categories,
 			config.hideOthers,
 			config.groupByParent,
+			config.filterMode || 'include',
 			timePeriod
 		],
 		queryFn: async () => {
-			if (config.chains.length === 0) return { series: [] }
+			if (config.mode === 'protocol') {
+				if (!config.protocol) return { series: [] }
+
+				const data = await ProtocolSplitCharts.getProtocolChainData(
+					config.protocol,
+					config.metric,
+					config.chains.length > 0 ? config.chains : undefined,
+					config.limit,
+					config.filterMode || 'include'
+				)
+
+				if (!data || !data.series) {
+					return { series: [] }
+				}
+
+				let series = data.series
+				if (timePeriod && timePeriod !== 'all') {
+					series = series.map((s) => ({
+						...s,
+						data: filterDataByTimePeriod(s.data, timePeriod)
+					}))
+				}
+
+				if (config.hideOthers) {
+					series = series.filter((s) => !s.name.startsWith('Others'))
+				}
+
+				return { series }
+			}
+
+			if ((config.filterMode || 'include') === 'include' && config.chains.length === 0) return { series: [] }
 
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				config.metric,
 				config.chains,
 				config.limit,
 				config.categories,
-				config.groupByParent
+				config.groupByParent,
+				config.filterMode || 'include'
 			)
 
 			if (!data || !data.series) {
@@ -127,7 +171,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 			return { series }
 		},
-		enabled: config.chains.length > 0,
+		enabled: config.mode === 'protocol' ? !!config.protocol : config.chains.length > 0,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -136,7 +180,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		if (!chartData || !chartData.series) return []
 
 		let processedSeries = chartData.series
-		if (builder.grouping && builder.grouping !== 'day' && !isTvlChart) {
+		if (builder.grouping && builder.grouping !== 'day') {
 			processedSeries = chartData.series.map((s: any) => {
 				const aggregatedData: Map<number, number> = new Map()
 
@@ -213,7 +257,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart])
+	}, [chartData, config.displayAs, config.chartType, builder.grouping])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
@@ -244,8 +288,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
 			<div className="flex flex-col gap-1 p-1 md:p-3">
 				<div className="flex flex-wrap items-center justify-end gap-2">
-					<h1 className="mr-auto text-base font-semibold">{builder.name || `${config.metric} by Protocol`}</h1>
-					{!isReadOnly && !isTvlChart && (
+					<h1 className="mr-auto text-base font-semibold">
+						{builder.name ||
+							(config.mode === 'protocol'
+								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'Selected protocol'} ${config.metric} by Chain`
+								: `${config.metric} by Protocol`)}
+					</h1>
+					{!isReadOnly && chartSeries.length > 0 && (
 						<div className="flex overflow-hidden border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
 								<button
@@ -257,31 +306,49 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 											: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
 									}`}
 								>
-									<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-									<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
+									{option.slice(0, 1).toUpperCase()}
 								</button>
 							))}
 						</div>
 					)}
 					{!isReadOnly && (
-						<button
-							onClick={() => handlePercentageChange(builder.id, config.displayAs !== 'percentage')}
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-							title={config.displayAs === 'percentage' ? 'Show absolute values' : 'Show percentage'}
-						>
-							<Icon name={config.displayAs === 'percentage' ? 'percent' : 'dollar-sign'} height={12} width={12} />
-							<span className="hidden xl:inline">{config.displayAs === 'percentage' ? 'Percentage' : 'Absolute'}</span>
-						</button>
+						<Select
+							allValues={[
+								{ name: 'Show absolute ($)', key: '$ Absolute' },
+								{ name: `Show percentage (%)`, key: `% Percentage` }
+							]}
+							selectedValues={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
+							setSelectedValues={(value) => {
+								handlePercentageChange(builder.id, value === '% Percentage' ? true : false)
+							}}
+							label={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
+							labelType="none"
+							triggerProps={{
+								className:
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+							}}
+						/>
 					)}
 					{!isReadOnly && (
-						<button
-							onClick={() => handleHideOthersChange(builder.id, !config.hideOthers)}
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-							title={config.hideOthers ? 'Show all protocols' : 'Show only top protocols'}
-						>
-							<Icon name="layers" height={12} width={12} />
-							<span className="hidden xl:inline">{config.hideOthers ? `Top ${config.limit}` : 'All'}</span>
-						</button>
+						<Select
+							allValues={[
+								{ name: config.mode === 'protocol' ? 'Show all chains' : 'Show all protocols', key: 'All' },
+								{
+									name: config.mode === 'protocol' ? `Show only top chains` : `Show only top protocols`,
+									key: `Top ${config.limit}`
+								}
+							]}
+							selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
+							setSelectedValues={(value) => {
+								handleHideOthersChange(builder.id, value === 'All' ? false : true)
+							}}
+							label={config.hideOthers ? `Top ${config.limit}` : 'All'}
+							labelType="none"
+							triggerProps={{
+								className:
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+							}}
+						/>
 					)}
 					{chartSeries.length > 0 && (
 						<>
@@ -294,14 +361,16 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
+								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
 					)}
 				</div>
 				<p className="text-xs text-(--text-label)">
-					{config.chains.join(', ')} • Top {config.limit} protocols{config.hideOthers ? ' only' : ''}
-					{config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
+					{config.mode === 'protocol'
+						? `${config.protocol} • All chains`
+						: `${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`}
+					{config.mode === 'chains' && config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
 					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
 				</p>
 			</div>

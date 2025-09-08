@@ -42,7 +42,13 @@ const pageName = ['Borrow Aggregator: Advanced']
 
 export default function YieldBorrow(data) {
 	return (
-		<Layout title={`Lend/Borrow optimizer - DefiLlama Yield`} pageName={pageName}>
+		<Layout
+			title={`Lend/Borrow optimizer - DefiLlama Yield`}
+			description={`Lend/Borrow optimizer on DefiLlama. Advanced view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`lend/borrow optimizer, defi lend/borrow optimizer, advanced view of optimal lending routes by collateral to borrow assets`}
+			canonicalUrl={`/borrow/advanced`}
+			pageName={pageName}
+		>
 			<Announcement>{disclaimer}</Announcement>
 			<BorrowAggregatorAdvanced {...data} />
 		</Layout>

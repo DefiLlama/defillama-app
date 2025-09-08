@@ -1,4 +1,4 @@
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 
 // MAKE SURE TO UPDATE ON SERVER TOO https://github.com/DefiLlama/defillama-server/blob/master/defi/src/updateSearch.ts
 export const chainCharts = {
@@ -73,27 +73,8 @@ export const BAR_CHARTS: ChainChartLabels[] = [
 
 export const DISABLED_CUMULATIVE_CHARTS: ChainChartLabels[] = ['Core Developers', 'Devs Commits']
 
-export const chainOverviewChartColors: {
+export const chainOverviewChartColors = Object.fromEntries(
+	Object.keys(chainCharts).map((chart, index) => [chart as ChainChartLabels, CHART_COLORS[index]])
+) as {
 	[K in keyof typeof chainCharts]: string
-} = {
-	TVL: oldBlue,
-	'Stablecoins Mcap': '#00a09d',
-	'Chain Fees': '#f150f4',
-	'Chain Revenue': '#b4b625',
-	'DEXs Volume': '#19ab17',
-	'Perps Volume': '#8b5cf6',
-	'Token Incentives': '#ff7b00',
-	'App Fees': '#A020F0',
-	'App Revenue': '#6366f1',
-	'Bridged TVL': '#ffb12b',
-	'Active Addresses': '#fa4646',
-	'New Addresses': '#46faf2',
-	Transactions: '#06b6d4',
-	Raises: '#7700ff',
-	'Net Inflows': '#f59e0b',
-	'Core Developers': '#ff6969',
-	'Devs Commits': '#39601f',
-	'Token Mcap': '#e11d48',
-	'Token Price': '#7c2d12',
-	'Token Volume': '#0891b2'
-} as const
+}

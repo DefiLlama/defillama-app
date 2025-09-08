@@ -88,7 +88,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 					{onDismiss && (
 						<button
 							onClick={() => onDismiss(sessionId)}
-							className="ml-auto p-2 text-(--text-label) hover:text-(--text-old-blue)"
+							className="ml-auto rounded-md p-2 hover:bg-red-500/10 hover:text-(--error)"
 							disabled={isSubmitting}
 							title="Dismiss"
 						>
@@ -144,7 +144,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 	return (
 		<>
-			<Icon name="sparkles" height={24} width={24} className="text-(--old-blue)" />
+			<Icon name="sparkles" height={24} width={24} className="text-pro-blue-400 dark:text-pro-blue-200 shrink-0" />
 
 			<h3 className="-mt-5 text-xl font-semibold">{currentTexts.title}</h3>
 			<p className="-mt-5 text-sm text-(--text-label)">{currentTexts.subtitle}</p>

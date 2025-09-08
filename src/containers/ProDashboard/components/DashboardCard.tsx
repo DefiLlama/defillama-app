@@ -129,7 +129,12 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 						<span>{dashboard.viewCount || 0}</span>
 					</p>
 					<p className="flex items-center gap-1" title="Likes">
-						<Icon name="star" height={16} width={16} />
+						<Icon
+							name="star"
+							height={16}
+							width={16}
+							className={dashboard.liked ? 'fill-current text-yellow-400' : 'fill-none'}
+						/>
 						<span className="sr-only">Favorites</span>
 						<span>{dashboard.likeCount || 0}</span>
 					</p>

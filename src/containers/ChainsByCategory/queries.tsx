@@ -6,7 +6,7 @@ import {
 	IAdapterOverview
 } from '~/containers/DimensionAdapters/queries'
 import { getPeggedAssets } from '~/containers/Stablecoins/queries.server'
-import { getColorFromNumber, slug } from '~/utils'
+import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IChainsByCategory, IChainsByCategoryData } from './types'
 
@@ -76,13 +76,14 @@ export const getChainsByCategory = async ({
 		}))
 	)
 
-	const colors: Record<string, string> = {}
+	const allColors = getNDistinctColors(rest.chainsUnique.length)
+	const colorsByChain: Record<string, string> = {}
 
 	for (let i = 0; i < rest.chainsUnique.length; i++) {
-		colors[rest.chainsUnique[i]] = getColorFromNumber(i, 10)
+		colorsByChain[rest.chainsUnique[i]] = allColors[i]
 	}
 
-	colors['Others'] = '#AAAAAA'
+	colorsByChain['Others'] = '#AAAAAA'
 
 	const stablesChainMcaps = stablecoins.chains.map((chain) => {
 		return {
@@ -135,7 +136,7 @@ export const getChainsByCategory = async ({
 		totalTvlByDate,
 		category,
 		allCategories: categoryLinks,
-		colorsByChain: colors,
+		colorsByChain,
 		chains: chainTvls.map((chain) => {
 			const name = slug(chain.name)
 			const nftVolume = chainNftsVolume[name] ?? null
@@ -184,6 +185,14 @@ export const getChainsByCategory = async ({
 				tvlPrevWeek,
 				tvlPrevMonth
 			}
-		})
+		}),
+		description:
+			category === 'All'
+				? 'Combined TVL, Fees, Volume, Stablecoins Supply by all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.'
+				: `Combined TVL, Fees, Volume, Stablecoins Supply by ${category} chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`,
+		keywords:
+			category === 'All'
+				? 'compare chains by tvl, fees, volume, stablecoins supply, protocols'
+				: `${category} chains tvl, ${category} chains fees, ${category} chains revenue, ${category} chains volume, ${category} chains total protocols`
 	}
 }

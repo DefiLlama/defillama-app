@@ -1,29 +1,43 @@
 {
-	"compilerOptions": {
-		"target": "es2022",
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"allowJs": true,
-		"baseUrl": ".",
-		"paths": {
-			"~/*": ["./src/*"],
-			"~/public/*": ["./public/*"]
-		},
-		"skipLibCheck": true,
-		"strict": false,
-		"forceConsistentCasingInFileNames": true,
-		"noEmit": true,
-		"esModuleInterop": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"jsx": "preserve",
-		"incremental": true,
-		"downlevelIteration": true,
-		"allowSyntheticDefaultImports": true,
-		"noFallthroughCasesInSwitch": true,
-		"strictNullChecks": false
-	},
-	"exclude": ["node_modules"],
-	"include": ["**/*.js", "**/*.ts", "**/*.tsx"]
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "./src/*"
+      ],
+      "~/public/*": [
+        "./public/*"
+      ]
+    },
+    "skipLibCheck": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "downlevelIteration": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": false
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "**/*.js",
+    "**/*.ts",
+    "**/*.tsx"
+  ]
 }

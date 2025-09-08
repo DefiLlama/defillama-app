@@ -5,7 +5,7 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { getAdapterChainOverview } from './queries'
@@ -97,7 +97,7 @@ export const AdapterByChainChart = ({
 						type: (chartInterval === 'Cumulative' ? 'line' : 'bar') as 'bar' | 'line',
 						name: chartName,
 						stack: chartName,
-						color: oldBlue
+						color: CHART_COLORS[0]
 					}
 				}
 			}
@@ -110,7 +110,7 @@ export const AdapterByChainChart = ({
 					type: 'bar' as const,
 					name: chartName,
 					stack: chartName,
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			}
 		}
@@ -289,9 +289,9 @@ const getChartDataByChainAndInterval = ({
 			}
 		}
 
-		const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+		const allColors = getNDistinctColors(selectedChains.length + 1).slice(1)
 		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-		stackColors['Bitcoin'] = oldBlue
+		stackColors['Bitcoin'] = CHART_COLORS[0]
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const charts = {}
@@ -328,9 +328,9 @@ const getChartDataByChainAndInterval = ({
 	// 		}
 	// 	}
 
-	// 	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+	// 	const allColors = getNDistinctColors(selectedChains.length + 1, CHART_COLORS[0])
 	// 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-	// 	stackColors[selectedChains[0]] = oldBlue
+	// 	stackColors[selectedChains[0]] = CHART_COLORS[0]
 	// 	stackColors['Others'] = allColors[allColors.length - 1]
 
 	// 	return {
@@ -405,9 +405,8 @@ const getChartDataByChainAndInterval = ({
 		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
 	}
 
-	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+	const allColors = getNDistinctColors(selectedChains.length + 1)
 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-	stackColors[selectedChains[0]] = oldBlue
 	stackColors['Others'] = allColors[allColors.length - 1]
 
 	const charts = {}

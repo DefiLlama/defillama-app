@@ -11,6 +11,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -18,7 +19,7 @@ import {
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
 import Layout from '~/layout'
-import { formattedNum, getColorFromNumber, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -466,7 +467,7 @@ const PageView = (props) => {
 									<AreaChart
 										title="7 day moving average of Supply APY"
 										chartData={areaChartData}
-										color={backgroundColor}
+										color={CHART_COLORS[0]}
 										valueSymbol={'%'}
 									/>
 								</Suspense>
@@ -501,7 +502,7 @@ const PageView = (props) => {
 								<AreaChart
 									title="Net Borrow APY"
 									chartData={netBorrowChartData}
-									color={backgroundColor}
+									color={CHART_COLORS[0]}
 									valueSymbol={'%'}
 								/>
 							</Suspense>
@@ -599,8 +600,6 @@ const PageView = (props) => {
 	)
 }
 
-const backgroundColor = '#4f8fea'
-
 const mainChartStacks = ['APY', 'TVL']
 
 const mainChartStackColors = {
@@ -609,14 +608,14 @@ const mainChartStackColors = {
 }
 
 const barChartColors = {
-	Base: backgroundColor,
-	Reward: '#E59421'
+	Base: CHART_COLORS[0],
+	Reward: CHART_COLORS[1]
 }
 
 const liquidityChartColors = {
-	Supplied: getColorFromNumber(0, 6),
-	Borrowed: getColorFromNumber(1, 6),
-	Available: getColorFromNumber(2, 6)
+	Supplied: CHART_COLORS[0],
+	Borrowed: CHART_COLORS[1],
+	Available: CHART_COLORS[2]
 }
 
 const barChartStacks = {

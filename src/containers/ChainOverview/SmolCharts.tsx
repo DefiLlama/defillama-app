@@ -4,7 +4,7 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
-import { oldBlue, purple } from '~/constants/colors'
+import { CHART_COLORS, purple } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
 
@@ -102,7 +102,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 					shadowBlur: 10
 				},
 				data: series,
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		})
 
@@ -324,7 +324,7 @@ export function SmolBarChart({
 				symbol: 'none',
 				itemStyle: {
 					color: function (params) {
-						return params.value[1] >= 0 ? oldBlue : purple
+						return params.value[1] >= 0 ? CHART_COLORS[0] : purple
 					}
 				}
 			}
@@ -385,7 +385,7 @@ export function UpcomingUnlocksChart({
 					shadowBlur: 10
 				},
 				itemStyle: {
-					color: oldBlue
+					color: CHART_COLORS[0]
 				},
 				symbol: 'none',
 				data: seriesData

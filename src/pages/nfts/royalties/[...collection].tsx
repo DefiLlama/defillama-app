@@ -6,7 +6,7 @@ import { formatBarChart } from '~/components/ECharts/utils'
 import { FormattedName } from '~/components/FormattedName'
 import { LocalLoader } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 
@@ -35,7 +35,7 @@ export default function Collection() {
 					stack: 'Earnings',
 					type: 'bar' as const,
 					data: [],
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			}
 		return {
@@ -49,14 +49,19 @@ export default function Collection() {
 					denominationPriceHistory: null,
 					dateInMs: false
 				}),
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		}
 	}, [collectionData])
 
 	if (fetchingData) {
 		return (
-			<Layout title={'NFT Royalties - DefiLlama'}>
+			<Layout
+				title={'NFT Royalties - DefiLlama'}
+				description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+				keywords=""
+				canonicalUrl={`/nfts/royalties/${router.query.collection}`}
+			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
@@ -66,7 +71,12 @@ export default function Collection() {
 
 	if (error || !collectionData) {
 		return (
-			<Layout title={'NFT Royalties - DefiLlama'}>
+			<Layout
+				title={'NFT Royalties - DefiLlama'}
+				description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+				keywords=""
+				canonicalUrl={`/nfts/royalties/${router.query.collection}`}
+			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<p className="text-center">{error?.message ?? 'Failed to fetch'}</p>
 				</div>
@@ -77,7 +87,12 @@ export default function Collection() {
 	const props = collectionData.royaltyHistory[0]
 
 	return (
-		<Layout title={props.name + ' Royalties - DefiLlama'}>
+		<Layout
+			title={props.name + ' Royalties - DefiLlama'}
+			description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords=""
+			canonicalUrl={`/nfts/royalties/${router.query.collection}`}
+		>
 			<div className="relative isolate grid grid-cols-2 gap-2 *:last:col-span-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">

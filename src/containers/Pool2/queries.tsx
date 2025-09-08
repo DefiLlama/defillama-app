@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
@@ -134,7 +134,7 @@ export async function getPool2TVLByChain({
 			...chains.map((chain) => ({ label: chain, to: `/pool2/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Pool2 TVL': { name: 'Pool2 TVL', data: chart, type: 'line', stack: 'Pool2 TVL', color: oldBlue }
+			'Pool2 TVL': { name: 'Pool2 TVL', data: chart, type: 'line', stack: 'Pool2 TVL', color: CHART_COLORS[0] }
 		},
 		pool2Tvl: chart[chart.length - 1][1],
 		change24h:

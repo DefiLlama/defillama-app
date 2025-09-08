@@ -27,6 +27,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [chartBuilderName, setChartBuilderName] = useState<string>('')
 	const [chartBuilder, setChartBuilder] = useState<ChartBuilderConfig>({
 		metric: 'tvl',
+		mode: 'chains',
+		filterMode: 'include',
 		chains: [],
 		categories: [],
 		groupBy: 'protocol',
@@ -85,7 +87,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			} else if (editItem.kind === 'builder') {
 				setSelectedMainTab('builder')
 				setChartBuilderName(editItem.name || '')
-				setChartBuilder(editItem.config)
+				setChartBuilder({
+					...editItem.config,
+					mode: editItem.config.mode || 'chains'
+				})
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -108,6 +113,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setChartBuilderName('')
 			setChartBuilder({
 				metric: 'tvl',
+				mode: 'chains',
+				filterMode: 'include',
 				chains: [],
 				categories: [],
 				groupBy: 'protocol',
@@ -138,6 +145,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setChartBuilderName('')
 		setChartBuilder({
 			metric: 'tvl',
+			mode: 'chains',
 			chains: [],
 			categories: [],
 			groupBy: 'protocol',

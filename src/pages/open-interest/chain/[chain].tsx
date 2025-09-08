@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		if (!metadataCache.chainMetadata[chain]?.perps) {
+		if (!metadataCache.chainMetadata[chain]?.openInterest) {
 			return { notFound: true }
 		}
 
@@ -68,7 +68,13 @@ const pageName = ['Protocols', 'ranked by', type]
 
 const OpenInterestOnChain = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${props.chain} - ${type} - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
+			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			canonicalUrl={`/open-interest/chain/${props.chain}`}
+			pageName={pageName}
+		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

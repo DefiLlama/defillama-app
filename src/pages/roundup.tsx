@@ -6,7 +6,12 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export default function Roundup({ messages, date }: { messages: Array<string | Array<string>>; date: string }) {
 	return (
-		<Layout title={`Llama News Round-Up - DefiLlama`}>
+		<Layout
+			title={`Llama News Round-Up - DefiLlama`}
+			description={`Llama News Round-Up on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`llama news round-up, defi llama news round-up`}
+			canonicalUrl={`/roundup`}
+		>
 			<Announcement notCancellable>
 				Get the roundup delivered for free by subscribing on{' '}
 				<a

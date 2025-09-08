@@ -69,7 +69,13 @@ export default function Governance({ data }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Governance - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Governance - DefiLlama`}
+			description={`Governance overview by projects. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`governance proposals, governance by project`}
+			canonicalUrl={`/governance`}
+			pageName={pageName}
+		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Governance Proposals by Project</h1>

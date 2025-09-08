@@ -60,7 +60,14 @@ export const OraclesByChain = ({
 	}, [tokensList])
 
 	return (
-		<Layout title={`Oracles - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
+		<Layout
+			title={`Oracles - DefiLlama`}
+			description={`Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama.`}
+			keywords={`oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle`}
+			canonicalUrl={`/oracles`}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
@@ -98,6 +105,7 @@ export const OraclesByChain = ({
 					columnToSearch={'name'}
 					placeholder={'Search oracles...'}
 					header={'Oracle Rankings'}
+					sortingState={[{ id: 'tvs', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

@@ -138,4 +138,8 @@ type ExtraTypes = {
 	dailyPremiumVolume?: number | null
 	dailyBribesRevenue?: number | null
 	dailyTokenTaxes?: number | null
+	feesChange_7dover7d?: number | null
+	feesChange_30dover30d?: number | null
+	revenueChange_7dover7d?: number | null
+	revenueChange_30dover30d?: number | null
 }

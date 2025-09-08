@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
@@ -130,7 +130,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			...chains.map((chain) => ({ label: chain, to: `/total-staked/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Total Staked': { name: 'Total Staked', data: chart, type: 'line', stack: 'Total Staked', color: oldBlue }
+			'Total Staked': { name: 'Total Staked', data: chart, type: 'line', stack: 'Total Staked', color: CHART_COLORS[0] }
 		},
 		totalStaked: chart[chart.length - 1][1],
 		change24h:

@@ -15,7 +15,8 @@ export function toFilterPool({
 	maxTvl,
 	minApy,
 	maxApy,
-	pairTokens
+	pairTokens,
+	usdPeggedSymbols
 }) {
 	let toFilter = true
 
@@ -67,7 +68,14 @@ export function toFilterPool({
 						if (token === 'all_bitcoins') {
 							return tokensInPool.some((x) => x.includes('btc'))
 						} else if (token === 'all_usd_stables') {
-							return curr.stablecoin || tokensInPool.some((x) => x.includes('usd'))
+							// only include pools that are marked as stablecoin &
+							// every token in the pool symbol contains usd-pegged stable symbol (substring match)
+							if (!curr.stablecoin) return false
+							if (!Array.isArray(usdPeggedSymbols) || usdPeggedSymbols.length === 0) return false
+							return (
+								tokensInPool.length > 0 &&
+								tokensInPool.every((sym) => usdPeggedSymbols.some((usd) => sym.includes(usd)))
+							)
 						} else if (tokensInPool.some((x) => x.includes(token))) {
 							return true
 						} else if (token === 'eth') {

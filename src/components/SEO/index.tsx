@@ -1,10 +1,9 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import Head from 'next/head'
 import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
-import { useIsClient } from '~/hooks'
-import { chainIconUrl, tokenIconUrl } from '~/utils'
+import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 
-interface SEOProps {
+interface ILinkPreviewCardProps {
 	cardName?: string
 	chain?: string
 	token?: string
@@ -18,10 +17,15 @@ interface SEOProps {
 	unlockAmount?: string
 	pageType?: string
 	isCEX?: boolean
-	symbol?: string
 }
 
-export const SEO = ({
+// page title, description, keywords
+// cardName ? optional
+// value name & tvl ? optional
+
+// volumeChange remove for now
+
+export const LinkPreviewCard = ({
 	cardName,
 	chain,
 	token,
@@ -34,12 +38,9 @@ export const SEO = ({
 	unlockPage = false,
 	unlockAmount,
 	pageType,
-	isCEX,
-	symbol
-}: SEOProps) => {
-	const isClient = useIsClient()
-
-	const windowURL = isClient && window.location.href ? window.location.href : ''
+	isCEX
+}: ILinkPreviewCardProps) => {
+	const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
 
 	const isTvlValid = unlockPage ? true : tvl && tvl !== '$0'
 
@@ -131,40 +132,43 @@ export const SEO = ({
 		stablePage
 	])
 
-	let pageTitle = 'DefiLlama'
-	let pageDescription =
-		'DefiLlama is a DeFi TVL aggregator. It is committed to providing accurate data without ads or sponsored content, as well as transparency.'
-	let pageKeywords = ''
-
-	if (unlockPage && cardName) {
-		pageTitle = `${cardName} ${symbol} Token Unlocks & Vesting Schedules - DefiLlama`
-		pageDescription = `Track upcoming ${cardName} token unlocks, detailed vesting schedules, and key emission data on DefiLlama. Stay informed on ${symbol} release events and supply changes.`
-		pageKeywords = `${cardName} ${symbol} token unlocks, vesting schedules, emission data, DefiLlama, ${symbol}, ${cardName}, ${symbol} Tokenomics, ${symbol} Unlocks, ${symbol} Vesting Schedule, ${cardName} Unlocks, ${cardName} Vesting Schedule, ${cardName} Tokenomics`
-	}
-
 	return (
 		<Head>
-			<link rel="canonical" href={windowURL} />
-
-			<meta name="description" content={pageDescription} />
-
-			{pageKeywords !== '' && <meta name="keywords" content={pageKeywords} />}
-
-			<meta property="og:title" content={pageTitle} />
-			<meta property="og:type" content="website" />
-			<meta property="og:url" content={windowURL} />
-			<meta property="og:site_name" content="DefiLlama" />
-			<meta property="og:description" content={pageDescription} />
 			<meta property="og:image" content={cardURL} />
-
-			<meta name="twitter:card" content="summary_large_image" />
-			<meta property="twitter:domain" content="defillama.com" />
-			<meta property="twitter:url" content={windowURL} />
-			<meta name="twitter:title" content={pageTitle} />
-			<meta name="twitter:site" content="@DefiLlama" />
-			<meta name="twitter:creator" content="@DefiLlama" />
-			<meta name="twitter:description" content={pageDescription} />
 			<meta name="twitter:image" content={cardURL} />
 		</Head>
 	)
 }
+
+export interface ISEOProps {
+	title: string
+	description?: string
+	keywords?: string
+	canonicalUrl?: string
+}
+
+export const SEO = memo(function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
+	const url = `https://defillama.com${slug(canonicalUrl ?? '')}`
+	return (
+		<Head>
+			<link rel="canonical" href={url} />
+			<title>{title}</title>
+			{description ? <meta name="description" content={description} /> : null}
+			{keywords ? <meta name="keywords" content={keywords} /> : null}
+			<meta property="og:title" content={title} />
+			<meta property="og:type" content="website" />
+			<meta property="og:url" content={url} />
+			<meta property="og:site_name" content="DefiLlama" />
+			{description ? <meta property="og:description" content={description} /> : null}
+			{/* <meta property="og:image" content={cardURL} /> */}
+			<meta name="twitter:card" content="summary_large_image" />
+			<meta property="twitter:domain" content="defillama.com" />
+			<meta property="twitter:url" content={url} />
+			<meta name="twitter:title" content={title} />
+			<meta name="twitter:site" content="@DefiLlama" />
+			<meta name="twitter:creator" content="@DefiLlama" />
+			{description ? <meta name="twitter:description" content={description} /> : null}
+			{/* <meta name="twitter:image" content={cardURL} /> */}
+		</Head>
+	)
+})

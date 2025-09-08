@@ -1,5 +1,5 @@
 import { maxAgeForNext } from '~/api'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { ChainsWithStablecoins } from '~/containers/Stablecoins/ChainsWithStablecoins'
 import { getPeggedChainsPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
@@ -60,7 +60,7 @@ export const getStaticProps = withPerformanceLogging('stablecoins/chains', async
 				MCap: {
 					name: 'Mcap',
 					stack: 'Mcap',
-					color: oldBlue,
+					color: CHART_COLORS[0],
 					data: peggedAreaTotalData.map(({ date, Mcap }) => [+date * 1e3, Mcap]),
 					type: 'line'
 				}
@@ -75,7 +75,13 @@ const pageName = ['Chains', 'ranked by', 'Stablecoins Supply']
 
 export default function PeggedAssets(props) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Stablecoins Circulating - DefiLlama`}
+			description={`Stablecoins Circulating by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`stablecoins circulating by chain, stablecoins supply by chain, stablecoins market cap by chain`}
+			canonicalUrl={`/stablecoins/chains`}
+			pageName={pageName}
+		>
 			<ChainsWithStablecoins {...props} />
 		</Layout>
 	)

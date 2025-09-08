@@ -3,9 +3,12 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { PROTOCOLS_API } from '~/constants'
+import { useAppMetadata } from '../../AppMetadataContext'
+import { useProDashboard } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
 import { ItemMultiSelect } from '../ItemMultiSelect'
 import { ItemSelect } from '../ItemSelect'
+import { ProtocolSelect } from '../ProtocolSelect'
 import { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -14,6 +17,7 @@ interface ChartBuilderTabProps {
 	chartBuilder: ChartBuilderConfig
 	chartBuilderName: string
 	chainOptions: Array<{ value: string; label: string }>
+	protocolOptions: Array<{ value: string; label: string; logo?: string }>
 	protocolsLoading: boolean
 	onChartBuilderChange: (updates: Partial<ChartBuilderConfig>) => void
 	onChartBuilderNameChange: (name: string) => void
@@ -53,14 +57,22 @@ const LIMIT_OPTIONS = [
 	{ value: '20', label: 'Top 20' }
 ]
 
+const MODE_OPTIONS = [
+	{ value: 'chains', label: 'Group by Protocol' }, // group by protocol filter by chains
+	{ value: 'protocol', label: 'Group by Chains' } // group by chains filter by protocol
+]
+
 export function ChartBuilderTab({
 	chartBuilder,
 	chartBuilderName,
 	chainOptions,
+	protocolOptions,
 	protocolsLoading,
 	onChartBuilderChange,
 	onChartBuilderNameChange
 }: ChartBuilderTabProps) {
+	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
+	const { getProtocolInfo } = useProDashboard()
 	const { data: protocols } = useQuery({
 		queryKey: ['protocols'],
 		queryFn: async () => {
@@ -90,21 +102,44 @@ export function ChartBuilderTab({
 	const { data: previewData, isLoading: previewLoading } = useQuery({
 		queryKey: [
 			'chartBuilder',
+			chartBuilder.mode,
 			chartBuilder.metric,
+			chartBuilder.protocol,
 			chartBuilder.chains,
 			chartBuilder.limit,
 			chartBuilder.categories,
-			chartBuilder.groupByParent
+			chartBuilder.groupByParent,
+			chartBuilder.filterMode || 'include'
 		],
 		queryFn: async () => {
-			if (chartBuilder.chains.length === 0) return null
+			if (chartBuilder.mode === 'protocol') {
+				if (!chartBuilder.protocol) return null
+
+				const data = await ProtocolSplitCharts.getProtocolChainData(
+					chartBuilder.protocol,
+					chartBuilder.metric,
+					chartBuilder.chains.length > 0 ? chartBuilder.chains : undefined,
+					chartBuilder.limit,
+					chartBuilder.filterMode || 'include'
+				)
+
+				if (data && data.series.length > 0) {
+					data.series = data.series.map((serie) => ({
+						...serie,
+						data: serie.data.slice(-365)
+					}))
+				}
+
+				return data
+			}
 
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				chartBuilder.metric,
 				chartBuilder.chains,
 				chartBuilder.limit,
 				chartBuilder.categories,
-				chartBuilder.groupByParent
+				chartBuilder.groupByParent,
+				chartBuilder.filterMode || 'include'
 			)
 
 			if (data && data.series.length > 0) {
@@ -116,10 +151,17 @@ export function ChartBuilderTab({
 
 			return data
 		},
-		enabled: chartBuilder.chains.length > 0,
+		enabled: chartBuilder.mode === 'protocol' ? !!chartBuilder.protocol : !!chartBuilder.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
+
+	const protocolOptionsFiltered = useMemo(() => {
+		if (chartBuilder.mode !== 'protocol') return protocolOptions
+		const metric = chartBuilder.metric
+		if (!metric || metaLoading || metaError) return protocolOptions
+		return protocolOptions.filter((opt) => hasProtocolBuilderMetric(opt.value, metric))
+	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
 
 	const handleMetricChange = (option: any) => {
 		onChartBuilderChange({ metric: option?.value || 'tvl' })
@@ -145,6 +187,18 @@ export function ChartBuilderTab({
 
 	const handleDisplayChange = (display: 'timeSeries' | 'percentage') => {
 		onChartBuilderChange({ displayAs: display })
+	}
+
+	const handleFilterModeChange = (mode: 'include' | 'exclude') => {
+		onChartBuilderChange({ filterMode: mode })
+	}
+
+	const handleModeChange = (mode: 'chains' | 'protocol') => {
+		onChartBuilderChange({ mode, chains: [], protocol: undefined })
+	}
+
+	const handleProtocolChange = (option: any) => {
+		onChartBuilderChange({ protocol: option?.value || undefined })
 	}
 
 	return (
@@ -176,68 +230,172 @@ export function ChartBuilderTab({
 					</div>
 
 					<div className="pro-border border-t pt-1.5">
+						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Mode</h4>
+						<div className="mb-1.5 flex gap-1">
+							{MODE_OPTIONS.map((option) => (
+								<button
+									key={option.value}
+									onClick={() => handleModeChange(option.value as any)}
+									className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+										chartBuilder.mode === option.value
+											? 'border-(--primary1) bg-(--primary1) text-white'
+											: 'pro-border pro-hover-bg pro-text2'
+									}`}
+								>
+									{option.label}
+								</button>
+							))}
+						</div>
+					</div>
+
+					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Filters</h4>
 
 						<div className="mb-1.5">
-							<ItemMultiSelect
-								label="Chains"
-								options={chainOptions}
-								selectedValues={chartBuilder.chains}
-								onChange={handleChainsChange}
-								placeholder="Select chains..."
-								isLoading={protocolsLoading}
-								itemType="chain"
-								maxSelections={10}
-							/>
+							<h5 className="pro-text2 mb-1 text-[11px] font-medium">Filter Mode</h5>
+							<div className="mb-1.5 flex gap-1">
+								{[
+									{ value: 'include', label: 'Include' },
+									{ value: 'exclude', label: 'Exclude' }
+								].map((option) => (
+									<button
+										key={option.value}
+										onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
+										className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+											(chartBuilder.filterMode || 'include') === option.value
+												? 'border-(--primary1) bg-(--primary1) text-white'
+												: 'pro-border pro-hover-bg pro-text2'
+										}`}
+									>
+										{option.label}
+									</button>
+								))}
+							</div>
 						</div>
 
-						<div className="mb-1.5">
-							<ItemMultiSelect
-								label="Categories"
-								options={categoryOptions}
-								selectedValues={chartBuilder.categories}
-								onChange={handleCategoriesChange}
-								placeholder="Select categories..."
-								isLoading={false}
-								itemType="text"
-								maxSelections={5}
-							/>
-						</div>
-
-						<div className="mb-1.5">
-							<ItemSelect
-								label="Number of Protocols"
-								options={LIMIT_OPTIONS}
-								selectedValue={chartBuilder.limit.toString()}
-								onChange={handleLimitChange}
-								placeholder="Select limit..."
-								isLoading={false}
-							/>
-						</div>
-
-						<div className="mb-1">
-							<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
-								<label className="flex cursor-pointer items-center gap-1.5">
-									<Ariakit.Checkbox
-										onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-										className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+						{chartBuilder.mode === 'chains' ? (
+							<>
+								<div className="mb-1.5">
+									<ItemMultiSelect
+										label="Chains"
+										options={chainOptions}
+										selectedValues={chartBuilder.chains}
+										onChange={handleChainsChange}
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select chains to exclude...'
+												: 'Select chains...'
+										}
+										isLoading={protocolsLoading}
+										itemType="chain"
+										maxSelections={10}
 									/>
-									<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
-								</label>
-							</Ariakit.CheckboxProvider>
-						</div>
+								</div>
 
-						<div className="mb-1">
-							<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
-								<label className="flex cursor-pointer items-center gap-1.5">
-									<Ariakit.Checkbox
-										onChange={(e) => onChartBuilderChange({ groupByParent: e.target.checked })}
-										className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+								<div className="mb-1.5">
+									<ItemMultiSelect
+										label="Categories"
+										options={categoryOptions}
+										selectedValues={chartBuilder.categories}
+										onChange={handleCategoriesChange}
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select categories to exclude...'
+												: 'Select categories...'
+										}
+										isLoading={false}
+										itemType="text"
+										maxSelections={5}
 									/>
-									<span className="pro-text2 text-[10px]">Group by parent protocol</span>
-								</label>
-							</Ariakit.CheckboxProvider>
-						</div>
+								</div>
+
+								<div className="mb-1.5">
+									<ItemSelect
+										label="Number of Protocols"
+										options={LIMIT_OPTIONS}
+										selectedValue={chartBuilder.limit.toString()}
+										onChange={handleLimitChange}
+										placeholder="Select limit..."
+										isLoading={false}
+									/>
+								</div>
+
+								<div className="mb-1">
+									<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
+										<label className="flex cursor-pointer items-center gap-1.5">
+											<Ariakit.Checkbox
+												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+											/>
+											<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
+										</label>
+									</Ariakit.CheckboxProvider>
+								</div>
+
+								<div className="mb-1">
+									<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
+										<label className="flex cursor-pointer items-center gap-1.5">
+											<Ariakit.Checkbox
+												onChange={(e) => onChartBuilderChange({ groupByParent: e.target.checked })}
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+											/>
+											<span className="pro-text2 text-[10px]">Group by parent protocol</span>
+										</label>
+									</Ariakit.CheckboxProvider>
+								</div>
+							</>
+						) : (
+							<>
+								<div className="mb-1.5">
+									<ProtocolSelect
+										label="Protocol"
+										options={protocolOptionsFiltered}
+										selectedValue={chartBuilder.protocol}
+										onChange={handleProtocolChange}
+										placeholder="Select protocol..."
+										isLoading={protocolsLoading}
+									/>
+								</div>
+
+								<div className="mb-1.5">
+									<ItemMultiSelect
+										label="Chains"
+										options={chainOptions}
+										selectedValues={chartBuilder.chains}
+										onChange={handleChainsChange}
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select chains to exclude...'
+												: 'Select chains...'
+										}
+										isLoading={protocolsLoading}
+										itemType="chain"
+										maxSelections={10}
+									/>
+								</div>
+								<div className="mb-1.5">
+									<ItemSelect
+										label="Number of Chains"
+										options={LIMIT_OPTIONS}
+										selectedValue={chartBuilder.limit.toString()}
+										onChange={handleLimitChange}
+										placeholder="Select limit..."
+										isLoading={false}
+									/>
+								</div>
+								<div className="mb-1">
+									<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
+										<label className="flex cursor-pointer items-center gap-1.5">
+											<Ariakit.Checkbox
+												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
+												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+											/>
+											<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
+										</label>
+									</Ariakit.CheckboxProvider>
+								</div>
+							</>
+						)}
 					</div>
 
 					<div className="pro-border border-t pt-1.5">
@@ -254,7 +412,7 @@ export function ChartBuilderTab({
 									}`}
 								>
 									<Icon name={option.icon as any} height={14} width={14} />
-									<span className="text-2.5">{option.label}</span>
+									<span className="text-[10px]">{option.label}</span>
 								</button>
 							))}
 						</div>
@@ -283,7 +441,7 @@ export function ChartBuilderTab({
 				<div className="pro-border flex min-h-0 flex-1 flex-col border p-3">
 					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
 						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
-						<div className="pro-text3 text-2.5 flex items-center gap-1">
+						<div className="pro-text3 flex items-center gap-1 text-[10px]">
 							<span>ⓘ</span>
 							<span>Updates as you configure</span>
 						</div>
@@ -309,7 +467,7 @@ export function ChartBuilderTab({
 												? previewData.series.filter((s) => !s.name.startsWith('Others'))
 												: previewData.series
 
-											if (chartBuilder.metric !== 'tvl') {
+											if (chartBuilder.metric !== 'tvl' && chartBuilder.mode === 'chains') {
 												filteredSeries = filteredSeries.map((s) => {
 													const aggregatedData: Map<number, number> = new Map()
 
@@ -465,19 +623,31 @@ export function ChartBuilderTab({
 							<div className="text-center">
 								<Icon name="bar-chart-2" height={48} width={48} className="pro-text3 mx-auto mb-2" />
 								<p className="pro-text2 text-sm">Configure chart settings to see preview</p>
-								<p className="pro-text3 mt-1 text-xs">Select metric and chains to generate chart</p>
+								<p className="pro-text3 mt-1 text-xs">Select a metric to generate chart (all chains by default)</p>
 							</div>
 						)}
 					</div>
 
 					<div className="pro-bg2 mt-2 flex-shrink-0 rounded p-2">
 						<div className="flex items-start gap-1">
-							<span className="pro-text3 text-2.5">ⓘ</span>
-							<p className="pro-text3 text-2.5 leading-relaxed">
-								This chart shows {chartBuilder.metric} breakdown by top {chartBuilder.limit} protocols
-								{chartBuilder.chains.length > 0 && ` on ${chartBuilder.chains.join(', ')}`}
-								{chartBuilder.categories.length > 0 && ` in ${chartBuilder.categories.join(', ')} categories`}. Data is
-								displayed as {chartBuilder.displayAs === 'percentage' ? 'percentage of total' : 'absolute values'}.
+							<span className="pro-text3 text-[10px]">ⓘ</span>
+							<p className="pro-text3 text-[10px] leading-relaxed">
+								This chart shows {chartBuilder.metric}
+								{chartBuilder.mode === 'protocol'
+									? ` for ${
+											chartBuilder.protocol
+												? getProtocolInfo(chartBuilder.protocol)?.name || chartBuilder.protocol
+												: 'selected protocol'
+										} across different chains`
+									: ` breakdown by top ${chartBuilder.limit} protocols`}
+								{chartBuilder.mode === 'chains' &&
+									chartBuilder.chains.length > 0 &&
+									` on ${chartBuilder.chains.join(', ')}`}
+								{chartBuilder.mode === 'chains' &&
+									chartBuilder.categories.length > 0 &&
+									` in ${chartBuilder.categories.join(', ')} categories`}
+								. Data is displayed as{' '}
+								{chartBuilder.displayAs === 'percentage' ? 'percentage of total' : 'absolute values'}.
 							</p>
 						</div>
 					</div>

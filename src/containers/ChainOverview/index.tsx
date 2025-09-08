@@ -14,8 +14,11 @@ export function ChainOverview(props: IChainOverviewData) {
 	return (
 		<Layout
 			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
-			includeInMetricsOptions={props.tvlAndFeesOptions}
-			includeInMetricsOptionslabel="Include in TVL"
+			description={props.description}
+			keywords={props.keywords}
+			canonicalUrl={props.metadata.name === 'All' ? '' : `/chain/${props.metadata.name}`}
+			metricFilters={props.tvlAndFeesOptions}
+			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />

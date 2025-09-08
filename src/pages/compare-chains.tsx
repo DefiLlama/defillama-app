@@ -25,7 +25,14 @@ const pageName = ['Compare Chains']
 
 export default function CompareChainsPage({ chains }) {
 	return (
-		<Layout title={`Compare Chains - DefiLlama`} includeInMetricsOptions={tvlOptions} pageName={pageName}>
+		<Layout
+			title={`Compare Chains - DefiLlama`}
+			description={`Compare chains on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`compare chain, compare blockchain`}
+			canonicalUrl={`/compare-chains`}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
 			<CompareChains chains={chains} />
 		</Layout>
 	)

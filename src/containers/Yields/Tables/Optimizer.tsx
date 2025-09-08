@@ -88,13 +88,13 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<div>
+				<span>
 					${formattedNum(info.getValue())}
 					<br />
-					<div style={{ fontSize: '12px', color: 'gray' }}>
+					<span className="text-text-(--text-form)">
 						{formattedNum(info.row.original.lendAmount)} {info.row.original.symbol}
-					</div>
-				</div>
+					</span>
+				</span>
 			)
 		},
 		size: 180,
@@ -108,13 +108,13 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<div>
+				<span>
 					${formattedNum(info.getValue())}
 					<br />
-					<div style={{ fontSize: '12px', color: 'gray' }}>
+					<span className="text-text-(--text-form)">
 						{formattedNum(info.row.original.borrowAmount)} {info.row.original.borrow.symbol}
-					</div>
-				</div>
+					</span>
+				</span>
 			)
 		},
 		size: 180,
@@ -175,12 +175,12 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex w-full items-center justify-end gap-1">
+						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
 								{formattedPercent(getValue(), true, 700, true)}
 							</ColoredAPY>
-						</div>
+						</span>
 					) : (
 						<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
 							{formattedPercent(getValue(), true, 700, true)}
@@ -203,7 +203,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			const rewards = row.original.rewardTokensNames ?? []
 
 			return (
-				<div className="flex w-full items-center justify-end gap-1">
+				<span className="flex w-full items-center justify-end gap-1">
 					<IconsRow
 						disableLinks
 						links={rewards}
@@ -212,7 +212,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
 					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
-				</div>
+				</span>
 			)
 		},
 		size: 140,

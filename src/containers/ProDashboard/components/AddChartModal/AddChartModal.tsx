@@ -1,4 +1,3 @@
-import { useAvailableChartTypes } from '../../queries'
 import { ChartBuilderTab } from './ChartBuilderTab'
 import { ModalHeader } from './ModalHeader'
 import { SubmitButton } from './SubmitButton'
@@ -39,12 +38,8 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		return undefined
 	}
 
-	const { availableChartTypes, isLoading: chartTypesLoading } = useAvailableChartTypes(
-		getCurrentSelectedItem(),
-		state.selectedMainTab === 'table' ? 'chain' : getCurrentItemType(),
-		getCurrentGeckoId(),
-		computed.timePeriod
-	)
+	const availableChartTypes: string[] = []
+	const chartTypesLoading = false
 
 	const composerItemsWithData = useComposerItemsData(state.composerItems, computed.timePeriod)
 
@@ -105,6 +100,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 								chartBuilder={state.chartBuilder}
 								chartBuilderName={state.chartBuilderName}
 								chainOptions={computed.chainOptions}
+								protocolOptions={computed.protocolOptions}
 								protocolsLoading={computed.protocolsLoading}
 								onChartBuilderChange={actions.updateChartBuilder}
 								onChartBuilderNameChange={actions.setChartBuilderName}

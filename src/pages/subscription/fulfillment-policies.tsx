@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { BasicLink } from '~/components/Link'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 
 export default function FulfillmentPolicies() {
 	return (
@@ -36,7 +36,7 @@ export function SubscribeLayout2({ children }) {
 				<title>Subscribe - DefiLlama</title>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
-			<SEO />
+			<LinkPreviewCard />
 			<div className="col-span-full flex w-full flex-col bg-[oklch(0.148_0.004_228.8)]">
 				<header className="flex min-h-[64px] items-center justify-end gap-4 px-5 py-3"></header>
 				{children}

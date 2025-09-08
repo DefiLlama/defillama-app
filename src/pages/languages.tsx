@@ -4,7 +4,7 @@ import type { IChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { LANGS_API } from '~/constants'
 import Layout from '~/layout'
-import { getColorFromNumber, getDominancePercent } from '~/utils'
+import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -54,11 +54,11 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 		dominance: osDominance
 	} = formatDataForChart(data.sumDailySolanaOpenSourceTvls)
 
+	const allColors = getNDistinctColors(langsUnique.length)
 	const colors = {}
-
-	langsUnique.forEach((l, index) => {
-		colors[l] = getColorFromNumber(index, 6)
-	})
+	for (let i = 0; i < langsUnique.length; i++) {
+		colors[langsUnique[i]] = allColors[i]
+	}
 
 	return {
 		props: {
@@ -78,7 +78,13 @@ const pageName = ['TVL', 'by', 'Smart Contract Languages']
 
 export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs, osDominance, colors }) {
 	return (
-		<Layout title={`Languages - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Languages - DefiLlama`}
+			description={`TVL breakdown by smart contract languages that the protocols smart contracts are written in. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`languages, smart contract languages, tvl by language`}
+			canonicalUrl={`/languages`}
+			pageName={pageName}
+		>
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
 				Breakdown by Smart Contract Languages
 			</h1>

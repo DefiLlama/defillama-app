@@ -45,13 +45,20 @@ const pageName = ['Protocols', 'ranked by', 'Expenses']
 
 export default function Protocols(props) {
 	return (
-		<Layout title={`Protocol Expenses - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Protocol Expenses - DefiLlama`}
+			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocol expenses, expenses by protocol`}
+			canonicalUrl={`/expenses`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.expenses}
 				columns={columns}
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
+				sortingState={[{ id: 'sumAnnualUsdExpenses', desc: true }]}
 			/>
 		</Layout>
 	)

@@ -153,7 +153,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const chartData = {}
 	const extraTvlCharts = {}
 	const totalCategories = Object.keys(protocolsByCategory).length
-	const allColors = getNDistinctColors(totalCategories + 1)
+	const allColors = getNDistinctColors(totalCategories)
 	const categoryColors = Object.fromEntries(Object.keys(protocolsByCategory).map((_, i) => [_, allColors[i]]))
 
 	for (const date in chart) {
@@ -308,7 +308,9 @@ export const descriptions = {
 	'Video Infrastructure':
 		'Protocols that provide decentralized tools and infrastructure for video streaming, transcoding, recording, playback, or media processing',
 	DePIN:
-		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance'
+		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance',
+	'Dual-Token Stablecoin':
+		'Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability'
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
@@ -438,7 +440,14 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [tableData, extaTvlsEnabled])
 
 	return (
-		<Layout title={`Categories - DefiLlama`} includeInMetricsOptions={finalTvlOptions} pageName={pageName}>
+		<Layout
+			title={`Categories - DefiLlama`}
+			description={`Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocols categories, defi categories`}
+			canonicalUrl={`/categories`}
+			metricFilters={finalTvlOptions}
+			pageName={pageName}
+		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Categories</h1>
@@ -472,7 +481,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
-					defaultSorting={[{ id: 'tvl', desc: true }]}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

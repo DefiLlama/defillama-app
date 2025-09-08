@@ -1,65 +1,55 @@
 import * as React from 'react'
-import Head from 'next/head'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
-import { SEO } from '~/components/SEO'
+import { ISEOProps, SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 
-interface ILayoutProps {
-	title: string
+interface ILayoutProps extends ISEOProps {
 	children: React.ReactNode
-	customSEO?: boolean
-	className?: string
-	style?: React.CSSProperties
-	includeInMetricsOptions?: { name: string; key: string }[]
-	includeInMetricsOptionslabel?: string
+	metricFilters?: { name: string; key: string }[]
+	metricFiltersLabel?: string
 	pageName?: Array<string>
 }
 
-export default function Layout({
+function Layout({
 	title,
+	description,
+	keywords,
+	canonicalUrl,
 	children,
-	customSEO = false,
-	className,
 	pageName,
-	includeInMetricsOptions,
-	includeInMetricsOptionslabel,
+	metricFilters,
+	metricFiltersLabel,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
 	return (
 		<>
-			<Head>
-				<title>{title}</title>
-			</Head>
-
-			{customSEO ? null : <SEO />}
+			<SEO title={title} description={description} keywords={keywords} canonicalUrl={canonicalUrl} />
 			<Nav />
 			<main
 				{...props}
-				className={`isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-[248px] ${
-					className ?? ''
-				}`}
+				className="isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-[248px]"
 			>
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
 					<React.Suspense fallback={<SearchFallback />}>
 						<DesktopSearch />
 					</React.Suspense>
-					{!includeInMetricsOptions || includeInMetricsOptions.length === 0 ? null : (
-						<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
+					{!metricFilters || metricFilters.length === 0 ? null : (
+						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
 					)}
 				</span>
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>
 			{isClient ? (
-				<React.Suspense>
+				<React.Suspense fallback={<></>}>
 					<Toaster />
 				</React.Suspense>
 			) : null}
@@ -67,7 +57,7 @@ export default function Layout({
 	)
 }
 
-const IncludeInMetricsOptions = React.memo(function IncludeInMetricsOptions({
+const MetricFilters = React.memo(function MetricFilters({
 	options,
 	label
 }: {
@@ -95,6 +85,8 @@ const IncludeInMetricsOptions = React.memo(function IncludeInMetricsOptions({
 		</>
 	)
 })
+
+export default React.memo(Layout)
 
 // sidebar + gap between nav & main + padding right
 // 228px + 4px + 16px = 248px

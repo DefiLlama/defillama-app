@@ -20,7 +20,7 @@ export interface IChartProps {
 	hideLegend?: boolean
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string)
+			[key: string]: Value | Array<Value> | ((params: any) => string) | Record<string, Value>
 		}
 	}
 	height?: string
@@ -54,7 +54,9 @@ export interface ISingleSeriesChartProps
 		| 'hideDownloadButton'
 		| 'containerClassName'
 	> {
+	chartName?: string
 	chartType: 'line' | 'bar'
+	symbolOnChart?: 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none'
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {

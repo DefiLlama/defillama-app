@@ -45,13 +45,20 @@ const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
 
 const NetProjectTreasuries = (props) => {
 	return (
-		<Layout title={`Net Project Treasury - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Net Project Treasury - DefiLlama`}
+			description={`Net Project Treasury by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`net project treasury, defi net project treasury`}
+			canonicalUrl={`/net-project-treasury`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.protocols}
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'netTreasury', desc: true }]}
 			/>
 		</Layout>
 	)

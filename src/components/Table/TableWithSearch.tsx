@@ -1,8 +1,11 @@
 import * as React from 'react'
 import {
+	ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
+	ColumnOrderTableState,
 	ColumnSizingState,
+	ColumnSizingTableState,
 	ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -16,6 +19,21 @@ import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
 import { alphanumericFalsyLast } from './utils'
 
+interface ITableWithSearchProps {
+	data: any[]
+	columns: ColumnDef<any>[]
+	placeholder: string
+	columnToSearch: string
+	customFilters?: React.ReactNode
+	header?: string
+	renderSubComponent?: (row: any) => React.ReactNode
+	columnSizes?: ColumnSizingTableState
+	columnOrders?: ColumnOrderTableState
+	sortingState: SortingState
+	rowSize?: number
+	compact?: boolean
+}
+
 export function TableWithSearch({
 	data,
 	columns,
@@ -26,12 +44,12 @@ export function TableWithSearch({
 	renderSubComponent = null,
 	columnSizes = null,
 	columnOrders = null,
-	defaultSorting = null,
+	sortingState = null,
 	rowSize = null,
 	compact = false
-}) {
+}: ITableWithSearchProps) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>(defaultSorting ?? [])
+	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])

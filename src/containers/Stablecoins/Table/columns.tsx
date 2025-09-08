@@ -199,7 +199,7 @@ export const peggedAssetsColumns: ColumnDef<IPeggedAssetsRow>[] = [
 							<span className="flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
 								<Tooltip
 									content="Deprecated"
-									className="text-2.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-white dark:bg-red-400"
+									className="flex h-3 w-3 items-center justify-center rounded-full bg-red-600 text-[10px] text-white dark:bg-red-400"
 								>
 									!
 								</Tooltip>

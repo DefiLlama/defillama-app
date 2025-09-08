@@ -37,6 +37,47 @@ export const EXTENDED_COLOR_PALETTE = [
 	'#D500F9' // Purple A400
 ]
 
+export const COLOR_PALETTE_2 = [
+	'#FF5722', // Deep Orange
+	'#40C4FF', // Light Cyan
+	'#9C27B0', // Purple
+	'#4CAF50', // Green
+	'#7c2d12', // brown
+	'#E91E63', // hot pink
+	'#1f67d2', // old blue
+	'#8BC34A', // Light Green
+	'#673AB7', // Deep Purple
+	'#A0522D', // Light Shiny Brown
+	'#FF1493', // Deep Pink
+	'#00ACC1', // Dark Cyan
+	'#CDDC39', // Lime
+	'#D500F9', // Purple A400,
+	'#BC8F8F', // Rosy Brown
+	'#FF4081', // Pink Accent
+	'#2196F3', // Bright Blue
+	'#00E676', // Green Accent
+	'#7C4DFF', // Light Purple
+	'#DEB887', // Burlywood
+	'#E74C3C', // Alizarin Red
+	'#3498DB', // Peter River Blue
+	'#2E8B57', // Sea Green
+	'#8A2BE2', // Blue Violet
+	'#D2B48C', // Tan
+	'#FFC107', // Amber
+	'#03A9F4', // Light Blue
+	'#228B22', // Forest Green
+	'#9370DB', // Medium Purple
+	'#FF9800', // Orange
+	'#8B7D6B', // Dark Khaki
+	'#1976D2', // Dark Blue
+	'#76FF03', // Light Lime
+	'#6A1B9A', // Dark Purple
+	'#CD853F', // Peru Brown
+	'#FF4500', // Orange Red
+	'#0080FF', // Azure Blue
+	'#32CD32' // Lime Green
+]
+
 function simpleHash(str: string): number {
 	let hash = 0
 	let prime = 31

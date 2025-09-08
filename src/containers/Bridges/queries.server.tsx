@@ -7,7 +7,7 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
-import { chainIconUrl, getRandomColor, preparePieChartData, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, getNDistinctColors, preparePieChartData, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'
 
@@ -507,9 +507,11 @@ export async function getBridgePageDatanew(bridge: string) {
 				limit: 15
 			})
 
+			const colors = getNDistinctColors(tokenDeposits.length + tokenWithdrawals.length)
+
 			tokenColor = Object.fromEntries(
-				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token) => {
-					return typeof token === 'string' ? ['-', getRandomColor()] : [token.name, getRandomColor()]
+				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token, i) => {
+					return typeof token === 'string' ? ['-', colors[i]] : [token.name, colors[i]]
 				})
 			)
 			const totalAddressesDeposited = prevDayData.totalAddressDeposited

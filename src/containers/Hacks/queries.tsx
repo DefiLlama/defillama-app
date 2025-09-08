@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { HACKS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, preparePieChartData, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -113,7 +113,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 				stack: 'Total Value Hacked',
 				type: 'bar',
 				data: monthlyHacksChartData,
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		},
 		totalHacked,

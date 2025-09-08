@@ -19,7 +19,13 @@ const pageName = ['Protocols', 'ranked by', 'Pool2 TVL']
 
 export default function Pool2TVL(props) {
 	return (
-		<Layout title="Pool2 TVL - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Pool2 TVL - DefiLlama"
+			description={`Pool2 TVL by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`pool2 tvl by protocol`}
+			canonicalUrl={`/pool2`}
+			pageName={pageName}
+		>
 			<Pool2ProtocolsTVLByChain {...props} />
 		</Layout>
 	)

@@ -58,7 +58,13 @@ export default function PeggedAssets({
 	chain
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} pageName={pageName}>
+		<Layout
+			title={`Stablecoins Circulating on ${chain} - DefiLlama`}
+			description={`Stablecoins Circulating on ${chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`stablecoins circulating on ${chain}, stablecoins supply on ${chain}, stablecoins market cap on ${chain}, stablecoins price on ${chain}, stablecoins percent off peg on ${chain}`.toLowerCase()}
+			canonicalUrl={`/stablecoins/${chain}`}
+			pageName={pageName}
+		>
 			<StablecoinsByChain
 				chains={chains}
 				selectedChain={chain}

@@ -9,6 +9,30 @@ import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolPageMetrics } from './types'
 
+const tabs: Record<string, { id: string; name: string; route: string }> = {
+	information: { id: 'information', name: 'Information', route: '/protocol' },
+	assets: { id: 'assets', name: 'Assets', route: '/protocol/assets' },
+	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },
+	stablecoins: { id: 'stablecoins', name: 'Stablecoin Info', route: '/protocol/stablecoins' },
+	bridges: { id: 'bridges', name: 'Bridge Info', route: '/protocol/bridges' },
+	treasury: { id: 'treasury', name: 'Treasury', route: '/protocol/treasury' },
+	unlocks: { id: 'unlocks', name: 'Unlocks', route: '/protocol/unlocks' },
+	yields: { id: 'yields', name: 'Yields', route: '/protocol/yields' },
+	fees: { id: 'fees', name: 'Fees and Revenue', route: '/protocol/fees' },
+	dexs: { id: 'dexs', name: 'DEX Volume', route: '/protocol/dexs' },
+	perps: { id: 'perps', name: 'Perp Volume', route: '/protocol/perps' },
+	dexAggregators: { id: 'dexAggregators', name: 'DEX Aggregator Volume', route: '/protocol/dex-aggregators' },
+	perpsAggregators: { id: 'perpsAggregators', name: 'Perp Aggregator Volume', route: '/protocol/perps-aggregators' },
+	bridgeAggregators: {
+		id: 'bridgeAggregators',
+		name: 'Bridge Aggregator Volume',
+		route: '/protocol/bridge-aggregators'
+	},
+	options: { id: 'options', name: 'Options Volume', route: '/protocol/options' },
+	governance: { id: 'governance', name: 'Governance', route: '/protocol/governance' },
+	forks: { id: 'forks', name: 'Forks', route: '/protocol/forks' }
+} as const
+
 export function ProtocolOverviewLayout({
 	children,
 	isCEX,
@@ -18,7 +42,9 @@ export function ProtocolOverviewLayout({
 	toggleOptions,
 	metrics,
 	tab,
-	warningBanners
+	warningBanners,
+	seoDescription,
+	seoKeywords
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -30,31 +56,16 @@ export function ProtocolOverviewLayout({
 		key: string
 	}>
 	metrics: IProtocolPageMetrics
-	tab?:
-		| 'information'
-		| 'assets'
-		| 'tvl'
-		| 'stablecoins'
-		| 'bridges'
-		| 'treasury'
-		| 'unlocks'
-		| 'yields'
-		| 'fees'
-		| 'dexs'
-		| 'perps'
-		| 'dex-aggregators'
-		| 'perps-aggregators'
-		| 'bridge-aggregators'
-		| 'options'
-		| 'governance'
-		| 'forks'
+	tab?: keyof typeof tabs
 	warningBanners?: Array<{
 		message: string
 		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
 		level: 'low' | 'alert' | 'rug'
 	}>
+	seoDescription?: string
+	seoKeywords?: string
 }) {
-	const includeInMetricsOptionslabel = useMemo(() => {
+	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => DEFI_SETTINGS_KEYS.includes(option.key))
 		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS.includes(option.key))
 
@@ -73,13 +84,64 @@ export function ProtocolOverviewLayout({
 		return null
 	}, [toggleOptions])
 
+	const protocolTabs = useMemo(() => {
+		const final = []
+		if (metrics.stablecoins) {
+			final.push(tabs.stablecoins)
+		}
+		if (metrics.bridge) {
+			final.push(tabs.bridges)
+		}
+		if (metrics.treasury) {
+			final.push(tabs.treasury)
+		}
+		if (metrics.unlocks) {
+			final.push(tabs.unlocks)
+		}
+		if (metrics.yields) {
+			final.push(tabs.yields)
+		}
+		if (metrics.fees) {
+			final.push(tabs.fees)
+		}
+		if (metrics.dexs) {
+			final.push(tabs.dexs)
+		}
+		if (metrics.perps) {
+			final.push(tabs.perps)
+		}
+		if (metrics.dexAggregators) {
+			final.push(tabs.dexAggregators)
+		}
+		if (metrics.perpsAggregators) {
+			final.push(tabs.perpsAggregators)
+		}
+		if (metrics.bridgeAggregators) {
+			final.push(tabs.bridgeAggregators)
+		}
+		if (metrics.optionsPremiumVolume || metrics.optionsNotionalVolume) {
+			final.push(tabs.options)
+		}
+		if (metrics.governance) {
+			final.push(tabs.governance)
+		}
+		if (metrics.forks) {
+			final.push(tabs.forks)
+		}
+		return final
+	}, [metrics])
+
 	return (
 		<Layout
 			title={`${name} - DefiLlama`}
-			includeInMetricsOptions={toggleOptions}
-			includeInMetricsOptionslabel={includeInMetricsOptionslabel}
-			customSEO
-			className="pt-2 lg:pt-1"
+			description={
+				seoDescription ||
+				`Track ${name} metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+			}
+			keywords={seoKeywords || `${name.toLowerCase()} defillama`}
+			canonicalUrl={`/protocol/${slug(name)}`}
+			metricFilters={toggleOptions}
+			metricFiltersLabel={metricFiltersLabel}
 		>
 			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
@@ -155,7 +217,7 @@ export function ProtocolOverviewLayout({
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>
-													<span className="text-2.5 text-(--text-form)">Aggregated view</span>
+													<span className="text-[10px] text-(--text-form)">Aggregated view</span>
 												</span>
 											) : (
 												<span>{value}</span>
@@ -203,132 +265,16 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						)
 					) : null}
-					{metrics.stablecoins && (
+					{protocolTabs.map((pt) => (
 						<BasicLink
-							href={`/protocol/stablecoins/${slug(name)}`}
-							data-active={tab === 'stablecoins'}
+							key={`${pt.id}-${name}`}
+							href={`${pt.route}/${slug(name)}`}
+							data-active={pt.id === tab}
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 						>
-							Stablecoin Info
+							{pt.name}
 						</BasicLink>
-					)}
-					{metrics.bridge && (
-						<BasicLink
-							href={`/protocol/bridges/${slug(name)}`}
-							data-active={tab === 'bridges'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Bridge Info
-						</BasicLink>
-					)}
-					{metrics.treasury && (
-						<BasicLink
-							href={`/protocol/treasury/${slug(name)}`}
-							data-active={tab === 'treasury'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Treasury
-						</BasicLink>
-					)}
-					{metrics.unlocks && (
-						<BasicLink
-							href={`/protocol/unlocks/${slug(name)}`}
-							data-active={tab === 'unlocks'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Unlocks
-						</BasicLink>
-					)}
-					{metrics.yields && (
-						<BasicLink
-							href={`/protocol/yields/${slug(name)}`}
-							data-active={tab === 'yields'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Yields
-						</BasicLink>
-					)}
-					{metrics.fees && (
-						<BasicLink
-							href={`/protocol/fees/${slug(name)}`}
-							data-active={tab === 'fees'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Fees and Revenue
-						</BasicLink>
-					)}
-					{metrics.dexs && (
-						<BasicLink
-							href={`/protocol/dexs/${slug(name)}`}
-							data-active={tab === 'dexs'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							DEX Volume
-						</BasicLink>
-					)}
-					{metrics.perps && (
-						<BasicLink
-							href={`/protocol/perps/${slug(name)}`}
-							data-active={tab === 'perps'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Perp Volume
-						</BasicLink>
-					)}
-					{metrics.dexAggregators && (
-						<BasicLink
-							href={`/protocol/dex-aggregators/${slug(name)}`}
-							data-active={tab === 'dex-aggregators'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Aggregator Volume
-						</BasicLink>
-					)}
-					{metrics.perpsAggregators && (
-						<BasicLink
-							href={`/protocol/perps-aggregators/${slug(name)}`}
-							data-active={tab === 'perps-aggregators'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Perp Aggregator Volume
-						</BasicLink>
-					)}
-					{metrics.bridgeAggregators && (
-						<BasicLink
-							href={`/protocol/bridge-aggregators/${slug(name)}`}
-							data-active={tab === 'bridge-aggregators'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Bridge Aggregator Volume
-						</BasicLink>
-					)}
-					{(metrics.optionsPremiumVolume || metrics.optionsNotionalVolume) && (
-						<BasicLink
-							href={`/protocol/options/${slug(name)}`}
-							data-active={tab === 'options'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Options Volume
-						</BasicLink>
-					)}
-					{metrics.governance && (
-						<BasicLink
-							href={`/protocol/governance/${slug(name)}`}
-							data-active={tab === 'governance'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Governance
-						</BasicLink>
-					)}
-					{metrics.forks && (
-						<BasicLink
-							href={`/protocol/forks/${slug(name)}`}
-							data-active={tab === 'forks'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Forks
-						</BasicLink>
-					)}
+					))}
 				</div>
 				{children}
 			</div>

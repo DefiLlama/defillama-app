@@ -162,7 +162,7 @@ export default function ProtocolLineBarChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative])
+	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -188,6 +188,8 @@ export default function ProtocolLineBarChart({
 
 		const noOffset = allYAxis.length < 3
 
+		const chartsInSeries = new Set(series.map((s) => s.name))
+
 		allYAxis.forEach(([type, index]) => {
 			const options = {
 				...yAxis,
@@ -210,6 +212,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Token Price']
 						}
 					}
@@ -222,6 +226,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Token Volume']
 						}
 					}
@@ -234,6 +240,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Token Liquidity']
 						}
 					}
@@ -246,6 +254,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Bridge Deposits']
 						}
 					}
@@ -258,13 +268,15 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: chartData['Fees']
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('Fees')
 								? chartColors['Fees']
-								: chartData['Revenue']
+								: chartsInSeries.has('Revenue')
 									? chartColors['Revenue']
-									: chartData['Holders Revenue']
+									: chartsInSeries.has('Holders Revenue')
 										? chartColors['Holders Revenue']
-										: chartData['Incentives']
+										: chartsInSeries.has('Incentives')
 											? chartColors['Incentives']
 											: chartColors['Fees']
 						}
@@ -278,21 +290,37 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: chartData['DEX Volume']
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('DEX Volume')
 								? chartColors['DEX Volume']
-								: chartData['Perp Volume']
+								: chartsInSeries.has('Perp Volume')
 									? chartColors['Perp Volume']
-									: chartData['Options Premium Volume']
+									: chartsInSeries.has('Options Premium Volume')
 										? chartColors['Options Premium Volume']
-										: chartData['Options Notional Volume']
+										: chartsInSeries.has('Options Notional Volume')
 											? chartColors['Options Notional Volume']
-											: chartData['Perp Aggregator Volume']
+											: chartsInSeries.has('Perp Aggregator Volume')
 												? chartColors['Perp Aggregator Volume']
-												: chartData['Bridge Aggregator Volume']
+												: chartsInSeries.has('Bridge Aggregator Volume')
 													? chartColors['Bridge Aggregator Volume']
-													: chartData['DEX Aggregator Volume']
+													: chartsInSeries.has('DEX Aggregator Volume')
 														? chartColors['DEX Aggregator Volume']
 														: chartColors['DEX Volume']
+						}
+					}
+				})
+			}
+
+			if (type === 'Open Interest') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Open Interest']
 						}
 					}
 				})
@@ -307,6 +335,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Unlocks']
 						}
 					}
@@ -322,9 +352,11 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: chartData['Active Addresses']
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('Active Addresses')
 								? chartColors['Active Addresses']
-								: chartData['New Addresses']
+								: chartsInSeries.has('New Addresses')
 									? chartColors['New Addresses']
 									: chartColors['Active Addresses']
 						}
@@ -341,6 +373,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Transactions']
 						}
 					}
@@ -353,6 +387,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Gas Used']
 						}
 					}
@@ -367,6 +403,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Median APY']
 						}
 					}
@@ -379,6 +417,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['USD Inflows']
 						}
 					}
@@ -394,6 +434,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Total Proposals']
 						}
 					}
@@ -409,6 +451,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Max Votes']
 						}
 					}
@@ -421,6 +465,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Treasury']
 						}
 					}
@@ -436,6 +482,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Tweets']
 						}
 					}
@@ -448,6 +496,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['NFT Volume']
 						}
 					}
@@ -486,7 +536,16 @@ export default function ProtocolLineBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, chartColors, allYAxis])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		unlockTokenSymbol,
+		chartColors,
+		allYAxis,
+		rangeHallmarks
+	])
 
 	return (
 		<div

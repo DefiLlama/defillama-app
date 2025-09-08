@@ -45,11 +45,7 @@ export default function Tokens({ searchData }) {
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
-	const includeCentraliseExchanges = includecex
-		? typeof includecex === 'string' && includecex === 'true'
-			? true
-			: false
-		: false
+	const includeCentraliseExchanges = includecex === 'true' ? true : false
 
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
@@ -80,7 +76,13 @@ export default function Tokens({ searchData }) {
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" pageName={pageName}>
+		<Layout
+			title="Token Usage - DefiLlama"
+			description={`Token usage in protocols. Checkout how a token is used in protocols on chain as well as CEXs. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`token usage, defi token usage, token usage in protocols, token usage in protocols on chain, token usage on cexes`}
+			canonicalUrl={`/token-usage`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
 			<Search searchData={searchData} />
@@ -312,7 +314,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								value="__see_more__"
 								setValueOnClick={false}
 								hideOnClick={false}
-								className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary) data-active-item:bg-(--bg-secondary)"
+								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
 								onClick={handleSeeMore}
 							>
 								See more...

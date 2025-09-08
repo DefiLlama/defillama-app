@@ -117,8 +117,60 @@ const protocolChartHandlers: Record<
 		const data = await ProtocolCharts.fees(item)
 		return filterDataByTimePeriod(data, timePeriod || 'all')
 	},
+	liquidity: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.liquidity(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	treasury: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.treasury(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	incentives: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.incentives(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
 	revenue: (item, geckoId, timePeriod) => async () => {
 		const data = await ProtocolCharts.revenue(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	holdersRevenue: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.holdersRevenue(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	bribes: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.bribes(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	tokenTax: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.tokenTax(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	perps: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.perps(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	openInterest: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.openInterest(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	aggregators: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.aggregators(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	perpsAggregators: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.perpsAggregators(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	bridgeAggregators: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.bridgeAggregators(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	optionsPremium: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.optionsPremium(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all')
+	},
+	optionsNotional: (item, geckoId, timePeriod) => async () => {
+		const data = await ProtocolCharts.optionsNotional(item)
 		return filterDataByTimePeriod(data, timePeriod || 'all')
 	},
 	tokenMcap: (item, geckoId, timePeriod) => async () => {

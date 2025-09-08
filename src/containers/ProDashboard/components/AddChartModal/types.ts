@@ -42,6 +42,9 @@ export interface ChartBuilderConfig {
 		| 'holders-revenue'
 		| 'protocol-revenue'
 		| 'supply-side-revenue'
+	mode: 'chains' | 'protocol'
+	filterMode?: 'include' | 'exclude'
+	protocol?: string
 	chains: string[]
 	categories: string[]
 	groupBy: 'protocol'
