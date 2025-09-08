@@ -4,6 +4,7 @@ import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverv
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { withPerformanceLogging } from '~/utils/perf'
 
+// todo check name in metadata
 export const getStaticProps = withPerformanceLogging(
 	'bridge/[...bridge]',
 	async ({
@@ -11,12 +12,10 @@ export const getStaticProps = withPerformanceLogging(
 			bridge: [bridge]
 		}
 	}) => {
-		const data = await getBridgePageDatanew(bridge)
+		const props = await getBridgePageDatanew(bridge)
 
 		return {
-			props: {
-				...data
-			},
+			props,
 			revalidate: maxAgeForNext([22])
 		}
 	}

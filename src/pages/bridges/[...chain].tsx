@@ -2,6 +2,7 @@ import { maxAgeForNext } from '~/api'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
+import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -11,22 +12,23 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const chainMetadata = metadataCache.chainMetadata[slug(chain)]
+		if (!chainMetadata || !chainMetadata.inflows) {
+			return { notFound: true }
+		}
+
 		const props = await getBridgeOverviewPageData(chain)
 
 		if (!props.filteredBridges || props.filteredBridges?.length === 0) {
 			return {
-				notFound: true
+				notFound: true,
+				revalidate: maxAgeForNext([22])
 			}
 		}
-		/*
-	const backgroundColor = await getPeggedColor({
-		peggedAsset: props.filteredPeggedAssets[0]?.name
-	})
-	*/
+
 		return {
-			props: {
-				...props
-			},
+			props,
 			revalidate: maxAgeForNext([22])
 		}
 	}

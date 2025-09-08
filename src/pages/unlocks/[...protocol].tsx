@@ -32,6 +32,7 @@ const getEventCountdown = (timestamp: number): string => {
 	return `in ${hoursLeft} hour${hoursLeft > 1 ? 's' : ''}`
 }
 
+// todo check name in metadata
 export const getStaticProps = withPerformanceLogging(
 	'unlocks/[...protocol]',
 	async ({
@@ -43,7 +44,8 @@ export const getStaticProps = withPerformanceLogging(
 		const noUpcomingEvent = emissions.upcomingEvent[0].timestamp === null
 		if (emissions.chartData?.documented?.length === 0 && emissions.chartData?.realtime?.length === 0) {
 			return {
-				notFound: true
+				notFound: true,
+				revalidate: maxAgeForNext([22])
 			}
 		}
 

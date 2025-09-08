@@ -6,6 +6,7 @@ import { slug } from '~/utils'
 import { withErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+// todo check name in metadata
 export const getStaticProps = withPerformanceLogging(
 	'stablecoin/[...peggedasset]',
 	async ({
