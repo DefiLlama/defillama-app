@@ -245,13 +245,16 @@ export function GenerateDashboardModal({
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs dark:bg-black/70"
 			onClick={handleClose}
 		>
-			<div className="pro-bg1 pro-border w-full max-w-lg border shadow-2xl" onClick={(e) => e.stopPropagation()}>
+				<div
+					className="w-full max-w-lg rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-2xl"
+					onClick={(e) => e.stopPropagation()}
+				>
 				<div className="p-6">
 					<div className="mb-6 flex items-center justify-between">
 						<h2 className="pro-text1 text-xl font-semibold">
 							{mode === 'iterate' ? 'Edit with LlamaAI' : 'Generate using LlamaAI'}
 						</h2>
-						<button onClick={handleClose} className="pro-hover-bg p-1 transition-colors">
+						<button onClick={handleClose} className="pro-hover-bg rounded-md p-1 transition-colors">
 							<Icon name="x" height={20} width={20} className="pro-text2" />
 						</button>
 					</div>
@@ -271,10 +274,10 @@ export function GenerateDashboardModal({
 									}}
 									onBlur={() => handleFieldBlur('dashboardName')}
 									placeholder="e.g., Ethereum vs Arbitrum Analysis"
-									className={`bg-opacity-50 pro-text1 placeholder:pro-text3 w-full border bg-(--bg-glass) px-3 py-2 focus:outline-hidden ${
+									className={`pro-text1 placeholder:pro-text3 w-full rounded-md border px-3 py-2 focus:outline-hidden ${
 										touchedFields.dashboardName && errors.dashboardName
-											? 'border-red-500 focus:border-red-500'
-											: 'pro-border focus:border-(--primary)'
+											? 'border-red-500 focus:ring-1 focus:ring-red-500'
+											: 'pro-border focus:ring-1 focus:ring-(--primary)'
 									} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									disabled={isLoading}
 									autoFocus
@@ -306,10 +309,10 @@ export function GenerateDashboardModal({
 										: 'e.g., Build a DeFi yields dashboard with top earning protocols, comparing different chains and showing historical performance...'
 								}
 								rows={4}
-								className={`bg-opacity-50 pro-text1 placeholder:pro-text3 w-full resize-none border bg-(--bg-glass) px-3 py-2 focus:outline-hidden ${
+								className={`pro-text1 placeholder:pro-text3 w-full resize-none rounded-md border px-3 py-2 focus:outline-hidden ${
 									touchedFields.aiDescription && errors.aiDescription
-										? 'border-red-500 focus:border-red-500'
-										: 'pro-border focus:border-(--primary)'
+										? 'border-red-500 focus:ring-1 focus:ring-red-500'
+										: 'pro-border focus:ring-1 focus:ring-(--primary)'
 								} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 								disabled={isLoading}
 								autoFocus={mode === 'iterate'}
@@ -332,10 +335,8 @@ export function GenerateDashboardModal({
 									<button
 										onClick={() => setVisibility('public')}
 										disabled={isLoading}
-										className={`flex-1 border px-4 py-3 transition-colors ${
-											visibility === 'public'
-												? 'bg-opacity-20 pro-text1 border-(--primary) bg-(--primary)'
-												: 'pro-border pro-text3 hover:pro-text1'
+										className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
+											visibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
 										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									>
 										<Icon name="earth" height={16} width={16} className="mr-2 inline" />
@@ -344,10 +345,8 @@ export function GenerateDashboardModal({
 									<button
 										onClick={() => setVisibility('private')}
 										disabled={isLoading}
-										className={`flex-1 border px-4 py-3 transition-colors ${
-											visibility === 'private'
-												? 'bg-opacity-20 pro-text1 border-(--primary) bg-(--primary)'
-												: 'pro-border pro-text3 hover:pro-text1'
+										className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
+											visibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
 										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 									>
 										<Icon name="key" height={16} width={16} className="mr-2 inline" />
@@ -370,16 +369,15 @@ export function GenerateDashboardModal({
 										onChange={(e) => setTagInput(e.target.value)}
 										onKeyDown={handleTagInputKeyDown}
 										placeholder="Enter tag name"
-										className={`bg-opacity-50 pro-border pro-text1 placeholder:pro-text3 flex-1 border bg-(--bg-glass) px-3 py-2 focus:border-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+										className={`pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border px-3 py-2 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 										disabled={isLoading}
 									/>
 									<button
 										onClick={() => handleAddTag(tagInput)}
-										className={`border px-4 py-2 transition-colors ${
-											tagInput.trim() && !isLoading
-												? 'border-(--primary) text-(--primary) hover:bg-(--primary) hover:text-white'
-												: 'pro-border pro-text3'
-										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+									disabled={!tagInput.trim() || isLoading}
+									className={`rounded-md border px-4 py-2 transition-colors ${
+										tagInput.trim() && !isLoading ? 'pro-btn-blue-outline' : 'pro-border pro-text3 cursor-not-allowed'
+									}`}
 									>
 										Add Tag
 									</button>
@@ -392,12 +390,12 @@ export function GenerateDashboardModal({
 										{tags.map((tag) => (
 											<span
 												key={tag}
-												className="bg-opacity-50 pro-text2 pro-border flex items-center gap-1 border bg-(--bg-glass) px-3 py-1 text-sm"
+											className="pro-text2 pro-border flex items-center gap-1 rounded-md border px-3 py-1 text-sm"
 											>
 												{tag}
 												<button
 													onClick={() => handleRemoveTag(tag)}
-													className="hover:text-(--primary)"
+												className="hover:text-pro-blue-400"
 													disabled={isLoading}
 												>
 													<Icon name="x" height={12} width={12} />
@@ -414,18 +412,16 @@ export function GenerateDashboardModal({
 						<button
 							onClick={handleClose}
 							disabled={isLoading}
-							className="pro-border pro-text1 flex-1 border px-4 py-2 transition-colors hover:bg-(--bg-main) disabled:opacity-50"
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-4 py-2 transition-colors disabled:opacity-50"
 						>
 							Cancel
 						</button>
 						<button
 							onClick={handleGenerate}
 							disabled={isLoading}
-							className={`flex flex-1 items-center justify-center gap-2 px-4 py-2 transition-colors ${
-								!isLoading
-									? 'animate-ai-glow bg-(--primary) text-white hover:bg-(--primary-hover)'
-									: 'pro-text3 cursor-not-allowed bg-(--bg-tertiary)'
-							}`}
+								className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${
+									!isLoading ? 'animate-ai-glow pro-btn-blue' : 'pro-text3 pro-border cursor-not-allowed border'
+								}`}
 						>
 							{isLoading ? (
 								<>
