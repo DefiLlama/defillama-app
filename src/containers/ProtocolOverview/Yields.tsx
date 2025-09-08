@@ -46,12 +46,12 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 					<p className="flex items-center gap-2">
 						<span>Number of pools tracked</span>
 						<span>:</span>
-						<span>{data.noOfPoolsTracked}</span>
+						<span>{data?.noOfPoolsTracked}</span>
 					</p>
 					<p className="flex items-center gap-2">
 						<span>Average APY</span>
 						<span>:</span>
-						<span>{data.averageAPY.toFixed(2)}%</span>
+						<span>{data?.averageAPY.toFixed(2)}%</span>
 					</p>
 
 					{isLoading ? (
