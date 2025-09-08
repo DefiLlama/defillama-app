@@ -71,9 +71,11 @@ export function toFilterPool({
 							// only include pools that are marked as stablecoin &
 							// every token in the pool symbol contains usd-pegged stable symbol (substring match)
 							if (!curr.stablecoin) return false
-							const usdSyms = Array.isArray(usdPeggedSymbols) ? usdPeggedSymbols.filter((s) => s && s.length >= 2) : []
-							if (usdSyms.length === 0) return false
-							return tokensInPool.length > 0 && tokensInPool.every((sym) => usdSyms.some((usd) => sym.includes(usd)))
+							if (!Array.isArray(usdPeggedSymbols) || usdPeggedSymbols.length === 0) return false
+							return (
+								tokensInPool.length > 0 &&
+								tokensInPool.every((sym) => usdPeggedSymbols.some((usd) => sym.includes(usd)))
+							)
 						} else if (tokensInPool.some((x) => x.includes(token))) {
 							return true
 						} else if (token === 'eth') {

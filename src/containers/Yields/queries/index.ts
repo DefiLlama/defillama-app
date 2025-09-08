@@ -122,9 +122,8 @@ export async function getYieldPageData() {
 		const usdPeggedSymbols = Array.from(
 			new Set(
 				(stablecoins?.peggedAssets || [])
-					.filter((a) => a?.pegType === 'peggedUSD' && typeof a?.symbol === 'string')
+					.filter((a) => a?.pegType === 'peggedUSD' && typeof a?.symbol === 'string' && a.symbol.length >= 2)
 					.map((a) => a.symbol.toLowerCase())
-					.filter((s) => s && s.length >= 2)
 			)
 		)
 		data['usdPeggedSymbols'] = usdPeggedSymbols
