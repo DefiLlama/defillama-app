@@ -1,5 +1,6 @@
 import { fetchCoinPrices } from '~/api'
 import {
+	PEGGEDS_API,
 	PROTOCOLS_API,
 	YIELD_CHAIN_API,
 	YIELD_CONFIG_API,
@@ -113,6 +114,22 @@ export async function getYieldPageData() {
 												: data.tokenNameMapping[t]
 		})
 		p['rewardTokensNames'] = xy.filter((t) => t)
+	}
+
+	// build USD-pegged symbols list (min length 2)
+	try {
+		const stablecoins = await fetchApi(`${PEGGEDS_API}?includePrices=false`)
+		const usdPeggedSymbols = Array.from(
+			new Set(
+				(stablecoins?.peggedAssets || [])
+					.filter((a) => a?.pegType === 'peggedUSD' && typeof a?.symbol === 'string')
+					.map((a) => a.symbol.toLowerCase())
+					.filter((s) => s && s.length >= 2)
+			)
+		)
+		data['usdPeggedSymbols'] = usdPeggedSymbols
+	} catch (e) {
+		data['usdPeggedSymbols'] = []
 	}
 
 	return {
