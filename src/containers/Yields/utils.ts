@@ -1,7 +1,5 @@
 import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
-import { attributeOptions } from './Filters/Attributes'
-
-const attributeOptionsMap = new Map(attributeOptions.map((option) => [option.key, option]))
+import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
 export function toFilterPool({
 	curr,

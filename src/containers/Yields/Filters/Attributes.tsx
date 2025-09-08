@@ -148,6 +148,8 @@ export const attributeOptions = [
 	}
 ]
 
+export const attributeOptionsMap = new Map(attributeOptions.map((option) => [option.key, option]))
+
 function filterAttributeOptions(option, pathname) {
 	switch (pathname) {
 		case '/borrow':
