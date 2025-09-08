@@ -39,7 +39,7 @@ const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
-		<div className="col-span-full flex flex-col gap-1 xl:col-span-1">
+		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
 		</div>

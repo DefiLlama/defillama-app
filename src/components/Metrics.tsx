@@ -1,4 +1,5 @@
 import { Fragment, memo, useDeferredValue, useMemo, useState, useSyncExternalStore } from 'react'
+import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
@@ -178,7 +179,13 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 	)
 }
 
-export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) => {
+export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage({
+	page,
+	totalTrackedByMetric
+}: {
+	page: IPage
+	totalTrackedByMetric: any
+}) {
 	const pinnedMetrics = useSyncExternalStore(
 		subscribeToPinnedMetrics,
 		() => localStorage.getItem('pinned-metrics') ?? '[]',
@@ -255,7 +262,7 @@ export const LinkToMetricOrToolPage = ({ page, totalTrackedByMetric }: { page: I
 			</Tooltip>
 		</div>
 	)
-}
+})
 
 const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
 	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
