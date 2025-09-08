@@ -133,7 +133,7 @@ function ProContent({
 					)}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
-					{!featureFlagsLoading && hasFeature('dashboard-gen') && (
+					{(
 						<button
 							onClick={
 								!isAuthenticated
