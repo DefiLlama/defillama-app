@@ -14,6 +14,13 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		const props = await getBridgePageDatanew(bridge)
 
+		if (!props) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
 		return {
 			props,
 			revalidate: maxAgeForNext([22])

@@ -125,7 +125,11 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
+	const data = await fetchJson('http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies')
+	const paths = data.map((company) => ({
+		params: { company: [slug(company.ticker)] }
+	}))
+	return { paths, fallback: false }
 }
 
 interface IProps extends IDigitalAssetTreasuryCompany {
