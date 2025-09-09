@@ -4,8 +4,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
-import Layout from '~/layout'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import Layout from '~/layout'
 import { ChartRenderer } from './components/ChartRenderer'
 
 class StreamingContent {
@@ -193,7 +193,7 @@ const sessionStorageKey = 'llama-ai-session'
 
 export function LlamaAI() {
 	const { authorizedFetch } = useAuthContext()
-	
+
 	const [streamingResponse, setStreamingResponse] = useState('')
 	const [streamingError, setStreamingError] = useState('')
 	const [isStreaming, setIsStreaming] = useState(false)
@@ -559,8 +559,20 @@ export function LlamaAI() {
 											)}
 
 											{item.response.metadata && (
-												<details className="mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-													<summary className="cursor-pointer text-sm font-medium">Query Metadata</summary>
+												<details className="group mt-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+													<summary className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
+														<span>Query Metadata</span>
+														<span className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+															<Icon
+																name="chevron-down"
+																height={14}
+																width={14}
+																className="transition-transform group-open:rotate-180"
+															/>
+															<span className="group-open:hidden">Show</span>
+															<span className="hidden group-open:block">Hide</span>
+														</span>
+													</summary>
 													<pre className="mt-2 overflow-auto text-xs">
 														{JSON.stringify(item.response.metadata, null, 2)}
 													</pre>
@@ -891,8 +903,15 @@ const PromptResponse = ({
 			)}
 
 			{response?.metadata && (
-				<details className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-					<summary className="cursor-pointer text-sm font-medium">Query Metadata</summary>
+				<details className="group rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+					<summary className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
+						<span>Query Metadata</span>
+						<span className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+							<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
+							<span className="group-open:hidden">Show</span>
+							<span className="hidden group-open:block">Hide</span>
+						</span>
+					</summary>
 					<pre className="mt-2 overflow-auto text-xs">{JSON.stringify(response.metadata, null, 2)}</pre>
 				</details>
 			)}

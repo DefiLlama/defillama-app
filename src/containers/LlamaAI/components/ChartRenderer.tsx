@@ -1,8 +1,8 @@
 import { lazy, memo, Suspense, useState } from 'react'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
-import type { IChartProps, IBarChartProps } from '~/components/ECharts/types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -42,7 +42,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 		if (!hasData) {
 			return (
-				<div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+				<div className="flex h-full flex-col items-center justify-center text-gray-500 dark:text-gray-400">
 					<Icon name="bar-chart" height={24} width={24} className="mb-2" />
 					<p>No data available for chart</p>
 				</div>
@@ -86,7 +86,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 			default:
 				return (
-					<div className="flex flex-col items-center justify-center h-full text-red-500">
+					<div className="flex h-full flex-col items-center justify-center text-red-500">
 						<Icon name="alert-triangle" height={24} width={24} className="mb-2" />
 						<p>Unsupported chart type: {adaptedChart.chartType}</p>
 					</div>
@@ -95,18 +95,18 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 	} catch (error) {
 		console.error('Chart render error:', error)
 		return (
-			<div className="flex flex-col items-center justify-center h-full text-red-500">
+			<div className="flex h-full flex-col items-center justify-center text-red-500">
 				<Icon name="alert-triangle" height={24} width={24} className="mb-2" />
 				<p>Chart render failed</p>
-				<p className="text-xs mt-1 opacity-75">{error instanceof Error ? error.message : 'Unknown error'}</p>
+				<p className="mt-1 text-xs opacity-75">{error instanceof Error ? error.message : 'Unknown error'}</p>
 			</div>
 		)
 	}
 })
 
 const ChartLoadingSpinner = () => (
-	<div className="flex items-center justify-center h-full">
-		<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+	<div className="flex h-full items-center justify-center">
+		<div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500"></div>
 	</div>
 )
 
@@ -117,20 +117,18 @@ const ChartAnalysisPlaceholder = ({
 	expectedChartCount?: number
 	chartTypes?: string[]
 }) => (
-	<div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg overflow-visible">
-		<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+	<div className="mt-4 overflow-visible rounded-lg border border-gray-200 dark:border-gray-700">
+		<div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
 			<div className="flex items-center gap-2">
-				<Icon name="search" height={16} width={16} className="text-blue-500 animate-pulse" />
-				<h4 className="text-sm font-medium text-gray-900 dark:text-white">
-					Analyzing data for chart opportunities...
-				</h4>
+				<Icon name="search" height={16} width={16} className="animate-pulse text-blue-500" />
+				<h4 className="text-sm font-medium text-gray-900 dark:text-white">Analyzing data for chart opportunities...</h4>
 			</div>
 		</div>
 
 		<div className="p-4">
-			<div className="h-32 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
+			<div className="flex h-32 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-900">
 				<div className="text-center">
-					<div className="flex justify-center mb-3">
+					<div className="mb-3 flex justify-center">
 						<ChartLoadingSpinner />
 					</div>
 					<p className="text-sm text-gray-600 dark:text-gray-400">
@@ -149,10 +147,10 @@ const ChartLoadingPlaceholder = ({
 	expectedChartCount?: number
 	chartTypes?: string[]
 }) => (
-	<div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg overflow-visible">
-		<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+	<div className="mt-4 overflow-visible rounded-lg border border-gray-200 dark:border-gray-700">
+		<div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
 			<div className="flex items-center gap-2">
-				<Icon name="bar-chart" height={16} width={16} className="text-blue-500 animate-pulse" />
+				<Icon name="bar-chart" height={16} width={16} className="animate-pulse text-blue-500" />
 				<h4 className="text-sm font-medium text-gray-900 dark:text-white">
 					{expectedChartCount > 1 ? `Generating ${expectedChartCount} Charts...` : 'Generating Chart...'}
 				</h4>
@@ -160,9 +158,9 @@ const ChartLoadingPlaceholder = ({
 		</div>
 
 		<div className="p-4">
-			<div className="h-64 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center">
+			<div className="flex h-64 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-900">
 				<div className="text-center">
-					<div className="flex justify-center mb-3">
+					<div className="mb-3 flex justify-center">
 						<ChartLoadingSpinner />
 					</div>
 					<p className="text-sm text-gray-600 dark:text-gray-400">
@@ -177,17 +175,13 @@ const ChartLoadingPlaceholder = ({
 )
 
 const ChartErrorPlaceholder = () => (
-	<div className="mt-4 border border-red-200 dark:border-red-800 rounded-lg overflow-visible bg-red-50 dark:bg-red-900/10">
-		<div className="flex items-center gap-2 p-3 bg-red-100 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
+	<div className="mt-4 overflow-visible rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/10">
+		<div className="flex items-center gap-2 border-b border-red-200 bg-red-100 p-3 dark:border-red-800 dark:bg-red-900/20">
 			<Icon name="alert-triangle" height={16} width={16} className="text-red-600 dark:text-red-400" />
-			<h4 className="text-sm font-medium text-red-800 dark:text-red-200">
-				Chart Generation Failed
-			</h4>
+			<h4 className="text-sm font-medium text-red-800 dark:text-red-200">Chart Generation Failed</h4>
 		</div>
 		<div className="p-4">
-			<p className="text-sm text-red-700 dark:text-red-300">
-				Chart generation encountered an issue
-			</p>
+			<p className="text-sm text-red-700 dark:text-red-300">Chart generation encountered an issue</p>
 		</div>
 	</div>
 )
@@ -223,8 +217,8 @@ export const ChartRenderer = memo(function ChartRenderer({
 	const hasMultipleCharts = charts.length > 1
 
 	return (
-		<div className="mt-4 border border-gray-200 dark:border-gray-700 rounded-lg overflow-visible">
-			<div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+		<div className="mt-4 overflow-visible rounded-lg border border-gray-200 dark:border-gray-700">
+			<div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800">
 				<div className="flex items-center gap-2">
 					<Icon name="bar-chart" height={16} width={16} className="text-blue-500" />
 					<h4 className="text-sm font-medium text-gray-900 dark:text-white">
@@ -234,10 +228,16 @@ export const ChartRenderer = memo(function ChartRenderer({
 
 				<button
 					onClick={() => setIsCollapsed(!isCollapsed)}
-					className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded"
+					className="flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
 					title={isCollapsed ? 'Expand charts' : 'Collapse charts'}
 				>
-					<Icon name={isCollapsed ? 'chevron-right' : 'chevron-down'} height={14} width={14} />
+					<Icon
+						name="chevron-down"
+						height={14}
+						width={14}
+						data-open={!isCollapsed}
+						className="transition-transform data-[open=true]:rotate-180"
+					/>
 					{isCollapsed ? 'Show' : 'Hide'}
 				</button>
 			</div>
@@ -245,23 +245,23 @@ export const ChartRenderer = memo(function ChartRenderer({
 			{!isCollapsed && (
 				<div className="p-4">
 					{charts[hasMultipleCharts ? activeTabIndex : 0]?.description && (
-						<div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-							<p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+						<div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+							<p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
 								{charts[hasMultipleCharts ? activeTabIndex : 0].description}
 							</p>
 						</div>
 					)}
 
 					{hasMultipleCharts && (
-						<div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+						<div className="mb-4 flex border-b border-gray-200 dark:border-gray-700">
 							{charts.map((chart, index) => (
 								<button
 									key={chart.id}
 									onClick={() => setActiveTabIndex(index)}
-									className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+									className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
 										activeTabIndex === index
 											? 'border-blue-500 text-blue-600 dark:text-blue-400'
-											: 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+											: 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
 									}`}
 								>
 									{chart.title}
