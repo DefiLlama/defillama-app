@@ -78,6 +78,8 @@ type Name =
 	| 'chevrons-right'
 	| 'tag'
 	| 'file-lock-2'
+	| 'message-square-plus'
+	| 'arrow-up'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name

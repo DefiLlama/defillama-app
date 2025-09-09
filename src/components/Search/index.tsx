@@ -5,6 +5,7 @@ import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { LoadingDots } from '~/components/Loaders'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { fetchJson } from '~/utils/async'
@@ -153,6 +154,7 @@ const Desktop = () => {
 	const { query, refine } = useSearchBox()
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
+	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
@@ -173,17 +175,18 @@ const Desktop = () => {
 	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
 
 	return (
-		<Ariakit.ComboboxProvider
-			resetValueOnHide
-			setValue={(value) => {
-				startTransition(() => {
-					refine(value)
-				})
-			}}
-			open={open}
-			setOpen={setOpen}
-		>
-			<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
+		<div className="hidden lg:flex items-center justify-between gap-4 w-full">
+			<Ariakit.ComboboxProvider
+				resetValueOnHide
+				setValue={(value) => {
+					startTransition(() => {
+						refine(value)
+					})
+				}}
+				open={open}
+				setOpen={setOpen}
+			>
+			<span className="relative isolate w-full lg:max-w-[50vw]">
 				<button onClick={(prev) => setOpen(!prev)} className="absolute top-1.5 left-2 opacity-50">
 					{open ? (
 						<>
@@ -253,6 +256,17 @@ const Desktop = () => {
 				</Ariakit.ComboboxList>
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
+		
+		{!featureFlagsLoading && hasFeature('llamaai') && (
+			<BasicLink
+				href="/ai"
+				className="flex items-center gap-[10px] text-white py-2 px-4 text-xs rounded-md mr-auto bg-[linear-gradient(94deg,#1F67D2_24.73%,#5A9CFF_57.42%,#1F67D2_99.73%)] shadow-[0px_0px_30px_0px_rgba(31,103,210,0.50),_0px_0px_1px_2px_rgba(255,255,255,0.10)]"
+			>
+				<span>Ask LlamaAI</span>
+				<img src="/icons/ask-llama-ai.svg" alt="Ask LlamaAI" className="w-4 h-4 ml-auto" />
+			</BasicLink>
+		)}
+	</div>
 	)
 }
 

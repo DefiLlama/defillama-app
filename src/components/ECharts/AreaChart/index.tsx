@@ -31,6 +31,7 @@ export default function AreaChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
+	connectNulls = false,
 	onReady,
 	...props
 }: IChartProps) {
@@ -66,6 +67,7 @@ export default function AreaChart({
 					shadowBlur: 10
 				},
 				symbol: 'none',
+				connectNulls,
 				itemStyle: {
 					color: chartColor
 				},
@@ -126,6 +128,7 @@ export default function AreaChart({
 						shadowBlur: 10
 					},
 					symbol: 'none',
+					connectNulls,
 					itemStyle: {
 						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
@@ -211,7 +214,8 @@ export default function AreaChart({
 		stackColors,
 		expandTo100Percent,
 		isStackedChart,
-		hideGradient
+		hideGradient,
+		connectNulls
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
