@@ -15,10 +15,10 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 })
 
 export default function LlamaAIPage() {
-	const { hasFeature, loading } = useFeatureFlagsContext()
+	const { hasFeature, loading, userLoading } = useFeatureFlagsContext()
 
 	// Show loading state while feature flags are loading
-	if (loading) {
+	if (loading || userLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"

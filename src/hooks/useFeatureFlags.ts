@@ -11,6 +11,7 @@ interface UseFeatureFlagsReturn {
 	loading: boolean
 	error: string | null
 	refetch: () => void
+	userLoading: boolean
 }
 
 async function fetchFeatureFlags(authorizedFetch: any): Promise<FeatureFlags> {
@@ -33,7 +34,12 @@ async function fetchFeatureFlags(authorizedFetch: any): Promise<FeatureFlags> {
 }
 
 export function useFeatureFlags(): UseFeatureFlagsReturn {
-	const { isAuthenticated, authorizedFetch, user } = useAuthContext()
+	const {
+		isAuthenticated,
+		authorizedFetch,
+		user,
+		loaders: { userLoading }
+	} = useAuthContext()
 
 	const {
 		data: flags = {},
@@ -61,6 +67,7 @@ export function useFeatureFlags(): UseFeatureFlagsReturn {
 	return {
 		flags,
 		loading: isLoading,
+		userLoading,
 		error: error?.message || null,
 		refetch
 	}

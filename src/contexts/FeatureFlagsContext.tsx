@@ -4,6 +4,7 @@ import { FeatureFlags, useFeatureFlags } from '~/hooks/useFeatureFlags'
 interface FeatureFlagsContextType {
 	flags: FeatureFlags
 	loading: boolean
+	userLoading: boolean
 	error: string | null
 	refetch: () => void
 	hasFeature: (feature: keyof FeatureFlags) => boolean
@@ -12,7 +13,7 @@ interface FeatureFlagsContextType {
 const FeatureFlagsContext = createContext<FeatureFlagsContextType | undefined>(undefined)
 
 export const FeatureFlagsProvider = ({ children }: { children: ReactNode }) => {
-	const { flags, loading, error, refetch } = useFeatureFlags()
+	const { flags, loading, error, refetch, userLoading } = useFeatureFlags()
 
 	const hasFeature = (feature: keyof FeatureFlags): boolean => {
 		return Boolean(flags[feature])
@@ -21,6 +22,7 @@ export const FeatureFlagsProvider = ({ children }: { children: ReactNode }) => {
 	const contextValue: FeatureFlagsContextType = {
 		flags,
 		loading,
+		userLoading,
 		error,
 		refetch,
 		hasFeature
