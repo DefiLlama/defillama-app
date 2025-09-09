@@ -44,7 +44,7 @@ export interface CustomColumnDef {
 export const ChainProtocolsTable = ({
 	protocols,
 	sampleRow = sampleProtocol,
-	useStickyHeader = false,
+	useStickyHeader = true,
 	borderless = false
 }: {
 	protocols: Array<IProtocol>

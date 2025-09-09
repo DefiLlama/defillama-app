@@ -1,24 +1,5 @@
 import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './perf'
 
-export function withErrorLogging<T extends any[], R>(
-	fn: (...args: T) => Promise<R>,
-	shouldThrow = true,
-	note?: string
-): (...args: T) => Promise<R> {
-	return async (...args: T) => {
-		try {
-			return await fn(...args)
-		} catch (error) {
-			const name = fn.name || 'unknown function'
-			const message = (note ? `[${name}] [error] ` + `[${note}] <` : `<`) + JSON.stringify(args) + '>'
-			postRuntimeLogs(message)
-			if (shouldThrow) {
-				throw error
-			}
-		}
-	}
-}
-
 async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions,

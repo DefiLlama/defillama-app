@@ -32,7 +32,6 @@ const getEventCountdown = (timestamp: number): string => {
 	return `in ${hoursLeft} hour${hoursLeft > 1 ? 's' : ''}`
 }
 
-// todo check name in metadata
 export const getStaticProps = withPerformanceLogging(
 	'unlocks/[...protocol]',
 	async ({
