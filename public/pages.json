@@ -416,7 +416,7 @@
     },
     {
       "name": "Treasury: Entities",
-      "route": "/treasury/entities",
+      "route": "/entities",
       "category": "Treasury",
       "description": "Treasury by entity"
     },
