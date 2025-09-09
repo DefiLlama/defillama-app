@@ -126,8 +126,14 @@ export const getStaticProps = withPerformanceLogging(
 
 export async function getStaticPaths() {
 	const data = await fetchJson('http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies')
-	const paths = data.map((company) => ({
-		params: { company: [slug(company.ticker)] }
+	const tickers = new Set<string>()
+	for (const asset in data.breakdownByAsset) {
+		for (const company of data.breakdownByAsset[asset]) {
+			tickers.add(company.ticker)
+		}
+	}
+	const paths = Array.from(tickers).map((ticker) => ({
+		params: { company: [slug(ticker)] }
 	}))
 	return { paths, fallback: false }
 }
