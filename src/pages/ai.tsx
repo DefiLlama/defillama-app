@@ -1,6 +1,6 @@
 import Image from 'next/image'
-import lostLlama from '~/assets/404.png'
 import { maxAgeForNext } from '~/api'
+import lostLlama from '~/assets/404.png'
 import { BasicLink } from '~/components/Link'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
@@ -20,7 +20,10 @@ export default function LlamaAIPage() {
 	// Show loading state while feature flags are loading
 	if (loading) {
 		return (
-			<Layout title="LlamaAI">
+			<Layout
+				title="LlamaAI - DefiLlama"
+				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<div className="text-center">Loading...</div>
 				</div>

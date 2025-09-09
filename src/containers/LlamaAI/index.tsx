@@ -488,7 +488,10 @@ export function LlamaAI() {
 	const isSubmitted = isPending || isStreaming || error || promptResponse ? true : false
 
 	return (
-		<Layout title="LlamaAI">
+		<Layout
+			title="LlamaAI - DefiLlama"
+			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+		>
 			<div className="flex h-full flex-1 gap-2">
 				<div className="relative flex flex-1 flex-col gap-3 overflow-visible rounded-md border border-[#e6e6e6] bg-[var(--cards-bg)] p-3 dark:border-[#222324]">
 					{conversationHistory.length > 0 || isSubmitted ? (
