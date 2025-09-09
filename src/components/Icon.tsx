@@ -87,7 +87,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v13.svg#${name}`} />
+			<use href={`/icons/v14.svg#${name}`} />
 		</svg>
 	)
 })
