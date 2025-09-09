@@ -60,7 +60,7 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 	return (
 		<Ariakit.Dialog
 			store={dialogStore}
-			className="dialog w-full max-w-lg gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+			className="pro-dashboard dialog w-full max-w-lg gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
 		>
 			<div className="mb-6 flex items-center justify-between">
 				<h2 className="pro-text1 text-xl font-semibold">Create New Dashboard</h2>
