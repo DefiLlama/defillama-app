@@ -4,11 +4,10 @@ import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { capitalize } from 'lodash'
 import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { formattedNum } from '~/utils'
+import { capitalizeFirstLetter, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
@@ -42,7 +41,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 			.slice(-15)
 			.sort((a, b) => a.value - b.value)
 			.map((item) => ({
-				chain: capitalize(item.chain),
+				chain: capitalizeFirstLetter(item.chain),
 				value: item.value
 			}))
 
