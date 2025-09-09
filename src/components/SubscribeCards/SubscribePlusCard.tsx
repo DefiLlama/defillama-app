@@ -38,9 +38,17 @@ export function SubscribePlusCard({
 			</div>
 			<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Create Custom DefiLlama Pro Dashboards</span>
+				<li className="flex flex-col gap-3">
+					<div className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>Create Custom DefiLlama Pro Dashboards</span>
+					</div>
+					<ul className="flex flex-col gap-3 pl-6">
+						<li className="flex flex-nowrap items-start gap-1">
+							<span className="relative w-4 shrink-0 text-center">•</span>
+							<span>Generate custom dashboards with LlamaAI</span>
+						</li>
+					</ul>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
