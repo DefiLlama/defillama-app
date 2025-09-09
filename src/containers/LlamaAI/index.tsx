@@ -513,7 +513,7 @@ export function LlamaAI() {
 											<div>{item.question}</div>
 										</div>
 										<div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-											<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none">
+											<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 prose-td:whitespace-nowrap prose-th:whitespace-nowrap max-w-none overflow-x-auto">
 												<ReactMarkdown remarkPlugins={[remarkGfm]}>{item.response.answer}</ReactMarkdown>
 											</div>
 
@@ -629,7 +629,7 @@ export function LlamaAI() {
 					)}
 					<div className="flex flex-col gap-2">
 						<div className="flex items-center justify-between">
-							{/* <div className="flex items-center gap-3">
+							<div className="flex items-center gap-3">
 								<span className="text-sm font-medium text-[var(--text1)]">Mode:</span>
 								<div className="flex gap-2">
 									<button
@@ -655,7 +655,7 @@ export function LlamaAI() {
 										SQL
 									</button>
 								</div>
-							</div> */}
+							</div>
 						</div>
 						<PromptInput
 							handleSubmit={handleSubmit}
@@ -816,7 +816,7 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-red-500">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none">
+					<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
 						<ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingResponse}</ReactMarkdown>
 					</div>
 				) : isStreaming && progressMessage ? (
