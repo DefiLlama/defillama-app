@@ -515,7 +515,7 @@ export async function getBridgePageDatanew(bridge: string) {
 
 			tokenColor = Object.fromEntries(
 				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token, i) => {
-					return typeof token === 'string' ? ['-', colors[i]] : [token.name, colors[i]]
+					return typeof token === 'string' ? ['-', colors[i] ?? '#AAAAAA'] : [token.name, colors[i] ?? '#AAAAAA']
 				})
 			)
 			const totalAddressesDeposited = prevDayData.totalAddressDeposited
