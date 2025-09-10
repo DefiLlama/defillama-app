@@ -60,3 +60,4 @@ export async function getStaticPaths() {
 export default function Protocols(props: IProtocolOverviewPageData) {
 	return <ProtocolOverview {...props} />
 }
+//triggercaches
