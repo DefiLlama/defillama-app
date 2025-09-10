@@ -4,6 +4,8 @@ import { getPeggedAssetPageData } from '~/containers/Stablecoins/queries.server'
 import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 
 export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
+	if (assetName == "usdt") assetName = "tether";
+	if (assetName == "usdc") assetName = 'usd-coin';
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['stablecoin-info', assetName],
 		queryFn: () => getPeggedAssetPageData(assetName),
