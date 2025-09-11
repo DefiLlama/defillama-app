@@ -1,5 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { DIMENISIONS_SUMMARY_BASE_API, PROTOCOL_API } from '~/constants'
+import {
+	CHAIN_TVL_API,
+	CHART_API,
+	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
+	PROTOCOL_API
+} from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 
 interface ChartSeries {
@@ -43,6 +49,28 @@ const normalizeChainKey = (chain: string): string => {
 	const lc = chain.toLowerCase()
 	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'OP Mainnet'
 	return chain
+}
+
+const toDimensionsChainSlug = (chain: string): string => {
+	if (!chain) return chain
+	const lc = chain.toLowerCase()
+	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'op-mainnet'
+	if (lc === 'bsc' || lc === 'binance smart chain') return 'bsc'
+	if (lc === 'avax' || lc === 'avalanche') return 'avax'
+	if (lc === 'gnosis' || lc === 'xdai') return 'xdai'
+	return lc
+}
+
+const displayChainName = (slug: string): string => {
+	const lc = slug.toLowerCase()
+	if (lc === 'op-mainnet' || lc === 'optimism') return 'OP Mainnet'
+	if (lc === 'avax') return 'Avalanche'
+	if (lc === 'bsc') return 'BSC'
+	if (lc === 'xdai') return 'Gnosis'
+	return lc
+		.split('-')
+		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
+		.join(' ')
 }
 
 const normalizeDailyPairs = (pairs: [number, number][]): [number, number][] => {
@@ -375,29 +403,241 @@ async function getDimensionsProtocolChainData(
 	}
 }
 
+async function getAllProtocolsTopChainsTvlData(
+	topN: number = 5,
+	chains?: string[],
+	filterMode: 'include' | 'exclude' = 'include'
+): Promise<ProtocolChainData> {
+	try {
+		const resp = await fetch(CHAIN_TVL_API)
+		const allChains = (await resp.json()) as Array<{ name: string; tvl: number }>
+		const includeSet = new Set<string>((chains || []).map((c) => normalizeChainKey(c)))
+
+		let ranked = allChains
+			.filter((c) => typeof c.tvl === 'number' && c.tvl > 0 && c.name)
+			.filter((c) => {
+				if (!chains || chains.length === 0) return true
+				if (filterMode === 'include') return includeSet.has(normalizeChainKey(c.name))
+				return !includeSet.has(normalizeChainKey(c.name))
+			})
+			.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
+
+		const picked = ranked.slice(0, Math.min(topN, ranked.length))
+		const pickedNames = picked.map((c) => c.name)
+
+		const [globalResp, ...chainResponses] = await Promise.all([
+			fetch(CHART_API),
+			...pickedNames.map((name) => fetch(`${CHART_API}/${encodeURIComponent(name)}`))
+		])
+
+		const globalJson = await globalResp.json()
+		const globalTvl = Array.isArray(globalJson?.tvl) ? globalJson.tvl : []
+		const totalSeries = filterOutToday(
+			normalizeDailyPairs((globalTvl as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
+		)
+
+		const topSeriesRaw: ChartSeries[] = []
+		let colorIndex = 0
+		for (let i = 0; i < chainResponses.length; i++) {
+			const r = chainResponses[i]
+			if (!r.ok) continue
+			const j = await r.json()
+			const tvlArr = Array.isArray(j?.tvl) ? j.tvl : []
+			const normalized = filterOutToday(
+				normalizeDailyPairs((tvlArr as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
+			)
+			topSeriesRaw.push({
+				name: pickedNames[i],
+				data: normalized,
+				color: EXTENDED_COLOR_PALETTE[colorIndex++ % EXTENDED_COLOR_PALETTE.length]
+			})
+		}
+
+		const tsSet = new Set<number>()
+		topSeriesRaw.forEach((s) => s.data.forEach(([t]) => tsSet.add(t)))
+		totalSeries.forEach(([t]) => tsSet.add(t))
+		const allTs = Array.from(tsSet).sort((a, b) => a - b)
+
+		const alignedTop = topSeriesRaw.map((s) => ({ ...s, data: alignSeries(allTs, s.data) }))
+		const alignedTotal = alignSeries(allTs, totalSeries)
+		const topSumPerTs = alignSeries(
+			allTs,
+			Array.from(sumSeriesByTimestamp(alignedTop.map((s) => s.data)).entries()).sort((a, b) => a[0] - b[0]) as [
+				number,
+				number
+			][]
+		)
+
+		const othersData: [number, number][] = allTs.map((t, i) => {
+			const total = alignedTotal[i]?.[1] || 0
+			const top = topSumPerTs[i]?.[1] || 0
+			return [t, Math.max(0, total - top)]
+		})
+
+		const othersCount = Math.max(0, ranked.length - Math.min(topN, ranked.length))
+		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
+		const finalSeries = [...alignedTop]
+		if (hasOthers) finalSeries.push({ name: `Others (${othersCount} chains)`, data: othersData, color: '#999999' })
+
+		return {
+			series: finalSeries,
+			metadata: {
+				protocol: 'All Protocols',
+				metric: 'TVL',
+				chains: pickedNames,
+				totalChains: ranked.length,
+				topN: Math.min(topN, ranked.length),
+				othersCount
+			}
+		}
+	} catch (e) {
+		console.error('Error building all-protocols TVL by chain:', e)
+		return { series: [], metadata: { protocol: 'All Protocols', metric: 'TVL', chains: [], totalChains: 0 } }
+	}
+}
+
+async function getAllProtocolsTopChainsDimensionsData(
+	metric: string,
+	topN: number = 5,
+	chains?: string[],
+	filterMode: 'include' | 'exclude' = 'include'
+): Promise<ProtocolChainData> {
+	const config = METRIC_CONFIG[metric]
+	if (!config) throw new Error(`Unsupported metric: ${metric}`)
+
+	try {
+		let overviewUrl = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
+		if (config.dataType) overviewUrl += `&dataType=${config.dataType}`
+		const overviewResp = await fetch(overviewUrl)
+		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
+		const overview = await overviewResp.json()
+
+		const chainTotals = new Map<string, number>()
+		const protocols: any[] = Array.isArray(overview?.protocols) ? overview.protocols : []
+		for (const p of protocols) {
+			const br24 = p?.breakdown24h
+			if (!br24 || typeof br24 !== 'object') continue
+			for (const [chainSlug, versions] of Object.entries(br24)) {
+				let sum = 0
+				if (versions && typeof versions === 'object') {
+					for (const v of Object.values(versions as Record<string, number>)) sum += Number(v) || 0
+				} else if (typeof versions === 'number') {
+					sum += Number(versions) || 0
+				}
+				chainTotals.set(chainSlug, (chainTotals.get(chainSlug) || 0) + sum)
+			}
+		}
+
+		const filterSet = new Set<string>((chains || []).map((c) => toDimensionsChainSlug(c)))
+		let ranked = Array.from(chainTotals.entries())
+			.filter(([slug, v]) => v > 0)
+			.filter(([slug]) => {
+				if (!chains || chains.length === 0) return true
+				if (filterMode === 'include') return filterSet.has(slug)
+				return !filterSet.has(slug)
+			})
+			.sort((a, b) => b[1] - a[1])
+
+		const picked = ranked.slice(0, Math.min(topN, ranked.length)).map(([slug]) => slug)
+
+		const chainSeriesPromises = picked.map(async (slug, idx) => {
+			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${slug}?excludeTotalDataChartBreakdown=true`
+			if (config.dataType) url += `&dataType=${config.dataType}`
+			const r = await fetch(url)
+			if (!r.ok) return null
+			const j = await r.json()
+			const tdc: Array<[number, number]> = Array.isArray(j?.totalDataChart) ? j.totalDataChart : []
+			const normalized = filterOutToday(
+				normalizeDailyPairs((tdc as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
+			)
+			return {
+				name: displayChainName(slug),
+				data: normalized,
+				color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+			} as ChartSeries
+		})
+
+		const seriesRaw = (await Promise.all(chainSeriesPromises)).filter(Boolean) as ChartSeries[]
+
+		const totalChart: Array<[number, number]> = Array.isArray(overview?.totalDataChart) ? overview.totalDataChart : []
+		const totalNormalized = filterOutToday(
+			normalizeDailyPairs((totalChart as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
+		)
+
+		const tsSet = new Set<number>()
+		seriesRaw.forEach((s) => s.data.forEach(([t]) => tsSet.add(t)))
+		totalNormalized.forEach(([t]) => tsSet.add(t))
+		const allTs = Array.from(tsSet).sort((a, b) => a - b)
+
+		const alignedTop = seriesRaw.map((s) => ({ ...s, data: alignSeries(allTs, s.data) }))
+		const topSumPerTs = alignSeries(
+			allTs,
+			Array.from(sumSeriesByTimestamp(alignedTop.map((s) => s.data)).entries()).sort((a, b) => a[0] - b[0]) as [
+				number,
+				number
+			][]
+		)
+		const totalAligned = alignSeries(allTs, totalNormalized)
+		const othersData: [number, number][] = allTs.map((t, i) => {
+			const total = totalAligned[i]?.[1] || 0
+			const top = topSumPerTs[i]?.[1] || 0
+			return [t, Math.max(0, total - top)]
+		})
+
+		const othersCount = Math.max(0, ranked.length - Math.min(topN, ranked.length))
+		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
+		const finalSeries = [...alignedTop]
+		if (hasOthers) finalSeries.push({ name: `Others (${othersCount} chains)`, data: othersData, color: '#999999' })
+
+		return {
+			series: finalSeries,
+			metadata: {
+				protocol: 'All Protocols',
+				metric: config.metricName,
+				chains: picked.map(displayChainName),
+				totalChains: ranked.length,
+				topN: Math.min(topN, ranked.length),
+				othersCount
+			}
+		}
+	} catch (e) {
+		console.error(`Error building all-protocols ${metric} by chain:`, e)
+		return {
+			series: [],
+			metadata: {
+				protocol: 'All Protocols',
+				metric: METRIC_CONFIG[metric]?.metricName || metric,
+				chains: [],
+				totalChains: 0
+			}
+		}
+	}
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const { protocol, metric = 'tvl', chains, limit = '5', filterMode } = req.query
 
-		if (!protocol || typeof protocol !== 'string') {
-			return res.status(400).json({ error: 'Protocol parameter is required' })
-		}
-
 		const metricStr = metric as string
-		const chainsArray = chains
-			? (chains as string).split(',').filter(Boolean).includes('All')
-				? []
-				: (chains as string).split(',').filter(Boolean)
-			: undefined
+		const rawChains = (chains as string | undefined)?.split(',').filter(Boolean) || []
+		const chainsArray = rawChains.includes('All') ? [] : rawChains
 		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const topN = Math.min(parseInt(limit as string), 20)
 
 		let result: ProtocolChainData
 
-		if (metricStr === 'tvl') {
-			result = await getTvlProtocolChainData(protocol, chainsArray, topN, fm)
+		if (!protocol || typeof protocol !== 'string' || protocol.toLowerCase() === 'all') {
+			if (metricStr === 'tvl') {
+				result = await getAllProtocolsTopChainsTvlData(topN, chainsArray, fm)
+			} else {
+				result = await getAllProtocolsTopChainsDimensionsData(metricStr, topN, chainsArray, fm)
+			}
 		} else {
-			result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN, fm)
+			if (metricStr === 'tvl') {
+				result = await getTvlProtocolChainData(protocol, chainsArray, topN, fm)
+			} else {
+				result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN, fm)
+			}
 		}
 
 		res.status(200).json(result)

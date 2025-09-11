@@ -113,8 +113,6 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
-				if (!config.protocol) return { series: [] }
-
 				const data = await ProtocolSplitCharts.getProtocolChainData(
 					config.protocol,
 					config.metric,
@@ -171,7 +169,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 			return { series }
 		},
-		enabled: config.mode === 'protocol' ? !!config.protocol : config.chains.length > 0,
+		enabled: config.mode === 'protocol' ? !!config.metric : config.chains.length > 0,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -291,7 +289,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					<h1 className="mr-auto text-base font-semibold">
 						{builder.name ||
 							(config.mode === 'protocol'
-								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'Selected protocol'} ${config.metric} by Chain`
+								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'All Protocols'} ${config.metric} by Chain`
 								: `${config.metric} by Protocol`)}
 					</h1>
 					{!isReadOnly && chartSeries.length > 0 && (

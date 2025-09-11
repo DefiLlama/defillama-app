@@ -154,7 +154,7 @@ export default class SProtocolSplitCharts {
 	}
 
 	static async getProtocolChainData(
-		protocol: string,
+		protocol: string | undefined,
 		metric:
 			| 'tvl'
 			| 'fees'
@@ -175,7 +175,7 @@ export default class SProtocolSplitCharts {
 		filterMode: 'include' | 'exclude' = 'include'
 	): Promise<any> {
 		const params = new URLSearchParams()
-		params.append('protocol', protocol)
+		if (protocol) params.append('protocol', protocol)
 		params.append('metric', metric)
 
 		if (chains && chains.length > 0) {

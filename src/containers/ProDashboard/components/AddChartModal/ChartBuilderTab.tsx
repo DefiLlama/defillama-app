@@ -113,8 +113,6 @@ export function ChartBuilderTab({
 		],
 		queryFn: async () => {
 			if (chartBuilder.mode === 'protocol') {
-				if (!chartBuilder.protocol) return null
-
 				const data = await ProtocolSplitCharts.getProtocolChainData(
 					chartBuilder.protocol,
 					chartBuilder.metric,
@@ -151,7 +149,7 @@ export function ChartBuilderTab({
 
 			return data
 		},
-		enabled: chartBuilder.mode === 'protocol' ? !!chartBuilder.protocol : !!chartBuilder.metric,
+		enabled: !!chartBuilder.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -164,7 +162,9 @@ export function ChartBuilderTab({
 	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
 
 	const handleMetricChange = (option: any) => {
-		onChartBuilderChange({ metric: option?.value || 'tvl' })
+		const newMetric = option?.value || 'tvl'
+		const newChartType = newMetric === 'tvl' ? 'stackedArea' : 'stackedBar'
+		onChartBuilderChange({ metric: newMetric, chartType: newChartType })
 	}
 
 	const handleChainsChange = (options: any[]) => {
@@ -641,7 +641,7 @@ export function ChartBuilderTab({
 									? ` for ${
 											chartBuilder.protocol
 												? getProtocolInfo(chartBuilder.protocol)?.name || chartBuilder.protocol
-												: 'selected protocol'
+												: 'All Protocols'
 										} across different chains`
 									: ` breakdown by top ${chartBuilder.limit} protocols`}
 								{chartBuilder.mode === 'chains' &&
