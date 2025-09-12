@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
+import { useMyDashboards } from '~/containers/ProDashboard/hooks'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
@@ -83,8 +84,6 @@ function ProContent({
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
-		dashboards,
-		isLoadingDashboards,
 		createNewDashboard,
 		deleteDashboard,
 		handleCreateDashboard,
@@ -93,6 +92,16 @@ function ProContent({
 		setShowGenerateDashboardModal,
 		handleGenerateDashboard
 	} = useProDashboard()
+
+	const selectedPage =
+		typeof router.query.page === 'string' && !Number.isNaN(Number(router.query.page)) ? parseInt(router.query.page) : 1
+	const {
+		dashboards: myDashboards,
+		isLoading: isLoadingMyDashboards,
+		totalPages: myDashboardsTotalPages,
+		totalItems: myDashboardsTotalItems,
+		goToPage
+	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: activeTab === 'my-dashboards' })
 
 	const handleDeleteDashboard = async (dashboardId: string) => {
 		await deleteDashboard(dashboardId)
@@ -165,12 +174,81 @@ function ProContent({
 
 			{activeTab === 'my-dashboards' ? (
 				<Suspense fallback={<></>}>
-					<DashboardList
-						dashboards={dashboards}
-						isLoading={isLoadingDashboards}
-						onCreateNew={createNewDashboard}
-						onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
-					/>
+					<>
+						{!isLoadingMyDashboards && (
+							<p className="-mb-2 text-xs text-(--text-label)">
+								Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
+							</p>
+						)}
+
+						<DashboardList
+							dashboards={myDashboards}
+							isLoading={isLoadingMyDashboards}
+							onCreateNew={createNewDashboard}
+							onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
+						/>
+
+						{myDashboardsTotalPages > 1 && (
+							<div className="mt-4 flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
+								<button
+									onClick={() => goToPage(1)}
+									disabled={selectedPage < 3}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevrons-left" height={16} width={16} />
+								</button>
+
+								<button
+									onClick={() => goToPage(Math.max(1, selectedPage - 1))}
+									disabled={selectedPage === 1}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevron-left" height={16} width={16} />
+								</button>
+
+								{(() => {
+									const totalPages = myDashboardsTotalPages
+									const pagesToShow =
+										selectedPage === 1
+											? [1, 2, Math.min(3, totalPages)]
+											: selectedPage === totalPages
+												? [Math.max(1, totalPages - 2), Math.max(1, totalPages - 1), totalPages]
+												: [selectedPage - 1, selectedPage, selectedPage + 1]
+
+									return pagesToShow
+										.filter((n, i, arr) => n >= 1 && n <= totalPages && arr.indexOf(n) === i)
+										.map((pageNum) => {
+											const isActive = selectedPage === pageNum
+											return (
+												<button
+													key={`my-dashboard-page-${pageNum}`}
+													onClick={() => goToPage(pageNum)}
+													data-active={isActive}
+													className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+												>
+													{pageNum}
+												</button>
+											)
+										})
+								})()}
+
+								<button
+									onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
+									disabled={selectedPage === myDashboardsTotalPages}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevron-right" height={16} width={16} />
+								</button>
+								<button
+									onClick={() => goToPage(myDashboardsTotalPages)}
+									disabled={selectedPage > myDashboardsTotalPages - 2}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevrons-right" height={16} width={16} />
+								</button>
+							</div>
+						)}
+					</>
 				</Suspense>
 			) : activeTab === 'favorites' ? (
 				<Suspense fallback={<></>}>

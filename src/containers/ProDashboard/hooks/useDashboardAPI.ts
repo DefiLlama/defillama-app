@@ -70,6 +70,7 @@ export function useDashboardAPI() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
@@ -83,6 +84,7 @@ export function useDashboardAPI() {
 		},
 		onSuccess: (_, deletedId) => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
