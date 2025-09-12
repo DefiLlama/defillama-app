@@ -38,6 +38,7 @@ export interface IChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	containerClassName?: string
+	connectNulls?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 

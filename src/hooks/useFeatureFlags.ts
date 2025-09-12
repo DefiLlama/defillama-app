@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export interface FeatureFlags {
+	llamaai?: boolean
 	[key: string]: boolean | undefined
 }
 
@@ -10,117 +11,64 @@ interface UseFeatureFlagsReturn {
 	loading: boolean
 	error: string | null
 	refetch: () => void
+	userLoading: boolean
 }
 
-const FEATURE_FLAGS_CACHE_KEY = 'feature-flags'
-const FEATURE_FLAGS_TIMESTAMP_KEY = 'feature-flags-timestamp'
-const CACHE_DURATION = 60 * 60 * 1000
+async function fetchFeatureFlags(authorizedFetch: any): Promise<FeatureFlags> {
+	const response = await authorizedFetch('https://auth.llama.fi/user/feature-flags')
+
+	if (!response) {
+		throw new Error('Failed to fetch feature flags')
+	}
+
+	if (!response.ok) {
+		if (response.status === 404) {
+			// Return empty flags if user has no feature flags configured
+			return {}
+		}
+		throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+	}
+
+	const data: FeatureFlags = await response.json()
+	return data
+}
 
 export function useFeatureFlags(): UseFeatureFlagsReturn {
-	const [flags, setFlags] = useState<FeatureFlags>({})
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-	const { isAuthenticated, authorizedFetch, user } = useAuthContext()
+	const {
+		isAuthenticated,
+		authorizedFetch,
+		user,
+		loaders: { userLoading }
+	} = useAuthContext()
 
-	const getCachedFlags = useCallback((): FeatureFlags | null => {
-		try {
-			const cachedFlags = localStorage.getItem(FEATURE_FLAGS_CACHE_KEY)
-			const cachedTimestamp = localStorage.getItem(FEATURE_FLAGS_TIMESTAMP_KEY)
-
-			if (!cachedFlags || !cachedTimestamp) {
-				return null
+	const {
+		data: flags = {},
+		isLoading,
+		error,
+		refetch
+	} = useQuery({
+		queryKey: ['feature-flags', user?.id],
+		queryFn: () => fetchFeatureFlags(authorizedFetch),
+		enabled: isAuthenticated && !!user && !!authorizedFetch,
+		staleTime: 30 * 1000,
+		gcTime: 60 * 60 * 1000,
+		refetchOnMount: false,
+		refetchOnWindowFocus: true,
+		refetchOnReconnect: true,
+		retry: (failureCount, error: any) => {
+			if (error?.message?.includes('404') || error?.message?.includes('401')) {
+				return false
 			}
-
-			const timestamp = parseInt(cachedTimestamp, 10)
-			const now = Date.now()
-
-			if (now - timestamp > CACHE_DURATION) {
-				localStorage.removeItem(FEATURE_FLAGS_CACHE_KEY)
-				localStorage.removeItem(FEATURE_FLAGS_TIMESTAMP_KEY)
-				return null
-			}
-
-			return JSON.parse(cachedFlags)
-		} catch (error) {
-			console.error('Error reading cached feature flags:', error)
-			return null
-		}
-	}, [])
-
-	const setCachedFlags = useCallback((newFlags: FeatureFlags) => {
-		try {
-			localStorage.setItem(FEATURE_FLAGS_CACHE_KEY, JSON.stringify(newFlags))
-			localStorage.setItem(FEATURE_FLAGS_TIMESTAMP_KEY, Date.now().toString())
-		} catch (error) {
-			console.error('Error caching feature flags:', error)
-		}
-	}, [])
-
-	const fetchFeatureFlags = useCallback(async () => {
-		if (!isAuthenticated || !user) {
-			setFlags({})
-			setLoading(false)
-			setError(null)
-			return
-		}
-
-		try {
-			setError(null)
-
-			const cachedFlags = getCachedFlags()
-			if (cachedFlags) {
-				setFlags(cachedFlags)
-				setLoading(false)
-				return
-			}
-
-			const response = await authorizedFetch('https://auth.llama.fi/user/feature-flags')
-
-			if (!response) {
-				throw new Error('Failed to fetch feature flags')
-			}
-
-			if (!response.ok) {
-				if (response.status === 404) {
-					const defaultFlags: FeatureFlags = {}
-					setFlags(defaultFlags)
-					setCachedFlags(defaultFlags)
-					setLoading(false)
-					return
-				}
-				throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-			}
-
-			const data: FeatureFlags = await response.json()
-			setFlags(data)
-			setCachedFlags(data)
-		} catch (err) {
-			console.error('Error fetching feature flags:', err)
-			setError(err instanceof Error ? err.message : 'Failed to load feature flags')
-			const cachedFlags = getCachedFlags()
-			if (!cachedFlags) {
-				setFlags({})
-			}
-		} finally {
-			setLoading(false)
-		}
-	}, [isAuthenticated, user, authorizedFetch, getCachedFlags, setCachedFlags])
-
-	const refetch = useCallback(() => {
-		localStorage.removeItem(FEATURE_FLAGS_CACHE_KEY)
-		localStorage.removeItem(FEATURE_FLAGS_TIMESTAMP_KEY)
-		setLoading(true)
-		fetchFeatureFlags()
-	}, [fetchFeatureFlags])
-
-	useEffect(() => {
-		fetchFeatureFlags()
-	}, [fetchFeatureFlags])
+			return failureCount < 2
+		},
+		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+	})
 
 	return {
 		flags,
-		loading,
-		error,
+		loading: isLoading,
+		userLoading,
+		error: error?.message || null,
 		refetch
 	}
 }

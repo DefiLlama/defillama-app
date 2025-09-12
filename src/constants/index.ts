@@ -200,3 +200,5 @@ export const REV_PROTOCOLS = {
 	polygon: ['fastlane'],
 	bsc: ['bloxroute']
 }
+
+export const MCP_SERVER = 'https://mcp.llama.fi'
