@@ -375,17 +375,30 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</>
 					)}
 				</div>
-				<p className="text-xs text-(--text-label)">
-					{config.mode === 'protocol'
-						? `${config.protocol} • All chains`
-						: `${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`}
-					{config.mode === 'chains' && config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
-					{config.mode === 'protocol' &&
-						config.chainCategories &&
-						config.chainCategories.length > 0 &&
-						` • ${config.chainCategories.join(', ')}`}
-					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
-				</p>
+				{(() => {
+					const parts: string[] = []
+					if (config.mode === 'protocol') {
+						const protoName = config.protocol ? (getProtocolInfo(config.protocol)?.name || config.protocol) : 'All Protocols'
+						parts.push(protoName)
+						if ((config.filterMode || 'include') === 'exclude' && config.chains.length > 0) {
+							parts.push(`Excluding ${config.chains.join(', ')}`)
+						} else if (config.chains.length > 0) {
+							parts.push(config.chains.join(', '))
+						} else {
+							parts.push('All chains')
+						}
+						if (config.chainCategories && config.chainCategories.length > 0) {
+							const cats = config.chainCategories.join(', ')
+							if ((config.filterMode || 'include') === 'exclude') parts.push(`Excluding ${cats}`)
+							else parts.push(cats)
+						}
+					} else {
+						parts.push(`${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`)
+						if (config.categories.length > 0) parts.push(config.categories.join(', '))
+					}
+					if (timePeriod && timePeriod !== 'all') parts.push(timePeriod.toUpperCase())
+					return <p className="text-xs text-(--text-label)">{parts.join(' • ')}</p>
+				})()}
 			</div>
 
 			{isLoading ? (
