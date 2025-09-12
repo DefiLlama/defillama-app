@@ -36,6 +36,7 @@ interface ChartBuilderCardProps {
 			filterMode?: 'include' | 'exclude'
 			protocol?: string
 			chains: string[]
+			chainCategories?: string[]
 			categories: string[]
 			groupBy: 'protocol'
 			limit: number
@@ -106,6 +107,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.chains,
 			config.limit,
 			config.categories,
+			config.chainCategories,
 			config.hideOthers,
 			config.groupByParent,
 			config.filterMode || 'include',
@@ -118,7 +120,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					config.metric,
 					config.chains.length > 0 ? config.chains : undefined,
 					config.limit,
-					config.filterMode || 'include'
+					config.filterMode || 'include',
+					config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories : undefined
 				)
 
 				if (!data || !data.series) {
@@ -133,7 +136,10 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					}))
 				}
 
-				if (config.hideOthers) {
+				if (
+					config.hideOthers ||
+					(config.mode === 'protocol' && config.chainCategories && config.chainCategories.length > 0)
+				) {
 					series = series.filter((s) => !s.name.startsWith('Others'))
 				}
 
@@ -163,7 +169,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				}))
 			}
 
-			if (config.hideOthers) {
+			if (config.hideOthers || (config.chainCategories && config.chainCategories.length > 0)) {
 				series = series.filter((s) => !s.name.startsWith('Others'))
 			}
 
@@ -278,9 +284,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		})
 
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		const fileName = `${builder.name || config.metric}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${new Date().toISOString().split('T')[0]}.csv`
+		const fileName = `${
+			builder.name || config.metric
+		}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${
+			config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories.join('-') + '_' : ''
+		}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [chartSeries, builder.name, config.metric, config.chains, config.categories])
+	}, [chartSeries, builder.name, config.metric, config.chains, config.categories, config.chainCategories])
 
 	return (
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
@@ -327,27 +337,28 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							}}
 						/>
 					)}
-					{!isReadOnly && (
-						<Select
-							allValues={[
-								{ name: config.mode === 'protocol' ? 'Show all chains' : 'Show all protocols', key: 'All' },
-								{
-									name: config.mode === 'protocol' ? `Show only top chains` : `Show only top protocols`,
-									key: `Top ${config.limit}`
-								}
-							]}
-							selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
-							setSelectedValues={(value) => {
-								handleHideOthersChange(builder.id, value === 'All' ? false : true)
-							}}
-							label={config.hideOthers ? `Top ${config.limit}` : 'All'}
-							labelType="none"
-							triggerProps={{
-								className:
-									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-							}}
-						/>
-					)}
+					{!isReadOnly &&
+						(config.mode !== 'protocol' || !(config.chainCategories && config.chainCategories.length > 0)) && (
+							<Select
+								allValues={[
+									{ name: config.mode === 'protocol' ? 'Show all chains' : 'Show all protocols', key: 'All' },
+									{
+										name: config.mode === 'protocol' ? `Show only top chains` : `Show only top protocols`,
+										key: `Top ${config.limit}`
+									}
+								]}
+								selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
+								setSelectedValues={(value) => {
+									handleHideOthersChange(builder.id, value === 'All' ? false : true)
+								}}
+								label={config.hideOthers ? `Top ${config.limit}` : 'All'}
+								labelType="none"
+								triggerProps={{
+									className:
+										'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+								}}
+							/>
+						)}
 					{chartSeries.length > 0 && (
 						<>
 							<ImageExportButton
@@ -369,6 +380,10 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						? `${config.protocol} • All chains`
 						: `${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`}
 					{config.mode === 'chains' && config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
+					{config.mode === 'protocol' &&
+						config.chainCategories &&
+						config.chainCategories.length > 0 &&
+						` • ${config.chainCategories.join(', ')}`}
 					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
 				</p>
 			</div>

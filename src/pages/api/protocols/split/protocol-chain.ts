@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import {
 	CHAIN_TVL_API,
+	CHAINS_API_V2,
 	CHART_API,
 	DIMENISIONS_OVERVIEW_API,
 	DIMENISIONS_SUMMARY_BASE_API,
@@ -111,7 +112,8 @@ async function getTvlProtocolChainData(
 	protocol: string,
 	chains?: string[],
 	topN: number = 5,
-	filterMode: 'include' | 'exclude' = 'include'
+	filterMode: 'include' | 'exclude' = 'include',
+	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
 		const response = await fetch(`${PROTOCOL_API}/${protocol}`)
@@ -127,6 +129,11 @@ async function getTvlProtocolChainData(
 		let colorIndex = 0
 
 		const excludeSet = new Set<string>((chains || []).map((c) => normalizeChainKey(c)))
+
+		let allowNamesFromCategories: Set<string> | null = null
+		if (chainCategories && chainCategories.length > 0) {
+			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
+		}
 		for (const [chainKey, chainData] of Object.entries(chainTvls)) {
 			if (
 				chainKey.includes('-borrowed') ||
@@ -144,6 +151,14 @@ async function getTvlProtocolChainData(
 					if (!chains.includes(chainKey)) continue
 				} else {
 					if (excludeSet.has(chainKey)) continue
+				}
+			}
+
+			if (allowNamesFromCategories && allowNamesFromCategories.size > 0) {
+				if (filterMode === 'include') {
+					if (!allowNamesFromCategories.has(chainKey)) continue
+				} else {
+					if (allowNamesFromCategories.has(chainKey)) continue
 				}
 			}
 
@@ -246,7 +261,8 @@ async function getDimensionsProtocolChainData(
 	metric: string,
 	chains?: string[],
 	topN: number = 5,
-	filterMode: 'include' | 'exclude' = 'include'
+	filterMode: 'include' | 'exclude' = 'include',
+	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	const config = METRIC_CONFIG[metric]
 	if (!config) {
@@ -282,6 +298,10 @@ async function getDimensionsProtocolChainData(
 		const chainDataMap = new Map<string, [number, number][]>()
 
 		const excludeSet = new Set<string>((chains || []).map((c) => c))
+		let allowSlugsFromCategories: Set<string> | null = null
+		if (chainCategories && chainCategories.length > 0) {
+			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
+		}
 		breakdown.forEach((item: any) => {
 			const [timestamp, chainData] = item
 			if (!chainData || typeof chainData !== 'object') return
@@ -292,6 +312,14 @@ async function getDimensionsProtocolChainData(
 						if (!chains.includes(chain)) return
 					} else {
 						if (excludeSet.has(chain)) return
+					}
+				}
+
+				if (allowSlugsFromCategories && allowSlugsFromCategories.size > 0) {
+					if (filterMode === 'include') {
+						if (!allowSlugsFromCategories.has(chain)) return
+					} else {
+						if (allowSlugsFromCategories.has(chain)) return
 					}
 				}
 
@@ -406,12 +434,17 @@ async function getDimensionsProtocolChainData(
 async function getAllProtocolsTopChainsTvlData(
 	topN: number = 5,
 	chains?: string[],
-	filterMode: 'include' | 'exclude' = 'include'
+	filterMode: 'include' | 'exclude' = 'include',
+	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
 		const resp = await fetch(CHAIN_TVL_API)
 		const allChains = (await resp.json()) as Array<{ name: string; tvl: number }>
 		const includeSet = new Set<string>((chains || []).map((c) => normalizeChainKey(c)))
+		let allowNamesFromCategories: Set<string> | null = null
+		if (chainCategories && chainCategories.length > 0) {
+			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
+		}
 
 		let ranked = allChains
 			.filter((c) => typeof c.tvl === 'number' && c.tvl > 0 && c.name)
@@ -419,6 +452,11 @@ async function getAllProtocolsTopChainsTvlData(
 				if (!chains || chains.length === 0) return true
 				if (filterMode === 'include') return includeSet.has(normalizeChainKey(c.name))
 				return !includeSet.has(normalizeChainKey(c.name))
+			})
+			.filter((c) => {
+				if (!allowNamesFromCategories || allowNamesFromCategories.size === 0) return true
+				if (filterMode === 'include') return allowNamesFromCategories.has(c.name)
+				return !allowNamesFromCategories.has(c.name)
 			})
 			.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
@@ -500,7 +538,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 	metric: string,
 	topN: number = 5,
 	chains?: string[],
-	filterMode: 'include' | 'exclude' = 'include'
+	filterMode: 'include' | 'exclude' = 'include',
+	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	const config = METRIC_CONFIG[metric]
 	if (!config) throw new Error(`Unsupported metric: ${metric}`)
@@ -529,12 +568,21 @@ async function getAllProtocolsTopChainsDimensionsData(
 		}
 
 		const filterSet = new Set<string>((chains || []).map((c) => toDimensionsChainSlug(c)))
+		let allowSlugsFromCategories: Set<string> | null = null
+		if (chainCategories && chainCategories.length > 0) {
+			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
+		}
 		let ranked = Array.from(chainTotals.entries())
 			.filter(([slug, v]) => v > 0)
 			.filter(([slug]) => {
 				if (!chains || chains.length === 0) return true
 				if (filterMode === 'include') return filterSet.has(slug)
 				return !filterSet.has(slug)
+			})
+			.filter(([slug]) => {
+				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
+				if (filterMode === 'include') return allowSlugsFromCategories.has(slug)
+				return !allowSlugsFromCategories.has(slug)
 			})
 			.sort((a, b) => b[1] - a[1])
 
@@ -616,11 +664,12 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { protocol, metric = 'tvl', chains, limit = '5', filterMode } = req.query
+		const { protocol, metric = 'tvl', chains, limit = '5', filterMode, chainCategories } = req.query
 
 		const metricStr = metric as string
 		const rawChains = (chains as string | undefined)?.split(',').filter(Boolean) || []
 		const chainsArray = rawChains.includes('All') ? [] : rawChains
+		const chainCategoriesArray = (chainCategories as string | undefined)?.split(',').filter(Boolean) || []
 		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const topN = Math.min(parseInt(limit as string), 20)
 
@@ -628,15 +677,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		if (!protocol || typeof protocol !== 'string' || protocol.toLowerCase() === 'all') {
 			if (metricStr === 'tvl') {
-				result = await getAllProtocolsTopChainsTvlData(topN, chainsArray, fm)
+				result = await getAllProtocolsTopChainsTvlData(topN, chainsArray, fm, chainCategoriesArray)
 			} else {
-				result = await getAllProtocolsTopChainsDimensionsData(metricStr, topN, chainsArray, fm)
+				result = await getAllProtocolsTopChainsDimensionsData(metricStr, topN, chainsArray, fm, chainCategoriesArray)
 			}
 		} else {
 			if (metricStr === 'tvl') {
-				result = await getTvlProtocolChainData(protocol, chainsArray, topN, fm)
+				result = await getTvlProtocolChainData(protocol, chainsArray, topN, fm, chainCategoriesArray)
 			} else {
-				result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN, fm)
+				result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN, fm, chainCategoriesArray)
 			}
 		}
 
@@ -648,4 +697,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			details: error instanceof Error ? error.message : 'Unknown error'
 		})
 	}
+}
+
+async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {
+	if (!categories || categories.length === 0) return new Set()
+	const requests = categories.map((cat) => fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`))
+	const responses = await Promise.allSettled(requests)
+	const out = new Set<string>()
+	for (const res of responses) {
+		if (res.status === 'fulfilled' && res.value.ok) {
+			try {
+				const j = await res.value.json()
+				const arr: string[] = Array.isArray(j?.chainsUnique) ? j.chainsUnique : []
+				for (const name of arr) out.add(name)
+			} catch {}
+		}
+	}
+	return out
+}
+
+async function resolveAllowedChainSlugsFromCategories(categories: string[]): Promise<Set<string>> {
+	const names = await resolveAllowedChainNamesFromCategories(categories)
+	const slugs = new Set<string>()
+	for (const name of names) slugs.add(toDimensionsChainSlug(name))
+	return slugs
 }

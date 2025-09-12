@@ -46,6 +46,7 @@ export interface ChartBuilderConfig {
 	filterMode?: 'include' | 'exclude'
 	protocol?: string
 	chains: string[]
+	chainCategories?: string[]
 	categories: string[]
 	groupBy: 'protocol'
 	limit: number

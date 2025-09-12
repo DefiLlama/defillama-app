@@ -172,7 +172,8 @@ export default class SProtocolSplitCharts {
 			| 'supply-side-revenue',
 		chains?: string[],
 		limit: number = 5,
-		filterMode: 'include' | 'exclude' = 'include'
+		filterMode: 'include' | 'exclude' = 'include',
+		chainCategories?: string[]
 	): Promise<any> {
 		const params = new URLSearchParams()
 		if (protocol) params.append('protocol', protocol)
@@ -186,6 +187,9 @@ export default class SProtocolSplitCharts {
 		}
 		if (filterMode) {
 			params.append('filterMode', filterMode)
+		}
+		if (chainCategories && chainCategories.length > 0) {
+			params.append('chainCategories', chainCategories.join(','))
 		}
 
 		try {
