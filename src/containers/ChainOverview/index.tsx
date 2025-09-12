@@ -27,14 +27,14 @@ export function ChainOverview(props: IChainOverviewData) {
 				<SmolStats {...props} />
 			</Suspense>
 			{props.metadata.name === 'All' ? (
-				<div className="relative isolate flex flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
+				<div className="thin-scrollbar relative isolate flex flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
 					{linksToOtherLlamaApps.map((app) => (
 						<a
 							target="_blank"
 							rel="noreferrer noopener"
 							href={app.href}
 							key={`llama-app-${app.href}`}
-							className="relative flex max-h-[64px] max-w-[70vw] min-w-fit flex-1 items-center gap-2.5 overflow-hidden rounded-lg border border-(--cards-bg) bg-(--cards-bg) p-2.5"
+							className="relative flex max-h-[64px] w-full max-w-[70vw] min-w-[270px] flex-1 items-center gap-2.5 overflow-hidden rounded-lg border border-(--cards-bg) bg-(--cards-bg) p-2.5"
 						>
 							{app.background}
 							<>{app.icon}</>
@@ -42,9 +42,11 @@ export function ChainOverview(props: IChainOverviewData) {
 								<span className="col-span-1 row-span-1 overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap">
 									{app.name}
 								</span>
-								<span className="col-span-1 row-span-1 overflow-hidden text-sm font-light text-ellipsis whitespace-nowrap">
-									{app.description}
-								</span>
+								{app.description === '' ? null : (
+									<span className="col-span-1 row-span-1 overflow-hidden text-sm font-light text-ellipsis whitespace-nowrap">
+										{app.description}
+									</span>
+								)}
 							</span>
 							<Icon name="arrow-up-right-2" className="h-6 w-6 shrink-0" />
 						</a>
@@ -81,29 +83,6 @@ const linksToOtherLlamaApps = [
 		)
 	},
 	{
-		name: 'LlamaPay',
-		description: 'Seamless crypto payments',
-		href: 'https://llamapay.io',
-		icon: (
-			<span className="z-10 mx-[5px] block h-8 w-8 rotate-45 rounded-md bg-[linear-gradient(183deg,#23BD8F_0.79%,#1BDBAD_99.21%)]">
-				<img
-					src="/icons/llamapay.svg"
-					loading="lazy"
-					alt=""
-					height={44}
-					width={44}
-					className="-rotate-45 object-contain"
-				/>
-			</span>
-		),
-		background: (
-			<span
-				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#37E69A] blur-[32px]"
-			/>
-		)
-	},
-	{
 		name: 'LlamaFeed',
 		description: 'The ultimate crypto feed',
 		href: 'https://llamafeed.io/',
@@ -123,6 +102,38 @@ const linksToOtherLlamaApps = [
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
 			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+		),
+		background: (
+			<span
+				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
+				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
+			/>
+		)
+	},
+	{
+		name: 'DLNews',
+		description: '',
+		href: 'https://www.dlnews.com',
+		icon: (
+			<svg width={44} height={44}>
+				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
+			</svg>
+		),
+		background: (
+			<span
+				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
+				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
+			/>
+		)
+	},
+	{
+		name: 'DL Research',
+		description: '',
+		href: 'https://www.dlnews.com/research',
+		icon: (
+			<svg width={44} height={44}>
+				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+			</svg>
 		),
 		background: (
 			<span
