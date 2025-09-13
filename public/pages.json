@@ -528,17 +528,17 @@
       "tab": "Protocols"
     },
     {
+      "name": "ETF",
+      "route": "/etfs",
+      "category": "Others",
+      "description": "AUM, Flows, Volume metrics of all ETFs"
+    },
+    {
       "name": "Staked ETH by Protocol",
       "route": "/lst",
       "category": "Others",
       "description": "Total value of ETH staked on LSTs",
       "tab": "Protocols"
-    },
-    {
-      "name": "ETF",
-      "route": "/etfs",
-      "category": "Others",
-      "description": "AUM, Flows, Volume metrics of all ETFs"
     },
     {
       "name": "Expenses by Protocol",

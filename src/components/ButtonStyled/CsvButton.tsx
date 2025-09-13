@@ -88,7 +88,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				}}
 				disabled={isClient ? isLoading : true}
 			>
-				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" className="h-3 w-3 shrink-0" />}
+				{isLoading || !isClient ? (
+					<LoadingSpinner size={12} />
+				) : (
+					<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+				)}
 				{children || (
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}

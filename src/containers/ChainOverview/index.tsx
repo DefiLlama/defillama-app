@@ -75,12 +75,7 @@ const linksToOtherLlamaApps = [
 		icon: (
 			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
-		background: (
-			<span
-				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
-			/>
-		)
+		background: <span className="llama-app-background" />
 	},
 	{
 		name: 'LlamaFeed',
@@ -89,12 +84,7 @@ const linksToOtherLlamaApps = [
 		icon: (
 			<img src="/icons/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
-		background: (
-			<span
-				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
-			/>
-		)
+		background: <span className="llama-app-background" />
 	},
 	{
 		name: 'DefiLlama API',
@@ -103,12 +93,7 @@ const linksToOtherLlamaApps = [
 		icon: (
 			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
-		background: (
-			<span
-				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
-			/>
-		)
+		background: <span className="llama-app-background" />
 	},
 	{
 		name: 'DLNews',
@@ -119,12 +104,7 @@ const linksToOtherLlamaApps = [
 				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
 			</svg>
 		),
-		background: (
-			<span
-				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
-			/>
-		)
+		background: <span className="llama-app-background" />
 	},
 	{
 		name: 'DL Research',
@@ -135,11 +115,6 @@ const linksToOtherLlamaApps = [
 				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
-		background: (
-			<span
-				style={{ transform: 'translate3d(0px, 0px, 0px)' }}
-				className="absolute top-0 bottom-0 left-0 h-12 w-12 overflow-hidden bg-[#5C5CF9] blur-[32px]"
-			/>
-		)
+		background: <span className="llama-app-background" />
 	}
 ]

@@ -275,7 +275,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 	return (
 		<>
 			<Ariakit.DialogProvider store={dialogStore}>
-				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
+				<div className="metrics-gradient-border relative isolate w-full rounded-md bg-(--cards-bg) p-1">
 					<img
 						src="/icons/metrics-l.svg"
 						width={92}
@@ -313,33 +313,6 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 						className="absolute top-0 right-0 hidden h-full w-auto rounded-r-md object-cover md:block"
 						fetchPriority="high"
 					/>
-					<svg
-						width="100%"
-						height="100%"
-						className="absolute top-0 right-0 bottom-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
-					>
-						<defs>
-							<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-								<stop offset="0%" stopColor="#1f67d2" />
-								<stop offset="8%" stopColor="#1f67d2" />
-								<stop offset="18%" stopColor="currentColor" />
-								<stop offset="82%" stopColor="currentColor" />
-								<stop offset="92%" stopColor="#1f67d2" />
-								<stop offset="100%" stopColor="#1f67d2" />
-							</linearGradient>
-						</defs>
-						<rect
-							x="1"
-							y="1"
-							width="calc(100% - 1.5px)"
-							height="calc(100% - 1.5px)"
-							rx="6"
-							ry="6"
-							fill="none"
-							stroke="url(#border-gradient)"
-							strokeWidth="1"
-						/>
-					</svg>
 				</div>
 				<Ariakit.Dialog
 					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100vh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
