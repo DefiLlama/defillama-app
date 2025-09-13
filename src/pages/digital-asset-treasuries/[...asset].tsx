@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 

@@ -9,7 +9,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -85,47 +85,42 @@ export const getStaticProps = withPerformanceLogging(
 			})
 		)
 
-		const chartByAsset = data.assets
-			.filter((a) => assetsByNameAndTicker[a]?.name && assetsByNameAndTicker[a]?.ticker)
-			.map((asset) => {
-				let totalAmount = 0
-				return {
-					name: assetsByNameAndTicker[asset].name,
-					ticker: assetsByNameAndTicker[asset].ticker,
-					chart: data.transactions
-						.filter((item) => item.asset === asset)
-						.map((item) => [
-							Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
-							item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
-							item.avg_price ? Number(item.avg_price) : null,
-							item.usd_value ? Number(item.usd_value) : null
-						])
-						.sort((a, b) => a[0] - b[0])
-						.map(([timestamp, amount, avg_price, usd_value]) => [
-							timestamp,
-							(totalAmount += amount),
-							amount,
-							avg_price,
-							usd_value
-						])
-				}
-			})
+		const chartByAsset = data.assets.map((asset) => {
+			let totalAmount = 0
+			return {
+				asset,
+				name: assetsByNameAndTicker[asset].name,
+				ticker: assetsByNameAndTicker[asset].ticker,
+				chart: data.transactions
+					.filter((item) => item.asset === asset)
+					.map((item) => [
+						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
+						item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
+						item.avg_price ? Number(item.avg_price) : null,
+						item.usd_value ? Number(item.usd_value) : null
+					])
+					.sort((a, b) => a[0] - b[0])
+					.map(([timestamp, amount, avg_price, usd_value]) => [
+						timestamp,
+						(totalAmount += amount),
+						amount,
+						avg_price,
+						usd_value
+					])
+			}
+		})
 
 		return {
 			props: {
 				...data,
-				assets: data.assets
-					.filter((a) => assetsByNameAndTicker[a]?.name && assetsByNameAndTicker[a]?.ticker)
-					.map((asset) => capitalizeFirstLetter(asset)),
-				assetsBreakdown: Object.entries(data.totalAssetsByAsset)
-					.filter(([a]) => assetsByNameAndTicker[a]?.name && assetsByNameAndTicker[a]?.ticker)
-					.map(([asset, { amount, cost, usdValue }]) => ({
-						name: assetsByNameAndTicker[asset].name,
-						ticker: assetsByNameAndTicker[asset].ticker,
-						amount: amount,
-						cost: cost ?? null,
-						usdValue: usdValue ?? null
-					})),
+				assets: data.assets,
+				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(([asset, { amount, cost, usdValue }]) => ({
+					name: assetsByNameAndTicker[asset].name,
+					ticker: assetsByNameAndTicker[asset].ticker,
+					amount: amount,
+					cost: cost ?? null,
+					usdValue: usdValue ?? null
+				})),
 				chartByAsset
 			},
 			revalidate: maxAgeForNext([22])
@@ -156,6 +151,7 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 		usdValue: number | null
 	}>
 	chartByAsset: Array<{
+		asset: string
 		name: string
 		ticker: string
 		chart: Array<[number, number, number, number | null, number | null]>
@@ -165,7 +161,7 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 export default function DigitalAssetTreasury(props: IProps) {
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(props.assets[0])
 	const chartData = useMemo(() => {
-		return props.chartByAsset.find((asset) => asset.name === selectedAsset)
+		return props.chartByAsset.find((asset) => asset.asset === selectedAsset)
 	}, [selectedAsset, props.chartByAsset])
 
 	return (
@@ -281,8 +277,8 @@ export default function DigitalAssetTreasury(props: IProps) {
 			<TableWithSearch
 				data={props.transactions}
 				columns={columns}
-				placeholder="Search transactions"
-				columnToSearch="asset"
+				placeholder="Search assets"
+				columnToSearch="assetName"
 				sortingState={[{ id: 'report_date', desc: true }]}
 			/>
 		</Layout>
