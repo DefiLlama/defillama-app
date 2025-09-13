@@ -91,7 +91,7 @@ export const getStaticProps = withPerformanceLogging(
 					.filter((item) => item.asset === asset)
 					.map((item) => [
 						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
-						Number(item.amount),
+						item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
 						item.avg_price ? Number(item.avg_price) : null,
 						item.usd_value ? Number(item.usd_value) : null
 					])
@@ -290,9 +290,17 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 	},
 	{
 		header: 'Amount',
-		accessorKey: 'amount',
+		id: 'amount',
+		accessorFn: (row) => {
+			return row.type === 'sale' ? -Number(row.amount) : Number(row.amount)
+		},
 		cell: ({ getValue }) => {
-			return <>{formattedNum(getValue(), false)}</>
+			const value = getValue() as number
+			return (
+				<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
+					{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)}`}
+				</span>
+			)
 		},
 		meta: {
 			align: 'end'
@@ -419,13 +427,15 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 const chartOptions = {
 	tooltip: {
 		formatter: (params: any) => {
+			const label = params[0].value[2] < 0 ? 'Sold' : 'Purchased'
+			const valueLabel = params[0].value[2] < 0 ? 'Sale value' : 'Purchase value'
 			let val =
 				dayjs(params[0].value[0]).format('MMM D, YYYY') +
 				'<li style="list-style:none">' +
-				'Purchased:' +
+				`${label}:` +
 				'&nbsp;&nbsp;' +
 				'<span style="font-weight:600;">' +
-				formattedNum(params[0].value[2], false) +
+				formattedNum(Math.abs(params[0].value[2]), false) +
 				'&nbsp;' +
 				params[0].seriesName +
 				'</span>' +
@@ -445,7 +455,7 @@ const chartOptions = {
 			if (params[0].value[4] != null) {
 				val +=
 					'<li style="list-style:none">' +
-					`Purchase value:` +
+					`${valueLabel}:` +
 					'&nbsp;&nbsp;' +
 					'<span style="font-weight:600;">' +
 					formattedNum(params[0].value[4], true) +
