@@ -49,6 +49,7 @@ interface ITreasuryCompanies {
 			circSupplyPerc: number
 		}
 	}
+	dailyFlows: Array<[number, number]>
 	lastUpdated: string
 }
 
@@ -71,6 +72,7 @@ export const getStaticProps = withPerformanceLogging(
 		)
 		const breakdown = res.breakdownByAsset[asset]
 		const stats = res.statsByAsset[asset]
+		const dailyFlows = res.dailyFlows
 		let name = capitalizeFirstLetter(asset)
 		let symbol = ''
 		if (asset in SYMBOL_MAP) {
@@ -79,14 +81,14 @@ export const getStaticProps = withPerformanceLogging(
 
 		const allAssets = []
 		for (const asset in res.breakdownByAsset) {
-			allAssets.push({ label: capitalizeFirstLetter(asset), to: `/treasuries/${asset}` })
+			allAssets.push({ label: capitalizeFirstLetter(asset), to: `/digital-asset-treasuries/${asset}` })
 		}
 
 		if (!breakdown || !stats) {
 			return { notFound: true, props: null }
 		}
 
-		return { props: { breakdown, stats, name, symbol, asset, allAssets }, revalidate: maxAgeForNext([22]) }
+		return { props: { breakdown, stats, name, symbol, asset, allAssets, dailyFlows }, revalidate: maxAgeForNext([22]) }
 	}
 )
 
@@ -96,7 +98,7 @@ export async function getStaticPaths() {
 	const paths = []
 
 	for (const asset in res.breakdownByAsset) {
-		paths.push(`/treasuries/${asset}`)
+		paths.push(`/digital-asset-treasuries/${asset}`)
 	}
 
 	return { paths, fallback: false }
@@ -218,19 +220,6 @@ const columns = ({
 			return <>{`${formattedNum(totalAssetAmount, false)} ${symbol}`}</>
 		},
 		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Total Cost (USD)',
-		accessorKey: 'totalCost',
-		cell: ({ getValue }) => {
-			const totalCost = getValue() as number
-			if (totalCost == null) return null
-			return <>{formattedNum(totalCost, true)}</>
-		},
-		size: 148,
 		meta: {
 			align: 'end'
 		}

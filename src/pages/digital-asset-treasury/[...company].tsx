@@ -158,6 +158,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 	const chartData = useMemo(() => {
 		return props.chartByAsset.find((asset) => asset.assetName === selectedAsset)
 	}, [selectedAsset, props.chartByAsset])
+
 	return (
 		<Layout
 			title={`${props.name} Digital Asset Treasury - DefiLlama`}
@@ -314,28 +315,6 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 		cell: ({ getValue }) => {
 			if (getValue() == null) return null
 			return <>{formattedNum(getValue(), true)}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Start Date',
-		accessorKey: 'start_date',
-		cell: ({ getValue }) => {
-			if (getValue() == null) return null
-			return <>{dayjs(getValue() as string).format('MMM D, YYYY')}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'End Date',
-		accessorKey: 'end_date',
-		cell: ({ getValue }) => {
-			if (getValue() == null) return null
-			return <>{dayjs(getValue() as string).format('MMM D, YYYY')}</>
 		},
 		meta: {
 			align: 'end'
