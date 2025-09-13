@@ -1,13 +1,18 @@
+import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
+import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
 interface ITreasuryCompanies {
 	breakdownByAsset: {
@@ -16,6 +21,8 @@ interface ITreasuryCompanies {
 			name: string
 			type: string
 			assets: Array<string>
+			assetName: string
+			assetTicker: string
 			totalAssetsByAsset: {
 				[asset: string]: {
 					amount: number
@@ -53,12 +60,6 @@ interface ITreasuryCompanies {
 	lastUpdated: string
 }
 
-const SYMBOL_MAP = {
-	bitcoin: 'BTC',
-	ethereum: 'ETH',
-	solana: 'SOL'
-}
-
 export const getStaticProps = withPerformanceLogging(
 	'treasuries/[...asset]',
 	async ({
@@ -72,12 +73,9 @@ export const getStaticProps = withPerformanceLogging(
 		)
 		const breakdown = res.breakdownByAsset[asset]
 		const stats = res.statsByAsset[asset]
-		const dailyFlows = res.dailyFlows
-		let name = capitalizeFirstLetter(asset)
-		let symbol = ''
-		if (asset in SYMBOL_MAP) {
-			symbol = SYMBOL_MAP[asset].toUpperCase()
-		}
+		const dailyFlows = res.dailyFlows[asset]
+		const name = breakdown[0].assetName
+		const symbol = breakdown[0].assetTicker
 
 		const allAssets = []
 		for (const asset in res.breakdownByAsset) {
@@ -88,7 +86,26 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		return { props: { breakdown, stats, name, symbol, asset, allAssets, dailyFlows }, revalidate: maxAgeForNext([22]) }
+		return {
+			props: {
+				breakdown,
+				stats,
+				asset,
+				name,
+				symbol,
+				allAssets,
+				dailyFlowsChart: {
+					[assetName]: {
+						name: assetName,
+						stack: assetName,
+						type: 'bar',
+						color: oldBlue,
+						data: dailyFlows
+					}
+				}
+			},
+			revalidate: maxAgeForNext([22])
+		}
 	}
 )
 
@@ -112,7 +129,8 @@ export default function TreasuriesByAsset({
 	stats,
 	symbol,
 	asset,
-	allAssets
+	allAssets,
+	dailyFlowsChart
 }: {
 	name: string
 	breakdown: ITreasuryCompanies['breakdownByAsset'][string]
@@ -120,6 +138,7 @@ export default function TreasuriesByAsset({
 	symbol: string
 	asset: string
 	allAssets: Array<{ label: string; to: string }>
+	dailyFlowsChart: ILineAndBarChartProps['charts']
 }) {
 	return (
 		<Layout
@@ -130,41 +149,49 @@ export default function TreasuriesByAsset({
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={allAssets} activeLink={name} />
-			<div className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:p-3">
-				<h1 className="text-xl font-semibold">{name} Treasury Holdings</h1>
-				<p className="text-(--text-label)">Institutions that own {name} as part of their corporate treasury.</p>
-			</div>
-			<div className="flex flex-col gap-2 md:flex-row md:flex-wrap">
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:p-3">
-					<span className="font-jetbrains text-lg">{stats.totalCompanies}</span>
-					<span className="text-(--text-label)">Total Institutions</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:p-3">
-					<span className="font-jetbrains text-lg">{`${formattedNum(stats.totalHoldings, false)} ${symbol}`}</span>
-					<span className="text-(--text-label)">Total Holdings</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:p-3">
-					<span className="font-jetbrains text-lg">{formattedNum(stats.totalUsdValue, true)}</span>
-					<span className="text-(--text-label)">Total USD Value</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:p-3">
-					<span className="font-jetbrains text-lg">
-						{stats.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
-					</span>
+			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<Tooltip
-						content={`Percentage of ${name} circulating supply that is held by the companies`}
-						className="text-(--text-label) underline decoration-dotted"
+						render={<h1 />}
+						content={`Institutions that own ${name} as part of their corporate treasury`}
+						className="text-xl font-semibold"
 					>
-						% of {symbol} Circulating Supply
+						{name} Treasury Holdings
 					</Tooltip>
-				</p>
+					<div className="flex flex-col">
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+							<span className="text-(--text-label)">Total Institution</span>
+							<span className="font-jetbrains ml-auto">{stats.totalCompanies}</span>
+						</p>
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+							<span className="text-(--text-label)">Total Holdings</span>
+							<span className="font-jetbrains ml-auto">{`${formattedNum(stats.totalHoldings, false)} ${symbol}`}</span>
+						</p>
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+							<span className="text-(--text-label)">Total USD Value</span>
+							<span className="font-jetbrains ml-auto">{formattedNum(stats.totalUsdValue, true)}</span>
+						</p>
+						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+							<span className="text-(--text-label)">% of {symbol} Circulating Supply</span>
+							<span className="font-jetbrains ml-auto">
+								{stats.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
+							</span>
+						</p>
+					</div>
+				</div>
+				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<h2 className="p-2 text-lg font-medium">Inflows</h2>
+					<Suspense>
+						<LineAndBarChart charts={dailyFlowsChart} valueSymbol={symbol} />
+					</Suspense>
+				</div>
 			</div>
 			<TableWithSearch
 				data={breakdown}
 				columns={columns({ name, symbol })}
 				placeholder="Search companies"
 				columnToSearch="name"
-				sortingState={[{ id: 'totalUsdValue', desc: true }]}
+				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
 			/>
 		</Layout>
 	)
@@ -212,7 +239,7 @@ const columns = ({
 		}
 	},
 	{
-		header: `Total ${name}`,
+		header: 'Holdings',
 		accessorKey: 'totalAssetAmount',
 		cell: ({ getValue }) => {
 			const totalAssetAmount = getValue() as number

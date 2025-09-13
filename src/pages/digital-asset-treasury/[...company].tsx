@@ -45,6 +45,8 @@ interface IDigitalAssetTreasuryCompany {
 	transactions: Array<{
 		ticker: string
 		asset: string
+		assetName: string
+		assetTicker: string
 		amount: number // DECIMAL(20, 8)
 		avg_price?: number // DECIMAL(20, 8)
 		usd_value?: number // DECIMAL(20, 2)
@@ -59,12 +61,6 @@ interface IDigitalAssetTreasuryCompany {
 		reject_reason?: string
 		last_updated?: Date
 	}>
-}
-
-const SYMBOL_MAP = {
-	bitcoin: 'BTC',
-	ethereum: 'ETH',
-	solana: 'SOL'
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -82,11 +78,18 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
+		const assetsByNameAndTicker = Object.fromEntries(
+			data.assets.map((asset) => {
+				const assetTx = data.transactions.find((a) => a.asset === asset)
+				return [asset, { name: assetTx?.assetName ?? '', ticker: assetTx?.assetTicker ?? '' }]
+			})
+		)
+
 		const chartByAsset = data.assets.map((asset) => {
 			let totalAmount = 0
 			return {
-				assetName: capitalizeFirstLetter(asset),
-				assetSymbol: SYMBOL_MAP[asset] ?? asset,
+				name: assetsByNameAndTicker[asset].name,
+				ticker: assetsByNameAndTicker[asset].ticker,
 				chart: data.transactions
 					.filter((item) => item.asset === asset)
 					.map((item) => [
@@ -111,8 +114,8 @@ export const getStaticProps = withPerformanceLogging(
 				...data,
 				assets: data.assets.map((asset) => capitalizeFirstLetter(asset)),
 				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(([asset, { amount, cost, usdValue }]) => ({
-					assetName: capitalizeFirstLetter(asset),
-					assetSymbol: SYMBOL_MAP[asset] ?? asset,
+					name: assetsByNameAndTicker[asset].name,
+					ticker: assetsByNameAndTicker[asset].ticker,
 					amount: amount,
 					cost: cost ?? null,
 					usdValue: usdValue ?? null
@@ -140,15 +143,15 @@ export async function getStaticPaths() {
 
 interface IProps extends IDigitalAssetTreasuryCompany {
 	assetsBreakdown: Array<{
-		assetName: string
-		assetSymbol: string
+		name: string
+		ticker: string
 		amount: number
 		cost: number | null
 		usdValue: number | null
 	}>
 	chartByAsset: Array<{
-		assetName: string
-		assetSymbol: string
+		name: string
+		ticker: string
 		chart: Array<[number, number, number, number | null, number | null]>
 	}>
 }
@@ -156,7 +159,7 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 export default function DigitalAssetTreasury(props: IProps) {
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(props.assets[0])
 	const chartData = useMemo(() => {
-		return props.chartByAsset.find((asset) => asset.assetName === selectedAsset)
+		return props.chartByAsset.find((asset) => asset.name === selectedAsset)
 	}, [selectedAsset, props.chartByAsset])
 
 	return (
@@ -193,11 +196,11 @@ export default function DigitalAssetTreasury(props: IProps) {
 						{props.assetsBreakdown.map((asset, index) => (
 							<details
 								className="group"
-								key={`${props.ticker}-${asset.assetName}`}
+								key={`${props.ticker}-${asset.name}`}
 								open={props.assetsBreakdown.length === 1 && index === 0}
 							>
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<span className="text-(--text-label)">Total {asset.assetName}</span>
+									<span className="text-(--text-label)">Total {asset.name}</span>
 									<Icon
 										name="chevron-down"
 										height={16}
@@ -205,7 +208,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
-										{formattedNum(asset.amount, false)} {asset.assetSymbol}
+										{formattedNum(asset.amount, false)} {asset.ticker}
 									</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
@@ -257,10 +260,10 @@ export default function DigitalAssetTreasury(props: IProps) {
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<SingleSeriesChart
-							chartName={chartData.assetSymbol}
+							chartName={chartData.ticker}
 							chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
 							chartData={chartData.chart}
-							valueSymbol={chartData.assetSymbol}
+							valueSymbol={chartData.ticker}
 							color={CHART_COLORS[0]}
 							chartOptions={chartOptions}
 							symbolOnChart="circle"
@@ -282,7 +285,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 	{
 		header: 'Asset',
-		accessorKey: 'asset',
+		accessorKey: 'assetName',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
@@ -294,11 +297,11 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 		accessorFn: (row) => {
 			return row.type === 'sale' ? -Number(row.amount) : Number(row.amount)
 		},
-		cell: ({ getValue }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as number
 			return (
 				<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
-					{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)}`}
+					{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)} ${row.original.assetTicker}`}
 				</span>
 			)
 		},
