@@ -258,7 +258,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<SingleSeriesChart
 							chartName={chartData.assetSymbol}
-							chartType="line"
+							chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
 							chartData={chartData.chart}
 							valueSymbol={chartData.assetSymbol}
 							color={CHART_COLORS[0]}
