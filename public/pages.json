@@ -562,6 +562,11 @@
       "category": "Others",
       "description": "Overview of protocols with Safe Harbor Agreements",
       "totalTrackedKey": "safeHarbor.protocols"
+    }, {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries/bitcoin",
+      "category": "Others",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury"
     }
   ],
   "Tools": [
