@@ -81,45 +81,51 @@ export const getStaticProps = withPerformanceLogging(
 		const assetsByNameAndTicker = Object.fromEntries(
 			data.assets.map((asset) => {
 				const assetTx = data.transactions.find((a) => a.asset === asset)
-				return [asset, { name: assetTx?.assetName ?? '', ticker: assetTx?.assetTicker ?? '' }]
+				return [asset, { name: assetTx?.assetName ?? null, ticker: assetTx?.assetTicker ?? null }]
 			})
 		)
 
-		const chartByAsset = data.assets.map((asset) => {
-			let totalAmount = 0
-			return {
-				name: assetsByNameAndTicker[asset].name,
-				ticker: assetsByNameAndTicker[asset].ticker,
-				chart: data.transactions
-					.filter((item) => item.asset === asset)
-					.map((item) => [
-						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
-						item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
-						item.avg_price ? Number(item.avg_price) : null,
-						item.usd_value ? Number(item.usd_value) : null
-					])
-					.sort((a, b) => a[0] - b[0])
-					.map(([timestamp, amount, avg_price, usd_value]) => [
-						timestamp,
-						(totalAmount += amount),
-						amount,
-						avg_price,
-						usd_value
-					])
-			}
-		})
+		const chartByAsset = data.assets
+			.filter((a) => assetsByNameAndTicker[a]?.name && assetsByNameAndTicker[a]?.ticker)
+			.map((asset) => {
+				let totalAmount = 0
+				return {
+					name: assetsByNameAndTicker[asset].name,
+					ticker: assetsByNameAndTicker[asset].ticker,
+					chart: data.transactions
+						.filter((item) => item.asset === asset)
+						.map((item) => [
+							Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
+							item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
+							item.avg_price ? Number(item.avg_price) : null,
+							item.usd_value ? Number(item.usd_value) : null
+						])
+						.sort((a, b) => a[0] - b[0])
+						.map(([timestamp, amount, avg_price, usd_value]) => [
+							timestamp,
+							(totalAmount += amount),
+							amount,
+							avg_price,
+							usd_value
+						])
+				}
+			})
 
 		return {
 			props: {
 				...data,
-				assets: data.assets.map((asset) => capitalizeFirstLetter(asset)),
-				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(([asset, { amount, cost, usdValue }]) => ({
-					name: assetsByNameAndTicker[asset].name,
-					ticker: assetsByNameAndTicker[asset].ticker,
-					amount: amount,
-					cost: cost ?? null,
-					usdValue: usdValue ?? null
-				})),
+				assets: data.assets
+					.filter((a) => assetsByNameAndTicker[a]?.name && assetsByNameAndTicker[a]?.ticker)
+					.map((asset) => capitalizeFirstLetter(asset)),
+				assetsBreakdown: Object.entries(data.totalAssetsByAsset)
+					.filter(([a]) => assetsByNameAndTicker[a]?.name && assetsByNameAndTicker[a]?.ticker)
+					.map(([asset, { amount, cost, usdValue }]) => ({
+						name: assetsByNameAndTicker[asset].name,
+						ticker: assetsByNameAndTicker[asset].ticker,
+						amount: amount,
+						cost: cost ?? null,
+						usdValue: usdValue ?? null
+					})),
 				chartByAsset
 			},
 			revalidate: maxAgeForNext([22])
@@ -267,6 +273,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 							color={CHART_COLORS[0]}
 							chartOptions={chartOptions}
 							symbolOnChart="circle"
+							hideDataZoom={chartData.chart.length < 2}
 						/>
 					</Suspense>
 				</div>

@@ -79,7 +79,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const allAssets = []
 		for (const asset in res.breakdownByAsset) {
-			allAssets.push({ label: capitalizeFirstLetter(asset), to: `/digital-asset-treasuries/${asset}` })
+			allAssets.push({ label: res.breakdownByAsset[asset][0].assetName, to: `/digital-asset-treasuries/${asset}` })
 		}
 
 		if (!breakdown || !stats) {
