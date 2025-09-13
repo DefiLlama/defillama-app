@@ -282,6 +282,7 @@ const getTvlData = async (
 
 	type ChildScore = { childName: string; childSlug: string; parentId: string | null; value: number }
 	const childScores: ChildScore[] = []
+	const childrenByParent: Map<string, Set<string>> = new Map()
 	const excludedChainSetForProtocols: Set<string> = new Set(
 		filterMode === 'exclude' ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
 	)
@@ -330,26 +331,32 @@ const getTvlData = async (
 			}
 		}
 		if (score <= 0) continue
-		childScores.push({ childName: p.name, childSlug: toSlug(p.name), parentId: p.parentProtocol || null, value: score })
+		const childSlug = toSlug(p.name)
+		childScores.push({ childName: p.name, childSlug, parentId: p.parentProtocol || null, value: score })
+		if (p.parentProtocol) {
+			if (!childrenByParent.has(p.parentProtocol)) childrenByParent.set(p.parentProtocol, new Set())
+			childrenByParent.get(p.parentProtocol)!.add(childSlug)
+		}
 	}
 
 	childScores.sort((a, b) => b.value - a.value)
 
-	const picked = new Map<string, { name: string; slug: string }>()
+	type PickedItem = { name: string; slug: string; parentId: string | null; isParent: boolean }
+	const picked = new Map<string, PickedItem>()
 	if (groupByParent) {
 		for (const c of childScores) {
 			const key = c.parentId || `protocol:${c.childSlug}`
 			if (picked.has(key)) continue
 			const name = c.parentId ? parentIdToName.get(c.parentId) || c.childName : c.childName
 			const slug = c.parentId ? parentIdToSlug.get(c.parentId) || c.childSlug : c.childSlug
-			picked.set(key, { name, slug })
+			picked.set(key, { name, slug, parentId: c.parentId || null, isParent: !!c.parentId })
 			if (picked.size >= topN) break
 		}
 	} else {
 		for (const c of childScores) {
 			const key = `protocol:${c.childSlug}`
 			if (picked.has(key)) continue
-			picked.set(key, { name: c.childName, slug: c.childSlug })
+			picked.set(key, { name: c.childName, slug: c.childSlug, parentId: null, isParent: false })
 			if (picked.size >= topN) break
 		}
 	}
@@ -378,30 +385,19 @@ const getTvlData = async (
 	const protocolSeries = await Promise.all(
 		top.map(async (t) => {
 			try {
-				const r = await fetch(`${PROTOCOL_API}/${t.slug}`)
-				if (!r.ok) return { name: t.name, data: [] as [number, number][], failed: true }
-				const j = await r.json()
-				const chainTvls = j?.chainTvls || {}
+				const useChildrenOnly = groupByParent && !!t.parentId && categoriesFilter.length > 0
 
-				const seriesToSum: [number, number][][] = []
-				if (isAll) {
-					for (const key in chainTvls) {
-						if (isIgnoredChainKey(key)) continue
-						if (filterMode === 'exclude' && excludedChainSetForProtocols.has(key)) continue
-						const arr = chainTvls[key]?.tvl || []
-						if (Array.isArray(arr) && arr.length > 0) {
-							const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
-								number,
-								number
-							][]
-							seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
-						}
-					}
-				} else {
-					if (filterMode === 'exclude') {
+				const buildSeriesForSlug = async (slug: string): Promise<[number, number][]> => {
+					const resp = await fetch(`${PROTOCOL_API}/${slug}`)
+					if (!resp.ok) return []
+					const json = await resp.json()
+					const chainTvls = json?.chainTvls || {}
+					const seriesToSum: [number, number][][] = []
+
+					if (isAll) {
 						for (const key in chainTvls) {
 							if (isIgnoredChainKey(key)) continue
-							if (excludedChainSetForProtocols.has(key)) continue
+							if (filterMode === 'exclude' && excludedChainSetForProtocols.has(key)) continue
 							const arr = chainTvls[key]?.tvl || []
 							if (Array.isArray(arr) && arr.length > 0) {
 								const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
@@ -412,23 +408,52 @@ const getTvlData = async (
 							}
 						}
 					} else {
-						for (const ch of selectedChains) {
-							const key = mapChainForProtocols(ch)
-							if (isIgnoredChainKey(key)) continue
-							const arr = chainTvls[key]?.tvl || []
-							if (Array.isArray(arr) && arr.length > 0) {
-								const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
-									number,
-									number
-								][]
-								seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
+						if (filterMode === 'exclude') {
+							for (const key in chainTvls) {
+								if (isIgnoredChainKey(key)) continue
+								if (excludedChainSetForProtocols.has(key)) continue
+								const arr = chainTvls[key]?.tvl || []
+								if (Array.isArray(arr) && arr.length > 0) {
+									const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
+										number,
+										number
+									][]
+									seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
+								}
+							}
+						} else {
+							for (const ch of selectedChains) {
+								const key = mapChainForProtocols(ch)
+								if (isIgnoredChainKey(key)) continue
+								const arr = chainTvls[key]?.tvl || []
+								if (Array.isArray(arr) && arr.length > 0) {
+									const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
+										number,
+										number
+									][]
+									seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
+								}
 							}
 						}
 					}
+
+					const summed = sumSeriesByTimestamp(seriesToSum)
+					return Array.from(summed.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
 				}
 
-				const summed = sumSeriesByTimestamp(seriesToSum)
-				const data = Array.from(summed.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
+				if (useChildrenOnly) {
+					const childSet = t.parentId ? childrenByParent.get(t.parentId) : undefined
+					const childSlugs = childSet ? Array.from(childSet) : []
+					if (childSlugs.length === 0) {
+						return { name: t.name, data: [] as [number, number][], failed: false }
+					}
+					const childSeries = await Promise.all(childSlugs.map((slug) => buildSeriesForSlug(slug)))
+					const summed = sumSeriesByTimestamp(childSeries)
+					const data = Array.from(summed.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
+					return { name: t.name, data }
+				}
+
+				const data = await buildSeriesForSlug(t.slug)
 				return { name: t.name, data }
 			} catch (e) {
 				console.error('Error fetching protocol tvl', t.slug, e)

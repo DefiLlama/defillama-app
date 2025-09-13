@@ -852,6 +852,7 @@ export function useProTable(
 		updateCustomColumn,
 		categories,
 		availableProtocols,
+		parentProtocols,
 		customViews,
 		saveCustomView,
 		deleteCustomView,

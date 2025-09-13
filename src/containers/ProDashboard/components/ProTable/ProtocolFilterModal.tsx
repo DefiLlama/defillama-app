@@ -1,39 +1,15 @@
 import * as React from 'react'
+import * as Ariakit from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import ReactDOM from 'react-dom'
 import { createFilter } from 'react-select'
 import { Icon } from '~/components/Icon'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { slug } from '~/utils'
 import { Protocol, TableFilters } from '../../types'
+import { buildProtocolOptions } from '../../utils/buildProtocolOptions'
 import { reactSelectStyles } from '../../utils/reactSelectStyles'
+import { ProtocolOption } from '../ProtocolOption'
 
-const CustomProtocolOption = ({ innerProps, label, data }: any) => {
-	const protocolSlug = slug(data.label)
-	const iconUrl = `https://icons.llamao.fi/icons/protocols/${protocolSlug}?w=48&h=48`
-	return (
-		<div {...innerProps} style={{ display: 'flex', alignItems: 'center', padding: '8px', cursor: 'pointer' }}>
-			{data.logo ? (
-				<img
-					src={data.logo}
-					alt={label}
-					style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
-				/>
-			) : (
-				<img
-					src={iconUrl}
-					alt={label}
-					style={{ width: '20px', height: '20px', marginRight: '10px', borderRadius: '50%' }}
-					onError={(e) => {
-						const target = e.target as HTMLImageElement
-						target.style.display = 'none'
-					}}
-				/>
-			)}
-			{label}
-		</div>
-	)
-}
+const CustomProtocolOption = ProtocolOption as any
 
 function VirtualizedMenuList(props: any) {
 	const { options, children, maxHeight, getValue } = props
@@ -93,6 +69,7 @@ interface ProtocolFilterModalProps {
 	isOpen: boolean
 	onClose: () => void
 	protocols: Protocol[]
+	parentProtocols: Array<{ id: string; name: string; logo?: string }>
 	categories: string[]
 	currentFilters: TableFilters
 	onFiltersChange: (filters: TableFilters) => void
@@ -103,6 +80,7 @@ export function ProtocolFilterModal({
 	isOpen,
 	onClose,
 	protocols,
+	parentProtocols,
 	categories,
 	currentFilters,
 	onFiltersChange,
@@ -140,13 +118,16 @@ export function ProtocolFilterModal({
 	const hasActiveFilters =
 		selectedProtocols.length > 0 || selectedCategories.length > 0 || selectedExcludedCategories.length > 0
 
-	const protocolOptions = React.useMemo(() => {
-		return protocols.map((protocol) => ({
-			value: protocol.name,
-			label: protocol.name,
-			logo: protocol.logo
+	const { options: protocolOptions, parentToChildrenMap } = React.useMemo(() => {
+		const list = (protocols as any[]).map((p) => ({
+			name: p.name,
+			tvl: p.tvl ?? 0,
+			parentProtocol: p.parentProtocol ?? null,
+			logo: (p as any).logo,
+			defillamaId: (p as any).defillamaId
 		}))
-	}, [protocols])
+		return buildProtocolOptions(list, parentProtocols, 'name')
+	}, [protocols, parentProtocols])
 
 	const categoryOptions = React.useMemo(() => {
 		return categories.map((category) => ({
@@ -155,28 +136,28 @@ export function ProtocolFilterModal({
 		}))
 	}, [categories])
 
-	if (!isOpen) return null
-
-	const modalContent = (
-		<>
-			<div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs" onClick={onClose} />
-
-			<div
-				className="pro-divider fixed top-1/2 left-1/2 z-50 flex max-h-[80vh] w-full max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col border shadow-2xl"
-				style={{
-					borderRadius: 0,
-					backgroundColor: 'var(--pro-bg1)',
-					opacity: 1
-				}}
+	return (
+		<Ariakit.DialogProvider
+			open={isOpen}
+			setOpen={(open) => {
+				if (!open) onClose()
+			}}
+		>
+			<Ariakit.Dialog
+				className="dialog pro-dashboard max-h-[80vh] w-full max-w-xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
+				unmountOnHide
+				portal
+				hideOnInteractOutside
 			>
 				<div
 					className="pro-divider flex items-center justify-between border-b p-4"
 					style={{ backgroundColor: 'var(--pro-bg1)' }}
 				>
 					<h2 className="pro-text1 text-lg font-semibold">Filter Protocols</h2>
-					<button onClick={onClose} className="pro-hover-bg p-2 transition-colors">
+					<Ariakit.DialogDismiss className="pro-hover-bg rounded-md p-2 transition-colors">
 						<Icon name="x" height={20} width={20} />
-					</button>
+						<span className="sr-only">Close dialog</span>
+					</Ariakit.DialogDismiss>
 				</div>
 
 				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
@@ -196,7 +177,6 @@ export function ProtocolFilterModal({
 							}}
 							components={{ MenuList: SimpleMenuList }}
 							closeMenuOnSelect={false}
-							menuPortalTarget={portalTarget}
 							menuPosition="fixed"
 							menuPlacement="auto"
 						/>
@@ -218,7 +198,6 @@ export function ProtocolFilterModal({
 							}}
 							components={{ MenuList: SimpleMenuList }}
 							closeMenuOnSelect={false}
-							menuPortalTarget={portalTarget}
 							menuPosition="fixed"
 							menuPlacement="auto"
 						/>
@@ -232,8 +211,49 @@ export function ProtocolFilterModal({
 							isMulti
 							options={protocolOptions}
 							value={protocolOptions.filter((opt) => selectedProtocols.includes(opt.value))}
-							onChange={(sel: any) => {
-								setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])
+							onChange={(sel: any, action: any) => {
+								if (!action) {
+									setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])
+									return
+								}
+
+								const current = new Set(selectedProtocols)
+								const opt = action.option
+								const type = action.action
+
+								if (type === 'clear') {
+									setSelectedProtocols([])
+									return
+								}
+
+								if (!opt) {
+									setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])
+									return
+								}
+
+								const isChild = !!opt.isChild
+								if (type === 'select-option') {
+									if (isChild) {
+										current.add(opt.value)
+									} else {
+										const parentName = opt.label
+										const children = parentToChildrenMap.get(parentName)
+										if (children && children.length > 0) {
+											const allSelected = children.every((c) => current.has(c))
+											if (allSelected) {
+												children.forEach((c) => current.delete(c))
+											} else {
+												children.forEach((c) => current.add(c))
+											}
+										} else {
+											current.add(opt.value)
+										}
+									}
+								} else if (type === 'deselect-option' || type === 'remove-value') {
+									current.delete(opt.value)
+								}
+
+								setSelectedProtocols(Array.from(current))
 							}}
 							placeholder="Search and select protocols..."
 							styles={{
@@ -243,9 +263,7 @@ export function ProtocolFilterModal({
 							components={{ Option: CustomProtocolOption, MenuList: VirtualizedMenuList }}
 							filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
 							closeMenuOnSelect={false}
-							menuPortalTarget={portalTarget}
 							menuPosition="fixed"
-							menuPlacement="auto"
 						/>
 					</div>
 				</div>
@@ -262,13 +280,12 @@ export function ProtocolFilterModal({
 						Clear all
 					</button>
 					<div className="flex gap-2">
-						<button
-							onClick={onClose}
+						<Ariakit.DialogDismiss
 							className="pro-divider pro-hover-bg pro-text1 border px-4 py-2 text-sm transition-colors"
 							style={{ borderRadius: 0 }}
 						>
 							Cancel
-						</button>
+						</Ariakit.DialogDismiss>
 						<button
 							onClick={handleApply}
 							className="bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
@@ -278,9 +295,7 @@ export function ProtocolFilterModal({
 						</button>
 					</div>
 				</div>
-			</div>
-		</>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
-
-	return ReactDOM.createPortal(modalContent, portalTarget)
 }
