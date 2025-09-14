@@ -127,6 +127,15 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		size: 140,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
 		header: 'NFT Volume',
 		accessorKey: 'nftVolume',
 		size: 120,
