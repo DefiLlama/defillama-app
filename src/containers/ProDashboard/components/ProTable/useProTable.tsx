@@ -353,8 +353,8 @@ export function useProTable(
 					e.stopPropagation()
 					onFilterClick()
 				}}
-				className={`rounded p-1 transition-colors hover:bg-(--bg-tertiary) ${
-					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text-tertiary)'
+				className={`rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
+					hasActiveFilters ? 'text-pro-blue-400 dark:text-pro-blue-200' : 'text-(--text-tertiary)'
 				}`}
 				title="Filter protocols"
 			>

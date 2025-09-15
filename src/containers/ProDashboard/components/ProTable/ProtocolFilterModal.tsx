@@ -144,7 +144,7 @@ export function ProtocolFilterModal({
 			}}
 		>
 			<Ariakit.Dialog
-				className="dialog pro-dashboard max-h-[80vh] w-full max-w-xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-0 shadow-2xl"
+				className="dialog pro-dashboard max-h-[80vh] w-full max-w-xl gap-0 rounded-md border border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
 				unmountOnHide
 				portal
 				hideOnInteractOutside
@@ -154,7 +154,7 @@ export function ProtocolFilterModal({
 					style={{ backgroundColor: 'var(--pro-bg1)' }}
 				>
 					<h2 className="pro-text1 text-lg font-semibold">Filter Protocols</h2>
-					<Ariakit.DialogDismiss className="pro-hover-bg rounded-md p-2 transition-colors">
+						<Ariakit.DialogDismiss className="pro-hover-bg rounded-md p-2 transition-colors">
 						<Icon name="x" height={20} width={20} />
 						<span className="sr-only">Close dialog</span>
 					</Ariakit.DialogDismiss>
@@ -281,15 +281,13 @@ export function ProtocolFilterModal({
 					</button>
 					<div className="flex gap-2">
 						<Ariakit.DialogDismiss
-							className="pro-divider pro-hover-bg pro-text1 border px-4 py-2 text-sm transition-colors"
-							style={{ borderRadius: 0 }}
+							className="pro-divider pro-hover-bg pro-text1 rounded-md border px-4 py-2 text-sm transition-colors"
 						>
 							Cancel
 						</Ariakit.DialogDismiss>
 						<button
 							onClick={handleApply}
-							className="bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
-							style={{ borderRadius: 0 }}
+							className="rounded-md bg-(--primary) px-4 py-2 text-sm text-white transition-colors hover:bg-(--primary-hover)"
 						>
 							Apply Filters
 						</button>

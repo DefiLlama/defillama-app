@@ -49,7 +49,7 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs dark:bg-black/70"
 			onClick={onClose}
 		>
-			<div className="pro-bg1 pro-border w-full max-w-lg border shadow-2xl" onClick={(e) => e.stopPropagation()}>
+			<div className="pro-bg1 pro-border w-full max-w-lg rounded-md border shadow-lg" onClick={(e) => e.stopPropagation()}>
 				<div className="p-6">
 					<div className="mb-6 flex items-center justify-between">
 						<h2 className="pro-text1 text-xl font-semibold">Save Custom View</h2>
@@ -73,10 +73,10 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 								}}
 								onKeyDown={handleKeyDown}
 								placeholder="Enter a name for this view..."
-								className="bg-opacity-50 pro-border pro-text1 placeholder:pro-text3 w-full border bg-(--bg-glass) px-3 py-2 focus:border-(--primary) focus:outline-hidden"
+								className="bg-opacity-50 pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) px-3 py-2 focus:border-(--primary) focus:outline-hidden"
 								autoFocus
 							/>
-							{error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+							{error && <p className="mt-2 text-sm text-(--error)">{error}</p>}
 						</div>
 
 						<div className="pro-bg2 bg-opacity-50 p-4">
@@ -89,13 +89,13 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 					<div className="mt-8 flex justify-end gap-3">
 						<button
 							onClick={onClose}
-							className="pro-border pro-hover-bg pro-text2 border px-6 py-2.5 font-medium transition-colors"
+							className="pro-border pro-hover-bg pro-text2 rounded-md border px-6 py-2.5 font-medium transition-colors"
 						>
 							Cancel
 						</button>
 						<button
 							onClick={handleSave}
-							className="border border-(--primary) bg-(--primary) px-6 py-2.5 font-medium text-white transition-colors hover:bg-(--primary-hover)"
+							className="rounded-md border border-(--primary) bg-(--primary) px-6 py-2.5 font-medium text-white transition-colors hover:bg-(--primary-hover)"
 						>
 							Save View
 						</button>

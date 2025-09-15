@@ -71,7 +71,7 @@ export function TableHeader({
 						<button
 							key={preset}
 							onClick={() => applyPreset(preset)}
-							className={`flex items-center gap-1 border px-3 py-1.5 text-sm capitalize transition-colors ${
+							className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm capitalize transition-colors ${
 								isPresetActive && activePreset === preset
 									? 'border-(--primary) bg-(--primary) text-white'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
@@ -84,7 +84,7 @@ export function TableHeader({
 					<div className="relative" ref={dropdownRef}>
 						<button
 							onClick={() => setShowCustomViewDropdown(!showCustomViewDropdown)}
-							className={`flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors ${
+							className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
 								activeCustomView
 									? 'border-(--primary) bg-(--primary) text-white'
 									: 'pro-border pro-hover-bg pro-text1 pro-bg1'
@@ -94,7 +94,7 @@ export function TableHeader({
 							<span>{activeCustomView ? activeCustomView.name : 'Custom Views'}</span>
 							<Icon name={showCustomViewDropdown ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 							{customViews.length > 0 && !activeCustomView && (
-								<span className="ml-1 rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
+								<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 									{customViews.length}
 								</span>
 							)}
@@ -102,7 +102,7 @@ export function TableHeader({
 
 						{showCustomViewDropdown && (
 							<div
-								className="pro-bg3 pro-divider absolute top-full right-0 mt-1 min-w-[200px] border shadow-lg"
+								className="pro-bg3 pro-divider absolute top-full right-0 mt-1 min-w-[200px] rounded-md border shadow-lg"
 								style={{ zIndex: 9999 }}
 							>
 								{customViews.length > 0 ? (
@@ -124,7 +124,7 @@ export function TableHeader({
 												>
 													<span>{view.name}</span>
 													{activeCustomView?.id === view.id && (
-														<Icon name="check" height={12} width={12} className="text-green-500" />
+														<Icon name="check" height={12} width={12} className="text-(--success)" />
 													)}
 												</button>
 												<Tooltip content="Delete view">
@@ -134,12 +134,12 @@ export function TableHeader({
 															if (confirm(`Delete view "${view.name}"?`)) {
 																onDeleteView?.(view.id)
 															}
-														}}
-														className="pro-text3 p-1 transition-colors hover:text-red-500"
-													>
-														<Icon name="trash-2" height={12} width={12} />
-													</button>
-												</Tooltip>
+													}}
+													className="pro-text3 rounded-md p-1 transition-colors hover:text-(--error)"
+												>
+													<Icon name="trash-2" height={12} width={12} />
+												</button>
+											</Tooltip>
 											</div>
 										))}
 										<div className="border-t border-(--bg-divider) p-2">
@@ -148,7 +148,7 @@ export function TableHeader({
 													setShowSaveModal(true)
 													setShowCustomViewDropdown(false)
 												}}
-												className="pro-hover-bg pro-text1 flex w-full items-center justify-center gap-2 py-2 text-sm font-medium transition-colors"
+												className="pro-hover-bg pro-text1 flex w-full items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors"
 											>
 												<Icon name="plus" height={14} width={14} />
 												<span>Save Current View</span>
@@ -163,7 +163,7 @@ export function TableHeader({
 												setShowSaveModal(true)
 												setShowCustomViewDropdown(false)
 											}}
-											className="pro-border pro-hover-bg pro-text1 flex w-full items-center justify-center gap-2 border py-2 text-sm font-medium transition-colors"
+											className="pro-border pro-hover-bg pro-text1 flex w-full items-center justify-center gap-2 rounded-md border py-2 text-sm font-medium transition-colors"
 										>
 											<Icon name="plus" height={14} width={14} />
 											<span>Save Current View</span>
@@ -181,12 +181,12 @@ export function TableHeader({
 			<Tooltip
 				content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'"
 				render={<button onClick={() => setShowColumnPanel(!showColumnPanel)} />}
-				className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors"
+				className="pro-border pro-hover-bg pro-text1 pro-bg1 relative flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors"
 			>
 				<Icon name="settings" height={14} width={14} />
 				<span className="flex items-center gap-1">
 					Customize Table
-					<span className="rounded-sm bg-(--primary) px-1.5 py-0.5 text-xs text-white">+ Custom Columns</span>
+					<span className="rounded-md bg-(--primary) px-1.5 py-0.5 text-xs text-white">+ Custom Columns</span>
 				</span>
 				<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 			</Tooltip>
