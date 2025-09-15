@@ -146,8 +146,6 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				return { series }
 			}
 
-			if ((config.filterMode || 'include') === 'include' && config.chains.length === 0) return { series: [] }
-
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				config.metric,
 				config.chains,
@@ -175,7 +173,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 			return { series }
 		},
-		enabled: config.mode === 'protocol' ? !!config.metric : config.chains.length > 0,
+		enabled: !!config.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})

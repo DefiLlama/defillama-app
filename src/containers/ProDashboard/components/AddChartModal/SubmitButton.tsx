@@ -51,7 +51,10 @@ export function SubmitButton({
 			(!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'text' && !textContent.trim()) ||
 		(selectedMainTab === 'builder' &&
-			(!chartBuilder || (chartBuilder.mode === 'chains' && chartBuilder.chains.length === 0)))
+			(
+				!chartBuilder ||
+				(chartBuilder.mode === 'protocol' && !chartBuilder.protocol)
+			))
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
