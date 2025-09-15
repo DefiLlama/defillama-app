@@ -150,8 +150,31 @@ export function ChainsDataset({
 	const columnPresets = React.useMemo(
 		() => ({
 			essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
-			defi: ['name', 'protocols', 'tvl', 'change_1d', 'change_7d', 'change_1m', 'bridgedTvl', 'stablesMcap', 'mcaptvl'],
-			volume: ['name', 'tvl', 'totalVolume24h', 'totalFees24h', 'totalAppRevenue24h', 'users', 'nftVolume'],
+			defi: [
+				'name',
+				'protocols',
+				'tvl',
+				'change_1d',
+				'change_7d',
+				'change_1m',
+				'bridgedTvl',
+				'stablesMcap',
+				'mcaptvl',
+				'mcap'
+			],
+			volume: [
+				'name',
+				'tvl',
+				'totalVolume24h',
+				'totalVolume30d',
+				'totalFees24h',
+				'totalFees30d',
+				'totalAppRevenue24h',
+				'totalAppRevenue30d',
+				'totalRevenue30d',
+				'users',
+				'nftVolume'
+			],
 			advanced: [
 				'name',
 				'protocols',
@@ -163,9 +186,14 @@ export function ChainsDataset({
 				'bridgedTvl',
 				'stablesMcap',
 				'totalVolume24h',
+				'totalVolume30d',
 				'totalFees24h',
+				'totalFees30d',
 				'totalAppRevenue24h',
+				'totalAppRevenue30d',
+				'totalRevenue30d',
 				'mcaptvl',
+				'mcap',
 				'nftVolume'
 			],
 			shares: [
@@ -260,9 +288,14 @@ export function ChainsDataset({
 			bridgedTvl: 120,
 			stablesMcap: 120,
 			totalVolume24h: 150,
+			totalVolume30d: 150,
 			totalFees24h: 130,
+			totalFees30d: 130,
 			totalAppRevenue24h: 120,
+			totalAppRevenue30d: 140,
+			totalRevenue30d: 140,
 			mcaptvl: 120,
+			mcap: 140,
 			nftVolume: 120
 		}
 

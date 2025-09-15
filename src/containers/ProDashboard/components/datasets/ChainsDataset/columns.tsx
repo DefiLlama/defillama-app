@@ -82,6 +82,15 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ getValue }) => <span className="pro-text1 font-mono">{formattedNum(getValue() as number, true)}</span>
 	},
 	{
+		header: 'Bridged TVL',
+		accessorKey: 'bridgedTvl',
+		size: 120,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
 		header: 'Stables',
 		accessorKey: 'stablesMcap',
 		size: 120,
@@ -100,8 +109,26 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		}
 	},
 	{
+		header: '30d DEXs Volume',
+		accessorKey: 'totalVolume30d',
+		size: 150,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
 		header: '24h Chain Fees',
 		accessorKey: 'totalFees24h',
+		size: 130,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d Chain Fees',
+		accessorKey: 'totalFees30d',
 		size: 130,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
@@ -112,6 +139,24 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		header: '24h App Revenue',
 		accessorKey: 'totalAppRevenue24h',
 		size: 120,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d App Revenue',
+		accessorKey: 'totalAppRevenue30d',
+		size: 140,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d Chain Revenue',
+		accessorKey: 'totalRevenue30d',
+		size: 140,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
