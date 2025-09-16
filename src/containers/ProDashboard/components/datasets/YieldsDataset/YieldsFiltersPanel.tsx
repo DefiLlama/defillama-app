@@ -9,6 +9,7 @@ export interface YieldsFilters {
 	baseApyMin?: number
 	baseApyMax?: number
 	chains?: string[]
+	protocols?: string[]
 	tokens?: string[]
 	hasRewards?: boolean
 	stablesOnly?: boolean
@@ -22,6 +23,7 @@ interface YieldsFiltersPanelProps {
 	filters: YieldsFilters
 	setFilters: (filters: YieldsFilters) => void
 	availableChains: string[]
+	availableProtocols: Array<{ value: string; label: string; logo?: string }>
 	availableTokens: string[]
 	onApplyFilters: (filters?: YieldsFilters) => void
 	onResetFilters: () => void
@@ -34,6 +36,7 @@ export function YieldsFiltersPanel({
 	filters,
 	setFilters,
 	availableChains,
+	availableProtocols,
 	availableTokens,
 	onApplyFilters,
 	onResetFilters,
@@ -278,27 +281,42 @@ export function YieldsFiltersPanel({
 					</div>
 				</div>
 
-				<div>
-					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Token Filters</h5>
+		<div>
+			<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Protocol & Token Filters</h5>
 
-					<div className="space-y-3">
-						<MultiItemSelect
-							label="Pool Tokens"
-							options={availableTokens.map((token) => ({ value: token, label: token }))}
-							selectedValues={localFilters.tokens || []}
-							onChange={(selectedOptions) => {
-								updateFilter('tokens', selectedOptions?.map((opt) => opt.value) || undefined)
-							}}
-							isLoading={false}
-							placeholder="Select tokens..."
-							itemType="token"
-							noIcon={true}
-							customProps={{
-								menuPosition: 'absolute'
-							}}
-						/>
-					</div>
-				</div>
+			<div className="space-y-3">
+				<MultiItemSelect
+					label="Protocols"
+					options={availableProtocols}
+					selectedValues={localFilters.protocols || []}
+					onChange={(selectedOptions) => {
+						updateFilter('protocols', selectedOptions?.map((opt) => opt.value) || undefined)
+					}}
+					isLoading={false}
+					placeholder="Select protocols..."
+					itemType="protocol"
+					customProps={{
+						menuPosition: 'absolute'
+					}}
+				/>
+
+				<MultiItemSelect
+					label="Pool Tokens"
+					options={availableTokens.map((token) => ({ value: token, label: token }))}
+					selectedValues={localFilters.tokens || []}
+					onChange={(selectedOptions) => {
+						updateFilter('tokens', selectedOptions?.map((opt) => opt.value) || undefined)
+					}}
+					isLoading={false}
+					placeholder="Select tokens..."
+					itemType="token"
+					noIcon={true}
+					customProps={{
+						menuPosition: 'absolute'
+					}}
+				/>
+			</div>
+		</div>
 			</div>
 
 			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3">

@@ -56,6 +56,8 @@ export function useYieldsTable({
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 
+		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) || []
+
 		return data.filter((row) => {
 			if (filters.apyMin !== undefined && row.apy < filters.apyMin) return false
 			if (filters.apyMax !== undefined && row.apy > filters.apyMax) return false
@@ -68,6 +70,19 @@ export function useYieldsTable({
 			if (filters.chains && filters.chains.length > 0) {
 				const hasMatchingChain = row.chains?.some((chain: string) => filters.chains.includes(chain))
 				if (!hasMatchingChain) return false
+			}
+
+			if (selectedProtocols.length > 0) {
+				const projectSlug = (row.projectslug || row.project || '').toLowerCase()
+				const projectName = (row.project || '').toLowerCase()
+
+				const hasMatchingProtocol = selectedProtocols.some((protocol) => {
+					if (projectSlug && projectSlug === protocol) return true
+					if (projectName && projectName === protocol) return true
+					return false
+				})
+
+				if (!hasMatchingProtocol) return false
 			}
 
 			if (filters.hasRewards && (!row.apyReward || row.apyReward <= 0)) return false
@@ -413,6 +428,7 @@ export function useYieldsTable({
 		if (filters.baseApyMin !== undefined) count++
 		if (filters.baseApyMax !== undefined) count++
 		if (filters.chains && filters.chains.length > 0) count++
+		if (filters.protocols && filters.protocols.length > 0) count++
 		if (filters.tokens && filters.tokens.length > 0) count++
 		if (filters.hasRewards) count++
 		if (filters.stablesOnly) count++
@@ -420,6 +436,47 @@ export function useYieldsTable({
 		if (filters.poolTypes && filters.poolTypes.length > 0) count++
 		return count
 	}, [filters])
+
+	const availableProtocols = React.useMemo(() => {
+		if (!data) return []
+
+		const protocolMap = new Map<string, { value: string; label: string; tvl: number }>()
+
+		data.forEach((row) => {
+			const slug = (row.projectslug || row.project || '').trim()
+			const name = (row.project || '').trim()
+			if (!slug && !name) return
+
+			const key = (slug || name).toLowerCase()
+			const existing = protocolMap.get(key)
+			const tvl = typeof row.tvl === 'number' ? row.tvl : 0
+
+			if (existing) {
+				existing.tvl += tvl
+				if (!existing.label && name) {
+					existing.label = name
+				}
+				if (!existing.value && slug) {
+					existing.value = slug
+				}
+			} else {
+				protocolMap.set(key, {
+					value: slug || name,
+					label: name || slug,
+					tvl
+				})
+			}
+		})
+
+		return Array.from(protocolMap.values())
+			.sort((a, b) => {
+				if (b.tvl !== a.tvl) {
+					return b.tvl - a.tvl
+				}
+				return a.label.localeCompare(b.label)
+			})
+			.map(({ value, label }) => ({ value, label }))
+	}, [data])
 
 	const applyFilters = React.useCallback(
 		(newFilters?: YieldsFilters) => {
@@ -466,6 +523,7 @@ export function useYieldsTable({
 		setFilters,
 		availableChains,
 		availableTokens,
+		availableProtocols,
 		activeFilterCount,
 		applyFilters,
 		resetFilters
