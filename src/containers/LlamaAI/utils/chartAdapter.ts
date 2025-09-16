@@ -77,10 +77,10 @@ const validateChartData = (data: [any, number | null][], chartType: string): [an
 		}
 
 		if (chartType === 'area' || chartType === 'line') {
-			return y === null || y === undefined || (typeof y === 'number' && !isNaN(y) && y >= 0)
+			return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
 		}
 
-		return typeof y === 'number' && !isNaN(y) && y >= 0
+		return typeof y === 'number' && !isNaN(y)
 	})
 
 	return validData
