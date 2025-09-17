@@ -45,6 +45,11 @@ interface ITreasuryCompanies {
 			lastAnnouncementDate: string
 			supplyPercentage: number
 			avgPrice?: number | null
+			realized_mNAV?: number | null
+			realistic_mNAV?: number | null
+			max_mNAV?: number | null
+			price?: number | null
+			priceChange24h?: number | null
 		}>
 	}
 	totalCompanies: number
@@ -178,6 +183,9 @@ export default function TreasuriesByAsset({
 							</span>
 						</p>
 					</div>
+					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+						Report incorrect data
+					</BasicLink>
 				</div>
 				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<h2 className="p-2 text-lg font-medium">Inflows</h2>
@@ -252,14 +260,42 @@ const columns = ({
 		}
 	},
 	{
-		header: "Today's Value (USD)",
+		header: "Today's Holdings Value",
 		accessorKey: 'totalUsdValue',
 		cell: ({ getValue }) => {
 			const totalUsdValue = getValue() as number
 			if (totalUsdValue == null) return null
 			return <>{formattedNum(totalUsdValue, true)}</>
 		},
-		size: 180,
+		size: 196,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		header: 'Stock Price',
+		accessorKey: 'price',
+		cell: ({ getValue, row }) => {
+			const price = getValue() as number
+			if (price == null) return null
+			if (row.original.priceChange24h == null) return <>{formattedNum(price, true)}</>
+			return (
+				<Tooltip
+					content={
+						<>
+							24h change:{' '}
+							<span
+								className={row.original.priceChange24h > 0 ? 'text-(--success)' : 'text-(--error)'}
+							>{`${row.original.priceChange24h > 0 ? '+' : ''}${row.original.priceChange24h.toFixed(2)}%`}</span>
+						</>
+					}
+					className="justify-end underline decoration-dotted"
+				>
+					{formattedNum(price, true)}
+				</Tooltip>
+			)
+		},
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -278,17 +314,59 @@ const columns = ({
 		}
 	},
 	{
-		header: 'Avg Price (USD)',
+		header: 'Avg Purchase Price',
 		accessorKey: 'avgPrice',
 		cell: ({ getValue }) => {
 			const avgPrice = getValue() as number
 			if (avgPrice == null) return null
 			return <>{formattedNum(avgPrice, true)}</>
 		},
-		size: 148,
+		size: 168,
 		meta: {
 			align: 'end',
 			headerHelperText: `Average cost per ${symbol} of the institution's holdings`
+		}
+	},
+	{
+		header: 'Realized mNAV',
+		accessorKey: 'realized_mNAV',
+		cell: ({ getValue }) => {
+			const realized_mNAV = getValue() as number
+			if (realized_mNAV == null) return null
+			return <>{formattedNum(realized_mNAV, true)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Uses only currently outstanding shares (no future dilution)'
+		}
+	},
+	{
+		header: 'Realistic mNAV',
+		accessorKey: 'realistic_mNAV',
+		cell: ({ getValue }) => {
+			const realistic_mNAV = getValue() as number
+			if (realistic_mNAV == null) return null
+			return <>{formattedNum(realistic_mNAV, true)}</>
+		},
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Adjusts for likely dilution (e.g., in-the-money options, convertibles expected to convert)'
+		}
+	},
+	{
+		header: 'Max mNAV',
+		accessorKey: 'max_mNAV',
+		cell: ({ getValue }) => {
+			const max_mNAV = getValue() as number
+			if (max_mNAV == null) return null
+			return <>{formattedNum(max_mNAV, true)}</>
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Assumes all possible dilution (all options, warrants, convertibles, authorized pools)'
 		}
 	},
 	{

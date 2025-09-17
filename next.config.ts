@@ -561,6 +561,11 @@ const nextConfig: NextConfig = {
 				source: '/bridged-tvl',
 				destination: '/bridged',
 				permanent: true
+			},
+			{
+				source: '/digital-asset-treasuries',
+				destination: '/digital-asset-treasuries/bitcoin',
+				permanent: true
 			}
 		]
 	},

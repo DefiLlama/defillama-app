@@ -55,7 +55,7 @@ function ReportError() {
 				>
 					<h1 className="mb-3 text-center text-xl font-semibold">Report Error</h1>
 					<label className="flex flex-col gap-1">
-						<span>Chain / Protocol</span>
+						<span>Chain / Protocol / Institution</span>
 						<input
 							name="protocol"
 							required
@@ -94,7 +94,7 @@ function ReportError() {
 					</button>
 					{error && <small className="text-center text-red-500">{error.message}</small>}
 				</form>
-				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-center text-base font-medium">
 						Please submit a report if you notice any of the following:
 					</p>

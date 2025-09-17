@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import { maxAgeForNext } from '~/api'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
@@ -61,6 +62,11 @@ interface IDigitalAssetTreasuryCompany {
 		reject_reason?: string
 		last_updated?: Date
 	}>
+	realized_mNAV?: number | null
+	realistic_mNAV?: number | null
+	max_mNAV?: number | null
+	price?: number | null
+	priceChange24h?: number | null
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -245,7 +251,61 @@ export default function DigitalAssetTreasury(props: IProps) {
 							<span className="text-(--text-label)">Total Transactions</span>
 							<span className="font-jetbrains ml-auto">{props.transactionCount}</span>
 						</p>
+						{props.price != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<span className="text-(--text-label)">${props.ticker} price</span>
+								<Tooltip
+									content={
+										<>
+											24h change:{' '}
+											<span
+												className={props.priceChange24h > 0 ? 'text-(--success)' : 'text-(--error)'}
+											>{`${props.priceChange24h > 0 ? '+' : ''}${props.priceChange24h.toFixed(2)}%`}</span>
+										</>
+									}
+									className="font-jetbrains ml-auto underline decoration-dotted"
+								>
+									${props.price}
+								</Tooltip>
+							</p>
+						) : null}
+						{props.realized_mNAV != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<Tooltip
+									content="Uses only currently outstanding shares (no future dilution)"
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									Realized mNAV
+								</Tooltip>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.realized_mNAV, true)}</span>
+							</p>
+						) : null}
+						{props.realistic_mNAV != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<Tooltip
+									content="Adjusts for likely dilution (e.g., in-the-money options, convertibles expected to convert)"
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									Realistic mNAV
+								</Tooltip>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.realistic_mNAV, true)}</span>
+							</p>
+						) : null}
+						{props.max_mNAV != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<Tooltip
+									content="Assumes all possible dilution (all options, warrants, convertibles, authorized pools)"
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									Max mNAV
+								</Tooltip>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.max_mNAV, true)}</span>
+							</p>
+						) : null}
 					</div>
+					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+						Report incorrect data
+					</BasicLink>
 				</div>
 				<div className="col-span-2 flex min-h-[402px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-between p-2">
@@ -313,7 +373,7 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 		}
 	},
 	{
-		header: 'Avg Price',
+		header: 'Avg Purchase Price',
 		accessorKey: 'avg_price',
 		cell: ({ getValue }) => {
 			if (getValue() == null) return null
