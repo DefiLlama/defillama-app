@@ -306,7 +306,7 @@ const columns = ({
 		cell: ({ getValue }) => {
 			const supplyPercentage = getValue() as number
 			if (supplyPercentage == null) return null
-			return <>{supplyPercentage.toLocaleString(undefined, { maximumFractionDigits: 3 })}%</>
+			return <>{formattedNum(supplyPercentage, false)}%</>
 		},
 		size: 228,
 		meta: {
