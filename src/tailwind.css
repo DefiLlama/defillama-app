@@ -430,6 +430,23 @@
 .dark .metrics-gradient-border::before {
 	background: linear-gradient(90deg, #1f67d2 0%, #1f67d2 8%, #222324 18%, #222324 82%, #1f67d2 92%, #1f67d2 100%);
 }
+.message-sent::before {
+	content: '';
+	width: 0px;
+	height: 0px;
+	position: absolute;
+	border-left: 6px solid #ececec;
+	border-right: 6px solid transparent;
+	border-top: 6px solid #ececec;
+	border-bottom: 6px solid transparent;
+	right: -6px;
+	top: 0;
+}
+
+.dark .message-sent::before {
+	border-left: 6px solid #222425;
+	border-top: 6px solid #222425;
+}
 
 @layer base {
 	@font-face {

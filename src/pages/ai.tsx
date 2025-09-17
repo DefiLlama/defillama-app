@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { maxAgeForNext } from '~/api'
 import lostLlama from '~/assets/404.png'
 import { BasicLink } from '~/components/Link'
+import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import Layout from '~/layout'
@@ -25,7 +26,10 @@ export default function LlamaAIPage() {
 				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<div className="text-center">Loading...</div>
+					<p className="flex items-center gap-1 text-center">
+						Loading
+						<LoadingDots />
+					</p>
 				</div>
 			</Layout>
 		)
