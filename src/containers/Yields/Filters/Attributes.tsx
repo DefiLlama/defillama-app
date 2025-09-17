@@ -54,10 +54,8 @@ export const attributeOptions = [
 		key: YIELDS_SETTINGS.AUDITED.toLowerCase(),
 		help: 'Select pools from audited projects only',
 		filterFn: (item) => item.audits !== '0',
-		defaultFilterFnOnPage: {
-			'/yields/stablecoins': (item) => item.audits !== '0'
-		},
-		disabledOnPages: ['/yields/stablecoins', '/borrow', '/yields/strategy', '/yields/strategyFR']
+		defaultFilterFnOnPage: {},
+		disabledOnPages: ['/borrow', '/yields/strategy', '/yields/strategyFR']
 	},
 	{
 		name: 'No Outliers',
