@@ -169,7 +169,7 @@ export function CexDataset() {
 							placeholder="Search exchanges..."
 							value={exchangeName}
 							onChange={(e) => setExchangeName(e.target.value)}
-							className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

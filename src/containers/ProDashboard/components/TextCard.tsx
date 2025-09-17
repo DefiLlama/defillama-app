@@ -21,7 +21,7 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 					ol: ({ children }) => <ol className="flex list-decimal flex-col gap-1 pl-4">{children}</ol>,
 					li: ({ children }) => <li>{children}</li>,
 					code: ({ children }) => (
-						<code className="thin-scrollbar overflow-x-auto rounded-sm bg-(--bg-tertiary) px-1 py-0.5 font-mono text-xs">
+						<code className="thin-scrollbar overflow-x-auto rounded-sm bg-(--bg-tertiary) px-1 py-0.5 text-xs">
 							{children}
 						</code>
 					),

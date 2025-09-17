@@ -76,7 +76,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 			const value = getValue() as number | null
 			if (value === null) return <span className="text-(--text-tertiary)">-</span>
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{value > 0 ? '+' : ''}
 					{formattedNum(value, true)}
 				</span>
@@ -94,7 +94,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 			const value = getValue() as number | null
 			if (value === null) return <span className="text-(--text-tertiary)">-</span>
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{value > 0 ? '+' : ''}
 					{formattedNum(value, true)}
 				</span>
@@ -112,7 +112,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 			const value = getValue() as number | null
 			if (value === null) return <span className="text-(--text-tertiary)">-</span>
 			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
 					{value > 0 ? '+' : ''}
 					{formattedNum(value, true)}
 				</span>
@@ -156,7 +156,7 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number | undefined
 			if (!value) return <span className="text-(--text-tertiary)">-</span>
-			return <span className="font-mono">{value.toFixed(2)}x</span>
+			return <span className="">{value.toFixed(2)}x</span>
 		},
 		size: 100,
 		meta: {

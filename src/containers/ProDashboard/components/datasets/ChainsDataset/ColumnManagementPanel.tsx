@@ -69,7 +69,7 @@ export function ColumnManagementPanel({
 	if (!showColumnPanel) return null
 
 	return (
-		<div className="pro-divider pro-bg3 mb-4 border p-4">
+		<div className="mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<div className="mb-3 flex items-center justify-between">
 				<h4 className="pro-text1 text-sm font-medium">Customize Columns</h4>
 				<div className="flex items-center gap-2">
@@ -81,7 +81,7 @@ export function ColumnManagementPanel({
 								}
 							})
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 border px-2 py-1 text-xs transition-colors"
+						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>
 						Show All
 					</button>
@@ -93,7 +93,7 @@ export function ColumnManagementPanel({
 								}
 							})
 						}}
-						className="pro-divider pro-hover-bg pro-text2 pro-bg2 border px-2 py-1 text-xs transition-colors"
+						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>
 						Hide All
 					</button>
@@ -112,7 +112,7 @@ export function ColumnManagementPanel({
 					placeholder="Search columns..."
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 w-full border py-2 pr-3 pl-9 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+					className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border bg-(--bg-glass) py-2 pr-3 pl-9 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
@@ -134,20 +134,20 @@ export function ColumnManagementPanel({
 							return (
 								<div
 									key={columnId}
-									className="pro-divider pro-hover-bg pro-bg2 flex items-center justify-between border p-2 transition-colors"
+									className="pro-divider pro-hover-bg pro-bg2 flex items-center justify-between rounded-md border p-2 transition-colors"
 								>
 									<div className="flex items-center gap-2">
-										<Icon name="check" height={12} width={12} className="text-green-500" />
+										<Icon name="check" height={12} width={12} className="text-(--success)" />
 										<span className="pro-text1 text-xs">{column.name}</span>
 										{columnId.endsWith('_share') && (
-											<span className="rounded-sm bg-blue-600 px-1 py-0.5 text-xs text-white">%</span>
+											<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">%</span>
 										)}
 									</div>
 									<div className="flex items-center gap-1">
 										{moveColumnUp && !isFirst && (
 											<button
 												onClick={() => moveColumnUp(columnId)}
-												className="pro-text3 hover:pro-text1 p-1 transition-colors"
+												className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
 												title="Move up"
 											>
 												<Icon name="chevron-up" height={10} width={10} />
@@ -156,7 +156,7 @@ export function ColumnManagementPanel({
 										{moveColumnDown && !isLast && (
 											<button
 												onClick={() => moveColumnDown(columnId)}
-												className="pro-text3 hover:pro-text1 p-1 transition-colors"
+												className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
 												title="Move down"
 											>
 												<Icon name="chevron-down" height={10} width={10} />
@@ -164,7 +164,7 @@ export function ColumnManagementPanel({
 										)}
 										<button
 											onClick={() => toggleColumnVisibility(columnId)}
-											className="pro-text3 hover:pro-text1 p-1 transition-colors"
+											className="pro-text3 hover:pro-text1 rounded-md p-1 transition-colors"
 											disabled={columnId === 'name'}
 										>
 											<Icon name="x" height={12} width={12} />
@@ -193,12 +193,12 @@ export function ColumnManagementPanel({
 											<button
 												key={column.id}
 												onClick={() => toggleColumnVisibility(column.id)}
-												className="pro-divider pro-hover-bg pro-bg2 flex w-full items-center gap-2 border p-2 text-left transition-colors"
+												className="pro-divider pro-hover-bg pro-bg2 flex w-full items-center gap-2 rounded-md border p-2 text-left transition-colors"
 											>
 												<Icon name="plus" height={10} width={10} className="pro-text3" />
 												<span className="pro-text1 text-xs">{column.name}</span>
 												{column.id.endsWith('_share') && (
-													<span className="ml-auto rounded-sm bg-blue-600 px-1 py-0.5 text-xs text-white">%</span>
+													<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">%</span>
 												)}
 											</button>
 										))}
@@ -215,7 +215,7 @@ export function ColumnManagementPanel({
 				</span>
 				<button
 					onClick={() => setShowColumnPanel(false)}
-					className="border border-(--primary) bg-(--primary) px-3 py-1 text-white transition-colors hover:bg-(--primary-hover)"
+					className="rounded-md border border-(--primary) bg-(--primary) px-3 py-1 text-white transition-colors hover:bg-(--primary-hover)"
 				>
 					Done
 				</button>

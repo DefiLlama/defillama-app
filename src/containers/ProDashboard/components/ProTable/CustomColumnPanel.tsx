@@ -469,14 +469,14 @@ export function CustomColumnPanel({
 										>
 											<span
 												className={`h-1 w-1 shrink-0 rounded-full ${
-														suggestion.type === 'variable'
-															? 'bg-pro-blue-400'
-															: suggestion.type === 'function'
-																? 'bg-pro-purple-400'
-																: 'bg-(--text-tertiary)'
+													suggestion.type === 'variable'
+														? 'bg-pro-blue-400'
+														: suggestion.type === 'function'
+															? 'bg-pro-purple-400'
+															: 'bg-(--text-tertiary)'
 												}`}
 											/>
-											<code className="min-w-0 shrink-0 font-mono text-sm">{suggestion.display}</code>
+											<code className="min-w-0 shrink-0 text-sm">{suggestion.display}</code>
 											<span className="pro-text3 ml-auto truncate text-xs">{suggestion.description}</span>
 										</div>
 									))}
@@ -514,7 +514,7 @@ export function CustomColumnPanel({
 								<div className="flex items-center justify-between">
 									<span className="pro-text2 font-medium">Live Preview:</span>
 									{liveValidation.isValid ? (
-										<span className="font-mono text-green-700 dark:text-green-300">
+										<span className="text-green-700 dark:text-green-300">
 											{formatPreviewNumber(liveValidation.result || null)}
 										</span>
 									) : (
@@ -542,7 +542,7 @@ export function CustomColumnPanel({
 									key={operator}
 									type="button"
 									onClick={() => insertOperator(operator)}
-									className="pro-border pro-hover-bg pro-text2 rounded-md border bg-(--bg-glass) px-2 py-1 font-mono text-xs transition-colors"
+									className="pro-border pro-hover-bg pro-text2 rounded-md border bg-(--bg-glass) px-2 py-1 text-xs transition-colors"
 									onMouseDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
@@ -585,7 +585,7 @@ export function CustomColumnPanel({
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						>
-							<code className="block truncate font-mono text-xs text-(--primary)">{variable.key}</code>
+							<code className="block truncate text-xs text-(--primary)">{variable.key}</code>
 						</button>
 					))}
 				</div>
@@ -614,7 +614,7 @@ export function CustomColumnPanel({
 											<Icon name="x" height={12} width={12} className="text-(--error)" />
 										)}
 									</div>
-									<div className="pro-text2 pro-border rounded-md border bg-(--bg-glass) px-2 py-1 font-mono text-xs">
+									<div className="pro-text2 pro-border rounded-md border bg-(--bg-glass) px-2 py-1 text-xs">
 										{column.expression}
 									</div>
 									{!column.isValid && column.errorMessage && (
@@ -639,15 +639,15 @@ export function CustomColumnPanel({
 				<h5 className="pro-text2 mb-3 text-sm font-medium">Example Expressions</h5>
 				<div className="space-y-2 text-xs">
 					<div>
-						<code className="font-mono text-(--primary)">(fees_24h + revenue_24h) * 365</code>
+						<code className="text-(--primary)">(fees_24h + revenue_24h) * 365</code>
 						<span className="pro-text3 ml-2">Annualized fees + revenue</span>
 					</div>
 					<div>
-						<code className="font-mono text-(--primary)">volume_24h / tvl</code>
+						<code className="text-(--primary)">volume_24h / tvl</code>
 						<span className="pro-text3 ml-2">Volume to TVL ratio</span>
 					</div>
 					<div>
-						<code className="font-mono text-(--primary)">(change_1d + change_7d) / 2</code>
+						<code className="text-(--primary)">(change_1d + change_7d) / 2</code>
 						<span className="pro-text3 ml-2">Average price change</span>
 					</div>
 				</div>

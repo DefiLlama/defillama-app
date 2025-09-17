@@ -139,9 +139,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		if (item.kind === 'table') {
 			if (item.tableType === 'dataset') {
 				if (item.datasetType === 'cex') return <CexDataset />
-				if (item.datasetType === 'revenue') return <RevenueDataset chains={item.chains} />
-				if (item.datasetType === 'holders-revenue') return <HoldersRevenueDataset chains={item.chains} />
-				if (item.datasetType === 'earnings') return <EarningsDataset chains={item.chains} />
+				if (item.datasetType === 'revenue')
+					return <RevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+				if (item.datasetType === 'holders-revenue')
+					return <HoldersRevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+				if (item.datasetType === 'earnings')
+					return <EarningsDataset chains={item.chains} tableId={item.id} filters={item.filters} />
 				if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
 				if (item.datasetType === 'token-usage')
 					return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
