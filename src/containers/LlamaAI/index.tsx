@@ -495,7 +495,7 @@ export function LlamaAI() {
 		>
 			<div className="relative flex flex-1 flex-col gap-2.5 overflow-visible rounded-md border border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
 				{conversationHistory.length > 0 || isSubmitted ? (
-					<div className="flex max-h-full w-full flex-1 flex-col gap-2 overflow-auto">
+					<div className="flex max-h-full w-full flex-1 flex-col gap-2 overflow-auto p-2">
 						<div className="flex w-full items-center justify-between gap-3">
 							<h1 className="text-lg font-semibold">Chat History</h1>
 							<button
@@ -789,7 +789,7 @@ const PromptResponse = ({
 
 	if (isPending || isStreaming) {
 		return (
-			<div className="flex flex-col gap-2 p-2">
+			<div className="flex flex-col gap-2">
 				{streamingError ? (
 					<div className="text-red-500">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (

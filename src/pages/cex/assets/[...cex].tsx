@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 		const cexs = metadataCache.cexs
 
 		// if cex is not string, return 404
-		const exchangeData = cexs.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
+		const exchangeData = cexs.find((cex) => cex.slug && cex.slug.toLowerCase() === exchangeName.toLowerCase())
 		if (typeof exchangeName !== 'string' || !exchangeData) {
 			return {
 				notFound: true
