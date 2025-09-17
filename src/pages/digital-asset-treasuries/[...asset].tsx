@@ -333,7 +333,7 @@ const columns = ({
 		cell: ({ getValue }) => {
 			const realized_mNAV = getValue() as number
 			if (realized_mNAV == null) return null
-			return <>{formattedNum(realized_mNAV, true)}</>
+			return <>{formattedNum(realized_mNAV, false)}</>
 		},
 		size: 140,
 		meta: {
@@ -347,7 +347,7 @@ const columns = ({
 		cell: ({ getValue }) => {
 			const realistic_mNAV = getValue() as number
 			if (realistic_mNAV == null) return null
-			return <>{formattedNum(realistic_mNAV, true)}</>
+			return <>{formattedNum(realistic_mNAV, false)}</>
 		},
 		size: 140,
 		meta: {
@@ -361,7 +361,7 @@ const columns = ({
 		cell: ({ getValue }) => {
 			const max_mNAV = getValue() as number
 			if (max_mNAV == null) return null
-			return <>{formattedNum(max_mNAV, true)}</>
+			return <>{formattedNum(max_mNAV, false)}</>
 		},
 		size: 120,
 		meta: {

@@ -281,7 +281,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Realized mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.realized_mNAV, true)}</span>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.realized_mNAV, false)}</span>
 							</p>
 						) : null}
 						{props.realistic_mNAV != null ? (
@@ -292,7 +292,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Realistic mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.realistic_mNAV, true)}</span>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.realistic_mNAV, false)}</span>
 							</p>
 						) : null}
 						{props.max_mNAV != null ? (
@@ -303,7 +303,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 								>
 									Max mNAV
 								</Tooltip>
-								<span className="font-jetbrains ml-auto">{formattedNum(props.max_mNAV, true)}</span>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.max_mNAV, false)}</span>
 							</p>
 						) : null}
 					</div>
