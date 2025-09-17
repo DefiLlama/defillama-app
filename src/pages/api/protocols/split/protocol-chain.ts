@@ -8,6 +8,7 @@ import {
 	PROTOCOL_API
 } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { processAdjustedTvl } from '~/utils/tvl'
 
 interface ChartSeries {
 	name: string
@@ -108,6 +109,8 @@ const alignSeries = (timestamps: number[], series: [number, number][]): [number,
 	return timestamps.map((t) => [t, map.get(t) || 0])
 }
 
+export const keysToSkip = ['staking', 'pool2', 'borrowed', 'doublecounted', 'liquidstaking', 'vesting']
+
 async function getTvlProtocolChainData(
 	protocol: string,
 	chains?: string[],
@@ -135,14 +138,7 @@ async function getTvlProtocolChainData(
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
 		}
 		for (const [chainKey, chainData] of Object.entries(chainTvls)) {
-			if (
-				chainKey.includes('-borrowed') ||
-				chainKey.includes('-pool2') ||
-				chainKey.includes('-staking') ||
-				chainKey === 'borrowed' ||
-				chainKey === 'pool2' ||
-				chainKey === 'staking'
-			) {
+			if (keysToSkip.some((key) => chainKey.includes(`-${key}`) || chainKey === key)) {
 				continue
 			}
 
@@ -469,10 +465,8 @@ async function getAllProtocolsTopChainsTvlData(
 		])
 
 		const globalJson = await globalResp.json()
-		const globalTvl = Array.isArray(globalJson?.tvl) ? globalJson.tvl : []
-		const totalSeries = filterOutToday(
-			normalizeDailyPairs((globalTvl as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
-		)
+		const adjustedGlobalTvl = processAdjustedTvl(globalJson)
+		const totalSeries = filterOutToday(normalizeDailyPairs(adjustedGlobalTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 
 		const topSeriesRaw: ChartSeries[] = []
 		let colorIndex = 0
@@ -480,10 +474,8 @@ async function getAllProtocolsTopChainsTvlData(
 			const r = chainResponses[i]
 			if (!r.ok) continue
 			const j = await r.json()
-			const tvlArr = Array.isArray(j?.tvl) ? j.tvl : []
-			const normalized = filterOutToday(
-				normalizeDailyPairs((tvlArr as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
-			)
+			const adjustedTvl = processAdjustedTvl(j)
+			const normalized = filterOutToday(normalizeDailyPairs(adjustedTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 			topSeriesRaw.push({
 				name: pickedNames[i],
 				data: normalized,

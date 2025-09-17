@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CATEGORY_CHART_API, CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { processAdjustedTvl } from '~/utils/tvl'
 
 interface ChartSeries {
 	name: string
@@ -125,9 +126,8 @@ const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]>
 	if (isAll) {
 		const r = await fetch(`${CHART_API}`)
 		const j = await r.json()
-		const tvl = Array.isArray(j?.tvl) ? j.tvl : []
-		const mapped = tvl.map(([ts, v]: [string | number, number]) => [parseInt(ts as string, 10), v] as [number, number])
-		return filterOutToday(normalizeDailyPairs(mapped))
+		const adjustedTvl = processAdjustedTvl(j)
+		return filterOutToday(normalizeDailyPairs(adjustedTvl))
 	}
 
 	const perChain = await Promise.all(
@@ -135,11 +135,8 @@ const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]>
 			const r = await fetch(`${CHART_API}/${chain}`)
 			if (!r.ok) return []
 			const j = await r.json()
-			const tvl = Array.isArray(j?.tvl) ? j.tvl : []
-			const mapped = tvl.map(
-				([ts, v]: [string | number, number]) => [parseInt(ts as string, 10), v] as [number, number]
-			)
-			return filterOutToday(normalizeDailyPairs(mapped))
+			const adjustedTvl = processAdjustedTvl(j)
+			return filterOutToday(normalizeDailyPairs(adjustedTvl))
 		})
 	)
 	const summed = sumSeriesByTimestamp(perChain)
@@ -157,18 +154,16 @@ const subtractSeries = (a: [number, number][], b: [number, number][]): [number, 
 const fetchAllChainTotalTvl = async (): Promise<[number, number][]> => {
 	const r = await fetch(`${CHART_API}`)
 	const j = await r.json()
-	const tvl = Array.isArray(j?.tvl) ? j.tvl : []
-	const mapped = tvl.map(([ts, v]: [string | number, number]) => [parseInt(ts as string, 10), v] as [number, number])
-	return filterOutToday(normalizeDailyPairs(mapped))
+	const adjustedTvl = processAdjustedTvl(j)
+	return filterOutToday(normalizeDailyPairs(adjustedTvl))
 }
 
 const fetchChainTvlSingle = async (chain: string): Promise<[number, number][]> => {
 	const r = await fetch(`${CHART_API}/${chain}`)
 	if (!r.ok) return []
 	const j = await r.json()
-	const tvl = Array.isArray(j?.tvl) ? j.tvl : []
-	const mapped = tvl.map(([ts, v]: [string | number, number]) => [parseInt(ts as string, 10), v] as [number, number])
-	return filterOutToday(normalizeDailyPairs(mapped))
+	const adjustedTvl = processAdjustedTvl(j)
+	return filterOutToday(normalizeDailyPairs(adjustedTvl))
 }
 
 const fetchCategorySeriesAll = async (category: string): Promise<[number, number][]> => {

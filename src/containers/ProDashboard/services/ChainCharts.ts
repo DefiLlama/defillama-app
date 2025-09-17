@@ -10,6 +10,7 @@ import {
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
+import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat } from '../utils'
 
 const CHART_METADATA = {
@@ -119,13 +120,17 @@ export default class ChainCharts {
 		if (chainNames.length === 1) {
 			const response = await fetch(`${CHART_API}/${chain}`)
 			const data = await response.json()
-			return convertToNumberFormat(data?.tvl ?? [])
+			const adjustedTvl = processAdjustedTvl(data)
+			return convertToNumberFormat(adjustedTvl)
 		}
 
 		return this.fetchAndMergeChains(
 			chainNames,
 			(chainName) => `${CHART_API}/${chainName}`,
-			(data) => convertToNumberFormat(data?.tvl ?? [])
+			(data) => {
+				const adjustedTvl = processAdjustedTvl(data)
+				return convertToNumberFormat(adjustedTvl)
+			}
 		)
 	}
 

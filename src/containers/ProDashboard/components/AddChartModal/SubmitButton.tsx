@@ -49,12 +49,7 @@ export function SubmitButton({
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||
-		(selectedMainTab === 'text' && !textContent.trim()) ||
-		(selectedMainTab === 'builder' &&
-			(
-				!chartBuilder ||
-				(chartBuilder.mode === 'protocol' && !chartBuilder.protocol)
-			))
+		(selectedMainTab === 'text' && !textContent.trim())
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'

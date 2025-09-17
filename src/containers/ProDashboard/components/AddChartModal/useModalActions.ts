@@ -416,10 +416,8 @@ export function useModalActions(
 				} as TextConfig
 			} else if (
 				state.selectedMainTab === 'builder' &&
-				(
-					state.chartBuilder.mode === 'chains' ||
-					(state.chartBuilder.mode === 'protocol' && !!state.chartBuilder.protocol)
-				)
+				(state.chartBuilder.mode === 'chains' ||
+					(state.chartBuilder.mode === 'protocol' && !!state.chartBuilder.protocol))
 			) {
 				newItem = {
 					...editItem,
@@ -504,13 +502,7 @@ export function useModalActions(
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
-			} else if (
-				state.selectedMainTab === 'builder' &&
-				(
-					state.chartBuilder.mode === 'chains' ||
-					(state.chartBuilder.mode === 'protocol' && !!state.chartBuilder.protocol)
-				)
-			) {
+			} else if (state.selectedMainTab === 'builder') {
 				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
 			}
 		}
