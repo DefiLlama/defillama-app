@@ -254,19 +254,23 @@ export default function DigitalAssetTreasury(props: IProps) {
 						{props.price != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<span className="text-(--text-label)">${props.ticker} price</span>
-								<Tooltip
-									content={
-										<>
-											24h change:{' '}
-											<span
-												className={props.priceChange24h > 0 ? 'text-(--success)' : 'text-(--error)'}
-											>{`${props.priceChange24h > 0 ? '+' : ''}${props.priceChange24h.toFixed(2)}%`}</span>
-										</>
-									}
-									className="font-jetbrains ml-auto underline decoration-dotted"
-								>
-									${props.price}
-								</Tooltip>
+								{props.priceChange24h != null ? (
+									<Tooltip
+										content={
+											<>
+												24h change:{' '}
+												<span
+													className={props.priceChange24h > 0 ? 'text-(--success)' : 'text-(--error)'}
+												>{`${props.priceChange24h > 0 ? '+' : ''}${props.priceChange24h.toFixed(2)}%`}</span>
+											</>
+										}
+										className="font-jetbrains ml-auto underline decoration-dotted"
+									>
+										${props.price}
+									</Tooltip>
+								) : (
+									<span className="font-jetbrains ml-auto">${props.price}</span>
+								)}
 							</p>
 						) : null}
 						{props.realized_mNAV != null ? (
