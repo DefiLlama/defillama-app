@@ -188,15 +188,15 @@ export default function DigitalAssetTreasury(props: IProps) {
 									<span className="font-jetbrains ml-auto">{props.assets.join(', ')}</span>
 								</p>
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									<span className="text-(--text-label)">Assets Cost Basis</span>
-									<span className="font-jetbrains ml-auto">
-										{props.totalCost != null ? formattedNum(props.totalCost, true) : null}
-									</span>
-								</p>
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">Assets Today's Value (USD)</span>
 									<span className="font-jetbrains ml-auto">
 										{props.totalUsdValue != null ? formattedNum(props.totalUsdValue, true) : null}
+									</span>
+								</p>
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+									<span className="text-(--text-label)">Assets Cost Basis</span>
+									<span className="font-jetbrains ml-auto">
+										{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
 									</span>
 								</p>
 							</>
@@ -221,15 +221,15 @@ export default function DigitalAssetTreasury(props: IProps) {
 								</summary>
 								<div className="mb-3 flex flex-col">
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-										<span className="text-(--text-label)">Cost Basis</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
-											{asset.cost != null ? formattedNum(asset.cost, true) : null}
-										</span>
-									</p>
-									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Today's Value (USD)</span>
 										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
 											{asset.usdValue != null ? formattedNum(asset.usdValue, true) : null}
+										</span>
+									</p>
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Cost Basis</span>
+										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+											{asset.cost != null ? formattedNum(asset.cost, true) : '-'}
 										</span>
 									</p>
 								</div>
