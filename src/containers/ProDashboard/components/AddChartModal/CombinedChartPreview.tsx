@@ -9,8 +9,30 @@ interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
 
+const mapGroupingToGroupBy = (grouping: 'day' | 'week' | 'month' | 'quarter'): 'daily' | 'weekly' | 'monthly' | 'quarterly' => {
+	if (grouping === 'week') return 'weekly'
+	if (grouping === 'month') return 'monthly'
+	if (grouping === 'quarter') return 'quarterly'
+	return 'daily'
+}
+
 export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProps) {
 	const { getProtocolInfo } = useProDashboard()
+
+	const previewGrouping = useMemo<'day' | 'week' | 'month' | 'quarter'>(() => {
+		const definedGroupings = composerItems
+			.map((item) => item.grouping)
+			.filter((grouping): grouping is NonNullable<typeof grouping> => Boolean(grouping))
+
+		if (definedGroupings.length === 0) {
+			return 'day'
+		}
+
+		const [firstGrouping] = definedGroupings
+		const allMatch = definedGroupings.every((grouping) => grouping === firstGrouping)
+
+		return allMatch ? firstGrouping : 'day'
+	}, [composerItems])
 
 	const { series, valueSymbol } = useMemo(() => {
 		const result = []
@@ -94,9 +116,10 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 				}
 			>
 				<MultiSeriesChart
-					key={`combined-${composerItems.map((i) => i.id).join('-')}`}
+					key={`combined-${composerItems.map((i) => i.id).join('-')}-${previewGrouping}`}
 					series={series}
 					valueSymbol={valueSymbol}
+					groupBy={mapGroupingToGroupBy(previewGrouping)}
 					hideDataZoom={true}
 					height="450px"
 					chartOptions={{

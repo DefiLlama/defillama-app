@@ -3,6 +3,7 @@ import { useQueries } from '@tanstack/react-query'
 import { TimePeriod } from '../../ProDashboardAPIContext'
 import { getChartQueryFn, getChartQueryKey } from '../../queries'
 import { ChartConfig } from '../../types'
+import { groupData } from '../../utils'
 
 export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: TimePeriod) {
 	const queries = useQueries({
@@ -28,10 +29,17 @@ export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: T
 	const itemsWithData = useMemo(() => {
 		return composerItems.map((item, index) => {
 			const queryResult = queries[index]
+			const rawData = (queryResult?.data || []) as [string, number][]
+
+			const shouldGroup = item.grouping && item.grouping !== 'day'
+			const groupedData =
+				shouldGroup && Array.isArray(rawData) && rawData.length > 0
+					? groupData(rawData, item.grouping)
+					: rawData
 
 			return {
 				...item,
-				data: queryResult?.data || [],
+				data: groupedData,
 				isLoading: queryResult?.isLoading || false,
 				hasError: queryResult?.isError || false
 			}

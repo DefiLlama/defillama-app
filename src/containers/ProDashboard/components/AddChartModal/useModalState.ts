@@ -59,8 +59,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				if (editItem.items.length > 0) {
 					const firstItem = editItem.items[0]
 					setSelectedChartTab(firstItem.protocol ? 'protocol' : 'chain')
-					const chartTypes = editItem.items.map((item) => item.type)
-					setSelectedChartTypes(chartTypes)
+					setSelectedChartTypes([])
 					if (firstItem.protocol) {
 						setSelectedProtocol(firstItem.protocol)
 					} else if (firstItem.chain) {

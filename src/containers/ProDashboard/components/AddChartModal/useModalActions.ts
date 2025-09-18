@@ -130,8 +130,30 @@ export function useModalActions(
 
 	const handleAddToComposer = useCallback(
 		(typesToAdd?: string[]) => {
-			const chartTypesToAdd = typesToAdd || state.selectedChartTypes
+			const incomingTypes = typesToAdd ?? state.selectedChartTypes
+			const chartTypesToAdd = Array.from(new Set(incomingTypes))
 			let addedCount = 0
+
+			const resolveTargetGrouping = () => {
+				if (state.chartCreationMode !== 'combined') {
+					return 'day' as const
+				}
+
+				const existingGroupings = state.composerItems
+					.map((item) => item.grouping)
+					.filter((grouping): grouping is NonNullable<typeof grouping> => Boolean(grouping))
+
+				if (existingGroupings.length === 0) {
+					return 'day' as const
+				}
+
+				const [firstGrouping] = existingGroupings
+				const allMatch = existingGroupings.every((grouping) => grouping === firstGrouping)
+
+				return allMatch ? firstGrouping : ('day' as const)
+			}
+
+			const targetGrouping = resolveTargetGrouping()
 
 			if (state.selectedChartTab === 'chain' && state.selectedChain && chartTypesToAdd.length > 0) {
 				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
@@ -146,7 +168,7 @@ export function useModalActions(
 						kind: 'chart' as const,
 						chain: state.selectedChain,
 						type: chartType,
-						grouping: 'day' as const,
+						grouping: targetGrouping,
 						geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 					}))
 					actions.setComposerItems((prev) => [...prev, ...newCharts])
@@ -168,7 +190,7 @@ export function useModalActions(
 						protocol: state.selectedProtocol,
 						chain: '',
 						type: chartType,
-						grouping: 'day' as const,
+						grouping: targetGrouping,
 						geckoId: protocol?.geckoId
 					}))
 					actions.setComposerItems((prev) => [...prev, ...newCharts])
@@ -230,7 +252,8 @@ export function useModalActions(
 	const handleSubmit = useCallback(() => {
 		if (editItem) {
 			let newItem: DashboardItemConfig | null = null
-
+			console.log('state.chartBuilder', state.chartBuilder)
+			console.log('editItem', editItem)
 			if (
 				state.selectedMainTab === 'charts' &&
 				state.chartCreationMode === 'combined' &&
@@ -414,11 +437,7 @@ export function useModalActions(
 					title: state.textTitle.trim() || undefined,
 					content: state.textContent.trim()
 				} as TextConfig
-			} else if (
-				state.selectedMainTab === 'builder' &&
-				(state.chartBuilder.mode === 'chains' ||
-					(state.chartBuilder.mode === 'protocol' && !!state.chartBuilder.protocol))
-			) {
+			} else if (state.selectedMainTab === 'builder') {
 				newItem = {
 					...editItem,
 					kind: 'builder',

@@ -407,7 +407,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			) : chartSeries.length > 0 ? (
 				<Suspense fallback={<div className="min-h-[300px]" />}>
 					<MultiSeriesChart
-						key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}`}
+						key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}-${config.limit}`}
 						series={chartSeries as any}
 						valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
 						groupBy={
