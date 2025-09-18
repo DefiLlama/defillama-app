@@ -100,9 +100,9 @@ export const getStaticProps = withPerformanceLogging(
 				symbol,
 				allAssets,
 				dailyFlowsChart: {
-					[assetName]: {
-						name: assetName,
-						stack: assetName,
+					[name]: {
+						name: name,
+						stack: name,
 						type: 'bar',
 						color: oldBlue,
 						data: dailyFlows
