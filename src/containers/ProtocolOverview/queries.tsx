@@ -42,7 +42,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 	try {
 		const name = slug(protocolName)
 		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${name}`, {
-			timeout: name.includes('uniswap') ? 2 * 60 * 1000 : 30_000
+			timeout: ['uniswap', 'portal'].some((p) => name.includes(p)) ? 2 * 60 * 1000 : 30_000
 		})
 
 		let isNewlyListedProtocol = true
