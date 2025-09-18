@@ -276,7 +276,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 						{props.realized_mNAV != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Uses only currently outstanding shares (no future dilution)"
+									content="Market Net Asset Value based only on the current outstanding common shares, with no dilution considered"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Realized mNAV
@@ -287,7 +287,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 						{props.realistic_mNAV != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Adjusts for likely dilution (e.g., in-the-money options, convertibles expected to convert)"
+									content="Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Realistic mNAV
@@ -298,7 +298,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 						{props.max_mNAV != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Assumes all possible dilution (all options, warrants, convertibles, authorized pools)"
+									content={`Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)`}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Max mNAV

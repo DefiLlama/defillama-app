@@ -314,20 +314,6 @@ const columns = ({
 		}
 	},
 	{
-		header: 'Avg Purchase Price',
-		accessorKey: 'avgPrice',
-		cell: ({ getValue }) => {
-			const avgPrice = getValue() as number
-			if (avgPrice == null) return null
-			return <>{formattedNum(avgPrice, true)}</>
-		},
-		size: 168,
-		meta: {
-			align: 'end',
-			headerHelperText: `Average cost per ${symbol} of the institution's holdings`
-		}
-	},
-	{
 		header: 'Realized mNAV',
 		accessorKey: 'realized_mNAV',
 		cell: ({ getValue }) => {
@@ -338,7 +324,8 @@ const columns = ({
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Uses only currently outstanding shares (no future dilution)'
+			headerHelperText:
+				'Market Net Asset Value based only on the current outstanding common shares, with no dilution considered.'
 		}
 	},
 	{
@@ -352,7 +339,8 @@ const columns = ({
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Adjusts for likely dilution (e.g., in-the-money options, convertibles expected to convert)'
+			headerHelperText:
+				'Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised'
 		}
 	},
 	{
@@ -366,7 +354,22 @@ const columns = ({
 		size: 120,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Assumes all possible dilution (all options, warrants, convertibles, authorized pools)'
+			headerHelperText:
+				'Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)'
+		}
+	},
+	{
+		header: 'Avg Purchase Price',
+		accessorKey: 'avgPrice',
+		cell: ({ getValue }) => {
+			const avgPrice = getValue() as number
+			if (avgPrice == null) return null
+			return <>{formattedNum(avgPrice, true)}</>
+		},
+		size: 168,
+		meta: {
+			align: 'end',
+			headerHelperText: `Average cost per ${symbol} of the institution's holdings`
 		}
 	},
 	{

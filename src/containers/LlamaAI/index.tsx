@@ -535,7 +535,6 @@ export function LlamaAI() {
 					{conversationHistory.length > 0 || isSubmitted ? (
 						<div className="flex max-h-full w-full flex-1 flex-col gap-2 overflow-auto p-2">
 							<div className="flex w-full items-center justify-between gap-3">
-								<h1 className="text-lg font-semibold">Chat History</h1>
 								<button
 									onClick={handleNewChat}
 									className="bg-[rgba(31,103,210,0.12) hover:bg-[rgba(31,103,210,0.2) flex items-center justify-center gap-2 rounded-md border border-(--old-blue) px-3 py-2 text-(--old-blue) transition-colors"
