@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { RefObject, useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -331,6 +331,7 @@ export function LlamaAI() {
 	}
 
 	const [prompt, setPrompt] = useState('')
+	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 
 	const {
 		data: promptResponse,
@@ -436,6 +437,9 @@ export function LlamaAI() {
 
 			setPrompt('')
 			resetPrompt()
+			setTimeout(() => {
+				promptInputRef.current?.focus()
+			}, 100)
 		},
 		onError: (error) => {
 			setIsStreaming(false)
@@ -465,13 +469,6 @@ export function LlamaAI() {
 			userQuestion: finalPrompt,
 			suggestionContext: suggestion
 		})
-	}
-
-	const handleModeChange = (newMode: 'auto' | 'sql_only') => {
-		setMode(newMode)
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('llama-ai-mode', newMode)
-		}
 	}
 
 	const handleNewChat = async () => {
@@ -505,6 +502,7 @@ export function LlamaAI() {
 		setExpectedChartInfo(null)
 		setConversationHistory([])
 		streamingContentRef.current.reset()
+		promptInputRef.current?.focus()
 	}
 
 	const handleSuggestionClick = (suggestion: any) => {
@@ -530,10 +528,10 @@ export function LlamaAI() {
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="flex flex-1 flex-col rounded-md border border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
+			<div className="relative isolate flex flex-1 flex-col rounded-md border border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
 				<div className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2.5">
 					{conversationHistory.length > 0 || isSubmitted ? (
-						<div className="flex max-h-full w-full flex-1 flex-col gap-2 overflow-auto p-2">
+						<div className="flex max-h-full w-full flex-1 flex-col gap-2 p-2">
 							<div className="flex w-full items-center justify-between gap-3">
 								<button
 									onClick={handleNewChat}
@@ -659,43 +657,13 @@ export function LlamaAI() {
 							<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 						</div>
 					)}
-					<div className="flex flex-col gap-2.5">
-						{/* <div className="flex items-center justify-between">
-							<div className="flex items-center gap-3">
-								<span className="text-sm font-medium text-(--text1)">Mode:</span>
-								<div className="flex gap-2">
-									<button
-										onClick={() => handleModeChange('auto')}
-										disabled={isPending || isStreaming}
-										className={`rounded px-3 py-1 text-sm transition-colors ${
-											mode === 'auto'
-												? 'border border-(--old-blue) bg-(--old-blue) text-white'
-												: 'border border-[#e6e6e6] bg-(--app-bg) text-(--text1) hover:border-(--old-blue) dark:border-[#222324]'
-										} ${isPending || isStreaming ? 'cursor-not-allowed opacity-50' : ''}`}
-									>
-										Auto
-									</button>
-									<button
-										onClick={() => handleModeChange('sql_only')}
-										disabled={isPending || isStreaming}
-										className={`rounded px-3 py-1 text-sm transition-colors ${
-											mode === 'sql_only'
-												? 'border border-(--old-blue) bg-(--old-blue) text-white'
-												: 'border border-[#e6e6e6] bg-(--app-bg) text-(--text1) hover:border-(--old-blue) dark:border-[#222324]'
-										} ${isPending || isStreaming ? 'cursor-not-allowed opacity-50' : ''}`}
-									>
-										SQL
-									</button>
-								</div>
-							</div>
-						</div> */}
-						<PromptInput
-							handleSubmit={handleSubmit}
-							isPending={isPending}
-							handleStopRequest={handleStopRequest}
-							isStreaming={isStreaming}
-						/>
-					</div>
+					<PromptInput
+						handleSubmit={handleSubmit}
+						promptInputRef={promptInputRef}
+						isPending={isPending}
+						handleStopRequest={handleStopRequest}
+						isStreaming={isStreaming}
+					/>
 					{conversationHistory.length === 0 && !isSubmitted ? (
 						<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
 							{recommendedPrompts.map((prompt) => (
@@ -723,11 +691,13 @@ const recommendedPrompts = ['Top 5 protocols by tvl', 'Recent hacks', 'Total amo
 
 const PromptInput = ({
 	handleSubmit,
+	promptInputRef,
 	isPending,
 	handleStopRequest,
 	isStreaming
 }: {
 	handleSubmit: (prompt: string) => void
+	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
@@ -769,6 +739,7 @@ const PromptInput = ({
 					spellCheck="false"
 					disabled={isPending}
 					autoFocus
+					ref={promptInputRef}
 				/>
 				{isStreaming ? (
 					<button
