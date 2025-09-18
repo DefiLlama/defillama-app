@@ -59,7 +59,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 							setCollectionName(e.target.value)
 						}}
 						placeholder="Search collections..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-0.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>

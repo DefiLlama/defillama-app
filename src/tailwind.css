@@ -631,7 +631,7 @@
 	/* Prevent zoom on iOS Safari for form elements */
 	input,
 	textarea {
-		@apply text-base placeholder:text-sm;
+		@apply text-sm placeholder:text-sm max-sm:text-base;
 	}
 
 	input,

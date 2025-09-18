@@ -387,7 +387,7 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 								setInvestorName(e.target.value)
 							}}
 							placeholder="Search investors..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-0.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">

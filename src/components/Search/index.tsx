@@ -187,7 +187,7 @@ const Desktop = () => {
 				setOpen={setOpen}
 			>
 				<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
-					<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
+					<button onClick={(prev) => setOpen(!prev)} className="absolute top-0 bottom-0 left-2 my-auto opacity-50">
 						{open ? (
 							<>
 								<span className="sr-only">Close Search</span>
@@ -204,9 +204,9 @@ const Desktop = () => {
 						placeholder="Search..."
 						autoSelect
 						ref={inputField}
-						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-base text-black dark:text-white"
+						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-black dark:text-white"
 					/>
-					<span className="absolute top-1 right-1 bottom-1 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
+					<span className="absolute top-0.75 right-0.75 bottom-0.75 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 						⌘K
 					</span>
 				</span>

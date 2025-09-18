@@ -259,7 +259,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 			setOpen={setOpen}
 		>
 			<span className="relative isolate w-full lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -276,7 +276,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				<Ariakit.Combobox
 					placeholder="Search tokens..."
 					autoSelect
-					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-base text-black dark:text-white"
+					className="min-h-8 w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-black dark:text-white"
 				/>
 			</span>
 

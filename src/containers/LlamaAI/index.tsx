@@ -511,7 +511,7 @@ export function LlamaAI() {
 							<div className="flex flex-col gap-2.5">
 								{conversationHistory.map((item, index) => (
 									<div key={index} className="flex flex-col gap-2.5">
-										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 text-xs dark:bg-[#222425]">
+										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 											{item.question}
 										</p>
 
@@ -585,7 +585,7 @@ export function LlamaAI() {
 							{(isPending || isStreaming || promptResponse || error) && (
 								<div className="flex flex-col gap-2.5">
 									{prompt && (
-										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 text-xs dark:bg-[#222425]">
+										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 											{prompt}
 										</p>
 									)}
@@ -727,11 +727,12 @@ const PromptInput = ({
 					onChange={onChange}
 					onKeyDown={onKeyDown}
 					name="prompt"
-					className="w-full rounded-md border border-[#e6e6e6] bg-(--app-bg) p-4 text-(--text1) caret-black dark:border-[#222324] dark:caret-white"
+					className="w-full rounded-md border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
 					disabled={isPending}
+					autoFocus
 				/>
 				{isStreaming ? (
 					<button
@@ -801,7 +802,7 @@ const PromptResponse = ({
 					</div>
 				) : isStreaming && progressMessage ? (
 					<p
-						className={`flex items-center justify-start gap-2 py-2 text-xs ${
+						className={`flex items-center justify-start gap-2 py-2 ${
 							progressMessage.includes('encountered an issue') ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'
 						}`}
 					>
@@ -816,7 +817,7 @@ const PromptResponse = ({
 						</span>
 					</p>
 				) : (
-					<p className="flex min-h-9 items-center gap-1 py-2 text-xs text-[#666] dark:text-[#919296]">
+					<p className="flex min-h-9 items-center gap-1 py-2 text-[#666] dark:text-[#919296]">
 						Thinking
 						<LoadingDots />
 					</p>
@@ -883,7 +884,7 @@ const PromptResponse = ({
 				</div>
 			)}
 			{response?.metadata && (
-				<details className="group rounded-lg bg-gray-50 p-2 text-xs dark:bg-gray-800">
+				<details className="group rounded-lg bg-gray-50 p-2 dark:bg-gray-800">
 					<summary className="flex flex-wrap items-center justify-between gap-2 font-medium">
 						<span>Query Metadata</span>
 						<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">

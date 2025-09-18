@@ -372,7 +372,7 @@ export function BridgesOverviewByChain({
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-0.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<div className="ml-auto">
@@ -383,7 +383,11 @@ export function BridgesOverviewByChain({
 				{isBridgesShowingTxs ? (
 					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
 				) : (
-					<BridgesTable data={activeTab === 'bridges' ? filteredBridges : messagingProtocols} searchValue={searchValue} onSearchChange={setSearchValue} />
+					<BridgesTable
+						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
+						searchValue={searchValue}
+						onSearchChange={setSearchValue}
+					/>
 				)}
 			</div>
 		</>
