@@ -80,6 +80,43 @@ async function fetchPromptResponse({
 			body: JSON.stringify(requestBody),
 			signal: abortSignal
 		})
+			.then(async (res) => {
+				if (!res.ok) {
+					let errorMessage = `[HTTP] [error] [${res.status}]`
+
+					// Try to get error message from statusText first
+					if (res.statusText) {
+						errorMessage += `: ${res.statusText}`
+					}
+
+					// Read response body only once
+					const responseText = await res.text()
+
+					if (responseText) {
+						// Try to parse as JSON first
+						try {
+							const errorResponse = JSON.parse(responseText)
+							if (errorResponse.error) {
+								errorMessage = errorResponse.error
+							} else if (errorResponse.message) {
+								errorMessage = errorResponse.message
+							} else {
+								// If JSON parsing succeeded but no error/message field, use the text
+								errorMessage = responseText
+							}
+						} catch (jsonError) {
+							// If JSON parsing fails, use the text response
+							errorMessage = responseText
+						}
+					}
+
+					throw new Error(errorMessage)
+				}
+				return res
+			})
+			.catch((err) => {
+				throw new Error(err.message)
+			})
 
 		if (!response.ok) {
 			throw new Error(`HTTP error status: ${response.status}`)
@@ -158,7 +195,7 @@ async function fetchPromptResponse({
 							}
 						}
 					} catch (e) {
-						console.error('SSE JSON parse error:', e)
+						console.log('SSE JSON parse error:', e)
 					}
 				}
 			}
@@ -244,10 +281,10 @@ export function LlamaAI() {
 				console.log('Successfully stopped streaming session')
 			} else {
 				const errorData = await response.json()
-				console.error('Failed to stop streaming session:', errorData)
+				console.log('Failed to stop streaming session:', errorData)
 			}
 		} catch (error) {
-			console.error('Error stopping streaming session:', error)
+			console.log('Error stopping streaming session:', error)
 		}
 
 		// Also abort the local controller as backup
@@ -410,7 +447,7 @@ export function LlamaAI() {
 			}
 
 			if (error?.message !== 'Request aborted') {
-				console.error('Request failed:', error)
+				console.log('Request failed:', error)
 			}
 		}
 	})
@@ -444,7 +481,7 @@ export function LlamaAI() {
 					method: 'DELETE'
 				})
 			} catch (error) {
-				console.error('Failed to reset backend session:', error)
+				console.log('Failed to reset backend session:', error)
 			}
 		}
 

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TimePeriod } from '../ProDashboardAPIContext'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
 export function useDashboardAPI() {
