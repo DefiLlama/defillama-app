@@ -227,8 +227,6 @@ async function fetchPromptResponse({
 	}
 }
 
-const sessionStorageKey = 'llama-ai-session'
-
 export function LlamaAI() {
 	const { authorizedFetch } = useAuthContext()
 
@@ -244,10 +242,6 @@ export function LlamaAI() {
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
-	const [mode, setMode] = useState<'auto' | 'sql_only'>(() => {
-		const stored = typeof window !== 'undefined' ? localStorage.getItem('llama-ai-mode') : null
-		return (stored as 'auto' | 'sql_only') || 'auto'
-	})
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
@@ -363,7 +357,7 @@ export function LlamaAI() {
 				userQuestion,
 				sessionId,
 				suggestionContext,
-				mode,
+				mode: 'auto',
 				authorizedFetch,
 				onProgress: (data) => {
 					if (data.type === 'token') {

@@ -1,9 +1,9 @@
-import type { ChartConfiguration } from '../types'
-import type { IChartProps, IBarChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { convertToNumberFormat, groupData, generateChartColor } from '~/containers/ProDashboard/utils'
+import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { generateChartColor } from '~/containers/ProDashboard/utils'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum } from '~/utils'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import type { ChartConfiguration } from '../types'
 
 interface AdaptedChartData {
 	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
@@ -130,17 +130,20 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 		const entityField = primarySeries.dataMapping.xField
 		const valueField = primarySeries.dataMapping.yField
 
-		const aggregatedData = rawData.reduce((acc, row) => {
-			const entity = row[entityField] || 'Unknown'
-			const value = parseStringNumber(row[valueField])
+		const aggregatedData = rawData.reduce(
+			(acc, row) => {
+				const entity = row[entityField] || 'Unknown'
+				const value = parseStringNumber(row[valueField])
 
-			if (acc[entity]) {
-				acc[entity] += value
-			} else {
-				acc[entity] = value
-			}
-			return acc
-		}, {} as Record<string, number>)
+				if (acc[entity]) {
+					acc[entity] += value
+				} else {
+					acc[entity] = value
+				}
+				return acc
+			},
+			{} as Record<string, number>
+		)
 
 		const pieData = Object.entries(aggregatedData)
 			.map(([name, value]: [string, number]) => ({ name, value }))
@@ -198,11 +201,13 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		const xField = primarySeries.dataMapping.xField
 		const yField = primarySeries.dataMapping.yField
 
-		const scatterData = rawData.map((row) => {
-			const xValue = parseStringNumber(row[xField])
-			const yValue = parseStringNumber(row[yField])
-			return [xValue, yValue]
-		}).filter(([x, y]) => !isNaN(x) && !isNaN(y))
+		const scatterData = rawData
+			.map((row) => {
+				const xValue = parseStringNumber(row[xField])
+				const yValue = parseStringNumber(row[yField])
+				return [xValue, yValue]
+			})
+			.filter(([x, y]) => !isNaN(x) && !isNaN(y))
 
 		return {
 			chartType: 'scatter',
@@ -288,15 +293,22 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			hideDefaultLegend: true,
 
 			chartOptions: {
+				grid: {
+					top: 12,
+					right: 12,
+					bottom: 12,
+					left: 12
+				},
 				tooltip: {
 					confine: false,
 					appendToBody: true,
-					...(config.type === 'bar' && config.axes.x.type !== 'time' && {
-						formatter: (params: any) => {
-							const value = params[0].value
-							return `<strong>${value[0]}</strong>: ${formatTooltipValue(value[1], config.valueSymbol ?? '')}`
-						}
-					})
+					...(config.type === 'bar' &&
+						config.axes.x.type !== 'time' && {
+							formatter: (params: any) => {
+								const value = params[0].value
+								return `<strong>${value[0]}</strong>: ${formatTooltipValue(value[1], config.valueSymbol ?? '')}`
+							}
+						})
 				}
 			},
 
@@ -415,6 +427,12 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			valueSymbol: config.valueSymbol ?? '',
 
 			chartOptions: {
+				grid: {
+					top: 12,
+					right: 12,
+					bottom: 12,
+					left: 12
+				},
 				tooltip: {
 					confine: false,
 					appendToBody: true
