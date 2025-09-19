@@ -301,7 +301,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								: `${config.metric} by Protocol`)}
 					</h1>
 					{!isReadOnly && chartSeries.length > 0 && (
-						<div className="flex overflow-hidden border border-(--form-control-border)">
+						<div className="flex overflow-hidden rounded-md border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
 								<button
 									key={option}
@@ -376,7 +376,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				{(() => {
 					const parts: string[] = []
 					if (config.mode === 'protocol') {
-						const protoName = config.protocol ? (getProtocolInfo(config.protocol)?.name || config.protocol) : 'All Protocols'
+						const protoName = config.protocol
+							? getProtocolInfo(config.protocol)?.name || config.protocol
+							: 'All Protocols'
 						parts.push(protoName)
 						if ((config.filterMode || 'include') === 'exclude' && config.chains.length > 0) {
 							parts.push(`Excluding ${config.chains.join(', ')}`)
