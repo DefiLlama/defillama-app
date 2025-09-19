@@ -2,7 +2,7 @@
 // Chart-related types from backend
 export interface ChartConfiguration {
 	id: string
-	type: 'line' | 'area' | 'bar' | 'combo'
+	type: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'
 	title: string
 	description: string
 	valueSymbol?: string

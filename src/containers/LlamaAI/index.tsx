@@ -248,10 +248,7 @@ export function LlamaAI() {
 		const stored = typeof window !== 'undefined' ? localStorage.getItem('llama-ai-mode') : null
 		return (stored as 'auto' | 'sql_only') || 'auto'
 	})
-	const [sessionId, setSessionId] = useState<string | null>(() => {
-		const stored = typeof window !== 'undefined' ? localStorage.getItem(sessionStorageKey) : null
-		return stored
-	})
+	const [sessionId, setSessionId] = useState<string | null>(null)
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
 			question: string
@@ -392,10 +389,6 @@ export function LlamaAI() {
 						}
 					} else if (data.type === 'session' && data.sessionId) {
 						setSessionId(data.sessionId)
-
-						if (typeof window !== 'undefined') {
-							localStorage.setItem(sessionStorageKey, data.sessionId)
-						}
 					} else if (data.type === 'suggestions') {
 						setStreamingSuggestions(data.suggestions)
 					} else if (data.type === 'charts') {
@@ -483,10 +476,6 @@ export function LlamaAI() {
 		}
 
 		setSessionId(null)
-
-		if (typeof window !== 'undefined') {
-			localStorage.removeItem(sessionStorageKey)
-		}
 		setPrompt('')
 		resetPrompt()
 		setStreamingResponse('')
