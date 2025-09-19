@@ -68,8 +68,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-		const toggledCharts = props.charts.filter((tchart) =>
-			tchart === 'TVL' ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+		const toggledCharts = props.charts.filter((tchart, index) =>
+			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))

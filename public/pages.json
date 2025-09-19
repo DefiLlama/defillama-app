@@ -481,7 +481,7 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
-      "name": "ETF",
+      "name": "Exchange Traded Funds (ETFs)",
       "route": "/etfs",
       "category": "ETFs & DATs",
       "description": "AUM, Flows, Volume metrics of all ETFs"

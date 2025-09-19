@@ -27,7 +27,7 @@ import { formattedNum, getNDistinctColors, getPercentChange, slug, tokenIconUrl 
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
 import type {
-	IChainAssets,
+	IChainAsset,
 	IChainMetadata,
 	IChainOverviewData,
 	IChildProtocol,
@@ -105,7 +105,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				}
 			} | null,
 			Record<string, number>,
-			IChainAssets | null,
+			IChainAsset | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
@@ -209,7 +209,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chain && chain !== 'All'
 				? fetchJson(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
-			fetchJson(CHAINS_ASSETS).catch(() => ({})),
+			fetchJson(CHAINS_ASSETS)
+				.then((chainAssets) => (chain !== 'All' ? (chainAssets[metadata.name] ?? null) : null))
+				.catch(() => null),
 			metadata.revenue && chain !== 'All'
 				? getAdapterChainOverview({
 						adapterType: 'fees',
@@ -457,7 +459,11 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
 
-		const charts: ChainChartLabels[] = ['TVL']
+		const charts: ChainChartLabels[] = []
+
+		if (chartData) {
+			charts.push('TVL')
+		}
 
 		if (stablecoins?.mcap != null) {
 			charts.push('Stablecoins Mcap')
@@ -483,9 +489,11 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (appFees?.total24h != null) {
 			charts.push('App Fees')
 		}
+
 		if (chain !== 'All' && chainAssets != null) {
 			charts.push('Bridged TVL')
 		}
+
 		if (activeUsers != null) {
 			charts.push('Active Addresses')
 		}
@@ -558,7 +566,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,
-			chainAssets: chain !== 'All' ? formatChainAssets(chainAssets[metadata.name]) : null,
+			chainAssets: formatChainAssets(chainAssets),
 			devMetrics: null,
 			nfts:
 				nftVolumesData && chain !== 'All' && nftVolumesData[metadata.name.toLowerCase()]
