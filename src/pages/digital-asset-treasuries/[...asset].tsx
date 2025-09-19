@@ -58,7 +58,7 @@ interface ITreasuryCompanies {
 			totalCompanies: number
 			totalHoldings: number
 			totalUsdValue: number
-			circSupplyPerc: number
+			circSupplyPerc?: number | null
 		}
 	}
 	dailyFlows: Array<[number, number]>
@@ -176,12 +176,14 @@ export default function TreasuriesByAsset({
 							<span className="text-(--text-label)">Total USD Value</span>
 							<span className="font-jetbrains ml-auto">{formattedNum(stats.totalUsdValue, true)}</span>
 						</p>
-						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-							<span className="text-(--text-label)">% of {symbol} Circulating Supply</span>
-							<span className="font-jetbrains ml-auto">
-								{stats.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
-							</span>
-						</p>
+						{stats.circSupplyPerc != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<span className="text-(--text-label)">% of {symbol} Circulating Supply</span>
+								<span className="font-jetbrains ml-auto">
+									{stats.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
+								</span>
+							</p>
+						) : null}
 					</div>
 					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
 						Report incorrect data
@@ -190,7 +192,11 @@ export default function TreasuriesByAsset({
 				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<h2 className="p-2 text-lg font-medium">Inflows</h2>
 					<Suspense>
-						<LineAndBarChart charts={dailyFlowsChart} valueSymbol={symbol} />
+						<LineAndBarChart
+							charts={dailyFlowsChart}
+							valueSymbol={symbol}
+							hideDataZoom={dailyFlowsChart[name].data.length < 2}
+						/>
 					</Suspense>
 				</div>
 			</div>

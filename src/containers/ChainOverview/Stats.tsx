@@ -168,39 +168,41 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
 				)}
-				<div className="flex flex-nowrap items-end justify-between gap-8">
-					<h2 className="flex flex-col">
-						<Tooltip
-							content={
-								props.metadata.name === 'All'
-									? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
-									: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
-							}
-							className="!inline text-(--text-label) underline decoration-dotted"
-						>
-							Total Value Locked in DeFi
-						</Tooltip>
-						<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
-							{formattedNum(totalValueUSD, true)}
-						</span>
-					</h2>
-					{change24h != null ? (
-						<Tooltip
-							content={`${formattedNum(valueChange24hUSD, true)}`}
-							render={<p />}
-							className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
-						>
-							<span
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
-									change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
-								}`}
+				{props.protocols.length > 0 ? (
+					<div className="flex flex-nowrap items-end justify-between gap-8">
+						<h2 className="flex flex-col">
+							<Tooltip
+								content={
+									props.metadata.name === 'All'
+										? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
+										: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
+								}
+								className="!inline text-(--text-label) underline decoration-dotted"
 							>
-								{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+								Total Value Locked in DeFi
+							</Tooltip>
+							<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								{formattedNum(totalValueUSD, true)}
 							</span>
-							<span className="text-(--text-label)">24h</span>
-						</Tooltip>
-					) : null}
-				</div>
+						</h2>
+						{change24h != null ? (
+							<Tooltip
+								content={`${formattedNum(valueChange24hUSD, true)}`}
+								render={<p />}
+								className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
+							>
+								<span
+									className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+										change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
+									}`}
+								>
+									{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+								</span>
+								<span className="text-(--text-label)">24h</span>
+							</Tooltip>
+						) : null}
+					</div>
+				) : null}
 				<div className="flex flex-1 flex-col gap-2">
 					<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
 					<div className="flex flex-col">

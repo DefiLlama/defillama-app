@@ -53,16 +53,18 @@ export function ChainOverview(props: IChainOverviewData) {
 					))}
 				</div>
 			) : null}
-			<Suspense
-				fallback={
-					<div
-						style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-						className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
-					/>
-				}
-			>
-				<Table protocols={props.protocols} />
-			</Suspense>
+			{props.protocols.length > 0 ? (
+				<Suspense
+					fallback={
+						<div
+							style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
+							className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
+						/>
+					}
+				>
+					<Table protocols={props.protocols} />
+				</Suspense>
+			) : null}
 		</Layout>
 	)
 }
