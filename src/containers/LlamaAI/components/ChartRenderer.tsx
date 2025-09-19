@@ -181,7 +181,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 				<div className="flex border-b border-gray-200 px-2 dark:border-gray-700">
 					{charts.map((chart, index) => (
 						<button
-							key={chart.id}
+							key={`toggle-${chart.id}`}
 							onClick={() => setActiveTabIndex(index)}
 							className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
 								activeTabIndex === index
