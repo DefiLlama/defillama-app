@@ -253,37 +253,6 @@ export function LlamaAI() {
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 
-	const handleStopRequest = async () => {
-		if (!sessionId || !isStreaming) return
-
-		try {
-			// Call the backend stop endpoint
-			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					sessionId: sessionId
-				})
-			})
-
-			if (response.ok) {
-				console.log('Successfully stopped streaming session')
-			} else {
-				const errorData = await response.json()
-				console.log('Failed to stop streaming session:', errorData)
-			}
-		} catch (error) {
-			console.log('Error stopping streaming session:', error)
-		}
-
-		// Also abort the local controller as backup
-		if (abortControllerRef.current) {
-			abortControllerRef.current.abort()
-		}
-	}
-
 	const parseChartInfo = (message: string): { count?: number; types?: string[] } => {
 		const info: { count?: number; types?: string[] } = {}
 
@@ -440,8 +409,48 @@ export function LlamaAI() {
 			if (error?.message !== 'Request aborted') {
 				console.log('Request failed:', error)
 			}
+
+			setTimeout(() => {
+				promptInputRef.current?.focus()
+			}, 100)
 		}
 	})
+
+	const handleStopRequest = async () => {
+		if (!sessionId || !isStreaming) return
+
+		try {
+			// Call the backend stop endpoint
+			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					sessionId: sessionId
+				})
+			})
+
+			if (response.ok) {
+				console.log('Successfully stopped streaming session')
+			} else {
+				const errorData = await response.json()
+				console.log('Failed to stop streaming session:', errorData)
+			}
+		} catch (error) {
+			console.log('Error stopping streaming session:', error)
+		}
+
+		// Also abort the local controller as backup
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort()
+		}
+
+		resetPrompt()
+		setTimeout(() => {
+			promptInputRef.current?.focus()
+		}, 100)
+	}
 
 	const handleSubmit = (prompt: string) => {
 		const finalPrompt = prompt.trim()
