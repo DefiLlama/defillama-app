@@ -1,13 +1,14 @@
 import type { ChartConfiguration } from '../types'
-import type { IChartProps, IBarChartProps, IMultiSeriesChartProps } from '~/components/ECharts/types'
+import type { IChartProps, IBarChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { convertToNumberFormat, groupData, generateChartColor } from '~/containers/ProDashboard/utils'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum } from '~/utils'
+import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 
 interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series'
-	data: [number, number | null][] | [any, number | null][]
-	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps>
+	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
+	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
+	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
 	description: string
 }
@@ -115,7 +116,122 @@ const convertToUnixTimestamp = (timestamp: any): number => {
 	return Math.floor(Date.now() / 1000)
 }
 
+function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
+	try {
+		if (!rawData || rawData.length === 0) {
+			throw new Error('No data provided')
+		}
+
+		const primarySeries = config.series[0]
+		if (!primarySeries) {
+			throw new Error('No series configuration found')
+		}
+
+		const entityField = primarySeries.dataMapping.xField
+		const valueField = primarySeries.dataMapping.yField
+
+		const aggregatedData = rawData.reduce((acc, row) => {
+			const entity = row[entityField] || 'Unknown'
+			const value = parseStringNumber(row[valueField])
+
+			if (acc[entity]) {
+				acc[entity] += value
+			} else {
+				acc[entity] = value
+			}
+			return acc
+		}, {} as Record<string, number>)
+
+		const pieData = Object.entries(aggregatedData)
+			.map(([name, value]: [string, number]) => ({ name, value }))
+			.sort((a, b) => b.value - a.value)
+
+		const stackColors: Record<string, string> = {}
+		pieData.forEach((item, index) => {
+			stackColors[item.name] = getChartColor(item.name, index, '#8884d8')
+		})
+
+		const pieProps: Partial<IPieChartProps> = {
+			title: config.title,
+			chartData: pieData,
+			height: '300px',
+			stackColors,
+			usdFormat: config.valueSymbol === '$',
+			showLegend: true,
+			formatTooltip: (params: any) => {
+				const value = params.value
+				const formattedValue = formatTooltipValue(value, config.valueSymbol ?? '')
+				return `<strong>${params.name}</strong>: ${formattedValue} (${params.percent}%)`
+			}
+		}
+
+		return {
+			chartType: 'pie',
+			data: pieData as any,
+			props: pieProps,
+			title: config.title,
+			description: config.description
+		}
+	} catch (error) {
+		console.error('PieChart adapter error:', error)
+		return {
+			chartType: 'pie',
+			data: [],
+			props: { title: 'Pie Chart Error', height: '300px' },
+			title: config.title || 'Pie Chart Error',
+			description: `Failed to render pie chart: ${error instanceof Error ? error.message : 'Unknown error'}`
+		}
+	}
+}
+
+function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
+	try {
+		if (!rawData || rawData.length === 0) {
+			throw new Error('No data provided')
+		}
+
+		const primarySeries = config.series[0]
+		if (!primarySeries) {
+			throw new Error('No series configuration found')
+		}
+
+		const xField = primarySeries.dataMapping.xField
+		const yField = primarySeries.dataMapping.yField
+
+		const scatterData = rawData.map((row) => {
+			const xValue = parseStringNumber(row[xField])
+			const yValue = parseStringNumber(row[yField])
+			return [xValue, yValue]
+		}).filter(([x, y]) => !isNaN(x) && !isNaN(y))
+
+		return {
+			chartType: 'scatter',
+			data: scatterData as any,
+			props: { title: config.title, height: '300px' },
+			title: config.title,
+			description: config.description
+		}
+	} catch (error) {
+		console.error('ScatterChart adapter error:', error)
+		return {
+			chartType: 'scatter',
+			data: [],
+			props: { title: 'Scatter Chart Error', height: '300px' },
+			title: config.title || 'Scatter Chart Error',
+			description: `Failed to render scatter chart: ${error instanceof Error ? error.message : 'Unknown error'}`
+		}
+	}
+}
+
 export function adaptChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
+	if (config.type === 'pie') {
+		return adaptPieChartData(config, rawData)
+	}
+
+	if (config.type === 'scatter') {
+		return adaptScatterChartData(config, rawData)
+	}
+
 	try {
 		if (!rawData || rawData.length === 0) {
 			throw new Error('No data provided')
@@ -160,7 +276,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 
 		const commonProps: Partial<IChartProps> = {
 			title: config.title,
-			valueSymbol: config.valueSymbol || '$',
+			valueSymbol: config.valueSymbol ?? '',
 			color,
 			height: '300px',
 			hideDataZoom: true,
@@ -174,7 +290,13 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			chartOptions: {
 				tooltip: {
 					confine: false,
-					appendToBody: true
+					appendToBody: true,
+					...(config.type === 'bar' && config.axes.x.type !== 'time' && {
+						formatter: (params: any) => {
+							const value = params[0].value
+							return `<strong>${value[0]}</strong>: ${formatTooltipValue(value[1], config.valueSymbol ?? '')}`
+						}
+					})
 				}
 			},
 
@@ -290,7 +412,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			height: '300px',
 			hideDataZoom: true,
 			hideDownloadButton: false,
-			valueSymbol: config.valueSymbol || '$',
+			valueSymbol: config.valueSymbol ?? '',
 
 			chartOptions: {
 				tooltip: {

@@ -1,5 +1,5 @@
 import { lazy, memo, Suspense, useState } from 'react'
-import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
@@ -11,6 +11,8 @@ const NonTimeSeriesBarChart = lazy(
 ) as React.FC<IBarChartProps>
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
+const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
 interface ChartRendererProps {
 	charts: ChartConfiguration[]
@@ -81,6 +83,20 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				return (
 					<Suspense fallback={<ChartLoadingSpinner />}>
 						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} />
+					</Suspense>
+				)
+
+			case 'pie':
+				return (
+					<Suspense fallback={<ChartLoadingSpinner />}>
+						<PieChart {...(adaptedChart.props as IPieChartProps)} />
+					</Suspense>
+				)
+
+			case 'scatter':
+				return (
+					<Suspense fallback={<ChartLoadingSpinner />}>
+						<ScatterChart chartData={adaptedChart.data} />
 					</Suspense>
 				)
 
@@ -193,7 +209,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 	isAnalyzing = false,
 	hasError = false,
 	expectedChartCount,
-	chartTypes
+	chartTypes,
 }: ChartRendererProps) {
 	const [activeTabIndex, setActiveTabIndex] = useState(0)
 	const [isCollapsed, setIsCollapsed] = useState(false)
@@ -271,10 +287,10 @@ export const ChartRenderer = memo(function ChartRenderer({
 					)}
 
 					{/* Chart content */}
-					<div style={{ height: '300px' }} className="w-full">
+					<div style={{ height: '300px' }} className="w-full" key={`chart-container`}>
 						{charts.map((chart, index) => (
 							<SingleChart
-								key={chart.id}
+								key={`${chart.id}`}
 								config={chart}
 								data={chartData}
 								isActive={!hasMultipleCharts || activeTabIndex === index}
