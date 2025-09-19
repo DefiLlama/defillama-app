@@ -198,6 +198,14 @@
       "tab": "Chains"
     },
     {
+      "name": "App Revenue by Chain",
+      "route": "/app-revenue/chains",
+      "category": "Fees & Revenue",
+      "description": "Sum of all revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees",
+      "totalTrackedKey": "revenue.chains",
+      "tab": "Chains"
+    },
+    {
       "name": "P/F by Protocol",
       "route": "/pf",
       "category": "Fees & Revenue",
@@ -219,14 +227,6 @@
       "category": "Fees & Revenue",
       "description": "Sum of chain fees and MEV tips",
       "totalTrackedKey": "chainFees.chains",
-      "tab": "Chains"
-    },
-    {
-      "name": "App Revenue by Chain",
-      "route": "/app-revenue/chains",
-      "category": "Fees & Revenue",
-      "description": "Sum of all revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees",
-      "totalTrackedKey": "revenue.chains",
       "tab": "Chains"
     },
     {
@@ -481,6 +481,18 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
+      "name": "ETF",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs"
+    },
+    {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries/bitcoin",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -528,12 +540,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "ETF",
-      "route": "/etfs",
-      "category": "Others",
-      "description": "AUM, Flows, Volume metrics of all ETFs"
-    },
-    {
       "name": "Staked ETH by Protocol",
       "route": "/lst",
       "category": "Others",
@@ -562,12 +568,6 @@
       "category": "Others",
       "description": "Overview of protocols with Safe Harbor Agreements",
       "totalTrackedKey": "safeHarbor.protocols"
-    },
-    {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries/bitcoin",
-      "category": "Others",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury"
     }
   ],
   "Tools": [
