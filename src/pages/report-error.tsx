@@ -30,15 +30,20 @@ function ReportError() {
 			message: form.message?.value ?? '',
 			correctSource: form.correctSource?.value ?? '',
 			contact: form.contact?.value ?? ''
-		}).then((data) => {
-			if (data?.message === 'success') {
-				toast.success('Report submitted successfully', { position: 'bottom-right' })
-				form.reset()
-			} else {
-				console.log(data)
-				toast.error('Failed to report', { position: 'bottom-right' })
-			}
 		})
+			.then((data) => {
+				if (data?.message === 'success') {
+					toast.success('Report submitted successfully', { position: 'bottom-right' })
+					form.reset()
+				} else {
+					console.log(data)
+					toast.error('Failed to report', { position: 'bottom-right' })
+				}
+			})
+			.catch((err) => {
+				console.log(err)
+				toast.error('Failed to report', { position: 'bottom-right' })
+			})
 	}
 
 	return (
