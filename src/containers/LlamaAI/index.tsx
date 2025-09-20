@@ -587,7 +587,9 @@ export function LlamaAI() {
 				) : (
 					<History handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 				)}
-				<div className="relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]">
+				<div
+					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible ? 'animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+				>
 					<div className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
 						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 							{conversationHistory.length > 0 || isSubmitted ? (

@@ -708,3 +708,25 @@
 		}
 	}
 }
+
+@keyframes slideInRight {
+	from {
+		transform: translateX(-100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes shrinkToRight {
+	from {
+		transform: scaleX(1.1);
+		transform-origin: right;
+	}
+	to {
+		transform: scaleX(1);
+		transform-origin: right;
+	}
+}

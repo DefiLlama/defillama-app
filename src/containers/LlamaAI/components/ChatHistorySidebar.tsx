@@ -43,7 +43,7 @@ export function ChatHistorySidebar({
 	if (!user) return null
 
 	return (
-		<div className="relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) lg:mr-2 dark:border-[#222324]">
+		<div className="relative flex h-full w-full max-w-[272px] animate-[slideInRight_0.2s_ease-out] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) lg:mr-2 dark:border-[#222324]">
 			<div className="flex flex-nowrap items-center gap-2 p-4 pb-0">
 				<button
 					onClick={onNewChat}
