@@ -60,6 +60,7 @@ export interface IAdapterOverview {
 		slug: string
 		linkedProtocols: Array<string>
 		id: string
+		doublecounted?: boolean
 	}>
 }
 
@@ -108,6 +109,7 @@ export interface IAdapterSummary {
 		methodology: Record<string, string>
 	}>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	doublecounted?: boolean
 }
 
 //breakdown is using chain internal name so we need to map it
@@ -653,7 +655,8 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology ? { methodology } : {})
+			...(methodology ? { methodology } : {}),
+			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -691,6 +694,7 @@ export const getAdapterByChainPageData = async ({
 		const totalAllTime = parentProtocols[protocol].some((p) => p.totalAllTime != null)
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
 			: null
+		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
 
 		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
 			? parentProtocols[protocol].reduce(
@@ -759,7 +763,8 @@ export const getAdapterByChainPageData = async ({
 				? {
 						methodology
 					}
-				: {})
+				: {}),
+			...(doublecounted ? { doublecounted } : {})
 		}
 	}
 
@@ -773,12 +778,6 @@ export const getAdapterByChainPageData = async ({
 	} else if (route === 'ps') {
 		for (const protocol in protocols) {
 			if (protocols[protocol].ps != null) {
-				finalProtocols.push(protocols[protocol])
-			}
-		}
-	} else if (route === 'perps') {
-		for (const protocol in protocols) {
-			if (protocols[protocol].category !== 'Interface') {
 				finalProtocols.push(protocols[protocol])
 			}
 		}

@@ -17,6 +17,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
@@ -971,7 +972,17 @@ const getColumnsByType = (
 				id: 'total24h',
 				header: 'DEX Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -984,7 +995,17 @@ const getColumnsByType = (
 				id: 'total7d',
 				header: 'DEX Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -997,7 +1018,17 @@ const getColumnsByType = (
 				id: 'total30d',
 				header: 'DEX Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1013,7 +1044,17 @@ const getColumnsByType = (
 				id: 'total24h',
 				header: 'Perp Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1027,7 +1068,17 @@ const getColumnsByType = (
 				id: 'total7d',
 				header: 'Perp Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1040,7 +1091,17 @@ const getColumnsByType = (
 				id: 'total30d',
 				header: 'Perp Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
