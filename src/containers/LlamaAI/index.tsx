@@ -8,6 +8,8 @@ import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 import { ChartRenderer } from './components/ChartRenderer'
+import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { useChatHistory } from './hooks/useChatHistory'
 
 class StreamingContent {
 	private content: string = ''
@@ -228,7 +230,9 @@ async function fetchPromptResponse({
 }
 
 export function LlamaAI() {
-	const { authorizedFetch } = useAuthContext()
+	const { authorizedFetch, user } = useAuthContext()
+	const { sidebarVisible, toggleSidebar, createOptimisticSession, generateSessionTitle, loadMoreMessages } =
+		useChatHistory()
 
 	const [streamingResponse, setStreamingResponse] = useState('')
 	const [streamingError, setStreamingError] = useState('')
@@ -239,6 +243,12 @@ export function LlamaAI() {
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
+	const [paginationState, setPaginationState] = useState<{
+		hasMore: boolean
+		isLoadingMore: boolean
+		cursor?: number
+		totalMessages?: number
+	}>({ hasMore: false, isLoadingMore: false })
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
@@ -250,6 +260,7 @@ export function LlamaAI() {
 			timestamp: number
 		}>
 	>([])
+	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 
@@ -478,7 +489,8 @@ export function LlamaAI() {
 			}
 		}
 
-		setSessionId(null)
+		const newSessionId = createOptimisticSession()
+		setSessionId(newSessionId)
 		setPrompt('')
 		resetPrompt()
 		setStreamingResponse('')
@@ -494,7 +506,45 @@ export function LlamaAI() {
 		setExpectedChartInfo(null)
 		setConversationHistory([])
 		streamingContentRef.current.reset()
+		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
+	}
+
+	const handleSessionSelect = (selectedSessionId: string, data: { conversationHistory: any[]; pagination?: any }) => {
+		setSessionId(selectedSessionId)
+		setConversationHistory(data.conversationHistory)
+		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
+		setPrompt('')
+		resetPrompt()
+		setStreamingResponse('')
+		setStreamingError('')
+		setProgressMessage('')
+		setProgressStage('')
+		setStreamingSuggestions(null)
+		setStreamingCharts(null)
+		setStreamingChartData(null)
+		setIsGeneratingCharts(false)
+		setIsAnalyzingForCharts(false)
+		setHasChartError(false)
+		setExpectedChartInfo(null)
+		streamingContentRef.current.reset()
+		setResizeTrigger((prev) => prev + 1)
+		promptInputRef.current?.focus()
+	}
+
+	const handleLoadMoreMessages = async () => {
+		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
+
+		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
+
+		try {
+			const result = await loadMoreMessages(sessionId, paginationState.cursor)
+			setConversationHistory((prev) => [...result.conversationHistory, ...prev])
+			setPaginationState(result.pagination)
+		} catch (error) {
+			console.error('Failed to load more messages:', error)
+			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
+		}
 	}
 
 	const handleSuggestionClick = (suggestion: any) => {
@@ -503,6 +553,11 @@ export function LlamaAI() {
 		promptText = suggestion.title || suggestion.description
 
 		handleSubmitWithSuggestion(promptText, suggestion)
+	}
+
+	const handleSidebarToggle = () => {
+		toggleSidebar()
+		setResizeTrigger((prev) => prev + 1)
 	}
 
 	useEffect(() => {
@@ -520,159 +575,224 @@ export function LlamaAI() {
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex flex-1 flex-col rounded-md border border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
-				<div className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2.5">
-					{conversationHistory.length > 0 || isSubmitted ? (
-						<div className="flex max-h-full w-full flex-1 flex-col gap-2 p-2">
-							<div className="flex w-full items-center justify-between gap-3">
-								<button
-									onClick={handleNewChat}
-									className="bg-[rgba(31,103,210,0.12) hover:bg-[rgba(31,103,210,0.2) flex items-center justify-center gap-2 rounded-md border border-(--old-blue) px-3 py-2 text-(--old-blue) transition-colors"
-									disabled={isPending || isStreaming}
-								>
-									<Icon name="message-square-plus" height={16} width={16} />
-									<span>New Chat</span>
-								</button>
-							</div>
-							<div className="flex flex-col gap-2.5">
-								{conversationHistory.map((item, index) => (
-									<div key={index} className="flex flex-col gap-2.5">
-										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
-											{item.question}
-										</p>
+			<div className="relative isolate flex flex-1 overflow-hidden rounded-md border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]">
+				{sidebarVisible && user && (
+					<div className="bg-opacity-50 fixed inset-0 z-40 bg-black md:hidden" onClick={handleSidebarToggle} />
+				)}
 
-										<div className="flex flex-col gap-2.5">
-											<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 prose-td:whitespace-nowrap prose-th:whitespace-nowrap max-w-none overflow-x-auto">
-												<ReactMarkdown remarkPlugins={[remarkGfm]}>{item.response.answer}</ReactMarkdown>
-											</div>
-
-											{item.response.charts && item.response.charts.length > 0 && (
-												<ChartRenderer charts={item.response.charts} chartData={item.response.chartData || []} />
-											)}
-
-											{item.response.suggestions && item.response.suggestions.length > 0 && (
-												<div className="mt-4 space-y-3">
-													<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested actions:</h4>
-													<div className="grid gap-2">
-														{item.response.suggestions.map((suggestion, suggestionIndex) => (
-															<button
-																key={suggestionIndex}
-																onClick={() => handleSuggestionClick(suggestion)}
-																disabled={isPending || isStreaming}
-																className={`group rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
-																	isPending || isStreaming
-																		? 'cursor-not-allowed opacity-50'
-																		: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
-																}`}
-															>
-																<div className="flex items-start justify-between gap-3">
-																	<div className="min-w-0 flex-1">
-																		<div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-																			{suggestion.title}
-																		</div>
-																		<div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-																			{suggestion.description}
-																		</div>
-																	</div>
-																	<Icon
-																		name="arrow-right"
-																		height={16}
-																		width={16}
-																		className="shrink-0 text-gray-400 group-hover:text-blue-500"
-																	/>
-																</div>
-															</button>
-														))}
-													</div>
-												</div>
-											)}
-											{item.response.metadata && (
-												<details className="group mt-4 rounded-md bg-gray-50 p-2 text-xs dark:bg-gray-800">
-													<summary className="flex flex-wrap items-center justify-between gap-2 font-medium">
-														<span>Query Metadata</span>
-														<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-															<Icon
-																name="chevron-down"
-																height={14}
-																width={14}
-																className="transition-transform group-open:rotate-180"
-															/>
-															<span className="group-open:hidden">Show</span>
-															<span className="hidden group-open:block">Hide</span>
-														</span>
-													</summary>
-													<pre className="mt-2 overflow-auto">{JSON.stringify(item.response.metadata, null, 2)}</pre>
-												</details>
-											)}
-										</div>
-									</div>
-								))}
-							</div>
-							{(isPending || isStreaming || promptResponse || error) && (
-								<div className="flex flex-col gap-2.5">
-									{prompt && (
-										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
-											{prompt}
-										</p>
-									)}
-									<PromptResponse
-										response={
-											promptResponse?.response ||
-											(streamingSuggestions || streamingCharts
-												? {
-														answer: '',
-														suggestions: streamingSuggestions,
-														charts: streamingCharts,
-														chartData: streamingChartData
-													}
-												: undefined)
-										}
-										error={error?.message}
-										streamingError={streamingError}
-										isPending={isPending}
-										streamingResponse={streamingResponse}
-										isStreaming={isStreaming}
-										progressMessage={progressMessage}
-										progressStage={progressStage}
-										onSuggestionClick={handleSuggestionClick}
-										isGeneratingCharts={isGeneratingCharts}
-										isAnalyzingForCharts={isAnalyzingForCharts}
-										hasChartError={hasChartError}
-										expectedChartInfo={expectedChartInfo}
-									/>
-								</div>
-							)}
-						</div>
-					) : (
-						<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-							<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-							<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+				<div
+					className={`grid h-full w-full transition-all duration-300 ${sidebarVisible && user ? 'grid-cols-[1fr] md:grid-cols-[280px_1fr]' : 'grid-cols-[1fr]'}`}
+				>
+					{user && (
+						<div className={`${sidebarVisible ? 'block' : 'hidden md:block'}`}>
+							<ChatHistorySidebar
+								visible={sidebarVisible}
+								currentSessionId={sessionId}
+								onSessionSelect={handleSessionSelect}
+								onNewChat={handleNewChat}
+							/>
 						</div>
 					)}
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={isPending}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-					/>
-					{conversationHistory.length === 0 && !isSubmitted ? (
-						<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
-							{recommendedPrompts.map((prompt) => (
-								<button
-									key={prompt}
-									onClick={() => {
-										setPrompt(prompt)
-										submitPrompt({ userQuestion: prompt })
-									}}
-									disabled={isPending}
-									className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
-								>
-									{prompt}
-								</button>
-							))}
+
+					<div className="relative flex flex-1 flex-col p-2.5">
+						{user && (
+							<button
+								onClick={handleSidebarToggle}
+								className="absolute top-2 left-2 z-10 flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+							>
+								<Icon name={sidebarVisible ? 'chevrons-left' : 'chevrons-right'} height={16} width={16} />
+							</button>
+						)}
+
+						<div className={`relative mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5 ${user ? 'pt-10' : ''}`}>
+							{conversationHistory.length > 0 || isSubmitted ? (
+								<div className="flex max-h-full min-h-0 w-full flex-1 flex-col gap-2 p-2">
+									<div className="flex w-full flex-shrink-0 items-center justify-between gap-3">
+										<button
+											onClick={handleNewChat}
+											className="bg-[rgba(31,103,210,0.12) hover:bg-[rgba(31,103,210,0.2) flex items-center justify-center gap-2 rounded-md border border-(--old-blue) px-3 py-2 text-(--old-blue) transition-colors"
+											disabled={isPending || isStreaming}
+										>
+											<Icon name="message-square-plus" height={16} width={16} />
+											<span>New Chat</span>
+										</button>
+									</div>
+									<div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto">
+										{paginationState.hasMore && (
+											<div className="flex justify-center py-2">
+												<button
+													onClick={handleLoadMoreMessages}
+													disabled={paginationState.isLoadingMore}
+													className="flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20"
+												>
+													{paginationState.isLoadingMore ? (
+														<>
+															<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+															<span>Loading...</span>
+														</>
+													) : (
+														<>
+															<Icon name="arrow-up" height={16} width={16} />
+															<span>Load Earlier Messages</span>
+															{paginationState.totalMessages && (
+																<span className="text-xs opacity-75">({paginationState.totalMessages} total)</span>
+															)}
+														</>
+													)}
+												</button>
+											</div>
+										)}
+										{conversationHistory.map((item, index) => (
+											<div key={index} className="flex flex-col gap-2.5">
+												<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
+													{item.question}
+												</p>
+
+												<div className="flex flex-col gap-2.5">
+													<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 prose-td:whitespace-nowrap prose-th:whitespace-nowrap max-w-none overflow-x-auto">
+														<ReactMarkdown remarkPlugins={[remarkGfm]}>{item.response.answer}</ReactMarkdown>
+													</div>
+
+													{item.response.charts && item.response.charts.length > 0 && (
+														<ChartRenderer
+															charts={item.response.charts}
+															chartData={item.response.chartData || []}
+															resizeTrigger={resizeTrigger}
+														/>
+													)}
+
+													{item.response.suggestions && item.response.suggestions.length > 0 && (
+														<div className="mt-4 space-y-3">
+															<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+																Suggested actions:
+															</h4>
+															<div className="grid gap-2">
+																{item.response.suggestions.map((suggestion, suggestionIndex) => (
+																	<button
+																		key={suggestionIndex}
+																		onClick={() => handleSuggestionClick(suggestion)}
+																		disabled={isPending || isStreaming}
+																		className={`group rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
+																			isPending || isStreaming
+																				? 'cursor-not-allowed opacity-50'
+																				: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
+																		}`}
+																	>
+																		<div className="flex items-start justify-between gap-3">
+																			<div className="min-w-0 flex-1">
+																				<div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+																					{suggestion.title}
+																				</div>
+																				<div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+																					{suggestion.description}
+																				</div>
+																			</div>
+																			<Icon
+																				name="arrow-right"
+																				height={16}
+																				width={16}
+																				className="shrink-0 text-gray-400 group-hover:text-blue-500"
+																			/>
+																		</div>
+																	</button>
+																))}
+															</div>
+														</div>
+													)}
+													{item.response.metadata && (
+														<details className="group mt-4 rounded-md bg-gray-50 p-2 text-xs dark:bg-gray-800">
+															<summary className="flex flex-wrap items-center justify-between gap-2 font-medium">
+																<span>Query Metadata</span>
+																<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+																	<Icon
+																		name="chevron-down"
+																		height={14}
+																		width={14}
+																		className="transition-transform group-open:rotate-180"
+																	/>
+																	<span className="group-open:hidden">Show</span>
+																	<span className="hidden group-open:block">Hide</span>
+																</span>
+															</summary>
+															<pre className="mt-2 overflow-auto">
+																{JSON.stringify(item.response.metadata, null, 2)}
+															</pre>
+														</details>
+													)}
+												</div>
+											</div>
+										))}
+									</div>
+									{(isPending || isStreaming || promptResponse || error) && (
+										<div className="flex flex-col gap-2.5">
+											{prompt && (
+												<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
+													{prompt}
+												</p>
+											)}
+											<PromptResponse
+												response={
+													promptResponse?.response ||
+													(streamingSuggestions || streamingCharts
+														? {
+																answer: '',
+																suggestions: streamingSuggestions,
+																charts: streamingCharts,
+																chartData: streamingChartData
+															}
+														: undefined)
+												}
+												error={error?.message}
+												streamingError={streamingError}
+												isPending={isPending}
+												streamingResponse={streamingResponse}
+												isStreaming={isStreaming}
+												progressMessage={progressMessage}
+												progressStage={progressStage}
+												onSuggestionClick={handleSuggestionClick}
+												isGeneratingCharts={isGeneratingCharts}
+												isAnalyzingForCharts={isAnalyzingForCharts}
+												hasChartError={hasChartError}
+												expectedChartInfo={expectedChartInfo}
+												resizeTrigger={resizeTrigger}
+											/>
+										</div>
+									)}
+								</div>
+							) : (
+								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+								</div>
+							)}
+							<div className="flex-shrink-0">
+								<PromptInput
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									isPending={isPending}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+								/>
+							</div>
+							{conversationHistory.length === 0 && !isSubmitted ? (
+								<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
+									{recommendedPrompts.map((prompt) => (
+										<button
+											key={prompt}
+											onClick={() => {
+												setPrompt(prompt)
+												submitPrompt({ userQuestion: prompt })
+											}}
+											disabled={isPending}
+											className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
+										>
+											{prompt}
+										</button>
+									))}
+								</div>
+							) : null}
 						</div>
-					) : null}
+					</div>
 				</div>
 			</div>
 		</Layout>
@@ -770,7 +890,8 @@ const PromptResponse = ({
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
-	expectedChartInfo
+	expectedChartInfo,
+	resizeTrigger = 0
 }: {
 	response?: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
 	error?: string
@@ -785,6 +906,7 @@ const PromptResponse = ({
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
 	expectedChartInfo?: { count?: number; types?: string[] } | null
+	resizeTrigger?: number
 }) => {
 	if (error) {
 		return <p className="text-red-500">{error}</p>
@@ -830,6 +952,7 @@ const PromptResponse = ({
 						hasError={hasChartError}
 						expectedChartCount={expectedChartInfo?.count}
 						chartTypes={expectedChartInfo?.types}
+						resizeTrigger={resizeTrigger}
 					/>
 				)}
 			</>
@@ -846,6 +969,7 @@ const PromptResponse = ({
 					isAnalyzing={false}
 					expectedChartCount={expectedChartInfo?.count}
 					chartTypes={expectedChartInfo?.types}
+					resizeTrigger={resizeTrigger}
 				/>
 			)}
 			{response?.suggestions && response.suggestions.length > 0 && (

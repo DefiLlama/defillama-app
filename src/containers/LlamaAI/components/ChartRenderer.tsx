@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useState } from 'react'
+import { lazy, memo, Suspense, useState, useEffect, useRef } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
@@ -22,6 +22,7 @@ interface ChartRendererProps {
 	hasError?: boolean
 	expectedChartCount?: number
 	chartTypes?: string[]
+	resizeTrigger?: number
 }
 
 interface SingleChartProps {
@@ -153,9 +154,33 @@ export const ChartRenderer = memo(function ChartRenderer({
 	isAnalyzing = false,
 	hasError = false,
 	expectedChartCount,
-	chartTypes
+	chartTypes,
+	resizeTrigger = 0
 }: ChartRendererProps) {
 	const [activeTabIndex, setActiveTabIndex] = useState(0)
+	const containerRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!containerRef.current) return
+
+		const resizeObserver = new ResizeObserver(() => {
+			const event = new CustomEvent('chartResize')
+			window.dispatchEvent(event)
+		})
+
+		resizeObserver.observe(containerRef.current)
+		return () => resizeObserver.disconnect()
+	}, [])
+
+	useEffect(() => {
+		if (resizeTrigger > 0) {
+			const timer = setTimeout(() => {
+				const event = new CustomEvent('chartResize')
+				window.dispatchEvent(event)
+			}, 100)
+			return () => clearTimeout(timer)
+		}
+	}, [resizeTrigger])
 
 	if (hasError && (!charts || charts.length === 0)) {
 		return <ChartErrorPlaceholder />
@@ -176,7 +201,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 	const hasMultipleCharts = charts.length > 1
 
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--old-blue) pt-2">
+		<div ref={containerRef} className="flex flex-col gap-2 rounded-md border border-(--old-blue) pt-2">
 			{hasMultipleCharts && (
 				<div className="flex border-b border-gray-200 px-2 dark:border-gray-700">
 					{charts.map((chart, index) => (
