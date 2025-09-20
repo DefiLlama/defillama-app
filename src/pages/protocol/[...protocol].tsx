@@ -46,6 +46,9 @@ export async function getStaticPaths() {
 	const res = await fetchJson(PROTOCOLS_API)
 	const slugs = new Set()
 	for (const protocol of res.protocols) {
+		if (['Bridge', 'Canonical Bridge'].includes(protocol.category)) {
+			continue
+		}
 		if (protocol.name.startsWith('Uniswap')) {
 			slugs.add(slug(protocol.name))
 		}
