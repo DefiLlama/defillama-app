@@ -776,6 +776,12 @@ export const getAdapterByChainPageData = async ({
 				finalProtocols.push(protocols[protocol])
 			}
 		}
+	} else if (route === 'perps') {
+		for (const protocol in protocols) {
+			if (protocols[protocol].category !== 'Interface') {
+				finalProtocols.push(protocols[protocol])
+			}
+		}
 	} else {
 		for (const protocol in protocols) {
 			finalProtocols.push(protocols[protocol])
