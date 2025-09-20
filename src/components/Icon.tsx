@@ -80,6 +80,7 @@ type Name =
 	| 'file-lock-2'
 	| 'message-square-plus'
 	| 'arrow-up'
+	| 'arrow-right-to-line'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -87,7 +88,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v14.svg#${name}`} />
+			<use href={`/icons/v15.svg#${name}`} />
 		</svg>
 	)
 })

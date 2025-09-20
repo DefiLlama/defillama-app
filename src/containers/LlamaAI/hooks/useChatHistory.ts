@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
@@ -34,8 +34,8 @@ export function useChatHistory() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [sidebarVisible, setSidebarVisible] = useState(() => {
-		if (typeof window === 'undefined') return true
-		return localStorage.getItem('llamaai-sidebar-hidden') !== 'true'
+		if (typeof window === 'undefined') return false
+		return localStorage.getItem('llamaai-sidebar-hidden') === 'true'
 	})
 
 	const { data: sessions = [], isLoading } = useQuery({
@@ -120,10 +120,7 @@ export function useChatHistory() {
 				isActive: true
 			}
 
-			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [
-				optimisticSession,
-				...old
-			])
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [optimisticSession, ...old])
 
 			createSessionMutation.mutate({ sessionId, title })
 		}
@@ -131,61 +128,73 @@ export function useChatHistory() {
 		return sessionId
 	}, [user, createSessionMutation, queryClient])
 
-	const restoreSession = useCallback(async (sessionId: string, limit: number = 50) => {
-		try {
-			const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
-			return {
-				conversationHistory: result.conversationHistory || [],
-				pagination: {
-					hasMore: result.hasMore || false,
-					isLoadingMore: false,
-					cursor: result.nextCursor,
-					totalMessages: result.totalMessages
+	const restoreSession = useCallback(
+		async (sessionId: string, limit: number = 50) => {
+			try {
+				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
+				return {
+					conversationHistory: result.conversationHistory || [],
+					pagination: {
+						hasMore: result.hasMore || false,
+						isLoadingMore: false,
+						cursor: result.nextCursor,
+						totalMessages: result.totalMessages
+					}
+				}
+			} catch (error) {
+				console.error('Failed to restore session:', error)
+				return {
+					conversationHistory: [],
+					pagination: {
+						hasMore: false,
+						isLoadingMore: false
+					}
 				}
 			}
-		} catch (error) {
-			console.error('Failed to restore session:', error)
-			return {
-				conversationHistory: [],
-				pagination: {
-					hasMore: false,
-					isLoadingMore: false
-				}
-			}
-		}
-	}, [restoreSessionMutation])
+		},
+		[restoreSessionMutation]
+	)
 
-	const loadMoreMessages = useCallback(async (sessionId: string, cursor: number) => {
-		try {
-			const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 50, cursor })
-			return {
-				conversationHistory: result.conversationHistory || [],
-				pagination: {
-					hasMore: result.hasMore || false,
-					isLoadingMore: false,
-					cursor: result.nextCursor,
-					totalMessages: result.totalMessages
+	const loadMoreMessages = useCallback(
+		async (sessionId: string, cursor: number) => {
+			try {
+				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 50, cursor })
+				return {
+					conversationHistory: result.conversationHistory || [],
+					pagination: {
+						hasMore: result.hasMore || false,
+						isLoadingMore: false,
+						cursor: result.nextCursor,
+						totalMessages: result.totalMessages
+					}
+				}
+			} catch (error) {
+				console.error('Failed to load more messages:', error)
+				return {
+					conversationHistory: [],
+					pagination: {
+						hasMore: false,
+						isLoadingMore: false
+					}
 				}
 			}
-		} catch (error) {
-			console.error('Failed to load more messages:', error)
-			return {
-				conversationHistory: [],
-				pagination: {
-					hasMore: false,
-					isLoadingMore: false
-				}
-			}
-		}
-	}, [restoreSessionMutation])
+		},
+		[restoreSessionMutation]
+	)
 
-	const deleteSession = useCallback((sessionId: string) => {
-		deleteSessionMutation.mutate(sessionId)
-	}, [deleteSessionMutation])
+	const deleteSession = useCallback(
+		(sessionId: string) => {
+			deleteSessionMutation.mutate(sessionId)
+		},
+		[deleteSessionMutation]
+	)
 
-	const updateSessionTitle = useCallback((sessionId: string, title: string) => {
-		updateTitleMutation.mutate({ sessionId, title })
-	}, [updateTitleMutation])
+	const updateSessionTitle = useCallback(
+		(sessionId: string, title: string) => {
+			updateTitleMutation.mutate({ sessionId, title })
+		},
+		[updateTitleMutation]
+	)
 
 	const toggleSidebar = useCallback(() => {
 		const newVisible = !sidebarVisible
