@@ -43,8 +43,8 @@ export function ChatHistorySidebar({
 	if (!user) return null
 
 	return (
-		<div className="thin-scrollbar relative flex h-full w-full max-w-[272px] flex-col gap-2 overflow-auto rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-4 lg:mr-2 dark:border-[#222324]">
-			<div className="flex flex-nowrap items-center gap-2">
+		<div className="relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) lg:mr-2 dark:border-[#222324]">
+			<div className="flex flex-nowrap items-center gap-2 p-4 pb-0">
 				<button
 					onClick={onNewChat}
 					className="flex flex-1 items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/10 px-2 py-0.75 text-xs text-(--old-blue)"
@@ -62,32 +62,34 @@ export function ChatHistorySidebar({
 				</Tooltip>
 			</div>
 
-			<h1 className="dark:text-[#919296 my-2 text-xs text-[#666]">Chats</h1>
+			<h1 className="p-4 text-xs text-[#666] dark:text-[#919296]">Chats</h1>
 
-			{isLoading ? (
-				<div className="flex items-center justify-center py-8">
-					<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-				</div>
-			) : sessions.length === 0 ? (
-				<p className="py-8 text-center text-xs">No chat history yet</p>
-			) : (
-				<>
-					{sessions.map((session) => (
-						<SessionItem
-							key={session.sessionId}
-							session={session}
-							isActive={session.sessionId === currentSessionId}
-							onClick={() => handleSessionClick(session.sessionId)}
-							onDelete={() => deleteSession(session.sessionId)}
-							onUpdateTitle={(title) => updateSessionTitle(session.sessionId, title)}
-							isUpdating={isUpdatingTitle}
-						/>
-					))}
-				</>
-			)}
+			<div className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
+				{isLoading ? (
+					<div className="flex items-center justify-center py-8">
+						<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+					</div>
+				) : sessions.length === 0 ? (
+					<p className="py-8 text-center text-xs">No chat history yet</p>
+				) : (
+					<div className="flex flex-col gap-2">
+						{sessions.map((session) => (
+							<SessionItem
+								key={session.sessionId}
+								session={session}
+								isActive={session.sessionId === currentSessionId}
+								onClick={() => handleSessionClick(session.sessionId)}
+								onDelete={() => deleteSession(session.sessionId)}
+								onUpdateTitle={(title) => updateSessionTitle(session.sessionId, title)}
+								isUpdating={isUpdatingTitle}
+							/>
+						))}
+					</div>
+				)}
+			</div>
 
 			{(isRestoringSession || isDeletingSession) && (
-				<div className="absolute inset-0 flex items-center justify-center bg-(--cards-bg)/80">
+				<div className="absolute inset-0 z-10 flex items-center justify-center bg-(--cards-bg)/90">
 					<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
 				</div>
 			)}
