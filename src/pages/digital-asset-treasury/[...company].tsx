@@ -28,6 +28,7 @@ interface IDigitalAssetTreasuryCompany {
 			amount: number
 			usdValue?: number | null
 			cost?: number | null
+			avgPrice?: number | null
 		}
 	}
 	last30dChanges: Array<{
@@ -39,6 +40,7 @@ interface IDigitalAssetTreasuryCompany {
 	}>
 	totalAssetAmount: number
 	totalCost?: number | null
+	avgPrice?: number | null
 	totalUsdValue?: number | null
 	transactionCount: number
 	firstAnnouncementDate: string
@@ -120,13 +122,16 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				...data,
 				assets: data.assets,
-				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(([asset, { amount, cost, usdValue }]) => ({
-					name: assetsByNameAndTicker[asset].name,
-					ticker: assetsByNameAndTicker[asset].ticker,
-					amount: amount,
-					cost: cost ?? null,
-					usdValue: usdValue ?? null
-				})),
+				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(
+					([asset, { amount, cost, usdValue, avgPrice }]) => ({
+						name: assetsByNameAndTicker[asset].name,
+						ticker: assetsByNameAndTicker[asset].ticker,
+						amount: amount,
+						cost: cost ?? null,
+						usdValue: usdValue ?? null,
+						avgPrice: avgPrice ?? null
+					})
+				),
 				chartByAsset
 			},
 			revalidate: maxAgeForNext([22])
@@ -155,6 +160,7 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 		amount: number
 		cost: number | null
 		usdValue: number | null
+		avgPrice: number | null
 	}>
 	chartByAsset: Array<{
 		asset: string
@@ -193,12 +199,22 @@ export default function DigitalAssetTreasury(props: IProps) {
 										{props.totalUsdValue != null ? formattedNum(props.totalUsdValue, true) : null}
 									</span>
 								</p>
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									<span className="text-(--text-label)">Assets Cost Basis</span>
-									<span className="font-jetbrains ml-auto">
-										{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
-									</span>
-								</p>
+								{props.totalCost != null && (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Assets Cost Basis</span>
+										<span className="font-jetbrains ml-auto">
+											{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
+										</span>
+									</p>
+								)}
+								{props.avgPrice != null && (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Assets Average Price</span>
+										<span className="font-jetbrains ml-auto">
+											{props.avgPrice != null ? formattedNum(props.avgPrice, true) : '-'}
+										</span>
+									</p>
+								)}
 							</>
 						)}
 						{props.assetsBreakdown.map((asset, index) => (
@@ -230,6 +246,12 @@ export default function DigitalAssetTreasury(props: IProps) {
 										<span className="text-(--text-label)">Cost Basis</span>
 										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
 											{asset.cost != null ? formattedNum(asset.cost, true) : '-'}
+										</span>
+									</p>
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Average Price</span>
+										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+											{asset.avgPrice != null ? formattedNum(asset.avgPrice, true) : '-'}
 										</span>
 									</p>
 								</div>

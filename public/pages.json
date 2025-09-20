@@ -488,7 +488,7 @@
     },
     {
       "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries/bitcoin",
+      "route": "/digital-asset-treasuries",
       "category": "ETFs & DATs",
       "description": "Institutions that own cryptocurrencies as part of their corporate treasury"
     },

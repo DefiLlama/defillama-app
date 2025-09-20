@@ -131,21 +131,23 @@ export const columns: ColumnDef<any>[] = [
 			}
 
 			return (
-				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<span className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white">
-						{dominance.map((dom) => {
-							const color = breakdownColor(dom[0])
-							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+				<Tooltip
+					content={<BreakdownTooltipContent dominance={dominance} protocolName={info.row.original.name} />}
+					render={<button />}
+					className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white"
+				>
+					{dominance.map((dom) => {
+						const color = breakdownColor(dom[0])
+						const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
 
-							return (
-								<div
-									key={dom[0] + dom[1] + info.row.original.name}
-									style={{ width: `${dom[1]}%`, background: color }}
-									className="h-5"
-								/>
-							)
-						})}
-					</span>
+						return (
+							<div
+								key={dom[0] + dom[1] + info.row.original.name}
+								style={{ width: `${dom[1]}%`, background: color }}
+								className="h-5"
+							/>
+						)
+					})}
 				</Tooltip>
 			)
 		},
@@ -291,7 +293,7 @@ const Breakdown = ({ data }) => {
 	)
 }
 
-const TooltipContent = ({ dominance, protocolName }) => {
+const BreakdownTooltipContent = ({ dominance, protocolName }) => {
 	return (
 		<span className="flex flex-col gap-1">
 			{dominance.map((dom) => (
