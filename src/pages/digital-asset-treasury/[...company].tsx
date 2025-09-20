@@ -249,7 +249,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 										</span>
 									</p>
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-										<span className="text-(--text-label)">Average Price</span>
+										<span className="text-(--text-label)">Average Purchase Price</span>
 										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
 											{asset.avgPrice != null ? formattedNum(asset.avgPrice, true) : '-'}
 										</span>

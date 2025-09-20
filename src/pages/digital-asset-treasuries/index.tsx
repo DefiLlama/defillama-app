@@ -341,7 +341,7 @@ const Breakdown = ({
 			{data.amount && <span>{`Amount: ${formattedNum(data.amount, false)} ${data.ticker}`}</span>}
 			{data.usdValue && <span>{`Today's Value: ${formattedNum(data.usdValue, true)}`}</span>}
 			{data.cost && <span>{`Cost Basis: ${formattedNum(data.cost, true)}`}</span>}
-			{data.avgPrice && <span>{`Average Price: ${formattedNum(data.avgPrice, true)}`}</span>}
+			{data.avgPrice && <span>{`Average Purchase Price: ${formattedNum(data.avgPrice, true)}`}</span>}
 		</span>
 	)
 }
