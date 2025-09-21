@@ -596,7 +596,10 @@ export function LlamaAI() {
 								<div className="flex w-full flex-col gap-2 p-2">
 									<div className="flex flex-col gap-2.5">
 										{conversationHistory.map((item) => (
-											<div key={`${item.question}-${item.timestamp}`} className="flex flex-col gap-2.5">
+											<div
+												key={`${item.question}-${item.timestamp}`}
+												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100vh-260px)]'}`}
+											>
 												<SentPrompt prompt={item.question} />
 												<div className="flex flex-col gap-2.5">
 													<Answer content={item.response.answer} />
@@ -621,7 +624,7 @@ export function LlamaAI() {
 										))}
 									</div>
 									{(isPending || isStreaming || promptResponse || error) && (
-										<div className="flex flex-col gap-2.5">
+										<div className="flex min-h-[calc(100vh-260px)] flex-col gap-2.5">
 											{prompt && <SentPrompt prompt={prompt} />}
 											<PromptResponse
 												response={

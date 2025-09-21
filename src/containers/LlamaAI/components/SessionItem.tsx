@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import type { ChatSession } from '../hooks/useChatHistory'
 
 interface SessionItemProps {
@@ -90,7 +91,6 @@ export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitl
 					)}
 					<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{formatDate(session.lastActivity)}</p>
 				</div>
-
 				<div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
 					{!isEditing && (
 						<>
@@ -126,10 +126,9 @@ export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitl
 					)}
 				</div>
 			</div>
-
 			{isUpdating && (
-				<div className="absolute inset-0 flex items-center justify-center rounded-md bg-white/50 dark:bg-black/50">
-					<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+				<div className="absolute inset-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/90">
+					<LoadingSpinner size={16} />
 				</div>
 			)}
 		</div>
