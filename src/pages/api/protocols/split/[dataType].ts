@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CATEGORY_CHART_API, CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
-import { processAdjustedTvl } from '~/utils/tvl'
+import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
 
 interface ChartSeries {
 	name: string
@@ -281,6 +281,9 @@ const getTvlData = async (
 	const excludedChainSetForProtocols: Set<string> = new Set(
 		filterMode === 'exclude' ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
 	)
+	const includedChainSetForProtocols: Set<string> = new Set(
+		filterMode === 'include' && !isAll ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
+	)
 	const categoriesFilterSet = new Set(categoriesFilter)
 
 	for (const p of protocols) {
@@ -387,53 +390,18 @@ const getTvlData = async (
 					if (!resp.ok) return []
 					const json = await resp.json()
 					const chainTvls = json?.chainTvls || {}
-					const seriesToSum: [number, number][][] = []
 
-					if (isAll) {
-						for (const key in chainTvls) {
-							if (isIgnoredChainKey(key)) continue
-							if (filterMode === 'exclude' && excludedChainSetForProtocols.has(key)) continue
-							const arr = chainTvls[key]?.tvl || []
-							if (Array.isArray(arr) && arr.length > 0) {
-								const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
-									number,
-									number
-								][]
-								seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
-							}
-						}
-					} else {
-						if (filterMode === 'exclude') {
-							for (const key in chainTvls) {
-								if (isIgnoredChainKey(key)) continue
-								if (excludedChainSetForProtocols.has(key)) continue
-								const arr = chainTvls[key]?.tvl || []
-								if (Array.isArray(arr) && arr.length > 0) {
-									const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
-										number,
-										number
-									][]
-									seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
-								}
-							}
-						} else {
-							for (const ch of selectedChains) {
-								const key = mapChainForProtocols(ch)
-								if (isIgnoredChainKey(key)) continue
-								const arr = chainTvls[key]?.tvl || []
-								if (Array.isArray(arr) && arr.length > 0) {
-									const mapped = arr.map((d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0]) as [
-										number,
-										number
-									][]
-									seriesToSum.push(filterOutToday(normalizeDailyPairs(mapped)))
-								}
-							}
-						}
+					const opts: any = {}
+					if (filterMode === 'exclude' && excludedChainSetForProtocols.size > 0) {
+						opts.filterMode = 'exclude'
+						opts.excludeChains = Array.from(excludedChainSetForProtocols)
+					}
+					if (filterMode === 'include' && !isAll && includedChainSetForProtocols.size > 0) {
+						opts.filterMode = 'include'
+						opts.includeChains = Array.from(includedChainSetForProtocols)
 					}
 
-					const summed = sumSeriesByTimestamp(seriesToSum)
-					return Array.from(summed.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
+					return processAdjustedProtocolTvl(chainTvls, opts)
 				}
 
 				if (useChildrenOnly) {

@@ -8,6 +8,7 @@ import {
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
+import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat } from '../utils'
 
 interface DateTvl {
@@ -36,19 +37,8 @@ export default class ProtocolCharts {
 			}
 			const data: ProtocolApiResponse = await response.json()
 
-			const dailyAggregatedTvl: Record<number, number> = {}
-
-			Object.values(data.chainTvls).forEach((chainTvlData) => {
-				chainTvlData.tvl.forEach((item) => {
-					dailyAggregatedTvl[item.date] = (dailyAggregatedTvl[item.date] || 0) + item.totalLiquidityUSD
-				})
-			})
-
-			const sortedData = Object.entries(dailyAggregatedTvl)
-				.map(([date, tvl]) => [parseInt(date, 10), tvl] as [number, number])
-				.sort((a, b) => a[0] - b[0])
-
-			return sortedData
+			const adjusted = processAdjustedProtocolTvl(data?.chainTvls as unknown as ProtocolChainTvls)
+			return adjusted
 		} catch (error) {
 			console.error(`Error fetching or processing protocol TVL for ${protocolId}:`, error)
 			return []

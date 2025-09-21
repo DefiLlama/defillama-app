@@ -66,7 +66,7 @@ interface ITreasuryCompanies {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	'treasuries/[...asset]',
+	'digital-asset-treasuries/[...asset]',
 	async ({
 		params: {
 			asset: [assetName]
@@ -82,7 +82,7 @@ export const getStaticProps = withPerformanceLogging(
 		const name = breakdown[0].assetName
 		const symbol = breakdown[0].assetTicker
 
-		const allAssets = []
+		const allAssets = [{ label: 'All', to: '/digital-asset-treasuries' }]
 		for (const asset in res.breakdownByAsset) {
 			allAssets.push({ label: res.breakdownByAsset[asset][0].assetName, to: `/digital-asset-treasuries/${asset}` })
 		}
@@ -126,7 +126,7 @@ export async function getStaticPaths() {
 	return { paths, fallback: false }
 }
 
-const pageName = ['Digital Asset Treasuries (DATs)', 'by', 'Institution']
+const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
 export default function TreasuriesByAsset({
 	name,
@@ -150,7 +150,7 @@ export default function TreasuriesByAsset({
 			title={`${name} Treasury Holdings - DefiLlama`}
 			description={`Track institutions that own ${name} ($${symbol}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`${name} (${symbol}) treasury holdings, ${name} (${symbol}) corporate treasury, ${name} (${symbol}) treasury holdings by institution, ${name} (${symbol}) treasury holdings by company, ${name} (${symbol}) DATs, ${name} (${symbol}) digital asset treasury`}
-			canonicalUrl={`/treasuries/${asset}`}
+			canonicalUrl={`/digital-asset-treasuries/${asset}`}
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={allAssets} activeLink={name} />
@@ -203,7 +203,7 @@ export default function TreasuriesByAsset({
 			<TableWithSearch
 				data={breakdown}
 				columns={columns({ name, symbol })}
-				placeholder="Search companies"
+				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
 			/>
@@ -243,15 +243,15 @@ const columns = ({
 			align: 'start'
 		}
 	},
-	{
-		header: 'Type',
-		accessorKey: 'type',
-		enableSorting: false,
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
+	// {
+	// 	header: 'Type',
+	// 	accessorKey: 'type',
+	// 	enableSorting: false,
+	// 	size: 120,
+	// 	meta: {
+	// 		align: 'end'
+	// 	}
+	// },
 	{
 		header: 'Holdings',
 		accessorKey: 'totalAssetAmount',

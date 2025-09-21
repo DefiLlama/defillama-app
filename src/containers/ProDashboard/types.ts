@@ -92,6 +92,7 @@ export interface TableFilters {
 	protocols?: string[]
 	categories?: string[]
 	excludedCategories?: string[]
+	oracles?: string[]
 	apyMin?: number
 	apyMax?: number
 	tvlMin?: number

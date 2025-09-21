@@ -99,6 +99,7 @@ interface IProtocol {
 	pf?: number | null
 	ps?: number | null
 	methodology?: string | null
+	doublecounted?: boolean
 }
 
 interface IAdapterByChainPageProtocol extends IProtocol {

@@ -58,9 +58,13 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
 						{isTimeSeriesChart ? (
-							<BarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
+							<BarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} height={'300px'} />
 						) : (
-							<NonTimeSeriesBarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
+							<NonTimeSeriesBarChart
+								chartData={adaptedChart.data}
+								{...(adaptedChart.props as IBarChartProps)}
+								height={'300px'}
+							/>
 						)}
 					</Suspense>
 				)
@@ -69,28 +73,33 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'area':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<AreaChart chartData={adaptedChart.data} {...(adaptedChart.props as IChartProps)} connectNulls={true} />
+						<AreaChart
+							chartData={adaptedChart.data}
+							{...(adaptedChart.props as IChartProps)}
+							connectNulls={true}
+							height={'300px'}
+						/>
 					</Suspense>
 				)
 
 			case 'combo':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} />
+						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
 					</Suspense>
 				)
 
 			case 'multi-series':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} />
+						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
 					</Suspense>
 				)
 
 			case 'pie':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<PieChart {...(adaptedChart.props as IPieChartProps)} />
+						<PieChart {...(adaptedChart.props as IPieChartProps)} height={'300px'} />
 					</Suspense>
 				)
 

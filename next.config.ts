@@ -563,8 +563,8 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
-				source: '/digital-asset-treasuries',
-				destination: '/digital-asset-treasuries/bitcoin',
+				source: '/digital-asset-treasury',
+				destination: '/digital-asset-treasuries',
 				permanent: true
 			}
 		]

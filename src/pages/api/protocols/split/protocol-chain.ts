@@ -8,7 +8,7 @@ import {
 	PROTOCOL_API
 } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
-import { processAdjustedTvl } from '~/utils/tvl'
+import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
 
 interface ChartSeries {
 	name: string
@@ -158,22 +158,18 @@ async function getTvlProtocolChainData(
 				}
 			}
 
-			const tvlArray = (chainData as any)?.tvl || []
-			if (Array.isArray(tvlArray) && tvlArray.length > 0) {
-				const mapped = tvlArray.map(
-					(d: any) => [toUtcDay(Number(d.date)), Number(d.totalLiquidityUSD) || 0] as [number, number]
-				)
-				const normalized = filterOutToday(normalizeDailyPairs(mapped))
-
-				if (normalized.length > 0) {
-					series.push({
-						name: chainKey,
-						data: normalized,
-						color: EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length]
-					})
-					availableChains.push(chainKey)
-					colorIndex++
-				}
+			const adjustedForChain = processAdjustedProtocolTvl(chainTvls as any, {
+				filterMode: 'include',
+				includeChains: [chainKey]
+			})
+			if (adjustedForChain.length > 0) {
+				series.push({
+					name: chainKey,
+					data: adjustedForChain,
+					color: EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length]
+				})
+				availableChains.push(chainKey)
+				colorIndex++
 			}
 		}
 
