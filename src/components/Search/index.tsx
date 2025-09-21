@@ -204,7 +204,7 @@ const Desktop = () => {
 						placeholder="Search..."
 						autoSelect
 						ref={inputField}
-						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-black dark:text-white"
+						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-black lg:py-1.25 dark:text-white"
 					/>
 					<span className="absolute top-0.75 right-0.75 bottom-0.75 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 						⌘K

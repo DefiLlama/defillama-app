@@ -4,10 +4,13 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
+import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 import { ChartRenderer } from './components/ChartRenderer'
+import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { useChatHistory } from './hooks/useChatHistory'
 
 class StreamingContent {
 	private content: string = ''
@@ -228,7 +231,9 @@ async function fetchPromptResponse({
 }
 
 export function LlamaAI() {
-	const { authorizedFetch } = useAuthContext()
+	const { authorizedFetch, user } = useAuthContext()
+	const { sidebarVisible, toggleSidebar, createOptimisticSession, generateSessionTitle, loadMoreMessages } =
+		useChatHistory()
 
 	const [streamingResponse, setStreamingResponse] = useState('')
 	const [streamingError, setStreamingError] = useState('')
@@ -239,6 +244,12 @@ export function LlamaAI() {
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
+	const [paginationState, setPaginationState] = useState<{
+		hasMore: boolean
+		isLoadingMore: boolean
+		cursor?: number
+		totalMessages?: number
+	}>({ hasMore: false, isLoadingMore: false })
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
@@ -250,6 +261,7 @@ export function LlamaAI() {
 			timestamp: number
 		}>
 	>([])
+	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 
@@ -478,7 +490,8 @@ export function LlamaAI() {
 			}
 		}
 
-		setSessionId(null)
+		const newSessionId = createOptimisticSession()
+		setSessionId(newSessionId)
 		setPrompt('')
 		resetPrompt()
 		setStreamingResponse('')
@@ -494,7 +507,45 @@ export function LlamaAI() {
 		setExpectedChartInfo(null)
 		setConversationHistory([])
 		streamingContentRef.current.reset()
+		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
+	}
+
+	const handleSessionSelect = (selectedSessionId: string, data: { conversationHistory: any[]; pagination?: any }) => {
+		setSessionId(selectedSessionId)
+		setConversationHistory(data.conversationHistory)
+		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
+		setPrompt('')
+		resetPrompt()
+		setStreamingResponse('')
+		setStreamingError('')
+		setProgressMessage('')
+		setProgressStage('')
+		setStreamingSuggestions(null)
+		setStreamingCharts(null)
+		setStreamingChartData(null)
+		setIsGeneratingCharts(false)
+		setIsAnalyzingForCharts(false)
+		setHasChartError(false)
+		setExpectedChartInfo(null)
+		streamingContentRef.current.reset()
+		setResizeTrigger((prev) => prev + 1)
+		promptInputRef.current?.focus()
+	}
+
+	const handleLoadMoreMessages = async () => {
+		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
+
+		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
+
+		try {
+			const result = await loadMoreMessages(sessionId, paginationState.cursor)
+			setConversationHistory((prev) => [...result.conversationHistory, ...prev])
+			setPaginationState(result.pagination)
+		} catch (error) {
+			console.error('Failed to load more messages:', error)
+			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
+		}
 	}
 
 	const handleSuggestionClick = (suggestion: any) => {
@@ -503,6 +554,11 @@ export function LlamaAI() {
 		promptText = suggestion.title || suggestion.description
 
 		handleSubmitWithSuggestion(promptText, suggestion)
+	}
+
+	const handleSidebarToggle = () => {
+		toggleSidebar()
+		setResizeTrigger((prev) => prev + 1)
 	}
 
 	useEffect(() => {
@@ -520,159 +576,121 @@ export function LlamaAI() {
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex flex-1 flex-col rounded-md border border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
-				<div className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col gap-2.5">
-					{conversationHistory.length > 0 || isSubmitted ? (
-						<div className="flex max-h-full w-full flex-1 flex-col gap-2 p-2">
-							<div className="flex w-full items-center justify-between gap-3">
-								<button
-									onClick={handleNewChat}
-									className="bg-[rgba(31,103,210,0.12) hover:bg-[rgba(31,103,210,0.2) flex items-center justify-center gap-2 rounded-md border border-(--old-blue) px-3 py-2 text-(--old-blue) transition-colors"
-									disabled={isPending || isStreaming}
-								>
-									<Icon name="message-square-plus" height={16} width={16} />
-									<span>New Chat</span>
-								</button>
-							</div>
-							<div className="flex flex-col gap-2.5">
-								{conversationHistory.map((item, index) => (
-									<div key={index} className="flex flex-col gap-2.5">
-										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
-											{item.question}
-										</p>
-
-										<div className="flex flex-col gap-2.5">
-											<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 prose-td:whitespace-nowrap prose-th:whitespace-nowrap max-w-none overflow-x-auto">
-												<ReactMarkdown remarkPlugins={[remarkGfm]}>{item.response.answer}</ReactMarkdown>
-											</div>
-
-											{item.response.charts && item.response.charts.length > 0 && (
-												<ChartRenderer charts={item.response.charts} chartData={item.response.chartData || []} />
-											)}
-
-											{item.response.suggestions && item.response.suggestions.length > 0 && (
-												<div className="mt-4 space-y-3">
-													<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested actions:</h4>
-													<div className="grid gap-2">
-														{item.response.suggestions.map((suggestion, suggestionIndex) => (
-															<button
-																key={suggestionIndex}
-																onClick={() => handleSuggestionClick(suggestion)}
-																disabled={isPending || isStreaming}
-																className={`group rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
-																	isPending || isStreaming
-																		? 'cursor-not-allowed opacity-50'
-																		: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
-																}`}
-															>
-																<div className="flex items-start justify-between gap-3">
-																	<div className="min-w-0 flex-1">
-																		<div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-																			{suggestion.title}
-																		</div>
-																		<div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-																			{suggestion.description}
-																		</div>
-																	</div>
-																	<Icon
-																		name="arrow-right"
-																		height={16}
-																		width={16}
-																		className="shrink-0 text-gray-400 group-hover:text-blue-500"
-																	/>
-																</div>
-															</button>
-														))}
-													</div>
+			<div className="relative isolate flex max-h-[calc(100vh-72px)] flex-1 flex-nowrap">
+				{sidebarVisible ? (
+					<ChatHistorySidebar
+						handleSidebarToggle={handleSidebarToggle}
+						currentSessionId={sessionId}
+						onSessionSelect={handleSessionSelect}
+						onNewChat={handleNewChat}
+					/>
+				) : (
+					<History handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+				)}
+				<div
+					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible ? 'animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+				>
+					<div className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
+						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+							{conversationHistory.length > 0 || isSubmitted ? (
+								<div className="flex w-full flex-col gap-2 p-2">
+									<div className="flex flex-col gap-2.5">
+										{conversationHistory.map((item) => (
+											<div
+												key={`${item.question}-${item.timestamp}`}
+												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100vh-260px)]'}`}
+											>
+												<SentPrompt prompt={item.question} />
+												<div className="flex flex-col gap-2.5">
+													<Answer content={item.response.answer} />
+													{item.response.charts && item.response.charts.length > 0 && (
+														<ChartRenderer
+															charts={item.response.charts}
+															chartData={item.response.chartData || []}
+															resizeTrigger={resizeTrigger}
+														/>
+													)}
+													{item.response.suggestions && item.response.suggestions.length > 0 && (
+														<SuggestedActions
+															suggestions={item.response.suggestions}
+															handleSuggestionClick={handleSuggestionClick}
+															isPending={isPending}
+															isStreaming={isStreaming}
+														/>
+													)}
+													{item.response.metadata && <QueryMetadata metadata={item.response.metadata} />}
 												</div>
-											)}
-											{item.response.metadata && (
-												<details className="group mt-4 rounded-md bg-gray-50 p-2 text-xs dark:bg-gray-800">
-													<summary className="flex flex-wrap items-center justify-between gap-2 font-medium">
-														<span>Query Metadata</span>
-														<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-															<Icon
-																name="chevron-down"
-																height={14}
-																width={14}
-																className="transition-transform group-open:rotate-180"
-															/>
-															<span className="group-open:hidden">Show</span>
-															<span className="hidden group-open:block">Hide</span>
-														</span>
-													</summary>
-													<pre className="mt-2 overflow-auto">{JSON.stringify(item.response.metadata, null, 2)}</pre>
-												</details>
-											)}
-										</div>
+											</div>
+										))}
 									</div>
-								))}
-							</div>
-							{(isPending || isStreaming || promptResponse || error) && (
-								<div className="flex flex-col gap-2.5">
-									{prompt && (
-										<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
-											{prompt}
-										</p>
+									{(isPending || isStreaming || promptResponse || error) && (
+										<div className="flex min-h-[calc(100vh-260px)] flex-col gap-2.5">
+											{prompt && <SentPrompt prompt={prompt} />}
+											<PromptResponse
+												response={
+													promptResponse?.response ||
+													(streamingSuggestions || streamingCharts
+														? {
+																answer: '',
+																suggestions: streamingSuggestions,
+																charts: streamingCharts,
+																chartData: streamingChartData
+															}
+														: undefined)
+												}
+												error={error?.message}
+												streamingError={streamingError}
+												isPending={isPending}
+												streamingResponse={streamingResponse}
+												isStreaming={isStreaming}
+												progressMessage={progressMessage}
+												progressStage={progressStage}
+												onSuggestionClick={handleSuggestionClick}
+												isGeneratingCharts={isGeneratingCharts}
+												isAnalyzingForCharts={isAnalyzingForCharts}
+												hasChartError={hasChartError}
+												expectedChartInfo={expectedChartInfo}
+												resizeTrigger={resizeTrigger}
+											/>
+										</div>
 									)}
-									<PromptResponse
-										response={
-											promptResponse?.response ||
-											(streamingSuggestions || streamingCharts
-												? {
-														answer: '',
-														suggestions: streamingSuggestions,
-														charts: streamingCharts,
-														chartData: streamingChartData
-													}
-												: undefined)
-										}
-										error={error?.message}
-										streamingError={streamingError}
-										isPending={isPending}
-										streamingResponse={streamingResponse}
-										isStreaming={isStreaming}
-										progressMessage={progressMessage}
-										progressStage={progressStage}
-										onSuggestionClick={handleSuggestionClick}
-										isGeneratingCharts={isGeneratingCharts}
-										isAnalyzingForCharts={isAnalyzingForCharts}
-										hasChartError={hasChartError}
-										expectedChartInfo={expectedChartInfo}
-									/>
+								</div>
+							) : (
+								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 								</div>
 							)}
+							{conversationHistory.length === 0 && !isSubmitted ? (
+								<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
+									{recommendedPrompts.map((prompt) => (
+										<button
+											key={prompt}
+											onClick={() => {
+												setPrompt(prompt)
+												submitPrompt({ userQuestion: prompt })
+											}}
+											disabled={isPending}
+											className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
+										>
+											{prompt}
+										</button>
+									))}
+								</div>
+							) : null}
 						</div>
-					) : (
-						<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-							<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-							<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+					</div>
+					<div className="border-t border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
+						<div className="mx-auto w-full max-w-3xl">
+							<PromptInput
+								handleSubmit={handleSubmit}
+								promptInputRef={promptInputRef}
+								isPending={isPending}
+								handleStopRequest={handleStopRequest}
+								isStreaming={isStreaming}
+							/>
 						</div>
-					)}
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={isPending}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-					/>
-					{conversationHistory.length === 0 && !isSubmitted ? (
-						<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
-							{recommendedPrompts.map((prompt) => (
-								<button
-									key={prompt}
-									onClick={() => {
-										setPrompt(prompt)
-										submitPrompt({ userQuestion: prompt })
-									}}
-									disabled={isPending}
-									className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
-								>
-									{prompt}
-								</button>
-							))}
-						</div>
-					) : null}
+					</div>
 				</div>
 			</div>
 		</Layout>
@@ -725,7 +743,7 @@ const PromptInput = ({
 					onChange={onChange}
 					onKeyDown={onKeyDown}
 					name="prompt"
-					className="w-full rounded-md border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
+					className="w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
@@ -737,7 +755,7 @@ const PromptInput = ({
 					<button
 						type="button"
 						onClick={handleStopRequest}
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-md border border-red-500 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-red-500/10 text-(--error)"
 					>
 						<Icon name="x" height={14} width={14} />
 						<span className="sr-only">Stop streaming</span>
@@ -745,7 +763,7 @@ const PromptInput = ({
 				) : (
 					<button
 						type="submit"
-						className="bg-[rgba(31,103,210,0.12) absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-md border border-(--old-blue) text-(--old-blue) disabled:opacity-50"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50"
 						disabled={isPending || !value.trim()}
 					>
 						<Icon name="arrow-up" height={16} width={16} />
@@ -770,7 +788,8 @@ const PromptResponse = ({
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
-	expectedChartInfo
+	expectedChartInfo,
+	resizeTrigger = 0
 }: {
 	response?: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
 	error?: string
@@ -785,20 +804,18 @@ const PromptResponse = ({
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
 	expectedChartInfo?: { count?: number; types?: string[] } | null
+	resizeTrigger?: number
 }) => {
 	if (error) {
-		return <p className="text-red-500">{error}</p>
+		return <p className="text-(--error)">{error}</p>
 	}
-
 	if (isPending || isStreaming) {
 		return (
 			<>
 				{streamingError ? (
-					<div className="text-red-500">{streamingError}</div>
+					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
-						<ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingResponse}</ReactMarkdown>
-					</div>
+					<Answer content={streamingResponse} />
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
@@ -830,6 +847,7 @@ const PromptResponse = ({
 						hasError={hasChartError}
 						expectedChartCount={expectedChartInfo?.count}
 						chartTypes={expectedChartInfo?.types}
+						resizeTrigger={resizeTrigger}
 					/>
 				)}
 			</>
@@ -846,55 +864,18 @@ const PromptResponse = ({
 					isAnalyzing={false}
 					expectedChartCount={expectedChartInfo?.count}
 					chartTypes={expectedChartInfo?.types}
+					resizeTrigger={resizeTrigger}
 				/>
 			)}
 			{response?.suggestions && response.suggestions.length > 0 && (
-				<div className="space-y-3">
-					<h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Suggested actions:</h4>
-					<div className="grid gap-2">
-						{response.suggestions.map((suggestion, index) => (
-							<button
-								key={index}
-								onClick={() => onSuggestionClick?.(suggestion)}
-								disabled={isPending || isStreaming}
-								className={`group rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
-									isPending || isStreaming
-										? 'cursor-not-allowed opacity-50'
-										: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
-								}`}
-							>
-								<div className="flex items-start justify-between gap-3">
-									<div className="min-w-0 flex-1">
-										<div className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-											{suggestion.title}
-										</div>
-										<div className="mt-1 text-xs text-gray-600 dark:text-gray-400">{suggestion.description}</div>
-									</div>
-									<Icon
-										name="arrow-right"
-										height={16}
-										width={16}
-										className="shrink-0 text-gray-400 group-hover:text-blue-500"
-									/>
-								</div>
-							</button>
-						))}
-					</div>
-				</div>
+				<SuggestedActions
+					suggestions={response.suggestions}
+					handleSuggestionClick={onSuggestionClick}
+					isPending={isPending}
+					isStreaming={isStreaming}
+				/>
 			)}
-			{response?.metadata && (
-				<details className="group rounded-lg bg-gray-50 p-2 dark:bg-gray-800">
-					<summary className="flex flex-wrap items-center justify-between gap-2 font-medium">
-						<span>Query Metadata</span>
-						<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-							<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
-							<span className="group-open:hidden">Show</span>
-							<span className="hidden group-open:block">Hide</span>
-						</span>
-					</summary>
-					<pre className="mt-2 overflow-auto">{JSON.stringify(response.metadata, null, 2)}</pre>
-				</details>
-			)}
+			{response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
 	)
 }
@@ -1007,5 +988,113 @@ const FadingLoader = () => {
 				className="loading-line"
 			/>
 		</svg>
+	)
+}
+
+const SuggestedActions = ({
+	suggestions,
+	handleSuggestionClick,
+	isPending,
+	isStreaming
+}: {
+	suggestions: any[]
+	handleSuggestionClick: (suggestion: any) => void
+	isPending: boolean
+	isStreaming: boolean
+}) => {
+	return (
+		<div className="mt-4 grid gap-2">
+			<h4 className="text-gray-700 dark:text-gray-300">Suggested actions:</h4>
+			<div className="grid gap-2">
+				{suggestions.map((suggestion) => (
+					<button
+						key={`${suggestion.title}-${suggestion.description}`}
+						onClick={() => handleSuggestionClick(suggestion)}
+						disabled={isPending || isStreaming}
+						className={`group flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
+							isPending || isStreaming
+								? 'cursor-not-allowed opacity-50'
+								: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
+						}`}
+					>
+						<span className="flex flex-1 flex-col gap-1">
+							<span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+								{suggestion.title}
+							</span>
+							{suggestion.description ? (
+								<span className="text-xs text-gray-600 dark:text-gray-400">{suggestion.description}</span>
+							) : null}
+						</span>
+						<Icon
+							name="arrow-right"
+							height={16}
+							width={16}
+							className="shrink-0 text-gray-400 group-hover:text-blue-500"
+						/>
+					</button>
+				))}
+			</div>
+		</div>
+	)
+}
+
+const QueryMetadata = ({ metadata }: { metadata: any }) => {
+	return (
+		<details className="group rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
+			<summary className="flex flex-wrap items-center justify-between gap-2">
+				<span>Query Metadata</span>
+				<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+					<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
+					<span className="group-open:hidden">Show</span>
+					<span className="hidden group-open:block">Hide</span>
+				</span>
+			</summary>
+			<pre className="mt-2 overflow-auto">{JSON.stringify(metadata, null, 2)}</pre>
+		</details>
+	)
+}
+
+const SentPrompt = ({ prompt }: { prompt: string }) => {
+	return (
+		<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
+			{prompt}
+		</p>
+	)
+}
+
+const Answer = ({ content }: { content: string }) => {
+	return (
+		<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
+			<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+		</div>
+	)
+}
+
+const History = ({
+	handleSidebarToggle,
+	handleNewChat
+}: {
+	handleSidebarToggle: () => void
+	handleNewChat: () => void
+}) => {
+	return (
+		<div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-2">
+			<Tooltip
+				content="Open Chat History"
+				render={<button onClick={handleSidebarToggle} />}
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue)"
+			>
+				<Icon name="arrow-right-to-line" height={16} width={16} />
+				<span className="sr-only">Open Chat History</span>
+			</Tooltip>
+			<Tooltip
+				content="New Chat"
+				render={<button onClick={handleNewChat} />}
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white"
+			>
+				<Icon name="message-square-plus" height={16} width={16} />
+				<span className="sr-only">New Chat</span>
+			</Tooltip>
+		</div>
 	)
 }
