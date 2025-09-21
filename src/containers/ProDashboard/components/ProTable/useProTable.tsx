@@ -95,6 +95,26 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		mcaptvl = +formattedNum(finalMcap / tvl)
 	}
 
+	const oracleSet = new Set<string>()
+	const oraclesByChainAgg: Record<string, Set<string>> = {}
+	const addOracles = (obj: any) => {
+		if (Array.isArray(obj?.oracles)) {
+			obj.oracles.forEach((o: string) => oracleSet.add(o))
+		}
+		if (obj?.oraclesByChain) {
+			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
+				;(obj.oraclesByChain[k] || []).forEach((o: string) => set.add(o))
+			}
+		}
+	}
+	addOracles(parent)
+	filteredSubRows.forEach(addOracles)
+
+	const aggregatedOraclesByChain = Object.fromEntries(
+		Object.entries(oraclesByChainAgg).map(([k, v]) => [k, Array.from(v).sort((a, b) => a.localeCompare(b))])
+	)
+
 	return {
 		...parent,
 		tvl,
@@ -118,7 +138,9 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		change_7d,
 		change_1m,
 		mcaptvl,
-		subRows: filteredSubRows
+		subRows: filteredSubRows,
+		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
+		oraclesByChain: Object.keys(aggregatedOraclesByChain).length ? aggregatedOraclesByChain : parent.oraclesByChain
 	}
 }
 
@@ -161,6 +183,7 @@ export function useProTable(
 			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
 			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
 			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null
+			const oracleSet = filters.oracles?.length ? new Set(filters.oracles) : null
 
 			if (excludedCategorySet) {
 				protocols = protocols
@@ -209,6 +232,36 @@ export function useProTable(
 						}
 
 						return null
+					})
+					.filter((p) => p !== null)
+			}
+
+			if (oracleSet) {
+				protocols = protocols
+					.map((p) => {
+						const getOracles = (obj: any): string[] => {
+							if (Array.isArray(obj?.oracles) && obj.oracles.length) return obj.oracles
+							if (obj?.oraclesByChain) {
+								return Array.from(new Set(Object.values(obj.oraclesByChain as Record<string, string[]>).flat()))
+							}
+							return []
+						}
+
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter((child: any) => {
+								const childOracles = getOracles(child)
+								return childOracles.some((o) => oracleSet.has(o))
+							})
+
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							}
+							return null
+						}
+
+						const pOracles = getOracles(p)
+						return pOracles.some((o) => oracleSet.has(o)) ? p : null
 					})
 					.filter((p) => p !== null)
 			}
@@ -339,13 +392,18 @@ export function useProTable(
 
 	// Create custom columns with filter button
 	const columnsWithFilter = React.useMemo(() => {
-		if (!onFilterClick) return { name: null, category: null }
+		if (!onFilterClick) return { name: null, category: null, oracles: null }
 
 		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
 		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
+		const originalOraclesColumn = protocolsByChainColumns.find((col) => col.id === 'oracles')
 
 		const hasActiveFilters =
-			filters && (filters.protocols?.length || filters.categories?.length || filters.excludedCategories?.length)
+			filters &&
+			(filters.protocols?.length ||
+				filters.categories?.length ||
+				filters.excludedCategories?.length ||
+				filters.oracles?.length)
 
 		const filterButton = (
 			<button
@@ -388,7 +446,20 @@ export function useProTable(
 				}
 			: null
 
-		return { name: nameColumn, category: categoryColumn }
+		const oraclesColumn = originalOraclesColumn
+			? {
+					...originalOraclesColumn,
+					id: 'oracles',
+					header: () => (
+						<div className="flex items-center justify-end gap-2">
+							<span>Oracles</span>
+							{React.cloneElement(filterButton, { key: 'oracles-filter' })}
+						</div>
+					)
+				}
+			: null
+
+		return { name: nameColumn, category: categoryColumn, oracles: oraclesColumn }
 	}, [filters, onFilterClick])
 
 	const totals = React.useMemo(() => {
@@ -483,6 +554,13 @@ export function useProTable(
 			const categoryIndex = baseColumns.findIndex((col) => col.id === 'category')
 			if (categoryIndex !== -1) {
 				baseColumns[categoryIndex] = columnsWithFilter.category as ColumnDef<IProtocolRow>
+			}
+		}
+
+		if (columnsWithFilter.oracles) {
+			const oraclesIndex = baseColumns.findIndex((col) => col.id === 'oracles')
+			if (oraclesIndex !== -1) {
+				baseColumns[oraclesIndex] = columnsWithFilter.oracles as ColumnDef<IProtocolRow>
 			}
 		}
 

@@ -3,7 +3,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
 import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '../adaptors'
-import { formatProtocolsData } from '../protocols/utils'
+import { basicPropertiesToKeep, formatProtocolsData } from '../protocols/utils'
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
 	const { data: allProtocolsData, isLoading: isLoadingAll } = useQuery({
@@ -25,7 +25,8 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 				fullProtocolsList: formatProtocolsData({
 					chain: null,
 					protocols,
-					removeBridges: true
+					removeBridges: true,
+					protocolProps: [...basicPropertiesToKeep, 'extraTvl', 'oracles', 'oraclesByChain']
 				}),
 				parentProtocols
 			}
@@ -37,7 +38,8 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 			const chainProtocols = formatProtocolsData({
 				chain,
 				protocols,
-				removeBridges: true
+				removeBridges: true,
+				protocolProps: [...basicPropertiesToKeep, 'extraTvl', 'oracles', 'oraclesByChain']
 			})
 
 			chainProtocols.forEach((protocol) => {
@@ -50,6 +52,17 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 
 					if (protocol.chains && Array.isArray(protocol.chains)) {
 						existing.chains = [...new Set([...existing.chains, ...protocol.chains])]
+					}
+					if (Array.isArray(protocol.oracles)) {
+						const merged = new Set([...(existing.oracles || []), ...protocol.oracles])
+						existing.oracles = Array.from(merged)
+					}
+					if (protocol.oraclesByChain) {
+						existing.oraclesByChain = existing.oraclesByChain || {}
+						for (const k of Object.keys(protocol.oraclesByChain)) {
+							const cur = new Set([...(existing.oraclesByChain[k] || []), ...protocol.oraclesByChain[k]])
+							existing.oraclesByChain[k] = Array.from(cur)
+						}
 					}
 				} else {
 					protocolsMap.set(protocol.name, { ...protocol })

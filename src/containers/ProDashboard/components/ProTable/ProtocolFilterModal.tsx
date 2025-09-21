@@ -89,12 +89,14 @@ export function ProtocolFilterModal({
 	const [selectedProtocols, setSelectedProtocols] = React.useState<string[]>([])
 	const [selectedCategories, setSelectedCategories] = React.useState<string[]>([])
 	const [selectedExcludedCategories, setSelectedExcludedCategories] = React.useState<string[]>([])
+	const [selectedOracles, setSelectedOracles] = React.useState<string[]>([])
 
 	React.useEffect(() => {
 		if (isOpen) {
 			setSelectedProtocols(currentFilters.protocols || [])
 			setSelectedCategories(currentFilters.categories || [])
 			setSelectedExcludedCategories(currentFilters.excludedCategories || [])
+			setSelectedOracles(currentFilters.oracles || [])
 		}
 	}, [isOpen, currentFilters])
 
@@ -102,7 +104,8 @@ export function ProtocolFilterModal({
 		onFiltersChange({
 			protocols: selectedProtocols.length ? selectedProtocols : undefined,
 			categories: selectedCategories.length ? selectedCategories : undefined,
-			excludedCategories: selectedExcludedCategories.length ? selectedExcludedCategories : undefined
+			excludedCategories: selectedExcludedCategories.length ? selectedExcludedCategories : undefined,
+			oracles: selectedOracles.length ? selectedOracles : undefined
 		})
 		onClose()
 	}
@@ -111,12 +114,16 @@ export function ProtocolFilterModal({
 		setSelectedProtocols([])
 		setSelectedCategories([])
 		setSelectedExcludedCategories([])
+		setSelectedOracles([])
 		onFiltersChange({})
 		onClose()
 	}
 
 	const hasActiveFilters =
-		selectedProtocols.length > 0 || selectedCategories.length > 0 || selectedExcludedCategories.length > 0
+		selectedProtocols.length > 0 ||
+		selectedCategories.length > 0 ||
+		selectedExcludedCategories.length > 0 ||
+		selectedOracles.length > 0
 
 	const { options: protocolOptions, parentToChildrenMap } = React.useMemo(() => {
 		const list = (protocols as any[]).map((p) => ({
@@ -128,6 +135,25 @@ export function ProtocolFilterModal({
 		}))
 		return buildProtocolOptions(list, parentProtocols, 'name')
 	}, [protocols, parentProtocols])
+
+	const oracleOptions = React.useMemo(() => {
+		const tvsByOracle = new Map<string, number>()
+		;(protocols as any[]).forEach((p) => {
+			const tvl = Number((p as any).tvl) || 0
+			const add = (o: string) => tvsByOracle.set(o, (tvsByOracle.get(o) || 0) + tvl)
+			if (Array.isArray((p as any).oracles)) {
+				;((p as any).oracles as string[]).forEach(add)
+			}
+			if ((p as any).oraclesByChain) {
+				Object.values((p as any).oraclesByChain as Record<string, string[]>)
+					.flat()
+					.forEach(add)
+			}
+		})
+		return Array.from(tvsByOracle.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([o]) => ({ value: o, label: o }))
+	}, [protocols])
 
 	const categoryOptions = React.useMemo(() => {
 		return categories.map((category) => ({
@@ -154,13 +180,33 @@ export function ProtocolFilterModal({
 					style={{ backgroundColor: 'var(--pro-bg1)' }}
 				>
 					<h2 className="pro-text1 text-lg font-semibold">Filter Protocols</h2>
-						<Ariakit.DialogDismiss className="pro-hover-bg rounded-md p-2 transition-colors">
+					<Ariakit.DialogDismiss className="pro-hover-bg rounded-md p-2 transition-colors">
 						<Icon name="x" height={20} width={20} />
 						<span className="sr-only">Close dialog</span>
 					</Ariakit.DialogDismiss>
 				</div>
 
 				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
+					<div>
+						<label className="pro-text2 mb-2 block text-sm font-medium">Oracles</label>
+						<ReactSelect
+							isMulti
+							options={oracleOptions}
+							value={oracleOptions.filter((opt) => selectedOracles.includes(opt.value))}
+							onChange={(sel: any) => {
+								setSelectedOracles(sel ? sel.map((s: any) => s.value) : [])
+							}}
+							placeholder="Select oracles..."
+							styles={{
+								...reactSelectStyles,
+								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
+							}}
+							components={{ MenuList: SimpleMenuList }}
+							closeMenuOnSelect={false}
+							menuPosition="fixed"
+							menuPlacement="auto"
+						/>
+					</div>
 					<div>
 						<label className="pro-text2 mb-2 block text-sm font-medium">Include Categories</label>
 						<ReactSelect
@@ -280,9 +326,7 @@ export function ProtocolFilterModal({
 						Clear all
 					</button>
 					<div className="flex gap-2">
-						<Ariakit.DialogDismiss
-							className="pro-divider pro-hover-bg pro-text1 rounded-md border px-4 py-2 text-sm transition-colors"
-						>
+						<Ariakit.DialogDismiss className="pro-divider pro-hover-bg pro-text1 rounded-md border px-4 py-2 text-sm transition-colors">
 							Cancel
 						</Ariakit.DialogDismiss>
 						<button

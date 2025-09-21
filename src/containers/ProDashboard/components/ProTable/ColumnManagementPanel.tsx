@@ -8,6 +8,7 @@ import { CustomColumnPanel } from './CustomColumnPanel'
 const metricDescriptions: Record<string, string> = {
 	name: 'Protocol name',
 	category: 'Protocol category or type',
+	oracles: 'Oracles that secure the protocol',
 	tvl: 'Total Value Locked - The total USD value of assets deposited in the protocol',
 	change_1d: '24-hour percentage change in TVL',
 	change_7d: '7-day percentage change in TVL',
@@ -183,7 +184,9 @@ export function ColumnManagementPanel({
 							<span className="pro-text1 text-xs">{column.name}</span>
 							{isCustom && <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span>}
 							{column.key?.endsWith('_share') && (
-								<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">%</span>
+								<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 rounded-md px-1 py-0.5 text-xs">
+									%
+								</span>
 							)}
 						</div>
 						<div className="flex items-center gap-1">
@@ -226,7 +229,9 @@ export function ColumnManagementPanel({
 					<Icon name="plus" height={10} width={10} className="pro-text3" />
 					<span className="pro-text1 text-xs">{column.name}</span>
 					{column.key?.endsWith('_share') && (
-						<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">%</span>
+						<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 ml-auto rounded-md px-1 py-0.5 text-xs">
+							%
+						</span>
 					)}
 				</button>
 			</Tooltip>
@@ -281,7 +286,7 @@ export function ColumnManagementPanel({
 					<div className="pro-divider pro-bg2 flex rounded-md border">
 						<button
 							onClick={() => setActiveTab('columns')}
-							className={`first:rounded-l-md last:rounded-r-md px-3 py-1 text-xs transition-colors ${
+							className={`px-3 py-1 text-xs transition-colors first:rounded-l-md last:rounded-r-md ${
 								activeTab === 'columns' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
@@ -289,7 +294,7 @@ export function ColumnManagementPanel({
 						</button>
 						<button
 							onClick={() => setActiveTab('custom')}
-							className={`first:rounded-l-md last:rounded-r-md px-3 py-1 text-xs transition-colors ${
+							className={`px-3 py-1 text-xs transition-colors first:rounded-l-md last:rounded-r-md ${
 								activeTab === 'custom' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
@@ -297,14 +302,14 @@ export function ColumnManagementPanel({
 						</button>
 						<button
 							onClick={() => setActiveTab('views')}
-							className={`relative first:rounded-l-md last:rounded-r-md px-3 py-1 text-xs transition-colors ${
+							className={`relative px-3 py-1 text-xs transition-colors first:rounded-l-md last:rounded-r-md ${
 								activeTab === 'views' ? 'bg-(--primary) text-white' : 'pro-text2 pro-hover-bg'
 							}`}
 						>
 							<span className="flex items-center gap-1">
 								Saved Views
 								{customViews.length > 0 && (
-									<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-[10px] text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
+									<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 ml-1 rounded-full px-1.5 py-0.5 text-[10px]">
 										{customViews.length}
 									</span>
 								)}
@@ -434,7 +439,9 @@ export function ColumnManagementPanel({
 										<div className="flex items-center gap-2">
 											<span className="pro-text1 text-sm font-medium">{view.name}</span>
 											{activeViewId === view.id && (
-												<span className="rounded-md bg-pro-green-100 px-1.5 py-0.5 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">Active</span>
+												<span className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 rounded-md px-1.5 py-0.5 text-xs">
+													Active
+												</span>
 											)}
 										</div>
 										<div className="pro-text3 flex items-center gap-3 text-xs">

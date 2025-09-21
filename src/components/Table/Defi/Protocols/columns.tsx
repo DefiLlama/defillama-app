@@ -120,6 +120,42 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	},
 	{
+		id: 'oracles',
+		header: 'Oracles',
+		accessorFn: (row) => {
+			const direct = Array.isArray((row as any).oracles) ? ((row as any).oracles as string[]) : []
+			if (direct.length) return direct
+			const byChain = (row as any).oraclesByChain as Record<string, string[]> | undefined
+			if (!byChain) return []
+			return Array.from(new Set(Object.values(byChain).flat()))
+		},
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			const oracles = (getValue() as string[]) || []
+			if (!oracles.length) return ''
+			const visible = oracles.slice(0, 3)
+			const extra = oracles.length - visible.length
+			return (
+				<span className="flex flex-wrap items-center justify-end gap-1">
+					{visible.map((o) => (
+						<BasicLink
+							key={o}
+							href={`/oracles/${slug(o)}`}
+							className="text-sm font-medium text-(--link-text) hover:underline"
+						>
+							{o}
+						</BasicLink>
+					))}
+					{extra > 0 ? <Tooltip content={oracles.slice(3).join(', ')}>+{extra}</Tooltip> : null}
+				</span>
+			)
+		},
+		size: 180,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		id: 'chains',
 		header: 'Chains',
 		accessorKey: 'chains',

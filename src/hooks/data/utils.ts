@@ -146,6 +146,23 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		mcaptvl = +formattedNum(finalMcap / tvl)
 	}
 
+	const oracleSet = new Set<string>()
+	const oraclesByChainAgg: Record<string, Set<string>> = {}
+	const addOracles = (obj: any) => {
+		if (Array.isArray(obj?.oracles)) obj.oracles.forEach((o: string) => oracleSet.add(o))
+		if (obj?.oraclesByChain) {
+			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
+				;(obj.oraclesByChain[k] || []).forEach((o: string) => set.add(o))
+			}
+		}
+	}
+	addOracles(parent)
+	protocols.forEach(addOracles)
+	const aggregatedOraclesByChain = Object.fromEntries(
+		Object.entries(oraclesByChainAgg).map(([k, v]) => [k, Array.from(v).sort((a, b) => a.localeCompare(b))])
+	)
+
 	return {
 		name: parent.name,
 		logo: parent.logo,
@@ -188,7 +205,9 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		chainTvls: {}, // TODO cleanup
 		strikeTvl,
 		parentExcluded,
-		isParentProtocol: true
+		isParentProtocol: true,
+		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
+		oraclesByChain: aggregatedOraclesByChain
 	}
 }
 
