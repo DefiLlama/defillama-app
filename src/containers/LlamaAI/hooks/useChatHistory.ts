@@ -189,26 +189,12 @@ export function useChatHistory() {
 		[restoreSessionMutation]
 	)
 
-	const deleteSession = useCallback(
-		(sessionId: string) => {
-			deleteSessionMutation.mutate(sessionId)
-		},
-		[deleteSessionMutation]
-	)
-
-	const updateSessionTitle = useCallback(
-		(sessionId: string, title: string) => {
-			updateTitleMutation.mutate({ sessionId, title })
-		},
-		[updateTitleMutation]
-	)
-
 	const moveSessionToTop = useCallback(
 		(sessionId: string) => {
 			if (!user) return
 
 			queryClient.setQueryData(['chat-sessions', user.id], (oldSessions: ChatSession[] = []) => {
-				const sessionIndex = oldSessions.findIndex(s => s.sessionId === sessionId)
+				const sessionIndex = oldSessions.findIndex((s) => s.sessionId === sessionId)
 				if (sessionIndex === -1) return oldSessions
 
 				const updatedSessions = [...oldSessions]
@@ -244,8 +230,8 @@ export function useChatHistory() {
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
-		deleteSession,
-		updateSessionTitle,
+		deleteSession: deleteSessionMutation.mutateAsync,
+		updateSessionTitle: updateTitleMutation.mutateAsync,
 		moveSessionToTop,
 		toggleSidebar,
 		isCreatingSession: createSessionMutation.isPending,

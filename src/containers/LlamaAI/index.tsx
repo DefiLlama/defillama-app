@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { RefObject, useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -237,7 +237,7 @@ async function fetchPromptResponse({
 
 export function LlamaAI() {
 	const { authorizedFetch, user } = useAuthContext()
-	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, updateSessionTitle, moveSessionToTop } = useChatHistory()
+	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, moveSessionToTop } = useChatHistory()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
@@ -269,8 +269,7 @@ export function LlamaAI() {
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
-	const [streamingTitle, setStreamingTitle] = useState<string | null>(null)
-	const [titleTypingEffect, setTitleTypingEffect] = useState<string>('')
+
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
 			question: string
@@ -283,42 +282,6 @@ export function LlamaAI() {
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
-
-	const startTitleTypingEffect = useCallback(
-		(fullTitle: string) => {
-			if (!fullTitle) {
-				return
-			}
-
-			setTitleTypingEffect('')
-			let currentIndex = 0
-
-			const typeNextChar = () => {
-				if (currentIndex < fullTitle.length) {
-					const currentText = fullTitle.substring(0, currentIndex + 1)
-					setTitleTypingEffect(currentText)
-					currentIndex++
-					setTimeout(typeNextChar, 50)
-				} else {
-					const currentSessionId = sessionIdRef.current || sessionId
-					const currentUser = userRef.current || user
-
-					if (currentSessionId && currentUser) {
-						updateSessionTitle(currentSessionId, fullTitle)
-
-						setTimeout(() => {
-							setStreamingTitle(null)
-							setTitleTypingEffect('')
-						}, 1000)
-					} else {
-					}
-				}
-			}
-
-			setTimeout(typeNextChar, 100)
-		},
-		[sessionId, user, updateSessionTitle]
-	)
 
 	const parseChartInfo = (message: string): { count?: number; types?: string[] } => {
 		const info: { count?: number; types?: string[] } = {}
@@ -393,8 +356,6 @@ export function LlamaAI() {
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
 			setExpectedChartInfo(null)
-			setStreamingTitle(null)
-			setTitleTypingEffect('')
 
 			streamingContentRef.current.reset()
 
@@ -439,8 +400,8 @@ export function LlamaAI() {
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
-						setStreamingTitle(data.title || data.content)
-						startTitleTypingEffect(data.title || data.content)
+						// setStreamingTitle(data.title || data.content)
+						// startTitleTypingEffect(data.title || data.content)
 					}
 				},
 				abortSignal: abortControllerRef.current.signal
@@ -624,15 +585,16 @@ export function LlamaAI() {
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
 		setExpectedChartInfo(null)
-		setStreamingTitle(null)
-		setTitleTypingEffect('')
 		setConversationHistory([])
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
 	}
 
-	const handleSessionSelect = async (selectedSessionId: string, data: { conversationHistory: any[]; pagination?: any }) => {
+	const handleSessionSelect = async (
+		selectedSessionId: string,
+		data: { conversationHistory: any[]; pagination?: any }
+	) => {
 		if (sessionId && isStreaming) {
 			try {
 				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
@@ -669,8 +631,6 @@ export function LlamaAI() {
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
 		setExpectedChartInfo(null)
-		setStreamingTitle(null)
-		setTitleTypingEffect('')
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 
@@ -789,8 +749,6 @@ export function LlamaAI() {
 						currentSessionId={sessionId}
 						onSessionSelect={handleSessionSelect}
 						onNewChat={handleNewChat}
-						titleTypingEffect={titleTypingEffect}
-						streamingTitle={streamingTitle}
 					/>
 				) : (
 					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />

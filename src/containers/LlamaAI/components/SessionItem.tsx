@@ -1,47 +1,63 @@
-import { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import type { ChatSession } from '../hooks/useChatHistory'
+import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 
 interface SessionItemProps {
 	session: ChatSession
 	isActive: boolean
-	onClick: () => void
-	onDelete: () => void
-	onUpdateTitle: (title: string) => void
-	isUpdating?: boolean
-	titleTypingEffect?: string
-	isReceivingTitle?: boolean
+	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
 }
 
-export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitle, isUpdating, titleTypingEffect, isReceivingTitle }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
+	const { restoreSession, deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } =
+		useChatHistory()
+
+	const handleSessionClick = async (sessionId: string) => {
+		if (isActive) return
+		try {
+			const result = await restoreSession(sessionId)
+			onSessionSelect(sessionId, result)
+		} catch (error) {
+			console.error('Failed to restore session:', error)
+		}
+	}
+
 	const [isEditing, setIsEditing] = useState(false)
-	const [title, setTitle] = useState(session.title)
+	const formRef = useRef<HTMLFormElement>(null)
 
-	const handleSave = () => {
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (formRef.current && !formRef.current.contains(event.target as Node)) {
+				setIsEditing(false)
+			}
+		}
+
+		if (isEditing) {
+			document.addEventListener('mousedown', handleClickOutside)
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside)
+		}
+	}, [isEditing])
+
+	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		const form = e.target as HTMLFormElement
+		const title = form.newTitle.value
 		if (title.trim() && title !== session.title) {
-			onUpdateTitle(title.trim())
-		}
-		setIsEditing(false)
-	}
-
-	const handleCancel = () => {
-		setTitle(session.title)
-		setIsEditing(false)
-	}
-
-	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			e.preventDefault()
-			handleSave()
-		} else if (e.key === 'Escape') {
-			handleCancel()
+			updateSessionTitle({ sessionId: session.sessionId, title: title.trim() }).then(() => {
+				setIsEditing(false)
+			})
 		}
 	}
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		if (window.confirm('Are you sure you want to delete this chat?')) {
-			onDelete()
+			deleteSession(session.sessionId).then(() => {
+				setIsEditing(false)
+			})
 		}
 	}
 
@@ -56,80 +72,85 @@ export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitl
 		return date.toLocaleDateString()
 	}
 
+	if (isEditing) {
+		return (
+			<form
+				ref={formRef}
+				onSubmit={handleSave}
+				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#919296]/12"
+			>
+				<input
+					type="text"
+					name="newTitle"
+					defaultValue={session.title}
+					className="flex-1 overflow-hidden p-1.5 text-left text-xs text-ellipsis whitespace-nowrap"
+					autoFocus
+					disabled={isUpdatingTitle}
+				/>
+				<div className="flex items-center justify-center gap-0.5">
+					<button
+						type="submit"
+						className="flex aspect-square items-center justify-center rounded-sm bg-[#666]/12 p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:bg-[#919296]/12"
+						disabled={isUpdatingTitle}
+					>
+						{isUpdatingTitle ? (
+							<LoadingSpinner size={12} />
+						) : (
+							<Icon name="check" height={12} width={12} className="shrink-0" />
+						)}
+					</button>
+					<button
+						type="button"
+						onClick={() => {
+							setIsEditing(false)
+						}}
+						className="flex aspect-square items-center justify-center rounded-sm bg-red-500/10 p-1.5 text-(--error)"
+						disabled={isUpdatingTitle}
+					>
+						<Icon name="x" height={12} width={12} className="shrink-0" />
+					</button>
+				</div>
+			</form>
+		)
+	}
+
 	return (
 		<div
-			className={`group relative cursor-pointer rounded-md border p-3 transition-colors ${
-				isActive
-					? 'border-blue-200 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
-					: 'border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800/50'
-			}`}
-			onClick={isEditing ? undefined : onClick}
+			data-active={isActive}
+			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#666]/12 focus-within:text-white hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:focus-within:text-white dark:hover:bg-[#919296]/12"
 		>
-			<div className="flex items-start justify-between gap-2">
-				<div className="min-w-0 flex-1">
-					{isEditing ? (
-						<input
-							type="text"
-							value={title}
-							onChange={(e) => setTitle(e.target.value)}
-							onBlur={handleSave}
-							onKeyDown={handleKeyDown}
-							className="m-0 w-full border-none bg-transparent p-0 text-sm font-medium outline-none"
-							autoFocus
-							disabled={isUpdating}
-						/>
-					) : isReceivingTitle ? (
-						<div className="text-sm text-blue-600 dark:text-blue-400">
-							{titleTypingEffect || ''}
-							<span className="animate-pulse ml-1">|</span>
-						</div>
+			<button
+				onClick={() => handleSessionClick(session.sessionId)}
+				disabled={isEditing || isDeletingSession || isRestoringSession}
+				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap"
+			>
+				{session.title}
+			</button>
+			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
+				<button
+					onClick={() => {
+						setIsEditing(true)
+					}}
+					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+					disabled={isUpdatingTitle || isDeletingSession}
+				>
+					<Icon name="pencil" height={12} width={12} className="shrink-0" />
+				</button>
+				<button
+					onClick={() => {
+						handleDelete()
+					}}
+					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
+					disabled={isUpdatingTitle || isDeletingSession}
+					data-deleting={isDeletingSession}
+				>
+					{isDeletingSession ? (
+						<LoadingSpinner size={12} />
 					) : (
-						<h3
-							className="truncate text-sm font-medium text-gray-900 dark:text-white"
-							onDoubleClick={() => setIsEditing(true)}
-						>
-							{session.title}
-						</h3>
+						<Icon name="trash-2" height={12} width={12} className="shrink-0" />
 					)}
-					<p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{formatDate(session.lastActivity)}</p>
-				</div>
-				<div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-					{!isEditing && (
-						<>
-							<button
-								onClick={(e) => {
-									e.stopPropagation()
-									setIsEditing(true)
-								}}
-								className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-								disabled={isUpdating}
-							>
-								<Icon name="pencil" height={12} width={12} className="text-gray-400" />
-							</button>
-							<button
-								onClick={(e) => {
-									e.stopPropagation()
-									handleDelete()
-								}}
-								className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-								disabled={isUpdating}
-							>
-								<Icon
-									name="trash-2"
-									height={12}
-									width={12}
-									className="text-gray-400"
-								/>
-							</button>
-						</>
-					)}
-				</div>
+				</button>
 			</div>
-			{isUpdating && (
-				<div className="absolute inset-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/90">
-					<LoadingSpinner size={16} />
-				</div>
-			)}
 		</div>
 	)
 }

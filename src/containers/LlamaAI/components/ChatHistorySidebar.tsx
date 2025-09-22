@@ -1,4 +1,5 @@
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory } from '../hooks/useChatHistory'
@@ -9,40 +10,16 @@ interface ChatHistorySidebarProps {
 	currentSessionId: string | null
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
 	onNewChat: () => void
-	titleTypingEffect?: string
-	streamingTitle?: string | null
 }
 
 export function ChatHistorySidebar({
 	handleSidebarToggle,
 	currentSessionId,
 	onSessionSelect,
-	onNewChat,
-	titleTypingEffect,
-	streamingTitle
+	onNewChat
 }: ChatHistorySidebarProps) {
 	const { user } = useAuthContext()
-	const {
-		sessions,
-		isLoading,
-		restoreSession,
-		deleteSession,
-		updateSessionTitle,
-		isRestoringSession,
-		isDeletingSession,
-		isUpdatingTitle
-	} = useChatHistory()
-
-	const handleSessionClick = async (sessionId: string) => {
-		if (sessionId === currentSessionId) return
-
-		try {
-			const result = await restoreSession(sessionId)
-			onSessionSelect(sessionId, result)
-		} catch (error) {
-			console.error('Failed to restore session:', error)
-		}
-	}
+	const { sessions, isLoading } = useChatHistory()
 
 	if (!user) return null
 
@@ -66,39 +43,30 @@ export function ChatHistorySidebar({
 				</Tooltip>
 			</div>
 
-			<h1 className="p-4 text-xs text-[#666] dark:text-[#919296]">Chats</h1>
+			<h1 className="p-4 pb-2 text-xs text-[#666] dark:text-[#919296]">Chats</h1>
 
 			<div className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
 				{isLoading ? (
-					<div className="flex items-center justify-center py-8">
-						<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+						<LoadingSpinner size={12} />
 					</div>
 				) : sessions.length === 0 ? (
-					<p className="py-8 text-center text-xs">No chat history yet</p>
+					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+						You don’t have any chats yet
+					</p>
 				) : (
-					<div className="flex flex-col gap-2">
+					<div className="flex flex-col gap-0.5">
 						{sessions.map((session) => (
 							<SessionItem
 								key={session.sessionId}
 								session={session}
 								isActive={session.sessionId === currentSessionId}
-								onClick={() => handleSessionClick(session.sessionId)}
-								onDelete={() => deleteSession(session.sessionId)}
-								onUpdateTitle={(title) => updateSessionTitle(session.sessionId, title)}
-								isUpdating={isUpdatingTitle}
-								titleTypingEffect={session.sessionId === currentSessionId ? titleTypingEffect : undefined}
-								isReceivingTitle={session.sessionId === currentSessionId && !!streamingTitle}
+								onSessionSelect={onSessionSelect}
 							/>
 						))}
 					</div>
 				)}
 			</div>
-
-			{(isRestoringSession || isDeletingSession) && (
-				<div className="absolute inset-0 z-10 flex items-center justify-center bg-(--cards-bg)/90">
-					<div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-				</div>
-			)}
 		</div>
 	)
 }
