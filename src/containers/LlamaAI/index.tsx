@@ -237,7 +237,7 @@ async function fetchPromptResponse({
 
 export function LlamaAI() {
 	const { authorizedFetch, user } = useAuthContext()
-	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, updateSessionTitle } = useChatHistory()
+	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, updateSessionTitle, moveSessionToTop } = useChatHistory()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
@@ -281,6 +281,8 @@ export function LlamaAI() {
 	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
+	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const shouldAutoScrollRef = useRef(true)
 
 	const startTitleTypingEffect = useCallback(
 		(fullTitle: string) => {
@@ -533,12 +535,44 @@ export function LlamaAI() {
 	const handleSubmit = (prompt: string) => {
 		const finalPrompt = prompt.trim()
 		setPrompt(finalPrompt)
+
+		shouldAutoScrollRef.current = true
+
+		setTimeout(() => {
+			if (scrollContainerRef.current) {
+				scrollContainerRef.current.scrollTo({
+					top: scrollContainerRef.current.scrollHeight,
+					behavior: 'smooth'
+				})
+			}
+		}, 0)
+
+		if (sessionId) {
+			moveSessionToTop(sessionId)
+		}
+
 		submitPrompt({ userQuestion: finalPrompt })
 	}
 
 	const handleSubmitWithSuggestion = (prompt: string, suggestion: any) => {
 		const finalPrompt = prompt.trim()
 		setPrompt(finalPrompt)
+
+		shouldAutoScrollRef.current = true
+
+		setTimeout(() => {
+			if (scrollContainerRef.current) {
+				scrollContainerRef.current.scrollTo({
+					top: scrollContainerRef.current.scrollHeight,
+					behavior: 'smooth'
+				})
+			}
+		}, 0)
+
+		if (sessionId) {
+			moveSessionToTop(sessionId)
+		}
+
 		submitPrompt({
 			userQuestion: finalPrompt,
 			suggestionContext: suggestion
@@ -546,6 +580,26 @@ export function LlamaAI() {
 	}
 
 	const handleNewChat = async () => {
+		if (sessionId && isStreaming) {
+			try {
+				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						sessionId: sessionId
+					})
+				})
+			} catch (error) {
+				console.log('Error stopping streaming session:', error)
+			}
+
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort()
+			}
+		}
+
 		if (sessionId) {
 			try {
 				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${sessionId}`, {
@@ -578,7 +632,27 @@ export function LlamaAI() {
 		promptInputRef.current?.focus()
 	}
 
-	const handleSessionSelect = (selectedSessionId: string, data: { conversationHistory: any[]; pagination?: any }) => {
+	const handleSessionSelect = async (selectedSessionId: string, data: { conversationHistory: any[]; pagination?: any }) => {
+		if (sessionId && isStreaming) {
+			try {
+				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						sessionId: sessionId
+					})
+				})
+			} catch (error) {
+				console.log('Error stopping streaming session:', error)
+			}
+
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort()
+			}
+		}
+
 		setSessionId(selectedSessionId)
 		setConversationHistory(data.conversationHistory)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
@@ -599,18 +673,40 @@ export function LlamaAI() {
 		setTitleTypingEffect('')
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
+
+		setTimeout(() => {
+			if (scrollContainerRef.current) {
+				scrollContainerRef.current.scrollTo({
+					top: scrollContainerRef.current.scrollHeight,
+					behavior: 'smooth'
+				})
+			}
+		}, 0)
+
 		promptInputRef.current?.focus()
 	}
 
 	const handleLoadMoreMessages = async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
 
+		const scrollContainer = scrollContainerRef.current
+		if (!scrollContainer) return
+
+		const previousScrollHeight = scrollContainer.scrollHeight
 		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
 			setConversationHistory((prev) => [...result.conversationHistory, ...prev])
 			setPaginationState(result.pagination)
+
+			setTimeout(() => {
+				if (scrollContainer) {
+					const newScrollHeight = scrollContainer.scrollHeight
+					const heightDifference = newScrollHeight - previousScrollHeight
+					scrollContainer.scrollTop = scrollContainer.scrollTop + heightDifference
+				}
+			}, 0)
 		} catch (error) {
 			console.error('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
@@ -629,6 +725,47 @@ export function LlamaAI() {
 		toggleSidebar()
 		setResizeTrigger((prev) => prev + 1)
 	}
+
+	useEffect(() => {
+		const handleScroll = () => {
+			if (!scrollContainerRef.current) return
+
+			const container = scrollContainerRef.current
+			const { scrollTop, scrollHeight, clientHeight } = container
+			const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100
+
+			shouldAutoScrollRef.current = isNearBottom
+
+			if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
+				handleLoadMoreMessages()
+			}
+		}
+
+		const container = scrollContainerRef.current
+		if (container) {
+			container.addEventListener('scroll', handleScroll)
+			return () => container.removeEventListener('scroll', handleScroll)
+		}
+	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore])
+
+	useEffect(() => {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingResponse || isStreaming)) {
+			scrollContainerRef.current.scrollTo({
+				top: scrollContainerRef.current.scrollHeight,
+				behavior: 'smooth'
+			})
+		}
+	}, [streamingResponse, isStreaming])
+
+	useEffect(() => {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current && conversationHistory.length > 0) {
+			setTimeout(() => {
+				if (scrollContainerRef.current && shouldAutoScrollRef.current) {
+					scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+				}
+			}, 0)
+		}
+	}, [conversationHistory])
 
 	useEffect(() => {
 		return () => {
@@ -661,10 +798,16 @@ export function LlamaAI() {
 				<div
 					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible ? 'animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
-					<div className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
+					<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
 						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 							{conversationHistory.length > 0 || isSubmitted ? (
 								<div className="flex w-full flex-col gap-2 p-2">
+									{paginationState.isLoadingMore && (
+										<div className="flex items-center justify-center gap-2 py-4 text-[#666] dark:text-[#919296]">
+											<LoadingDots />
+											<span>Loading more messages...</span>
+										</div>
+									)}
 									<div className="flex flex-col gap-2.5">
 										{conversationHistory.map((item) => (
 											<div
@@ -786,7 +929,7 @@ const PromptInput = ({
 	const [value, setValue] = useState('')
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (event.key === 'Enter' && !event.shiftKey) {
+		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
 			event.preventDefault()
 			handleSubmit(value)
 			setValue('')
@@ -818,7 +961,7 @@ const PromptInput = ({
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
-					disabled={isPending}
+					disabled={isPending && !isStreaming}
 					autoFocus
 					ref={promptInputRef}
 				/>
@@ -835,7 +978,7 @@ const PromptInput = ({
 					<button
 						type="submit"
 						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50"
-						disabled={isPending || !value.trim()}
+						disabled={isPending || isStreaming || !value.trim()}
 					>
 						<Icon name="arrow-up" height={16} width={16} />
 						<span className="sr-only">Submit prompt</span>

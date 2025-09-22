@@ -136,7 +136,7 @@ export function useChatHistory() {
 	}, [user, queryClient])
 
 	const restoreSession = useCallback(
-		async (sessionId: string, limit: number = 50) => {
+		async (sessionId: string, limit: number = 10) => {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
 				return {
@@ -165,7 +165,7 @@ export function useChatHistory() {
 	const loadMoreMessages = useCallback(
 		async (sessionId: string, cursor: number) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 50, cursor })
+				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
 				return {
 					conversationHistory: result.conversationHistory || [],
 					pagination: {
@@ -203,6 +203,24 @@ export function useChatHistory() {
 		[updateTitleMutation]
 	)
 
+	const moveSessionToTop = useCallback(
+		(sessionId: string) => {
+			if (!user) return
+
+			queryClient.setQueryData(['chat-sessions', user.id], (oldSessions: ChatSession[] = []) => {
+				const sessionIndex = oldSessions.findIndex(s => s.sessionId === sessionId)
+				if (sessionIndex === -1) return oldSessions
+
+				const updatedSessions = [...oldSessions]
+				const [movedSession] = updatedSessions.splice(sessionIndex, 1)
+				movedSession.lastActivity = new Date().toISOString()
+
+				return [movedSession, ...updatedSessions]
+			})
+		},
+		[user, queryClient]
+	)
+
 	const toggleSidebar = useCallback(() => {
 		const newVisible = !sidebarVisible
 		setSidebarVisible(newVisible)
@@ -228,6 +246,7 @@ export function useChatHistory() {
 		loadMoreMessages,
 		deleteSession,
 		updateSessionTitle,
+		moveSessionToTop,
 		toggleSidebar,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
