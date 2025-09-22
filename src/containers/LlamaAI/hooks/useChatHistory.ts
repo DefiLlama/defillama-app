@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -33,10 +33,6 @@ export interface PaginationState {
 export function useChatHistory() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const queryClient = useQueryClient()
-	const [sidebarVisible, setSidebarVisible] = useState(() => {
-		if (typeof window === 'undefined') return false
-		return localStorage.getItem('llamaai-sidebar-hidden') === 'true'
-	})
 
 	const { data: sessions = [], isLoading } = useQuery({
 		queryKey: ['chat-sessions', user?.id],
@@ -208,25 +204,21 @@ export function useChatHistory() {
 	)
 
 	const toggleSidebar = useCallback(() => {
-		const newVisible = !sidebarVisible
-		setSidebarVisible(newVisible)
-		localStorage.setItem('llamaai-sidebar-hidden', String(!newVisible))
-	}, [sidebarVisible])
-
-	useEffect(() => {
-		const handleStorageChange = (e: StorageEvent) => {
-			if (e.key === 'llamaai-sidebar-hidden') {
-				setSidebarVisible(e.newValue !== 'true')
-			}
-		}
-		window.addEventListener('storage', handleStorageChange)
-		return () => window.removeEventListener('storage', handleStorageChange)
+		const currentVisible = localStorage.getItem('llamaai-sidebar-hidden') === 'true'
+		localStorage.setItem('llamaai-sidebar-hidden', String(!currentVisible))
+		window.dispatchEvent(new Event('chatHistorySidebarChange'))
 	}, [])
+
+	const sidebarHidden = useSyncExternalStore(
+		subscribeToChatHistorySidebar,
+		() => localStorage.getItem('llamaai-sidebar-hidden') ?? 'true',
+		() => 'true'
+	)
 
 	return {
 		sessions,
 		isLoading,
-		sidebarVisible,
+		sidebarVisible: sidebarHidden !== 'true',
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
@@ -238,5 +230,13 @@ export function useChatHistory() {
 		isRestoringSession: restoreSessionMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending
+	}
+}
+
+function subscribeToChatHistorySidebar(callback: () => void) {
+	window.addEventListener('chatHistorySidebarChange', callback)
+
+	return () => {
+		window.removeEventListener('chatHistorySidebarChange', callback)
 	}
 }
