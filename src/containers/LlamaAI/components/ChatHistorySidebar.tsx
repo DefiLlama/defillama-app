@@ -47,7 +47,7 @@ export function ChatHistorySidebar({
 			<div className="flex flex-nowrap items-center gap-2 p-4 pb-0">
 				<button
 					onClick={onNewChat}
-					className="flex flex-1 items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/10 px-2 py-0.75 text-xs text-(--old-blue)"
+					className="flex flex-1 items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/10 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span>New Chat</span>
@@ -55,7 +55,7 @@ export function ChatHistorySidebar({
 				<Tooltip
 					content="Close Chat History"
 					render={<button onClick={handleSidebarToggle} />}
-					className="flex h-6 w-6 rotate-180 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue)"
+					className="flex h-6 w-6 rotate-180 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="arrow-right-to-line" height={16} width={16} />
 					<span className="sr-only">Close Chat History</span>
