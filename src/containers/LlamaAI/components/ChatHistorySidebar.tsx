@@ -1,8 +1,9 @@
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useChatHistory } from '../hooks/useChatHistory'
+import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 import { SessionItem } from './SessionItem'
 
 interface ChatHistorySidebarProps {
@@ -10,6 +11,19 @@ interface ChatHistorySidebarProps {
 	currentSessionId: string | null
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
 	onNewChat: () => void
+}
+
+function getGroupName(lastActivity: string) {
+	console.log(lastActivity, new Date(lastActivity).getTime(), Date.now() - 24 * 60 * 60 * 1000)
+	return new Date(lastActivity).getTime() >= Date.now() - 24 * 60 * 60 * 1000
+		? 'Today'
+		: new Date(lastActivity).getTime() >= Date.now() - 48 * 60 * 60 * 1000
+			? 'Yesterday'
+			: new Date(lastActivity).getTime() >= Date.now() - 7 * 24 * 60 * 60 * 1000
+				? 'This week'
+				: new Date(lastActivity).getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000
+					? 'This month'
+					: 'Older'
 }
 
 export function ChatHistorySidebar({
@@ -20,6 +34,18 @@ export function ChatHistorySidebar({
 }: ChatHistorySidebarProps) {
 	const { user } = useAuthContext()
 	const { sessions, isLoading } = useChatHistory()
+
+	const groupedSessions = useMemo(() => {
+		return Object.entries(
+			sessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
+				const groupName = getGroupName(session.lastActivity)
+				acc[groupName] = [...(acc[groupName] || []), session]
+				return acc
+			}, {})
+		).sort((a, b) => new Date(b[1][0].lastActivity).getTime() - new Date(a[1][0].lastActivity).getTime()) as Array<
+			[string, Array<ChatSession>]
+		>
+	}, [sessions])
 
 	if (!user) return null
 
@@ -43,9 +69,7 @@ export function ChatHistorySidebar({
 				</Tooltip>
 			</div>
 
-			<h1 className="p-4 pb-1 text-xs text-[#666] dark:text-[#919296]">Chats</h1>
-
-			<div className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
+			<div className="thin-scrollbar flex-1 overflow-auto p-4">
 				{isLoading ? (
 					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						<LoadingSpinner size={12} />
@@ -55,16 +79,21 @@ export function ChatHistorySidebar({
 						You don’t have any chats yet
 					</p>
 				) : (
-					<div className="flex flex-col gap-0.5">
-						{sessions.map((session) => (
-							<SessionItem
-								key={session.sessionId}
-								session={session}
-								isActive={session.sessionId === currentSessionId}
-								onSessionSelect={onSessionSelect}
-							/>
+					<>
+						{groupedSessions.map(([groupName, sessions]) => (
+							<div key={groupName} className="group/parent flex flex-col gap-0.5">
+								<h2 className="pt-2.5 text-xs text-[#666] group-first/parent:pt-0 dark:text-[#919296]">{groupName}</h2>
+								{sessions.map((session) => (
+									<SessionItem
+										key={session.sessionId}
+										session={session}
+										isActive={session.sessionId === currentSessionId}
+										onSessionSelect={onSessionSelect}
+									/>
+								))}
+							</div>
 						))}
-					</div>
+					</>
 				)}
 			</div>
 		</div>
