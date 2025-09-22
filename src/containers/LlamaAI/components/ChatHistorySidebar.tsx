@@ -9,13 +9,17 @@ interface ChatHistorySidebarProps {
 	currentSessionId: string | null
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
 	onNewChat: () => void
+	titleTypingEffect?: string
+	streamingTitle?: string | null
 }
 
 export function ChatHistorySidebar({
 	handleSidebarToggle,
 	currentSessionId,
 	onSessionSelect,
-	onNewChat
+	onNewChat,
+	titleTypingEffect,
+	streamingTitle
 }: ChatHistorySidebarProps) {
 	const { user } = useAuthContext()
 	const {
@@ -82,6 +86,8 @@ export function ChatHistorySidebar({
 								onDelete={() => deleteSession(session.sessionId)}
 								onUpdateTitle={(title) => updateSessionTitle(session.sessionId, title)}
 								isUpdating={isUpdatingTitle}
+								titleTypingEffect={session.sessionId === currentSessionId ? titleTypingEffect : undefined}
+								isReceivingTitle={session.sessionId === currentSessionId && !!streamingTitle}
 							/>
 						))}
 					</div>

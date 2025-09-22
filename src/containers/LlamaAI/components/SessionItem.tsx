@@ -10,12 +10,13 @@ interface SessionItemProps {
 	onDelete: () => void
 	onUpdateTitle: (title: string) => void
 	isUpdating?: boolean
+	titleTypingEffect?: string
+	isReceivingTitle?: boolean
 }
 
-export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitle, isUpdating }: SessionItemProps) {
+export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitle, isUpdating, titleTypingEffect, isReceivingTitle }: SessionItemProps) {
 	const [isEditing, setIsEditing] = useState(false)
 	const [title, setTitle] = useState(session.title)
-	const [showConfirm, setShowConfirm] = useState(false)
 
 	const handleSave = () => {
 		if (title.trim() && title !== session.title) {
@@ -39,12 +40,8 @@ export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitl
 	}
 
 	const handleDelete = () => {
-		if (showConfirm) {
+		if (window.confirm('Are you sure you want to delete this chat?')) {
 			onDelete()
-			setShowConfirm(false)
-		} else {
-			setShowConfirm(true)
-			setTimeout(() => setShowConfirm(false), 3000)
 		}
 	}
 
@@ -81,6 +78,11 @@ export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitl
 							autoFocus
 							disabled={isUpdating}
 						/>
+					) : isReceivingTitle ? (
+						<div className="text-sm text-blue-600 dark:text-blue-400">
+							{titleTypingEffect || ''}
+							<span className="animate-pulse ml-1">|</span>
+						</div>
 					) : (
 						<h3
 							className="truncate text-sm font-medium text-gray-900 dark:text-white"
@@ -109,17 +111,14 @@ export function SessionItem({ session, isActive, onClick, onDelete, onUpdateTitl
 									e.stopPropagation()
 									handleDelete()
 								}}
-								className={`rounded p-1 transition-colors ${
-									showConfirm
-										? 'bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50'
-										: 'hover:bg-gray-200 dark:hover:bg-gray-700'
-								}`}
+								className="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+								disabled={isUpdating}
 							>
 								<Icon
-									name={showConfirm ? 'check' : 'trash-2'}
+									name="trash-2"
 									height={12}
 									width={12}
-									className={showConfirm ? 'text-red-600' : 'text-gray-400'}
+									className="text-gray-400"
 								/>
 							</button>
 						</>

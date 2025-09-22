@@ -45,7 +45,13 @@ export function useChatHistory() {
 			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
 			if (!response.ok) throw new Error('Failed to fetch sessions')
 			const data = await response.json()
-			return data.sessions
+
+			const existingData = (queryClient.getQueryData(['chat-sessions', user.id]) as ChatSession[]) || []
+			const fakeSessions = existingData.filter(
+				(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
+			)
+
+			return [...fakeSessions, ...data.sessions]
 		},
 		enabled: isAuthenticated && !!user,
 		staleTime: 30000
@@ -99,20 +105,23 @@ export function useChatHistory() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
 			})
-			if (!response.ok) throw new Error('Failed to update title')
-			return response.json()
+			if (!response.ok) {
+				throw new Error(`Failed to update title: ${response.status}`)
+			}
+			const result = await response.json()
+			return result
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
 		}
 	})
 
-	const createOptimisticSession = useCallback(() => {
+	const createFakeSession = useCallback(() => {
 		const sessionId = crypto.randomUUID()
 		const title = 'New Chat'
 
 		if (user) {
-			const optimisticSession: ChatSession = {
+			const fakeSession: ChatSession = {
 				sessionId,
 				title,
 				createdAt: new Date().toISOString(),
@@ -120,13 +129,11 @@ export function useChatHistory() {
 				isActive: true
 			}
 
-			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [optimisticSession, ...old])
-
-			createSessionMutation.mutate({ sessionId, title })
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [fakeSession, ...old])
 		}
 
 		return sessionId
-	}, [user, createSessionMutation, queryClient])
+	}, [user, queryClient])
 
 	const restoreSession = useCallback(
 		async (sessionId: string, limit: number = 50) => {
@@ -202,10 +209,6 @@ export function useChatHistory() {
 		localStorage.setItem('llamaai-sidebar-hidden', String(!newVisible))
 	}, [sidebarVisible])
 
-	const generateSessionTitle = useCallback((firstMessage: string) => {
-		return firstMessage.length > 40 ? firstMessage.substring(0, 40) + '...' : firstMessage
-	}, [])
-
 	useEffect(() => {
 		const handleStorageChange = (e: StorageEvent) => {
 			if (e.key === 'llamaai-sidebar-hidden') {
@@ -220,13 +223,12 @@ export function useChatHistory() {
 		sessions,
 		isLoading,
 		sidebarVisible,
-		createOptimisticSession,
+		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
 		deleteSession,
 		updateSessionTitle,
 		toggleSidebar,
-		generateSessionTitle,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
