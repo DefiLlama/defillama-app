@@ -132,7 +132,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						setIsEditing(true)
 					}}
 					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-					disabled={isUpdatingTitle || isDeletingSession}
+					disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
 				>
 					<Icon name="pencil" height={12} width={12} className="shrink-0" />
 				</button>
@@ -141,7 +141,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						handleDelete()
 					}}
 					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
-					disabled={isUpdatingTitle || isDeletingSession}
+					disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
 					data-deleting={isDeletingSession}
 				>
 					{isDeletingSession ? (
@@ -151,6 +151,11 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 					)}
 				</button>
 			</div>
+			{isRestoringSession ? (
+				<span className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/70">
+					<LoadingSpinner size={12} />
+				</span>
+			) : null}
 		</div>
 	)
 }
