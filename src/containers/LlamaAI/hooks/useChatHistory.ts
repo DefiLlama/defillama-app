@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -33,10 +33,6 @@ export interface PaginationState {
 export function useChatHistory() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const queryClient = useQueryClient()
-	const [sidebarVisible, setSidebarVisible] = useState(() => {
-		if (typeof window === 'undefined') return false
-		return localStorage.getItem('llamaai-sidebar-hidden') === 'true'
-	})
 
 	const { data: sessions = [], isLoading } = useQuery({
 		queryKey: ['chat-sessions', user?.id],
@@ -45,7 +41,13 @@ export function useChatHistory() {
 			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
 			if (!response.ok) throw new Error('Failed to fetch sessions')
 			const data = await response.json()
-			return data.sessions
+
+			const existingData = (queryClient.getQueryData(['chat-sessions', user.id]) as ChatSession[]) || []
+			const fakeSessions = existingData.filter(
+				(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
+			)
+
+			return [...fakeSessions, ...data.sessions]
 		},
 		enabled: isAuthenticated && !!user,
 		staleTime: 30000
@@ -87,6 +89,11 @@ export function useChatHistory() {
 			if (!response.ok) throw new Error('Failed to delete session')
 			return response.json()
 		},
+		onMutate: async (sessionId) => {
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
+				return old.filter((session) => session.sessionId !== sessionId)
+			})
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
 		}
@@ -99,20 +106,33 @@ export function useChatHistory() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
 			})
-			if (!response.ok) throw new Error('Failed to update title')
-			return response.json()
+			if (!response.ok) {
+				throw new Error(`Failed to update title: ${response.status}`)
+			}
+			const result = await response.json()
+			return result
+		},
+		onMutate: async ({ sessionId, title }) => {
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
+				return old.map((session) => {
+					if (session.sessionId === sessionId) {
+						return { ...session, title }
+					}
+					return session
+				})
+			})
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
 		}
 	})
 
-	const createOptimisticSession = useCallback(() => {
+	const createFakeSession = useCallback(() => {
 		const sessionId = crypto.randomUUID()
 		const title = 'New Chat'
 
 		if (user) {
-			const optimisticSession: ChatSession = {
+			const fakeSession: ChatSession = {
 				sessionId,
 				title,
 				createdAt: new Date().toISOString(),
@@ -120,16 +140,14 @@ export function useChatHistory() {
 				isActive: true
 			}
 
-			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [optimisticSession, ...old])
-
-			createSessionMutation.mutate({ sessionId, title })
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [fakeSession, ...old])
 		}
 
 		return sessionId
-	}, [user, createSessionMutation, queryClient])
+	}, [user, queryClient])
 
 	const restoreSession = useCallback(
-		async (sessionId: string, limit: number = 50) => {
+		async (sessionId: string, limit: number = 10) => {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
 				return {
@@ -158,7 +176,7 @@ export function useChatHistory() {
 	const loadMoreMessages = useCallback(
 		async (sessionId: string, cursor: number) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 50, cursor })
+				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
 				return {
 					conversationHistory: result.conversationHistory || [],
 					pagination: {
@@ -182,54 +200,58 @@ export function useChatHistory() {
 		[restoreSessionMutation]
 	)
 
-	const deleteSession = useCallback(
+	const moveSessionToTop = useCallback(
 		(sessionId: string) => {
-			deleteSessionMutation.mutate(sessionId)
-		},
-		[deleteSessionMutation]
-	)
+			if (!user) return
 
-	const updateSessionTitle = useCallback(
-		(sessionId: string, title: string) => {
-			updateTitleMutation.mutate({ sessionId, title })
+			queryClient.setQueryData(['chat-sessions', user.id], (oldSessions: ChatSession[] = []) => {
+				const sessionIndex = oldSessions.findIndex((s) => s.sessionId === sessionId)
+				if (sessionIndex === -1) return oldSessions
+
+				const updatedSessions = [...oldSessions]
+				const [movedSession] = updatedSessions.splice(sessionIndex, 1)
+				movedSession.lastActivity = new Date().toISOString()
+
+				return [movedSession, ...updatedSessions]
+			})
 		},
-		[updateTitleMutation]
+		[user, queryClient]
 	)
 
 	const toggleSidebar = useCallback(() => {
-		const newVisible = !sidebarVisible
-		setSidebarVisible(newVisible)
-		localStorage.setItem('llamaai-sidebar-hidden', String(!newVisible))
-	}, [sidebarVisible])
-
-	const generateSessionTitle = useCallback((firstMessage: string) => {
-		return firstMessage.length > 40 ? firstMessage.substring(0, 40) + '...' : firstMessage
+		const currentVisible = localStorage.getItem('llamaai-sidebar-hidden') === 'true'
+		localStorage.setItem('llamaai-sidebar-hidden', String(!currentVisible))
+		window.dispatchEvent(new Event('chatHistorySidebarChange'))
 	}, [])
 
-	useEffect(() => {
-		const handleStorageChange = (e: StorageEvent) => {
-			if (e.key === 'llamaai-sidebar-hidden') {
-				setSidebarVisible(e.newValue !== 'true')
-			}
-		}
-		window.addEventListener('storage', handleStorageChange)
-		return () => window.removeEventListener('storage', handleStorageChange)
-	}, [])
+	const sidebarHidden = useSyncExternalStore(
+		subscribeToChatHistorySidebar,
+		() => localStorage.getItem('llamaai-sidebar-hidden') ?? 'true',
+		() => 'true'
+	)
 
 	return {
 		sessions,
 		isLoading,
-		sidebarVisible,
-		createOptimisticSession,
+		sidebarVisible: sidebarHidden !== 'true',
+		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
-		deleteSession,
-		updateSessionTitle,
+		deleteSession: deleteSessionMutation.mutateAsync,
+		updateSessionTitle: updateTitleMutation.mutateAsync,
+		moveSessionToTop,
 		toggleSidebar,
-		generateSessionTitle,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending
+	}
+}
+
+function subscribeToChatHistorySidebar(callback: () => void) {
+	window.addEventListener('chatHistorySidebarChange', callback)
+
+	return () => {
+		window.removeEventListener('chatHistorySidebarChange', callback)
 	}
 }
