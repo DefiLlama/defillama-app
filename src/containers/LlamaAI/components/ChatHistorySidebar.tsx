@@ -43,7 +43,7 @@ export function ChatHistorySidebar({
 				</Tooltip>
 			</div>
 
-			<h1 className="p-4 pb-2 text-xs text-[#666] dark:text-[#919296]">Chats</h1>
+			<h1 className="p-4 pb-1 text-xs text-[#666] dark:text-[#919296]">Chats</h1>
 
 			<div className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
 				{isLoading ? (

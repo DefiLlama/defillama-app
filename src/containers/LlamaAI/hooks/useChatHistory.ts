@@ -89,6 +89,11 @@ export function useChatHistory() {
 			if (!response.ok) throw new Error('Failed to delete session')
 			return response.json()
 		},
+		onMutate: async (sessionId) => {
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
+				return old.filter((session) => session.sessionId !== sessionId)
+			})
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
 		}
@@ -106,6 +111,16 @@ export function useChatHistory() {
 			}
 			const result = await response.json()
 			return result
+		},
+		onMutate: async ({ sessionId, title }) => {
+			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
+				return old.map((session) => {
+					if (session.sessionId === sessionId) {
+						return { ...session, title }
+					}
+					return session
+				})
+			})
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
