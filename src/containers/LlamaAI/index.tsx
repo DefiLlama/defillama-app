@@ -585,7 +585,7 @@ export function LlamaAI() {
 						onNewChat={handleNewChat}
 					/>
 				) : (
-					<History handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 				)}
 				<div
 					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible ? 'animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
@@ -1070,7 +1070,7 @@ const Answer = ({ content }: { content: string }) => {
 	)
 }
 
-const History = ({
+const ChatControls = ({
 	handleSidebarToggle,
 	handleNewChat
 }: {
