@@ -237,7 +237,8 @@ async function fetchPromptResponse({
 
 export function LlamaAI() {
 	const { authorizedFetch, user } = useAuthContext()
-	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, moveSessionToTop } = useChatHistory()
+	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, moveSessionToTop, updateSessionTitle } =
+		useChatHistory()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
@@ -400,8 +401,7 @@ export function LlamaAI() {
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
-						// setStreamingTitle(data.title || data.content)
-						// startTitleTypingEffect(data.title || data.content)
+						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
 					}
 				},
 				abortSignal: abortControllerRef.current.signal
