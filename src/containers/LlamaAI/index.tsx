@@ -793,7 +793,7 @@ export function LlamaAI() {
 						streamingTitle={streamingTitle}
 					/>
 				) : (
-					<History handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 				)}
 				<div
 					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible ? 'animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
@@ -1284,7 +1284,7 @@ const Answer = ({ content }: { content: string }) => {
 	)
 }
 
-const History = ({
+const ChatControls = ({
 	handleSidebarToggle,
 	handleNewChat
 }: {
@@ -1296,7 +1296,7 @@ const History = ({
 			<Tooltip
 				content="Open Chat History"
 				render={<button onClick={handleSidebarToggle} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue)"
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 			>
 				<Icon name="arrow-right-to-line" height={16} width={16} />
 				<span className="sr-only">Open Chat History</span>
@@ -1304,7 +1304,7 @@ const History = ({
 			<Tooltip
 				content="New Chat"
 				render={<button onClick={handleNewChat} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white"
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
 			>
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>

@@ -103,6 +103,7 @@ export interface IChainOverviewData {
 	charts: ChainChartLabels[]
 	description: string
 	keywords: string
+	isDataAvailable: boolean
 }
 
 export interface ILiteChart {

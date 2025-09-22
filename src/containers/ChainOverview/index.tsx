@@ -1,7 +1,10 @@
 import { lazy, Suspense } from 'react'
+import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
+import { chainIconUrl } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
 import type { IChainOverviewData } from './types'
@@ -22,10 +25,27 @@ export function ChainOverview(props: IChainOverviewData) {
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
-			<Stats {...props} />
-			<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-				<SmolStats {...props} />
-			</Suspense>
+			{props.isDataAvailable ? (
+				<>
+					<Stats {...props} />
+					<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
+						<SmolStats {...props} />
+					</Suspense>
+				</>
+			) : (
+				<>
+					<div className="flex flex-1 flex-col gap-10 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+						<h1 className="flex flex-nowrap items-center gap-2">
+							<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
+							<span className="text-xl font-semibold">{props.metadata.name}</span>
+						</h1>
+						<p className="my-auto py-10 text-center text-sm text-(--text-form)">
+							We dont track any protocols with TVL, Fees, Revenue or Volume on this chain
+						</p>
+					</div>
+				</>
+			)}
+
 			{props.metadata.name === 'All' ? (
 				<div className="thin-scrollbar relative isolate flex flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
 					{linksToOtherLlamaApps.map((app) => (

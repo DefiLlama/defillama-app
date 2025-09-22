@@ -677,6 +677,8 @@ export function lastDayOfWeek(dateString) {
 	const daysToAdd = weekDay === 0 ? 0 : 7 - weekDay
 	// Create a new date by adding days (this handles month boundaries automatically)
 	const lastDayDate = new Date(date.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
+	// Normalize to start of day (00:00:00)
+	lastDayDate.setUTCHours(0, 0, 0, 0)
 	return Math.trunc(lastDayDate.getTime() / 1000)
 }
 

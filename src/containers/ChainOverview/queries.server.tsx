@@ -523,6 +523,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			throw new Error('Missing chart data')
 		}
 
+		const isDataAvailable = charts.length > 0 || protocols.length > 0
+
 		return {
 			chain,
 			metadata,
@@ -604,11 +606,16 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			description:
 				metadata.name === 'All'
 					? 'Comprehensive overview of all metrics tracked on all chains, including TVL, Stablecoins Mcap, DEXs Volume, Perps Volume, protocols on all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.'
-					: `Comprehensive overview of all metrics tracked on ${metadata.name}, including ${charts.join(', ')}, and protocols on ${metadata.name}.`,
+					: isDataAvailable
+						? `Comprehensive overview of all metrics tracked on ${metadata.name}, including ${charts.join(', ')}, and protocols on ${metadata.name}.`
+						: `Comprehensive overview of all metrics tracked on ${metadata.name}`,
 			keywords:
 				metadata.name === 'All'
 					? 'blockchains, tvl, total value locked, defi, protocols on all chains, defillama, blockchain analytics'
-					: `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
+					: isDataAvailable
+						? `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
+						: '',
+			isDataAvailable
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
