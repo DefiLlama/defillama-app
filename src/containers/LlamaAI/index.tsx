@@ -280,6 +280,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
 	const userRef = useRef<any>(null)
+	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
@@ -320,7 +321,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 
 	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
 	useEffect(() => {
-		if (sessionId && user && !sharedSession && !readOnly && hasRestoredSession !== sessionId) {
+		if (sessionId && user && !sharedSession && !readOnly && hasRestoredSession !== sessionId && !newlyCreatedSessionsRef.current.has(sessionId)) {
 			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
 				.then((result) => {
@@ -403,6 +404,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 
 			if (!currentSessionId && user) {
 				currentSessionId = createFakeSession()
+				newlyCreatedSessionsRef.current.add(currentSessionId)
 				setSessionId(currentSessionId)
 			}
 
@@ -456,6 +458,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 							}
 						}
 					} else if (data.type === 'session' && data.sessionId) {
+						newlyCreatedSessionsRef.current.add(data.sessionId)
 						setSessionId(data.sessionId)
 						sessionIdRef.current = data.sessionId
 					} else if (data.type === 'suggestions') {
@@ -640,6 +643,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 
 		setSessionId(null)
 		setHasRestoredSession(null)
+		newlyCreatedSessionsRef.current.clear()
 		setPrompt('')
 		resetPrompt()
 		setStreamingResponse('')
