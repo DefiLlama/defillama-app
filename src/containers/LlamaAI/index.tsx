@@ -355,6 +355,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 	const [hasChartError, setHasChartError] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
 	const [resizeTrigger, setResizeTrigger] = useState(0)
+	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -771,6 +772,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 
 	const handleSidebarToggle = () => {
 		toggleSidebar()
+		setShouldAnimateSidebar(true)
 		setResizeTrigger((prev) => prev + 1)
 	}
 
@@ -823,6 +825,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 		}
 	}, [])
 
+	// Reset animation flag after animation completes
+	useEffect(() => {
+		if (shouldAnimateSidebar) {
+			const timer = setTimeout(() => {
+				setShouldAnimateSidebar(false)
+			}, 220) // Match the animation duration (0.22s = 220ms)
+			return () => clearTimeout(timer)
+		}
+	}, [shouldAnimateSidebar])
+
 	const isSubmitted = isPending || isStreaming || error || promptResponse ? true : false
 
 	return (
@@ -838,12 +850,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 							currentSessionId={sessionId}
 							onSessionSelect={handleSessionSelect}
 							onNewChat={handleNewChat}
+							shouldAnimate={shouldAnimateSidebar}
 						/>
 					) : (
 						<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 					))}
 				<div
-					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && !initialSessionId ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
 					<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
 						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">

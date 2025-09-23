@@ -11,6 +11,7 @@ interface ChatHistorySidebarProps {
 	currentSessionId: string | null
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
 	onNewChat: () => void
+	shouldAnimate?: boolean
 }
 
 function getGroupName(lastActivity: string) {
@@ -29,7 +30,8 @@ export function ChatHistorySidebar({
 	handleSidebarToggle,
 	currentSessionId,
 	onSessionSelect,
-	onNewChat
+	onNewChat,
+	shouldAnimate = false
 }: ChatHistorySidebarProps) {
 	const { user } = useAuthContext()
 	const { sessions, isLoading } = useChatHistory()
@@ -49,7 +51,9 @@ export function ChatHistorySidebar({
 	if (!user) return null
 
 	return (
-		<div className="relative flex h-full w-full max-w-[272px] animate-[slideInRight_0.2s_ease-out] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324]">
+		<div
+			className={`relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.2s_ease-out]' : ''}`}
+		>
 			<div className="flex flex-nowrap items-center gap-2 p-4">
 				<button
 					onClick={onNewChat}
