@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
@@ -85,7 +86,6 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 		}
 	}
 
-
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (formRef.current && !formRef.current.contains(event.target as Node)) {
@@ -123,7 +123,6 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 			})
 		}
 	}
-
 
 	if (isEditing) {
 		return (
@@ -203,56 +202,53 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						<Icon name="trash-2" height={12} width={12} className="shrink-0" />
 					)}
 				</button>
-				<div className="relative" ref={dropdownRef}>
-					<button
-						onClick={() => setShowDropdown(!showDropdown)}
-						className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-						disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
-					>
+				<Ariakit.MenuProvider>
+					<Ariakit.MenuButton className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white">
 						<Icon name="ellipsis" height={12} width={12} className="shrink-0" />
-					</button>
-					{showDropdown && (
-						<div
-							className="absolute top-full right-0 mt-1 min-w-[140px] rounded-md border bg-white shadow-lg dark:bg-[#1a1a1a] dark:border-[#333]"
-							style={{ zIndex: 9999 }}
+						<span className="sr-only">Open menu</span>
+					</Ariakit.MenuButton>
+					<Ariakit.Menu
+						unmountOnHide
+						hideOnInteractOutside
+						gutter={8}
+						wrapperProps={{
+							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
+						}}
+						className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] sm:max-w-md lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
+					>
+						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+							<Icon name="x" className="h-5 w-5" />
+						</Ariakit.PopoverDismiss>
+						<Ariakit.MenuItem
+							onClick={() => {
+								if (shareInfo.isPublic && shareInfo.shareUrl) {
+									navigator.clipboard.writeText(shareInfo.shareUrl)
+								}
+							}}
+							disabled={!shareInfo.isPublic || !shareInfo.shareUrl}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
-							<button
-								onClick={() => {
-									if (shareInfo.isPublic && shareInfo.shareUrl) {
-										navigator.clipboard.writeText(shareInfo.shareUrl)
+							<Icon name="copy" height={14} width={14} className="shrink-0" />
+							Copy Link
+						</Ariakit.MenuItem>
+						<Ariakit.MenuItem
+							onClick={() => {
+								if (shareInfo.isPublic) {
+									if (window.confirm('This conversation is currently public. Do you want to make it private?')) {
+										handleMakePrivate()
 									}
-									setShowDropdown(false)
-								}}
-								className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
-									shareInfo.isPublic
-										? 'hover:bg-gray-100 dark:hover:bg-[#2a2a2a]'
-										: 'text-gray-400 cursor-not-allowed'
-								}`}
-								disabled={!shareInfo.isPublic || !shareInfo.shareUrl}
-							>
-								<Icon name="copy" height={14} width={14} className="shrink-0" />
-								Copy Link
-							</button>
-							<button
-								onClick={() => {
-									if (shareInfo.isPublic) {
-										if (window.confirm('This conversation is currently public. Do you want to make it private?')) {
-											handleMakePrivate()
-										}
-									} else {
-										handleMakePublic()
-									}
-									setShowDropdown(false)
-								}}
-								className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
-								disabled={isSharing}
-							>
-								<Icon name={shareInfo.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
-								{shareInfo.isPublic ? 'Make Private' : 'Make Public'}
-							</button>
-						</div>
-					)}
-				</div>
+								} else {
+									handleMakePublic()
+								}
+							}}
+							disabled={isSharing}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+						>
+							<Icon name={shareInfo.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
+							{shareInfo.isPublic ? 'Make Private' : 'Make Public'}
+						</Ariakit.MenuItem>
+					</Ariakit.Menu>
+				</Ariakit.MenuProvider>
 			</div>
 			{isRestoringSession ? (
 				<span className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/70">
