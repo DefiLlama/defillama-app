@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { MCP_SERVER } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 
 interface SessionItemProps {
@@ -10,37 +13,97 @@ interface SessionItemProps {
 }
 
 export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
+	const router = useRouter()
+	const { authorizedFetch } = useAuthContext()
 	const { restoreSession, deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } =
 		useChatHistory()
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
+
 		try {
 			const result = await restoreSession(sessionId)
 			onSessionSelect(sessionId, result)
+			router.push(`/ai/${sessionId}`)
 		} catch (error) {
 			console.error('Failed to restore session:', error)
+			router.push(`/ai/${sessionId}`)
 		}
 	}
 
 	const [isEditing, setIsEditing] = useState(false)
+	const [shareInfo, setShareInfo] = useState<{ isPublic: boolean; shareUrl?: string }>({
+		isPublic: session.isPublic || false,
+		shareUrl: session.shareToken ? `${window.location.origin}/ai/shared/${session.shareToken}` : undefined
+	})
+	const [isSharing, setIsSharing] = useState(false)
+	const [showDropdown, setShowDropdown] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
+	const dropdownRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		setShareInfo({
+			isPublic: session.isPublic || false,
+			shareUrl: session.shareToken ? `${window.location.origin}/ai/shared/${session.shareToken}` : undefined
+		})
+	}, [session.isPublic, session.shareToken])
+
+	const handleMakePublic = async () => {
+		setIsSharing(true)
+		try {
+			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
+				method: 'PUT'
+			})
+			const data = await response.json()
+
+			if (data.shareToken) {
+				const shareUrl = `${window.location.origin}/ai/shared/${data.shareToken}`
+				setShareInfo({ ...data, shareUrl })
+				navigator.clipboard.writeText(shareUrl)
+			} else {
+				setShareInfo(data)
+			}
+		} catch (error) {
+			console.error('Failed to make session public:', error)
+		} finally {
+			setIsSharing(false)
+		}
+	}
+
+	const handleMakePrivate = async () => {
+		setIsSharing(true)
+		try {
+			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
+				method: 'PUT'
+			})
+			const data = await response.json()
+			setShareInfo(data)
+		} catch (error) {
+			console.error('Failed to make session private:', error)
+		} finally {
+			setIsSharing(false)
+		}
+	}
+
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (formRef.current && !formRef.current.contains(event.target as Node)) {
 				setIsEditing(false)
 			}
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+				setShowDropdown(false)
+			}
 		}
 
-		if (isEditing) {
+		if (isEditing || showDropdown) {
 			document.addEventListener('mousedown', handleClickOutside)
 		}
 
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside)
 		}
-	}, [isEditing])
+	}, [isEditing, showDropdown])
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -61,16 +124,6 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 		}
 	}
 
-	const formatDate = (dateString: string) => {
-		const date = new Date(dateString)
-		const now = new Date()
-		const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-
-		if (diffDays === 0) return 'Today'
-		if (diffDays === 1) return 'Yesterday'
-		if (diffDays < 7) return `${diffDays} days ago`
-		return date.toLocaleDateString()
-	}
 
 	if (isEditing) {
 		return (
@@ -150,6 +203,56 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						<Icon name="trash-2" height={12} width={12} className="shrink-0" />
 					)}
 				</button>
+				<div className="relative" ref={dropdownRef}>
+					<button
+						onClick={() => setShowDropdown(!showDropdown)}
+						className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+						disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
+					>
+						<Icon name="ellipsis" height={12} width={12} className="shrink-0" />
+					</button>
+					{showDropdown && (
+						<div
+							className="absolute top-full right-0 mt-1 min-w-[140px] rounded-md border bg-white shadow-lg dark:bg-[#1a1a1a] dark:border-[#333]"
+							style={{ zIndex: 9999 }}
+						>
+							<button
+								onClick={() => {
+									if (shareInfo.isPublic && shareInfo.shareUrl) {
+										navigator.clipboard.writeText(shareInfo.shareUrl)
+									}
+									setShowDropdown(false)
+								}}
+								className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
+									shareInfo.isPublic
+										? 'hover:bg-gray-100 dark:hover:bg-[#2a2a2a]'
+										: 'text-gray-400 cursor-not-allowed'
+								}`}
+								disabled={!shareInfo.isPublic || !shareInfo.shareUrl}
+							>
+								<Icon name="copy" height={14} width={14} className="shrink-0" />
+								Copy Link
+							</button>
+							<button
+								onClick={() => {
+									if (shareInfo.isPublic) {
+										if (window.confirm('This conversation is currently public. Do you want to make it private?')) {
+											handleMakePrivate()
+										}
+									} else {
+										handleMakePublic()
+									}
+									setShowDropdown(false)
+								}}
+								className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#2a2a2a]"
+								disabled={isSharing}
+							>
+								<Icon name={shareInfo.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
+								{shareInfo.isPublic ? 'Make Private' : 'Make Public'}
+							</button>
+						</div>
+					)}
+				</div>
 			</div>
 			{isRestoringSession ? (
 				<span className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/70">
