@@ -922,6 +922,7 @@ const PromptInput = ({
 					disabled={isPending && !isStreaming}
 					autoFocus
 					ref={promptInputRef}
+					maxLength={2000}
 				/>
 				{isStreaming ? (
 					<button
