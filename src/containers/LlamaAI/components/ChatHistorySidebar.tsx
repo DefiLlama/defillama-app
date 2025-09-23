@@ -50,8 +50,8 @@ export function ChatHistorySidebar({
 	if (!user) return null
 
 	return (
-		<div className="relative flex h-full w-full max-w-[272px] animate-[slideInRight_0.2s_ease-out] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) lg:mr-2 dark:border-[#222324]">
-			<div className="flex flex-nowrap items-center gap-2 p-4 pb-0">
+		<div className="relative flex h-full w-full max-w-[272px] animate-[slideInRight_0.2s_ease-out] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324]">
+			<div className="flex flex-nowrap items-center gap-2 p-4">
 				<button
 					onClick={onNewChat}
 					className="flex flex-1 items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/10 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
@@ -69,7 +69,7 @@ export function ChatHistorySidebar({
 				</Tooltip>
 			</div>
 
-			<div className="thin-scrollbar flex-1 overflow-auto p-4">
+			<div className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
 				{isLoading ? (
 					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						<LoadingSpinner size={12} />
