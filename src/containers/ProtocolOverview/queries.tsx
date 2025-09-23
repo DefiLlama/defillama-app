@@ -766,15 +766,17 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	let inflowsExist = false
-	for (const chain in protocolData.chainTvls) {
-		if (protocolData.chainTvls[chain].tokensInUsd?.length) {
-			inflowsExist = true
-			break
+	if (!protocolData.misrepresentedTokens) {
+		for (const chain in protocolData.chainTvls) {
+			if (protocolData.chainTvls[chain].tokensInUsd?.length && protocolData.chainTvls[chain].tokens?.length) {
+				inflowsExist = true
+				break
+			}
 		}
-	}
 
-	if (inflowsExist) {
-		availableCharts.push('USD Inflows')
+		if (inflowsExist) {
+			availableCharts.push('USD Inflows')
+		}
 	}
 
 	if (treasury) {
