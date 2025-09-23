@@ -212,10 +212,10 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 								}
 							}}
 							disabled={!shareInfo.isPublic || !shareInfo.shareUrl}
-							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
 						>
 							<Icon name="copy" height={14} width={14} className="shrink-0" />
-							Copy Link
+							{shareInfo.isPublic ? 'Copy Link' : 'Make Public to Copy Link'}
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
 							onClick={() => {
@@ -228,7 +228,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 								}
 							}}
 							disabled={isSharing}
-							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
 						>
 							<Icon name={shareInfo.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
 							{shareInfo.isPublic ? 'Make Private' : 'Make Public'}
