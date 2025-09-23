@@ -761,7 +761,7 @@
     },
     {
       "name": "Privacy Policy",
-      "route": "/subscription/privacy-policy"
+      "route": "/privacy-policy"
     }
   ],
   "Hidden": [

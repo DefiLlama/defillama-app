@@ -377,7 +377,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								</BasicLink>{' '}
 								and{' '}
 								<BasicLink
-									href="/subscription/privacy-policy"
+									href="/privacy-policy"
 									target="_blank"
 									className="font-medium text-[#5C5CF9] transition-colors hover:text-[#7C7CFF]"
 								>
