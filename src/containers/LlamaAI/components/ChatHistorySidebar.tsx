@@ -14,7 +14,6 @@ interface ChatHistorySidebarProps {
 }
 
 function getGroupName(lastActivity: string) {
-	console.log(lastActivity, new Date(lastActivity).getTime(), Date.now() - 24 * 60 * 60 * 1000)
 	return new Date(lastActivity).getTime() >= Date.now() - 24 * 60 * 60 * 1000
 		? 'Today'
 		: new Date(lastActivity).getTime() >= Date.now() - 48 * 60 * 60 * 1000

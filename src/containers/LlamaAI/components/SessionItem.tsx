@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
@@ -16,15 +18,11 @@ interface SessionItemProps {
 export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
-	const { restoreSession, deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } =
-		useChatHistory()
+	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
-
 		try {
-			const result = await restoreSession(sessionId)
-			onSessionSelect(sessionId, result)
 			router.push(`/ai/${sessionId}`)
 		} catch (error) {
 			console.error('Failed to restore session:', error)
@@ -33,77 +31,41 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	}
 
 	const [isEditing, setIsEditing] = useState(false)
-	const [shareInfo, setShareInfo] = useState<{ isPublic: boolean; shareUrl?: string }>({
-		isPublic: session.isPublic || false,
-		shareUrl: session.shareToken ? `${window.location.origin}/ai/shared/${session.shareToken}` : undefined
-	})
-	const [isSharing, setIsSharing] = useState(false)
-	const [showDropdown, setShowDropdown] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
-	const dropdownRef = useRef<HTMLDivElement>(null)
 
-	useEffect(() => {
-		setShareInfo({
-			isPublic: session.isPublic || false,
-			shareUrl: session.shareToken ? `${window.location.origin}/ai/shared/${session.shareToken}` : undefined
-		})
-	}, [session.isPublic, session.shareToken])
+	const queryClient = useQueryClient()
 
-	const handleMakePublic = async () => {
-		setIsSharing(true)
-		try {
+	const { mutate: toggleVisibility, isPending: isTogglingVisibility } = useMutation({
+		mutationFn: async () => {
 			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
 				method: 'PUT'
 			})
-			const data = await response.json()
-
-			if (data.shareToken) {
-				const shareUrl = `${window.location.origin}/ai/shared/${data.shareToken}`
-				setShareInfo({ ...data, shareUrl })
-				navigator.clipboard.writeText(shareUrl)
-			} else {
-				setShareInfo(data)
+			if (!response.ok) {
+				toast.error('Failed to make session public')
+				throw new Error('Failed to make session public')
 			}
-		} catch (error) {
-			console.error('Failed to make session public:', error)
-		} finally {
-			setIsSharing(false)
+			return response.json()
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
 		}
-	}
-
-	const handleMakePrivate = async () => {
-		setIsSharing(true)
-		try {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
-				method: 'PUT'
-			})
-			const data = await response.json()
-			setShareInfo(data)
-		} catch (error) {
-			console.error('Failed to make session private:', error)
-		} finally {
-			setIsSharing(false)
-		}
-	}
+	})
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (formRef.current && !formRef.current.contains(event.target as Node)) {
 				setIsEditing(false)
 			}
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-				setShowDropdown(false)
-			}
 		}
 
-		if (isEditing || showDropdown) {
+		if (isEditing) {
 			document.addEventListener('mousedown', handleClickOutside)
 		}
 
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside)
 		}
-	}, [isEditing, showDropdown])
+	}, [isEditing])
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -123,6 +85,8 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 			})
 		}
 	}
+
+	const [isCopyingLink, setIsCopyingLink] = useState(false)
 
 	if (isEditing) {
 		return (
@@ -207,35 +171,54 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						</Ariakit.PopoverDismiss>
 						<Ariakit.MenuItem
 							onClick={() => {
-								if (shareInfo.isPublic && shareInfo.shareUrl) {
-									navigator.clipboard.writeText(shareInfo.shareUrl)
+								try {
+									if (session.isPublic && session.shareToken) {
+										navigator.clipboard.writeText(`${window.location.origin}/ai/shared/${session.shareToken}`)
+									}
+								} catch (error) {
+									console.error('Failed to copy link:', error)
+								} finally {
+									setIsCopyingLink(true)
+									setTimeout(() => {
+										setIsCopyingLink(false)
+									}, 500)
 								}
 							}}
-							disabled={!shareInfo.isPublic || !shareInfo.shareUrl}
+							hideOnClick={false}
+							disabled={!session.isPublic || !session.shareToken || isTogglingVisibility}
 							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
 						>
-							<Icon name="copy" height={14} width={14} className="shrink-0" />
-							{shareInfo.isPublic ? 'Copy Link' : 'Make Public to Copy Link'}
+							{isCopyingLink ? (
+								<Icon name="check-circle" height={14} width={14} className="shrink-0" />
+							) : (
+								<Icon name="copy" height={14} width={14} className="shrink-0" />
+							)}
+							{session.isPublic ? 'Copy Link' : 'Make Public to Share'}
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
 							onClick={() => {
-								if (shareInfo.isPublic) {
+								if (session.isPublic) {
 									if (window.confirm('This conversation is currently public. Do you want to make it private?')) {
-										handleMakePrivate()
+										toggleVisibility()
 									}
 								} else {
-									handleMakePublic()
+									toggleVisibility()
 								}
 							}}
-							disabled={isSharing}
+							hideOnClick={false}
+							disabled={isTogglingVisibility || isUpdatingTitle || isDeletingSession || isRestoringSession}
 							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
 						>
-							<Icon name={shareInfo.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
-							{shareInfo.isPublic ? 'Make Private' : 'Make Public'}
+							{isTogglingVisibility ? (
+								<LoadingSpinner size={14} />
+							) : (
+								<Icon name={session.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
+							)}
+							{session.isPublic ? 'Make Private' : 'Make Public'}
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
 							onClick={handleDelete}
-							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
+							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession || isTogglingVisibility}
 							data-deleting={isDeletingSession}
 							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-active-item:bg-red-500/10 data-active-item:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
 						>
