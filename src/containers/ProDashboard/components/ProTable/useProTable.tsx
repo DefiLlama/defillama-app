@@ -14,7 +14,9 @@ import { Parser } from 'expr-eval'
 import {
 	useGetProtocolsFeesAndRevenueByMultiChain,
 	useGetProtocolsListMultiChain,
-	useGetProtocolsVolumeByMultiChain
+	useGetProtocolsVolumeByMultiChain,
+	useGetProtocolsPerpsVolumeByMultiChain,
+	useGetProtocolsOpenInterestByMultiChain
 } from '~/api/categories/chains/multiChainClient'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
@@ -52,9 +54,15 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let revenue_7d = 0
 	let revenue_30d = 0
 	let revenue_1y = 0
+	let perps_volume_24h = 0
+	let perps_volume_7d = 0
+	let perps_volume_30d = 0
+	let openInterest = 0
 
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
+	let weightedPerpsVolumeChange = 0
+	let totalPerpsVolumeWeight = 0
 
 	// Aggregate metrics from filtered children
 	filteredSubRows.forEach((child) => {
@@ -78,6 +86,14 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.revenue_7d) revenue_7d += child.revenue_7d
 		if (child.revenue_30d) revenue_30d += child.revenue_30d
 		if (child.revenue_1y) revenue_1y += child.revenue_1y
+		if (child.perps_volume_24h) perps_volume_24h += child.perps_volume_24h
+		if (child.perps_volume_7d) perps_volume_7d += child.perps_volume_7d
+		if (child.perps_volume_30d) perps_volume_30d += child.perps_volume_30d
+		if (child.perps_volume_7d && child.perps_volume_change_7d !== undefined && child.perps_volume_change_7d !== null) {
+			weightedPerpsVolumeChange += child.perps_volume_change_7d * child.perps_volume_7d
+			totalPerpsVolumeWeight += child.perps_volume_7d
+		}
+		if (child.openInterest) openInterest += child.openInterest
 	})
 
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
@@ -87,6 +103,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let volumeChange_7d = null
 	if (totalVolumeWeight > 0) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
+	}
+
+	let perps_volume_change_7d = null
+	if (totalPerpsVolumeWeight > 0) {
+		perps_volume_change_7d = weightedPerpsVolumeChange / totalPerpsVolumeWeight
 	}
 
 	let mcaptvl = null
@@ -134,6 +155,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		revenue_7d,
 		revenue_30d,
 		revenue_1y,
+		perps_volume_24h,
+		perps_volume_7d,
+		perps_volume_30d,
+		perps_volume_change_7d,
+		openInterest,
 		change_1d,
 		change_7d,
 		change_1m,
@@ -166,6 +192,8 @@ export function useProTable(
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
+	const { data: chainProtocolsPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
+	const { data: chainProtocolsOpenInterest } = useGetProtocolsOpenInterestByMultiChain(chains)
 	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
@@ -174,7 +202,9 @@ export function useProTable(
 			protocols: fullProtocolsList,
 			parentProtocols,
 			volumeData: chainProtocolsVolumes,
-			feesData: chainProtocolsFees
+			feesData: chainProtocolsFees,
+			perpsData: chainProtocolsPerps,
+			openInterestData: chainProtocolsOpenInterest
 		})
 
 		// Apply filters
@@ -290,7 +320,7 @@ export function useProTable(
 		}
 
 		return protocols
-	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, filters])
+	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, chainProtocolsPerps, chainProtocolsOpenInterest, filters])
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -479,7 +509,11 @@ export function useProTable(
 			'volume_24h',
 			'volume_7d',
 			'cumulativeFees',
-			'cumulativeVolume'
+			'cumulativeVolume',
+			'perps_volume_24h',
+			'perps_volume_7d',
+			'perps_volume_30d',
+			'openInterest'
 		]
 
 		usdMetrics.forEach((metric) => {

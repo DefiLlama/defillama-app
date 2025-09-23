@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain } from '../adaptors'
+import { getDexVolumeByChain, getFeesAndRevenueProtocolsByChain, getPerpsVolumeByChain, getOpenInterestByChain } from '../adaptors'
 import { basicPropertiesToKeep, formatProtocolsData } from '../protocols/utils'
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
@@ -180,11 +180,107 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 						existing.revenueChange_7dover7d = protocol.revenueChange_7dover7d
 					if (existing.revenueChange_30dover30d == null && protocol.revenueChange_30dover30d != null)
 						existing.revenueChange_30dover30d = protocol.revenueChange_30dover30d
+					if (existing.holdersRevenueChange_7dover7d == null && protocol.holdersRevenueChange_7dover7d != null)
+						existing.holdersRevenueChange_7dover7d = protocol.holdersRevenueChange_7dover7d
+					if (existing.holdersRevenueChange_30dover30d == null && protocol.holdersRevenueChange_30dover30d != null)
+						existing.holdersRevenueChange_30dover30d = protocol.holdersRevenueChange_30dover30d
 				} else {
 					protocolsMap.set(key, { ...protocol, chains: [payload.chain] })
 				}
 			})
 		})
+
+		return Array.from(protocolsMap.values())
+	}, [shouldFetchAll, ...queryDatas])
+
+	return { data, isLoading, error }
+}
+
+export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
+	const shouldFetchAll = chains.length === 0 || chains.includes('All')
+	const chainsToFetch = shouldFetchAll ? ['All'] : chains
+
+	const queries = useQueries({
+		queries: chainsToFetch.map((chain) => ({
+			queryKey: [`protocolsPerpsVolumeByChain/${chain}`],
+			queryFn: () =>
+				getPerpsVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
+					(data) => ({ chain, protocols: data?.protocols ?? [] })
+				),
+			staleTime: 60 * 60 * 1000
+		}))
+	})
+
+	const isLoading = queries.some((q) => q.isLoading)
+	const error = queries.find((q) => q.error)?.error
+
+	const queryDatas = queries.map((q) => q.data)
+
+	const data = useMemo(() => {
+		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
+
+		const protocolsMap = new Map<string, any>()
+
+		queryDatas.forEach((payload) => {
+			if (!payload?.protocols) return
+			payload.protocols.forEach((protocol: any) => {
+				const existing = protocolsMap.get(protocol.name)
+				if (existing) {
+					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
+					existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
+					existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+					existing.totalAllTime = (existing.totalAllTime || 0) + (protocol.totalAllTime || 0)
+					if (!existing.chains) existing.chains = []
+					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+				} else {
+					protocolsMap.set(protocol.name, { ...protocol, chains: [payload.chain] })
+				}
+			})
+		})
+
+		return Array.from(protocolsMap.values())
+	}, [shouldFetchAll, ...queryDatas])
+
+	return { data, isLoading, error }
+}
+
+export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
+	const shouldFetchAll = chains.length === 0 || chains.includes('All')
+	const chainsToFetch = shouldFetchAll ? ['All'] : chains
+
+	const queries = useQueries({
+		queries: chainsToFetch.map((chain) => ({
+			queryKey: [`protocolsOpenInterestByChain/${chain}`],
+			queryFn: () =>
+				getOpenInterestByChain({ chain }).then((data) => ({ chain, protocols: data?.protocols ?? [] })),
+			staleTime: 60 * 60 * 1000
+		}))
+	})
+
+	const isLoading = queries.some((q) => q.isLoading)
+	const error = queries.find((q) => q.error)?.error
+
+	const queryDatas = queries.map((q) => q.data)
+
+	const data = useMemo(() => {
+		if (shouldFetchAll && queryDatas[0]) return queryDatas[0].protocols
+
+		const protocolsMap = new Map<string, any>()
+
+		queryDatas.forEach((payload) => {
+			if (!payload?.protocols) return
+			payload.protocols.forEach((protocol: any) => {
+				const existing = protocolsMap.get(protocol.name)
+				if (existing) {
+					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
+					if (!existing.chains) existing.chains = []
+					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+				} else {
+					protocolsMap.set(protocol.name, { ...protocol, chains: [payload.chain] })
+				}
+			})
+		})
+
 		return Array.from(protocolsMap.values())
 	}, [shouldFetchAll, ...queryDatas])
 

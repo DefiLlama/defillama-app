@@ -247,6 +247,8 @@ export const formatProtocolsList = ({
 	extraTvlsEnabled,
 	volumeData,
 	feesData,
+	perpsData,
+	openInterestData,
 	noSubrows
 }: {
 	protocols: IFormattedProtocol[]
@@ -254,6 +256,8 @@ export const formatProtocolsList = ({
 	extraTvlsEnabled: Record<string, boolean>
 	volumeData?: IOverviewProps['protocols']
 	feesData?: IOverviewProps['protocols']
+	perpsData?: IOverviewProps['protocols']
+	openInterestData?: IOverviewProps['protocols']
 	noSubrows?: boolean
 }): IFormattedProtocol[] => {
 	const checkExtras = {
@@ -355,6 +359,7 @@ export const formatProtocolsList = ({
 			average_revenue_1y: protocol.averageRevenue1y || undefined,
 			holdersRevenue30d: protocol.holdersRevenue30d || undefined,
 			holderRevenue_24h: protocol.holdersRevenue24h || undefined,
+			holdersRevenueChange_30dover30d: protocol.holdersRevenueChange_30dover30d || undefined,
 			treasuryRevenue_24h: protocol.dailyProtocolRevenue || undefined,
 			supplySideRevenue_24h: protocol.dailySupplySideRevenue || undefined,
 			userFees_24h: protocol.dailyUserFees || undefined,
@@ -374,6 +379,33 @@ export const formatProtocolsList = ({
 			volume_7d: protocol.total7d,
 			volumeChange_7d: protocol['change_7dover7d'],
 			cumulativeVolume: protocol.totalAllTime
+		}
+	}
+
+	for (const protocol of perpsData ?? []) {
+		const protocolName = protocol.name?.toLowerCase()
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+		}
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			perps_volume_24h: protocol.total24h,
+			perps_volume_7d: protocol.total7d,
+			perps_volume_30d: protocol.total30d,
+			perps_volume_change_7d: protocol['change_7dover7d']
+		}
+	}
+
+	for (const protocol of openInterestData ?? []) {
+		const protocolName = protocol.name?.toLowerCase()
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+		}
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			openInterest: protocol.total24h 
 		}
 	}
 

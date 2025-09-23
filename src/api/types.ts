@@ -214,6 +214,12 @@ export interface IFormattedProtocol extends LiteProtocol {
 	volume_24h?: number | null
 	volumeChange_7d?: number | null
 	cumulativeVolume?: number | null
+	perps_volume_24h?: number | null
+	perps_volume_7d?: number | null
+	perps_volume_30d?: number | null
+	perps_volume_change_7d?: number | null
+	openInterest?: number | null
+	holdersRevenueChange_30dover30d?: number | null
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
