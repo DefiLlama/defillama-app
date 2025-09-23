@@ -1,27 +1,11 @@
-import { useRouter } from 'next/router'
 import Image from 'next/image'
-import { maxAgeForNext } from '~/api'
+import { useRouter } from 'next/router'
 import lostLlama from '~/assets/404.png'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import Layout from '~/layout'
-import { withPerformanceLogging } from '~/utils/perf'
-
-export const getStaticPaths = async () => {
-	return {
-		paths: [],
-		fallback: 'blocking'
-	}
-}
-
-export const getStaticProps = withPerformanceLogging('LlamaAiSession', async () => {
-	return {
-		props: {},
-		revalidate: maxAgeForNext([22])
-	}
-})
 
 export default function SessionPage() {
 	const router = useRouter()
@@ -65,5 +49,5 @@ export default function SessionPage() {
 		)
 	}
 
-	return <LlamaAI initialSessionId={sessionId as string} />
+	return <LlamaAI initialSessionId={sessionId as string} key={`llamai-session-page-${sessionId}`} />
 }
