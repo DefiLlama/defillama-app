@@ -188,20 +188,6 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 				>
 					<Icon name="pencil" height={12} width={12} className="shrink-0" />
 				</button>
-				<button
-					onClick={() => {
-						handleDelete()
-					}}
-					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
-					disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
-					data-deleting={isDeletingSession}
-				>
-					{isDeletingSession ? (
-						<LoadingSpinner size={12} />
-					) : (
-						<Icon name="trash-2" height={12} width={12} className="shrink-0" />
-					)}
-				</button>
 				<Ariakit.MenuProvider>
 					<Ariakit.MenuButton className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white">
 						<Icon name="ellipsis" height={12} width={12} className="shrink-0" />
@@ -246,6 +232,19 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						>
 							<Icon name={shareInfo.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
 							{shareInfo.isPublic ? 'Make Private' : 'Make Public'}
+						</Ariakit.MenuItem>
+						<Ariakit.MenuItem
+							onClick={handleDelete}
+							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
+							data-deleting={isDeletingSession}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-active-item:bg-red-500/10 data-active-item:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
+						>
+							{isDeletingSession ? (
+								<LoadingSpinner size={14} />
+							) : (
+								<Icon name="trash-2" height={14} width={14} className="shrink-0" />
+							)}
+							Delete Session
 						</Ariakit.MenuItem>
 					</Ariakit.Menu>
 				</Ariakit.MenuProvider>
