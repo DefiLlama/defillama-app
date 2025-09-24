@@ -8,6 +8,7 @@ import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
+import { TRADFI_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
@@ -78,9 +79,9 @@ export const getStaticProps = withPerformanceLogging(
 			company: [company]
 		}
 	}) => {
-		const data: IDigitalAssetTreasuryCompany | null = await fetchJson(
-			`http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies/${company}`
-		).catch(() => null)
+		const data: IDigitalAssetTreasuryCompany | null = await fetchJson(`${TRADFI_API}/v1/companies/${company}`).catch(
+			() => null
+		)
 
 		if (!data) {
 			return { notFound: true, props: null }
@@ -140,7 +141,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const data = await fetchJson('http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies')
+	const data = await fetchJson(`${TRADFI_API}/v1/companies`)
 	const tickers = new Set<string>()
 	for (const asset in data.breakdownByAsset) {
 		for (const company of data.breakdownByAsset[asset]) {
