@@ -72,7 +72,7 @@ export function SubscribeLayout({ children }) {
 						<div className="mt-6 flex flex-wrap items-center justify-center gap-4 border-t border-[#39393E]/40 pt-6 text-xs text-[#8a8c90] md:justify-between">
 							<div>© {new Date().getFullYear()} DefiLlama. All rights reserved.</div>
 							<div className="flex flex-wrap items-center gap-4">
-								<BasicLink href="/subscription/privacy-policy" className="transition-colors hover:text-white">
+								<BasicLink href="/privacy-policy" className="transition-colors hover:text-white">
 									Privacy Policy
 								</BasicLink>
 

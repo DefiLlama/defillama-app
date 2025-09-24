@@ -1,4 +1,4 @@
-import { SubscribeLayout2 } from './fulfillment-policies'
+import { SubscribeLayout2 } from './subscription/fulfillment-policies'
 
 export default function PrivacyPolicy() {
 	return (
@@ -8,8 +8,8 @@ export default function PrivacyPolicy() {
 				<p>
 					This Privacy Policy explains how information about you is collected, used, and disclosed by DefiLlama. This
 					Privacy Policy applies to information we collect when you use the website operated by us and located at{' '}
-					<a href="https://llama.fi" className="underline">
-						https://llama.fi
+					<a href="https://defillama.com" className="underline">
+						https://defillama.com
 					</a>
 					, or when you otherwise interact with the services or tools we provide.
 				</p>
