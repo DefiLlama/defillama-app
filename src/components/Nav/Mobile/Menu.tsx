@@ -66,8 +66,14 @@ export const Menu = React.memo(function Menu({
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
 							<p className="mb-1 text-xs opacity-65">{category}</p>
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route }) => (
-								<LinkToPage route={route} name={name} key={`mobile-nav-${name}-${route}`} asPath={asPath} />
+							{pages.map(({ name, route, attention }) => (
+								<LinkToPage
+									route={route}
+									name={name}
+									attention={attention}
+									key={`mobile-nav-${name}-${route}`}
+									asPath={asPath}
+								/>
 							))}
 						</div>
 					))}
@@ -116,10 +122,12 @@ export const Menu = React.memo(function Menu({
 const LinkToPage = React.memo(function LinkToPage({
 	route,
 	name,
+	attention,
 	asPath
 }: {
 	route: string
 	name: string
+	attention?: boolean
 	asPath: string
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
@@ -129,7 +137,15 @@ const LinkToPage = React.memo(function LinkToPage({
 			data-linkactive={isActive}
 			className="-ml-1.5 flex items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 		>
-			{name}
+			<span className="relative inline-flex items-center gap-1">
+				{name}
+				{attention ? (
+					<span
+						aria-hidden
+						className="inline-block h-2 w-2 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
+					/>
+				) : null}
+			</span>
 		</BasicLink>
 	)
 })

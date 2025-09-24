@@ -1,6 +1,8 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -25,12 +27,6 @@ const MobileFallback = () => {
 	)
 }
 
-const otherMainPages = [
-	{ name: 'Pricing', route: '/subscription', icon: 'banknote' },
-	{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
-]
-
-const mainLinks = [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
 const footerLinks = ['More', 'About Us'].map((category) => ({
 	category,
 	pages: defillamaPages[category]
@@ -38,6 +34,20 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 
 function NavComponent() {
 	const { dashboards } = useDashboardAPI()
+	const { isAuthenticated, user } = useAuthContext()
+	const { hasActiveSubscription } = useSubscribe()
+
+	const hasEthWallet = Boolean(user?.walletAddress)
+	const showAttentionIcon = isAuthenticated && hasActiveSubscription && !hasEthWallet
+
+	const mainLinks = useMemo(() => {
+		const otherMainPages = [
+			{ name: 'Pricing', route: '/subscription', icon: 'banknote', attention: showAttentionIcon },
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'ethereum' }
+		]
+		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
+	}, [showAttentionIcon])
+
 	const userDashboards = useMemo(
 		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
 		[dashboards]
