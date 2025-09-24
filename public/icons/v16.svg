@@ -125,12 +125,11 @@
 <symbol id="arrow-right-to-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 12H3"/><path d="m11 18 6-6-6-6"/><path d="M21 5v14"/></symbol>
 <symbol id="ellipsis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
 <symbol id="ethereum" viewBox="0 0 24 24">
-  <path fill="#343434" points="127.9611 0 125.1661 9.5 125.1661 285.168 127.9611 287.958 255.9231 212.32" d="M7.365 0L7.204 0.547L7.204 16.413L7.365 16.573L14.729 12.22Z"/>
-  <path fill="#8C8C8C" points="127.962 0 0 212.32 127.962 287.959 127.962 154.158" d="M7.365 0L0 12.22L7.365 16.573L7.365 8.872Z"/>
-  <path fill="#3C3C3B" points="127.9611 312.1866 126.3861 314.1066 126.3861 412.3056 127.9611 416.9066 255.9991 236.5866" d="M7.365 17.968L7.274 18.078L7.274 23.73L7.365 23.995L14.734 13.616Z"/>
-  <path fill="#8C8C8C" points="127.962 416.9052 127.962 312.1852 0 236.5852" d="M7.365 23.995L7.365 17.967L0 13.616Z"/>
-  <path fill="#141414" points="127.9611 287.9577 255.9211 212.3207 127.9611 154.1587" d="M7.365 16.573L14.729 12.22L7.365 8.872Z"/>
-  <path fill="#393939" points="0.0009 212.3208 127.9609 287.9578 127.9609 154.1588" d="M0 12.22L7.365 16.573L7.365 8.872Z"/>
+  <path fill="#3C3C3B" d="M12 16.969v5.016l6.141 -8.672z"/>
+  <path fill="#343434" d="m12 1.922 6.141 10.219 -6.141 3.656 -6.188 -3.656"/>
+  <path fill="#8C8C8C" d="M12 1.922v7.406l-6.188 2.813m0 1.172 6.188 3.656v5.016"/>
+  <path fill="#141414" d="M12 9.328v6.469l6.141 -3.656"/>
+  <path fill="#393939" d="m5.813 12.141 6.188 -2.813v6.469"/>
 </symbol>
 </defs>
 </svg>
