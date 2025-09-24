@@ -60,7 +60,7 @@ export const AccountInfo = () => {
 
 	if (loaders.userLoading || loaders.userFetching) {
 		return (
-			<div className="flex h-[40vh] items-center justify-center">
+			<div className="flex h-[40dvh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)

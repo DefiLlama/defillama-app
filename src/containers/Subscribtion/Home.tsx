@@ -98,7 +98,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		(loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription)))
 	) {
 		return (
-			<div className="flex h-[60vh] items-center justify-center">
+			<div className="flex h-[60dvh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)

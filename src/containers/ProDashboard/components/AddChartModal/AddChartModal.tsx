@@ -54,10 +54,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 			<Ariakit.Dialog
 				className={`pro-dashboard dialog add-chart-dialog max-sm:drawer thin-scrollbar flex w-[90%] flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${
 					state.selectedMainTab === 'builder'
-						? 'max-h-[90vh] md:max-h-[85vh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
+						? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
 						: state.selectedMainTab === 'charts'
-							? 'max-h-[90vh] md:max-h-[85vh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
-							: 'max-h-[85vh] md:max-h-[80vh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
+							? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
+							: 'max-h-[85dvh] md:max-h-[80dvh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
 				}`}
 				unmountOnHide
 				portal

@@ -239,7 +239,7 @@ const ProtocolTVL = ({
 					/>
 				</span>
 			</summary>
-			<div className="my-3 flex max-h-[50vh] flex-col overflow-auto">
+			<div className="my-3 flex max-h-[50dvh] flex-col overflow-auto">
 				<h2 className="font-semibold">{isCEX ? 'Total Assets by Chain' : 'TVL by Chain'}</h2>
 				{tvlByChain.map(([chain, tvl]) => (
 					<p

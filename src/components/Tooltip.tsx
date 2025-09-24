@@ -46,7 +46,7 @@ export function Tooltip({ content, children, placement = 'top-start', className,
 			</Ariakit.TooltipAnchor>
 			<Ariakit.Tooltip
 				store={store}
-				className="z-50 max-h-[calc(100dvh-80px)] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap data-[fullwidth=true]:max-w-[var(--popover-available-width)] lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
+				className="z-50 max-h-[calc(100dvh-80px)] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap data-[fullwidth=true]:max-w-(--popover-available-width) lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				unmountOnHide
 				portal
 				data-fullwidth={props['data-fullwidth']}
