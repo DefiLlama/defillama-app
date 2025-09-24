@@ -14,9 +14,9 @@ import { Parser } from 'expr-eval'
 import {
 	useGetProtocolsFeesAndRevenueByMultiChain,
 	useGetProtocolsListMultiChain,
-	useGetProtocolsVolumeByMultiChain,
+	useGetProtocolsOpenInterestByMultiChain,
 	useGetProtocolsPerpsVolumeByMultiChain,
-	useGetProtocolsOpenInterestByMultiChain
+	useGetProtocolsVolumeByMultiChain
 } from '~/api/categories/chains/multiChainClient'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
@@ -24,7 +24,7 @@ import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/colum
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { downloadCSV, formattedNum, getPercentChange } from '~/utils'
+import { downloadCSV, getPercentChange } from '~/utils'
 import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
@@ -113,7 +113,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let mcaptvl = null
 	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
 	if (tvl && finalMcap) {
-		mcaptvl = +formattedNum(finalMcap / tvl)
+		mcaptvl = +(finalMcap / tvl).toFixed(2)
 	}
 
 	const oracleSet = new Set<string>()
@@ -320,7 +320,15 @@ export function useProTable(
 		}
 
 		return protocols
-	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, chainProtocolsPerps, chainProtocolsOpenInterest, filters])
+	}, [
+		fullProtocolsList,
+		parentProtocols,
+		chainProtocolsVolumes,
+		chainProtocolsFees,
+		chainProtocolsPerps,
+		chainProtocolsOpenInterest,
+		filters
+	])
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})

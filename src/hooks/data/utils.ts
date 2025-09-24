@@ -1,6 +1,6 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { formattedNum, getPercentChange } from '~/utils'
+import { getPercentChange } from '~/utils'
 
 function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {
 	if (curr[key] || curr[key] === 0) {
@@ -65,9 +65,9 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				categories.add(curr.category)
 			}
 
-				if (curr.tvl) {
-					acc.tvl = (acc.tvl || 0) + curr.tvl
-				}
+			if (curr.tvl) {
+				acc.tvl = (acc.tvl || 0) + curr.tvl
+			}
 
 			if (curr?.extraTvl?.excludeParent) {
 				;['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].forEach((key) => {
@@ -76,34 +76,34 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 					}
 				})
 			}
-		for (const key of [
-			'tvlPrevDay',
-			'tvlPrevWeek',
-			'tvlPrevMonth',
-			'volume_24h',
-			'volume_7d',
-			'cumulativeVolume',
-			'perps_volume_24h',
-			'perps_volume_7d',
-			'perps_volume_30d',
-			'openInterest',
-			'fees_7d',
-			'fees_24h',
-			'fees_30d',
-			'fees_1y',
-			'revenue_24h',
-			'revenue_7d',
-			'revenue_30d',
-			'revenue_1y',
-			'holderRevenue_24h',
-			'holdersRevenue30d',
-			'userFees_24h',
-			'cumulativeFees',
-			'treasuryRevenue_24h',
-			'supplySideRevenue_24h'
-		]) {
-			addElement(key, curr, acc, hasAtleastOnceValue)
-		}
+			for (const key of [
+				'tvlPrevDay',
+				'tvlPrevWeek',
+				'tvlPrevMonth',
+				'volume_24h',
+				'volume_7d',
+				'cumulativeVolume',
+				'perps_volume_24h',
+				'perps_volume_7d',
+				'perps_volume_30d',
+				'openInterest',
+				'fees_7d',
+				'fees_24h',
+				'fees_30d',
+				'fees_1y',
+				'revenue_24h',
+				'revenue_7d',
+				'revenue_30d',
+				'revenue_1y',
+				'holderRevenue_24h',
+				'holdersRevenue30d',
+				'userFees_24h',
+				'cumulativeFees',
+				'treasuryRevenue_24h',
+				'supplySideRevenue_24h'
+			]) {
+				addElement(key, curr, acc, hasAtleastOnceValue)
+			}
 
 			if (curr.mcap) {
 				acc.mcap = acc.mcap + curr.mcap
@@ -114,11 +114,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				totalVolumeWeight += curr.volume_7d
 			}
 
-			if (
-				curr.perps_volume_7d &&
-				curr.perps_volume_change_7d !== undefined &&
-				curr.perps_volume_change_7d !== null
-			) {
+			if (curr.perps_volume_7d && curr.perps_volume_change_7d !== undefined && curr.perps_volume_change_7d !== null) {
 				weightedPerpsVolumeChange += curr.perps_volume_change_7d * curr.perps_volume_7d
 				totalPerpsVolumeWeight += curr.perps_volume_7d
 			}
@@ -175,7 +171,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 
 	let mcaptvl = null
 	if (tvl && finalMcap) {
-		mcaptvl = +formattedNum(finalMcap / tvl)
+		mcaptvl = +(finalMcap / tvl).toFixed(2)
 	}
 
 	const oracleSet = new Set<string>()
