@@ -4,11 +4,12 @@ import { useMutation } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/Loaders'
+import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { useChatHistory } from './hooks/useChatHistory'
@@ -85,40 +86,7 @@ async function fetchPromptResponse({
 			body: JSON.stringify(requestBody),
 			signal: abortSignal
 		})
-			.then(async (res) => {
-				if (!res.ok) {
-					let errorMessage = `[HTTP] [error] [${res.status}]`
-
-					// Try to get error message from statusText first
-					if (res.statusText) {
-						errorMessage += `: ${res.statusText}`
-					}
-
-					// Read response body only once
-					const responseText = await res.text()
-
-					if (responseText) {
-						// Try to parse as JSON first
-						try {
-							const errorResponse = JSON.parse(responseText)
-							if (errorResponse.error) {
-								errorMessage = errorResponse.error
-							} else if (errorResponse.message) {
-								errorMessage = errorResponse.message
-							} else {
-								// If JSON parsing succeeded but no error/message field, use the text
-								errorMessage = responseText
-							}
-						} catch (jsonError) {
-							// If JSON parsing fails, use the text response
-							errorMessage = responseText
-						}
-					}
-
-					throw new Error(errorMessage)
-				}
-				return res
-			})
+			.then(handleSimpleFetchResponse)
 			.catch((err) => {
 				throw new Error(err.message)
 			})
@@ -862,17 +830,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 							{/* Show loading when restoring session */}
 							{isRestoringSession && conversationHistory.length === 0 ? (
-								<div className="flex items-center justify-center gap-2 py-4 text-[#666] dark:text-[#919296]">
+								<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+									Loading conversation
 									<LoadingDots />
-									<span>Loading conversation...</span>
-								</div>
+								</p>
 							) : conversationHistory.length > 0 || isSubmitted ? (
 								<div className="flex w-full flex-col gap-2 p-2">
 									{paginationState.isLoadingMore && (
-										<div className="flex items-center justify-center gap-2 py-4 text-[#666] dark:text-[#919296]">
+										<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+											Loading more messages
 											<LoadingDots />
-											<span>Loading more messages...</span>
-										</div>
+										</p>
 									)}
 									<div className="flex flex-col gap-2.5">
 										{conversationHistory.map((item) => (
@@ -1287,33 +1255,26 @@ const SuggestedActions = ({
 }) => {
 	return (
 		<div className="mt-4 grid gap-2">
-			<h4 className="text-gray-700 dark:text-gray-300">Suggested actions:</h4>
+			<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 			<div className="grid gap-2">
 				{suggestions.map((suggestion) => (
 					<button
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
+						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324] ${
 							isPending || isStreaming
-								? 'cursor-not-allowed opacity-50'
-								: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
+								? 'cursor-not-allowed opacity-60'
+								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
 						}`}
 					>
-						<span className="flex flex-1 flex-col gap-1">
-							<span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-								{suggestion.title}
-							</span>
+						<span className="flex flex-1 flex-col items-start gap-1">
+							<span>{suggestion.title}</span>
 							{suggestion.description ? (
-								<span className="text-xs text-gray-600 dark:text-gray-400">{suggestion.description}</span>
+								<span className="text-[#666] dark:text-[#919296]">{suggestion.description}</span>
 							) : null}
 						</span>
-						<Icon
-							name="arrow-right"
-							height={16}
-							width={16}
-							className="shrink-0 text-gray-400 group-hover:text-blue-500"
-						/>
+						<Icon name="arrow-right" height={16} width={16} className="shrink-0" />
 					</button>
 				))}
 			</div>
@@ -1322,17 +1283,34 @@ const SuggestedActions = ({
 }
 
 const QueryMetadata = ({ metadata }: { metadata: any }) => {
+	const [copied, setCopied] = useState(false)
+
+	const handleCopy = async () => {
+		if (!metadata) return
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(metadata, null, 2))
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.error('Failed to copy content:', error)
+		}
+	}
+
 	return (
-		<details className="group rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
-			<summary className="flex flex-wrap items-center justify-between gap-2">
-				<span>Query Metadata</span>
-				<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+		<details className="group rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
+			<summary className="flex flex-wrap items-center justify-end gap-2 text-[#666] group-open:text-black group-hover:text-black dark:text-[#919296] dark:group-open:text-white dark:group-hover:text-white">
+				<span className="mr-auto">Query Metadata</span>
+				<Tooltip content="Copy" render={<button onClick={handleCopy} />} className="hidden group-open:block">
+					{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
+					<span className="sr-only">Copy</span>
+				</Tooltip>
+				<span className="flex items-center gap-1">
 					<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
 					<span className="group-open:hidden">Show</span>
 					<span className="hidden group-open:block">Hide</span>
 				</span>
 			</summary>
-			<pre className="mt-2 overflow-auto select-text">{JSON.stringify(metadata, null, 2)}</pre>
+			<pre className="mt-2 overflow-auto text-xs select-text">{JSON.stringify(metadata, null, 2)}</pre>
 		</details>
 	)
 }
@@ -1346,26 +1324,44 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 }
 
 const MessageRating = ({ messageId, content }: { messageId?: string; content?: string }) => {
-	const [rating, setRating] = useState<'good' | 'bad' | null>(null)
-	const [isRating, setIsRating] = useState(false)
 	const [copied, setCopied] = useState(false)
 	const { authorizedFetch } = useAuthContext()
 
-	const handleRate = async (newRating: 'good' | 'bad') => {
-		if (!messageId || isRating) return
-		setIsRating(true)
-		try {
-			await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+	const {
+		data: sessionRatingAsGood,
+		mutate: rateAsGood,
+		isPending: isRatingAsGood
+	} = useMutation({
+		mutationFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: newRating })
+				body: JSON.stringify({ rating: 'good' })
 			})
-			setRating(newRating)
-		} catch (error) {
-			console.error('Failed to rate message:', error)
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
 		}
-		setIsRating(false)
-	}
+	})
+
+	const {
+		data: sessionRatingAsBad,
+		mutate: rateAsBad,
+		isPending: isRatingAsBad
+	} = useMutation({
+		mutationFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ rating: 'bad' })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		}
+	})
 
 	const handleCopy = async () => {
 		if (!content) return
@@ -1378,27 +1374,35 @@ const MessageRating = ({ messageId, content }: { messageId?: string; content?: s
 		}
 	}
 
+	const isRatedAsGood = sessionRatingAsGood?.rating === 'good'
+	const isRatedAsBad = sessionRatingAsBad?.rating === 'bad'
+
 	if (!messageId) return null
 
 	return (
-		<div className="mt-3 flex items-center gap-1 opacity-60 hover:opacity-100">
-			<button
-				onClick={() => handleRate('good')}
-				disabled={isRating}
-				className={`rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 ${rating === 'good' ? 'text-green-600' : 'text-gray-500'}`}
+		<div className="-mx-1.5 flex items-center gap-1">
+			<Tooltip
+				content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
+				render={<button onClick={() => rateAsGood()} disabled={isRatingAsGood} />}
+				className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
 			>
-				<Icon name="chevron-up" height={16} width={16} />
-			</button>
-			<button
-				onClick={() => handleRate('bad')}
-				disabled={isRating}
-				className={`rounded p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 ${rating === 'bad' ? 'text-red-600' : 'text-gray-500'}`}
+				{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
+				<span className="sr-only">Thumbs Up</span>
+			</Tooltip>
+			<Tooltip
+				content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
+				render={<button onClick={() => rateAsBad()} disabled={isRatingAsBad} />}
+				className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
 			>
-				<Icon name="chevron-down" height={16} width={16} />
-			</button>
+				{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
+				<span className="sr-only">Thumbs Down</span>
+			</Tooltip>
 			{content && (
-				<button onClick={handleCopy} className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
-					{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
+				<button
+					onClick={handleCopy}
+					className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+				>
+					{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
 				</button>
 			)}
 		</div>
@@ -1407,12 +1411,12 @@ const MessageRating = ({ messageId, content }: { messageId?: string; content?: s
 
 const Answer = ({ content, messageId }: { content: string; messageId?: string }) => {
 	return (
-		<div>
-			<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
+		<>
+			<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
 				<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
 			</div>
 			<MessageRating messageId={messageId} content={content} />
-		</div>
+		</>
 	)
 }
 

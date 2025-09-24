@@ -22,12 +22,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
-		try {
-			router.push(`/ai/${sessionId}`)
-		} catch (error) {
-			console.error('Failed to restore session:', error)
-			router.push(`/ai/${sessionId}`)
-		}
+		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
 	}
 
 	const [isEditing, setIsEditing] = useState(false)
@@ -133,7 +128,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	return (
 		<div
 			data-active={isActive}
-			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#666]/12 focus-within:text-white hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:focus-within:text-white dark:hover:bg-[#919296]/12"
+			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#666]/12 hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:hover:bg-[#919296]/12"
 		>
 			<button
 				onClick={() => handleSessionClick(session.sessionId)}
