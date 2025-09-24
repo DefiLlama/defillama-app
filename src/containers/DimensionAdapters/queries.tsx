@@ -1,5 +1,11 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, PROTOCOLS_API, REV_PROTOCOLS } from '~/constants'
+import {
+	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
+	PROTOCOLS_API,
+	REV_PROTOCOLS,
+	ZERO_FEE_PERPS
+} from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -613,6 +619,7 @@ export const getAdapterByChainPageData = async ({
 	const protocols = {}
 	const parentProtocols = {}
 	const categories = new Set<string>()
+
 	for (const protocol of allProtocols) {
 		const methodology =
 			adapterType === 'fees'
@@ -656,7 +663,8 @@ export const getAdapterByChainPageData = async ({
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
 			...(methodology ? { methodology } : {}),
-			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {})
+			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
+			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -695,7 +703,7 @@ export const getAdapterByChainPageData = async ({
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
 			: null
 		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
-
+		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
 		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
 			? parentProtocols[protocol].reduce(
 					(acc, p) => {
@@ -764,7 +772,8 @@ export const getAdapterByChainPageData = async ({
 						methodology
 					}
 				: {}),
-			...(doublecounted ? { doublecounted } : {})
+			...(doublecounted ? { doublecounted } : {}),
+			...(zeroFeePerp ? { zeroFeePerp } : {})
 		}
 	}
 

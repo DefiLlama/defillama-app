@@ -100,6 +100,7 @@ interface IProtocol {
 	ps?: number | null
 	methodology?: string | null
 	doublecounted?: boolean
+	zeroFeePerp?: boolean
 }
 
 interface IAdapterByChainPageProtocol extends IProtocol {

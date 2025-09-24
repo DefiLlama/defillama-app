@@ -202,3 +202,5 @@ export const REV_PROTOCOLS = {
 }
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
+
+export const ZERO_FEE_PERPS = new Set(['Aster Perps', 'Lighter V2 Perps'])

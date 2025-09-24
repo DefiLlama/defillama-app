@@ -1,4 +1,4 @@
-import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API } from '~/constants'
+import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
@@ -149,7 +149,9 @@ export async function getProtocolsByCategoryOrTag({
 			total24h: protocol.total24h ?? null,
 			total7d: protocol.total7d ?? null,
 			total30d: protocol.total30d ?? null,
-			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains])),
+			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
+			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {})
 		}
 	}
 
