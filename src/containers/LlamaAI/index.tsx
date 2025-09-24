@@ -1332,7 +1332,7 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 					<span className="hidden group-open:block">Hide</span>
 				</span>
 			</summary>
-			<pre className="mt-2 overflow-auto">{JSON.stringify(metadata, null, 2)}</pre>
+			<pre className="mt-2 overflow-auto select-text">{JSON.stringify(metadata, null, 2)}</pre>
 		</details>
 	)
 }
@@ -1345,9 +1345,10 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 	)
 }
 
-const MessageRating = ({ messageId }: { messageId?: string }) => {
+const MessageRating = ({ messageId, content }: { messageId?: string; content?: string }) => {
 	const [rating, setRating] = useState<'good' | 'bad' | null>(null)
 	const [isRating, setIsRating] = useState(false)
+	const [copied, setCopied] = useState(false)
 	const { authorizedFetch } = useAuthContext()
 
 	const handleRate = async (newRating: 'good' | 'bad') => {
@@ -1364,6 +1365,17 @@ const MessageRating = ({ messageId }: { messageId?: string }) => {
 			console.error('Failed to rate message:', error)
 		}
 		setIsRating(false)
+	}
+
+	const handleCopy = async () => {
+		if (!content) return
+		try {
+			await navigator.clipboard.writeText(content)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.error('Failed to copy content:', error)
+		}
 	}
 
 	if (!messageId) return null
@@ -1384,6 +1396,12 @@ const MessageRating = ({ messageId }: { messageId?: string }) => {
 			>
 				<Icon name="chevron-down" height={16} width={16} />
 			</button>
+			{content && (
+				<button onClick={handleCopy} className="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+					{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
+				</button>
+			)}
+			it
 		</div>
 	)
 }
@@ -1394,7 +1412,7 @@ const Answer = ({ content, messageId }: { content: string; messageId?: string })
 			<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
 				<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
 			</div>
-			<MessageRating messageId={messageId} />
+			<MessageRating messageId={messageId} content={content} />
 		</div>
 	)
 }
