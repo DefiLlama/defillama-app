@@ -1401,7 +1401,6 @@ const MessageRating = ({ messageId, content }: { messageId?: string; content?: s
 					{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
 				</button>
 			)}
-			it
 		</div>
 	)
 }
