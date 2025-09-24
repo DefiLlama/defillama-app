@@ -842,7 +842,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100vh-72px)] flex-1 flex-nowrap">
+			<div className="relative isolate flex max-h-[calc(100dvh-72px)] flex-1 flex-nowrap">
 				{!readOnly &&
 					(sidebarVisible ? (
 						<ChatHistorySidebar
@@ -878,7 +878,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 										{conversationHistory.map((item) => (
 											<div
 												key={`${item.question}-${item.timestamp}`}
-												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100vh-260px)]'}`}
+												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100dvh-260px)]'}`}
 											>
 												<SentPrompt prompt={item.question} />
 												<div className="flex flex-col gap-2.5">
@@ -904,7 +904,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 										))}
 									</div>
 									{(isPending || isStreaming || promptResponse || error) && (
-										<div className="flex min-h-[calc(100vh-260px)] flex-col gap-2.5">
+										<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
 											{prompt && <SentPrompt prompt={prompt} />}
 											<PromptResponse
 												response={

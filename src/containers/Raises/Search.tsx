@@ -57,7 +57,7 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="max-sm:drawer z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
+					className="max-sm:drawer z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />

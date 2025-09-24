@@ -342,7 +342,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100vh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
+					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
 					unmountOnHide
 					hideOnInteractOutside
 				>
