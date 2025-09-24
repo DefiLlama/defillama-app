@@ -108,7 +108,7 @@ const Mobile = () => {
 						/>
 					</span>
 
-					<Ariakit.ComboboxList className="flex flex-col gap-1">
+					<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
 						{query ? (
 							status === 'loading' ? (
 								<p className="flex items-center justify-center gap-1 p-4">
@@ -218,7 +218,7 @@ const Desktop = () => {
 					className="max-sm:drawer z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
 					portal
 				>
-					<Ariakit.ComboboxList>
+					<Ariakit.ComboboxList alwaysVisible>
 						{query ? (
 							status === 'loading' ? (
 								<p className="flex items-center justify-center gap-1 p-4">
