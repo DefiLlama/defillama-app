@@ -1,4 +1,6 @@
 import { Icon } from '~/components/Icon'
+import { resolveUserEmail } from '~/components/Nav/Account'
+import { formatEthAddress } from '~/utils'
 import { AuthModel } from '~/utils/pocketbase'
 
 interface User extends AuthModel {
@@ -20,18 +22,22 @@ interface AccountStatusProps {
 }
 
 export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, subscription }: AccountStatusProps) => {
+	const resolvedEmail = resolveUserEmail(user)
+	const hasEmail = Boolean(resolvedEmail)
+	const hasWallet = Boolean(user?.walletAddress)
+
 	return (
 		<div className="overflow-hidden rounded-xl border border-[#39393E]/30 bg-linear-to-r from-[#1a1b1f]/90 to-[#1a1b1f]/70 shadow-[0_4px_20px_rgba(0,0,0,0.2)] backdrop-blur-md backdrop-filter transition-shadow duration-300 hover:shadow-[0_8px_30px_rgba(92,92,249,0.1)]">
 			<div className="border-b border-[#39393E]/20 p-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<div className="group relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-[#5C5CF9] to-[#4335A8] text-base font-medium text-white shadow-[0_4px_12px_rgba(92,92,249,0.25)]">
-							{user.address ? <Icon name="ethereum" height={20} width={20} /> : user.email.charAt(0).toUpperCase()}
+							{hasWallet ? <Icon name="ethereum" height={20} width={20} /> : resolvedEmail.charAt(0).toUpperCase()}
 						</div>
 						<div>
 							<div className="flex items-center gap-2">
 								<h2 className="bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-xl font-bold text-transparent">
-									{user.address ? null : user.email.split('@')[0]}
+									{resolvedEmail ? resolvedEmail.split('@')[0] : user?.walletAddress}
 								</h2>
 								{isVerified && (
 									<span className="flex h-5 w-5 transform items-center justify-center rounded-full bg-green-400/10 text-green-400 transition-transform hover:scale-110">
@@ -39,13 +45,13 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 									</span>
 								)}
 							</div>
-							<p className="max-w-[200px] truncate text-sm text-[#8a8c90] sm:max-w-[300px]">
-								{user.address ? user.address : user.email}
-							</p>
-							{user.ethereum_email && (
-								<div className="mt-2">
-									<p className="truncate font-mono text-sm text-[#b4b7bc]">{user.ethereum_email}</p>
-								</div>
+							{hasWallet && (
+								<p className="max-w-[200px] truncate text-sm text-[#8a8c90] sm:max-w-[300px]">
+									{formatEthAddress(user.walletAddress)}
+								</p>
+							)}
+							{hasEmail && (
+								<p className="max-w-[200px] truncate text-sm text-[#8a8c90] sm:max-w-[300px]">{resolvedEmail}</p>
 							)}
 						</div>
 					</div>

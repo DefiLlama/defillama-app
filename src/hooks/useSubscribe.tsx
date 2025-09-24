@@ -356,6 +356,7 @@ export const useSubscribe = () => {
 		isLoading: createSubscription.isPending,
 		error: createSubscription.error,
 		subscription: subscriptionData,
+		hasActiveSubscription: subscriptionData?.status === 'active',
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
 		isSubscriptionLoading:
 			isApiSubscriptionLoading ||
