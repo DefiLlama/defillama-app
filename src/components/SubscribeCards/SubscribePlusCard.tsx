@@ -90,6 +90,10 @@ export function SubscribePlusCard({
 						</li>
 					</ul>
 				</li>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
+					<span>API access</span>
+				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
