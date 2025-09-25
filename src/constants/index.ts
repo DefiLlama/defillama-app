@@ -205,4 +205,4 @@ export const REV_PROTOCOLS = {
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
 
-export const ZERO_FEE_PERPS = new Set(['Lighter V2 Perps'])
+export const ZERO_FEE_PERPS = new Set(['Lighter V2 Perps', 'Paradex Perps'])
