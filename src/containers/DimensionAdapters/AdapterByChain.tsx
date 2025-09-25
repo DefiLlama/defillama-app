@@ -1048,7 +1048,7 @@ const getColumnsByType = (
 					if (info.getValue() == null) return null
 					const helpers = []
 					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol is a zero-fee perp protocol')
+						helpers.push('This protocol charges no fees for most of its users')
 					}
 					if (info.getValue() != null && info.row.original.doublecounted) {
 						helpers.push(
@@ -1088,7 +1088,7 @@ const getColumnsByType = (
 					if (info.getValue() == null) return null
 					const helpers = []
 					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol is a zero-fee perp protocol')
+						helpers.push('This protocol charges no fees for most of its users')
 					}
 					if (info.getValue() != null && info.row.original.doublecounted) {
 						helpers.push(
@@ -1127,7 +1127,7 @@ const getColumnsByType = (
 					if (info.getValue() == null) return null
 					const helpers = []
 					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol is a zero-fee perp protocol')
+						helpers.push('This protocol charges no fees for most of its users')
 					}
 					if (info.getValue() != null && info.row.original.doublecounted) {
 						helpers.push(
