@@ -311,7 +311,8 @@ export const descriptions = {
 		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance',
 	'Dual-Token Stablecoin':
 		'Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability',
-	'Physical TCG': 'Protocols that allow you to trade physical trading cards'
+	'Physical TCG': 'Protocols that allow you to trade physical trading cards',
+	'Mining Pools': 'Protocols that coordinate user resources into shared mining pools',
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
