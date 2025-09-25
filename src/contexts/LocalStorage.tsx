@@ -7,6 +7,8 @@ import { getThemeCookie, setThemeCookie, THEME_COOKIE_NAME } from '~/utils/cooki
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
 
+export const WALLET_LINK_MODAL = 'wallet-link-modal-shown'
+
 // DEFI
 const POOL2 = 'pool2'
 const STAKING = 'staking'

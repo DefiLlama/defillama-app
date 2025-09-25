@@ -1,8 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -34,11 +33,13 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 
 function NavComponent() {
 	const { dashboards } = useDashboardAPI()
-	const { isAuthenticated, user } = useAuthContext()
-	const { hasActiveSubscription } = useSubscribe()
+	const { user, isAuthenticated } = useAuthContext()
 
 	const hasEthWallet = Boolean(user?.walletAddress)
-	const showAttentionIcon = isAuthenticated && hasActiveSubscription && !hasEthWallet
+	const hasSeenWalletPrompt =
+		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
+
+	const showAttentionIcon = isAuthenticated && !hasEthWallet && !hasSeenWalletPrompt
 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
