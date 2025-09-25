@@ -374,7 +374,7 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
+			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' && (
@@ -1045,14 +1045,30 @@ const getColumnsByType = (
 				header: 'Perp Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
 					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
 						return (
 							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
 							</span>
 						)
 					}
+
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
 				sortUndefined: 'last',
@@ -1069,14 +1085,30 @@ const getColumnsByType = (
 				header: 'Perp Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
 					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
 						return (
 							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
 							</span>
 						)
 					}
+
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
 				sortUndefined: 'last',
@@ -1092,14 +1124,30 @@ const getColumnsByType = (
 				header: 'Perp Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
 					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
 						return (
 							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
 							</span>
 						)
 					}
+
 					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 				},
 				sortUndefined: 'last',

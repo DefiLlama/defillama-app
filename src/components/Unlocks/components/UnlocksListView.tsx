@@ -25,7 +25,7 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 	})
 
 	return (
-		<div className="flex max-h-[70vh] flex-col gap-2 overflow-y-auto rounded border border-(--divider) bg-(--bg-glass) p-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-(--bg-glass) [&::-webkit-scrollbar-thumb]:bg-(--blue) [&::-webkit-scrollbar-track]:bg-transparent">
+		<div className="flex max-h-[70dvh] flex-col gap-2 overflow-y-auto rounded border border-(--divider) bg-(--bg-glass) p-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-(--bg-glass) [&::-webkit-scrollbar-thumb]:bg-(--blue) [&::-webkit-scrollbar-track]:bg-transparent">
 			{Object.entries(groupedEvents).map(([dateStr, dailyEvents], index) => (
 				<div key={dateStr} className={`py-2 ${index > 0 ? 'border-t border-(--divider)' : ''}`}>
 					<h3 className="sticky top-0 z-10 mb-3 rounded-t-md border-b border-(--divider) bg-(--bg-card) px-3 py-2 text-base font-semibold text-(--text-primary)">

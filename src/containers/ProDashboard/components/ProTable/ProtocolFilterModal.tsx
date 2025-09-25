@@ -170,7 +170,7 @@ export function ProtocolFilterModal({
 			}}
 		>
 			<Ariakit.Dialog
-				className="dialog pro-dashboard max-h-[80vh] w-full max-w-xl gap-0 rounded-md border border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
+				className="dialog pro-dashboard max-h-[80dvh] w-full max-w-xl gap-0 rounded-md border border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
 				unmountOnHide
 				portal
 				hideOnInteractOutside

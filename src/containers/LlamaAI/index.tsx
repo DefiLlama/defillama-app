@@ -1,13 +1,15 @@
 import { RefObject, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/Loaders'
+import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { useChatHistory } from './hooks/useChatHistory'
@@ -84,40 +86,7 @@ async function fetchPromptResponse({
 			body: JSON.stringify(requestBody),
 			signal: abortSignal
 		})
-			.then(async (res) => {
-				if (!res.ok) {
-					let errorMessage = `[HTTP] [error] [${res.status}]`
-
-					// Try to get error message from statusText first
-					if (res.statusText) {
-						errorMessage += `: ${res.statusText}`
-					}
-
-					// Read response body only once
-					const responseText = await res.text()
-
-					if (responseText) {
-						// Try to parse as JSON first
-						try {
-							const errorResponse = JSON.parse(responseText)
-							if (errorResponse.error) {
-								errorMessage = errorResponse.error
-							} else if (errorResponse.message) {
-								errorMessage = errorResponse.message
-							} else {
-								// If JSON parsing succeeded but no error/message field, use the text
-								errorMessage = responseText
-							}
-						} catch (jsonError) {
-							// If JSON parsing fails, use the text response
-							errorMessage = responseText
-						}
-					}
-
-					throw new Error(errorMessage)
-				}
-				return res
-			})
+			.then(handleSimpleFetchResponse)
 			.catch((err) => {
 				throw new Error(err.message)
 			})
@@ -235,14 +204,67 @@ async function fetchPromptResponse({
 	}
 }
 
-export function LlamaAI() {
+interface SharedSession {
+	session: {
+		sessionId: string
+		title: string
+		createdAt: string
+		isPublic: boolean
+	}
+	conversationHistory: Array<{
+		question: string
+		response: {
+			answer: string
+			metadata?: any
+			suggestions?: any[]
+			charts?: any[]
+			chartData?: any[]
+		}
+		messageId?: string
+		timestamp: number
+	}>
+	isPublicView: true
+}
+
+interface LlamaAIProps {
+	initialSessionId?: string
+	sharedSession?: SharedSession
+	isPublicView?: boolean
+	readOnly?: boolean
+}
+
+export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: LlamaAIProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
-	const { sidebarVisible, toggleSidebar, createFakeSession, loadMoreMessages, moveSessionToTop, updateSessionTitle } =
-		useChatHistory()
+	const {
+		sidebarVisible,
+		toggleSidebar,
+		createFakeSession,
+		loadMoreMessages,
+		moveSessionToTop,
+		updateSessionTitle,
+		restoreSession,
+		isRestoringSession
+	} = useChatHistory()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
 	const userRef = useRef<any>(null)
+	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
+
+	const [conversationHistory, setConversationHistory] = useState<
+		Array<{
+			question: string
+			response: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
+			timestamp: number
+			messageId?: string
+		}>
+	>([])
+	const [paginationState, setPaginationState] = useState<{
+		hasMore: boolean
+		isLoadingMore: boolean
+		cursor?: number
+		totalMessages?: number
+	}>({ hasMore: false, isLoadingMore: false })
 
 	useEffect(() => {
 		userRef.current = user
@@ -251,6 +273,42 @@ export function LlamaAI() {
 	useEffect(() => {
 		sessionIdRef.current = sessionId
 	}, [sessionId])
+
+	useEffect(() => {
+		if (initialSessionId && !sessionId) {
+			setSessionId(initialSessionId)
+			setHasRestoredSession(null)
+		}
+	}, [initialSessionId, sessionId])
+
+	useEffect(() => {
+		if (sharedSession) {
+			setConversationHistory(sharedSession.conversationHistory)
+			setSessionId(sharedSession.session.sessionId)
+		}
+	}, [sharedSession])
+
+	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
+	useEffect(() => {
+		if (
+			sessionId &&
+			user &&
+			!sharedSession &&
+			!readOnly &&
+			hasRestoredSession !== sessionId &&
+			!newlyCreatedSessionsRef.current.has(sessionId)
+		) {
+			setHasRestoredSession(sessionId)
+			restoreSession(sessionId)
+				.then((result) => {
+					setConversationHistory(result.conversationHistory)
+					setPaginationState(result.pagination)
+				})
+				.catch((error) => {
+					console.error('Failed to restore session:', error)
+				})
+		}
+	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession])
 
 	const [streamingResponse, setStreamingResponse] = useState('')
 	const [streamingError, setStreamingError] = useState('')
@@ -261,24 +319,11 @@ export function LlamaAI() {
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
-	const [paginationState, setPaginationState] = useState<{
-		hasMore: boolean
-		isLoadingMore: boolean
-		cursor?: number
-		totalMessages?: number
-	}>({ hasMore: false, isLoadingMore: false })
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
-
-	const [conversationHistory, setConversationHistory] = useState<
-		Array<{
-			question: string
-			response: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
-			timestamp: number
-		}>
-	>([])
 	const [resizeTrigger, setResizeTrigger] = useState(0)
+	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -336,6 +381,7 @@ export function LlamaAI() {
 
 			if (!currentSessionId && user) {
 				currentSessionId = createFakeSession()
+				newlyCreatedSessionsRef.current.add(currentSessionId)
 				setSessionId(currentSessionId)
 			}
 
@@ -389,6 +435,7 @@ export function LlamaAI() {
 							}
 						}
 					} else if (data.type === 'session' && data.sessionId) {
+						newlyCreatedSessionsRef.current.add(data.sessionId)
 						setSessionId(data.sessionId)
 						sessionIdRef.current = data.sessionId
 					} else if (data.type === 'suggestions') {
@@ -540,7 +587,14 @@ export function LlamaAI() {
 		})
 	}
 
+	const router = useRouter()
+
 	const handleNewChat = async () => {
+		if (initialSessionId) {
+			router.push('/ai', undefined, { shallow: true })
+			return
+		}
+
 		if (sessionId && isStreaming) {
 			try {
 				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
@@ -572,6 +626,8 @@ export function LlamaAI() {
 		}
 
 		setSessionId(null)
+		setHasRestoredSession(null)
+		newlyCreatedSessionsRef.current.clear()
 		setPrompt('')
 		resetPrompt()
 		setStreamingResponse('')
@@ -616,6 +672,7 @@ export function LlamaAI() {
 		}
 
 		setSessionId(selectedSessionId)
+		setHasRestoredSession(selectedSessionId)
 		setConversationHistory(data.conversationHistory)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 		setPrompt('')
@@ -683,6 +740,7 @@ export function LlamaAI() {
 
 	const handleSidebarToggle = () => {
 		toggleSidebar()
+		setShouldAnimateSidebar(true)
 		setResizeTrigger((prev) => prev + 1)
 	}
 
@@ -735,6 +793,16 @@ export function LlamaAI() {
 		}
 	}, [])
 
+	// Reset animation flag after animation completes
+	useEffect(() => {
+		if (shouldAnimateSidebar) {
+			const timer = setTimeout(() => {
+				setShouldAnimateSidebar(false)
+			}, 220) // Match the animation duration (0.22s = 220ms)
+			return () => clearTimeout(timer)
+		}
+	}, [shouldAnimateSidebar])
+
 	const isSubmitted = isPending || isStreaming || error || promptResponse ? true : false
 
 	return (
@@ -742,39 +810,47 @@ export function LlamaAI() {
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100vh-72px)] flex-1 flex-nowrap">
-				{sidebarVisible ? (
-					<ChatHistorySidebar
-						handleSidebarToggle={handleSidebarToggle}
-						currentSessionId={sessionId}
-						onSessionSelect={handleSessionSelect}
-						onNewChat={handleNewChat}
-					/>
-				) : (
-					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-				)}
+			<div className="relative isolate flex max-h-[calc(100dvh-72px)] flex-1 flex-nowrap">
+				{!readOnly &&
+					(sidebarVisible ? (
+						<ChatHistorySidebar
+							handleSidebarToggle={handleSidebarToggle}
+							currentSessionId={sessionId}
+							onSessionSelect={handleSessionSelect}
+							onNewChat={handleNewChat}
+							shouldAnimate={shouldAnimateSidebar}
+						/>
+					) : (
+						<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+					))}
 				<div
-					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
 					<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
 						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-							{conversationHistory.length > 0 || isSubmitted ? (
+							{/* Show loading when restoring session */}
+							{isRestoringSession && conversationHistory.length === 0 ? (
+								<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+									Loading conversation
+									<LoadingDots />
+								</p>
+							) : conversationHistory.length > 0 || isSubmitted ? (
 								<div className="flex w-full flex-col gap-2 p-2">
 									{paginationState.isLoadingMore && (
-										<div className="flex items-center justify-center gap-2 py-4 text-[#666] dark:text-[#919296]">
+										<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+											Loading more messages
 											<LoadingDots />
-											<span>Loading more messages...</span>
-										</div>
+										</p>
 									)}
 									<div className="flex flex-col gap-2.5">
 										{conversationHistory.map((item) => (
 											<div
 												key={`${item.question}-${item.timestamp}`}
-												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100vh-260px)]'}`}
+												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100dvh-260px)]'}`}
 											>
 												<SentPrompt prompt={item.question} />
 												<div className="flex flex-col gap-2.5">
-													<Answer content={item.response.answer} />
+													<Answer content={item.response.answer} messageId={item.messageId} />
 													{item.response.charts && item.response.charts.length > 0 && (
 														<ChartRenderer
 															charts={item.response.charts}
@@ -796,7 +872,7 @@ export function LlamaAI() {
 										))}
 									</div>
 									{(isPending || isStreaming || promptResponse || error) && (
-										<div className="flex min-h-[calc(100vh-260px)] flex-col gap-2.5">
+										<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
 											{prompt && <SentPrompt prompt={prompt} />}
 											<PromptResponse
 												response={
@@ -833,7 +909,7 @@ export function LlamaAI() {
 									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 								</div>
 							)}
-							{conversationHistory.length === 0 && !isSubmitted ? (
+							{conversationHistory.length === 0 && !isSubmitted && !isRestoringSession ? (
 								<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
 									{recommendedPrompts.map((prompt) => (
 										<button
@@ -852,17 +928,19 @@ export function LlamaAI() {
 							) : null}
 						</div>
 					</div>
-					<div className="border-t border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
-						<div className="mx-auto w-full max-w-3xl">
-							<PromptInput
-								handleSubmit={handleSubmit}
-								promptInputRef={promptInputRef}
-								isPending={isPending}
-								handleStopRequest={handleStopRequest}
-								isStreaming={isStreaming}
-							/>
+					{!readOnly && (
+						<div className="border-t border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
+							<div className="mx-auto w-full max-w-3xl">
+								<PromptInput
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									isPending={isPending}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+								/>
+							</div>
 						</div>
-					</div>
+					)}
 				</div>
 			</div>
 		</Layout>
@@ -1177,33 +1255,26 @@ const SuggestedActions = ({
 }) => {
 	return (
 		<div className="mt-4 grid gap-2">
-			<h4 className="text-gray-700 dark:text-gray-300">Suggested actions:</h4>
+			<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 			<div className="grid gap-2">
 				{suggestions.map((suggestion) => (
 					<button
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3 text-left transition-colors dark:border-gray-700 ${
+						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324] ${
 							isPending || isStreaming
-								? 'cursor-not-allowed opacity-50'
-								: 'hover:border-blue-300 hover:bg-blue-50 dark:hover:border-blue-600 dark:hover:bg-blue-900/20'
+								? 'cursor-not-allowed opacity-60'
+								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
 						}`}
 					>
-						<span className="flex flex-1 flex-col gap-1">
-							<span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
-								{suggestion.title}
-							</span>
+						<span className="flex flex-1 flex-col items-start gap-1">
+							<span>{suggestion.title}</span>
 							{suggestion.description ? (
-								<span className="text-xs text-gray-600 dark:text-gray-400">{suggestion.description}</span>
+								<span className="text-[#666] dark:text-[#919296]">{suggestion.description}</span>
 							) : null}
 						</span>
-						<Icon
-							name="arrow-right"
-							height={16}
-							width={16}
-							className="shrink-0 text-gray-400 group-hover:text-blue-500"
-						/>
+						<Icon name="arrow-right" height={16} width={16} className="shrink-0" />
 					</button>
 				))}
 			</div>
@@ -1212,17 +1283,34 @@ const SuggestedActions = ({
 }
 
 const QueryMetadata = ({ metadata }: { metadata: any }) => {
+	const [copied, setCopied] = useState(false)
+
+	const handleCopy = async () => {
+		if (!metadata) return
+		try {
+			await navigator.clipboard.writeText(JSON.stringify(metadata, null, 2))
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.error('Failed to copy content:', error)
+		}
+	}
+
 	return (
-		<details className="group rounded-lg bg-gray-50 p-3 text-xs dark:bg-gray-800">
-			<summary className="flex flex-wrap items-center justify-between gap-2">
-				<span>Query Metadata</span>
-				<span className="flex items-center gap-1 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+		<details className="group rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
+			<summary className="flex flex-wrap items-center justify-end gap-2 text-[#666] group-open:text-black group-hover:text-black dark:text-[#919296] dark:group-open:text-white dark:group-hover:text-white">
+				<span className="mr-auto">Query Metadata</span>
+				<Tooltip content="Copy" render={<button onClick={handleCopy} />} className="hidden group-open:block">
+					{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
+					<span className="sr-only">Copy</span>
+				</Tooltip>
+				<span className="flex items-center gap-1">
 					<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
 					<span className="group-open:hidden">Show</span>
 					<span className="hidden group-open:block">Hide</span>
 				</span>
 			</summary>
-			<pre className="mt-2 overflow-auto">{JSON.stringify(metadata, null, 2)}</pre>
+			<pre className="mt-2 overflow-auto text-xs select-text">{JSON.stringify(metadata, null, 2)}</pre>
 		</details>
 	)
 }
@@ -1235,11 +1323,100 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 	)
 }
 
-const Answer = ({ content }: { content: string }) => {
+const MessageRating = ({ messageId, content }: { messageId?: string; content?: string }) => {
+	const [copied, setCopied] = useState(false)
+	const { authorizedFetch } = useAuthContext()
+
+	const {
+		data: sessionRatingAsGood,
+		mutate: rateAsGood,
+		isPending: isRatingAsGood
+	} = useMutation({
+		mutationFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ rating: 'good' })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		}
+	})
+
+	const {
+		data: sessionRatingAsBad,
+		mutate: rateAsBad,
+		isPending: isRatingAsBad
+	} = useMutation({
+		mutationFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ rating: 'bad' })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		}
+	})
+
+	const handleCopy = async () => {
+		if (!content) return
+		try {
+			await navigator.clipboard.writeText(content)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.error('Failed to copy content:', error)
+		}
+	}
+
+	const isRatedAsGood = sessionRatingAsGood?.rating === 'good'
+	const isRatedAsBad = sessionRatingAsBad?.rating === 'bad'
+
+	if (!messageId) return null
+
 	return (
-		<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-gray-100 dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
-			<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+		<div className="-mx-1.5 flex items-center gap-1">
+			<Tooltip
+				content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
+				render={<button onClick={() => rateAsGood()} disabled={isRatingAsGood} />}
+				className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
+			>
+				{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
+				<span className="sr-only">Thumbs Up</span>
+			</Tooltip>
+			<Tooltip
+				content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
+				render={<button onClick={() => rateAsBad()} disabled={isRatingAsBad} />}
+				className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
+			>
+				{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
+				<span className="sr-only">Thumbs Down</span>
+			</Tooltip>
+			{content && (
+				<button
+					onClick={handleCopy}
+					className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+				>
+					{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
+				</button>
+			)}
 		</div>
+	)
+}
+
+const Answer = ({ content, messageId }: { content: string; messageId?: string }) => {
+	return (
+		<>
+			<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
+				<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+			</div>
+			<MessageRating messageId={messageId} content={content} />
+		</>
 	)
 }
 

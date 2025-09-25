@@ -647,7 +647,7 @@ export const useFetchAndFormatChartData = ({
 		queryFn: () =>
 			isOpenInterestEnabled
 				? getAdapterProtocolSummary({
-						adapterType: 'derivatives',
+						adapterType: 'open-interest',
 						protocol: name,
 						excludeTotalDataChart: false,
 						excludeTotalDataChartBreakdown: true,

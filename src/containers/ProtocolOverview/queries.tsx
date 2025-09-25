@@ -357,7 +357,7 @@ export const getProtocolOverviewPageData = async ({
 			: Promise.resolve(null),
 		metadata.openInterest
 			? getAdapterProtocolSummary({
-					adapterType: 'derivatives',
+					adapterType: 'open-interest',
 					protocol: metadata.displayName,
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true,

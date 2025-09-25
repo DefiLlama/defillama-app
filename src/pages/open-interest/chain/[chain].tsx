@@ -10,7 +10,7 @@ import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const adapterType = ADAPTER_TYPES.PERPS
+const adapterType = ADAPTER_TYPES.OPEN_INTEREST
 const dataType = ADAPTER_DATA_TYPES.OPEN_INTEREST_AT_END
 const type = 'Open Interest'
 

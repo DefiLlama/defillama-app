@@ -4,6 +4,7 @@ import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
+import { TRADFI_API } from '~/constants'
 import Layout from '~/layout'
 import { formattedNum, getDominancePercent, getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -71,7 +72,7 @@ const breakdownColor = (type) => {
 }
 
 export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/index', async () => {
-	const res: ITreasuryCompanies = await fetchJson('http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies')
+	const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
 
 	const allAssets = [{ label: 'All', to: '/digital-asset-treasuries' }]
 	for (const asset in res.breakdownByAsset) {

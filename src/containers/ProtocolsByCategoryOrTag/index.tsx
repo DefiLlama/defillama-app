@@ -4,6 +4,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -14,7 +15,10 @@ import { IProtocolByCategoryOrTagPageData } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-const sortByRevenue = ['Trading App']
+const defaultSortingState = {
+	'Trading App': [{ id: 'revenue_7d', desc: true }],
+	Derivatives: [{ id: 'perp_volume_24h', desc: true }]
+}
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
@@ -180,84 +184,84 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
-				sortingState={
-					sortByRevenue.includes(props.category) ? [{ id: 'revenue_7d', desc: true }] : [{ id: 'tvl', desc: true }]
-				}
+				sortingState={defaultSortingState[props.category] ?? [{ id: 'tvl', desc: true }]}
 				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}
 			/>
 		</>
 	)
 }
 
+const Name: ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]> = {
+	id: 'name',
+	header: 'Name',
+	accessorFn: (protocol) => protocol.name,
+	enableSorting: false,
+	cell: ({ getValue, row, table }) => {
+		const value = getValue() as string
+		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		const Chains = () => (
+			<span className="flex flex-col gap-1">
+				{row.original.chains.map((chain) => (
+					<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
+						<TokenLogo logo={chainIconUrl(chain)} size={14} />
+						<span>{chain}</span>
+					</span>
+				))}
+			</span>
+		)
+
+		return (
+			<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
+				{row.subRows?.length > 0 ? (
+					<button
+						className="absolute -left-0.5"
+						{...{
+							onClick: row.getToggleExpandedHandler()
+						}}
+					>
+						{row.getIsExpanded() ? (
+							<>
+								<Icon name="chevron-down" height={16} width={16} />
+								<span className="sr-only">View child protocols</span>
+							</>
+						) : (
+							<>
+								<Icon name="chevron-right" height={16} width={16} />
+								<span className="sr-only">Hide child protocols</span>
+							</>
+						)}
+					</button>
+				) : null}
+
+				<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
+					{index + 1}
+				</span>
+
+				<TokenLogo logo={row.original.logo} data-lgonly />
+
+				<span className="-my-2 flex flex-col">
+					<BasicLink
+						href={`/protocol/${row.original.slug}`}
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{value}
+					</BasicLink>
+
+					<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+						{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+					</Tooltip>
+				</span>
+			</span>
+		)
+	},
+	size: 280
+}
+
 const columns = (
 	category: IProtocolByCategoryOrTagPageData['category'],
 	isRWA: IProtocolByCategoryOrTagPageData['isRWA']
 ): ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]>[] => [
-	{
-		id: 'name',
-		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			const Chains = () => (
-				<span className="flex flex-col gap-1">
-					{row.original.chains.map((chain) => (
-						<span key={`/chain/${chain}/${row.original.slug}`} className="flex items-center gap-1">
-							<TokenLogo logo={chainIconUrl(chain)} size={14} />
-							<span>{chain}</span>
-						</span>
-					))}
-				</span>
-			)
-
-			return (
-				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
-					{row.subRows?.length > 0 ? (
-						<button
-							className="absolute -left-0.5"
-							{...{
-								onClick: row.getToggleExpandedHandler()
-							}}
-						>
-							{row.getIsExpanded() ? (
-								<>
-									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
-								</>
-							) : (
-								<>
-									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
-								</>
-							)}
-						</button>
-					) : null}
-
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
-					</span>
-
-					<TokenLogo logo={row.original.logo} data-lgonly />
-
-					<span className="-my-2 flex flex-col">
-						<BasicLink
-							href={`/protocol/${row.original.slug}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{value}
-						</BasicLink>
-
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
-					</span>
-				</span>
-			)
-		},
-		size: 280
-	},
+	Name,
 	...(['RWA'].includes(category)
 		? [
 				{
@@ -306,6 +310,124 @@ const columns = (
 				}
 			]
 		: []),
+	...(['Derivatives'].includes(category)
+		? [
+				{
+					id: 'perp_volume_24h',
+					header: 'Perp Volume 24h',
+					accessorFn: (protocol) => protocol.perpVolume?.total24h,
+					cell: (info) => {
+						if (info.getValue() == null) return null
+						const helpers = []
+						if (info.row.original.perpVolume?.zeroFeePerp) {
+							helpers.push('This protocol charges no fees for most of its users')
+						}
+						if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+							helpers.push(
+								"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+							)
+						}
+
+						if (helpers.length > 0) {
+							return (
+								<span className="flex items-center justify-end gap-1">
+									{helpers.map((helper) => (
+										<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+									))}
+									<span className={info.row.original.perpVolume?.doublecounted ? 'text-(--text-disabled)' : ''}>
+										{formattedNum(info.getValue(), true)}
+									</span>
+								</span>
+							)
+						}
+
+						return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+					},
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Notional volume of all trades in the last 24 hours'
+					},
+					size: 160
+				},
+				{
+					id: 'perp_volume_7d',
+					header: 'Perp Volume 7d',
+					accessorFn: (protocol) => protocol.perpVolume?.total7d,
+					cell: (info) => {
+						if (info.getValue() == null) return null
+						const helpers = []
+						if (info.row.original.zeroFeePerp) {
+							helpers.push('This protocol charges no fees for most of its users')
+						}
+						if (info.getValue() != null && info.row.original.doublecounted) {
+							helpers.push(
+								"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+							)
+						}
+
+						if (helpers.length > 0) {
+							return (
+								<span className="flex items-center justify-end gap-1">
+									{helpers.map((helper) => (
+										<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+									))}
+									<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+										{formattedNum(info.getValue(), true)}
+									</span>
+								</span>
+							)
+						}
+
+						return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+					},
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Notional volume of all trades in the last 7 days'
+					},
+					size: 160
+				},
+				{
+					id: 'perp_volume_30d',
+					header: 'Perp Volume 30d',
+					accessorFn: (protocol) => protocol.perpVolume?.total30d,
+					cell: (info) => {
+						if (info.getValue() == null) return null
+						const helpers = []
+						if (info.row.original.zeroFeePerp) {
+							helpers.push('This protocol charges no fees for most of its users')
+						}
+						if (info.getValue() != null && info.row.original.doublecounted) {
+							helpers.push(
+								"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+							)
+						}
+
+						if (helpers.length > 0) {
+							return (
+								<span className="flex items-center justify-end gap-1">
+									{helpers.map((helper) => (
+										<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+									))}
+									<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+										{formattedNum(info.getValue(), true)}
+									</span>
+								</span>
+							)
+						}
+
+						return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+					},
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Notional volume of all trades in the last 30 days'
+					},
+					size: 160
+				}
+			]
+		: ([] as any)),
 	{
 		id: 'tvl',
 		header: isRWA ? 'Total Assets' : 'TVL',
@@ -494,22 +616,6 @@ const columns = (
 				}
 			]
 		: ([] as any)),
-	...(['Derivatives'].includes(category)
-		? [
-				{
-					id: 'perp_volume_7d',
-					header: 'Perp Volume 7d',
-					accessorFn: (protocol) => protocol.perpVolume?.total7d,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Notional volume of all trades in the last 7 days'
-					},
-					size: 160
-				}
-			]
-		: ([] as any)),
 	{
 		id: 'mcap/tvl',
 		header: 'Mcap/TVL',
@@ -562,22 +668,6 @@ const columns = (
 				}
 			]
 		: ([] as any)),
-	...(['Derivatives'].includes(category)
-		? [
-				{
-					id: 'perp_volume_30d',
-					header: 'Perp Volume 30d',
-					accessorFn: (protocol) => protocol.perpVolume?.total30d,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Notional volume of all trades in the last 30 days'
-					},
-					size: 160
-				}
-			]
-		: ([] as any)),
 	{
 		id: 'fees_24h',
 		header: 'Fees 24h',
@@ -615,22 +705,6 @@ const columns = (
 						headerHelperText: 'Volume of spot trades in the last 24 hours'
 					},
 					size: 148
-				}
-			]
-		: ([] as any)),
-	...(['Derivatives'].includes(category)
-		? [
-				{
-					id: 'perp_volume_24h',
-					header: 'Perp Volume 24h',
-					accessorFn: (protocol) => protocol.perpVolume?.total24h,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Notional volume of all trades in the last 24 hours'
-					},
-					size: 160
 				}
 			]
 		: ([] as any)),

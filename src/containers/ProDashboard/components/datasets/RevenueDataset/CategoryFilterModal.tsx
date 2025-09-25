@@ -66,7 +66,7 @@ export function CategoryFilterModal({
 			}}
 		>
 			<Ariakit.Dialog
-				className="dialog pro-dashboard max-h-[80vh] w-full max-w-lg gap-0 rounded-md border border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
+				className="dialog pro-dashboard max-h-[80dvh] w-full max-w-lg gap-0 rounded-md border border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
 				unmountOnHide
 				portal
 				hideOnInteractOutside
@@ -141,9 +141,7 @@ export function CategoryFilterModal({
 						Clear all
 					</button>
 					<div className="flex gap-2">
-						<Ariakit.DialogDismiss
-							className="pro-divider pro-hover-bg pro-text1 rounded-md border px-4 py-2 text-sm transition-colors"
-						>
+						<Ariakit.DialogDismiss className="pro-divider pro-hover-bg pro-text1 rounded-md border px-4 py-2 text-sm transition-colors">
 							Cancel
 						</Ariakit.DialogDismiss>
 						<button

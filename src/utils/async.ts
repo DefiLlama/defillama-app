@@ -72,7 +72,7 @@ export function postRuntimeLogs(log) {
 	console.log(`\n${log}\n`)
 }
 
-async function handleFetchResponse(
+export async function handleFetchResponse(
 	res: Response,
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions,
@@ -195,4 +195,39 @@ function getCallerInfo(stack?: string): string {
 	}
 
 	return 'unknown'
+}
+
+export async function handleSimpleFetchResponse(res: Response) {
+	if (!res.ok) {
+		let errorMessage = `[HTTP] [error] [${res.status}]`
+
+		// Try to get error message from statusText first
+		if (res.statusText) {
+			errorMessage += `: ${res.statusText}`
+		}
+
+		// Read response body only once
+		const responseText = await res.text()
+
+		if (responseText) {
+			// Try to parse as JSON first
+			try {
+				const errorResponse = JSON.parse(responseText)
+				if (errorResponse.error) {
+					errorMessage = errorResponse.error
+				} else if (errorResponse.message) {
+					errorMessage = errorResponse.message
+				} else {
+					// If JSON parsing succeeded but no error/message field, use the text
+					errorMessage = responseText
+				}
+			} catch (jsonError) {
+				// If JSON parsing fails, use the text response
+				errorMessage = responseText
+			}
+		}
+
+		throw new Error(errorMessage)
+	}
+	return res
 }

@@ -6,6 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
+import { TRADFI_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
@@ -73,9 +74,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const asset = slug(assetName)
-		const res: ITreasuryCompanies = await fetchJson(
-			'http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies'
-		)
+		const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
 		const breakdown = res.breakdownByAsset[asset]
 		const stats = res.statsByAsset[asset]
 		const dailyFlows = res.dailyFlows[asset]
@@ -115,7 +114,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const res: ITreasuryCompanies = await fetchJson('http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies')
+	const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
 
 	const paths = []
 

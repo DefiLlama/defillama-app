@@ -85,15 +85,11 @@ const Mobile = () => {
 			</Ariakit.DialogDisclosure>
 
 			<Ariakit.Dialog
-				className="dialog max-sm:drawer h-[calc(100vh-80px)] max-h-[var(--popover-available-height)] bg-(--bg-main) p-4 max-sm:h-[calc(100vh-80px)]"
+				className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
 				unmountOnHide
 				hideOnInteractOutside
 				portal
 			>
-				<Ariakit.DialogDismiss className="-mb-8 ml-auto p-2 opacity-50 sm:hidden">
-					<Icon name="x" className="h-5 w-5" />
-				</Ariakit.DialogDismiss>
-
 				<Ariakit.ComboboxProvider
 					setValue={(value) => {
 						startTransition(() => {
@@ -101,14 +97,17 @@ const Mobile = () => {
 						})
 					}}
 				>
-					<span className="relative isolate w-full">
+					<span className="relative isolate flex w-full items-center justify-between gap-2">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							className="w-full rounded-md bg-white px-3 py-1 pr-10 text-base dark:bg-black"
+							className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
+						<Ariakit.DialogDismiss className="p-2">
+							<Icon name="x" className="h-5 w-5" />
+						</Ariakit.DialogDismiss>
 					</span>
 
-					<Ariakit.ComboboxList className="flex flex-col gap-1">
+					<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
 						{query ? (
 							status === 'loading' ? (
 								<p className="flex items-center justify-center gap-1 p-4">
@@ -215,10 +214,10 @@ const Desktop = () => {
 					hideOnInteractOutside
 					gutter={6}
 					sameWidth
-					className="max-sm:drawer z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
+					className="max-sm:drawer z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 					portal
 				>
-					<Ariakit.ComboboxList>
+					<Ariakit.ComboboxList alwaysVisible>
 						{query ? (
 							status === 'loading' ? (
 								<p className="flex items-center justify-center gap-1 p-4">

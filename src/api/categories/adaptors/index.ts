@@ -283,7 +283,9 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 						revenueChange_7dover7d: revenue?.[protocol.name]?.change_7dover7d ?? null,
 						revenueChange_30dover30d: revenue?.[protocol.name]?.change_30dover30d ?? null,
 						holdersRevenue24h: holdersRevenue?.[protocol.name]?.total24h ?? null,
-						holdersRevenue30d: holdersRevenue?.[protocol.name]?.total30d ?? null
+						holdersRevenue30d: holdersRevenue?.[protocol.name]?.total30d ?? null,
+						holdersRevenueChange_7dover7d: holdersRevenue?.[protocol.name]?.change_7dover7d ?? null,
+						holdersRevenueChange_30dover30d: holdersRevenue?.[protocol.name]?.change_30dover30d ?? null
 					}
 				]
 			}
@@ -306,6 +308,40 @@ export const getDexVolumeByChain = async ({
 		`${DIMENISIONS_OVERVIEW_API}/dexs${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	).catch((err) => {
+		console.log(err)
+		return null
+	})
+
+	return data
+}
+
+export const getPerpsVolumeByChain = async ({
+	chain,
+	excludeTotalDataChart,
+	excludeTotalDataChartBreakdown
+}: {
+	chain?: string
+	excludeTotalDataChart: boolean
+	excludeTotalDataChartBreakdown: boolean
+}) => {
+	const data = await fetchJson(
+		`${DIMENISIONS_OVERVIEW_API}/derivatives${
+			chain && chain !== 'All' ? '/' + slug(chain) : ''
+		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	).catch((err) => {
+		console.log(err)
+		return null
+	})
+
+	return data
+}
+
+export const getOpenInterestByChain = async ({ chain }: { chain?: string }) => {
+	const data = await fetchJson(
+		`${DIMENISIONS_OVERVIEW_API}/derivatives${
+			chain && chain !== 'All' ? '/' + slug(chain) : ''
+		}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
 	).catch((err) => {
 		console.log(err)
 		return null

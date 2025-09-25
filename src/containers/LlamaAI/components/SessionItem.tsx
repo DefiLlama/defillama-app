@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { MCP_SERVER } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 
 interface SessionItemProps {
@@ -10,21 +16,35 @@ interface SessionItemProps {
 }
 
 export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
-	const { restoreSession, deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } =
-		useChatHistory()
+	const router = useRouter()
+	const { authorizedFetch } = useAuthContext()
+	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
-		try {
-			const result = await restoreSession(sessionId)
-			onSessionSelect(sessionId, result)
-		} catch (error) {
-			console.error('Failed to restore session:', error)
-		}
+		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
 	}
 
 	const [isEditing, setIsEditing] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
+
+	const queryClient = useQueryClient()
+
+	const { mutate: toggleVisibility, isPending: isTogglingVisibility } = useMutation({
+		mutationFn: async () => {
+			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
+				method: 'PUT'
+			})
+			if (!response.ok) {
+				toast.error('Failed to make session public')
+				throw new Error('Failed to make session public')
+			}
+			return response.json()
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
+		}
+	})
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -61,16 +81,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 		}
 	}
 
-	const formatDate = (dateString: string) => {
-		const date = new Date(dateString)
-		const now = new Date()
-		const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-
-		if (diffDays === 0) return 'Today'
-		if (diffDays === 1) return 'Yesterday'
-		if (diffDays < 7) return `${diffDays} days ago`
-		return date.toLocaleDateString()
-	}
+	const [isCopyingLink, setIsCopyingLink] = useState(false)
 
 	if (isEditing) {
 		return (
@@ -117,7 +128,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	return (
 		<div
 			data-active={isActive}
-			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#666]/12 focus-within:text-white hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:focus-within:text-white dark:hover:bg-[#919296]/12"
+			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#666]/12 hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:hover:bg-[#919296]/12"
 		>
 			<button
 				onClick={() => handleSessionClick(session.sessionId)}
@@ -136,20 +147,85 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 				>
 					<Icon name="pencil" height={12} width={12} className="shrink-0" />
 				</button>
-				<button
-					onClick={() => {
-						handleDelete()
-					}}
-					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
-					disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
-					data-deleting={isDeletingSession}
-				>
-					{isDeletingSession ? (
-						<LoadingSpinner size={12} />
-					) : (
-						<Icon name="trash-2" height={12} width={12} className="shrink-0" />
-					)}
-				</button>
+				<Ariakit.MenuProvider>
+					<Ariakit.MenuButton className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white">
+						<Icon name="ellipsis" height={12} width={12} className="shrink-0" />
+						<span className="sr-only">Open menu</span>
+					</Ariakit.MenuButton>
+					<Ariakit.Menu
+						unmountOnHide
+						hideOnInteractOutside
+						gutter={8}
+						wrapperProps={{
+							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
+						}}
+						className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+					>
+						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+							<Icon name="x" className="h-5 w-5" />
+						</Ariakit.PopoverDismiss>
+						<Ariakit.MenuItem
+							onClick={() => {
+								try {
+									if (session.isPublic && session.shareToken) {
+										navigator.clipboard.writeText(`${window.location.origin}/ai/shared/${session.shareToken}`)
+									}
+								} catch (error) {
+									console.error('Failed to copy link:', error)
+								} finally {
+									setIsCopyingLink(true)
+									setTimeout(() => {
+										setIsCopyingLink(false)
+									}, 500)
+								}
+							}}
+							hideOnClick={false}
+							disabled={!session.isPublic || !session.shareToken || isTogglingVisibility}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
+						>
+							{isCopyingLink ? (
+								<Icon name="check-circle" height={14} width={14} className="shrink-0" />
+							) : (
+								<Icon name="copy" height={14} width={14} className="shrink-0" />
+							)}
+							{session.isPublic ? 'Copy Link' : 'Make Public to Share'}
+						</Ariakit.MenuItem>
+						<Ariakit.MenuItem
+							onClick={() => {
+								if (session.isPublic) {
+									if (window.confirm('This conversation is currently public. Do you want to make it private?')) {
+										toggleVisibility()
+									}
+								} else {
+									toggleVisibility()
+								}
+							}}
+							hideOnClick={false}
+							disabled={isTogglingVisibility || isUpdatingTitle || isDeletingSession || isRestoringSession}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
+						>
+							{isTogglingVisibility ? (
+								<LoadingSpinner size={14} />
+							) : (
+								<Icon name={session.isPublic ? 'eye' : 'link'} height={14} width={14} className="shrink-0" />
+							)}
+							{session.isPublic ? 'Make Private' : 'Make Public'}
+						</Ariakit.MenuItem>
+						<Ariakit.MenuItem
+							onClick={handleDelete}
+							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession || isTogglingVisibility}
+							data-deleting={isDeletingSession}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-active-item:bg-red-500/10 data-active-item:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
+						>
+							{isDeletingSession ? (
+								<LoadingSpinner size={14} />
+							) : (
+								<Icon name="trash-2" height={14} width={14} className="shrink-0" />
+							)}
+							Delete Session
+						</Ariakit.MenuItem>
+					</Ariakit.Menu>
+				</Ariakit.MenuProvider>
 			</div>
 			{isRestoringSession ? (
 				<span className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/70">

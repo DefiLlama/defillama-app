@@ -167,6 +167,8 @@ export const POCKETBASE_URL = 'https://pb.llama.fi'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
 
+export const TRADFI_API = 'https://tradfi.llama.team'
+
 export const removedCategoriesFromChainTvl = [
 	'Chain',
 	'CEX',
@@ -202,3 +204,5 @@ export const REV_PROTOCOLS = {
 }
 
 export const MCP_SERVER = 'https://mcp.llama.fi'
+
+export const ZERO_FEE_PERPS = new Set(['Lighter V2 Perps', 'Paradex Perps'])

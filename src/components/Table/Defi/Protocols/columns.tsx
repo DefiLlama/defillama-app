@@ -508,6 +508,78 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		}
 	}),
 
+	columnHelper.group({
+		id: 'perps',
+		header: 'Perps Volume',
+		columns: [
+			columnHelper.accessor('perps_volume_24h', {
+				header: 'Perp Volume 24h',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Perpetuals trading volume in the last 24 hours'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('perps_volume_7d', {
+				header: 'Perp Volume 7d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Perpetuals trading volume in the last 7 days'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('perps_volume_30d', {
+				header: 'Perp Volume 30d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Perpetuals trading volume in the last 30 days'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('perps_volume_change_7d', {
+				header: 'Perp Volume Change 7d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 7d perps volume over the previous 7d'
+				},
+				size: 180
+			})
+		],
+		meta: {
+			headerHelperText: 'Perpetuals volume traded on the protocol'
+		}
+	}),
+
+	columnHelper.accessor('openInterest', {
+		header: 'Open Interest',
+		cell: (info) => <>{info.getValue() != null && info.getValue() > 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Total notional value of all open perpetual futures positions'
+		},
+		size: 140
+	}),
+
+	columnHelper.accessor('holdersRevenueChange_30dover30d', {
+		header: 'Holders Revenue 30d Change',
+		cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change of last 30d holders revenue over the previous 30d'
+		},
+		size: 200
+	}),
+
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
 		cell: ({ getValue }) => <>{getValue() != null && getValue() > 0 ? formattedNum(getValue(), true) : null}</>,

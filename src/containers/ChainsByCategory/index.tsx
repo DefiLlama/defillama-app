@@ -6,7 +6,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
 import { IChainsByCategoryData } from './types'
 
@@ -213,7 +213,7 @@ export const useGroupAndFormatChains = ({
 					change_1d,
 					change_7d,
 					change_1m,
-					mcaptvl: chain.mcap ? +formattedNum(chain.mcap / finalTvl, false) : null
+					mcaptvl: chain.mcap && finalTvl ? +(+(chain.mcap / finalTvl).toFixed(2)) : null
 				}
 			})
 			.filter((chain) => (minTvl ? chain.tvl >= minTvl : true) && (maxTvl ? chain.tvl <= maxTvl : true))
@@ -312,7 +312,7 @@ export const useGroupAndFormatChains = ({
 			const change_1d = getPercentChange(tvl, tvlPrevDay)
 			const change_7d = getPercentChange(tvl, tvlPrevWeek)
 			const change_1m = getPercentChange(tvl, tvlPrevMonth)
-			const mcaptvl = mcap && tvl ? +formattedNum(mcap / tvl, false) : null
+			const mcaptvl = mcap && tvl ? +(+(mcap / tvl).toFixed(2)) : null
 
 			chainsTableData.push({
 				...chain,

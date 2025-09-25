@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useState, useEffect, useRef } from 'react'
+import { lazy, memo, Suspense, useEffect, useRef, useState } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
@@ -45,7 +45,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 		if (!hasData) {
 			return (
-				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-gray-500 dark:text-gray-400">
+				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
 					<Icon name="bar-chart" height={16} width={16} />
 					<p>No data available for chart</p>
 				</div>
@@ -132,16 +132,16 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
 const ChartAnalysisPlaceholder = () => (
-	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-gray-200 p-1 py-8 dark:border-gray-700">
+	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
-		<p className="text-gray-600 dark:text-gray-400">Determining the best visualizations for your data...</p>
+		<p className="text-[#666] dark:text-[#919296]">Determining the best visualizations for your data...</p>
 	</div>
 )
 
 const ChartLoadingPlaceholder = ({ chartTypes }: { chartTypes?: string[] }) => (
-	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-gray-200 p-1 py-8 dark:border-gray-700">
+	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
-		<p className="text-gray-600 dark:text-gray-400">
+		<p className="text-[#666] dark:text-[#919296]">
 			{chartTypes?.length
 				? `Creating ${chartTypes.join(', ')} visualization${chartTypes.length > 1 ? 's' : ''}...`
 				: 'Creating visualization...'}

@@ -9,6 +9,8 @@ export interface ChatSession {
 	createdAt: string
 	lastActivity: string
 	isActive: boolean
+	isPublic?: boolean
+	shareToken?: string
 }
 
 export interface ConversationExchange {

@@ -1,6 +1,6 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { formattedNum, getPercentChange } from '~/utils'
+import { getPercentChange } from '~/utils'
 
 function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {
 	if (curr[key] || curr[key] === 0) {
@@ -22,6 +22,8 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	const hasAtleastOnceValue = {}
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
+	let weightedPerpsVolumeChange = 0
+	let totalPerpsVolumeWeight = 0
 
 	const {
 		mcap,
@@ -32,6 +34,10 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		volume_24h,
 		volume_7d,
 		cumulativeVolume,
+		perps_volume_24h,
+		perps_volume_7d,
+		perps_volume_30d,
+		openInterest,
 		fees_7d,
 		fees_24h,
 		fees_30d,
@@ -59,7 +65,9 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				categories.add(curr.category)
 			}
 
-			curr.tvl && (acc.tvl = (acc.tvl || 0) + curr.tvl)
+			if (curr.tvl) {
+				acc.tvl = (acc.tvl || 0) + curr.tvl
+			}
 
 			if (curr?.extraTvl?.excludeParent) {
 				;['tvl', 'tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].forEach((key) => {
@@ -68,13 +76,17 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 					}
 				})
 			}
-			;[
+			for (const key of [
 				'tvlPrevDay',
 				'tvlPrevWeek',
 				'tvlPrevMonth',
 				'volume_24h',
 				'volume_7d',
 				'cumulativeVolume',
+				'perps_volume_24h',
+				'perps_volume_7d',
+				'perps_volume_30d',
+				'openInterest',
 				'fees_7d',
 				'fees_24h',
 				'fees_30d',
@@ -89,7 +101,9 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				'cumulativeFees',
 				'treasuryRevenue_24h',
 				'supplySideRevenue_24h'
-			].forEach((k) => addElement(k, curr, acc, hasAtleastOnceValue))
+			]) {
+				addElement(key, curr, acc, hasAtleastOnceValue)
+			}
 
 			if (curr.mcap) {
 				acc.mcap = acc.mcap + curr.mcap
@@ -98,6 +112,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			if (curr.volume_7d && curr.volumeChange_7d !== undefined && curr.volumeChange_7d !== null) {
 				weightedVolumeChange += curr.volumeChange_7d * curr.volume_7d
 				totalVolumeWeight += curr.volume_7d
+			}
+
+			if (curr.perps_volume_7d && curr.perps_volume_change_7d !== undefined && curr.perps_volume_change_7d !== null) {
+				weightedPerpsVolumeChange += curr.perps_volume_change_7d * curr.perps_volume_7d
+				totalPerpsVolumeWeight += curr.perps_volume_7d
 			}
 
 			return acc
@@ -111,6 +130,10 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			volume_24h: 0,
 			volume_7d: 0,
 			cumulativeVolume: 0,
+			perps_volume_24h: 0,
+			perps_volume_7d: 0,
+			perps_volume_30d: 0,
+			openInterest: 0,
 			fees_7d: 0,
 			fees_24h: 0,
 			fees_30d: 0,
@@ -137,13 +160,18 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
+	let perps_volume_change_7d = null
+	if (totalPerpsVolumeWeight > 0) {
+		perps_volume_change_7d = weightedPerpsVolumeChange / totalPerpsVolumeWeight
+	}
+
 	const finalMcap = mcap > 0 ? mcap : parent?.mcap || 0
 	const pf = getAnnualizedRatio(finalMcap, fees_30d)
 	const ps = getAnnualizedRatio(finalMcap, revenue_30d)
 
 	let mcaptvl = null
 	if (tvl && finalMcap) {
-		mcaptvl = +formattedNum(finalMcap / tvl)
+		mcaptvl = +(finalMcap / tvl).toFixed(2)
 	}
 
 	const oracleSet = new Set<string>()
@@ -194,6 +222,11 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 		volume_7d,
 		volumeChange_7d,
 		cumulativeVolume,
+		perps_volume_24h,
+		perps_volume_7d,
+		perps_volume_30d,
+		perps_volume_change_7d,
+		openInterest,
 		pf,
 		ps,
 		mcap: finalMcap,

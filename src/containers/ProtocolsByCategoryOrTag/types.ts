@@ -25,7 +25,7 @@ interface IProtocolByCategory {
 	fees?: Record<string, number> | null
 	revenue?: Record<string, number> | null
 	dexVolume?: Record<string, number>
-	perpVolume?: Record<string, number>
+	perpVolume?: Record<string, number> & { doublecounted?: boolean; zeroFeePerp?: boolean }
 	tags: Array<string>
 	rwaStats?: IRWAStats | null
 }
