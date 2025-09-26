@@ -106,6 +106,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							protocolsLoading={computed.protocolsLoading}
 							onChartBuilderChange={actions.updateChartBuilder}
 							onChartBuilderNameChange={actions.setChartBuilderName}
+							timePeriod={computed.timePeriod}
 						/>
 					)}
 

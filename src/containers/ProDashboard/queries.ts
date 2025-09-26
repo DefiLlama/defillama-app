@@ -49,7 +49,7 @@ export function useParentChildMapping() {
 	return { data: parentToChildren }
 }
 
-function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod): [number, number][] {
+export function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod): [number, number][] {
 	if (timePeriod === 'all' || !data.length) {
 		return data
 	}

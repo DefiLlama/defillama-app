@@ -1,9 +1,8 @@
 import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import dayjs from 'dayjs'
 import { Select } from '~/components/Select'
-import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
@@ -49,38 +48,6 @@ interface ChartBuilderCardProps {
 		name?: string
 		grouping?: 'day' | 'week' | 'month' | 'quarter'
 	}
-}
-
-function filterDataByTimePeriod(data: any[], timePeriod: string): any[] {
-	if (timePeriod === 'all' || !data.length) {
-		return data
-	}
-
-	const now = dayjs()
-	let cutoffDate: dayjs.Dayjs
-
-	switch (timePeriod) {
-		case '30d':
-			cutoffDate = now.subtract(30, 'day')
-			break
-		case '90d':
-			cutoffDate = now.subtract(90, 'day')
-			break
-		case '365d':
-			cutoffDate = now.subtract(365, 'day')
-			break
-		case 'ytd':
-			cutoffDate = now.startOf('year')
-			break
-		case '3y':
-			cutoffDate = now.subtract(3, 'year')
-			break
-		default:
-			return data
-	}
-
-	const cutoffTimestamp = cutoffDate.unix()
-	return data.filter(([timestamp]: [number, any]) => timestamp >= cutoffTimestamp)
 }
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
@@ -184,7 +151,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		let processedSeries = chartData.series
 		if (builder.grouping && builder.grouping !== 'day') {
 			processedSeries = chartData.series.map((s: any) => {
-				const aggregatedData: Map<number, number> = new Map()
+				const aggregatedData: Map<number, { value: number; lastTimestamp: number }> = new Map()
 
 				s.data.forEach(([timestamp, value]: [number, number]) => {
 					const date = new Date(timestamp * 1000)
@@ -210,12 +177,26 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							groupKey = timestamp
 					}
 
-					aggregatedData.set(groupKey, (aggregatedData.get(groupKey) || 0) + value)
+					const existingEntry = aggregatedData.get(groupKey)
+					if (isTvlChart) {
+						if (!existingEntry || timestamp > existingEntry.lastTimestamp) {
+							aggregatedData.set(groupKey, { value, lastTimestamp: timestamp })
+						}
+					} else {
+						const currentValue = existingEntry?.value ?? 0
+						const lastTimestamp = existingEntry?.lastTimestamp ?? timestamp
+						aggregatedData.set(groupKey, {
+							value: currentValue + value,
+							lastTimestamp
+						})
+					}
 				})
 
 				return {
 					...s,
-					data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
+					data: Array.from(aggregatedData.entries())
+						.sort((a, b) => a[0] - b[0])
+						.map(([periodStart, { value }]) => [periodStart, value])
 				}
 			})
 		}
@@ -259,7 +240,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, builder.grouping])
+	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return

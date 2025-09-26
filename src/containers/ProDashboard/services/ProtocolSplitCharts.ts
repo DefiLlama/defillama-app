@@ -84,7 +84,8 @@ export default class SProtocolSplitCharts {
 			| 'user-fees'
 			| 'holders-revenue'
 			| 'protocol-revenue'
-			| 'supply-side-revenue',
+			| 'supply-side-revenue'
+			| 'open-interest',
 		chains: string[],
 		limit: number = 10,
 		categories: string[] = [],

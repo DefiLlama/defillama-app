@@ -3,6 +3,8 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
@@ -21,6 +23,7 @@ interface ChartBuilderTabProps {
 	protocolsLoading: boolean
 	onChartBuilderChange: (updates: Partial<ChartBuilderConfig>) => void
 	onChartBuilderNameChange: (name: string) => void
+	timePeriod: TimePeriod
 }
 
 const METRIC_OPTIONS = [
@@ -69,7 +72,8 @@ export function ChartBuilderTab({
 	protocolOptions,
 	protocolsLoading,
 	onChartBuilderChange,
-	onChartBuilderNameChange
+	onChartBuilderNameChange,
+	timePeriod
 }: ChartBuilderTabProps) {
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboard()
@@ -120,7 +124,8 @@ export function ChartBuilderTab({
 			chartBuilder.categories,
 			chartBuilder.chainCategories,
 			chartBuilder.groupByParent,
-			chartBuilder.filterMode || 'include'
+			chartBuilder.filterMode || 'include',
+			timePeriod
 		],
 		queryFn: async () => {
 			if (chartBuilder.mode === 'protocol') {
@@ -138,7 +143,7 @@ export function ChartBuilderTab({
 				if (data && data.series.length > 0) {
 					data.series = data.series.map((serie) => ({
 						...serie,
-						data: serie.data.slice(-365)
+						data: filterDataByTimePeriod(serie.data, timePeriod)
 					}))
 				}
 
@@ -157,7 +162,7 @@ export function ChartBuilderTab({
 			if (data && data.series.length > 0) {
 				data.series = data.series.map((serie) => ({
 					...serie,
-					data: serie.data.slice(-365)
+					data: filterDataByTimePeriod(serie.data, timePeriod)
 				}))
 			}
 

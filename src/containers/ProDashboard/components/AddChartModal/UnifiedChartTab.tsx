@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
@@ -54,8 +55,8 @@ export function UnifiedChartTab({
 	onAddToComposer,
 	onRemoveFromComposer
 }: UnifiedChartTabProps) {
-	const protocolChartTypes = getProtocolChartTypes()
-	const chainChartTypes = getChainChartTypes()
+	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
+	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboard()
 
@@ -70,17 +71,34 @@ export function UnifiedChartTab({
 		}
 	}
 
-	const instantAvailableChartTypes = (() => {
+	const instantAvailableChartTypes = useMemo(() => {
+		let available: string[] = []
 		if (selectedChartTab === 'protocol' && selectedProtocol) {
 			const geckoId = protocols.find((p: any) => p.slug === selectedProtocol)?.geckoId
-			return availableProtocolChartTypes(selectedProtocol, { hasGeckoId: !!geckoId })
-		}
-		if (selectedChartTab === 'chain' && selectedChain) {
+			available = availableProtocolChartTypes(selectedProtocol, { hasGeckoId: !!geckoId })
+		} else if (selectedChartTab === 'chain' && selectedChain) {
 			const geckoId = chains.find((c: any) => c.name === selectedChain)?.gecko_id
-			return availableChainChartTypes(selectedChain, { hasGeckoId: !!geckoId })
+			available = availableChainChartTypes(selectedChain, { hasGeckoId: !!geckoId })
 		}
-		return []
-	})()
+
+		if (!available || available.length === 0) {
+			return []
+		}
+
+		const order = selectedChartTab === 'protocol' ? protocolChartTypes : chainChartTypes
+		const availableSet = new Set(available)
+		return order.filter((type) => availableSet.has(type))
+	}, [
+		selectedChartTab,
+		selectedProtocol,
+		selectedChain,
+		protocols,
+		chains,
+		availableProtocolChartTypes,
+		availableChainChartTypes,
+		protocolChartTypes,
+		chainChartTypes
+	])
 
 	return (
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">

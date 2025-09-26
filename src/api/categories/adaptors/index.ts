@@ -339,7 +339,7 @@ export const getPerpsVolumeByChain = async ({
 
 export const getOpenInterestByChain = async ({ chain }: { chain?: string }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/derivatives${
+		`${DIMENISIONS_OVERVIEW_API}/open-interest${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
 	).catch((err) => {

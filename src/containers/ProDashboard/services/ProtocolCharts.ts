@@ -100,7 +100,7 @@ export default class ProtocolCharts {
 	}
 
 	static async openInterest(protocol: string): Promise<[number, number][]> {
-		return this.summary(protocol, 'derivatives', 'openInterestAtEnd')
+		return this.summary(protocol, 'open-interest', 'openInterestAtEnd')
 	}
 
 	static async aggregators(protocol: string): Promise<[number, number][]> {

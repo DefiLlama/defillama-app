@@ -54,7 +54,8 @@ const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metri
 	'user-fees': { endpoint: 'fees', dataType: 'dailyUserFees', metricName: 'user fees' },
 	'holders-revenue': { endpoint: 'fees', dataType: 'dailyHoldersRevenue', metricName: 'holders revenue' },
 	'protocol-revenue': { endpoint: 'fees', dataType: 'dailyProtocolRevenue', metricName: 'protocol revenue' },
-	'supply-side-revenue': { endpoint: 'fees', dataType: 'dailySupplySideRevenue', metricName: 'supply side revenue' }
+	'supply-side-revenue': { endpoint: 'fees', dataType: 'dailySupplySideRevenue', metricName: 'supply side revenue' },
+	'open-interest': { endpoint: 'open-interest', dataType: 'openInterestAtEnd', metricName: 'open interest' }
 }
 
 const toSlug = (name: string = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
