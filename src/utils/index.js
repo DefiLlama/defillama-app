@@ -847,3 +847,8 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 
 	return mainSlices
 }
+
+export const formatEthAddress = (address) => {
+	if (!address) return ''
+	return `${address.slice(0, 6)}...${address.slice(-4)}`
+}

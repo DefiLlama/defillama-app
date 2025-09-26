@@ -21,6 +21,14 @@ export function getFieldError(error: any, key: string) {
 	return error?.data?.[key]?.message
 }
 
+const getNonce = async (address: string) => {
+	const response = await fetch(`${AUTH_SERVER}/nonce?address=${address}`)
+	if (!response.ok) {
+		throw new Error('Failed to get nonce')
+	}
+	return response.json()
+}
+
 interface AuthContextType {
 	login: (email: string, password: string, onSuccess?: () => void) => Promise<void>
 	signup: (
@@ -34,6 +42,7 @@ interface AuthContextType {
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
 	signInWithEthereum: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
 	signInWithGithub: (onSuccess?: () => void) => Promise<void>
+	addWallet: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
 	resetPassword: (email: string) => void
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
@@ -46,6 +55,7 @@ interface AuthContextType {
 		logout: boolean
 		signInWithEthereum: boolean
 		signInWithGithub: boolean
+		addWallet: boolean
 		resetPassword: boolean
 		changeEmail: boolean
 		resendVerification: boolean
@@ -275,14 +285,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
-			const getNonce = async (address: string) => {
-				const response = await fetch(`${AUTH_SERVER}/nonce?address=${address}`)
-				if (!response.ok) {
-					throw new Error('Failed to get nonce')
-				}
-				return response.json()
-			}
-
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -312,9 +314,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					throw new Error('Failed to sign in with Ethereum')
 				}
 
-				const { password, identity } = await response.json()
+				const { password, identity, impersonate } = await response.json()
 
-				await pb.collection('users').authWithPassword(identity, password)
+				if (impersonate) {
+					await pb.authStore.save(impersonate.authStore.baseToken, impersonate.authStore.baseModel)
+				} else {
+					await pb.collection('users').authWithPassword(identity, password)
+				}
 
 				toast.success('Successfully signed in with Web3 wallet')
 
@@ -397,6 +403,78 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		[signInWithGithubMutation, queryClient]
 	)
 
+	const addWalletMutation = useMutation({
+		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
+			if (!pb.authStore.isValid) {
+				throw new Error('User not authenticated')
+			}
+
+			const { nonce } = await getNonce(address)
+			const issuedAt = new Date()
+			const message = createSiweMessage({
+				domain: window.location.host,
+				address: address as `0x${string}`,
+				statement: 'Sign in with Ethereum to the app.',
+				uri: window.location.origin,
+				version: '1',
+				chainId: 1,
+				nonce: nonce,
+				issuedAt: issuedAt
+			})
+
+			const signature = await signMessageFunction({
+				message: message,
+				account: address as `0x${string}`
+			})
+
+			const response = await fetch(`${AUTH_SERVER}/add-wallet`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
+			})
+
+			if (!response.ok) {
+				let reason = 'Failed to link wallet'
+				try {
+					const data = await response.json()
+					reason = data?.message || data?.error || reason
+				} catch (e) {}
+				throw new Error(reason)
+			}
+
+			return { address }
+		},
+		onSuccess: async () => {
+			try {
+				await pb.collection('users').authRefresh()
+			} catch {}
+			toast.success('Wallet linked successfully')
+		},
+		onError: (error) => {
+			const message = error instanceof Error ? error.message : 'Failed to link wallet'
+			toast.error(message)
+		}
+	})
+
+	const addWallet = useCallback(
+		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
+			try {
+				await addWalletMutation.mutateAsync({ address, signMessageFunction })
+				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+				queryClient.invalidateQueries({ queryKey: ['subscription', pb.authStore.record?.id] })
+				onSuccess?.()
+				return Promise.resolve()
+			} catch (error) {
+				console.error('Add wallet error:', error)
+				return Promise.reject(error)
+			}
+		},
+		[addWalletMutation, queryClient]
+	)
+
 	const resetPassword = useMutation({
 		mutationFn: async (email: string) => {
 			await pb.collection('users').requestPasswordReset(email)
@@ -470,7 +548,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					id: currentUserData.id!,
 					collectionId: currentUserData.collectionId!,
 					collectionName: currentUserData.collectionName!,
-					walletAddress: pb.authStore.record?.walletAddress || '',
+					walletAddress: pb.authStore.record?.address || '',
+					authMethod: pb.authStore.record?.auth_method || 'email',
 					created: currentUserData.created!,
 					updated: currentUserData.updated!,
 					email: (currentUserData as any).email,
@@ -493,6 +572,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		authorizedFetch,
 		signInWithEthereum,
 		signInWithGithub,
+		addWallet,
 		resetPassword: resetPassword.mutate,
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
@@ -504,6 +584,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			logout: logoutMutation.isPending,
 			signInWithEthereum: signInWithEthereumMutation.isPending,
 			signInWithGithub: signInWithGithubMutation.isPending,
+			addWallet: addWalletMutation.isPending,
 			resetPassword: resetPassword.isPending,
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,

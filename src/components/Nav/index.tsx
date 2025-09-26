@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
-import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -25,12 +26,6 @@ const MobileFallback = () => {
 	)
 }
 
-const otherMainPages = [
-	{ name: 'Pricing', route: '/subscription', icon: 'banknote' },
-	{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
-]
-
-const mainLinks = [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
 const footerLinks = ['More', 'About Us'].map((category) => ({
 	category,
 	pages: defillamaPages[category]
@@ -38,6 +33,22 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 
 function NavComponent() {
 	const { dashboards } = useDashboardAPI()
+	const { user, isAuthenticated } = useAuthContext()
+
+	const hasEthWallet = Boolean(user?.walletAddress)
+	const hasSeenWalletPrompt =
+		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
+
+	const showAttentionIcon = isAuthenticated && !hasEthWallet && !hasSeenWalletPrompt
+
+	const mainLinks = useMemo(() => {
+		const otherMainPages = [
+			{ name: 'Pricing', route: '/subscription', icon: 'banknote', attention: showAttentionIcon },
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
+		]
+		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
+	}, [showAttentionIcon])
+
 	const userDashboards = useMemo(
 		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
 		[dashboards]

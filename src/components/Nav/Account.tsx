@@ -3,14 +3,29 @@ import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { formatEthAddress } from '~/utils'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+
+export const resolveUserEmail = (user: any): string | null => {
+	if (!user) return null
+	if (user.authMethod === 'ethereum') {
+		return user.ethereum_email || null
+	}
+	return user.email || null
+}
+
+const resolveUserHandle = (user: any): string => {
+	return resolveUserEmail(user) || formatEthAddress(user?.walletAddress) || ''
+}
 
 export const Account = memo(function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
+
+	const userHandle = resolveUserHandle(user)
 
 	return (
 		<>
@@ -31,7 +46,7 @@ export const Account = memo(function Account() {
 									className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline"
 								>
 									<Icon name="users" className="h-4 w-4 shrink-0" />
-									{user.email}
+									{userHandle}
 								</BasicLink>
 							)}
 							{subscription?.status === 'active' ? (
