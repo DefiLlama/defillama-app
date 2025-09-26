@@ -2,12 +2,16 @@ import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProp
 import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { generateChartColor } from '~/containers/ProDashboard/utils'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
-import { formattedNum } from '~/utils'
+import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from '../types'
 
 interface AdaptedChartData {
 	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
-	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
+	data:
+		| [number, number | null][]
+		| [any, number | null][]
+		| Array<{ name: string; value: number }>
+		| [string, number, string][]
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
 	description: string
@@ -65,7 +69,10 @@ const formatChartValue = (value: number, valueSymbol?: string): string => {
 	}
 }
 
-const validateChartData = (data: [any, number | null][], chartType: string): [any, number | null][] => {
+const validateChartData = (
+	data: [number, number | null][] | [string, number, string][],
+	chartType: string
+): [number, number | null][] | [string, number, string][] => {
 	if (!data || data.length === 0) {
 		return []
 	}
@@ -82,7 +89,7 @@ const validateChartData = (data: [any, number | null][], chartType: string): [an
 		}
 
 		return typeof y === 'number' && !isNaN(y)
-	})
+	}) as [number, number | null][] | [string, number, string][]
 
 	return validData
 }
@@ -250,7 +257,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			throw new Error('No series configuration found')
 		}
 
-		let chartData: [number, number | null][] = []
+		let chartData: [number, number | null][] | [string, number, string][] = []
 
 		if (config.axes.x.type === 'time') {
 			chartData = rawData.map((row) => {
@@ -264,18 +271,16 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 
 			chartData.sort((a, b) => a[0] - b[0])
 		} else {
-			chartData = rawData.map((row) => {
+			const allColors = getNDistinctColors(rawData.length)
+			chartData = rawData.map((row, index) => {
 				const category = row[primarySeries.dataMapping.xField] || 'Unknown'
 				const value = row[primarySeries.dataMapping.yField] || 0
 
-				return [category, parseStringNumber(value)] as [any, number]
+				return [category, parseStringNumber(value), allColors[index]]
 			})
 		}
 
-		const formattedData =
-			config.axes.x.type === 'time' ? chartData : chartData.map(([cat, val]) => [cat, val] as [any, number])
-
-		const validatedData = validateChartData(formattedData, config.type)
+		const validatedData = validateChartData(chartData, config.type)
 
 		const color = primarySeries.styling?.color || getChartColor(undefined, 0, '#2196F3')
 

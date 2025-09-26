@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { slug } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
@@ -12,7 +14,11 @@ export default function NonTimeSeriesBarChart({
 	color,
 	chartOptions,
 	height,
-	tooltipOrderBottomUp
+	tooltipOrderBottomUp,
+	hideDataZoom = false,
+	hideDownloadButton = false,
+	containerClassName,
+	customComponents
 }: IBarChartProps) {
 	const id = useId()
 
@@ -27,23 +33,13 @@ export default function NonTimeSeriesBarChart({
 		isThemeDark
 	})
 
-	const getColorForValue = (value: number) => {
-		if (value > 0) {
-			return '#269f3c'
-		} else if (value === 0) {
-			return '#aaa'
-		} else {
-			return '#942e38'
-		}
-	}
-
 	const series = useMemo(() => {
 		return [
 			{
 				data: chartData.map((item) => ({
 					value: item,
 					itemStyle: {
-						color: getColorForValue(item[1])
+						color: item[2]
 					}
 				})),
 				type: 'bar'
@@ -73,68 +69,8 @@ export default function NonTimeSeriesBarChart({
 			}
 		}
 
-		const { graphic, titleDefaults, grid, dataZoom } = defaultChartSettings
+		const { graphic, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
-		const xAxis = {
-			type: 'category',
-			boundaryGap: true,
-			nameTextStyle: {
-				fontFamily: 'sans-serif',
-				fontSize: 14,
-				fontWeight: 400
-			},
-			axisLine: {
-				lineStyle: {
-					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-					opacity: 0.2
-				}
-			},
-			splitLine: {
-				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
-				}
-			},
-			axisLabel: {
-				interval: 0,
-				rotate: 45,
-				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			}
-		}
-
-		const yAxis = {
-			type: 'value',
-			axisLabel: {
-				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
-			axisLine: {
-				lineStyle: {
-					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-					opacity: 0.1
-				}
-			},
-			boundaryGap: false,
-			nameTextStyle: {
-				fontFamily: 'sans-serif',
-				fontSize: 14,
-				fontWeight: 400
-			},
-			splitLine: {
-				lineStyle: {
-					color: '#a1a1aa',
-					opacity: 0.1
-				}
-			}
-		}
-
-		const tooltip = {
-			trigger: 'axis',
-			confine: true,
-			formatter: (params) => {
-				const value = params[0].value
-				return `<strong>${value[0]}</strong>: ${value[1]}${valueSymbol}`
-			}
-		}
 		chartInstance.setOption({
 			graphic: {
 				...graphic
@@ -142,20 +78,24 @@ export default function NonTimeSeriesBarChart({
 			tooltip: {
 				...tooltip
 			},
-			title: {
-				...titleDefaults
-			},
 			grid: {
+				left: 12,
+				bottom: 68,
+				top: 12,
+				right: 12,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				...grid
 			},
 			xAxis: {
-				...xAxis
+				...xAxis,
+				type: 'category',
+				boundaryGap: true
 			},
 			yAxis: {
 				...yAxis
 			},
-
-			dataZoom: [dataZoom[0], { ...dataZoom[1], labelFormatter: () => '' }],
+			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
 
@@ -169,11 +109,32 @@ export default function NonTimeSeriesBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol])
+	}, [createInstance, defaultChartSettings, series, isThemeDark, chartOptions, valueSymbol, hideDataZoom])
+
+	const prepareCsv = useCallback(() => {
+		let rows = [['Name', 'Value']]
+		for (const item of chartData ?? []) {
+			rows.push([item[0], item[1]])
+		}
+		const Mytitle = title ? slug(title) : 'data'
+		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
+	}, [chartData, title])
 
 	return (
 		<div className="relative">
-			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			{title || !hideDownloadButton ? (
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{customComponents ?? null}
+					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+				</div>
+			) : null}
+			<div
+				id={id}
+				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
+				style={height ? { height } : undefined}
+			></div>
 		</div>
 	)
 }
