@@ -7,11 +7,7 @@ import type { ChartConfiguration } from '../types'
 
 interface AdaptedChartData {
 	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
-	data:
-		| [number, number | null][]
-		| [any, number | null][]
-		| Array<{ name: string; value: number }>
-		| [string, number, string][]
+	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
 	description: string
@@ -69,10 +65,7 @@ const formatChartValue = (value: number, valueSymbol?: string): string => {
 	}
 }
 
-const validateChartData = (
-	data: [number, number | null][] | [string, number, string][],
-	chartType: string
-): [number, number | null][] | [string, number, string][] => {
+const validateChartData = (data: [number, number | null][], chartType: string): [number, number | null][] => {
 	if (!data || data.length === 0) {
 		return []
 	}
@@ -89,7 +82,7 @@ const validateChartData = (
 		}
 
 		return typeof y === 'number' && !isNaN(y)
-	}) as [number, number | null][] | [string, number, string][]
+	}) as [number, number | null][]
 
 	return validData
 }
@@ -258,6 +251,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 		}
 
 		let chartData: [number, number | null][] | [string, number, string][] = []
+		let stackColors: Record<string, string> = {}
 
 		if (config.axes.x.type === 'time') {
 			chartData = rawData.map((row) => {
@@ -275,8 +269,8 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			chartData = rawData.map((row, index) => {
 				const category = row[primarySeries.dataMapping.xField] || 'Unknown'
 				const value = row[primarySeries.dataMapping.yField] || 0
-
-				return [category, parseStringNumber(value), allColors[index]]
+				stackColors[category] = allColors[index]
+				return [category, parseStringNumber(value)]
 			})
 		}
 
@@ -296,6 +290,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			customLegendName: undefined,
 			customLegendOptions: undefined,
 			hideDefaultLegend: true,
+			stackColors,
 
 			chartOptions: {
 				grid: {

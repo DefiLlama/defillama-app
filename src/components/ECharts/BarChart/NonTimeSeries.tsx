@@ -18,7 +18,8 @@ export default function NonTimeSeriesBarChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
-	customComponents
+	customComponents,
+	stackColors
 }: IBarChartProps) {
 	const id = useId()
 
@@ -39,13 +40,13 @@ export default function NonTimeSeriesBarChart({
 				data: chartData.map((item) => ({
 					value: item,
 					itemStyle: {
-						color: item[2]
+						color: stackColors[item[0]]
 					}
 				})),
 				type: 'bar'
 			}
 		]
-	}, [chartData])
+	}, [chartData, stackColors])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
