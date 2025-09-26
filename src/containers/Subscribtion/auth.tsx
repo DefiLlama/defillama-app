@@ -314,9 +314,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					throw new Error('Failed to sign in with Ethereum')
 				}
 
-				const { password, identity } = await response.json()
+				const { password, identity, impersonate } = await response.json()
 
-				await pb.collection('users').authWithPassword(identity, password)
+				if (impersonate) {
+					await pb.authStore.save(impersonate.authStore.baseToken, impersonate.authStore.baseModel)
+				} else {
+					await pb.collection('users').authWithPassword(identity, password)
+				}
 
 				toast.success('Successfully signed in with Web3 wallet')
 
