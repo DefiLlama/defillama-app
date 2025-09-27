@@ -1,6 +1,5 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { useMemo } from 'react'
 
 interface MarkdownRendererProps {
 	content: string
@@ -101,7 +100,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 				components={{
 					a: (props) => {
 						if (!props.href && props.children) {
-							const linkPattern = useMemo(() => new RegExp(`\\[${props.children}\\]\\(([^)]+)\\)`), [props.children])
+							const linkPattern = new RegExp(`\\[${props.children}\\]\\(([^)]+)\\)`)
 							const match = content.match(linkPattern)
 							if (match) {
 								return EntityLinkRenderer({ ...props, href: match[1] })
