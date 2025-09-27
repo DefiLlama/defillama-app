@@ -1,8 +1,6 @@
-import { RefObject, useEffect, useRef, useState } from 'react'
+import { RefObject, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -12,6 +10,7 @@ import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { useChatHistory } from './hooks/useChatHistory'
 
 class StreamingContent {
@@ -44,7 +43,7 @@ async function fetchPromptResponse({
 	prompt?: string
 	userQuestion: string
 	onProgress?: (data: {
-		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'error' | 'title'
+		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'error' | 'title' | 'message_id'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -52,6 +51,7 @@ async function fetchPromptResponse({
 		charts?: any[]
 		chartData?: any[]
 		title?: string
+		messageId?: string
 	}) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
@@ -138,6 +138,10 @@ async function fetchPromptResponse({
 							fullResponse += data.content
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'token', content: data.content })
+							}
+						} else if (data.type === 'message_id') {
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({ type: 'message_id', content: data.content, messageId: data.messageId })
 							}
 						} else if (data.type === 'progress') {
 							if (onProgress && !abortSignal?.aborted) {
@@ -257,6 +261,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 			response: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
 			timestamp: number
 			messageId?: string
+			userRating?: 'good' | 'bad' | null
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -328,6 +333,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
+	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 
 	const parseChartInfo = (message: string): { count?: number; types?: string[] } => {
 		const info: { count?: number; types?: string[] } = {}
@@ -416,6 +422,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 					if (data.type === 'token') {
 						const processedContent = streamingContentRef.current.addChunk(data.content)
 						setStreamingResponse(processedContent)
+					} else if (data.type === 'message_id') {
+						setCurrentMessageId(data.messageId || null)
 					} else if (data.type === 'progress') {
 						setProgressMessage(data.content)
 						setProgressStage(data.stage || '')
@@ -475,12 +483,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 						charts: data?.response?.charts,
 						chartData: data?.response?.chartData
 					},
+					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
 			])
 
 			setPrompt('')
 			resetPrompt()
+			setCurrentMessageId(null)
 			setTimeout(() => {
 				promptInputRef.current?.focus()
 			}, 100)
@@ -498,6 +508,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 				console.log('Request failed:', error)
 			}
 
+			setCurrentMessageId(null)
 			setTimeout(() => {
 				promptInputRef.current?.focus()
 			}, 100)
@@ -850,7 +861,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 											>
 												<SentPrompt prompt={item.question} />
 												<div className="flex flex-col gap-2.5">
-													<Answer content={item.response.answer} messageId={item.messageId} />
+													<Answer
+														content={item.response.answer}
+														messageId={item.messageId}
+														userRating={item.userRating}
+													/>
 													{item.response.charts && item.response.charts.length > 0 && (
 														<ChartRenderer
 															charts={item.response.charts}
@@ -1323,8 +1338,17 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 	)
 }
 
-const MessageRating = ({ messageId, content }: { messageId?: string; content?: string }) => {
+const MessageRating = ({
+	messageId,
+	content,
+	initialRating
+}: {
+	messageId?: string
+	content?: string
+	initialRating?: 'good' | 'bad' | null
+}) => {
 	const [copied, setCopied] = useState(false)
+	const [showFeedback, setShowFeedback] = useState(false)
 	const { authorizedFetch } = useAuthContext()
 
 	const {
@@ -1342,6 +1366,9 @@ const MessageRating = ({ messageId, content }: { messageId?: string; content?: s
 				.then((res) => res.json())
 
 			return res
+		},
+		onSuccess: () => {
+			setShowFeedback(true)
 		}
 	})
 
@@ -1360,8 +1387,15 @@ const MessageRating = ({ messageId, content }: { messageId?: string; content?: s
 				.then((res) => res.json())
 
 			return res
+		},
+		onSuccess: () => {
+			setShowFeedback(true)
 		}
 	})
+
+	const isRatedAsGood = initialRating === 'good' || sessionRatingAsGood?.rating === 'good'
+	const isRatedAsBad = initialRating === 'bad' || sessionRatingAsBad?.rating === 'bad'
+	const lastRating = isRatedAsGood ? 'good' : isRatedAsBad ? 'bad' : null
 
 	const handleCopy = async () => {
 		if (!content) return
@@ -1374,48 +1408,135 @@ const MessageRating = ({ messageId, content }: { messageId?: string; content?: s
 		}
 	}
 
-	const isRatedAsGood = sessionRatingAsGood?.rating === 'good'
-	const isRatedAsBad = sessionRatingAsBad?.rating === 'bad'
-
 	if (!messageId) return null
 
 	return (
-		<div className="-mx-1.5 flex items-center gap-1">
-			<Tooltip
-				content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
-				render={<button onClick={() => rateAsGood()} disabled={isRatingAsGood} />}
-				className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
-			>
-				{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
-				<span className="sr-only">Thumbs Up</span>
-			</Tooltip>
-			<Tooltip
-				content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
-				render={<button onClick={() => rateAsBad()} disabled={isRatingAsBad} />}
-				className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
-			>
-				{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
-				<span className="sr-only">Thumbs Down</span>
-			</Tooltip>
-			{content && (
-				<button
-					onClick={handleCopy}
-					className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+		<div className="-mx-1.5">
+			<div className="flex items-center gap-1">
+				<Tooltip
+					content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
+					render={
+						<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood || showFeedback || !!lastRating} />
+					}
+					className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
 				>
-					{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
-				</button>
+					{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
+					<span className="sr-only">Thumbs Up</span>
+				</Tooltip>
+				<Tooltip
+					content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
+					render={
+						<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!lastRating} />
+					}
+					className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
+				>
+					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
+					<span className="sr-only">Thumbs Down</span>
+				</Tooltip>
+				{content && (
+					<Tooltip
+						content={copied ? 'Copied' : 'Copy'}
+						render={<button onClick={handleCopy} />}
+						className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
+					</Tooltip>
+				)}
+			</div>
+
+			{showFeedback && (
+				<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
 			)}
 		</div>
 	)
 }
 
-const Answer = ({ content, messageId }: { content: string; messageId?: string }) => {
+const FeedbackForm = ({
+	messageId,
+	initialRating,
+	setShowFeedback
+}: {
+	messageId?: string
+	initialRating?: 'good' | 'bad' | null
+	setShowFeedback: (show: boolean) => void
+}) => {
+	const { authorizedFetch } = useAuthContext()
+	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
+		mutationFn: async (feedback?: string) => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ rating: initialRating, feedback })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		},
+		onSuccess: () => {
+			setShowFeedback(false)
+		}
+	})
+
+	const [feedbackText, setFeedbackText] = useState('')
+	const finalFeedbackText = useDeferredValue(feedbackText)
+
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault()
+				const form = e.target as HTMLFormElement
+				submitFeedback(form.feedback?.value?.trim())
+			}}
+			className="mx-1.5 flex flex-col gap-2.5 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]"
+		>
+			<label className="flex flex-col gap-2.5">
+				<span className="text-[#666] dark:text-[#919296]">Help us improve! Any additional feedback? (optional)</span>
+				<textarea
+					name="feedback"
+					placeholder="Share your thoughts..."
+					className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-2 dark:border-[#222324]"
+					rows={2}
+					maxLength={500}
+					disabled={isSubmittingFeedback}
+					onChange={(e) => setFeedbackText(e.target.value)}
+				/>
+			</label>
+			<div className="flex items-center justify-between">
+				<span className="text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</span>
+				<div className="flex gap-2">
+					<button
+						onClick={() => setShowFeedback(false)}
+						disabled={isSubmittingFeedback}
+						className="rounded px-3 py-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						Skip
+					</button>
+					<button
+						disabled={isSubmittingFeedback}
+						className="rounded bg-(--old-blue) px-3 py-1.5 text-white hover:opacity-90 disabled:opacity-50"
+					>
+						{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
+					</button>
+				</div>
+			</div>
+		</form>
+	)
+}
+
+const Answer = ({
+	content,
+	messageId,
+	userRating
+}: {
+	content: string
+	messageId?: string
+	userRating?: 'good' | 'bad' | null
+}) => {
 	return (
 		<>
-			<div className="prose prose-sm dark:prose-invert prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto">
-				<ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-			</div>
-			<MessageRating messageId={messageId} content={content} />
+			<MarkdownRenderer content={content} />
+			<MessageRating messageId={messageId} content={content} initialRating={userRating} />
 		</>
 	)
 }
