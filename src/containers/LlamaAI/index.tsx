@@ -1350,7 +1350,6 @@ const MessageRating = ({
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
 	const [feedbackText, setFeedbackText] = useState('')
-	const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
 	const [lastRating, setLastRating] = useState<'good' | 'bad' | null>(null)
 	const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
 	const { authorizedFetch } = useAuthContext()
@@ -1413,7 +1412,6 @@ const MessageRating = ({
 
 	const handleSubmitFeedback = async () => {
 		if (!lastRating) return
-		setFeedbackSubmitting(true)
 		setIsSubmittingFeedback(true)
 		try {
 			if (lastRating === 'good') {
@@ -1424,8 +1422,6 @@ const MessageRating = ({
 		} catch (error) {
 			console.error('Failed to submit feedback:', error)
 			setIsSubmittingFeedback(false)
-		} finally {
-			setFeedbackSubmitting(false)
 		}
 	}
 
@@ -1499,24 +1495,24 @@ const MessageRating = ({
 							className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-2 text-sm dark:border-[#222324]"
 							rows={2}
 							maxLength={500}
-							disabled={feedbackSubmitting}
+							disabled={isSubmittingFeedback}
 						/>
 						<div className="mt-2 flex items-center justify-between">
 							<span className="text-xs text-[#666] dark:text-[#919296]">{feedbackText.length}/500</span>
 							<div className="flex gap-2">
 								<button
 									onClick={handleSkipFeedback}
-									disabled={feedbackSubmitting}
+									disabled={isSubmittingFeedback}
 									className="rounded px-3 py-1.5 text-sm text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
 								>
 									Skip
 								</button>
 								<button
 									onClick={handleSubmitFeedback}
-									disabled={feedbackSubmitting}
+									disabled={isSubmittingFeedback}
 									className="rounded bg-(--old-blue) px-3 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
 								>
-									{feedbackSubmitting ? 'Submitting...' : 'Submit'}
+									{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
 								</button>
 							</div>
 						</div>

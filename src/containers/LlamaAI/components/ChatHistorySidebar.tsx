@@ -43,7 +43,7 @@ export function ChatHistorySidebar({
 				acc[groupName] = [...(acc[groupName] || []), session]
 				return acc
 			}, {})
-		).sort((a, b) => new Date(b[1][0].lastActivity).getTime() - new Date(a[1][0].lastActivity).getTime()) as Array<
+		).sort((a, b) => Date.parse(b[1][0].lastActivity) - Date.parse(a[1][0].lastActivity)) as Array<
 			[string, Array<ChatSession>]
 		>
 	}, [sessions])
