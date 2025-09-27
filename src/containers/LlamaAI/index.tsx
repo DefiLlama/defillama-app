@@ -1434,12 +1434,13 @@ const MessageRating = ({
 					<span className="sr-only">Thumbs Down</span>
 				</Tooltip>
 				{content && (
-					<button
-						onClick={handleCopy}
+					<Tooltip
+						content={copied ? 'Copied' : 'Copy'}
+						render={<button onClick={handleCopy} />}
 						className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
 					>
 						{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
-					</button>
+					</Tooltip>
 				)}
 			</div>
 
