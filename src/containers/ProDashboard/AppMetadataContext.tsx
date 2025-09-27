@@ -219,10 +219,14 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 			types.add('gasUsed')
 		}
 		if (flags.chainAssets) {
-			types.add('stablecoins')
 			types.add('bridgedTvl')
 		}
-		if (flags.inflows) types.add('stablecoinInflows')
+		if (flags.stablecoins) {
+			types.add('stablecoins')
+		}
+		if (flags.inflows) {
+			types.add('stablecoinInflows')
+		}
 		if (flags.chainFees) types.add('chainFees')
 		if (flags.chainRevenue) types.add('chainRevenue')
 		if (opts?.hasGeckoId || flags.gecko_id) {
