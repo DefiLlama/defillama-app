@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef, useState } from 'react'
+import { RefObject, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
@@ -1349,9 +1349,6 @@ const MessageRating = ({
 }) => {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
-	const [feedbackText, setFeedbackText] = useState('')
-	const [lastRating, setLastRating] = useState<'good' | 'bad' | null>(null)
-	const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
 	const { authorizedFetch } = useAuthContext()
 
 	const {
@@ -1359,11 +1356,11 @@ const MessageRating = ({
 		mutate: rateAsGood,
 		isPending: isRatingAsGood
 	} = useMutation({
-		mutationFn: async (feedback?: string) => {
+		mutationFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: 'good', feedback })
+				body: JSON.stringify({ rating: 'good' })
 			})
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
@@ -1371,14 +1368,7 @@ const MessageRating = ({
 			return res
 		},
 		onSuccess: () => {
-			setLastRating('good')
-			if (isSubmittingFeedback) {
-				setShowFeedback(false)
-				setFeedbackText('')
-				setIsSubmittingFeedback(false)
-			} else {
-				setShowFeedback(true)
-			}
+			setShowFeedback(true)
 		}
 	})
 
@@ -1387,11 +1377,11 @@ const MessageRating = ({
 		mutate: rateAsBad,
 		isPending: isRatingAsBad
 	} = useMutation({
-		mutationFn: async (feedback?: string) => {
+		mutationFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: 'bad', feedback })
+				body: JSON.stringify({ rating: 'bad' })
 			})
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
@@ -1399,36 +1389,13 @@ const MessageRating = ({
 			return res
 		},
 		onSuccess: () => {
-			setLastRating('bad')
-			if (isSubmittingFeedback) {
-				setShowFeedback(false)
-				setFeedbackText('')
-				setIsSubmittingFeedback(false)
-			} else {
-				setShowFeedback(true)
-			}
+			setShowFeedback(true)
 		}
 	})
 
-	const handleSubmitFeedback = async () => {
-		if (!lastRating) return
-		setIsSubmittingFeedback(true)
-		try {
-			if (lastRating === 'good') {
-				await rateAsGood(feedbackText.trim() || undefined)
-			} else {
-				await rateAsBad(feedbackText.trim() || undefined)
-			}
-		} catch (error) {
-			console.error('Failed to submit feedback:', error)
-			setIsSubmittingFeedback(false)
-		}
-	}
-
-	const handleSkipFeedback = () => {
-		setShowFeedback(false)
-		setFeedbackText('')
-	}
+	const isRatedAsGood = initialRating === 'good' || sessionRatingAsGood?.rating === 'good'
+	const isRatedAsBad = initialRating === 'bad' || sessionRatingAsBad?.rating === 'bad'
+	const lastRating = isRatedAsGood ? 'good' : isRatedAsBad ? 'bad' : null
 
 	const handleCopy = async () => {
 		if (!content) return
@@ -1441,9 +1408,6 @@ const MessageRating = ({
 		}
 	}
 
-	const isRatedAsGood = initialRating === 'good' || sessionRatingAsGood?.rating === 'good'
-	const isRatedAsBad = initialRating === 'bad' || sessionRatingAsBad?.rating === 'bad'
-
 	if (!messageId) return null
 
 	return (
@@ -1451,12 +1415,7 @@ const MessageRating = ({
 			<div className="flex items-center gap-1">
 				<Tooltip
 					content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
-					render={
-						<button
-							onClick={() => rateAsGood(undefined)}
-							disabled={isRatingAsGood || showFeedback || !!initialRating}
-						/>
-					}
+					render={<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood} />}
 					className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
 				>
 					{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
@@ -1464,9 +1423,7 @@ const MessageRating = ({
 				</Tooltip>
 				<Tooltip
 					content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
-					render={
-						<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!initialRating} />
-					}
+					render={<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad} />}
 					className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
 				>
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
@@ -1483,43 +1440,89 @@ const MessageRating = ({
 			</div>
 
 			{showFeedback && (
-				<div className="mt-3">
-					<div className="rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-3 dark:border-[#222324]">
-						<p className="mb-2 text-sm text-[#666] dark:text-[#919296]">
-							Help us improve! Any additional feedback? (optional)
-						</p>
-						<textarea
-							value={feedbackText}
-							onChange={(e) => setFeedbackText(e.target.value)}
-							placeholder="Share your thoughts..."
-							className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-2 text-sm dark:border-[#222324]"
-							rows={2}
-							maxLength={500}
-							disabled={isSubmittingFeedback}
-						/>
-						<div className="mt-2 flex items-center justify-between">
-							<span className="text-xs text-[#666] dark:text-[#919296]">{feedbackText.length}/500</span>
-							<div className="flex gap-2">
-								<button
-									onClick={handleSkipFeedback}
-									disabled={isSubmittingFeedback}
-									className="rounded px-3 py-1.5 text-sm text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
-								>
-									Skip
-								</button>
-								<button
-									onClick={handleSubmitFeedback}
-									disabled={isSubmittingFeedback}
-									className="rounded bg-(--old-blue) px-3 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
-								>
-									{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
+				<FeedbackForm
+					messageId={messageId}
+					content={content}
+					initialRating={lastRating}
+					setShowFeedback={setShowFeedback}
+				/>
 			)}
 		</div>
+	)
+}
+
+const FeedbackForm = ({
+	messageId,
+	content,
+	initialRating,
+	setShowFeedback
+}: {
+	messageId?: string
+	content?: string
+	initialRating?: 'good' | 'bad' | null
+	setShowFeedback: (show: boolean) => void
+}) => {
+	const { authorizedFetch } = useAuthContext()
+	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
+		mutationFn: async (feedback?: string) => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ rating: initialRating, feedback })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		},
+		onSuccess: () => {
+			setShowFeedback(false)
+		}
+	})
+
+	const [feedbackText, setFeedbackText] = useState('')
+	const finalFeedbackText = useDeferredValue(feedbackText)
+
+	return (
+		<form
+			onSubmit={(e) => {
+				e.preventDefault()
+				const form = e.target as HTMLFormElement
+				submitFeedback(form.feedback?.value?.trim())
+			}}
+			className="mx-1.5 flex flex-col gap-2.5 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]"
+		>
+			<label className="flex flex-col gap-2.5">
+				<span className="text-[#666] dark:text-[#919296]">Help us improve! Any additional feedback? (optional)</span>
+				<textarea
+					name="feedback"
+					placeholder="Share your thoughts..."
+					className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-2 dark:border-[#222324]"
+					rows={2}
+					maxLength={500}
+					disabled={isSubmittingFeedback}
+					onChange={(e) => setFeedbackText(e.target.value)}
+				/>
+			</label>
+			<div className="flex items-center justify-between">
+				<span className="text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</span>
+				<div className="flex gap-2">
+					<button
+						onClick={() => setShowFeedback(false)}
+						disabled={isSubmittingFeedback}
+						className="rounded px-3 py-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						Skip
+					</button>
+					<button
+						disabled={isSubmittingFeedback}
+						className="rounded bg-(--old-blue) px-3 py-1.5 text-white hover:opacity-90 disabled:opacity-50"
+					>
+						{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
+					</button>
+				</div>
+			</div>
+		</form>
 	)
 }
 
