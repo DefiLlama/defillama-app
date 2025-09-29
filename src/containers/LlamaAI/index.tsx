@@ -1413,7 +1413,7 @@ const MessageRating = ({
 	if (!messageId) return null
 
 	return (
-		<div className="-mx-1.5">
+		<div className="-mx-1.5 -my-0.5">
 			<div className="flex items-center gap-1">
 				<Tooltip
 					content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}

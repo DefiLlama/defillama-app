@@ -51,7 +51,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 		return (
 			<a
 				href={entityUrl}
-				className="inline-flex items-center gap-1.5 rounded border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-(--link-text) hover:text-blue-800 hover:border-blue-300 transition-colors"
+				className="inline-flex items-center gap-1.5 rounded border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-(--link-text) transition-colors hover:border-blue-300 hover:text-blue-800"
 				onClick={(e) => {
 					e.preventDefault()
 					window.location.href = entityUrl
@@ -59,10 +59,10 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 				{...props}
 			>
 				<div
-					className="flex-shrink-0 h-[18px] w-[18px] rounded-full bg-cover bg-center bg-no-repeat translate-y-[1px]"
+					className="h-[18px] w-[18px] flex-shrink-0 translate-y-[1px] rounded-full bg-cover bg-center bg-no-repeat"
 					style={{
 						backgroundImage: `url(${iconUrl})`,
-						backgroundColor: 'var(--bg-muted)',
+						backgroundColor: 'var(--bg-muted)'
 					}}
 					aria-label={`${children} icon`}
 				/>
@@ -102,7 +102,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 	}, [processedData.linkMap])
 
 	return (
-		<div className="prose prose-sm dark:prose-invert prose-p:my-2 prose-li:my-0 prose-ul:my-2 prose-ol:my-2 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto leading-normal">
+		<div className="prose prose-sm dark:prose-invert prose-ul:grid prose-ul:gap-1 prose-ol:grid prose-ol:gap-1 prose-li:m-0 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal *:m-0">
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				components={{
