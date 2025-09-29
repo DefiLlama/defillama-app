@@ -1413,8 +1413,21 @@ const MessageRating = ({
 	if (!messageId) return null
 
 	return (
-		<div className="-mx-1.5 -my-0.5">
-			<div className="flex items-center gap-1">
+		<>
+			<div className="-mx-1.5 -my-0.5 flex items-center justify-end gap-1">
+				{content && (
+					<Tooltip
+						content={copied ? 'Copied' : 'Copy'}
+						render={<button onClick={handleCopy} />}
+						className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						{copied ? (
+							<Icon name="check-circle" height={14} width={14} />
+						) : (
+							<Icon name="clipboard" height={14} width={14} />
+						)}
+					</Tooltip>
+				)}
 				<Tooltip
 					content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
 					render={
@@ -1435,17 +1448,15 @@ const MessageRating = ({
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
 					<span className="sr-only">Thumbs Down</span>
 				</Tooltip>
-				{content && (
-					<Tooltip
-						content={copied ? 'Copied' : 'Copy'}
-						render={<button onClick={handleCopy} />}
-						className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
-					>
-						{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
-					</Tooltip>
-				)}
+				<Tooltip
+					content="Provide Feedback"
+					render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
+					className={`rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]`}
+				>
+					<Icon name="message-square-warning" height={14} width={14} />
+					<span className="sr-only">Provide Feedback</span>
+				</Tooltip>
 			</div>
-
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog
 					className="max-sm:drawer dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl sm:max-w-md"
@@ -1462,7 +1473,7 @@ const MessageRating = ({
 					<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-		</div>
+		</>
 	)
 }
 
