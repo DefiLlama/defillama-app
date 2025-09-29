@@ -62,11 +62,21 @@ interface MetricSentenceBuilderProps {
 	onShowSparklineChange: (value: boolean) => void
 }
 
-const TOKEN_WIDTH: Record<Exclude<ActiveToken, null>, number> = {
-	aggregator: 260,
-	metric: 320,
-	subject: 360,
-	window: 260
+const getTokenWidth = (token: Exclude<ActiveToken, null>): number => {
+	const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+	if (isMobile) {
+		return Math.min(window.innerWidth - 32, token === 'subject' ? 340 : 280)
+	}
+	switch (token) {
+		case 'aggregator':
+			return 260
+		case 'metric':
+			return 320
+		case 'subject':
+			return 360
+		case 'window':
+			return 260
+	}
 }
 
 interface TokenButtonProps {
@@ -86,14 +96,14 @@ const TokenButton = forwardRef<HTMLButtonElement, TokenButtonProps>(function Tok
 			onClick={onClick}
 			data-metric-token="true"
 			ref={ref}
-			className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all duration-150 focus:ring-2 focus:ring-(--primary)/40 focus:outline-hidden ${
+			className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium transition-all duration-150 focus:ring-2 focus:ring-(--primary)/40 focus:outline-hidden sm:px-2.5 sm:py-1 sm:text-sm ${
 				active
 					? 'border-(--primary) bg-(--primary)/12 text-(--primary) shadow-sm'
 					: 'border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) hover:border-(--primary)/30 hover:bg-(--cards-bg-alt) hover:text-(--text-primary)'
 			}`}
 		>
-			<span>{label}</span>
-			<Icon name="chevron-down" width={12} height={12} className="opacity-70" />
+			<span className="max-w-[100px] truncate sm:max-w-[180px]">{label}</span>
+			<Icon name="chevron-down" width={10} height={10} className="flex-shrink-0 opacity-70 sm:h-3 sm:w-3" />
 			{secondary && <span className="sr-only">{secondary}</span>}
 		</button>
 	)
@@ -121,7 +131,9 @@ export function MetricSentenceBuilder({
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>(metricSubjectType)
-	const popover = usePopoverStore({ placement: 'right-start' })
+	const popover = usePopoverStore({
+		placement: typeof window !== 'undefined' && window.innerWidth < 640 ? 'bottom' : 'right-start'
+	})
 	const subjectCombobox = useComboboxStore({ resetValueOnHide: true })
 	const anchorRefs = useRef<Record<Exclude<ActiveToken, null>, HTMLButtonElement | null>>({
 		aggregator: null,
@@ -129,7 +141,7 @@ export function MetricSentenceBuilder({
 		subject: null,
 		window: null
 	})
-	const [popoverWidth, setPopoverWidth] = useState(TOKEN_WIDTH.aggregator)
+	const [popoverWidth, setPopoverWidth] = useState(260)
 	const isPopoverOpen = popover.useState('open')
 	const subjectSearchValue = subjectCombobox.useState('value') ?? ''
 	const chainListRef = useRef<HTMLDivElement | null>(null)
@@ -282,14 +294,14 @@ export function MetricSentenceBuilder({
 	const chainVirtualizer = useVirtualizer({
 		count: subjectTab === 'chain' ? filteredChainOptions.length : 0,
 		getScrollElement: () => chainListRef.current,
-		estimateSize: () => 44,
+		estimateSize: () => 38,
 		overscan: 8
 	})
 
 	const protocolVirtualizer = useVirtualizer({
 		count: subjectTab === 'protocol' ? filteredProtocolOptions.length : 0,
 		getScrollElement: () => protocolListRef.current,
-		estimateSize: () => 48,
+		estimateSize: () => 42,
 		overscan: 8
 	})
 
@@ -342,7 +354,7 @@ export function MetricSentenceBuilder({
 				setSubjectTab(metricSubjectType)
 			}
 
-			setPopoverWidth(TOKEN_WIDTH[token])
+			setPopoverWidth(getTokenWidth(token))
 			setActiveToken(token)
 			popover.setAnchorElement(anchor)
 			popover.setOpen(true)
@@ -394,13 +406,13 @@ export function MetricSentenceBuilder({
 		switch (activeToken) {
 			case 'aggregator':
 				return (
-					<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-2" data-metric-token="true">
+					<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1.5" data-metric-token="true">
 						{AGGREGATOR_OPTIONS.map((option) => (
 							<button
 								key={option.value}
 								type="button"
 								onClick={() => handleSelectAggregator(option.value)}
-								className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-(--cards-bg-alt) ${
+								className={`w-full rounded-md px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-(--cards-bg-alt) ${
 									option.value === aggregator
 										? 'bg-(--cards-bg-alt) font-semibold text-(--text-primary)'
 										: 'text-(--text-secondary)'
@@ -414,13 +426,13 @@ export function MetricSentenceBuilder({
 				)
 			case 'window':
 				return (
-					<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-2" data-metric-token="true">
+					<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1.5" data-metric-token="true">
 						{WINDOW_OPTIONS.map((option) => (
 							<button
 								key={option.value}
 								type="button"
 								onClick={() => handleSelectWindow(option.value)}
-								className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-(--cards-bg-alt) ${
+								className={`w-full rounded-md px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-(--cards-bg-alt) ${
 									option.value === metricWindow
 										? 'bg-(--cards-bg-alt) font-semibold text-(--text-primary)'
 										: 'text-(--text-secondary)'
@@ -435,16 +447,16 @@ export function MetricSentenceBuilder({
 			case 'metric':
 				return (
 					<div className="thin-scrollbar max-h-[320px] w-full overflow-y-auto" data-metric-token="true">
-						<div className="sticky top-0 border-b border-(--cards-border) bg-(--cards-bg) p-2">
+						<div className="sticky top-0 border-b border-(--cards-border) bg-(--cards-bg) p-1.5">
 							<input
 								autoFocus
 								value={searchTerm}
 								onChange={(event) => setSearchTerm(event.target.value)}
 								placeholder="Search metrics..."
-								className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+								className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							/>
 						</div>
-						<div className="p-2">
+						<div className="p-1.5">
 							{baseMetricTypes.length === 0 && <div className="pro-text3 px-2 py-3 text-sm">No metrics available.</div>}
 							{baseMetricTypes.length > 0 && filteredMetrics.length === 0 && (
 								<div className="pro-text3 px-2 py-3 text-sm">No metrics match that search.</div>
@@ -457,7 +469,7 @@ export function MetricSentenceBuilder({
 										key={value}
 										type="button"
 										onClick={() => handleSelectMetric(value)}
-										className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-(--cards-bg-alt) ${
+										className={`flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-sm transition-colors hover:bg-(--cards-bg-alt) ${
 											isActive ? 'bg-(--cards-bg-alt) font-semibold text-(--text-primary)' : 'text-(--text-secondary)'
 										}`}
 									>
@@ -472,12 +484,12 @@ export function MetricSentenceBuilder({
 			case 'subject':
 				return (
 					<ComboboxProvider store={subjectCombobox}>
-						<div className="w-[360px] max-w-[400px] space-y-4 p-4" data-metric-token="true">
-							<div className="space-y-2">
-								<div className="text-xs font-semibold tracking-wide text-(--text-tertiary) uppercase">
+						<div className="w-full space-y-2.5 p-2.5 sm:space-y-3 sm:p-3" data-metric-token="true">
+							<div className="space-y-1.5">
+								<div className="text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase">
 									Select subject
 								</div>
-								<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
+								<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5 shadow-sm">
 									<div className="grid grid-cols-2 gap-1">
 										<button
 											type="button"
@@ -485,7 +497,7 @@ export function MetricSentenceBuilder({
 												setSubjectTab('chain')
 												subjectCombobox.setValue('')
 											}}
-											className={`rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+											className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
 												subjectTab === 'chain'
 													? 'bg-(--primary)/12 text-(--primary) shadow-sm'
 													: 'text-(--text-secondary) hover:bg-(--cards-bg)'
@@ -507,7 +519,7 @@ export function MetricSentenceBuilder({
 												setSubjectTab('protocol')
 												subjectCombobox.setValue('')
 											}}
-											className={`rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+											className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors ${
 												subjectTab === 'protocol'
 													? 'bg-(--primary)/12 text-(--primary) shadow-sm'
 													: 'text-(--text-secondary) hover:bg-(--cards-bg)'
@@ -527,17 +539,17 @@ export function MetricSentenceBuilder({
 								</div>
 							</div>
 
-							<div className="space-y-3">
-								<div className="rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-3 shadow-inner">
+							<div className="space-y-2">
+								<div className="rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-inner">
 									<Combobox
 										autoFocus
 										placeholder={subjectTab === 'chain' ? 'Search chains...' : 'Search protocols...'}
-										className="mb-2 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+										className="mb-1.5 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										aria-label="Search"
 									/>
 									{subjectTab === 'chain' ? (
 										filteredChainOptions.length > 0 ? (
-											<ComboboxList ref={chainListRef} className="thin-scrollbar max-h-[260px] overflow-y-auto">
+											<ComboboxList ref={chainListRef} className="thin-scrollbar max-h-[240px] overflow-y-auto">
 												<div style={{ height: chainVirtualizer.getTotalSize(), position: 'relative' }}>
 													{chainVirtualizer.getVirtualItems().map((virtualRow) => {
 														const option = filteredChainOptions[virtualRow.index]
@@ -553,7 +565,7 @@ export function MetricSentenceBuilder({
 																	handleChainSelect(option)
 																	closePopover()
 																}}
-																className={`flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-(--cards-bg-alt) focus-visible:bg-(--cards-bg-alt) data-active-item:bg-(--cards-bg-alt) ${
+																className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-sm transition-colors hover:bg-(--cards-bg-alt) focus-visible:bg-(--cards-bg-alt) data-active-item:bg-(--cards-bg-alt) ${
 																	isActive
 																		? 'bg-(--primary)/10 font-semibold text-(--text-primary)'
 																		: 'text-(--text-secondary)'
@@ -590,7 +602,7 @@ export function MetricSentenceBuilder({
 											<div className="px-2 py-6 text-center text-sm text-(--text-tertiary)">No chains found.</div>
 										)
 									) : filteredProtocolOptions.length > 0 ? (
-										<ComboboxList ref={protocolListRef} className="thin-scrollbar max-h-[260px] overflow-y-auto">
+										<ComboboxList ref={protocolListRef} className="thin-scrollbar max-h-[240px] overflow-y-auto">
 											<div style={{ height: protocolVirtualizer.getTotalSize(), position: 'relative' }}>
 												{protocolVirtualizer.getVirtualItems().map((virtualRow) => {
 													const option = filteredProtocolOptions[virtualRow.index]
@@ -606,7 +618,7 @@ export function MetricSentenceBuilder({
 																handleProtocolSelect(option)
 																closePopover()
 															}}
-															className={`flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors hover:bg-(--cards-bg-alt) focus-visible:bg-(--cards-bg-alt) data-active-item:bg-(--cards-bg-alt) ${
+															className={`flex items-center justify-between rounded-md px-2.5 py-1.5 text-sm transition-colors hover:bg-(--cards-bg-alt) focus-visible:bg-(--cards-bg-alt) data-active-item:bg-(--cards-bg-alt) ${
 																isActive
 																	? 'bg-(--primary)/10 font-semibold text-(--text-primary)'
 																	: 'text-(--text-secondary)'
@@ -666,21 +678,23 @@ export function MetricSentenceBuilder({
 	}
 
 	return (
-		<div className="flex flex-col gap-4">
-			<div className="rounded-xl border border-(--cards-border) bg-gradient-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-4 shadow-sm">
-				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary)">
-						<Icon name="sparkles" width={18} height={18} />
+		<div className="flex flex-col gap-2.5 sm:gap-3">
+			<div className="rounded-lg border border-(--cards-border) bg-gradient-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
+				<div className="flex items-center gap-2 sm:gap-2.5">
+					<div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
+						<Icon name="sparkles" width={14} height={14} className="sm:h-4 sm:w-4" />
 					</div>
-					<div>
-						<div className="text-sm font-semibold text-(--text-primary)">Metric sentence builder</div>
-						<div className="text-xs text-(--text-tertiary)">Create the metrics based on how they are read.</div>
+					<div className="min-w-0">
+						<div className="text-xs font-semibold text-(--text-primary)">Metric sentence builder</div>
+						<div className="text-[10px] text-(--text-tertiary) sm:text-[11px]">
+							Create metrics based on natural language
+						</div>
 					</div>
 				</div>
 			</div>
-			<div className="rounded-xl border border-(--cards-border) bg-(--cards-bg) p-4 text-sm text-(--text-secondary) shadow-sm">
-				<div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-(--text-primary)">
-					<span className="text-(--text-tertiary)">Show</span>
+			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 text-sm text-(--text-secondary) shadow-sm sm:p-3">
+				<div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-(--text-primary) sm:gap-x-2.5 sm:gap-y-2">
+					<span className="text-xs text-(--text-tertiary) sm:text-sm">Show</span>
 					<TokenButton
 						label={aggregatorLabel}
 						onClick={handleTokenPress('aggregator')}
@@ -697,7 +711,7 @@ export function MetricSentenceBuilder({
 							anchorRefs.current.metric = node
 						}}
 					/>
-					<span className="text-(--text-tertiary)">for</span>
+					<span className="text-xs text-(--text-tertiary) sm:text-sm">for</span>
 					<TokenButton
 						label={subjectLabel}
 						onClick={handleTokenPress('subject')}
@@ -706,7 +720,7 @@ export function MetricSentenceBuilder({
 							anchorRefs.current.subject = node
 						}}
 					/>
-					<span className="text-(--text-tertiary)">over</span>
+					<span className="text-xs text-(--text-tertiary) sm:text-sm">over</span>
 					<TokenButton
 						label={windowLabel}
 						onClick={handleTokenPress('window')}
@@ -716,14 +730,14 @@ export function MetricSentenceBuilder({
 						}}
 					/>
 				</div>
-				<div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-3 py-2">
+				<div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 sm:mt-3 sm:px-2.5">
 					<Switch
 						label="Sparkline"
 						checked={showSparkline}
 						onChange={() => onShowSparklineChange(!showSparkline)}
 						value="sparkline"
 						help="Display a tiny trendline inside your metric tile."
-						className="text-xs font-medium text-(--text-secondary)"
+						className="text-[11px] font-medium text-(--text-secondary) sm:text-xs"
 					/>
 				</div>
 			</div>
@@ -732,7 +746,12 @@ export function MetricSentenceBuilder({
 				modal={false}
 				data-metric-token="true"
 				className="z-50 rounded-lg border border-(--cards-border) bg-(--cards-bg) shadow-lg"
-				style={{ width: popoverWidth, maxHeight: 'calc(100vh - 32px)', overflow: 'hidden auto' }}
+				style={{
+					width: popoverWidth,
+					maxWidth: 'calc(100vw - 16px)',
+					maxHeight: 'calc(100vh - 32px)',
+					overflow: 'hidden auto'
+				}}
 			>
 				{renderPopoverContent()}
 			</Popover>

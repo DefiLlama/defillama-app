@@ -88,28 +88,28 @@ export function MetricTab(props: MetricTabProps) {
 	}, [metricSubjectType, metricProtocol, metricChain, protocolList, chainList])
 
 	return (
-		<div className="flex h-full min-h-[360px] gap-3 overflow-hidden">
-			<div className="pro-border flex w-[380px] flex-col overflow-hidden border lg:w-[420px]">
-				<div className="flex h-full min-h-0 flex-col gap-4 p-3">
-					<div className="rounded-xl border border-(--cards-border) bg-(--cards-bg) p-4 shadow-sm">
-						<div className="flex items-start justify-between gap-3">
+		<div className="flex h-full flex-col gap-3 lg:min-h-[360px] lg:flex-row lg:overflow-hidden">
+			<div className="pro-border lg:thin-scrollbar flex w-full flex-shrink-0 flex-col border lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
+				<div className="flex flex-col gap-3 p-2.5 sm:p-3">
+					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-sm sm:p-3">
+						<div className="flex items-start justify-between gap-2 sm:gap-3">
 							<div>
-								<div className="text-sm font-semibold text-(--text-primary)">Custom metric title</div>
-								<div className="text-xs text-(--text-tertiary)">
+								<div className="text-xs font-semibold text-(--text-primary)">Custom metric title</div>
+								<div className="text-[11px] text-(--text-tertiary)">
 									Shown above the metric tile across your dashboards.
 								</div>
 							</div>
-							<div className="hidden h-9 w-9 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:flex">
-								<Icon name="pencil" width={16} height={16} />
+							<div className="hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) md:flex">
+								<Icon name="pencil" width={14} height={14} />
 							</div>
 						</div>
-						<div className="mt-3 space-y-2">
+						<div className="mt-2 space-y-1.5">
 							<input
 								type="text"
 								value={metricLabel}
 								onChange={(e) => onLabelChange(e.target.value)}
 								placeholder="e.g Arbitrum Fees (30d, Avg)"
-								className="w-full rounded-lg border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:ring-2 focus:ring-(--primary)/40 focus:outline-hidden"
+								className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:ring-2 focus:ring-(--primary)/40 focus:outline-hidden"
 								maxLength={64}
 							/>
 							<div className="flex items-center justify-between text-[11px] text-(--text-tertiary)">
@@ -141,8 +141,8 @@ export function MetricTab(props: MetricTabProps) {
 				</div>
 			</div>
 
-			<div className="pro-border flex flex-1 flex-col overflow-hidden border">
-				<div className="min-h-0 flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2">
+			<div className="pro-border flex min-h-[280px] flex-1 flex-shrink-0 flex-col overflow-hidden border lg:min-h-0 lg:flex-shrink">
+				<div className="flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 sm:p-2.5">
 					{selectedSubject && metricType ? (
 						<MetricCard
 							metric={{
@@ -158,10 +158,10 @@ export function MetricTab(props: MetricTabProps) {
 							}}
 						/>
 					) : (
-						<div className="pro-text3 flex h-full items-center justify-center text-xs">
-							<div>
-								<Icon name="activity" height={32} width={32} className="mx-auto mb-1" />
-								Select subject and metric to preview
+						<div className="pro-text3 flex h-full items-center justify-center text-xs sm:text-sm">
+							<div className="text-center">
+								<Icon name="activity" height={28} width={28} className="mx-auto mb-1 sm:h-8 sm:w-8" />
+								<div>Select subject and metric to preview</div>
 							</div>
 						</div>
 					)}
