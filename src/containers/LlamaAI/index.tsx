@@ -838,125 +838,148 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 				<div
 					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
-					<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
-						<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-							{/* Show loading when restoring session */}
-							{isRestoringSession && conversationHistory.length === 0 ? (
-								<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
-									Loading conversation
-									<LoadingDots />
-								</p>
-							) : conversationHistory.length > 0 || isSubmitted ? (
-								<div className="flex w-full flex-col gap-2 p-2">
-									{paginationState.isLoadingMore && (
-										<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
-											Loading more messages
-											<LoadingDots />
-										</p>
-									)}
-									<div className="flex flex-col gap-2.5">
-										{conversationHistory.map((item) => (
-											<div
-												key={`${item.question}-${item.timestamp}`}
-												className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100dvh-260px)]'}`}
+					{conversationHistory.length === 0 &&
+					prompt.length === 0 &&
+					!isRestoringSession &&
+					!isPending &&
+					!isStreaming ? (
+						<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+							<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+								<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+								<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+							</div>
+							{!readOnly && (
+								<>
+									<PromptInput
+										handleSubmit={handleSubmit}
+										promptInputRef={promptInputRef}
+										isPending={isPending}
+										handleStopRequest={handleStopRequest}
+										isStreaming={isStreaming}
+									/>
+									<div className="flex w-full flex-wrap items-center justify-center gap-2.5">
+										{recommendedPrompts.map((prompt) => (
+											<button
+												key={prompt}
+												onClick={() => {
+													setPrompt(prompt)
+													submitPrompt({ userQuestion: prompt })
+												}}
+												disabled={isPending}
+												className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
 											>
-												<SentPrompt prompt={item.question} />
-												<div className="flex flex-col gap-2.5">
-													<MarkdownRenderer content={item.response.answer} />
-													{item.response.charts && item.response.charts.length > 0 && (
-														<ChartRenderer
-															charts={item.response.charts}
-															chartData={item.response.chartData || []}
-															resizeTrigger={resizeTrigger}
-														/>
-													)}
-													<MessageRating
-														messageId={item.messageId}
-														content={item.response.answer}
-														initialRating={item.userRating}
-													/>
-													{item.response.suggestions && item.response.suggestions.length > 0 && (
-														<SuggestedActions
-															suggestions={item.response.suggestions}
-															handleSuggestionClick={handleSuggestionClick}
-															isPending={isPending}
-															isStreaming={isStreaming}
-														/>
-													)}
-													{item.response.metadata && <QueryMetadata metadata={item.response.metadata} />}
-												</div>
-											</div>
+												{prompt}
+											</button>
 										))}
 									</div>
-									{(isPending || isStreaming || promptResponse || error) && (
-										<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
-											{prompt && <SentPrompt prompt={prompt} />}
-											<PromptResponse
-												response={
-													promptResponse?.response ||
-													(streamingSuggestions || streamingCharts
-														? {
-																answer: '',
-																suggestions: streamingSuggestions,
-																charts: streamingCharts,
-																chartData: streamingChartData
-															}
-														: undefined)
-												}
-												error={error?.message}
-												streamingError={streamingError}
-												isPending={isPending}
-												streamingResponse={streamingResponse}
-												isStreaming={isStreaming}
-												progressMessage={progressMessage}
-												progressStage={progressStage}
-												onSuggestionClick={handleSuggestionClick}
-												isGeneratingCharts={isGeneratingCharts}
-												isAnalyzingForCharts={isAnalyzingForCharts}
-												hasChartError={hasChartError}
-												expectedChartInfo={expectedChartInfo}
-												resizeTrigger={resizeTrigger}
-											/>
+								</>
+							)}
+						</div>
+					) : (
+						<>
+							<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
+								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+									{/* Show loading when restoring session */}
+									{isRestoringSession && conversationHistory.length === 0 ? (
+										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+											Loading conversation
+											<LoadingDots />
+										</p>
+									) : conversationHistory.length > 0 || isSubmitted ? (
+										<div className="flex w-full flex-col gap-2 px-2 pb-5">
+											{paginationState.isLoadingMore && (
+												<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+													Loading more messages
+													<LoadingDots />
+												</p>
+											)}
+											<div className="flex flex-col gap-2.5">
+												{conversationHistory.map((item) => (
+													<div
+														key={`${item.question}-${item.timestamp}`}
+														className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100dvh-260px)]'}`}
+													>
+														<SentPrompt prompt={item.question} />
+														<div className="flex flex-col gap-2.5">
+															<MarkdownRenderer content={item.response.answer} />
+															{item.response.charts && item.response.charts.length > 0 && (
+																<ChartRenderer
+																	charts={item.response.charts}
+																	chartData={item.response.chartData || []}
+																	resizeTrigger={resizeTrigger}
+																/>
+															)}
+															<MessageRating
+																messageId={item.messageId}
+																content={item.response.answer}
+																initialRating={item.userRating}
+															/>
+															{item.response.suggestions && item.response.suggestions.length > 0 && (
+																<SuggestedActions
+																	suggestions={item.response.suggestions}
+																	handleSuggestionClick={handleSuggestionClick}
+																	isPending={isPending}
+																	isStreaming={isStreaming}
+																/>
+															)}
+															{item.response.metadata && <QueryMetadata metadata={item.response.metadata} />}
+														</div>
+													</div>
+												))}
+											</div>
+											{(isPending || isStreaming || promptResponse || error) && (
+												<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
+													{prompt && <SentPrompt prompt={prompt} />}
+													<PromptResponse
+														response={
+															promptResponse?.response ||
+															(streamingSuggestions || streamingCharts
+																? {
+																		answer: '',
+																		suggestions: streamingSuggestions,
+																		charts: streamingCharts,
+																		chartData: streamingChartData
+																	}
+																: undefined)
+														}
+														error={error?.message}
+														streamingError={streamingError}
+														isPending={isPending}
+														streamingResponse={streamingResponse}
+														isStreaming={isStreaming}
+														progressMessage={progressMessage}
+														progressStage={progressStage}
+														onSuggestionClick={handleSuggestionClick}
+														isGeneratingCharts={isGeneratingCharts}
+														isAnalyzingForCharts={isAnalyzingForCharts}
+														hasChartError={hasChartError}
+														expectedChartInfo={expectedChartInfo}
+														resizeTrigger={resizeTrigger}
+													/>
+												</div>
+											)}
+										</div>
+									) : (
+										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+											<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 										</div>
 									)}
 								</div>
-							) : (
-								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+							</div>
+							{!readOnly && (
+								<div className="relative mx-auto w-full max-w-3xl">
+									<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+									<PromptInput
+										handleSubmit={handleSubmit}
+										promptInputRef={promptInputRef}
+										isPending={isPending}
+										handleStopRequest={handleStopRequest}
+										isStreaming={isStreaming}
+									/>
 								</div>
 							)}
-							{conversationHistory.length === 0 && !isSubmitted && !isRestoringSession ? (
-								<div className="flex w-full flex-wrap items-center justify-center gap-4 pb-[100px]">
-									{recommendedPrompts.map((prompt) => (
-										<button
-											key={prompt}
-											onClick={() => {
-												setPrompt(prompt)
-												submitPrompt({ userQuestion: prompt })
-											}}
-											disabled={isPending}
-											className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
-										>
-											{prompt}
-										</button>
-									))}
-								</div>
-							) : null}
-						</div>
-					</div>
-					{!readOnly && (
-						<div className="border-t border-[#e6e6e6] bg-(--cards-bg) p-2.5 dark:border-[#222324]">
-							<div className="mx-auto w-full max-w-3xl">
-								<PromptInput
-									handleSubmit={handleSubmit}
-									promptInputRef={promptInputRef}
-									isPending={isPending}
-									handleStopRequest={handleStopRequest}
-									isStreaming={isStreaming}
-								/>
-							</div>
-						</div>
+						</>
 					)}
 				</div>
 			</div>
