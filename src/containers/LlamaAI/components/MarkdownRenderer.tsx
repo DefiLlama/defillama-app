@@ -99,12 +99,31 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 	}, [processedData.linkMap])
 
 	return (
-		<div className="prose prose-sm dark:prose-invert prose-ul:grid prose-ul:gap-1 prose-ol:grid prose-ol:gap-1 prose-li:m-0 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal *:m-0">
+		<div className="prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal *:m-0">
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				components={{
 					a: LinkRenderer,
-					table: ({ children }) => <div className="overflow-x-auto">{children}</div>
+					table: ({ children }) => (
+						<div className="overflow-x-auto">
+							<table className="m-0! table-auto border-collapse border border-[#e6e6e6] dark:border-[#222324]">
+								{children}
+							</table>
+						</div>
+					),
+					th: ({ children }) => (
+						<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
+							{children}
+						</th>
+					),
+					td: ({ children }) => (
+						<td className="border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C]">
+							{children}
+						</td>
+					),
+					ul: ({ children }) => <ul className="m-0! grid list-disc gap-1 pl-4">{children}</ul>,
+					ol: ({ children }) => <ol className="m-0! grid list-decimal gap-1 pl-4">{children}</ol>,
+					li: ({ children }) => <li className="m-0!">{children}</li>
 				}}
 			>
 				{processedData.content}
