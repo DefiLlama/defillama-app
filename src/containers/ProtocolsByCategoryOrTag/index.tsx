@@ -22,6 +22,8 @@ const defaultSortingState = {
 }
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
+	const name = props.category ?? props.tag ?? ''
+
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo(() => {
@@ -58,8 +60,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	}, [tvlSettings, props])
 
 	const categoryColumns = useMemo(() => {
-		return columns(props.category, props.isRWA)
-	}, [props.category, props.isRWA])
+		return columns(name, props.isRWA)
+	}, [name, props.isRWA])
 
 	const prepareCsv = useCallback(() => {
 		const headers = categoryColumns.map((col) => col.header as string)
@@ -77,21 +79,21 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		})
 
 		return {
-			filename: `defillama-${props.category}-${props.chain || 'all'}-protocols.csv`,
+			filename: `defillama-${name}-${props.chain || 'all'}-protocols.csv`,
 			rows: [headers, ...rows] as (string | number | boolean)[][]
 		}
-	}, [finalProtocols, categoryColumns, props.category, props.chain])
+	}, [finalProtocols, categoryColumns, name, props.chain])
 
 	const prepareCsvFromChart = useCallback(() => {
-		const rows: any = [['Timestamp', 'Date', props.category]]
+		const rows: any = [['Timestamp', 'Date', name]]
 		for (const item of props.charts['TVL']?.data ?? []) {
 			rows.push([item[0], toNiceCsvDate(item[0] / 1000), item[1]])
 		}
 		return {
-			filename: `${props.category}-TVL.csv`,
+			filename: `${name}-TVL.csv`,
 			rows: rows as (string | number | boolean)[][]
 		}
-	}, [props.charts, props.category])
+	}, [props.charts, name])
 
 	return (
 		<>
@@ -99,9 +101,9 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					{props.chain === 'All' ? (
-						<h1 className="text-lg font-semibold">{`${props.category} Protocols`}</h1>
+						<h1 className="text-lg font-semibold">{`${name} Protocols`}</h1>
 					) : (
-						<h1 className="text-lg font-semibold">{`${props.category} Protocols on ${props.chain}`}</h1>
+						<h1 className="text-lg font-semibold">{`${name} Protocols on ${props.chain}`}</h1>
 					)}
 					<div className="mb-auto flex flex-1 flex-col gap-2">
 						{props.charts['TVL']?.data.length > 0 && (
@@ -130,7 +132,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						{props.fees7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Total fees paid by users when using the ${props.category.toLowerCase()} protocols on the chain in the last 7 days`}
+									content={`Total fees paid by users when using the ${(name ?? props.tag ?? '').toLowerCase()} protocols on the chain in the last 7 days`}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Fees (7d)
@@ -141,7 +143,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						{props.revenue7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Total revenue earned by the ${props.category.toLowerCase()} protocols on the chain in the last 7 days`}
+									content={`Total revenue earned by the ${(name ?? props.tag ?? '').toLowerCase()} protocols on the chain in the last 7 days`}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Revenue (7d)
@@ -197,7 +199,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				placeholder="Search protocols..."
 				columnToSearch="name"
 				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
-				sortingState={defaultSortingState[props.category] ?? [{ id: 'tvl', desc: true }]}
+				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
 				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}
 			/>
 		</>
