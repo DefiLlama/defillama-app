@@ -16,10 +16,11 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metadata = metadataCache.chainMetadata[slug(chain)]
 
-		if (!metadata)
+		if (!metadata?.stablecoins) {
 			return {
 				notFound: true
 			}
+		}
 
 		const props = await getPeggedOverviewPageData(metadata.name)
 

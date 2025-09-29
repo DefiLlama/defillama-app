@@ -120,54 +120,60 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		] = await Promise.all([
 			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`),
 			getProtocolsByChain({ chain, metadata }),
-			getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
-				.then((data) => {
-					const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
-						chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
-						assetsOrChainsList: data?.peggedAssetNames,
-						filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
-						issuanceType: 'mcap',
-						selectedChain: chain === 'All' ? 'All' : metadata.name,
-						doublecountedIds: data?.doublecountedIds
-					})
-					let totalMcapCurrent = (peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap ?? null) as number | null
-					let totalMcapPrevWeek = (peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap ?? null) as number | null
-					const percentChange =
-						totalMcapCurrent != null && totalMcapPrevWeek != null
-							? getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
-							: null
+			metadata.stablecoins
+				? getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
+						.then((data) => {
+							const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
+								chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
+								assetsOrChainsList: data?.peggedAssetNames,
+								filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
+								issuanceType: 'mcap',
+								selectedChain: chain === 'All' ? 'All' : metadata.name,
+								doublecountedIds: data?.doublecountedIds
+							})
+							let totalMcapCurrent = (peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap ?? null) as
+								| number
+								| null
+							let totalMcapPrevWeek = (peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap ?? null) as
+								| number
+								| null
+							const percentChange =
+								totalMcapCurrent != null && totalMcapPrevWeek != null
+									? getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
+									: null
 
-					let topToken = { symbol: 'USDT', mcap: 0 }
+							let topToken = { symbol: 'USDT', mcap: 0 }
 
-					if (peggedAreaChartData && peggedAreaChartData.length > 0) {
-						const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
+							if (peggedAreaChartData && peggedAreaChartData.length > 0) {
+								const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
 
-						for (const token in recentMcaps) {
-							if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
-								topToken = { symbol: token, mcap: recentMcaps[token] }
+								for (const token in recentMcaps) {
+									if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
+										topToken = { symbol: token, mcap: recentMcaps[token] }
+									}
+								}
 							}
-						}
-					}
 
-					const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
+							const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
-					return {
-						mcap: totalMcapCurrent ?? null,
-						change7dUsd:
-							totalMcapCurrent != null && totalMcapPrevWeek != null ? totalMcapCurrent - totalMcapPrevWeek : null,
-						change7d: percentChange ?? null,
-						topToken,
-						dominance: dominance ?? null,
-						mcapChartData:
-							peggedAreaTotalData && peggedAreaTotalData.length >= 14
-								? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
-								: null
-					}
-				})
-				.catch((err) => {
-					console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
-					return null
-				}),
+							return {
+								mcap: totalMcapCurrent ?? null,
+								change7dUsd:
+									totalMcapCurrent != null && totalMcapPrevWeek != null ? totalMcapCurrent - totalMcapPrevWeek : null,
+								change7d: percentChange ?? null,
+								topToken,
+								dominance: dominance ?? null,
+								mcapChartData:
+									peggedAreaTotalData && peggedAreaTotalData.length >= 14
+										? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
+										: null
+							}
+						})
+						.catch((err) => {
+							console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
+							return null
+						})
+				: Promise.resolve(null),
 			!metadata.inflows
 				? Promise.resolve(null)
 				: getBridgeOverviewPageData(metadata.name)
