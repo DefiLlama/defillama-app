@@ -318,7 +318,8 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 													}
 													className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 												>
-													<span className="text-sm font-semibold">-</span>
+													<Icon name="minus" height={14} width={14} />
+													<span className="sr-only">Shrink width</span>
 												</Tooltip>
 												<Tooltip
 													content="Expand width"
@@ -330,7 +331,8 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 													}
 													className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 												>
-													<span className="text-sm font-semibold">+</span>
+													<Icon name="plus" height={14} width={14} />
+													<span className="sr-only">Expand width</span>
 												</Tooltip>
 											</>
 											{onEditItem && (
