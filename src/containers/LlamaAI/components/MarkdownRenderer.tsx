@@ -106,7 +106,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 					a: LinkRenderer,
 					table: ({ children }) => (
 						<div className="overflow-x-auto">
-							<table className="m-0! table-auto border-collapse border border-[#e6e6e6] dark:border-[#222324]">
+							<table className="m-0! table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
 								{children}
 							</table>
 						</div>
