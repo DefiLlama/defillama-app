@@ -88,7 +88,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 			<form
 				ref={formRef}
 				onSubmit={handleSave}
-				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#919296]/12"
+				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-black/8 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#919296]/12"
 			>
 				<input
 					type="text"
@@ -101,7 +101,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 				<div className="flex items-center justify-center gap-0.5">
 					<button
 						type="submit"
-						className="flex aspect-square items-center justify-center rounded-sm bg-[#666]/12 p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:bg-[#919296]/12"
+						className="flex aspect-square items-center justify-center rounded-sm bg-black/8 p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:bg-[#919296]/12"
 						disabled={isUpdatingTitle}
 					>
 						{isUpdatingTitle ? (
@@ -115,7 +115,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						onClick={() => {
 							setIsEditing(false)
 						}}
-						className="flex aspect-square items-center justify-center rounded-sm bg-red-500/10 p-1.5 text-(--error)"
+						className="flex aspect-square items-center justify-center rounded-sm bg-red-500/20 p-1.5 text-(--error)"
 						disabled={isUpdatingTitle}
 					>
 						<Icon name="x" height={12} width={12} className="shrink-0" />
@@ -128,7 +128,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	return (
 		<div
 			data-active={isActive}
-			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#666]/12 hover:bg-[#666]/12 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:hover:bg-[#919296]/12"
+			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-black/8 hover:bg-black/8 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:hover:bg-[#919296]/12"
 		>
 			<button
 				onClick={() => handleSessionClick(session.sessionId)}
