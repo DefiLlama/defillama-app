@@ -89,7 +89,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 			<form
 				ref={formRef}
 				onSubmit={handleSave}
-				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-black/8 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#919296]/12"
+				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#222324]"
 			>
 				<input
 					type="text"
@@ -102,7 +102,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 				<div className="flex items-center justify-center gap-0.5">
 					<button
 						type="submit"
-						className="flex aspect-square items-center justify-center rounded-sm bg-black/8 p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:bg-[#919296]/12"
+						className="flex aspect-square items-center justify-center rounded-sm bg-(--old-blue) p-1.5 text-white"
 						disabled={isUpdatingTitle}
 					>
 						{isUpdatingTitle ? (
@@ -129,7 +129,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	return (
 		<div
 			data-active={isActive}
-			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-black/8 hover:bg-black/8 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#919296]/12 dark:hover:bg-[#919296]/12"
+			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#f7f7f7] hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#222324] dark:hover:bg-[#222324]"
 		>
 			<button
 				onClick={() => handleSessionClick(session.sessionId)}

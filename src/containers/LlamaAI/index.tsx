@@ -837,7 +837,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 						<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 					))}
 				<div
-					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
@@ -1322,8 +1322,8 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 	}
 
 	return (
-		<details className="group rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
-			<summary className="flex flex-wrap items-center justify-end gap-2 text-[#666] group-open:text-black group-hover:text-black dark:text-[#919296] dark:group-open:text-white dark:group-hover:text-white">
+		<details className="group rounded-lg border border-[#e6e6e6] dark:border-[#222324]">
+			<summary className="flex flex-wrap items-center justify-end gap-2 p-2 text-[#666] group-open:text-black group-hover:bg-[#f7f7f7] group-hover:text-black dark:text-[#919296] dark:group-open:text-white dark:group-hover:bg-[#222324] dark:group-hover:text-white">
 				<span className="mr-auto">Query Metadata</span>
 				<Tooltip content="Copy" render={<button onClick={handleCopy} />} className="hidden group-open:block">
 					{copied ? (
@@ -1339,7 +1339,9 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 					<span className="hidden group-open:block">Hide</span>
 				</span>
 			</summary>
-			<pre className="mt-2 overflow-auto text-xs select-text">{JSON.stringify(metadata, null, 2)}</pre>
+			<pre className="overflow-auto border-t border-[#e6e6e6] p-2 text-xs select-text dark:border-[#222324]">
+				{JSON.stringify(metadata, null, 2)}
+			</pre>
 		</details>
 	)
 }
@@ -1431,7 +1433,7 @@ const MessageRating = ({
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}
 						render={<button onClick={handleCopy} />}
-						className="rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					>
 						{copied ? (
 							<Icon name="check-circle" height={14} width={14} />
@@ -1445,7 +1447,7 @@ const MessageRating = ({
 					render={
 						<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood || showFeedback || !!lastRating} />
 					}
-					className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
+					className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
 				>
 					{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
 					<span className="sr-only">Thumbs Up</span>
@@ -1455,7 +1457,7 @@ const MessageRating = ({
 					render={
 						<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!lastRating} />
 					}
-					className={`rounded p-1.5 hover:bg-[#e6e6e6] dark:hover:bg-[#222324] ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
+					className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
 				>
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
 					<span className="sr-only">Thumbs Down</span>
@@ -1463,7 +1465,7 @@ const MessageRating = ({
 				<Tooltip
 					content="Provide Feedback"
 					render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
-					className={`rounded p-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]`}
+					className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 				>
 					<Icon name="message-square-warning" height={14} width={14} />
 					<span className="sr-only">Provide Feedback</span>
