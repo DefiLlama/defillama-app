@@ -12,6 +12,7 @@ import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
+import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
 
 class StreamingContent {
@@ -857,21 +858,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 									/>
-									<div className="flex w-full flex-wrap items-center justify-center gap-2.5">
-										{recommendedPrompts.map((prompt) => (
-											<button
-												key={prompt}
-												onClick={() => {
-													setPrompt(prompt)
-													submitPrompt({ userQuestion: prompt })
-												}}
-												disabled={isPending}
-												className="flex items-center justify-center gap-2 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] dark:border-[#222324] dark:text-[#919296]"
-											>
-												{prompt}
-											</button>
-										))}
-									</div>
+									<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 								</>
 							)}
 						</div>
@@ -986,8 +973,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 		</Layout>
 	)
 }
-
-const recommendedPrompts = ['Top 5 protocols by tvl', 'Recent hacks', 'Total amount raised by category']
 
 const PromptInput = ({
 	handleSubmit,
@@ -1341,7 +1326,11 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 			<summary className="flex flex-wrap items-center justify-end gap-2 text-[#666] group-open:text-black group-hover:text-black dark:text-[#919296] dark:group-open:text-white dark:group-hover:text-white">
 				<span className="mr-auto">Query Metadata</span>
 				<Tooltip content="Copy" render={<button onClick={handleCopy} />} className="hidden group-open:block">
-					{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="copy" height={14} width={14} />}
+					{copied ? (
+						<Icon name="check-circle" height={14} width={14} />
+					) : (
+						<Icon name="clipboard" height={14} width={14} />
+					)}
 					<span className="sr-only">Copy</span>
 				</Tooltip>
 				<span className="flex items-center gap-1">
@@ -1437,7 +1426,7 @@ const MessageRating = ({
 
 	return (
 		<>
-			<div className="-mx-1.5 -my-0.5 flex items-center justify-end gap-1">
+			<div className="-my-0.5 flex items-center justify-end gap-1">
 				{content && (
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}

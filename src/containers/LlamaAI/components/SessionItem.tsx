@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
@@ -138,15 +139,18 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 				{session.title}
 			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
-				<button
-					onClick={() => {
-						setIsEditing(true)
-					}}
+				<Tooltip
+					content="Edit Session Title"
+					render={
+						<button
+							onClick={() => setIsEditing(true)}
+							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
+						/>
+					}
 					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-					disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
 				>
 					<Icon name="pencil" height={12} width={12} className="shrink-0" />
-				</button>
+				</Tooltip>
 				<Ariakit.MenuProvider>
 					<Ariakit.MenuButton className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white">
 						<Icon name="ellipsis" height={12} width={12} className="shrink-0" />
