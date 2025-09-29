@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChartConfig, DashboardItemConfig } from '../../types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
 import { ChartBuilderConfig, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
@@ -38,6 +38,15 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		displayAs: 'timeSeries',
 		additionalFilters: {}
 	})
+
+	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
+	const [metricChain, setMetricChain] = useState<string | null>(null)
+	const [metricProtocol, setMetricProtocol] = useState<string | null>(null)
+	const [metricType, setMetricType] = useState<string>('tvl')
+	const [metricAggregator, setMetricAggregator] = useState<MetricAggregator>('latest')
+	const [metricWindow, setMetricWindow] = useState<'7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'>('30d')
+	const [metricLabel, setMetricLabel] = useState<string>('')
+	const [metricShowSparkline, setMetricShowSparkline] = useState<boolean>(true)
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -91,6 +100,16 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 					...editItem.config,
 					mode: editItem.config.mode || 'chains'
 				})
+			} else if (editItem.kind === 'metric') {
+				setSelectedMainTab('metric')
+				setMetricSubjectType(editItem.subject.itemType)
+				setMetricChain(editItem.subject.chain || null)
+				setMetricProtocol(editItem.subject.protocol || null)
+				setMetricType(editItem.type)
+				setMetricAggregator(editItem.aggregator)
+				setMetricWindow(editItem.window)
+				setMetricLabel(editItem.label || '')
+				setMetricShowSparkline(editItem.showSparkline !== false)
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -124,6 +143,14 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				displayAs: 'timeSeries',
 				additionalFilters: {}
 			})
+			setMetricSubjectType('chain')
+			setMetricChain(null)
+			setMetricProtocol(null)
+			setMetricType('tvl')
+			setMetricAggregator('latest')
+			setMetricWindow('30d')
+			setMetricLabel('')
+			setMetricShowSparkline(true)
 		}
 	}, [editItem, isOpen])
 
@@ -156,6 +183,14 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			displayAs: 'timeSeries',
 			additionalFilters: {}
 		})
+		setMetricSubjectType('chain')
+		setMetricChain(null)
+		setMetricProtocol(null)
+		setMetricType('tvl')
+		setMetricAggregator('latest')
+		setMetricWindow('30d')
+		setMetricLabel('')
+		setMetricShowSparkline(true)
 	}
 
 	const state: ModalState = {
@@ -177,7 +212,15 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedTokens,
 		includeCex,
 		chartBuilderName,
-		chartBuilder
+		chartBuilder,
+		metricSubjectType,
+		metricChain,
+		metricProtocol,
+		metricType,
+		metricAggregator,
+		metricWindow,
+		metricLabel,
+		metricShowSparkline
 	}
 
 	const actionsObj = useMemo(
@@ -200,7 +243,15 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedTokens,
 			setIncludeCex,
 			setChartBuilderName,
-			setChartBuilder
+			setChartBuilder,
+			setMetricSubjectType,
+			setMetricChain,
+			setMetricProtocol,
+			setMetricType,
+			setMetricAggregator,
+			setMetricWindow,
+			setMetricLabel,
+			setMetricShowSparkline
 		}),
 		[
 			setSelectedMainTab,
@@ -221,7 +272,15 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedTokens,
 			setIncludeCex,
 			setChartBuilderName,
-			setChartBuilder
+			setChartBuilder,
+			setMetricSubjectType,
+			setMetricChain,
+			setMetricProtocol,
+			setMetricType,
+			setMetricAggregator,
+			setMetricWindow,
+			setMetricLabel,
+			setMetricShowSparkline
 		]
 	)
 

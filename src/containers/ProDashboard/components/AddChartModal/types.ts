@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig } from '../../types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
 
 export interface AddChartModalProps {
 	isOpen: boolean
@@ -6,7 +6,7 @@ export interface AddChartModalProps {
 	editItem?: DashboardItemConfig | null
 }
 
-export type MainTabType = 'charts' | 'table' | 'text' | 'builder'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
 export type ChartTabType = 'chain' | 'protocol'
 export type CombinedTableType =
 	| 'protocols'
@@ -77,6 +77,14 @@ export interface ModalState {
 	includeCex: boolean
 	chartBuilderName: string
 	chartBuilder: ChartBuilderConfig
+	metricSubjectType: 'chain' | 'protocol'
+	metricChain: string | null
+	metricProtocol: string | null
+	metricType: string
+	metricAggregator: MetricAggregator
+	metricWindow: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
+	metricLabel: string
+	metricShowSparkline: boolean
 }
 
 export interface ModalActions {
@@ -110,4 +118,12 @@ export interface ModalActions {
 	handleChartTabChange: (tab: ChartTabType) => void
 	setChartBuilder: React.Dispatch<React.SetStateAction<ChartBuilderConfig>>
 	updateChartBuilder: (updates: Partial<ChartBuilderConfig>) => void
+	setMetricSubjectType: (t: 'chain' | 'protocol') => void
+	setMetricChain: (v: string | null) => void
+	setMetricProtocol: (v: string | null) => void
+	setMetricType: (t: string) => void
+	setMetricAggregator: (a: MetricAggregator) => void
+	setMetricWindow: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') => void
+	setMetricLabel: (s: string) => void
+	setMetricShowSparkline: (v: boolean) => void
 }

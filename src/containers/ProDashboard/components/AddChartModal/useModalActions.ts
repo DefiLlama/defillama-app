@@ -8,6 +8,7 @@ import {
 	MultiChartConfig,
 	Protocol,
 	ProtocolsTableConfig,
+	StoredColSpan,
 	TextConfig
 } from '../../types'
 import { ChartTabType, MainTabType } from './types'
@@ -27,6 +28,7 @@ export function useModalActions(
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
+		handleAddMetric,
 		handleAddChartBuilder,
 		handleEditItem
 	} = useProDashboard()
@@ -444,6 +446,30 @@ export function useModalActions(
 					name: state.chartBuilderName.trim() || undefined,
 					config: state.chartBuilder
 				}
+			} else if (state.selectedMainTab === 'metric') {
+				if (
+					(state.metricSubjectType === 'chain' && state.metricChain) ||
+					(state.metricSubjectType === 'protocol' && state.metricProtocol)
+				) {
+					const subject =
+						state.metricSubjectType === 'protocol'
+							? {
+									itemType: 'protocol' as const,
+									protocol: state.metricProtocol || undefined
+								}
+							: { itemType: 'chain' as const, chain: state.metricChain || undefined }
+					newItem = {
+						...editItem,
+						kind: 'metric',
+						subject: subject as any,
+						type: state.metricType,
+						aggregator: state.metricAggregator,
+						window: state.metricWindow,
+						compare: { mode: 'previous_value', format: 'percent' },
+						showSparkline: state.metricShowSparkline,
+						label: state.metricLabel
+					} as any
+				}
 			}
 
 			if (newItem) {
@@ -521,6 +547,31 @@ export function useModalActions(
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
+			} else if (state.selectedMainTab === 'metric') {
+				if (
+					(state.metricSubjectType === 'chain' && state.metricChain) ||
+					(state.metricSubjectType === 'protocol' && state.metricProtocol)
+				) {
+					const subject =
+						state.metricSubjectType === 'protocol'
+							? {
+									itemType: 'protocol' as const,
+									protocol: state.metricProtocol || undefined
+								}
+							: { itemType: 'chain' as const, chain: state.metricChain || undefined }
+					handleAddMetric({
+						id: '',
+						kind: 'metric',
+						subject: subject as any,
+						type: state.metricType,
+						aggregator: state.metricAggregator,
+						window: state.metricWindow,
+						compare: { mode: 'previous_value', format: 'percent' },
+						showSparkline: state.metricShowSparkline,
+						label: state.metricLabel,
+						colSpan: 0.5 as StoredColSpan
+					} as any)
+				}
 			} else if (state.selectedMainTab === 'builder') {
 				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
 			}

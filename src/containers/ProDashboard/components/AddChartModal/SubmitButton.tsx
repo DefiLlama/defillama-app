@@ -17,6 +17,10 @@ interface SubmitButtonProps {
 	selectedTokens?: string[]
 	chartBuilder?: ChartBuilderConfig
 	chartCreationMode?: 'separate' | 'combined'
+	metricSubjectType?: 'chain' | 'protocol'
+	metricChain?: string | null
+	metricProtocol?: string | null
+	metricType?: string
 	onSubmit: () => void
 }
 
@@ -36,6 +40,10 @@ export function SubmitButton({
 	selectedTokens = [],
 	chartBuilder,
 	chartCreationMode = 'separate',
+	metricSubjectType,
+	metricChain,
+	metricProtocol,
+	metricType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled =
@@ -49,7 +57,11 @@ export function SubmitButton({
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||
-		(selectedMainTab === 'text' && !textContent.trim())
+		(selectedMainTab === 'text' && !textContent.trim()) ||
+		(selectedMainTab === 'metric' &&
+			(!metricType ||
+				(metricSubjectType === 'chain' && !metricChain) ||
+				(metricSubjectType === 'protocol' && !metricProtocol)))
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
@@ -57,6 +69,8 @@ export function SubmitButton({
 		switch (selectedMainTab) {
 			case 'table':
 				return 'Add Table'
+			case 'metric':
+				return 'Add Metric'
 			case 'charts':
 				if (chartCreationMode === 'combined') {
 					return 'Add Multi-Chart'

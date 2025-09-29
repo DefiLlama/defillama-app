@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { ChartBuilderTab } from './ChartBuilderTab'
+import { MetricTab } from './MetricTab'
 import { ModalHeader } from './ModalHeader'
 import { SubmitButton } from './SubmitButton'
 import { TableTab } from './TableTab'
@@ -19,24 +20,6 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 		} else {
 			return 'chain'
 		}
-	}
-
-	const getCurrentSelectedItem = () => {
-		if (state.selectedMainTab === 'charts') {
-			return state.selectedChartTab === 'chain' ? state.selectedChain : state.selectedProtocol
-		} else {
-			return state.selectedChain
-		}
-	}
-
-	const getCurrentGeckoId = () => {
-		const itemType = getCurrentItemType()
-		if (itemType === 'protocol') {
-			return computed.selectedProtocolData?.geckoId
-		} else if (itemType === 'chain') {
-			return computed.selectedChainData?.gecko_id
-		}
-		return undefined
 	}
 
 	const availableChartTypes: string[] = []
@@ -94,6 +77,27 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onAddToComposer={actions.handleAddToComposer}
 							onRemoveFromComposer={actions.handleRemoveFromComposer}
+						/>
+					)}
+
+					{state.selectedMainTab === 'metric' && (
+						<MetricTab
+							metricSubjectType={state.metricSubjectType}
+							metricChain={state.metricChain}
+							metricProtocol={state.metricProtocol}
+							metricType={state.metricType}
+							metricAggregator={state.metricAggregator}
+							metricWindow={state.metricWindow}
+							metricLabel={state.metricLabel}
+							metricShowSparkline={state.metricShowSparkline}
+							onSubjectTypeChange={actions.setMetricSubjectType}
+							onChainChange={(opt) => actions.setMetricChain(opt?.value ?? null)}
+							onProtocolChange={(opt) => actions.setMetricProtocol(opt?.value ?? null)}
+							onTypeChange={actions.setMetricType}
+							onAggregatorChange={actions.setMetricAggregator}
+							onWindowChange={actions.setMetricWindow}
+							onLabelChange={actions.setMetricLabel}
+							onShowSparklineChange={actions.setMetricShowSparkline}
 						/>
 					)}
 
@@ -156,6 +160,10 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedTokens={state.selectedTokens}
 						chartBuilder={state.chartBuilder}
 						chartCreationMode={state.chartCreationMode}
+						metricSubjectType={state.metricSubjectType}
+						metricChain={state.metricChain}
+						metricProtocol={state.metricProtocol}
+						metricType={state.metricType}
 						onSubmit={actions.handleSubmit}
 					/>
 				</div>
