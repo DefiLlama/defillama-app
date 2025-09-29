@@ -17,7 +17,8 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 
 const defaultSortingState = {
 	'Trading App': [{ id: 'revenue_7d', desc: true }],
-	Derivatives: [{ id: 'perp_volume_24h', desc: true }]
+	Derivatives: [{ id: 'perp_volume_24h', desc: true }],
+	Interface: [{ id: 'perp_volume_24h', desc: true }]
 }
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
@@ -33,7 +34,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		const finalProtocols = props.protocols.map((protocol) => {
 			let tvl = protocol.tvl
 			for (const setting of toggledSettings) {
-				tvl += protocol.extraTvls[setting] ?? 0
+				if (protocol.extraTvls[setting] == null) continue
+				tvl = (tvl ?? 0) + (protocol.extraTvls[setting] ?? 0)
 			}
 			return { ...protocol, tvl }
 		})
@@ -41,7 +43,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 		const finalChartData = props.charts['TVL'].data.map(([date, tvl]) => {
 			let total = tvl
 			for (const setting of toggledSettings) {
-				total += props.extraTvlCharts[setting]?.[date] ?? 0
+				total = (total ?? 0) + (props.extraTvlCharts[setting]?.[date] ?? 0)
 			}
 			return [date, total] as [number, number]
 		})
@@ -147,7 +149,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="font-jetbrains text-right">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						)}
-						{props.dexVolume7d != null && ['Dexs', 'DEX Aggregators'].includes(props.category) && (
+						{props.dexVolume7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={`Total volume of all spot token swaps on protocols on the chain in the last 7 days`}
@@ -158,7 +160,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						)}
-						{props.perpVolume7d != null && ['Derivatives'].includes(props.category) && (
+						{props.perpVolume7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={`Notional volume of all perpetual futures trades including leverage on protocols on the chain in the last 7 days`}
@@ -167,6 +169,17 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									Perp Volume (7d)
 								</Tooltip>
 								<span className="font-jetbrains text-right">{formattedNum(props.perpVolume7d, true)}</span>
+							</p>
+						)}
+						{props.openInterest != null && (
+							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+								<Tooltip
+									content={`Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC`}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									Open Interest
+								</Tooltip>
+								<span className="font-jetbrains text-right">{formattedNum(props.openInterest, true)}</span>
 							</p>
 						)}
 						<CSVDownloadButton prepareCsv={prepareCsvFromChart} smol className="mt-auto mr-auto" />
@@ -310,7 +323,7 @@ const columns = (
 				}
 			]
 		: []),
-	...(['Derivatives'].includes(category)
+	...(['Derivatives', 'Interface'].includes(category)
 		? [
 				{
 					id: 'perp_volume_24h',
@@ -322,11 +335,11 @@ const columns = (
 						if (info.row.original.perpVolume?.zeroFeePerp) {
 							helpers.push('This protocol charges no fees for most of its users')
 						}
-						if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
-							helpers.push(
-								"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-							)
-						}
+						// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+						// 	helpers.push(
+						// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						// 	)
+						// }
 
 						if (helpers.length > 0) {
 							return (
@@ -350,20 +363,24 @@ const columns = (
 					},
 					size: 160
 				},
-				{
-					header: 'Open Interest',
-					id: 'open_interest',
-					accessorFn: (protocol) => protocol.openInterest?.total24h,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					sortingFn: 'alphanumericFalsyLast' as any,
-					meta: {
-						align: 'end',
-						headerHelperText:
-							'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
-					},
-					size: 160
-				},
+				...(['Interface'].includes(category)
+					? []
+					: [
+							{
+								header: 'Open Interest',
+								id: 'open_interest',
+								accessorFn: (protocol) => protocol.openInterest?.total24h,
+								cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+								sortUndefined: 'last',
+								sortingFn: 'alphanumericFalsyLast' as any,
+								meta: {
+									align: 'end',
+									headerHelperText:
+										'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+								},
+								size: 160
+							}
+						]),
 				{
 					id: 'perp_volume_7d',
 					header: 'Perp Volume 7d',
@@ -374,11 +391,11 @@ const columns = (
 						if (info.row.original.zeroFeePerp) {
 							helpers.push('This protocol charges no fees for most of its users')
 						}
-						if (info.getValue() != null && info.row.original.doublecounted) {
-							helpers.push(
-								"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-							)
-						}
+						// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+						// 	helpers.push(
+						// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						// 	)
+						// }
 
 						if (helpers.length > 0) {
 							return (
@@ -412,11 +429,11 @@ const columns = (
 						if (info.row.original.zeroFeePerp) {
 							helpers.push('This protocol charges no fees for most of its users')
 						}
-						if (info.getValue() != null && info.row.original.doublecounted) {
-							helpers.push(
-								"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-							)
-						}
+						// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+						// 	helpers.push(
+						// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						// 	)
+						// }
 
 						if (helpers.length > 0) {
 							return (
@@ -442,18 +459,22 @@ const columns = (
 				}
 			]
 		: ([] as any)),
-	{
-		id: 'tvl',
-		header: isRWA ? 'Total Assets' : 'TVL',
-		accessorFn: (protocol) => protocol.tvl,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
-		},
-		size: 120
-	},
+	...(['Interface'].includes(category)
+		? []
+		: [
+				{
+					id: 'tvl',
+					header: isRWA ? 'Total Assets' : 'TVL',
+					accessorFn: (protocol) => protocol.tvl,
+					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					sortUndefined: 'last',
+					meta: {
+						align: 'end',
+						headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
+					},
+					size: 120
+				}
+			]),
 	...(isRWA
 		? [
 				{

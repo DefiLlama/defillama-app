@@ -83,7 +83,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChartBreakdown: true
 				})
 			: null,
-		chainMetadata?.perps && category && ['Derivatives', 'Perps'].includes(category)
+		chainMetadata?.perps && category && ['Derivatives', 'Interface'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
@@ -91,7 +91,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChartBreakdown: true
 				})
 			: null,
-		chainMetadata?.perps && category && ['Derivatives', 'Perps'].includes(category)
+		chainMetadata?.perps && category && ['Derivatives'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -183,10 +183,14 @@ export async function getProtocolsByCategoryOrTag({
 	for (const protocol of protocols) {
 		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category == category
 		if (isProtocolInCategoryOrTag) {
-			let tvl = 0
+			let tvl = null
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
+					if (protocol.chainTvls[pchain].tvl == null) {
+						continue
+					}
+
 					const chainName = pchain.split('-')[0]
 					if (chainName !== chainMetadata.name) {
 						continue
@@ -213,10 +217,14 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
+					tvl = (tvl ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			} else {
 				for (const pchain in protocol.chainTvls) {
+					if (protocol.chainTvls[pchain].tvl == null) {
+						continue
+					}
+
 					if (pchain === 'excludeParent') {
 						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 						continue
@@ -235,13 +243,13 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
+					tvl = (tvl ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			}
 
 			const borrowed = extraTvls.borrowed ?? null
-			const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
-			const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
+			const supplied = borrowed && tvl != null && tvl > 0 ? borrowed + tvl : null
+			const suppliedTvl = supplied && tvl != null ? (supplied / tvl).toFixed(2) : null
 			const fees = adapterDataStore[protocol.defillamaId]?.fees ?? null
 			const revenue = adapterDataStore[protocol.defillamaId]?.revenue ?? null
 			const dexVolume = adapterDataStore[protocol.defillamaId]?.dexVolume ?? null
@@ -289,7 +297,9 @@ export async function getProtocolsByCategoryOrTag({
 				continue
 			}
 
-			let tvl = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => acc + p.tvl, 0)
+			let tvl = parentProtocolsStore[parentProtocol.id].some((p) => p.tvl != null)
+				? parentProtocolsStore[parentProtocol.id].reduce((acc, p) => acc + (p.tvl ?? 0), 0)
+				: null
 			const extraTvls = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => {
 				for (const key in p.extraTvls) {
 					acc[key] = (acc[key] ?? 0) + p.extraTvls[key]
@@ -297,11 +307,13 @@ export async function getProtocolsByCategoryOrTag({
 				return acc
 			}, {})
 
-			tvl -= extraTvls.excludeParent ?? 0
+			if (extraTvls.excludeParent != null) {
+				tvl = (tvl ?? 0) - (extraTvls.excludeParent ?? 0)
+			}
 
 			const borrowed = extraTvls.borrowed ?? null
-			const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
-			const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
+			const supplied = borrowed && tvl != null && tvl > 0 ? borrowed + (tvl ?? 0) : null
+			const suppliedTvl = supplied && tvl != null ? (supplied / tvl).toFixed(2) : null
 			const fees = parentProtocolsStore[parentProtocol.id].reduce(
 				(acc, p) => ({
 					total24h: acc.total24h + (p.fees?.total24h ?? 0),
