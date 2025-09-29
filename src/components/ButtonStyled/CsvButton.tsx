@@ -74,7 +74,14 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 								setStaticLoading(true)
 								const { filename, rows } = prepareCsv()
 
-								download(filename, rows.map((row) => row.join(',')).join('\n'))
+								const escapeCell = (value: string | number | boolean | null | undefined) => {
+									if (value === null || value === undefined) return ''
+									const str = String(value)
+									if (str.includes(',')) return `"${str}"`
+									return str
+								}
+
+								download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
 							} catch (error) {
 								toast.error('Failed to download CSV')
 								console.error(error)

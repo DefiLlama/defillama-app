@@ -269,6 +269,7 @@ export function AdapterByChain(props: IProps) {
 				protocol.category,
 				protocol.chains.join(', '),
 				protocol.total24h,
+				protocol.total7d,
 				protocol.total30d,
 				protocol.total1y,
 				protocol.totalAllTime,
