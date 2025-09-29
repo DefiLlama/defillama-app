@@ -351,6 +351,20 @@ const columns = (
 					size: 160
 				},
 				{
+					header: 'Open Interest',
+					id: 'open_interest',
+					accessorFn: (protocol) => protocol.openInterest?.total24h,
+					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					sortUndefined: 'last',
+					sortingFn: 'alphanumericFalsyLast' as any,
+					meta: {
+						align: 'end',
+						headerHelperText:
+							'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+					},
+					size: 160
+				},
+				{
 					id: 'perp_volume_7d',
 					header: 'Perp Volume 7d',
 					accessorFn: (protocol) => protocol.perpVolume?.total7d,
