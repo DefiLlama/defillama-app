@@ -51,27 +51,24 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 		return (
 			<a
 				href={entityUrl}
-				className="inline-flex items-center gap-1.5 rounded border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-(--link-text) transition-colors hover:border-blue-300 hover:text-blue-800"
-				onClick={(e) => {
-					e.preventDefault()
-					window.location.href = entityUrl
-				}}
+				className="relative -bottom-0.5 inline-flex items-center gap-1 text-(--link-text) hover:underline"
+				target="_blank"
+				rel="noreferrer noopener"
 				{...props}
 			>
-				<div
-					className="h-[18px] w-[18px] flex-shrink-0 translate-y-[1px] rounded-full bg-cover bg-center bg-no-repeat"
-					style={{
-						backgroundImage: `url(${iconUrl})`,
-						backgroundColor: 'var(--bg-muted)'
-					}}
-					aria-label={`${children} icon`}
+				<img
+					src={iconUrl}
+					alt={`${children} icon`}
+					height={14}
+					width={14}
+					className="m-0! flex-shrink-0 rounded-full object-cover"
 				/>
 				<span className="truncate">{children}</span>
 			</a>
 		)
 	}
 	return (
-		<a href={href} {...props}>
+		<a href={href} target="_blank" rel="noreferrer noopener" {...props}>
 			{children}
 		</a>
 	)

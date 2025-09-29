@@ -862,7 +862,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 											>
 												<SentPrompt prompt={item.question} />
 												<div className="flex flex-col gap-2.5">
-													<Answer content={item.response.answer} />
+													<MarkdownRenderer content={item.response.answer} />
 													{item.response.charts && item.response.charts.length > 0 && (
 														<ChartRenderer
 															charts={item.response.charts}
@@ -1083,7 +1083,7 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<Answer content={streamingResponse} />
+					<MarkdownRenderer content={streamingResponse} />
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
@@ -1537,10 +1537,6 @@ const FeedbackForm = ({
 			</div>
 		</form>
 	)
-}
-
-const Answer = ({ content }: { content: string }) => {
-	return <MarkdownRenderer content={content} />
 }
 
 const ChatControls = ({
