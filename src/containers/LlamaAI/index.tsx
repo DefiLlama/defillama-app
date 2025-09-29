@@ -1,6 +1,7 @@
 import { RefObject, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -861,11 +862,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 											>
 												<SentPrompt prompt={item.question} />
 												<div className="flex flex-col gap-2.5">
-													<Answer
-														content={item.response.answer}
-														messageId={item.messageId}
-														userRating={item.userRating}
-													/>
+													<Answer content={item.response.answer} />
 													{item.response.charts && item.response.charts.length > 0 && (
 														<ChartRenderer
 															charts={item.response.charts}
@@ -873,6 +870,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 															resizeTrigger={resizeTrigger}
 														/>
 													)}
+													<MessageRating messageId={item.messageId} content={item.response.answer} initialRating={item.userRating} />
 													{item.response.suggestions && item.response.suggestions.length > 0 && (
 														<SuggestedActions
 															suggestions={item.response.suggestions}
@@ -1444,9 +1442,22 @@ const MessageRating = ({
 				)}
 			</div>
 
-			{showFeedback && (
-				<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
-			)}
+			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
+				<Ariakit.Dialog
+					className="dialog w-full max-w-md gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+					unmountOnHide
+					portal
+					hideOnInteractOutside
+				>
+					<div className="mb-4 flex items-center justify-between">
+						<h2 className="text-lg font-semibold">Provide Feedback</h2>
+						<Ariakit.DialogDismiss className="rounded p-1 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
+							<Icon name="x" height={16} width={16} />
+						</Ariakit.DialogDismiss>
+					</div>
+					<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
 		</div>
 	)
 }
@@ -1488,15 +1499,15 @@ const FeedbackForm = ({
 				const form = e.target as HTMLFormElement
 				submitFeedback(form.feedback?.value?.trim())
 			}}
-			className="mx-1.5 flex flex-col gap-2.5 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]"
+			className="flex flex-col gap-4"
 		>
 			<label className="flex flex-col gap-2.5">
 				<span className="text-[#666] dark:text-[#919296]">Help us improve! Any additional feedback? (optional)</span>
 				<textarea
 					name="feedback"
 					placeholder="Share your thoughts..."
-					className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-2 dark:border-[#222324]"
-					rows={2}
+					className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-3 dark:border-[#222324]"
+					rows={3}
 					maxLength={500}
 					disabled={isSubmittingFeedback}
 					onChange={(e) => setFeedbackText(e.target.value)}
@@ -1504,17 +1515,17 @@ const FeedbackForm = ({
 			</label>
 			<div className="flex items-center justify-between">
 				<span className="text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</span>
-				<div className="flex gap-2">
-					<button
-						onClick={() => setShowFeedback(false)}
+				<div className="flex gap-3">
+					<Ariakit.DialogDismiss
 						disabled={isSubmittingFeedback}
-						className="rounded px-3 py-1.5 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]"
+						className="rounded px-4 py-2 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324] disabled:opacity-50"
 					>
 						Skip
-					</button>
+					</Ariakit.DialogDismiss>
 					<button
+						type="submit"
 						disabled={isSubmittingFeedback}
-						className="rounded bg-(--old-blue) px-3 py-1.5 text-white hover:opacity-90 disabled:opacity-50"
+						className="rounded bg-(--old-blue) px-4 py-2 text-white hover:opacity-90 disabled:opacity-50"
 					>
 						{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
 					</button>
@@ -1524,21 +1535,8 @@ const FeedbackForm = ({
 	)
 }
 
-const Answer = ({
-	content,
-	messageId,
-	userRating
-}: {
-	content: string
-	messageId?: string
-	userRating?: 'good' | 'bad' | null
-}) => {
-	return (
-		<>
-			<MarkdownRenderer content={content} />
-			<MessageRating messageId={messageId} content={content} initialRating={userRating} />
-		</>
-	)
+const Answer = ({ content }: { content: string }) => {
+	return <MarkdownRenderer content={content} />
 }
 
 const ChatControls = ({

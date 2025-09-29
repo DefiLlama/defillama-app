@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -77,41 +78,38 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
-	const partialLink = content.match(/\[([^\]]+)\]\(([^)]*?)$/)
+	const processedData = useMemo(() => {
+		const linkMap = new Map<string, string>()
 
-	if (partialLink) {
-		const [fullMatch, linkText] = partialLink
-		const beforeLink = content.slice(0, -fullMatch.length)
+		const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/[^)]*)\)/g
+		let match: RegExpExecArray | null
+		while ((match = llamaLinkPattern.exec(content)) !== null) {
+			linkMap.set(match[1], match[2])
+		}
 
-		return (
-			<div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-li:my-0 prose-ul:my-1 prose-ol:my-1 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto leading-tight">
-				<ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: EntityLinkRenderer }}>
-					{beforeLink}
-				</ReactMarkdown>
-				<span className="text-(--link-text)">{linkText}</span>
-			</div>
-		)
-	}
+		return { content, linkMap }
+	}, [content])
+
+	const LinkRenderer = useMemo(() => {
+		return (props: any) => {
+			if (!props.href && props.children && processedData.linkMap.has(props.children)) {
+				const llamaUrl = processedData.linkMap.get(props.children)
+				return EntityLinkRenderer({ ...props, href: llamaUrl })
+			}
+
+			return EntityLinkRenderer(props)
+		}
+	}, [processedData.linkMap])
 
 	return (
 		<div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-li:my-0 prose-ul:my-1 prose-ol:my-1 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto leading-tight">
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				components={{
-					a: (props) => {
-						if (!props.href && props.children) {
-							const linkPattern = new RegExp(`\\[${props.children}\\]\\(([^)]+)\\)`)
-							const match = content.match(linkPattern)
-							if (match) {
-								return EntityLinkRenderer({ ...props, href: match[1] })
-							}
-						}
-
-						return EntityLinkRenderer(props)
-					}
+					a: LinkRenderer
 				}}
 			>
-				{content}
+				{processedData.content}
 			</ReactMarkdown>
 		</div>
 	)
