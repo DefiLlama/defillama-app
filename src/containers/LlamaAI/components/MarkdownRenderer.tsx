@@ -103,7 +103,8 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				components={{
-					a: LinkRenderer
+					a: LinkRenderer,
+					table: ({ children }) => <div className="overflow-x-auto">{children}</div>
 				}}
 			>
 				{processedData.content}
