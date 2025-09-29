@@ -88,7 +88,7 @@ export function ChatHistorySidebar({
 								<h2 className="pt-2.5 text-xs text-[#666] group-first/parent:pt-0 dark:text-[#919296]">{groupName}</h2>
 								{sessions.map((session) => (
 									<SessionItem
-										key={session.sessionId}
+										key={`${session.sessionId}-${session.isPublic}-${session.lastActivity}`}
 										session={session}
 										isActive={session.sessionId === currentSessionId}
 										onSessionSelect={onSessionSelect}
