@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { TokenLogo } from '~/components/TokenLogo'
 
 interface MarkdownRendererProps {
 	content: string
@@ -51,18 +52,12 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 		return (
 			<a
 				href={entityUrl}
-				className="relative -bottom-0.5 inline-flex items-center gap-1 text-(--link-text) hover:underline"
+				className="relative -bottom-0.5 inline-flex items-center gap-1 text-(--link-text) *:m-0! hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
 				{...props}
 			>
-				<img
-					src={iconUrl}
-					alt={`${children} icon`}
-					height={14}
-					width={14}
-					className="m-0! flex-shrink-0 rounded-full object-cover"
-				/>
+				<TokenLogo logo={iconUrl} size={14} />
 				<span className="truncate">{children}</span>
 			</a>
 		)
