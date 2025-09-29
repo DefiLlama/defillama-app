@@ -51,22 +51,22 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 		return (
 			<a
 				href={entityUrl}
-				className="inline items-center gap-1 text-(--link-text) hover:text-blue-800"
+				className="inline-flex items-center gap-1.5 rounded border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-(--link-text) hover:text-blue-800 hover:border-blue-300 transition-colors"
 				onClick={(e) => {
 					e.preventDefault()
 					window.location.href = entityUrl
 				}}
 				{...props}
 			>
-				<img
-					src={iconUrl}
-					alt={children}
-					className="mr-1 inline-block h-4 w-4 rounded-full"
-					onError={(e) => {
-						e.currentTarget.style.display = 'none'
+				<div
+					className="flex-shrink-0 h-[18px] w-[18px] rounded-full bg-cover bg-center bg-no-repeat translate-y-[1px]"
+					style={{
+						backgroundImage: `url(${iconUrl})`,
+						backgroundColor: 'var(--bg-muted)',
 					}}
+					aria-label={`${children} icon`}
 				/>
-				{children}
+				<span className="truncate">{children}</span>
 			</a>
 		)
 	}
@@ -102,7 +102,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
 	}, [processedData.linkMap])
 
 	return (
-		<div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-li:my-0 prose-ul:my-1 prose-ol:my-1 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto leading-tight">
+		<div className="prose prose-sm dark:prose-invert prose-p:my-2 prose-li:my-0 prose-ul:my-2 prose-ol:my-2 prose-a:no-underline prose-table:table-auto prose-table:border-collapse prose-th:border prose-th:border-[#e6e6e6] dark:prose-th:border-[#222324] prose-th:px-3 prose-th:py-2 prose-th:whitespace-nowrap prose-td:whitespace-nowrap prose-th:bg-(--app-bg) prose-td:border prose-td:border-[#e6e6e6] dark:prose-td:border-[#222324] prose-td:bg-white dark:prose-td:bg-[#181A1C] prose-td:px-3 prose-td:py-2 max-w-none overflow-x-auto leading-normal">
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				components={{
