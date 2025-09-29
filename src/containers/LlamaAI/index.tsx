@@ -1,7 +1,7 @@
 import { RefObject, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
-import { useMutation } from '@tanstack/react-query'
 import * as Ariakit from '@ariakit/react'
+import { useMutation } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -870,7 +870,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 															resizeTrigger={resizeTrigger}
 														/>
 													)}
-													<MessageRating messageId={item.messageId} content={item.response.answer} initialRating={item.userRating} />
+													<MessageRating
+														messageId={item.messageId}
+														content={item.response.answer}
+														initialRating={item.userRating}
+													/>
 													{item.response.suggestions && item.response.suggestions.length > 0 && (
 														<SuggestedActions
 															suggestions={item.response.suggestions}
@@ -1444,14 +1448,14 @@ const MessageRating = ({
 
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog
-					className="dialog w-full max-w-md gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+					className="max-sm:drawer dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl sm:max-w-md"
 					unmountOnHide
 					portal
 					hideOnInteractOutside
 				>
 					<div className="mb-4 flex items-center justify-between">
 						<h2 className="text-lg font-semibold">Provide Feedback</h2>
-						<Ariakit.DialogDismiss className="rounded p-1 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
+						<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
@@ -1501,7 +1505,7 @@ const FeedbackForm = ({
 			}}
 			className="flex flex-col gap-4"
 		>
-			<label className="flex flex-col gap-2.5">
+			<label className="flex flex-col gap-2">
 				<span className="text-[#666] dark:text-[#919296]">Help us improve! Any additional feedback? (optional)</span>
 				<textarea
 					name="feedback"
@@ -1518,14 +1522,14 @@ const FeedbackForm = ({
 				<div className="flex gap-3">
 					<Ariakit.DialogDismiss
 						disabled={isSubmittingFeedback}
-						className="rounded px-4 py-2 text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324] disabled:opacity-50"
+						className="rounded px-3 py-2 text-xs text-[#666] hover:bg-[#e6e6e6] disabled:opacity-50 dark:text-[#919296] dark:hover:bg-[#222324]"
 					>
 						Skip
 					</Ariakit.DialogDismiss>
 					<button
 						type="submit"
 						disabled={isSubmittingFeedback}
-						className="rounded bg-(--old-blue) px-4 py-2 text-white hover:opacity-90 disabled:opacity-50"
+						className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
 					>
 						{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
 					</button>
