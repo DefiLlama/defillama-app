@@ -63,6 +63,7 @@ export interface ModalState {
 	composerItems: ChartConfig[]
 	selectedChain: string | null
 	selectedChains: string[]
+	selectedProtocols: string[]
 	selectedProtocol: string | null
 	selectedChartType: string
 	selectedChartTypes: string[]
@@ -93,6 +94,7 @@ export interface ModalActions {
 	setComposerItems: React.Dispatch<React.SetStateAction<ChartConfig[]>>
 	setSelectedChain: (chain: string | null) => void
 	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection
+	setSelectedProtocols: (protocols: string[]) => void
 	setSelectedProtocol: (protocol: string | null) => void
 	setSelectedChartType: (type: string) => void
 	setSelectedChartTypes: (types: string[]) => void

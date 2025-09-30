@@ -6,8 +6,10 @@ import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } f
 import { ItemSelect } from '../ItemSelect'
 import { ProtocolSelect } from '../ProtocolSelect'
 import { ChartTypeMultiSelector } from './ChartTypeMultiSelector'
+import { ChartTypeSingleSelector } from './ChartTypeSingleSelector'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
+import { SubjectMultiPanel } from './SubjectMultiPanel'
 import { ChartTabType } from './types'
 
 interface UnifiedChartTabProps {
@@ -33,6 +35,13 @@ interface UnifiedChartTabProps {
 	onRemoveFromComposer: (id: string) => void
 }
 
+interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
+	selectedChains?: string[]
+	selectedProtocols?: string[]
+	onSelectedChainsChange?: (values: string[]) => void
+	onSelectedProtocolsChange?: (values: string[]) => void
+}
+
 export function UnifiedChartTab({
 	selectedChartTab,
 	selectedChain,
@@ -53,8 +62,12 @@ export function UnifiedChartTab({
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
 	onAddToComposer,
-	onRemoveFromComposer
-}: UnifiedChartTabProps) {
+	onRemoveFromComposer,
+	selectedChains = [],
+	selectedProtocols = [],
+	onSelectedChainsChange,
+	onSelectedProtocolsChange
+}: UnifiedChartTabPropsExtended) {
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
@@ -65,7 +78,7 @@ export function UnifiedChartTab({
 	}
 
 	const handleAddToSelection = () => {
-		if (selectedChartTypes.length > 0 && (selectedChain || selectedProtocol)) {
+		if (selectedChartTypes.length > 0) {
 			onAddToComposer(selectedChartTypes)
 			onChartTypesChange([])
 		}
@@ -100,12 +113,28 @@ export function UnifiedChartTab({
 		chainChartTypes
 	])
 
+	const globalAvailableChartTypes = useMemo(() => {
+		const set = new Set<string>()
+		for (const c of chains) {
+			const geckoId = (c as any).gecko_id
+			for (const t of availableChainChartTypes(c.name, { hasGeckoId: !!geckoId })) set.add(t)
+		}
+		for (const p of protocols) {
+			if (!p.slug) continue
+			const geckoId = (p as any).geckoId
+			for (const t of availableProtocolChartTypes(p.slug, { hasGeckoId: !!geckoId })) set.add(t)
+		}
+		return Array.from(set)
+	}, [chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
+
+	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
+
 	return (
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
-			<div className="pro-border flex w-[380px] flex-col overflow-hidden border lg:w-[420px]">
-				<div className="flex h-full min-h-0 flex-col p-3">
+			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
+				<div className="flex h-full flex-col p-3">
 					{chartCreationMode === 'combined' && (
-						<div className="mb-2">
+						<div className="mb-2 flex-shrink-0">
 							<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>
 							<input
 								type="text"
@@ -117,73 +146,38 @@ export function UnifiedChartTab({
 						</div>
 					)}
 
-					<div className="mb-2">
-						<div className="mb-2 grid grid-cols-2 gap-0">
-							<button
-								className={`-ml-px rounded-none border px-2 py-1 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md ${
-									selectedChartTab === 'chain'
-										? 'pro-border pro-btn-blue'
-										: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-								}`}
-								onClick={() => onChartTabChange('chain')}
-							>
-								Chain
-							</button>
-							<button
-								className={`-ml-px rounded-none border px-2 py-1 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md ${
-									selectedChartTab === 'protocol'
-										? 'pro-border pro-btn-blue'
-										: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-								}`}
-								onClick={() => onChartTabChange('protocol')}
-							>
-								Protocol
-							</button>
-						</div>
-
-						{selectedChartTab === 'chain' && (
-							<ItemSelect
-								label="Select Chain"
-								options={chainOptions}
-								selectedValue={selectedChain}
-								onChange={onChainChange}
-								isLoading={protocolsLoading}
-								placeholder="Select a chain..."
-								itemType="chain"
-							/>
-						)}
-
-						{selectedChartTab === 'protocol' && (
-							<ProtocolSelect
-								label="Select Protocol"
-								options={protocolOptions}
-								selectedValue={selectedProtocol}
-								onChange={onProtocolChange}
-								isLoading={protocolsLoading}
-								placeholder="Select a protocol..."
-							/>
-						)}
+					<div className="mb-2 flex-shrink-0">
+						<ChartTypeSingleSelector
+							selectedChartType={selectedChartTypeSingle}
+							availableChartTypes={
+								instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : globalAvailableChartTypes
+							}
+							chartTypes={selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes}
+							isLoading={metaLoading}
+							onChange={(value) => onChartTypesChange([value])}
+						/>
 					</div>
 
-					{(selectedChain || selectedProtocol) && (
-						<div className="mb-2 min-h-0 flex-1">
-							<ChartTypeMultiSelector
-								selectedChartTypes={selectedChartTypes}
-								availableChartTypes={
-									instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : availableChartTypes
-								}
-								chartTypes={selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes}
-								isLoading={metaLoading}
-								onChange={handleChartTypesChange}
-							/>
-						</div>
-					)}
+					<div className="mb-2">
+						<SubjectMultiPanel
+							activeTab={selectedChartTab}
+							onTabChange={onChartTabChange}
+							selectedChartType={selectedChartTypeSingle}
+							chainOptions={chainOptions}
+							protocolOptions={protocolOptions as any}
+							selectedChains={selectedChains}
+							onSelectedChainsChange={onSelectedChainsChange || (() => {})}
+							selectedProtocols={selectedProtocols}
+							onSelectedProtocolsChange={onSelectedProtocolsChange || (() => {})}
+							isLoading={protocolsLoading}
+						/>
+					</div>
 
 					<button
 						onClick={handleAddToSelection}
-						disabled={selectedChartTypes.length === 0 || (!selectedChain && !selectedProtocol)}
-						className={`mb-2 w-full rounded-md px-3 py-2 text-xs font-medium transition-colors duration-200 ${
-							selectedChartTypes.length === 0 || (!selectedChain && !selectedProtocol)
+						disabled={selectedChartTypes.length === 0}
+						className={`mb-2 w-full flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
+							selectedChartTypes.length === 0
 								? 'pro-border pro-text3 cursor-not-allowed border opacity-50'
 								: 'pro-btn-blue'
 						}`}
@@ -193,7 +187,7 @@ export function UnifiedChartTab({
 							`(${selectedChartTypes.length} chart${selectedChartTypes.length > 1 ? 's' : ''})`}
 					</button>
 
-					<div className="pro-border border-t pt-2">
+					<div className="pro-border flex-shrink-0 border-t pt-2">
 						<label className="pro-text2 mb-1 block text-xs font-medium">Create as</label>
 						<div className="space-y-1">
 							<label className="flex cursor-pointer items-center gap-2">

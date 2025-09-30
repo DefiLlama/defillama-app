@@ -92,6 +92,7 @@ export function useModalActions(
 		(option: any) => {
 			actions.setSelectedChain(option.value)
 			actions.setSelectedProtocol(null)
+			actions.setSelectedProtocols([])
 			actions.setSelectedChartType('tvl')
 		},
 		[actions]
@@ -109,6 +110,7 @@ export function useModalActions(
 		(option: any) => {
 			actions.setSelectedProtocol(option.value)
 			actions.setSelectedChain(null)
+			actions.setSelectedProtocols([])
 			actions.setSelectedChartType('tvl')
 		},
 		[actions]
@@ -157,46 +159,52 @@ export function useModalActions(
 
 			const targetGrouping = resolveTargetGrouping()
 
-			if (state.selectedChartTab === 'chain' && state.selectedChain && chartTypesToAdd.length > 0) {
-				const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-
-				const filteredTypes = chartTypesToAdd.filter((chartType) => {
-					return !state.composerItems.some((item) => item.chain === state.selectedChain && item.type === chartType)
-				})
-
-				if (filteredTypes.length > 0) {
-					const newCharts = filteredTypes.map((chartType) => ({
-						id: `${state.selectedChain}-${chartType}-${Date.now()}-${Math.random()}`,
-						kind: 'chart' as const,
-						chain: state.selectedChain,
-						type: chartType,
-						grouping: targetGrouping,
-						geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
-					}))
-					actions.setComposerItems((prev) => [...prev, ...newCharts])
-					addedCount = filteredTypes.length
+			if (state.selectedChartTab === 'chain' && chartTypesToAdd.length > 0) {
+				const chainsToUse =
+					state.selectedChains.length > 0 ? state.selectedChains : state.selectedChain ? [state.selectedChain] : []
+				for (const chainName of chainsToUse) {
+					const chain = chains.find((c: Chain) => c.name === chainName)
+					const filteredTypes = chartTypesToAdd.filter((chartType) => {
+						return !state.composerItems.some((item) => item.chain === chainName && item.type === chartType)
+					})
+					if (filteredTypes.length > 0) {
+						const newCharts = filteredTypes.map((chartType) => ({
+							id: `${chainName}-${chartType}-${Date.now()}-${Math.random()}`,
+							kind: 'chart' as const,
+							chain: chainName,
+							type: chartType,
+							grouping: targetGrouping,
+							geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+						}))
+						actions.setComposerItems((prev) => [...prev, ...newCharts])
+						addedCount += filteredTypes.length
+					}
 				}
-			} else if (state.selectedChartTab === 'protocol' && state.selectedProtocol && chartTypesToAdd.length > 0) {
-				const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-
-				const filteredTypes = chartTypesToAdd.filter((chartType) => {
-					return !state.composerItems.some(
-						(item) => item.protocol === state.selectedProtocol && item.type === chartType
-					)
-				})
-
-				if (filteredTypes.length > 0) {
-					const newCharts = filteredTypes.map((chartType) => ({
-						id: `${state.selectedProtocol}-${chartType}-${Date.now()}-${Math.random()}`,
-						kind: 'chart' as const,
-						protocol: state.selectedProtocol,
-						chain: '',
-						type: chartType,
-						grouping: targetGrouping,
-						geckoId: protocol?.geckoId
-					}))
-					actions.setComposerItems((prev) => [...prev, ...newCharts])
-					addedCount = filteredTypes.length
+			} else if (state.selectedChartTab === 'protocol' && chartTypesToAdd.length > 0) {
+				const protocolsToUse =
+					state.selectedProtocols && state.selectedProtocols.length > 0
+						? state.selectedProtocols
+						: state.selectedProtocol
+							? [state.selectedProtocol]
+							: []
+				for (const slug of protocolsToUse) {
+					const protocol = protocols.find((p: Protocol) => p.slug === slug)
+					const filteredTypes = chartTypesToAdd.filter((chartType) => {
+						return !state.composerItems.some((item) => item.protocol === slug && item.type === chartType)
+					})
+					if (filteredTypes.length > 0) {
+						const newCharts = filteredTypes.map((chartType) => ({
+							id: `${slug}-${chartType}-${Date.now()}-${Math.random()}`,
+							kind: 'chart' as const,
+							protocol: slug,
+							chain: '',
+							type: chartType,
+							grouping: targetGrouping,
+							geckoId: protocol?.geckoId
+						}))
+						actions.setComposerItems((prev) => [...prev, ...newCharts])
+						addedCount += filteredTypes.length
+					}
 				}
 			}
 		},
@@ -206,9 +214,11 @@ export function useModalActions(
 			protocols,
 			state.composerItems,
 			state.selectedChain,
+			state.selectedChains,
 			state.selectedChartTab,
 			state.selectedChartTypes,
-			state.selectedProtocol
+			state.selectedProtocol,
+			state.selectedProtocols
 		]
 	)
 

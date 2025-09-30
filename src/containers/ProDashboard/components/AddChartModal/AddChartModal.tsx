@@ -61,6 +61,8 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							selectedChain={state.selectedChain}
 							selectedProtocol={state.selectedProtocol}
 							selectedChartTypes={state.selectedChartTypes}
+							selectedChains={state.selectedChains}
+							selectedProtocols={state.selectedProtocols}
 							chainOptions={computed.chainOptions}
 							protocolOptions={computed.protocolOptions}
 							availableChartTypes={availableChartTypes}
@@ -73,6 +75,8 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onChainChange={actions.handleChainChange}
 							onProtocolChange={actions.handleProtocolChange}
 							onChartTypesChange={actions.setSelectedChartTypes}
+							onSelectedChainsChange={actions.setSelectedChains}
+							onSelectedProtocolsChange={actions.setSelectedProtocols}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onAddToComposer={actions.handleAddToComposer}

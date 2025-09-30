@@ -8,6 +8,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [composerItems, setComposerItems] = useState<ChartConfig[]>([])
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
+	const [selectedProtocols, setSelectedProtocols] = useState<string[]>([])
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
@@ -118,6 +119,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedChain(null)
 			setSelectedChains([])
 			setSelectedProtocol(null)
+			setSelectedProtocols([])
 			setSelectedChartType('tvl')
 			setSelectedChartTypes([])
 			setUnifiedChartName('')
@@ -165,6 +167,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedChain(null)
 		setSelectedChains([])
 		setSelectedProtocol(null)
+		setSelectedProtocols([])
 		setSelectedTableType('protocols')
 		setSelectedDatasetChain(null)
 		setSelectedDatasetTimeframe(null)
@@ -200,6 +203,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedChain,
 		selectedChains,
 		selectedProtocol,
+		selectedProtocols,
 		selectedChartType,
 		selectedChartTypes,
 		unifiedChartName,
@@ -231,6 +235,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedChain,
 			setSelectedChains,
 			setSelectedProtocol,
+			setSelectedProtocols,
 			setSelectedChartType,
 			setSelectedChartTypes,
 			setUnifiedChartName,
