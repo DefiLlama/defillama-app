@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
-import { ChartBuilderConfig, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
+import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('charts')
@@ -14,6 +14,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
 	const [unifiedChartName, setUnifiedChartName] = useState<string>('')
 	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('separate')
+	const [chartMode, setChartMode] = useState<ChartModeType>('builder')
 
 	const setChartCreationMode = (mode: 'separate' | 'combined') => {
 		setChartCreationModeState(mode)
@@ -54,6 +55,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		if (editItem) {
 			if (editItem.kind === 'chart') {
 				setSelectedMainTab('charts')
+				setChartMode('manual')
 				setSelectedChartTab(editItem.protocol ? 'protocol' : 'chain')
 				setSelectedChain(editItem.chain || null)
 				setSelectedProtocol(editItem.protocol || null)
@@ -63,6 +65,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setUnifiedChartName('')
 			} else if (editItem.kind === 'multi') {
 				setSelectedMainTab('charts')
+				setChartMode('manual')
 				setComposerItems(editItem.items)
 				setUnifiedChartName(editItem.name || '')
 				setChartCreationModeState('combined')
@@ -95,7 +98,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setTextTitle(editItem.title || '')
 				setTextContent(editItem.content)
 			} else if (editItem.kind === 'builder') {
-				setSelectedMainTab('builder')
+				setSelectedMainTab('charts')
+				setChartMode('builder')
 				setChartBuilderName(editItem.name || '')
 				setChartBuilder({
 					...editItem.config,
@@ -115,6 +119,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		} else {
 			setSelectedMainTab('charts')
 			setSelectedChartTab('chain')
+			setChartMode('builder')
 			setComposerItems([])
 			setSelectedChain(null)
 			setSelectedChains([])
@@ -164,6 +169,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedChartTypes([])
 		setUnifiedChartName('')
 		setChartCreationModeState('separate')
+		setChartMode('builder')
 		setSelectedChain(null)
 		setSelectedChains([])
 		setSelectedProtocol(null)
@@ -199,6 +205,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const state: ModalState = {
 		selectedMainTab,
 		selectedChartTab,
+		chartMode,
 		composerItems,
 		selectedChain,
 		selectedChains,
@@ -231,6 +238,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		() => ({
 			setSelectedMainTab,
 			setSelectedChartTab,
+			setChartMode,
 			setComposerItems,
 			setSelectedChain,
 			setSelectedChains,
@@ -261,6 +269,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		[
 			setSelectedMainTab,
 			setSelectedChartTab,
+			setChartMode,
 			setComposerItems,
 			setSelectedChain,
 			setSelectedChains,

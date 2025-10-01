@@ -10,14 +10,13 @@ interface TabNavigationProps {
 export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNavigationProps) {
 	const tabs = [
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
-		{ id: 'builder' as const, label: 'Chart Builder', mobileLabel: 'Builder' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },
 		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
 		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (
-		<div className="grid grid-cols-5 gap-0">
+		<div className="grid grid-cols-4 gap-0">
 			{tabs.map((tab, index) => (
 				<button
 					key={tab.id}

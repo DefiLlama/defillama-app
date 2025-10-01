@@ -236,12 +236,12 @@ export function useModalActions(
 			actions.setSelectedProtocol(null)
 			actions.setSelectedChartType('tvl')
 			actions.setSelectedChartTypes([])
-			if (tab === 'charts') {
+			if (tab === 'charts' && state.chartMode === 'manual') {
 				actions.setUnifiedChartName('')
 				actions.setChartCreationMode('separate')
 			}
 		},
-		[actions]
+		[actions, state.chartMode]
 	)
 
 	const handleChartTabChange = useCallback(
@@ -449,7 +449,7 @@ export function useModalActions(
 					title: state.textTitle.trim() || undefined,
 					content: state.textContent.trim()
 				} as TextConfig
-			} else if (state.selectedMainTab === 'builder') {
+			} else if (state.chartMode === 'builder') {
 				newItem = {
 					...editItem,
 					kind: 'builder',
@@ -582,7 +582,7 @@ export function useModalActions(
 						colSpan: 0.5 as StoredColSpan
 					} as any)
 				}
-			} else if (state.selectedMainTab === 'builder') {
+			} else if (state.chartMode === 'builder') {
 				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
 			}
 		}

@@ -6,7 +6,8 @@ export interface AddChartModalProps {
 	editItem?: DashboardItemConfig | null
 }
 
-export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'text'
+export type ChartModeType = 'manual' | 'builder'
 export type ChartTabType = 'chain' | 'protocol'
 export type CombinedTableType =
 	| 'protocols'
@@ -60,6 +61,7 @@ export interface ChartBuilderConfig {
 export interface ModalState {
 	selectedMainTab: MainTabType
 	selectedChartTab: ChartTabType
+	chartMode: ChartModeType
 	composerItems: ChartConfig[]
 	selectedChain: string | null
 	selectedChains: string[]
@@ -91,6 +93,7 @@ export interface ModalState {
 export interface ModalActions {
 	setSelectedMainTab: (tab: MainTabType) => void
 	setSelectedChartTab: (tab: ChartTabType) => void
+	setChartMode: (mode: ChartModeType) => void
 	setComposerItems: React.Dispatch<React.SetStateAction<ChartConfig[]>>
 	setSelectedChain: (chain: string | null) => void
 	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection

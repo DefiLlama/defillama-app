@@ -237,7 +237,6 @@ export function ChartBuilderTab({
 	return (
 		<div className="flex h-full flex-col">
 			<div className="mb-1">
-				<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>
 				<input
 					type="text"
 					value={chartBuilderName}
