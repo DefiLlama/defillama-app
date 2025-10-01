@@ -1201,7 +1201,7 @@ export const useFetchAndFormatChartData = ({
 
 		if (openInterestData) {
 			const chartName: ProtocolChartsLabels = 'Open Interest' as const
-			charts[chartName] = formatBarChart({
+			charts[chartName] = formatLineChart({
 				data: openInterestData.totalDataChart,
 				groupBy,
 				denominationPriceHistory

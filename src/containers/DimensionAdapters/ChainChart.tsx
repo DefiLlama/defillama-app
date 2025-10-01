@@ -94,7 +94,7 @@ export const AdapterByChainChart = ({
 				charts: {
 					[chartName]: {
 						data: finalData,
-						type: (chartInterval === 'Cumulative' ? 'line' : 'bar') as 'bar' | 'line',
+						type: (chartInterval === 'Cumulative' || chartName === 'Open Interest' ? 'line' : 'bar') as 'bar' | 'line',
 						name: chartName,
 						stack: chartName,
 						color: CHART_COLORS[0]
@@ -107,7 +107,7 @@ export const AdapterByChainChart = ({
 			charts: {
 				[chartName]: {
 					data: chartData,
-					type: 'bar' as const,
+					type: (chartName === 'Open Interest' ? 'line' : 'bar') as 'bar' | 'line',
 					name: chartName,
 					stack: chartName,
 					color: CHART_COLORS[0]
@@ -124,18 +124,20 @@ export const AdapterByChainChart = ({
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-						<Tooltip
-							content={dataInterval}
-							render={<button />}
-							className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-							onClick={() => setChartInterval(dataInterval)}
-							data-active={dataInterval === chartInterval}
-							key={`${dataInterval}-${chartName}-${chain}`}
-						>
-							{dataInterval.slice(0, 1).toUpperCase()}
-						</Tooltip>
-					))}
+					{chartName === 'Open Interest'
+						? null
+						: INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
+								<Tooltip
+									content={dataInterval}
+									render={<button />}
+									className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									onClick={() => setChartInterval(dataInterval)}
+									data-active={dataInterval === chartInterval}
+									key={`${dataInterval}-${chartName}-${chain}`}
+								>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
+							))}
 				</div>
 				<CSVDownloadButton
 					onClick={() => {

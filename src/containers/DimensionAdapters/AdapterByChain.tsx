@@ -334,7 +334,7 @@ export function AdapterByChain(props: IProps) {
 		)
 	}
 
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type)
+	const metricName = ['Fees', 'Revenue', 'Holders Revenue', 'Open Interest'].includes(props.type)
 		? props.type
 		: props.type.includes('Volume')
 			? props.type
