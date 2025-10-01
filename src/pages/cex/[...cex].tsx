@@ -31,7 +31,8 @@ export const getStaticProps = withPerformanceLogging(
 			protocolId: slug(exchangeData.slug),
 			metadata: {
 				displayName: exchangeData.slug?.split('-')?.join(' ') ?? exchangeData.name,
-				tvl: true
+				tvl: true,
+				stablecoins: true
 			},
 			isCEX: true
 		})

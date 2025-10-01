@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				metrics: { tvlTab: true }
+				metrics: { tvlTab: true, stablecoins: true }
 			},
 			revalidate: maxAgeForNext([22])
 		}
