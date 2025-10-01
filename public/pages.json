@@ -230,14 +230,6 @@
       "tab": "Chains"
     },
     {
-      "name": "DEX Volume by Protocol",
-      "route": "/dexs",
-      "category": "Volume",
-      "description": "Volume of all spot token swaps that go through a DEX",
-      "totalTrackedKey": "dexs.protocols",
-      "tab": "Protocols"
-    },
-    {
       "name": "Perp Volume by Protocol",
       "route": "/perps",
       "category": "Volume",
@@ -247,6 +239,14 @@
         "derivatives",
         "futures"
       ],
+      "tab": "Protocols"
+    },
+    {
+      "name": "DEX Volume by Protocol",
+      "route": "/dexs",
+      "category": "Volume",
+      "description": "Volume of all spot token swaps that go through a DEX",
+      "totalTrackedKey": "dexs.protocols",
       "tab": "Protocols"
     },
     {
@@ -294,6 +294,14 @@
       "tab": "Protocols"
     },
     {
+      "name": "Open Interest by Protocol",
+      "route": "/open-interest",
+      "category": "Volume",
+      "description": "Total notional value of all outstanding perpetual futures positions",
+      "totalTrackedKey": "openInterest.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Options Premium Volume by Protocol",
       "route": "/options/premium-volume",
       "category": "Volume",
@@ -307,14 +315,6 @@
       "category": "Volume",
       "description": "Sum of the notional value of all options that have been traded on options exchanges",
       "totalTrackedKey": "optionsNotionalVolume.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Open Interest by Protocol",
-      "route": "/open-interest",
-      "category": "Volume",
-      "description": "Total notional value of all outstanding perpetual futures positions",
-      "totalTrackedKey": "openInterest.protocols",
       "tab": "Protocols"
     },
     {

@@ -315,7 +315,9 @@ export async function getBridgePageDatanew(bridge: string) {
 	const { bridges } = await getBridges()
 
 	// find datqa of bridge
-	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))?.[0]
+	const bridgeData = bridges.filter(
+		(obj) => slug(obj.displayName) === slug(bridge) || slug(obj.slug) === slug(bridge)
+	)?.[0]
 
 	if (!bridgeData) {
 		return null
