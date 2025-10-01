@@ -237,9 +237,10 @@ interface LlamaAIProps {
 	sharedSession?: SharedSession
 	isPublicView?: boolean
 	readOnly?: boolean
+	showDebug?: boolean
 }
 
-export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: LlamaAIProps = {}) {
+export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, showDebug = false }: LlamaAIProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
 	const {
 		sidebarVisible,
@@ -909,7 +910,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 																	isStreaming={isStreaming}
 																/>
 															)}
-															{item.response.metadata && <QueryMetadata metadata={item.response.metadata} />}
+															{showDebug && item.response.metadata && (
+																<QueryMetadata metadata={item.response.metadata} />
+															)}
 														</div>
 													</div>
 												))}
@@ -942,6 +945,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false }: L
 														hasChartError={hasChartError}
 														expectedChartInfo={expectedChartInfo}
 														resizeTrigger={resizeTrigger}
+														showMetadata={showDebug}
 													/>
 												</div>
 											)}
@@ -1065,7 +1069,8 @@ const PromptResponse = ({
 	isAnalyzingForCharts = false,
 	hasChartError = false,
 	expectedChartInfo,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	showMetadata = false
 }: {
 	response?: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
 	error?: string
@@ -1081,6 +1086,7 @@ const PromptResponse = ({
 	hasChartError?: boolean
 	expectedChartInfo?: { count?: number; types?: string[] } | null
 	resizeTrigger?: number
+	showMetadata?: boolean
 }) => {
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
@@ -1151,7 +1157,7 @@ const PromptResponse = ({
 					isStreaming={isStreaming}
 				/>
 			)}
-			{response?.metadata && <QueryMetadata metadata={response.metadata} />}
+			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
 	)
 }
