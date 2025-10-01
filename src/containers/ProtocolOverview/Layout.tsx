@@ -265,7 +265,16 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						)
 					) : null}
-					{protocolTabs.map((pt) => (
+					{metrics.stablecoins && isCEX ? (
+						<BasicLink
+							href={`/cex/stablecoins/${slug(name)}`}
+							data-active={tab === 'stablecoins'}
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+						>
+							Stablecoin Info
+						</BasicLink>
+					) : null}
+					{protocolTabs.filter(pt => isCEX ? pt.id !== 'stablecoins' : true).map((pt) => (
 						<BasicLink
 							key={`${pt.id}-${name}`}
 							href={`${pt.route}/${slug(name)}`}
