@@ -221,7 +221,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 	return (
 		<div className="flex h-full min-h-[240px] flex-col gap-3 p-3">
 			<div className="flex items-start justify-between gap-4">
-				<div className="flex items-center gap-2">
+				<div className="flex items-center gap-1">
 					{iconUrl ? (
 						<img src={iconUrl} alt={displayTitle} className="h-5 w-5 shrink-0 rounded-full" />
 					) : (
