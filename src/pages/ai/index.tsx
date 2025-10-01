@@ -59,5 +59,5 @@ export default function LlamaAIPage() {
 	}
 
 	// Show LlamaAI if feature flag is enabled
-	return <LlamaAI />
+	return <LlamaAI showDebug={hasFeature('llama-ai-debug')} />
 }

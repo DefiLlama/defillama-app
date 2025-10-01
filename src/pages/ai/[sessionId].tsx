@@ -49,5 +49,11 @@ export default function SessionPage() {
 		)
 	}
 
-	return <LlamaAI initialSessionId={sessionId as string} key={`llamai-session-page-${sessionId}`} />
+	return (
+		<LlamaAI
+			initialSessionId={sessionId as string}
+			showDebug={hasFeature('llama-ai-debug')}
+			key={`llamai-session-page-${sessionId}`}
+		/>
+	)
 }

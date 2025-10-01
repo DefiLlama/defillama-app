@@ -7,35 +7,59 @@ import { LoadingSpinner } from '~/components/Loaders'
 const defaultPrompts = ['Top 5 protocols by tvl', 'Recent hacks', 'Total amount raised by category']
 
 const promptCategories = [
+	// {
+	// 	name: 'Trending',
+	// 	icon: 'trending-up',
+	// 	prompts: ['What are the top 5 protocols by TVL?', 'What are the top 5 gainers in the last 7 days?']
+	// },
 	{
-		name: 'Trending',
-		icon: 'trending-up'
+		name: 'Analytics',
+		icon: 'bar-chart-2',
+		prompts: [
+			'Give me a chart of total app revenue divided by category',
+			'Show me a chart of total TVL of all forked projects vs non-forked projects',
+			'Chart Pump.fun percentage share of total revenue across all launchpads',
+			'Generate a line chart of BTC deposited into DeFi over time',
+			'Which 5 protocols have the most stable revenue streams?',
+			'Create a chart showing which chains capture the most fees per dollar of TVL'
+		]
 	},
 	{
-		name: 'Protocols',
-		icon: 'package'
+		name: 'Deep Dive',
+		icon: 'eye',
+		prompts: [
+			"What's the correlation between protocol token unlock schedules and 30-day price performance for top 20 protocols with upcoming unlocks?",
+			'For protocols with >$50M TVL, show me those with growing fundamentals (TVL+fees up 30d) but declining token prices - potential value traps or opportunities?',
+			'Do chains that launch with new protocols perform better over the long term than chains that launch with mostly forked protocols?',
+			'Which categories show the highest revenue stability?'
+		]
 	},
 	{
-		name: 'Blockchains',
-		icon: 'link'
+		name: 'Risk Analysis',
+		icon: 'alert-triangle',
+		prompts: [
+			'Create a chart of total capital raised vs total value lost to hacks by year',
+			'Which categories have the highest protocol failure rate (protocols that launched but dropped below $100k TVL within 6 months)?'
+		]
 	},
 	{
-		name: 'Code',
-		icon: 'code'
-	},
-	{
-		name: 'Llama’s choice',
-		icon: 'sparkles'
-	},
-	{
-		name: 'See all',
-		icon: 'layout-grid'
+		name: 'Forks',
+		icon: 'repeat',
+		prompts: [
+			'Show me the top 10 original protocols by fork TVL, then break down what percentage of each fork ecosystem is controlled by the largest fork',
+			'Which successful fork surpassed its original protocol in TVL?',
+			'Which chains have the highest innovation ratio (original protocol TVL / forked protocol TVL)?'
+		]
 	}
+	// {
+	// 	name: 'Llama`s choice',
+	// 	icon: 'sparkles',
+	// }
 ] as const
 
 async function getRecommendedPrompts() {
 	try {
-		return Object.fromEntries(promptCategories.map((category) => [category.name, defaultPrompts]))
+		return Object.fromEntries(promptCategories.map((category) => [category.name, category.prompts]))
 	} catch (error) {
 		console.log(error)
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch recommended prompts')
@@ -88,7 +112,7 @@ export const RecommendedPrompts = ({
 								<div className="my-[40px] flex items-center justify-center p-2.5">
 									<LoadingSpinner size={16} />
 								</div>
-							) : error || !data?.[category.name] || data?.[category.name].length === 0 ? (
+							) : error || !data?.[category.name] ? (
 								<div className="my-[40px] flex items-center justify-center gap-1 p-2.5 text-xs text-(--error)">
 									<Icon name="alert-triangle" height={14} width={14} />
 									<span>{error?.message ?? 'Failed to fetch recommended prompts'}</span>
