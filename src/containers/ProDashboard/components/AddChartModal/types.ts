@@ -6,7 +6,7 @@ export interface AddChartModalProps {
 	editItem?: DashboardItemConfig | null
 }
 
-export type MainTabType = 'charts' | 'metric' | 'table' | 'text'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
 export type ChartTabType = 'chain' | 'protocol'
 export type CombinedTableType =
