@@ -57,7 +57,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// 	isNewlyListedProtocol = false
 		// }
 
-		if (isNewlyListedProtocol && !data.isParentProtocol) {
+		if (isNewlyListedProtocol && !data.isParentProtocol && data.module !== 'dummy.js') {
 			try {
 				const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
 

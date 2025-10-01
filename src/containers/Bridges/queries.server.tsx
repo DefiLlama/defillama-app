@@ -314,10 +314,8 @@ export async function getBridgePageDatanew(bridge: string) {
 	// fetch list of all bridges
 	const { bridges } = await getBridges()
 
-	// find datqa of bridge
-	const bridgeData = bridges.filter(
-		(obj) => slug(obj.displayName) === slug(bridge) || slug(obj.slug) === slug(bridge)
-	)?.[0]
+	// find data of bridge
+	const bridgeData = bridges.find((obj) => slug(obj.displayName) === slug(bridge) || slug(obj.slug) === slug(bridge))
 
 	if (!bridgeData) {
 		return null
