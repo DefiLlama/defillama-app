@@ -27,9 +27,9 @@ const CHART_SYMBOLS = {
 	'Median APY': '%',
 	Treasury: '$',
 	Tweets: '',
-	Contributers: '',
+	Contributors: '',
 	Developers: '',
-	'Contributers Commits': '',
+	'Contributors Commits': '',
 	Commits: '',
 	'Devs Commits': ''
 }

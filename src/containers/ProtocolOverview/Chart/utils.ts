@@ -20,9 +20,9 @@ export const BAR_CHARTS = [
 	'Token Volume',
 	'Tweets',
 	'Developers',
-	'Contributers',
+	'Contributors',
 	'Devs Commits',
-	'Contributers Commits',
+	'Contributors Commits',
 	'NFT Volume',
 	'DEX Aggregators Volume',
 	'DEX Aggregator Volume',
@@ -34,4 +34,4 @@ export const BAR_CHARTS = [
 	'Bridge Aggregator Volume'
 ]
 
-export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributers', 'Devs Commits', 'Contributers Commits']
+export const DISABLED_CUMULATIVE_CHARTS = ['Developers', 'Contributors', 'Devs Commits', 'Contributors Commits']

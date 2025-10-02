@@ -7,8 +7,8 @@ import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
 const customOffsets = {
-	Contributers: 60,
-	'Contributers Commits': 80,
+	Contributors: 60,
+	'Contributors Commits': 80,
 	'Devs Commits': 70,
 	'NFT Volume': 65
 }
