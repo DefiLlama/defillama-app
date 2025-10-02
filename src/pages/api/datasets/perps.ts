@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		}
 	} catch (error) {
-		console.error('Error fetching perps data:', error)
+		console.log('Error fetching perps data:', error)
 		res.status(500).json({ error: 'Failed to fetch perps data' })
 	}
 }

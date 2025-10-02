@@ -71,7 +71,7 @@ export function useUserConfig() {
 			queryClient.setQueryData(USER_CONFIG_QUERY_KEY, savedConfig)
 		},
 		onError: (error) => {
-			console.error('Mutation failed:', error.message)
+			console.log('Mutation failed:', error.message)
 		}
 	})
 

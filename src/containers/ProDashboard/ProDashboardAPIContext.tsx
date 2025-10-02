@@ -421,7 +421,7 @@ export function ProDashboardAPIProvider({
 					: null
 			)
 		} catch (error) {
-			console.error('Failed to auto-skip older sessions:', error)
+			console.log('Failed to auto-skip older sessions:', error)
 		}
 	}, [isAuthenticated, currentDashboard?.aiGenerated, user?.id, dashboardId, saveDashboard])
 
@@ -441,7 +441,7 @@ export function ProDashboardAPIProvider({
 			try {
 				await updateDashboard({ id: dashboardId, data })
 			} catch (error) {
-				console.error('Failed to save dashboard name:', error)
+				console.log('Failed to save dashboard name:', error)
 			}
 		}
 	}, [
@@ -476,7 +476,7 @@ export function ProDashboardAPIProvider({
 		try {
 			await createDashboard(data)
 		} catch (error) {
-			console.error('Failed to copy dashboard:', error)
+			console.log('Failed to copy dashboard:', error)
 		}
 	}, [items, dashboardName, timePeriod, isAuthenticated, createDashboard])
 
@@ -511,7 +511,7 @@ export function ProDashboardAPIProvider({
 
 				await createDashboard(dashboardData)
 			} catch (error) {
-				console.error('Failed to create new dashboard:', error)
+				console.log('Failed to create new dashboard:', error)
 				toast.error('Failed to create new dashboard')
 			}
 		},
@@ -664,7 +664,7 @@ export function ProDashboardAPIProvider({
 
 				toast.success('Thank you for your feedback!')
 			} catch (error) {
-				console.error('Failed to submit rating:', error)
+				console.log('Failed to submit rating:', error)
 				toast.error('Failed to submit rating. Please try again.')
 			}
 		},
@@ -705,7 +705,7 @@ export function ProDashboardAPIProvider({
 						: null
 				)
 			} catch (error) {
-				console.error('Failed to skip rating:', error)
+				console.log('Failed to skip rating:', error)
 			}
 		},
 		[isAuthenticated, user?.id, dashboardId, currentDashboard?.aiGenerated, saveDashboard]

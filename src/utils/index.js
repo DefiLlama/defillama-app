@@ -569,7 +569,7 @@ export function downloadCSV(filename, csvData, options = {}) {
 
 		window.URL.revokeObjectURL(downloadUrl)
 	} catch (error) {
-		console.error('CSV download error:', error)
+		console.log('CSV download error:', error)
 		download(filename, String(csvData))
 	}
 }
@@ -610,7 +610,7 @@ export function downloadDatasetCSV({
 
 		downloadCSV(finalFilename, csvData, { addTimestamp })
 	} catch (error) {
-		console.error('Dataset CSV download error:', error)
+		console.log('Dataset CSV download error:', error)
 	}
 }
 

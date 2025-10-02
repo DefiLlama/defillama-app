@@ -158,6 +158,6 @@ export async function getTotalValueLostInHacksByProtocol(): Promise<IProtocolTot
 		}
 		return { protocols: finalProtocls.sort((a, b) => b.totalHacked - a.totalHacked) }
 	} catch (error) {
-		console.error(error)
+		console.log(error)
 	}
 }

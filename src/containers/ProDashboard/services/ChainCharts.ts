@@ -78,7 +78,7 @@ export default class ChainCharts {
 				return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
 			}
 		} catch (error) {
-			console.error('Error merging chain data:', error)
+			console.log('Error merging chain data:', error)
 		}
 
 		return []
@@ -229,7 +229,7 @@ export default class ChainCharts {
 		const metadata = CHART_METADATA[chartType]
 
 		if (!metadata) {
-			console.error(`Unknown chart type: ${chartType}`)
+			console.log(`Unknown chart type: ${chartType}`)
 			return []
 		}
 
@@ -254,7 +254,7 @@ export default class ChainCharts {
 				}
 				return []
 			default:
-				console.error(`Unknown metadata type: ${metadata.type}`)
+				console.log(`Unknown metadata type: ${metadata.type}`)
 				return []
 		}
 	}

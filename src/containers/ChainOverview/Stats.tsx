@@ -148,7 +148,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 				downloadCSV(`${props.metadata.name}.csv`, csvData)
 			} catch (error) {
-				console.error('CSV download error:', error)
+				console.log('CSV download error:', error)
 				toast.error('Failed to download CSV data')
 			}
 		}

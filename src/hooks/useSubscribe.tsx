@@ -89,7 +89,7 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 
 				return data
 			} catch (error) {
-				console.error('Error fetching subscription:', error)
+				console.log('Error fetching subscription:', error)
 				return defaultInactiveSubscription
 			}
 		},
@@ -173,7 +173,7 @@ export const useSubscribe = () => {
 				window.open(result.checkoutUrl, '_blank')
 			}
 		} catch (error) {
-			console.error('Subscription error:', error)
+			console.log('Subscription error:', error)
 			throw error
 		} finally {
 			setIsStripeLoading(false)
@@ -217,7 +217,7 @@ export const useSubscribe = () => {
 						window.localStorage.setItem('pro_apikey', data.apiKey.api_key)
 					}
 				} catch (error) {
-					console.error('Error fetching API key:', error)
+					console.log('Error fetching API key:', error)
 				} finally {
 					setIsApiKeyLoading(false)
 				}
@@ -241,7 +241,7 @@ export const useSubscribe = () => {
 				window.localStorage.setItem('pro_apikey', data.apiKey)
 			}
 		} catch (error) {
-			console.error('Error generating API key:', error)
+			console.log('Error generating API key:', error)
 		} finally {
 			setIsApiKeyLoading(false)
 		}
@@ -318,7 +318,7 @@ export const useSubscribe = () => {
 			return data.url
 		},
 		onError: (error) => {
-			console.error('Failed to create portal session:', error)
+			console.log('Failed to create portal session:', error)
 			toast.error('Failed to access subscription management. Please try again.')
 		}
 	})

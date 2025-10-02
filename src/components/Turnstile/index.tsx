@@ -31,7 +31,7 @@ export const Turnstile = ({ onVerify, onError, onExpire, className }: TurnstileP
 	}, [])
 
 	if (!siteKey) {
-		console.error('Turnstile site key is not configured')
+		console.log('Turnstile site key is not configured')
 		return null
 	}
 

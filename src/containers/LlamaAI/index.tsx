@@ -350,7 +350,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					setPaginationState(result.pagination)
 				})
 				.catch((error) => {
-					console.error('Failed to restore session:', error)
+					console.log('Failed to restore session:', error)
 				})
 		}
 	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
@@ -726,7 +726,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			}, 0)
 		} catch (error) {
-			console.error('Failed to load more messages:', error)
+			console.log('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 		}
 	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages])
@@ -874,24 +874,37 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					!isRestoringSession &&
 					!isPending &&
 					!isStreaming ? (
-						<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-							<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-								<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-								<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+						initialSessionId ? (
+							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+									<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
+										Failed to restore session,{' '}
+										<button onClick={handleNewChat} className="text-(--link-text) underline">
+											Start a new chat
+										</button>
+									</p>
+								</div>
 							</div>
-							{!readOnly && (
-								<>
-									<PromptInput
-										handleSubmit={handleSubmit}
-										promptInputRef={promptInputRef}
-										isPending={isPending}
-										handleStopRequest={handleStopRequest}
-										isStreaming={isStreaming}
-									/>
-									<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
-								</>
-							)}
-						</div>
+						) : (
+							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+								</div>
+								{!readOnly && (
+									<>
+										<PromptInput
+											handleSubmit={handleSubmit}
+											promptInputRef={promptInputRef}
+											isPending={isPending}
+											handleStopRequest={handleStopRequest}
+											isStreaming={isStreaming}
+										/>
+										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+									</>
+								)}
+							</div>
+						)
 					) : (
 						<>
 							<div ref={scrollContainerRef} className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5">
@@ -1378,7 +1391,7 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
-			console.error('Failed to copy content:', error)
+			console.log('Failed to copy content:', error)
 		}
 	}
 
@@ -1481,7 +1494,7 @@ const MessageRating = ({
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
-			console.error('Failed to copy content:', error)
+			console.log('Failed to copy content:', error)
 		}
 	}
 

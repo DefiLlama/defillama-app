@@ -75,7 +75,7 @@ export function useAutoSave({
 			// Set new timeout
 			autoSaveTimeoutRef.current = setTimeout(() => {
 				updateDashboard({ id: dashboardId, data }).catch((error) => {
-					console.error('Auto-save failed:', error)
+					console.log('Auto-save failed:', error)
 				})
 			}, delay)
 		},

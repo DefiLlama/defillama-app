@@ -235,7 +235,7 @@ async function getTvlProtocolChainData(
 			}
 		}
 	} catch (error) {
-		console.error(`Error fetching TVL for protocol ${protocol}:`, error)
+		console.log(`Error fetching TVL for protocol ${protocol}:`, error)
 		return {
 			series: [],
 			metadata: {
@@ -410,7 +410,7 @@ async function getDimensionsProtocolChainData(
 			}
 		}
 	} catch (error) {
-		console.error(`Error fetching ${metric} for protocol ${protocol}:`, error)
+		console.log(`Error fetching ${metric} for protocol ${protocol}:`, error)
 		return {
 			series: [],
 			metadata: {
@@ -517,7 +517,7 @@ async function getAllProtocolsTopChainsTvlData(
 			}
 		}
 	} catch (e) {
-		console.error('Error building all-protocols TVL by chain:', e)
+		console.log('Error building all-protocols TVL by chain:', e)
 		return { series: [], metadata: { protocol: 'All Protocols', metric: 'TVL', chains: [], totalChains: 0 } }
 	}
 }
@@ -637,7 +637,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			}
 		}
 	} catch (e) {
-		console.error(`Error building all-protocols ${metric} by chain:`, e)
+		console.log(`Error building all-protocols ${metric} by chain:`, e)
 		return {
 			series: [],
 			metadata: {
@@ -679,7 +679,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.status(200).json(result)
 	} catch (error) {
-		console.error('Error in protocol-chain split API:', error)
+		console.log('Error in protocol-chain split API:', error)
 		res.status(500).json({
 			error: 'Failed to fetch protocol chain data',
 			details: error instanceof Error ? error.message : 'Unknown error'

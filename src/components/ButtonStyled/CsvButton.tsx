@@ -84,7 +84,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 								download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
 							} catch (error) {
 								toast.error('Failed to download CSV')
-								console.error(error)
+								console.log(error)
 							} finally {
 								setStaticLoading(false)
 							}

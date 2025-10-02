@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.status(200).json(options)
 	} catch (error) {
-		console.error('Error fetching token list:', error)
+		console.log('Error fetching token list:', error)
 		res.status(500).json({ error: 'Failed to fetch token list' })
 	}
 }

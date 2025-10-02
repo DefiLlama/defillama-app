@@ -66,7 +66,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 			}
 			return { filename: 'hacks.csv', rows }
 		} catch (error) {
-			console.error('Error generating CSV:', error)
+			console.log('Error generating CSV:', error)
 		}
 	}, [data])
 

@@ -222,7 +222,7 @@ const ChartByType = ({
 
 			return { filename, rows }
 		} catch (error) {
-			console.error('Error generating CSV:', error)
+			console.log('Error generating CSV:', error)
 		}
 	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType])
 

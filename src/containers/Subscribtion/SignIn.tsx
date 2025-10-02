@@ -32,7 +32,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			await login(email, password)
 			dialogState.hide()
 		} catch (error) {
-			console.error('Error signing in:', error)
+			console.log('Error signing in:', error)
 		}
 	}
 
@@ -77,7 +77,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			dialogState.hide()
 			setTurnstileToken('')
 		} catch (error: any) {
-			console.error('Error signing up:', error)
+			console.log('Error signing up:', error)
 
 			if (typeof error?.error === 'string') {
 				setEmailError(`${error.error}. Please reset your password or use another email.`)
@@ -104,7 +104,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			resetPassword(email)
 			setFlow('signin')
 		} catch (error) {
-			console.error('Error resetting password:', error)
+			console.log('Error resetting password:', error)
 		}
 	}
 
@@ -113,7 +113,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 			try {
 				await signInWithEthereum(address, signMessageAsync)
 			} catch (error) {
-				console.error('Error signing in with wallet:', error)
+				console.log('Error signing in with wallet:', error)
 			}
 		} else {
 			openConnectModal?.()
@@ -391,7 +391,7 @@ export const SignIn = ({ text, className }: { text?: string; className?: string 
 								onVerify={(token) => setTurnstileToken(token)}
 								onError={() => {
 									setTurnstileToken('')
-									console.error('Turnstile verification failed')
+									console.log('Turnstile verification failed')
 								}}
 								onExpire={() => setTurnstileToken('')}
 								className="flex justify-center"

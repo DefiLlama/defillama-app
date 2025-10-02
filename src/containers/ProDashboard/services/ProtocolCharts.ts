@@ -32,7 +32,7 @@ export default class ProtocolCharts {
 		try {
 			const response = await fetch(`${PROTOCOL_API}/${protocolId}`)
 			if (!response.ok) {
-				console.error(`Failed to fetch protocol TVL for ${protocolId}: ${response.status}`)
+				console.log(`Failed to fetch protocol TVL for ${protocolId}: ${response.status}`)
 				return []
 			}
 			const data: ProtocolApiResponse = await response.json()
@@ -40,7 +40,7 @@ export default class ProtocolCharts {
 			const adjusted = processAdjustedProtocolTvl(data?.chainTvls as unknown as ProtocolChainTvls)
 			return adjusted
 		} catch (error) {
-			console.error(`Error fetching or processing protocol TVL for ${protocolId}:`, error)
+			console.log(`Error fetching or processing protocol TVL for ${protocolId}:`, error)
 			return []
 		}
 	}
@@ -70,7 +70,7 @@ export default class ProtocolCharts {
 				.map(([ts, val]) => [Number(ts), Number(val)] as [number, number])
 				.sort((a, b) => a[0] - b[0])
 		} catch (e) {
-			console.error('Error fetching protocol incentives', e)
+			console.log('Error fetching protocol incentives', e)
 			return []
 		}
 	}
@@ -172,7 +172,7 @@ export default class ProtocolCharts {
 				.map(([ts, val]) => [Number(ts), Number(val)] as [number, number])
 				.sort((a, b) => a[0] - b[0])
 		} catch (e) {
-			console.error('Error fetching token liquidity', e)
+			console.log('Error fetching token liquidity', e)
 			return []
 		}
 	}
@@ -198,7 +198,7 @@ export default class ProtocolCharts {
 				.map(([d, v]) => [Number(d), Number(v)] as [number, number])
 				.sort((a, b) => a[0] - b[0])
 		} catch (e) {
-			console.error('Error fetching protocol treasury', e)
+			console.log('Error fetching protocol treasury', e)
 			return []
 		}
 	}

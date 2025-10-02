@@ -221,7 +221,7 @@ export const getPeggedAssetPageData = async (peggedasset: string) => {
 	}
 	const [res, { chainCoingeckoIds }, recentCoinsData] = await Promise.all([
 		fetchJson(`${PEGGED_API}/${peggedID}`).catch((e) => {
-			console.error(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
+			console.log(`Failed to fetch ${PEGGED_API}/${peggedID}: ${e}`)
 			return null
 		}),
 		getConfigData(),

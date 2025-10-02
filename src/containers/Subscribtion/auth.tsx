@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					return null
 				}
 
-				console.error('Error refreshing auth:', error)
+				console.log('Error refreshing auth:', error)
 
 				if (error?.status === 401 || error?.code === 401) {
 					pb.authStore.clear()
@@ -127,7 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 				return res
 			} catch (error) {
-				console.error('Login error:', error)
+				console.log('Login error:', error)
 				throw new Error('Invalid credentials')
 			}
 		},
@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				})
 				onSuccess?.()
 			} catch (e) {
-				console.error('Login error:', e)
+				console.log('Login error:', e)
 				throw e
 			}
 		},
@@ -252,7 +252,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			}
 
 			if (!pb.authStore.isValid) {
-				console.error('Not authenticated')
+				console.log('Not authenticated')
 				return null
 			}
 
@@ -326,7 +326,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 				return { address }
 			} catch (error) {
-				console.error('Ethereum sign-in error:', error)
+				console.log('Ethereum sign-in error:', error)
 				throw new Error('Failed to sign in with Ethereum')
 			}
 		},
@@ -353,7 +353,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				onSuccess?.()
 				return Promise.resolve()
 			} catch (error) {
-				console.error('Ethereum sign-in error:', error)
+				console.log('Ethereum sign-in error:', error)
 				return Promise.reject(error)
 			}
 		},
@@ -370,7 +370,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 				return authData
 			} catch (error) {
-				console.error('Github sign-in error:', error)
+				console.log('Github sign-in error:', error)
 				throw new Error('Failed to sign in with Github')
 			}
 		},
@@ -396,7 +396,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				toast.success('Successfully signed in with Github')
 				return Promise.resolve()
 			} catch (error) {
-				console.error('Github sign-in error:', error)
+				console.log('Github sign-in error:', error)
 				return Promise.reject(error)
 			}
 		},
@@ -468,7 +468,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				onSuccess?.()
 				return Promise.resolve()
 			} catch (error) {
-				console.error('Add wallet error:', error)
+				console.log('Add wallet error:', error)
 				return Promise.reject(error)
 			}
 		},
@@ -508,7 +508,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				toast.success('Verification email sent')
 				return true
 			} catch (error) {
-				console.error('Error sending verification email:', error)
+				console.log('Error sending verification email:', error)
 				throw error
 			}
 		},

@@ -176,7 +176,7 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			description: config.description
 		}
 	} catch (error) {
-		console.error('PieChart adapter error:', error)
+		console.log('PieChart adapter error:', error)
 		return {
 			chartType: 'pie',
 			data: [],
@@ -217,7 +217,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 			description: config.description
 		}
 	} catch (error) {
-		console.error('ScatterChart adapter error:', error)
+		console.log('ScatterChart adapter error:', error)
 		return {
 			chartType: 'scatter',
 			data: [],
@@ -342,7 +342,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			description: config.description
 		}
 	} catch (error) {
-		console.error('Chart adapter error:', error)
+		console.log('Chart adapter error:', error)
 
 		return {
 			chartType: 'area',
@@ -440,17 +440,16 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 					formatter: (params: any) => {
 						if (!Array.isArray(params)) return ''
 						const xValue = params[0]?.value?.[0]
-						const header = config.axes.x.type === 'time'
-							? new Date(xValue).toLocaleDateString()
-							: String(xValue)
+						const header = config.axes.x.type === 'time' ? new Date(xValue).toLocaleDateString() : String(xValue)
 
 						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>`
 						params.forEach((param: any) => {
 							const value = param.value?.[1]
 							if (value != null) {
-								const formattedValue = config.valueSymbol === '%'
-									? formatPrecisionPercentage(value)
-									: formatTooltipValue(value, config.valueSymbol ?? '')
+								const formattedValue =
+									config.valueSymbol === '%'
+										? formatPrecisionPercentage(value)
+										: formatTooltipValue(value, config.valueSymbol ?? '')
 								content += `<div>${param.marker} ${param.seriesName}: ${formattedValue}</div>`
 							}
 						})
@@ -468,7 +467,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			description: config.description
 		}
 	} catch (error) {
-		console.error('Multi-series chart adapter error:', error)
+		console.log('Multi-series chart adapter error:', error)
 
 		return {
 			chartType: 'multi-series',

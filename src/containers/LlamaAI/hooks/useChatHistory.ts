@@ -2,6 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { handleSimpleFetchResponse } from '~/utils/async'
 
 export interface ChatSession {
 	sessionId: string
@@ -39,17 +40,22 @@ export function useChatHistory() {
 	const { data: sessions = [], isLoading } = useQuery({
 		queryKey: ['chat-sessions', user?.id],
 		queryFn: async () => {
-			if (!user) return []
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
-			if (!response.ok) throw new Error('Failed to fetch sessions')
-			const data = await response.json()
+			try {
+				if (!user) return []
+				const data = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
 
-			const existingData = (queryClient.getQueryData(['chat-sessions', user.id]) as ChatSession[]) || []
-			const fakeSessions = existingData.filter(
-				(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
-			)
+				const existingData = (queryClient.getQueryData(['chat-sessions', user.id]) as ChatSession[]) || []
+				const fakeSessions = existingData.filter(
+					(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
+				)
 
-			return [...fakeSessions, ...data.sessions]
+				return [...fakeSessions, ...data.sessions]
+			} catch (error) {
+				console.log('Failed to fetch sessions:', error)
+				throw new Error('Failed to fetch sessions')
+			}
 		},
 		enabled: isAuthenticated && !!user,
 		staleTime: 30000
@@ -57,13 +63,20 @@ export function useChatHistory() {
 
 	const createSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ sessionId, title })
-			})
-			if (!response.ok) throw new Error('Failed to create session')
-			return response.json()
+			try {
+				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sessionId, title })
+				})
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+
+				return response
+			} catch (error) {
+				console.log('Failed to create session:', error)
+				throw new Error('Failed to create session')
+			}
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
@@ -72,24 +85,38 @@ export function useChatHistory() {
 
 	const restoreSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
-			const params = new URLSearchParams()
-			if (limit !== undefined) params.append('limit', limit.toString())
-			if (cursor !== undefined) params.append('cursor', cursor.toString())
+			try {
+				const params = new URLSearchParams()
+				if (limit !== undefined) params.append('limit', limit.toString())
+				if (cursor !== undefined) params.append('cursor', cursor.toString())
 
-			const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
-			const response = await authorizedFetch(url)
-			if (!response.ok) throw new Error('Failed to restore session')
-			return response.json()
+				const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
+				const response = await authorizedFetch(url)
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+
+				return response
+			} catch (error) {
+				console.log('Failed to restore session:', error)
+				throw new Error('Failed to restore session')
+			}
 		}
 	})
 
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
-				method: 'DELETE'
-			})
-			if (!response.ok) throw new Error('Failed to delete session')
-			return response.json()
+			try {
+				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
+					method: 'DELETE'
+				})
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+
+				return response
+			} catch (error) {
+				console.log('Failed to delete session:', error)
+				throw new Error('Failed to delete session')
+			}
 		},
 		onMutate: async (sessionId) => {
 			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
@@ -108,11 +135,10 @@ export function useChatHistory() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
 			})
-			if (!response.ok) {
-				throw new Error(`Failed to update title: ${response.status}`)
-			}
-			const result = await response.json()
-			return result
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return response
 		},
 		onMutate: async ({ sessionId, title }) => {
 			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
@@ -162,7 +188,7 @@ export function useChatHistory() {
 					}
 				}
 			} catch (error) {
-				console.error('Failed to restore session:', error)
+				console.log('Failed to restore session:', error)
 				return {
 					conversationHistory: [],
 					pagination: {
@@ -189,7 +215,7 @@ export function useChatHistory() {
 					}
 				}
 			} catch (error) {
-				console.error('Failed to load more messages:', error)
+				console.log('Failed to load more messages:', error)
 				return {
 					conversationHistory: [],
 					pagination: {

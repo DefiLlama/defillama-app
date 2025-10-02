@@ -119,7 +119,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				)
 		}
 	} catch (error) {
-		console.error('Chart render error:', error)
+		console.log('Chart render error:', error)
 		return (
 			<div className="flex flex-col items-center justify-center gap-2 rounded-md bg-red-50 p-1 py-8 text-red-700 dark:bg-red-900/10 dark:text-red-300">
 				<Icon name="alert-triangle" height={16} width={16} />

@@ -24,7 +24,7 @@ export function useDashboardAPI() {
 			try {
 				return await dashboardAPI.listDashboards(authorizedFetch)
 			} catch (error) {
-				console.error('Failed to load dashboards:', error)
+				console.log('Failed to load dashboards:', error)
 				return []
 			}
 		},
@@ -103,7 +103,7 @@ export function useDashboardAPI() {
 				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
 				return dashboard
 			} catch (error: any) {
-				console.error('Failed to load dashboard:', error)
+				console.log('Failed to load dashboard:', error)
 				return null
 			}
 		},

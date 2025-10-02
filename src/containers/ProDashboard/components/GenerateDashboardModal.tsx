@@ -200,7 +200,7 @@ export function GenerateDashboardModal({
 			setTouchedFields({})
 			onClose()
 		} catch (error) {
-			console.error('Failed to generate dashboard:', error)
+			console.log('Failed to generate dashboard:', error)
 			toast.error('Failed to generate dashboard. Please try again.')
 		} finally {
 			setIsLoading(false)

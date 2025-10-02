@@ -54,7 +54,7 @@ export const AccountInfo = () => {
 		try {
 			logout()
 		} catch (error) {
-			console.error('Error logging out:', error)
+			console.log('Error logging out:', error)
 		}
 	}
 

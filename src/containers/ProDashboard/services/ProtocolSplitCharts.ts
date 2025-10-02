@@ -111,7 +111,7 @@ export default class SProtocolSplitCharts {
 
 			return data
 		} catch (error) {
-			console.error(`Error fetching ${metric} split data:`, error)
+			console.log(`Error fetching ${metric} split data:`, error)
 
 			return {
 				series: [],
@@ -202,7 +202,7 @@ export default class SProtocolSplitCharts {
 
 			return response.json()
 		} catch (error) {
-			console.error(`Error fetching protocol chain data for ${protocol}:`, error)
+			console.log(`Error fetching protocol chain data for ${protocol}:`, error)
 			return {
 				series: [],
 				metadata: {

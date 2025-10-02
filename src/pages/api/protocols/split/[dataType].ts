@@ -219,7 +219,7 @@ const fetchCategoryTvl = async (chains: string[], categories: string[]): Promise
 						)
 						return filterOutToday(normalizeDailyPairs(mapped))
 					} catch (e) {
-						console.error('Error fetching category tvl', category, e)
+						console.log('Error fetching category tvl', category, e)
 						return []
 					}
 				})()
@@ -238,7 +238,7 @@ const fetchCategoryTvl = async (chains: string[], categories: string[]): Promise
 							)
 							return filterOutToday(normalizeDailyPairs(mapped))
 						} catch (e) {
-							console.error('Error fetching category tvl', category, chain, e)
+							console.log('Error fetching category tvl', category, chain, e)
 							return []
 						}
 					})()
@@ -420,7 +420,7 @@ const getTvlData = async (
 				const data = await buildSeriesForSlug(t.slug)
 				return { name: t.name, data }
 			} catch (e) {
-				console.error('Error fetching protocol tvl', t.slug, e)
+				console.log('Error fetching protocol tvl', t.slug, e)
 				return { name: t.name, data: [] as [number, number][], failed: true }
 			}
 		})
@@ -428,7 +428,7 @@ const getTvlData = async (
 
 	const failedProtocols = protocolSeries.filter((s: any) => s.failed)
 	if (failedProtocols.length > 0) {
-		console.error(`Failed to fetch data for ${failedProtocols.length} protocols, returning empty chart`)
+		console.log(`Failed to fetch data for ${failedProtocols.length} protocols, returning empty chart`)
 		const displayChains = isAll ? ['All'] : selectedChains
 		return {
 			series: [],
@@ -552,7 +552,7 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 
 		res.status(200).json(result)
 	} catch (error) {
-		console.error('Error handling TVL request:', error)
+		console.log('Error handling TVL request:', error)
 		res.status(500).json({
 			error: 'Failed to fetch TVL data',
 			message: error instanceof Error ? error.message : 'Unknown error'
@@ -600,13 +600,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			try {
 				const response = await fetch(apiUrl)
 				if (!response.ok) {
-					console.error(`API Error for ${metric} on ${singleChain}: ${response.status} - URL: ${apiUrl}`)
+					console.log(`API Error for ${metric} on ${singleChain}: ${response.status} - URL: ${apiUrl}`)
 					return null
 				}
 				const data = await response.json()
 				return { chain: singleChain, data }
 			} catch (error) {
-				console.error(`Error fetching data for ${singleChain}:`, error)
+				console.log(`Error fetching data for ${singleChain}:`, error)
 				return null
 			}
 		})
@@ -955,7 +955,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		})
 	} catch (error) {
 		const metric = req.query.dataType as string
-		console.error(`Error in ${metric} split API:`, error)
+		console.log(`Error in ${metric} split API:`, error)
 		res.status(500).json({
 			error: `Failed to fetch protocol ${metric} data`,
 			details: error instanceof Error ? error.message : 'Unknown error'

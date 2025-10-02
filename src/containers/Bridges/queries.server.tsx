@@ -220,7 +220,7 @@ export async function getBridgeChainsPageData() {
 			fetchJson(`${NETFLOWS_API}/week`).catch(() => null)
 		])
 	} catch (e) {
-		console.error('Failed to fetch netflows data:', e)
+		console.log('Failed to fetch netflows data:', e)
 	}
 
 	let prevDayDataByChain = []

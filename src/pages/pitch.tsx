@@ -187,7 +187,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 			window.open(data.link, '_blank')
 			setPaymentLink(data.link)
 		} catch (error) {
-			console.error('Error creating payment:', error)
+			console.log('Error creating payment:', error)
 		} finally {
 			setIsSubmitting(false)
 		}

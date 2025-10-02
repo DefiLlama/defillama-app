@@ -63,7 +63,7 @@ export const ProApiKey = () => {
 						setApiKey(data.result?.key || null)
 					}
 				} catch (error) {
-					console.error('Error fetching API key:', error)
+					console.log('Error fetching API key:', error)
 				} finally {
 					setIsLoading(false)
 				}
@@ -87,7 +87,7 @@ export const ProApiKey = () => {
 				setApiKey(data.result?.key || null)
 			}
 		} catch (error) {
-			console.error('Error generating API key:', error)
+			console.log('Error generating API key:', error)
 		} finally {
 			setIsLoading(false)
 		}
