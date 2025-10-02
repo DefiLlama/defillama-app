@@ -75,9 +75,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 								const { filename, rows } = prepareCsv()
 
 								const escapeCell = (value: string | number | boolean | null | undefined) => {
-									if (value === null || value === undefined) return ''
-									const str = String(value)
-									if (str.includes(',')) return `"${str}"`
+									if (value == null) return ''
+									const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
+									if (str.includes(',') || str.includes('"')) {
+										return `"${str.replace(/"/g, '""')}"`
+									}
 									return str
 								}
 
