@@ -722,6 +722,10 @@
       "route": "/support"
     },
     {
+      "name": "Careers",
+      "route": "https://github.com/DefiLlama/careers/blob/master/README.md"
+    },
+    {
       "name": "Report Incorrect Data",
       "route": "/report-error"
     },
