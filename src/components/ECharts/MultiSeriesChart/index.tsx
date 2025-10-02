@@ -27,6 +27,7 @@ interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	xAxisType?: 'time' | 'category'
 	showAggregateInTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 }
@@ -40,6 +41,7 @@ export default function MultiSeriesChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	alwaysShowTooltip,
+	xAxisType = 'time',
 	showAggregateInTooltip = false,
 	onReady
 }: IMultiSeriesChartProps) {
@@ -49,6 +51,7 @@ export default function MultiSeriesChart({
 
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
+		xAxisType,
 		groupBy:
 			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
 				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
@@ -72,7 +75,9 @@ export default function MultiSeriesChart({
 					itemStyle: {
 						color: serie.color
 					},
-					data: serie.data?.map(([timestamp, value]: [number, number]) => [+timestamp * 1e3, value]) || [],
+					data: serie.data?.map(([x, y]: [any, number]) =>
+						xAxisType === 'time' ? [+x * 1e3, y] : [x, y]
+					) || [],
 					metricType: serie.metricType,
 					...(serie.logo && {
 						legendIcon: 'image://' + serie.logo

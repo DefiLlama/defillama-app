@@ -396,8 +396,8 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			} else {
 				seriesData = filteredData.map((row) => {
 					const category = row[seriesConfig.dataMapping.xField] || 'Unknown'
-					const value = row[seriesConfig.dataMapping.yField] || 0
-					return [category as any, parseStringNumber(value)]
+					const value = row[seriesConfig.dataMapping.yField]
+					return [category as any, value == null ? null : parseStringNumber(value)]
 				})
 			}
 
@@ -425,6 +425,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			hideDataZoom: true,
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
+			xAxisType: config.axes.x.type,
 
 			chartOptions: {
 				grid: {
@@ -435,30 +436,28 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				},
 				tooltip: {
 					confine: false,
-					appendToBody: true
-				}
-			},
+					appendToBody: true,
+					formatter: (params: any) => {
+						if (!Array.isArray(params)) return ''
+						const xValue = params[0]?.value?.[0]
+						const header = config.axes.x.type === 'time'
+							? new Date(xValue).toLocaleDateString()
+							: String(xValue)
 
-			...(config.valueSymbol === '%' && {
-				tooltipFormatter: (params: any) => {
-					if (Array.isArray(params)) {
-						const timestamp = params[0]?.value?.[0]
-						const date = new Date(timestamp).toLocaleDateString()
-
-						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${date}</div>`
-
+						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>`
 						params.forEach((param: any) => {
 							const value = param.value?.[1]
-							if (value !== null && value !== undefined) {
-								content += `<div>${param.marker} ${param.seriesName}: ${formatPrecisionPercentage(value)}</div>`
+							if (value != null) {
+								const formattedValue = config.valueSymbol === '%'
+									? formatPrecisionPercentage(value)
+									: formatTooltipValue(value, config.valueSymbol ?? '')
+								content += `<div>${param.marker} ${param.seriesName}: ${formattedValue}</div>`
 							}
 						})
-
 						return content
 					}
-					return ''
 				}
-			})
+			}
 		}
 
 		return {
