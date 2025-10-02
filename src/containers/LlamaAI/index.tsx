@@ -1035,7 +1035,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									}
 									className="pointer-events-auto mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324]"
 								>
-									<Icon name="chevron-down" height={16} width={16} />
+									<Icon name="arrow-down" height={16} width={16} />
 									<span className="sr-only">Scroll to bottom</span>
 								</Tooltip>
 							</div>
