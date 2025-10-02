@@ -303,11 +303,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const isAutoScrollingRef = useRef(false) // Flag during session restoration auto-scroll
 	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 
-	// Clean reset function for scroll state when restoring a session
 	const resetScrollState = useCallback(() => {
 		setShowScrollToBottom(false)
 		shouldAutoScrollRef.current = true
-		isAutoScrollingRef.current = true // Set flag before auto-scroll starts
+		isAutoScrollingRef.current = true
 	}, [])
 
 	useEffect(() => {
@@ -331,7 +330,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			resetScrollState()
 			setConversationHistory(sharedSession.conversationHistory)
 			setSessionId(sharedSession.session.sessionId)
-			// ResizeObserver will handle scrolling when content loads
 		}
 	}, [sharedSession, resetScrollState])
 
@@ -350,7 +348,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				.then((result) => {
 					setConversationHistory(result.conversationHistory)
 					setPaginationState(result.pagination)
-					// ResizeObserver will handle scrolling when content loads
 				})
 				.catch((error) => {
 					console.error('Failed to restore session:', error)
@@ -581,7 +578,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		submitPrompt({ userQuestion: finalPrompt })
-		// Streaming useEffect will handle auto-scroll
 	}
 
 	const handleSubmitWithSuggestion = (prompt: string, suggestion: any) => {
@@ -597,7 +593,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			userQuestion: finalPrompt,
 			suggestionContext: suggestion
 		})
-		// Streaming useEffect will handle auto-scroll
 	}
 
 	const router = useRouter()
@@ -664,7 +659,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		selectedSessionId: string,
 		data: { conversationHistory: any[]; pagination?: any }
 	) => {
-		// Reset scroll state first
 		resetScrollState()
 
 		if (sessionId && isStreaming) {
@@ -706,7 +700,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setExpectedChartInfo(null)
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
-		// ResizeObserver will handle scrolling when content loads
 
 		promptInputRef.current?.focus()
 	}
@@ -752,7 +745,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setResizeTrigger((prev) => prev + 1)
 	}
 
-	// Simplified scroll handling
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
@@ -766,13 +758,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				if (!container) return
 				const { scrollTop, scrollHeight, clientHeight } = container
 
-				// Simple check: are we at the bottom? (with tolerance for padding/margins)
 				const scrollBottom = Math.ceil(scrollTop + clientHeight)
-				const threshold = scrollHeight - 20 // Increased tolerance for bottom padding
+				const threshold = scrollHeight - 20
 				const isAtBottom = scrollBottom >= threshold
 				const hasScrollableContent = scrollHeight > clientHeight
 
-				// If restoring session and content is loaded, scroll to bottom once
 				if (isAutoScrollingRef.current && hasScrollableContent) {
 					container.scrollTop = scrollHeight
 					setTimeout(() => {
@@ -781,40 +771,27 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					return
 				}
 
-				// Update auto-scroll flag for streaming
 				shouldAutoScrollRef.current = isAtBottom
 
-				// Simple button visibility logic
 				const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
 				setShowScrollToBottom(shouldShowButton)
 
-				// Load more messages when scrolled near top
 				if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
 					handleLoadMoreMessages()
 				}
 			})
 		}
 
-		// Throttled scroll handler
 		const throttledScroll = throttle(checkScrollState, 150)
-
-		// Debounced resize handler
 		const debouncedResize = debounce(checkScrollState, 100)
 
-		// ResizeObserver for content changes (e.g., when loading restored session)
 		if ('ResizeObserver' in window) {
 			resizeObserverRef.current = new ResizeObserver(debouncedResize)
 			resizeObserverRef.current.observe(container)
 		}
 
-		// Listen to scroll events (throttled for performance)
 		container.addEventListener('scroll', throttledScroll, { passive: true })
-
-		// Listen to scrollend event to catch final position when scrolling stops
-		// This ensures we update button state even if throttled scroll misses the final position
 		container.addEventListener('scrollend', checkScrollState, { passive: true })
-
-		// Check initial state
 		checkScrollState()
 
 		return () => {
@@ -829,7 +806,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, handleLoadMoreMessages, isStreaming])
 
-	// Auto-scroll during streaming
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingResponse || isStreaming)) {
 			requestAnimationFrame(() => {
@@ -843,7 +819,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [streamingResponse, isStreaming])
 
-	// Auto-scroll when new conversation history is added
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && conversationHistory.length > 0) {
 			requestAnimationFrame(() => {
@@ -862,12 +837,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [])
 
-	// Reset animation flag after animation completes
 	useEffect(() => {
 		if (shouldAnimateSidebar) {
 			const timer = setTimeout(() => {
 				setShouldAnimateSidebar(false)
-			}, 220) // Match the animation duration (0.22s = 220ms)
+			}, 220)
 			return () => clearTimeout(timer)
 		}
 	}, [shouldAnimateSidebar])
@@ -922,7 +896,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div ref={scrollContainerRef} className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5">
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									{/* Show loading when restoring session */}
 									{isRestoringSession && conversationHistory.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 											Loading conversation
@@ -1022,7 +995,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										<button
 											onClick={() => {
 												if (scrollContainerRef.current) {
-													// Hide button immediately when clicking - we're scrolling to bottom
 													setShowScrollToBottom(false)
 
 													scrollContainerRef.current.scrollTo({
