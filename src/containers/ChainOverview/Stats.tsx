@@ -709,24 +709,10 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 												<button
 													key={`add-chain-metric-${chainCharts[tchart]}`}
 													onClick={() => {
-														updateRoute(
-															chainCharts[tchart],
-															chainCharts[tchart] === 'tvl'
-																? router.query[chainCharts[tchart]] !== 'false'
-																	? 'false'
-																	: 'true'
-																: router.query[chainCharts[tchart]] === 'true'
-																	? 'false'
-																	: 'true',
-															router
-														)
+														updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
 														metricsDialogStore.toggle()
 													}}
-													data-active={
-														chainCharts[tchart] === 'tvl'
-															? router.query[chainCharts[tchart]] !== 'false'
-															: router.query[chainCharts[tchart]] === 'true'
-													}
+													data-active={toggledCharts.includes(tchart)}
 													className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 												>
 													<span>
@@ -739,13 +725,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 																)
 															: tchart}
 													</span>
-													{chainCharts[tchart] === 'tvl' ? (
-														router.query[chainCharts[tchart]] === 'false' ? (
-															<Icon name="plus" className="h-3.5 w-3.5" />
-														) : (
-															<Icon name="x" className="h-3.5 w-3.5" />
-														)
-													) : router.query[chainCharts[tchart]] === 'true' ? (
+													{toggledCharts.includes(tchart) ? (
 														<Icon name="x" className="h-3.5 w-3.5" />
 													) : (
 														<Icon name="plus" className="h-3.5 w-3.5" />
@@ -766,17 +746,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										value={tchart}
 										checked={true}
 										onChange={() => {
-											updateRoute(
-												chainCharts[tchart],
-												chainCharts[tchart] === 'tvl'
-													? router.query[chainCharts[tchart]] !== 'false'
-														? 'false'
-														: 'true'
-													: router.query[chainCharts[tchart]] === 'true'
-														? 'false'
-														: 'true',
-												router
-											)
+											updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
 										}}
 										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 									/>
