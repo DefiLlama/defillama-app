@@ -3,10 +3,7 @@ import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
-import { ItemSelect } from '../ItemSelect'
-import { ProtocolSelect } from '../ProtocolSelect'
-import { ChartTypeMultiSelector } from './ChartTypeMultiSelector'
-import { ChartTypeSingleSelector } from './ChartTypeSingleSelector'
+import { AriakitSelect } from '../AriakitSelect'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
 import { SubjectMultiPanel } from './SubjectMultiPanel'
@@ -129,6 +126,17 @@ export function UnifiedChartTab({
 
 	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
 
+	const chartTypeOptions = useMemo(() => {
+		const availableTypes = instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : globalAvailableChartTypes
+		const chartTypesOrder = selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes
+		return chartTypesOrder
+			.filter((type) => availableTypes.includes(type))
+			.map((type) => ({
+				value: type,
+				label: CHART_TYPES[type as keyof typeof CHART_TYPES]?.title || type
+			}))
+	}, [instantAvailableChartTypes, globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
+
 	return (
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
 			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
@@ -147,14 +155,13 @@ export function UnifiedChartTab({
 					)}
 
 					<div className="mb-2 flex-shrink-0">
-						<ChartTypeSingleSelector
-							selectedChartType={selectedChartTypeSingle}
-							availableChartTypes={
-								instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : globalAvailableChartTypes
-							}
-							chartTypes={selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes}
+						<AriakitSelect
+							label="Select Chart Type"
+							options={chartTypeOptions}
+							selectedValue={selectedChartTypeSingle}
+							onChange={(option) => onChartTypesChange([option.value])}
+							placeholder="Select chart type..."
 							isLoading={metaLoading}
-							onChange={(value) => onChartTypesChange([value])}
 						/>
 					</div>
 
