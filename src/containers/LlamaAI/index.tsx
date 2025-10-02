@@ -1011,7 +1011,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									<span className="sr-only">Scroll to bottom</span>
 								</Tooltip>
 							</div>
-							<div className="relative mx-auto w-full max-w-3xl">
+							<div className="relative mx-auto w-full max-w-3xl pb-2.5">
 								{!readOnly && (
 									<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 								)}
@@ -1077,7 +1077,7 @@ const PromptInput = ({
 					onChange={onChange}
 					onKeyDown={onKeyDown}
 					name="prompt"
-					className="w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
+					className="block w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
