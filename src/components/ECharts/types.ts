@@ -115,6 +115,7 @@ export interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	xAxisType?: 'time' | 'category'
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
