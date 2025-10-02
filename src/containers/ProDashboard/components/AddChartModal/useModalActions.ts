@@ -486,7 +486,7 @@ export function useModalActions(
 				handleEditItem(editItem.id, newItem)
 			}
 		} else {
-			if (state.selectedMainTab === 'charts') {
+			if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
 						handleAddMultiChart(state.composerItems, state.unifiedChartName.trim() || undefined)
@@ -600,6 +600,7 @@ export function useModalActions(
 		handleAddChart,
 		handleAddTable,
 		handleAddText,
+		handleAddMetric,
 		handleAddChartBuilder,
 		resetState,
 		onClose

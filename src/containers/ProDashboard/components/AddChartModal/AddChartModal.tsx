@@ -155,6 +155,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedTokens={state.selectedTokens}
 						chartBuilder={state.chartBuilder}
 						chartCreationMode={state.chartCreationMode}
+						chartMode={state.chartMode}
 						metricSubjectType={state.metricSubjectType}
 						metricChain={state.metricChain}
 						metricProtocol={state.metricProtocol}
