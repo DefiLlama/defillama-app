@@ -1,4 +1,4 @@
-import { RefObject, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -14,6 +14,7 @@ import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
+import { debounce, throttle } from './utils/scrollUtils'
 
 class StreamingContent {
 	private content: string = ''
@@ -274,50 +275,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		totalMessages?: number
 	}>({ hasMore: false, isLoadingMore: false })
 
-	useEffect(() => {
-		userRef.current = user
-	}, [user])
-
-	useEffect(() => {
-		sessionIdRef.current = sessionId
-	}, [sessionId])
-
-	useEffect(() => {
-		if (initialSessionId && !sessionId) {
-			setSessionId(initialSessionId)
-			setHasRestoredSession(null)
-		}
-	}, [initialSessionId, sessionId])
-
-	useEffect(() => {
-		if (sharedSession) {
-			setConversationHistory(sharedSession.conversationHistory)
-			setSessionId(sharedSession.session.sessionId)
-		}
-	}, [sharedSession])
-
 	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
-	useEffect(() => {
-		if (
-			sessionId &&
-			user &&
-			!sharedSession &&
-			!readOnly &&
-			hasRestoredSession !== sessionId &&
-			!newlyCreatedSessionsRef.current.has(sessionId)
-		) {
-			setHasRestoredSession(sessionId)
-			restoreSession(sessionId)
-				.then((result) => {
-					setConversationHistory(result.conversationHistory)
-					setPaginationState(result.pagination)
-				})
-				.catch((error) => {
-					console.error('Failed to restore session:', error)
-				})
-		}
-	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession])
-
 	const [streamingResponse, setStreamingResponse] = useState('')
 	const [streamingError, setStreamingError] = useState('')
 	const [isStreaming, setIsStreaming] = useState(false)
@@ -332,11 +290,70 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
 	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
+	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
+	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
+	const [prompt, setPrompt] = useState('')
+
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
-	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
+	const rafIdRef = useRef<number | null>(null)
+	const resizeObserverRef = useRef<ResizeObserver | null>(null)
+	const isAutoScrollingRef = useRef(false) // Flag during session restoration auto-scroll
+	const promptInputRef = useRef<HTMLTextAreaElement>(null)
+
+	const resetScrollState = useCallback(() => {
+		setShowScrollToBottom(false)
+		shouldAutoScrollRef.current = true
+		isAutoScrollingRef.current = true
+	}, [])
+
+	useEffect(() => {
+		userRef.current = user
+	}, [user])
+
+	useEffect(() => {
+		sessionIdRef.current = sessionId
+	}, [sessionId])
+
+	useEffect(() => {
+		if (initialSessionId && !sessionId) {
+			resetScrollState()
+			setSessionId(initialSessionId)
+			setHasRestoredSession(null)
+		}
+	}, [initialSessionId, sessionId, resetScrollState])
+
+	useEffect(() => {
+		if (sharedSession) {
+			resetScrollState()
+			setConversationHistory(sharedSession.conversationHistory)
+			setSessionId(sharedSession.session.sessionId)
+		}
+	}, [sharedSession, resetScrollState])
+
+	useEffect(() => {
+		if (
+			sessionId &&
+			user &&
+			!sharedSession &&
+			!readOnly &&
+			hasRestoredSession !== sessionId &&
+			!newlyCreatedSessionsRef.current.has(sessionId)
+		) {
+			resetScrollState()
+			setHasRestoredSession(sessionId)
+			restoreSession(sessionId)
+				.then((result) => {
+					setConversationHistory(result.conversationHistory)
+					setPaginationState(result.pagination)
+				})
+				.catch((error) => {
+					console.error('Failed to restore session:', error)
+				})
+		}
+	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
 
 	const parseChartInfo = (message: string): { count?: number; types?: string[] } => {
 		const info: { count?: number; types?: string[] } = {}
@@ -374,9 +391,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		return info
 	}
-
-	const [prompt, setPrompt] = useState('')
-	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 
 	const {
 		data: promptResponse,
@@ -557,17 +571,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const handleSubmit = (prompt: string) => {
 		const finalPrompt = prompt.trim()
 		setPrompt(finalPrompt)
-
 		shouldAutoScrollRef.current = true
-
-		setTimeout(() => {
-			if (scrollContainerRef.current) {
-				scrollContainerRef.current.scrollTo({
-					top: scrollContainerRef.current.scrollHeight,
-					behavior: 'smooth'
-				})
-			}
-		}, 0)
 
 		if (sessionId) {
 			moveSessionToTop(sessionId)
@@ -579,17 +583,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const handleSubmitWithSuggestion = (prompt: string, suggestion: any) => {
 		const finalPrompt = prompt.trim()
 		setPrompt(finalPrompt)
-
 		shouldAutoScrollRef.current = true
-
-		setTimeout(() => {
-			if (scrollContainerRef.current) {
-				scrollContainerRef.current.scrollTo({
-					top: scrollContainerRef.current.scrollHeight,
-					behavior: 'smooth'
-				})
-			}
-		}, 0)
 
 		if (sessionId) {
 			moveSessionToTop(sessionId)
@@ -665,6 +659,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		selectedSessionId: string,
 		data: { conversationHistory: any[]; pagination?: any }
 	) => {
+		resetScrollState()
+
 		if (sessionId && isStreaming) {
 			try {
 				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
@@ -705,19 +701,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 
-		setTimeout(() => {
-			if (scrollContainerRef.current) {
-				scrollContainerRef.current.scrollTo({
-					top: scrollContainerRef.current.scrollHeight,
-					behavior: 'smooth'
-				})
-			}
-		}, 0)
-
 		promptInputRef.current?.focus()
 	}
 
-	const handleLoadMoreMessages = async () => {
+	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
 
 		const scrollContainer = scrollContainerRef.current
@@ -742,7 +729,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			console.error('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 		}
-	}
+	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages])
 
 	const handleSuggestionClick = (suggestion: any) => {
 		let promptText = ''
@@ -759,45 +746,88 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	}
 
 	useEffect(() => {
-		const handleScroll = () => {
-			if (!scrollContainerRef.current) return
+		const container = scrollContainerRef.current
+		if (!container) return
 
-			const container = scrollContainerRef.current
-			const { scrollTop, scrollHeight, clientHeight } = container
-			const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100
+		const checkScrollState = () => {
+			if (rafIdRef.current) {
+				cancelAnimationFrame(rafIdRef.current)
+			}
 
-			shouldAutoScrollRef.current = isNearBottom
+			rafIdRef.current = requestAnimationFrame(() => {
+				if (!container) return
+				const { scrollTop, scrollHeight, clientHeight } = container
 
-			if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
-				handleLoadMoreMessages()
+				const scrollBottom = Math.ceil(scrollTop + clientHeight)
+				const threshold = scrollHeight - 20
+				const isAtBottom = scrollBottom >= threshold
+				const hasScrollableContent = scrollHeight > clientHeight
+
+				if (isAutoScrollingRef.current && hasScrollableContent) {
+					container.scrollTop = scrollHeight
+					setTimeout(() => {
+						isAutoScrollingRef.current = false
+					}, 300)
+					return
+				}
+
+				shouldAutoScrollRef.current = isAtBottom
+
+				const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
+				setShowScrollToBottom(shouldShowButton)
+
+				if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
+					handleLoadMoreMessages()
+				}
+			})
+		}
+
+		const throttledScroll = throttle(checkScrollState, 150)
+		const debouncedResize = debounce(checkScrollState, 100)
+
+		if ('ResizeObserver' in window) {
+			resizeObserverRef.current = new ResizeObserver(debouncedResize)
+			resizeObserverRef.current.observe(container)
+		}
+
+		container.addEventListener('scroll', throttledScroll, { passive: true })
+		container.addEventListener('scrollend', checkScrollState, { passive: true })
+		checkScrollState()
+
+		return () => {
+			container.removeEventListener('scroll', throttledScroll)
+			container.removeEventListener('scrollend', checkScrollState)
+			if (resizeObserverRef.current) {
+				resizeObserverRef.current.disconnect()
+			}
+			if (rafIdRef.current) {
+				cancelAnimationFrame(rafIdRef.current)
 			}
 		}
-
-		const container = scrollContainerRef.current
-		if (container) {
-			container.addEventListener('scroll', handleScroll)
-			return () => container.removeEventListener('scroll', handleScroll)
-		}
-	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore])
+	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, handleLoadMoreMessages, isStreaming])
 
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingResponse || isStreaming)) {
-			scrollContainerRef.current.scrollTo({
-				top: scrollContainerRef.current.scrollHeight,
-				behavior: 'smooth'
+			requestAnimationFrame(() => {
+				if (scrollContainerRef.current) {
+					scrollContainerRef.current.scrollTo({
+						top: scrollContainerRef.current.scrollHeight,
+						behavior: 'smooth'
+					})
+				}
 			})
 		}
 	}, [streamingResponse, isStreaming])
 
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && conversationHistory.length > 0) {
-			setTimeout(() => {
+			requestAnimationFrame(() => {
 				if (scrollContainerRef.current && shouldAutoScrollRef.current) {
 					scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 				}
-			}, 0)
+			})
 		}
-	}, [conversationHistory])
+	}, [conversationHistory.length])
 
 	useEffect(() => {
 		return () => {
@@ -807,12 +837,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [])
 
-	// Reset animation flag after animation completes
 	useEffect(() => {
 		if (shouldAnimateSidebar) {
 			const timer = setTimeout(() => {
 				setShouldAnimateSidebar(false)
-			}, 220) // Match the animation duration (0.22s = 220ms)
+			}, 220)
 			return () => clearTimeout(timer)
 		}
 	}, [shouldAnimateSidebar])
@@ -865,9 +894,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						</div>
 					) : (
 						<>
-							<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-y-auto p-2.5">
+							<div ref={scrollContainerRef} className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5">
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									{/* Show loading when restoring session */}
 									{isRestoringSession && conversationHistory.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 											Loading conversation
@@ -958,9 +986,36 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									)}
 								</div>
 							</div>
-							{!readOnly && (
-								<div className="relative mx-auto w-full max-w-3xl">
+							<div
+								className={`pointer-events-none sticky bottom-40 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+							>
+								<Tooltip
+									content="Scroll to bottom"
+									render={
+										<button
+											onClick={() => {
+												if (scrollContainerRef.current) {
+													setShowScrollToBottom(false)
+
+													scrollContainerRef.current.scrollTo({
+														top: scrollContainerRef.current.scrollHeight,
+														behavior: 'smooth'
+													})
+												}
+											}}
+										/>
+									}
+									className="pointer-events-auto mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324]"
+								>
+									<Icon name="arrow-down" height={16} width={16} />
+									<span className="sr-only">Scroll to bottom</span>
+								</Tooltip>
+							</div>
+							<div className="relative mx-auto w-full max-w-3xl">
+								{!readOnly && (
 									<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+								)}
+								{!readOnly && (
 									<PromptInput
 										handleSubmit={handleSubmit}
 										promptInputRef={promptInputRef}
@@ -968,8 +1023,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 									/>
-								</div>
-							)}
+								)}
+							</div>
 						</>
 					)}
 				</div>
