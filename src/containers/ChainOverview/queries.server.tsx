@@ -851,14 +851,20 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				slug: slug(metadataCache.protocolMetadata[protocol.defillamaId].displayName),
 				chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
 				category: protocol.category ?? null,
-				tvl: protocol.tvl != null ? tvls : null,
-				tvlChange: protocol.tvl != null ? tvlChange : null,
+				tvl: protocol.tvl != null && protocol.category !== 'Bridge' ? tvls : null,
+				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
-				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +(protocol.mcap / tvls.default.tvl).toFixed(2) : null,
-				strikeTvl: toStrikeTvl(protocol, {
-					liquidstaking: tvls?.liquidstaking ? true : false,
-					doublecounted: tvls?.doublecounted ? true : false
-				})
+				mcaptvl:
+					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
+						? +(protocol.mcap / tvls.default.tvl).toFixed(2)
+						: null,
+				strikeTvl:
+					protocol.category !== 'Bridge'
+						? toStrikeTvl(protocol, {
+								liquidstaking: tvls?.liquidstaking ? true : false,
+								doublecounted: tvls?.doublecounted ? true : false
+							})
+						: false
 			}
 
 			if (protocol.deprecated) {
