@@ -30,7 +30,7 @@ const promptCategories = [
 		prompts: [
 			"What's the correlation between protocol token unlock schedules and 30-day price performance for top 20 protocols with upcoming unlocks?",
 			'For protocols with >$50M TVL, show me those with growing fundamentals (TVL+fees up 30d) but declining token prices - potential value traps or opportunities?',
-			'Do chains that launch with new protocols perform better over the long term than chains that launch with mostly forked protocols?',
+			'Do chains that launch with new protocols achieve better long-term TVL growth than chains that launch with mostly forked protocols?',
 			'Which categories show the highest revenue stability?'
 		]
 	},
