@@ -175,7 +175,8 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 										navigator.clipboard.writeText(`${window.location.origin}/ai/shared/${session.shareToken}`)
 									}
 								} catch (error) {
-									console.log('Failed to copy link:', error)
+									console.log(error)
+									toast.error('Failed to copy link')
 								} finally {
 									setIsCopyingLink(true)
 									setTimeout(() => {

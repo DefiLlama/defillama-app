@@ -2,6 +2,7 @@ import { RefObject, useCallback, useDeferredValue, useEffect, useRef, useState }
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -938,7 +939,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																	resizeTrigger={resizeTrigger}
 																/>
 															)}
-															<MessageRating
+															<ResponseControls
 																messageId={item.messageId}
 																content={item.response.answer}
 																initialRating={item.userRating}
@@ -1429,7 +1430,7 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 	)
 }
 
-const MessageRating = ({
+const ResponseControls = ({
 	messageId,
 	content,
 	initialRating,
@@ -1467,6 +1468,10 @@ const MessageRating = ({
 				navigator.clipboard.writeText(shareLink)
 				setShowShareModal(true)
 			}
+		},
+		onError: (err) => {
+			toast.error('Failed to fetch session id')
+			console.log(err)
 		}
 	})
 
@@ -1488,6 +1493,10 @@ const MessageRating = ({
 		},
 		onSuccess: () => {
 			setShowFeedback(true)
+		},
+		onError: (err) => {
+			toast.error('Failed to rate as good')
+			console.log(err)
 		}
 	})
 
@@ -1509,6 +1518,10 @@ const MessageRating = ({
 		},
 		onSuccess: () => {
 			setShowFeedback(true)
+		},
+		onError: (err) => {
+			toast.error('Failed to rate as good')
+			console.log(err)
 		}
 	})
 
@@ -1565,6 +1578,16 @@ const MessageRating = ({
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
 					<span className="sr-only">Thumbs Down</span>
 				</Tooltip>
+				{sessionId && (
+					<Tooltip
+						content="Share"
+						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
+						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
+					>
+						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
+						<span className="sr-only">Share</span>
+					</Tooltip>
+				)}
 				<Tooltip
 					content="Provide Feedback"
 					render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
@@ -1573,16 +1596,6 @@ const MessageRating = ({
 					<Icon name="message-square-warning" height={14} width={14} />
 					<span className="sr-only">Provide Feedback</span>
 				</Tooltip>
-				{sessionId && (
-					<Tooltip
-						content="Share"
-						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
-						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
-					>
-						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="link" height={14} width={14} />}
-						<span className="sr-only">Share</span>
-					</Tooltip>
-				)}
 			</div>
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog
@@ -1592,7 +1605,7 @@ const MessageRating = ({
 					hideOnInteractOutside
 				>
 					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-semibold">Provide Feedback</h2>
+						<Ariakit.DialogHeading className="text-lg font-semibold">Provide Feedback</Ariakit.DialogHeading>
 						<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
@@ -1608,12 +1621,12 @@ const MessageRating = ({
 					hideOnInteractOutside
 				>
 					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-semibold">Share Conversation</h2>
+						<Ariakit.DialogHeading className="text-lg font-semibold">Share Conversation</Ariakit.DialogHeading>
 						<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
-					<ShareModal shareData={shareData} setShowShareModal={setShowShareModal} />
+					<ShareModalContent shareData={shareData} />
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 		</>
@@ -1693,13 +1706,7 @@ const FeedbackForm = ({
 	)
 }
 
-const ShareModal = ({
-	shareData,
-	setShowShareModal
-}: {
-	shareData?: { isPublic: boolean; shareToken?: string }
-	setShowShareModal: (show: boolean) => void
-}) => {
+const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
 	const [copied, setCopied] = useState(false)
 	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
 
@@ -1710,7 +1717,8 @@ const ShareModal = ({
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
-			console.log('Failed to copy link:', error)
+			console.log(error)
+			toast.error('Failed to copy link')
 		}
 	}
 
