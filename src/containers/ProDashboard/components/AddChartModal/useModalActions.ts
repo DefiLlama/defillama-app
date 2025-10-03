@@ -99,9 +99,8 @@ export function useModalActions(
 	)
 
 	const handleChainsChange = useCallback(
-		(options: any[]) => {
-			const selectedValues = options ? options.map((option) => option.value) : []
-			actions.setSelectedChains(selectedValues)
+		(values: string[]) => {
+			actions.setSelectedChains(values)
 		},
 		[actions]
 	)
@@ -117,8 +116,8 @@ export function useModalActions(
 	)
 
 	const handleDatasetChainChange = useCallback(
-		(option: any) => {
-			actions.setSelectedDatasetChain(option.value)
+		(value: string | null) => {
+			actions.setSelectedDatasetChain(value)
 		},
 		[actions]
 	)
@@ -264,8 +263,6 @@ export function useModalActions(
 	const handleSubmit = useCallback(() => {
 		if (editItem) {
 			let newItem: DashboardItemConfig | null = null
-			console.log('state.chartBuilder', state.chartBuilder)
-			console.log('editItem', editItem)
 			if (
 				state.selectedMainTab === 'charts' &&
 				state.chartCreationMode === 'combined' &&

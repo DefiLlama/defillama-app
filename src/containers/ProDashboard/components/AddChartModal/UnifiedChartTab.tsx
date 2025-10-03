@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { Switch } from '~/components/Switch'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
@@ -78,6 +79,8 @@ export function UnifiedChartTab({
 		if (selectedChartTypes.length > 0) {
 			onAddToComposer(selectedChartTypes)
 			onChartTypesChange([])
+			onSelectedChainsChange?.([])
+			onSelectedProtocolsChange?.([])
 		}
 	}
 
@@ -182,9 +185,15 @@ export function UnifiedChartTab({
 
 					<button
 						onClick={handleAddToSelection}
-						disabled={selectedChartTypes.length === 0}
+						disabled={
+						selectedChartTypes.length === 0 ||
+						(selectedChartTab === 'chain' && selectedChains.length === 0) ||
+						(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
+					}
 						className={`mb-2 w-full flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
-							selectedChartTypes.length === 0
+							selectedChartTypes.length === 0 ||
+							(selectedChartTab === 'chain' && selectedChains.length === 0) ||
+							(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
 								? 'pro-border pro-text3 cursor-not-allowed border opacity-50'
 								: 'pro-btn-blue'
 						}`}
@@ -195,31 +204,18 @@ export function UnifiedChartTab({
 					</button>
 
 					<div className="pro-border flex-shrink-0 border-t pt-2">
-						<label className="pro-text2 mb-1 block text-xs font-medium">Create as</label>
-						<div className="space-y-1">
-							<label className="flex cursor-pointer items-center gap-2">
-								<input
-									type="radio"
-									name="chartCreationMode"
-									value="separate"
-									checked={chartCreationMode === 'separate'}
-									onChange={(e) => onChartCreationModeChange(e.target.value as 'separate' | 'combined')}
-									className="h-3 w-3 text-(--primary)"
-								/>
-								<span className="pro-text1 text-xs">Separate Charts ({composerItems.length})</span>
-							</label>
-							<label className="flex cursor-pointer items-center gap-2">
-								<input
-									type="radio"
-									name="chartCreationMode"
-									value="combined"
-									checked={chartCreationMode === 'combined'}
-									onChange={(e) => onChartCreationModeChange(e.target.value as 'separate' | 'combined')}
-									className="h-3 w-3 text-(--primary)"
-								/>
-								<span className="pro-text1 text-xs">Combined Chart (1 multi-chart)</span>
-							</label>
-						</div>
+						<Switch
+							label="Combined Chart"
+							checked={chartCreationMode === 'combined'}
+							onChange={() => onChartCreationModeChange(chartCreationMode === 'combined' ? 'separate' : 'combined')}
+							value="combined"
+							help={
+								chartCreationMode === 'combined'
+									? `Create 1 multi-chart with ${composerItems.length} chart${composerItems.length !== 1 ? 's' : ''}`
+									: `Create ${composerItems.length} separate chart${composerItems.length !== 1 ? 's' : ''}`
+							}
+							className="text-xs"
+						/>
 					</div>
 				</div>
 			</div>

@@ -84,6 +84,7 @@ export function AriakitMultiSelect({
 					<Popover
 						store={popover}
 						modal={false}
+						portal={true}
 						flip={false}
 						gutter={4}
 						className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
@@ -91,7 +92,9 @@ export function AriakitMultiSelect({
 					>
 						<div className="p-1">
 							<div className="thin-scrollbar max-h-[280px] overflow-y-auto">
-								{options.length === 0 && <div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>}
+								{options.length === 0 && (
+									<div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>
+								)}
 								{options.map((option) => {
 									const isActive = selectedValues.includes(option.value)
 									const isDisabled = option.disabled || (!isActive && isMaxReached)
@@ -115,9 +118,7 @@ export function AriakitMultiSelect({
 										>
 											<div
 												className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-sm border transition-colors ${
-													isActive
-														? 'border-(--primary) bg-(--primary)'
-														: 'pro-border border'
+													isActive ? 'border-(--primary) bg-(--primary)' : 'pro-border border'
 												}`}
 											>
 												{isActive && <Icon name="check" width={10} height={10} className="text-white" />}

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -11,6 +11,8 @@ export interface VirtualizedSelectOption {
 	logo?: string
 	disabled?: boolean
 	isChild?: boolean
+	icon?: string
+	description?: string
 }
 
 interface AriakitVirtualizedSelectProps {
@@ -37,6 +39,7 @@ export function AriakitVirtualizedSelect({
 	const [search, setSearch] = useState('')
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
+	const isPopoverOpen = popover.useState('open')
 
 	const filteredOptions = useMemo(() => {
 		if (!search) return options
@@ -50,11 +53,18 @@ export function AriakitVirtualizedSelect({
 		overscan: 8
 	})
 
-	const selectedLabel = useMemo(() => {
-		if (!selectedValue) return placeholder
-		const selected = options.find((opt) => opt.value === selectedValue)
-		return selected?.label || selectedValue
-	}, [selectedValue, options, placeholder])
+	useEffect(() => {
+		if (!isPopoverOpen) return
+
+		virtualizer.measure()
+		if (filteredOptions.length > 0) {
+			virtualizer.scrollToIndex(0, { align: 'start' })
+		}
+	}, [isPopoverOpen, filteredOptions.length])
+
+	const selectedOption = useMemo(() => options.find((opt) => opt.value === selectedValue), [options, selectedValue])
+
+	const selectedLabel = selectedOption?.label || placeholder
 
 	const handleSelect = (option: VirtualizedSelectOption) => {
 		if (!option.disabled) {
@@ -77,12 +87,20 @@ export function AriakitVirtualizedSelect({
 						store={popover}
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
-						<span className={`truncate ${selectedValue ? 'pro-text1' : 'pro-text3'}`}>{selectedLabel}</span>
+						<span className={`flex min-w-0 items-center gap-2 truncate ${selectedOption ? 'pro-text1' : 'pro-text3'}`}>
+							{selectedOption?.icon && (
+								<span className="text-sm" aria-hidden>
+									{selectedOption.icon}
+								</span>
+							)}
+							<span className="truncate">{selectedLabel}</span>
+						</span>
 						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
 						modal={false}
+						portal={true}
 						flip={false}
 						gutter={4}
 						className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
@@ -94,14 +112,14 @@ export function AriakitVirtualizedSelect({
 									name="search"
 									width={12}
 									height={12}
-									className="absolute left-2.5 top-1/2 -translate-y-1/2 text-(--text-tertiary)"
+									className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 								/>
 								<input
 									autoFocus
 									value={search}
 									onChange={(e) => setSearch(e.target.value)}
 									placeholder="Search..."
-									className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pl-7 pr-2.5 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
 							<div
@@ -133,7 +151,7 @@ export function AriakitVirtualizedSelect({
 															? 'pro-text3 cursor-not-allowed opacity-50'
 															: isActive
 																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
-																: 'pro-text2 hover:bg-(--cards-bg-alt) hover:pro-text1'
+																: 'pro-text2 hover:pro-text1 hover:bg-(--cards-bg-alt)'
 													}`}
 													style={{
 														position: 'absolute',
@@ -144,6 +162,11 @@ export function AriakitVirtualizedSelect({
 													}}
 												>
 													<div className={`flex min-w-0 items-center gap-2.5 ${option.isChild ? 'pl-4' : ''}`}>
+														{option.icon && (
+															<span className="text-sm" aria-hidden>
+																{option.icon}
+															</span>
+														)}
 														{iconUrl && (
 															<img
 																src={iconUrl}
@@ -160,10 +183,19 @@ export function AriakitVirtualizedSelect({
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 																{option.label}
 															</span>
-															{option.isChild && <span className="text-[10px] text-(--text-tertiary)">Child protocol</span>}
+															{option.isChild && (
+																<span className="text-[10px] text-(--text-tertiary)">Child protocol</span>
+															)}
+															{option.description && (
+																<span className="truncate text-[10px] text-(--text-tertiary)">
+																	{option.description}
+																</span>
+															)}
 														</div>
 													</div>
-													{isActive && <Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />}
+													{isActive && (
+														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+													)}
 												</button>
 											)
 										})}

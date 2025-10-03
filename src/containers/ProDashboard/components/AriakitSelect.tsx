@@ -56,13 +56,16 @@ export function AriakitSelect({
 					<Popover
 						store={popover}
 						modal={false}
+						portal={true}
 						flip={false}
 						gutter={4}
 						className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
 						style={{ width: 'var(--popover-anchor-width)' }}
 					>
 						<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1">
-							{options.length === 0 && <div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>}
+							{options.length === 0 && (
+								<div className="pro-text3 px-3 py-2 text-center text-xs">No options available.</div>
+							)}
 							{options.map((option) => {
 								const isActive = option.value === selectedValue
 								return (
@@ -88,7 +91,9 @@ export function AriakitSelect({
 											{option.icon && <Icon name={option.icon as any} width={14} height={14} />}
 											<span className="truncate">{option.label}</span>
 										</div>
-										{isActive && <Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />}
+										{isActive && (
+											<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+										)}
 									</button>
 								)
 							})}

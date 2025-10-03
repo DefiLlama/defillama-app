@@ -13,7 +13,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
 	const [unifiedChartName, setUnifiedChartName] = useState<string>('')
-	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('separate')
+	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('combined')
 	const [chartMode, setChartMode] = useState<ChartModeType>('builder')
 
 	const setChartCreationMode = (mode: 'separate' | 'combined') => {
@@ -61,7 +61,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setSelectedProtocol(editItem.protocol || null)
 				setSelectedChartType(editItem.type)
 				setSelectedChartTypes([editItem.type])
-				setChartCreationModeState('separate')
+				setChartCreationModeState('combined')
 				setUnifiedChartName('')
 			} else if (editItem.kind === 'multi') {
 				setSelectedMainTab('charts')
@@ -128,7 +128,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedChartType('tvl')
 			setSelectedChartTypes([])
 			setUnifiedChartName('')
-			setChartCreationModeState('separate')
+			setChartCreationModeState('combined')
 			setTextTitle('')
 			setTextContent('')
 			setSelectedTableType('protocols')
@@ -168,7 +168,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedChartType('tvl')
 		setSelectedChartTypes([])
 		setUnifiedChartName('')
-		setChartCreationModeState('separate')
+		setChartCreationModeState('combined')
 		setChartMode('builder')
 		setSelectedChain(null)
 		setSelectedChains([])

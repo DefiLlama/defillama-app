@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -44,6 +44,7 @@ export function SubjectMultiPanel({
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const protocolListRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
+	const isPopoverOpen = popover.useState('open')
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboard()
 
@@ -100,6 +101,21 @@ export function SubjectMultiPanel({
 		overscan: 8
 	})
 
+	useEffect(() => {
+		if (!isPopoverOpen) return
+
+		chainVirtualizer.measure()
+		protocolVirtualizer.measure()
+
+		if (activeTab === 'chain' && filteredChainOptions.length > 0) {
+			chainVirtualizer.scrollToIndex(0, { align: 'start' })
+		}
+
+		if (activeTab === 'protocol' && filteredProtocolOptions.length > 0) {
+			protocolVirtualizer.scrollToIndex(0, { align: 'start' })
+		}
+	}, [isPopoverOpen, activeTab, filteredChainOptions.length, filteredProtocolOptions.length])
+
 	const toggleChain = (value: string) => {
 		if (selectedChains.includes(value)) {
 			onSelectedChainsChange(selectedChains.filter((v) => v !== value))
@@ -148,11 +164,12 @@ export function SubjectMultiPanel({
 			<Popover
 				store={popover}
 				modal={false}
+				portal={true}
+				gutter={4}
+				flip={false}
 				className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
 				style={{
-					width: 'var(--popover-anchor-width)',
-					top: 'calc(var(--popover-anchor-height) + 4px)',
-					bottom: 'auto'
+					width: 'var(--popover-anchor-width)'
 				}}
 			>
 				<div className="p-2.5">
@@ -182,7 +199,9 @@ export function SubjectMultiPanel({
 									{selectedChains.length > 0 && (
 										<span
 											className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-												activeTab === 'chain' ? 'bg-(--primary)/20 text-(--primary)' : 'bg-(--cards-bg-alt) text-(--text-tertiary)'
+												activeTab === 'chain'
+													? 'bg-(--primary)/20 text-(--primary)'
+													: 'bg-(--cards-bg-alt) text-(--text-tertiary)'
 											}`}
 										>
 											{selectedChains.length}
@@ -232,14 +251,14 @@ export function SubjectMultiPanel({
 							name="search"
 							width={12}
 							height={12}
-							className="absolute left-2.5 top-1/2 -translate-y-1/2 text-(--text-tertiary)"
+							className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 						/>
 						<input
 							autoFocus
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder={activeTab === 'chain' ? 'Search chains...' : 'Search protocols...'}
-							className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pl-7 pr-2.5 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>
 					</div>
 					<div
@@ -336,7 +355,9 @@ export function SubjectMultiPanel({
 														<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 															{option.label}
 														</span>
-														{option.isChild && <span className="text-[10px] text-(--text-tertiary)">Child protocol</span>}
+														{option.isChild && (
+															<span className="text-[10px] text-(--text-tertiary)">Child protocol</span>
+														)}
 													</div>
 												</div>
 												{isActive && (

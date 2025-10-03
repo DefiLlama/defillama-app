@@ -112,10 +112,10 @@ export interface ModalActions {
 	setIncludeCex: (include: boolean) => void
 	setChartBuilderName: (name: string) => void
 	handleChainChange: (option: any) => void
-	handleChainsChange: (options: any[]) => void // New handler for multi-chain selection
+	handleChainsChange: (values: string[]) => void // New handler for multi-chain selection
 	handleProtocolChange: (option: any) => void
-	handleDatasetChainChange: (option: any) => void
-	handleTokensChange: (options: any) => void
+	handleDatasetChainChange: (value: string | null) => void
+	handleTokensChange: (tokens: string[]) => void
 	handleAddToComposer: (typesToAdd?: string[]) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleMainTabChange: (tab: MainTabType) => void

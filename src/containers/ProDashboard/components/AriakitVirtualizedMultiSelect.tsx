@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -23,6 +23,7 @@ interface AriakitVirtualizedMultiSelectProps {
 	className?: string
 	maxSelections?: number
 	renderIcon?: (option: VirtualizedMultiSelectOption) => string | null
+	onSearchChange?: (value: string) => void
 }
 
 export function AriakitVirtualizedMultiSelect({
@@ -34,11 +35,13 @@ export function AriakitVirtualizedMultiSelect({
 	isLoading = false,
 	className = '',
 	maxSelections = 100,
-	renderIcon
+	renderIcon,
+	onSearchChange
 }: AriakitVirtualizedMultiSelectProps) {
 	const [search, setSearch] = useState('')
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
+	const isPopoverOpen = popover.useState('open')
 
 	const filteredOptions = useMemo(() => {
 		if (!search) return options
@@ -51,6 +54,15 @@ export function AriakitVirtualizedMultiSelect({
 		estimateSize: () => 44,
 		overscan: 8
 	})
+
+	useEffect(() => {
+		if (!isPopoverOpen) return
+
+		virtualizer.measure()
+		if (filteredOptions.length > 0) {
+			virtualizer.scrollToIndex(0, { align: 'start' })
+		}
+	}, [isPopoverOpen, filteredOptions.length])
 
 	const buttonLabel = useMemo(() => {
 		if (selectedValues.length === 0) return placeholder
@@ -71,9 +83,14 @@ export function AriakitVirtualizedMultiSelect({
 		}
 	}
 
+	const handleSearchChange = (value: string) => {
+		setSearch(value)
+		onSearchChange?.(value)
+	}
+
 	const clearAll = () => {
 		onChange([])
-		setSearch('')
+		handleSearchChange('')
 	}
 
 	const isMaxReached = selectedValues.length >= maxSelections
@@ -105,6 +122,7 @@ export function AriakitVirtualizedMultiSelect({
 					<Popover
 						store={popover}
 						modal={false}
+						portal={true}
 						flip={false}
 						gutter={4}
 						className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
@@ -116,14 +134,14 @@ export function AriakitVirtualizedMultiSelect({
 									name="search"
 									width={12}
 									height={12}
-									className="absolute left-2.5 top-1/2 -translate-y-1/2 text-(--text-tertiary)"
+									className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 								/>
 								<input
 									autoFocus
 									value={search}
-									onChange={(e) => setSearch(e.target.value)}
+									onChange={(e) => handleSearchChange(e.target.value)}
 									placeholder="Search..."
-									className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pl-7 pr-2.5 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
 							<div
@@ -160,7 +178,7 @@ export function AriakitVirtualizedMultiSelect({
 															? 'pro-text3 cursor-not-allowed opacity-50'
 															: isActive
 																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
-																: 'pro-text2 hover:bg-(--cards-bg-alt) hover:pro-text1'
+																: 'pro-text2 hover:pro-text1 hover:bg-(--cards-bg-alt)'
 													}`}
 													style={{
 														position: 'absolute',
@@ -187,10 +205,14 @@ export function AriakitVirtualizedMultiSelect({
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 																{option.label}
 															</span>
-															{option.isChild && <span className="text-[10px] text-(--text-tertiary)">Child protocol</span>}
+															{option.isChild && (
+																<span className="text-[10px] text-(--text-tertiary)">Child protocol</span>
+															)}
 														</div>
 													</div>
-													{isActive && <Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />}
+													{isActive && (
+														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+													)}
 												</button>
 											)
 										})}
@@ -203,7 +225,9 @@ export function AriakitVirtualizedMultiSelect({
 										<div className="flex h-5 w-5 items-center justify-center rounded-full bg-(--primary)/15">
 											<Icon name="check" width={10} height={10} className="text-(--primary)" />
 										</div>
-										<span className="text-[11px] font-medium text-(--text-secondary)">{selectedValues.length} selected</span>
+										<span className="text-[11px] font-medium text-(--text-secondary)">
+											{selectedValues.length} selected
+										</span>
 									</div>
 									<button
 										type="button"

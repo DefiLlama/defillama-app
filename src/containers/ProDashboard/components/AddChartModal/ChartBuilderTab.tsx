@@ -309,7 +309,7 @@ export function ChartBuilderTab({
 								<div className="mb-1.5">
 									<AriakitVirtualizedMultiSelect
 										label="Chains"
-										options={chainOptions.map((c) => ({ value: c.value, label: c.label }))}
+										options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
@@ -317,7 +317,7 @@ export function ChartBuilderTab({
 												? 'Select chains to exclude...'
 												: 'Select chains...'
 										}
-										isLoading={protocolsLoading}
+										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
 										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 									/>
@@ -391,7 +391,7 @@ export function ChartBuilderTab({
 								<div className="mb-1.5">
 									<AriakitVirtualizedMultiSelect
 										label="Chains"
-										options={chainOptions.map((c) => ({ value: c.value, label: c.label }))}
+										options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
@@ -399,7 +399,7 @@ export function ChartBuilderTab({
 												? 'Select chains to exclude...'
 												: 'Select chains...'
 										}
-										isLoading={protocolsLoading}
+										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
 										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 									/>

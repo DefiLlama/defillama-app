@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { MultiItemSelect } from '../../MultiItemSelect'
+import { AriakitVirtualizedMultiSelect } from '../../AriakitVirtualizedMultiSelect'
 
 export interface YieldsFilters {
 	apyMin?: number
@@ -285,35 +285,21 @@ export function YieldsFiltersPanel({
 			<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Protocol & Token Filters</h5>
 
 			<div className="space-y-3">
-				<MultiItemSelect
+				<AriakitVirtualizedMultiSelect
 					label="Protocols"
 					options={availableProtocols}
 					selectedValues={localFilters.protocols || []}
-					onChange={(selectedOptions) => {
-						updateFilter('protocols', selectedOptions?.map((opt) => opt.value) || undefined)
-					}}
-					isLoading={false}
+					onChange={(values) => updateFilter('protocols', values.length > 0 ? values : undefined)}
 					placeholder="Select protocols..."
-					itemType="protocol"
-					customProps={{
-						menuPosition: 'absolute'
-					}}
+					renderIcon={(option) => option.logo || null}
 				/>
 
-				<MultiItemSelect
+				<AriakitVirtualizedMultiSelect
 					label="Pool Tokens"
 					options={availableTokens.map((token) => ({ value: token, label: token }))}
 					selectedValues={localFilters.tokens || []}
-					onChange={(selectedOptions) => {
-						updateFilter('tokens', selectedOptions?.map((opt) => opt.value) || undefined)
-					}}
-					isLoading={false}
+					onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
 					placeholder="Select tokens..."
-					itemType="token"
-					noIcon={true}
-					customProps={{
-						menuPosition: 'absolute'
-					}}
 				/>
 			</div>
 		</div>
