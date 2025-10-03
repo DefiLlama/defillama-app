@@ -942,6 +942,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																messageId={item.messageId}
 																content={item.response.answer}
 																initialRating={item.userRating}
+																sessionId={sessionId}
 															/>
 															{item.response.suggestions && item.response.suggestions.length > 0 && (
 																<SuggestedActions
@@ -1431,15 +1432,43 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 const MessageRating = ({
 	messageId,
 	content,
-	initialRating
+	initialRating,
+	sessionId
 }: {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
+	sessionId?: string | null
 }) => {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
+	const [showShareModal, setShowShareModal] = useState(false)
 	const { authorizedFetch } = useAuthContext()
+
+	const {
+		data: shareData,
+		mutate: shareSession,
+		isPending: isSharing
+	} = useMutation({
+		mutationFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/share`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ forcePublic: true })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		},
+		onSuccess: (data) => {
+			if (data.shareToken) {
+				const shareLink = `${window.location.origin}/ai/shared/${data.shareToken}`
+				navigator.clipboard.writeText(shareLink)
+				setShowShareModal(true)
+			}
+		}
+	})
 
 	const {
 		data: sessionRatingAsGood,
@@ -1544,6 +1573,16 @@ const MessageRating = ({
 					<Icon name="message-square-warning" height={14} width={14} />
 					<span className="sr-only">Provide Feedback</span>
 				</Tooltip>
+				{sessionId && (
+					<Tooltip
+						content="Share"
+						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
+						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
+					>
+						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="link" height={14} width={14} />}
+						<span className="sr-only">Share</span>
+					</Tooltip>
+				)}
 			</div>
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog
@@ -1559,6 +1598,22 @@ const MessageRating = ({
 						</Ariakit.DialogDismiss>
 					</div>
 					<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+			<Ariakit.DialogProvider open={showShareModal} setOpen={setShowShareModal}>
+				<Ariakit.Dialog
+					className="max-sm:drawer dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl sm:max-w-md"
+					unmountOnHide
+					portal
+					hideOnInteractOutside
+				>
+					<div className="mb-4 flex items-center justify-between">
+						<h2 className="text-lg font-semibold">Share Conversation</h2>
+						<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
+							<Icon name="x" height={16} width={16} />
+						</Ariakit.DialogDismiss>
+					</div>
+					<ShareModal shareData={shareData} setShowShareModal={setShowShareModal} />
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 		</>
@@ -1635,6 +1690,74 @@ const FeedbackForm = ({
 				</div>
 			</div>
 		</form>
+	)
+}
+
+const ShareModal = ({
+	shareData,
+	setShowShareModal
+}: {
+	shareData?: { isPublic: boolean; shareToken?: string }
+	setShowShareModal: (show: boolean) => void
+}) => {
+	const [copied, setCopied] = useState(false)
+	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
+
+	const handleCopy = async () => {
+		if (!shareLink) return
+		try {
+			await navigator.clipboard.writeText(shareLink)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.log('Failed to copy link:', error)
+		}
+	}
+
+	const handleShareToX = () => {
+		const text = encodeURIComponent('Check out this conversation from LlamaAI')
+		const url = encodeURIComponent(shareLink)
+		window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank')
+	}
+
+	return (
+		<div className="flex flex-col gap-4">
+			<p className="text-sm text-[#666] dark:text-[#919296]">
+				Your conversation is now public. Anyone with the link can view it.
+			</p>
+			<div className="flex flex-col gap-2">
+				<label className="text-xs text-[#666] dark:text-[#919296]">Share Link</label>
+				<div className="flex gap-2">
+					<input
+						type="text"
+						value={shareLink}
+						readOnly
+						className="flex-1 rounded border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 text-sm dark:border-[#222324]"
+					/>
+					<button
+						onClick={handleCopy}
+						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
+					>
+						{copied ? (
+							<Icon name="check-circle" height={16} width={16} />
+						) : (
+							<Icon name="copy" height={16} width={16} />
+						)}
+					</button>
+				</div>
+			</div>
+			<div className="flex items-center justify-end gap-3">
+				<Ariakit.DialogDismiss className="rounded px-3 py-2 text-xs text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]">
+					Close
+				</Ariakit.DialogDismiss>
+				<button
+					onClick={handleShareToX}
+					className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90"
+				>
+					Share to X
+				</button>
+			</div>
+		</div>
 	)
 }
 
