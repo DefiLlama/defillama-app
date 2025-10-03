@@ -292,7 +292,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
-	const [prompt, setPrompt] = useState('')
+	const [prompt, setPrompt] = useState<string[]>([])
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -505,7 +505,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			])
 
-			setPrompt('')
+			setPrompt([])
 			resetPrompt()
 			setCurrentMessageId(null)
 			setTimeout(() => {
@@ -532,7 +532,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	})
 
-	const handleStopRequest = async () => {
+	const handleStopRequest = async (value?: string) => {
 		if (!sessionId || !isStreaming) return
 
 		try {
@@ -563,26 +563,31 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		resetPrompt()
-		setTimeout(() => {
-			promptInputRef.current?.focus()
-		}, 100)
+		if (value) {
+			handleSubmit([...prompt, value.trim()])
+		} else {
+			setTimeout(() => {
+				promptInputRef.current?.focus()
+			}, 100)
+		}
 	}
 
-	const handleSubmit = (prompt: string) => {
-		const finalPrompt = prompt.trim()
-		setPrompt(finalPrompt)
+	const handleSubmit = (prompt: Array<string>) => {
+		setPrompt(prompt)
 		shouldAutoScrollRef.current = true
 
 		if (sessionId) {
 			moveSessionToTop(sessionId)
 		}
 
-		submitPrompt({ userQuestion: finalPrompt })
+		submitPrompt({ userQuestion: prompt.join(' ') })
+		setTimeout(() => {
+			promptInputRef.current?.focus()
+		}, 100)
 	}
 
-	const handleSubmitWithSuggestion = (prompt: string, suggestion: any) => {
-		const finalPrompt = prompt.trim()
-		setPrompt(finalPrompt)
+	const handleSubmitWithSuggestion = (prompt: Array<string>, suggestion: any) => {
+		setPrompt(prompt)
 		shouldAutoScrollRef.current = true
 
 		if (sessionId) {
@@ -590,9 +595,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		submitPrompt({
-			userQuestion: finalPrompt,
+			userQuestion: prompt.join(' '),
 			suggestionContext: suggestion
 		})
+		setTimeout(() => {
+			promptInputRef.current?.focus()
+		}, 100)
 	}
 
 	const router = useRouter()
@@ -636,7 +644,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setSessionId(null)
 		setHasRestoredSession(null)
 		newlyCreatedSessionsRef.current.clear()
-		setPrompt('')
+		setPrompt([])
 		resetPrompt()
 		setStreamingResponse('')
 		setStreamingError('')
@@ -685,7 +693,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setHasRestoredSession(selectedSessionId)
 		setConversationHistory(data.conversationHistory)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
-		setPrompt('')
+		setPrompt([])
 		resetPrompt()
 		setStreamingResponse('')
 		setStreamingError('')
@@ -736,7 +744,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		promptText = suggestion.title || suggestion.description
 
-		handleSubmitWithSuggestion(promptText, suggestion)
+		handleSubmitWithSuggestion([promptText.trim()], suggestion)
 	}
 
 	const handleSidebarToggle = () => {
@@ -900,7 +908,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
 										/>
-										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										<RecommendedPrompts
+											setPrompt={(p) => setPrompt([p])}
+											submitPrompt={submitPrompt}
+											isPending={isPending}
+										/>
 									</>
 								)}
 							</div>
@@ -960,7 +972,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
 												<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
-													{prompt && <SentPrompt prompt={prompt} />}
+													{prompt?.length > 0 && (
+														<>
+															{prompt.map((p) => (
+																<SentPrompt prompt={p} key={p} />
+															))}
+														</>
+													)}
 													<PromptResponse
 														response={
 															promptResponse?.response ||
@@ -1000,7 +1018,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-40 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky bottom-42.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1053,18 +1071,22 @@ const PromptInput = ({
 	handleStopRequest,
 	isStreaming
 }: {
-	handleSubmit: (prompt: string) => void
+	handleSubmit: (prompt: Array<string>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
-	handleStopRequest?: () => void
+	handleStopRequest?: (value?: string) => void
 	isStreaming?: boolean
 }) => {
 	const [value, setValue] = useState('')
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
+		if (event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault()
-			handleSubmit(value)
+			if (isStreaming || isPending) {
+				handleStopRequest(value.trim())
+			} else {
+				handleSubmit([value.trim()])
+			}
 			setValue('')
 		}
 	}
@@ -1079,7 +1101,7 @@ const PromptInput = ({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
-					handleSubmit(value)
+					handleSubmit([value.trim()])
 					setValue('')
 				}}
 			>
@@ -1094,15 +1116,14 @@ const PromptInput = ({
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
-					disabled={isPending && !isStreaming}
 					autoFocus
 					ref={promptInputRef}
 					maxLength={2000}
 				/>
-				{isStreaming ? (
+				{isStreaming || isPending ? (
 					<button
 						type="button"
-						onClick={handleStopRequest}
+						onClick={() => handleStopRequest()}
 						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-red-500/10 text-(--error)"
 					>
 						<Icon name="x" height={14} width={14} />
@@ -1112,7 +1133,7 @@ const PromptInput = ({
 					<button
 						type="submit"
 						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50"
-						disabled={isPending || isStreaming || !value.trim()}
+						disabled={!value.trim()}
 					>
 						<Icon name="arrow-up" height={16} width={16} />
 						<span className="sr-only">Submit prompt</span>
@@ -1420,7 +1441,7 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 	)
 }
 
-const SentPrompt = ({ prompt }: { prompt: string }) => {
+const SentPrompt = ({ prompt }: { prompt: Array<string> | string }) => {
 	return (
 		<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{prompt}
