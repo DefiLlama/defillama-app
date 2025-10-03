@@ -1717,7 +1717,7 @@ const ShareModal = ({
 	const handleShareToX = () => {
 		const text = encodeURIComponent('Check out this conversation from LlamaAI')
 		const url = encodeURIComponent(shareLink)
-		window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank')
+		window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, '_blank')
 	}
 
 	return (
@@ -1738,11 +1738,7 @@ const ShareModal = ({
 						onClick={handleCopy}
 						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 					>
-						{copied ? (
-							<Icon name="check-circle" height={16} width={16} />
-						) : (
-							<Icon name="copy" height={16} width={16} />
-						)}
+						{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
 					</button>
 				</div>
 			</div>
