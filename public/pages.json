@@ -469,18 +469,6 @@
       "totalTrackedKey": "treasury.entities"
     },
     {
-      "name": "Borrow Aggregator: Simple",
-      "route": "/borrow",
-      "category": "Borrow Aggregator",
-      "description": "Simple view of optimal lending routes by collateral to borrow assets"
-    },
-    {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
-    },
-    {
       "name": "Exchange Traded Funds (ETFs)",
       "route": "/etfs",
       "category": "ETFs & DATs",
@@ -652,6 +640,18 @@
       "tags": [
         "New"
       ]
+    },
+    {
+      "name": "Borrow Aggregator: Simple",
+      "route": "/borrow",
+      "category": "Borrow Aggregator",
+      "description": "Simple view of optimal lending routes by collateral to borrow assets"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
       "name": "Llama News Round-Up",
