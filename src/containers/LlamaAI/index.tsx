@@ -1000,7 +1000,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-40 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky bottom-42.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
