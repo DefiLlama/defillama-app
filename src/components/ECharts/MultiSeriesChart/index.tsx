@@ -4,6 +4,17 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
+function LegendButton({ text, onClick }) {
+	return (
+		<button
+			className="pro-border hover:pro-bg1 hover:pro-text1 pro-hover-bg flex items-center gap-2 rounded-md border px-2 py-1 text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
+			onClick={onClick}
+		>
+			{text}
+		</button>
+	)
+}
+
 interface IMultiSeriesChartProps {
 	series?: Array<{
 		data: Array<[number, number]>
@@ -263,6 +274,17 @@ export default function MultiSeriesChart({
 
 	return (
 		<div className="relative">
+			<div className="flex items-center justify-start gap-2 px-1 pb-1 md:px-3 md:pb-3">
+				<LegendButton text="All" onClick={() => chartRef.current.dispatchAction({ type: 'legendAllSelect' })} />
+				<LegendButton
+					text="None"
+					onClick={() =>
+						processedSeries.forEach((serie) =>
+							chartRef.current.dispatchAction({ type: 'legendUnSelect', name: serie.name })
+						)
+					}
+				/>
+			</div>
 			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
