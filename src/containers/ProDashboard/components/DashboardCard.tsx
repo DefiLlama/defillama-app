@@ -70,7 +70,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	return (
 		<div
-			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5`}
+			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-5 py-3`}
 		>
 			<div className="flex flex-wrap items-center justify-end gap-2">
 				<h2 className="mr-auto text-lg font-medium text-wrap">
@@ -105,12 +105,12 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 			{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
 
-			{dashboard.description ? (
-				<p className="line-clamp-2 text-sm text-(--text-label)">{dashboard.description}</p>
-			) : null}
+			<p className={`line-clamp-2 text-sm text-(--text-label) ${viewMode === 'grid' ? 'pt-2' : ''}`}>
+				{dashboard.description || 'No Description.'}
+			</p>
 
 			{dashboard.data.items?.length ? (
-				<div className={`flex flex-col ${viewMode === 'grid' ? 'mt-5' : 'mt-2'}`}>
+				<div className={`flex flex-col mt-auto pb-2 ${viewMode === 'grid' ? 'pt-4' : 'pt-2'}`}>
 					<span className="flex items-center gap-1 text-(--text-label)">
 						<Icon name="layers" height={14} width={14} />
 						<p className="flex items-center gap-1">{dashboard.data.items.length} items</p>
@@ -119,8 +119,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 				</div>
 			) : null}
 
+			<hr className="border-t border-(--cards-border)" />
+
 			<div
-				className={`mt-auto flex items-center justify-between gap-2 text-(--text-label) ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}
+				className={`flex items-center justify-between gap-2 text-(--text-label) pt-1`}
 			>
 				<div className="flex items-center gap-2">
 					<p className="flex items-center gap-1" title="Views">
@@ -156,22 +158,36 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 }
 
 const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (tag: string) => void }) => {
-	if (!dashboard.tags || dashboard.tags.length === 0) return null
+	const tags = dashboard.tags || []
+
 	return (
 		<div className="flex max-w-[60%] flex-wrap items-center gap-1">
-			{dashboard.tags.slice(0, 2).map((tag) => (
+			{tags.length > 0 ? (
+				<>
+					{tags.slice(0, 2).map((tag) => (
+						<button
+							key={tag}
+							onClick={(e) => {
+								e.stopPropagation()
+								onTagClick?.(tag)
+							}}
+							className="z-10 rounded-lg border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+						>
+							{tag}
+						</button>
+					))}
+					{tags.length > 2 && <span className="text-xs">+{tags.length - 2}</span>}
+				</>
+			) : (
 				<button
-					key={tag}
 					onClick={(e) => {
 						e.stopPropagation()
-						onTagClick?.(tag)
 					}}
-					className="z-10 rounded-full border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
+					className="z-10 rounded-lg border border-(--switch-border) px-2 py-1 text-xs text-(--text-form) hover:border-transparent hover:bg-(--link-active-bg) hover:text-white"
 				>
-					{tag}
+					-
 				</button>
-			))}
-			{dashboard.tags.length > 2 && <span className="text-xs">+{dashboard.tags.length - 2}</span>}
+			)}
 		</div>
 	)
 }
