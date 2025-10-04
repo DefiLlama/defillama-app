@@ -273,7 +273,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							<div
 								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
 							>
-								<span className="mx-auto flex w-[92vw] flex-col md:w-auto md:max-w-[400px]">
+								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
 									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
 									<EnterpriseCardContent />
 								</span>
