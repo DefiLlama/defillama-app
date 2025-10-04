@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 
 // change 'value' for new announcements
 export const ANNOUNCEMENT = {
@@ -52,6 +53,8 @@ export function Announcement({
 	const routeAnnouncementKey = router.pathname + key
 	const routeAnnouncementValue = router.pathname + value
 
+	const isClient = useIsClient()
+
 	const closeAnnouncement = () => {
 		localStorage.setItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
 		window.dispatchEvent(new Event('storage'))
@@ -62,6 +65,10 @@ export function Announcement({
 		() => localStorage.getItem(routeAnnouncementKey) ?? null,
 		() => null
 	)
+
+	// Wait for hydration before rendering
+
+	if (!isClient) return null
 
 	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
 		return null
