@@ -2,6 +2,7 @@ import { RefObject, useCallback, useDeferredValue, useEffect, useRef, useState }
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -938,10 +939,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																	resizeTrigger={resizeTrigger}
 																/>
 															)}
-															<MessageRating
+															<ResponseControls
 																messageId={item.messageId}
 																content={item.response.answer}
 																initialRating={item.userRating}
+																sessionId={sessionId}
 															/>
 															{item.response.suggestions && item.response.suggestions.length > 0 && (
 																<SuggestedActions
@@ -1000,7 +1002,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-40 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky bottom-42.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1084,13 +1086,12 @@ const PromptInput = ({
 				}}
 			>
 				<textarea
-					rows={5}
 					placeholder="Ask LlamaAI..."
 					value={value}
 					onChange={onChange}
 					onKeyDown={onKeyDown}
 					name="prompt"
-					className="block w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
+					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
@@ -1100,21 +1101,21 @@ const PromptInput = ({
 					maxLength={2000}
 				/>
 				{isStreaming ? (
-					<button
-						type="button"
-						onClick={handleStopRequest}
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-red-500/10 text-(--error)"
+					<Tooltip
+						content="Stop streaming"
+						render={<button onClick={handleStopRequest} />}
+						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
 					>
-						<Icon name="x" height={14} width={14} />
+						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop streaming</span>
-					</button>
+					</Tooltip>
 				) : (
 					<button
 						type="submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming || !value.trim()}
 					>
-						<Icon name="arrow-up" height={16} width={16} />
+						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 						<span className="sr-only">Submit prompt</span>
 					</button>
 				)}
@@ -1428,18 +1429,50 @@ const SentPrompt = ({ prompt }: { prompt: string }) => {
 	)
 }
 
-const MessageRating = ({
+const ResponseControls = ({
 	messageId,
 	content,
-	initialRating
+	initialRating,
+	sessionId
 }: {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
+	sessionId?: string | null
 }) => {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
+	const [showShareModal, setShowShareModal] = useState(false)
 	const { authorizedFetch } = useAuthContext()
+
+	const {
+		data: shareData,
+		mutate: shareSession,
+		isPending: isSharing
+	} = useMutation({
+		mutationFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/share`, {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ forcePublic: true })
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return res
+		},
+		onSuccess: (data) => {
+			if (data.shareToken) {
+				const shareLink = `${window.location.origin}/ai/shared/${data.shareToken}`
+				navigator.clipboard.writeText(shareLink)
+				setShowShareModal(true)
+			}
+		},
+		onError: (err) => {
+			toast.error('Failed to fetch session id')
+			console.log(err)
+		}
+	})
 
 	const {
 		data: sessionRatingAsGood,
@@ -1459,6 +1492,10 @@ const MessageRating = ({
 		},
 		onSuccess: () => {
 			setShowFeedback(true)
+		},
+		onError: (err) => {
+			toast.error('Failed to rate as good')
+			console.log(err)
 		}
 	})
 
@@ -1480,6 +1517,10 @@ const MessageRating = ({
 		},
 		onSuccess: () => {
 			setShowFeedback(true)
+		},
+		onError: (err) => {
+			toast.error('Failed to rate as good')
+			console.log(err)
 		}
 	})
 
@@ -1536,6 +1577,16 @@ const MessageRating = ({
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
 					<span className="sr-only">Thumbs Down</span>
 				</Tooltip>
+				{sessionId && (
+					<Tooltip
+						content="Share"
+						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
+						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
+					>
+						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
+						<span className="sr-only">Share</span>
+					</Tooltip>
+				)}
 				<Tooltip
 					content="Provide Feedback"
 					render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
@@ -1553,12 +1604,28 @@ const MessageRating = ({
 					hideOnInteractOutside
 				>
 					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-lg font-semibold">Provide Feedback</h2>
+						<Ariakit.DialogHeading className="text-lg font-semibold">Provide Feedback</Ariakit.DialogHeading>
 						<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
 					<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+			<Ariakit.DialogProvider open={showShareModal} setOpen={setShowShareModal}>
+				<Ariakit.Dialog
+					className="max-sm:drawer dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl sm:max-w-md"
+					unmountOnHide
+					portal
+					hideOnInteractOutside
+				>
+					<div className="mb-4 flex items-center justify-between">
+						<Ariakit.DialogHeading className="text-lg font-semibold">Share Conversation</Ariakit.DialogHeading>
+						<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
+							<Icon name="x" height={16} width={16} />
+						</Ariakit.DialogDismiss>
+					</div>
+					<ShareModalContent shareData={shareData} />
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 		</>
@@ -1638,6 +1705,65 @@ const FeedbackForm = ({
 	)
 }
 
+const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
+	const [copied, setCopied] = useState(false)
+	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
+
+	const handleCopy = async () => {
+		if (!shareLink) return
+		try {
+			await navigator.clipboard.writeText(shareLink)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.log(error)
+			toast.error('Failed to copy link')
+		}
+	}
+
+	const handleShareToX = () => {
+		const text = encodeURIComponent('Check out this conversation from LlamaAI')
+		const url = encodeURIComponent(shareLink)
+		window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, '_blank')
+	}
+
+	return (
+		<div className="flex flex-col gap-4">
+			<p className="text-sm text-[#666] dark:text-[#919296]">
+				Your conversation is now public. Anyone with the link can view it.
+			</p>
+			<div className="flex flex-col gap-2">
+				<label className="text-xs text-[#666] dark:text-[#919296]">Share Link</label>
+				<div className="flex gap-2">
+					<input
+						type="text"
+						value={shareLink}
+						readOnly
+						className="flex-1 rounded border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 text-sm dark:border-[#222324]"
+					/>
+					<button
+						onClick={handleCopy}
+						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
+					>
+						{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
+					</button>
+				</div>
+			</div>
+			<div className="flex items-center justify-end gap-3">
+				<Ariakit.DialogDismiss className="rounded px-3 py-2 text-xs text-[#666] hover:bg-[#e6e6e6] dark:text-[#919296] dark:hover:bg-[#222324]">
+					Close
+				</Ariakit.DialogDismiss>
+				<button
+					onClick={handleShareToX}
+					className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90"
+				>
+					Share to X
+				</button>
+			</div>
+		</div>
+	)
+}
+
 const ChatControls = ({
 	handleSidebarToggle,
 	handleNewChat
@@ -1650,7 +1776,7 @@ const ChatControls = ({
 			<Tooltip
 				content="Open Chat History"
 				render={<button onClick={handleSidebarToggle} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 			>
 				<Icon name="arrow-right-to-line" height={16} width={16} />
 				<span className="sr-only">Open Chat History</span>
