@@ -1086,13 +1086,12 @@ const PromptInput = ({
 				}}
 			>
 				<textarea
-					rows={5}
 					placeholder="Ask LlamaAI..."
 					value={value}
 					onChange={onChange}
 					onKeyDown={onKeyDown}
 					name="prompt"
-					className="block w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
+					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
@@ -1102,34 +1101,21 @@ const PromptInput = ({
 					maxLength={2000}
 				/>
 				{isStreaming ? (
-					<button
-						type="button"
-						onClick={handleStopRequest}
-						className="absolute right-2 bottom-3 flex items-center justify-center rounded-sm bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+					<Tooltip
+						content="Stop streaming"
+						render={<button onClick={handleStopRequest} />}
+						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
 					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="currentColor"
-							stroke="currentColor"
-							strokeWidth="1.5"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							className="block"
-						>
-							<rect x="9" y="9" width="6" height="6" />
-						</svg>
+						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop streaming</span>
-					</button>
+					</Tooltip>
 				) : (
 					<button
 						type="submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming || !value.trim()}
 					>
-						<Icon name="arrow-up" height={16} width={16} />
+						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 						<span className="sr-only">Submit prompt</span>
 					</button>
 				)}
