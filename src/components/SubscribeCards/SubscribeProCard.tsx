@@ -1,6 +1,7 @@
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export function SubscribeProCard({
@@ -15,6 +16,7 @@ export function SubscribeProCard({
 	isLegacyActive?: boolean
 }) {
 	const [isDarkMode] = useDarkModeManager()
+	const { isAuthenticated } = useAuthContext()
 	const isModal = false
 	const shouldShowLightMode = isModal && !isDarkMode
 	return (
@@ -50,18 +52,18 @@ export function SubscribeProCard({
 					</div>
 				) : (
 					<>
-						{context === 'page' && (
+						{context === 'page' && !isAuthenticated && (
 							<SignIn
 								text="Get Started"
 								className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-4 py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20"
 							/>
 						)}
-						{(context === 'account' || isLegacyActive) && (
-							<div className="grid grid-cols-2 gap-3 max-sm:w-full max-sm:grid-cols-1">
+						{(context === 'page' && isAuthenticated) || context === 'account' || isLegacyActive ? (
+							<div className="flex w-full flex-col gap-3">
 								<PaymentButton paymentMethod="llamapay" type="api" />
 								<PaymentButton paymentMethod="stripe" type="api" />
 							</div>
-						)}
+						) : null}
 					</>
 				)}
 			</div>

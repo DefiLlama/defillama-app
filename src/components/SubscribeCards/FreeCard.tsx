@@ -27,7 +27,7 @@ export function FreeCard({ context = 'page' }: FreeCardProps) {
 				<span className="ml-1 text-[#8a8c90]">/month</span>
 			</div>
 			<p className="relative z-10 mt-1 text-center text-sm text-transparent">-</p>
-			<div className="relative z-10 mt-4 h-[52px]"></div>
+			<div className="relative z-10 mt-4 h-0 md:h-[52px]"></div>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
