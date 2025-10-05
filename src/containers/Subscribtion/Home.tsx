@@ -106,7 +106,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 overflow-x-hidden px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
 					<div
 						style={{
