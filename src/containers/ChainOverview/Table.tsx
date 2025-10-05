@@ -420,7 +420,7 @@ export const ChainProtocolsTable = ({
 	}, [instance, router.query.chain])
 
 	return (
-		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
+		<div id='protocolRankings' className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 				{borderless ? null : (
 					<div className="mr-auto flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
