@@ -343,24 +343,26 @@ export function BridgesOverviewByChain({
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex items-center justify-between gap-3 p-3">
-					<div className="flex items-center">
+				{/* First variant */}
+
+				{/* <div className="flex w-full flex-col items-center gap-3 p-3 sm:flex-row">
+					<div className="order-2 flex w-full min-w-fit items-center sm:w-fit">
 						<button
-							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="flex flex-1 justify-center border-b-2 border-transparent px-4 py-2 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:flex-none sm:text-sm"
 							data-active={activeTab === 'bridges'}
 							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
-							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="flex flex-1 justify-center border-b-2 border-transparent px-4 py-2 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:flex-none sm:text-sm"
 							data-active={activeTab === 'messaging'}
 							onClick={() => setActiveTab('messaging')}
 						>
 							Messaging Protocols
 						</button>
 					</div>
-					<label className="relative w-full sm:max-w-[280px]">
+					<label className="relative order-2 w-full sm:max-w-[280px]">
 						<span className="sr-only">Search bridges</span>
 						<Icon
 							name="search"
@@ -372,11 +374,52 @@ export function BridgesOverviewByChain({
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1.5 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
-					<div className="ml-auto">
+					<div className="order-1 min-w-full sm:order-3 sm:ml-auto sm:min-w-fit">
 						<TxsTableSwitch />
+					</div>
+				</div> */}
+
+				{/* Second variant */}
+
+				<div className="flex w-full flex-col items-center gap-3 p-3 sm:flex-row">
+					<div className="flex w-full min-w-fit items-center sm:w-fit">
+						<button
+							className="flex w-full justify-center border-b-2 border-transparent px-4 py-2 font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:w-fit"
+							data-active={activeTab === 'bridges'}
+							onClick={() => setActiveTab('bridges')}
+						>
+							Bridges
+						</button>
+						<button
+							className="flex w-full justify-center border-b-2 border-transparent px-4 py-2 font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:w-fit"
+							data-active={activeTab === 'messaging'}
+							onClick={() => setActiveTab('messaging')}
+						>
+							Messaging Protocols
+						</button>
+					</div>
+					<div className="flex w-full items-center justify-around gap-3">
+						<label className="relative w-full max-w-full sm:max-w-[280px]">
+							<span className="sr-only">Search bridges</span>
+							<Icon
+								name="search"
+								height={16}
+								width={16}
+								className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+							/>
+							<input
+								value={searchValue}
+								onChange={(e) => setSearchValue(e.target.value)}
+								placeholder="Search..."
+								className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							/>
+						</label>
+						<div className="ml-0 min-w-fit sm:ml-auto">
+							<TxsTableSwitch />
+						</div>
 					</div>
 				</div>
 
