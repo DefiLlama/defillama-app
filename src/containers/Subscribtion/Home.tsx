@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
-import { EnterpriseCardContent } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
+import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -255,7 +255,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
+							className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
 						>
 							<FreeCard context="page" />
 							<SubscribePlusCard
@@ -270,14 +270,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								context="page"
 								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
 							/>
-							<div
-								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
-							>
-								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
-									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-									<EnterpriseCardContent />
-								</span>
-							</div>
+							<SubscribeEnterpriseCard context="page" />
 						</div>
 					</div>
 				)}

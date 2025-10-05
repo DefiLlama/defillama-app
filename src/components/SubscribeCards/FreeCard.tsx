@@ -20,8 +20,7 @@ export function FreeCard({ context = 'page' }: FreeCardProps) {
 			<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>
 			<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Free</h2>
-			<span className="h-8"></span>
-			<span className="h-7"></span>
+			<div className="mt-2 h-8"></div>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
