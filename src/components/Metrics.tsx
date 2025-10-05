@@ -1,4 +1,4 @@
-import { Fragment, memo, useDeferredValue, useMemo, useState, useSyncExternalStore } from 'react'
+import { Fragment, memo, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -48,6 +48,16 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
+
+	const metricsInputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		if (metricsInputRef.current) {
+			requestAnimationFrame(() => {
+				metricsInputRef.current?.focus()
+			})
+		}
+	}, [])
 
 	const tabPages = useMemo(() => {
 		return metricsByCategory
@@ -129,7 +139,9 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
+						ref={metricsInputRef}
 						type="text"
+						inputMode="search"
 						placeholder="Search..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 						value={searchValue}
@@ -341,7 +353,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					</svg>
 				</div>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
+					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 max-sm:fixed max-sm:inset-0 max-sm:top-20 max-sm:bottom-0 max-sm:h-auto max-sm:max-h-none sm:w-full sm:max-w-[min(85vw,1280px)]"
 					unmountOnHide
 					hideOnInteractOutside
 				>
