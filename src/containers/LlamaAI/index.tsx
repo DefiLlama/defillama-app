@@ -760,7 +760,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				const { scrollTop, scrollHeight, clientHeight } = container
 
 				const scrollBottom = Math.ceil(scrollTop + clientHeight)
-				const threshold = scrollHeight - 20
+				const threshold = scrollHeight - 150
 				const isAtBottom = scrollBottom >= threshold
 				const hasScrollableContent = scrollHeight > clientHeight
 
