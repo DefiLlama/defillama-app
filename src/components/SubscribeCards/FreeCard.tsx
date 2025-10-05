@@ -19,8 +19,15 @@ export function FreeCard({ context = 'page' }: FreeCardProps) {
 		>
 			<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
 			<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>
-			<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Free</h2>
-			<div className="mt-2 h-8"></div>
+			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap">Free</h2>
+			<div className="relative z-10 mt-2 flex items-center justify-center">
+				<span className="bg-linear-to-r from-gray-400 to-gray-500 bg-clip-text text-center text-3xl font-bold text-transparent">
+					$0
+				</span>
+				<span className="ml-1 text-[#8a8c90]">/month</span>
+			</div>
+			<p className="relative z-10 mt-1 text-center text-sm text-transparent">-</p>
+			<div className="relative z-10 mt-4 h-[52px]"></div>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
