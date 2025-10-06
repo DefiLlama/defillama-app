@@ -1,5 +1,4 @@
 import { lazy, Suspense } from 'react'
-import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
