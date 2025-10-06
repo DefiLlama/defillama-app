@@ -754,7 +754,7 @@ export const getAdapterByChainPageData = async ({
 			name: protocol,
 			slug: slug(protocol),
 			logo: tokenIconUrl(protocol),
-			category: parentProtocols[protocol].sort((a, b) => b.total24h - a.total24h)[0].category ?? null,
+			category: parentProtocols[protocol].sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))[0].category ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,
