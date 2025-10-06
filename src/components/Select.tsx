@@ -35,7 +35,7 @@ export function Select({
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
-	const [viewableMatches, setViewableMatches] = React.useState(5)
+	const [viewableMatches, setViewableMatches] = React.useState(6)
 
 	const canSelectOnlyOne = typeof selectedValues === 'string'
 
@@ -78,7 +78,7 @@ export function Select({
 							) : null}
 						</span>
 					) : null}
-					{allValues.slice(0, viewableMatches + 1).map((option) => (
+					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
 							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
@@ -182,7 +182,7 @@ export function Select({
 							</span>
 						) : null}
 
-						{allValues.slice(0, viewableMatches + 1).map((option) => (
+						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}
