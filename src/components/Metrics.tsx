@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PINNED_METRICS_KEY } from '~/components/Nav/utils'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
@@ -188,7 +189,7 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 }) {
 	const pinnedMetrics = useSyncExternalStore(
 		subscribeToPinnedMetrics,
-		() => localStorage.getItem('pinned-metrics') ?? '[]',
+		() => localStorage.getItem(PINNED_METRICS_KEY) ?? '[]',
 		() => '[]'
 	)
 
@@ -241,9 +242,9 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 				render={
 					<button
 						onClick={(e) => {
-							const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
+							const currentPinnedMetrics = JSON.parse(window.localStorage.getItem(PINNED_METRICS_KEY) || '[]')
 							window.localStorage.setItem(
-								'pinned-metrics',
+								PINNED_METRICS_KEY,
 								JSON.stringify(
 									currentPinnedMetrics.includes(page.route)
 										? currentPinnedMetrics.filter((metric: string) => metric !== page.route)
@@ -272,10 +273,15 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 
 export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
 	const dialogStore = Ariakit.useDialogStore()
+
+	// Format breadcrumb text from currentMetric array
+	const breadcrumbText = currentMetric.join(' ')
+
 	return (
 		<>
 			<Ariakit.DialogProvider store={dialogStore}>
-				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
+				<div className="relative isolate flex w-full items-center justify-between gap-4 rounded-md bg-(--cards-bg) p-1">
+					{/* Left decorative SVG */}
 					<img
 						src="/icons/metrics-l.svg"
 						width={92}
@@ -284,27 +290,31 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 						className="absolute top-0 left-0 hidden h-full w-auto rounded-l-md object-cover md:block"
 						fetchPriority="high"
 					/>
-					<div className="flex h-full flex-wrap items-center justify-center gap-1">
-						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
-							<Icon name="sparkles" height={12} width={12} />
-							<span>New</span>
-						</span>
-						{currentMetric.map((metric, i) => (
-							<Fragment key={`metric-name-${metric}`}>
-								{i === 1 ? (
-									<span>{metric}</span>
-								) : (
-									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-2.5 py-1 font-semibold hover:bg-(--link-button-hover)">
-										{metric}
-									</Ariakit.DialogDisclosure>
-								)}
-							</Fragment>
-						))}
-						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-1.5 py-1 text-xs text-(--text-form)">
-							<Icon name="search" height={12} width={12} />
-							<span className="hidden sm:block">Click to browse & search</span>
+
+					{/* Content Container */}
+					<div className="relative z-10 flex w-full items-center justify-between gap-4 px-3 py-2">
+						{/* Left: Context/Breadcrumb with background for readability */}
+						<div className="flex items-center gap-2 text-base">
+							<span className="rounded-md bg-(--cards-bg) px-2 py-1 font-medium text-(--text-primary)">
+								{breadcrumbText}
+							</span>
+						</div>
+
+						{/* Center: New metrics indicator */}
+						<div className="hidden items-center gap-1.5 rounded-md bg-(--cards-bg) px-2 py-1 text-xs text-(--text-form) md:flex">
+							<Icon name="sparkles" height={14} width={14} className="text-(--old-blue)" />
+							<span>New metrics available</span>
+						</div>
+
+						{/* Right: Action button */}
+						<Ariakit.DialogDisclosure className="ml-auto flex shrink-0 items-center gap-1.5 rounded-md bg-(--old-blue) px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:opacity-90">
+							<Icon name="pin" height={14} width={14} />
+							<span className="hidden sm:inline">Browse & Pin</span>
+							<span className="sm:hidden">Browse</span>
 						</Ariakit.DialogDisclosure>
 					</div>
+
+					{/* Right decorative SVG */}
 					<img
 						src="/icons/metrics-r.svg"
 						width={92}
@@ -313,6 +323,8 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 						className="absolute top-0 right-0 hidden h-full w-auto rounded-r-md object-cover md:block"
 						fetchPriority="high"
 					/>
+
+					{/* Gradient border */}
 					<svg
 						width="100%"
 						height="100%"
