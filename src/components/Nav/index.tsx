@@ -2,10 +2,10 @@ import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
-import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
-import { TNavLinks } from './types'
+import type { NavLink } from './navStructure'
+import { PINNED_METRICS_KEY } from './utils'
 
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {
@@ -26,11 +26,6 @@ const MobileFallback = () => {
 	)
 }
 
-const footerLinks = ['More', 'About Us'].map((category) => ({
-	category,
-	pages: defillamaPages[category]
-})) as TNavLinks
-
 function NavComponent() {
 	const { dashboards } = useDashboardAPI()
 	const { user, isAuthenticated } = useAuthContext()
@@ -41,57 +36,37 @@ function NavComponent() {
 
 	const showAttentionIcon = isAuthenticated && !hasEthWallet && !hasSeenWalletPrompt
 
-	const mainLinks = useMemo(() => {
-		const otherMainPages = [
-			{ name: 'Account', route: '/subscription', icon: 'user', attention: showAttentionIcon },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
-		]
-		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
-	}, [showAttentionIcon])
-
-	const userDashboards = useMemo(
-		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
+	const userDashboards = useMemo<NavLink[]>(
+		() =>
+			dashboards?.map(({ id, data }) => ({
+				type: 'link',
+				label: data.dashboardName,
+				route: `/pro/${id}`
+			})) ?? [],
 		[dashboards]
 	)
+
 	const pinnedMetrics = useSyncExternalStore(
 		subscribeToPinnedMetrics,
-		() => localStorage.getItem('pinned-metrics') ?? '[]',
+		() => localStorage.getItem(PINNED_METRICS_KEY) ?? '[]',
 		() => '[]'
 	)
 
-	const pinnedPages = useMemo(() => {
+	const pinnedPages = useMemo<string[]>(() => {
 		if (!pinnedMetrics) return []
 
 		const parsedMetrics = JSON.parse(pinnedMetrics)
 		if (!Array.isArray(parsedMetrics) || parsedMetrics.length === 0) return []
 
-		// Create a lookup map for faster access
-		const routeToPageMap = new Map()
-		for (const category in defillamaPages) {
-			const pages = defillamaPages[category]
-			for (const page of pages) {
-				routeToPageMap.set(page.route, { name: page.name, route: page.route })
-			}
-		}
-
-		return parsedMetrics.map((metric: string) => routeToPageMap.get(metric)).filter((page) => page !== undefined)
+		// Return raw pinned routes array for grouped structure
+		return parsedMetrics
 	}, [pinnedMetrics])
 
 	return (
 		<>
-			<DesktopNav
-				mainLinks={mainLinks}
-				pinnedPages={pinnedPages}
-				userDashboards={userDashboards}
-				footerLinks={footerLinks}
-			/>
+			<DesktopNav pinnedPages={pinnedPages} userDashboards={userDashboards} accountAttention={showAttentionIcon} />
 			<Suspense fallback={<MobileFallback />}>
-				<MobileNav
-					mainLinks={mainLinks}
-					pinnedPages={pinnedPages}
-					userDashboards={userDashboards}
-					footerLinks={footerLinks}
-				/>
+				<MobileNav pinnedPages={pinnedPages} userDashboards={userDashboards} accountAttention={showAttentionIcon} />
 			</Suspense>
 		</>
 	)

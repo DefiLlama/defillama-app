@@ -1,22 +1,20 @@
 import * as React from 'react'
 import { lazy } from 'react'
 import { BasicLink } from '~/components/Link'
-import { TNavLink, TNavLinks } from '../types'
+import type { NavLink } from '../navStructure'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 
 const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ default: m.MobileSearch }))) as React.FC
 
 export const MobileNav = ({
-	mainLinks,
 	pinnedPages,
 	userDashboards,
-	footerLinks
+	accountAttention
 }: {
-	mainLinks: TNavLinks
-	pinnedPages: TNavLink[]
-	userDashboards: TNavLink[]
-	footerLinks: TNavLinks
+	pinnedPages: string[]
+	userDashboards: NavLink[]
+	accountAttention?: boolean
 }) => {
 	return (
 		<nav className="flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
@@ -38,7 +36,7 @@ export const MobileNav = ({
 
 			<Settings />
 
-			<Menu mainLinks={mainLinks} pinnedPages={pinnedPages} userDashboards={userDashboards} footerLinks={footerLinks} />
+			<Menu pinnedPages={pinnedPages} userDashboards={userDashboards} accountAttention={accountAttention} />
 		</nav>
 	)
 }
