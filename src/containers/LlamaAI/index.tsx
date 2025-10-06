@@ -47,13 +47,14 @@ async function fetchPromptResponse({
 	prompt?: string
 	userQuestion: string
 	onProgress?: (data: {
-		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'error' | 'title' | 'message_id'
+		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'citations' | 'error' | 'title' | 'message_id'
 		content: string
 		stage?: string
 		sessionId?: string
 		suggestions?: any[]
 		charts?: any[]
 		chartData?: any[]
+		citations?: string[]
 		title?: string
 		messageId?: string
 	}) => void
@@ -110,6 +111,7 @@ async function fetchPromptResponse({
 		let suggestions = null
 		let charts = null
 		let chartData = null
+		let citations = null
 		let lineBuffer = ''
 
 		while (true) {
@@ -170,6 +172,15 @@ async function fetchPromptResponse({
 									chartData: data.chartData
 								})
 							}
+						} else if (data.type === 'citations') {
+							citations = data.citations
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'citations',
+									content: '',
+									citations: data.citations
+								})
+							}
 						} else if (data.type === 'error') {
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'error', content: data.content })
@@ -193,7 +204,8 @@ async function fetchPromptResponse({
 				metadata,
 				suggestions,
 				charts,
-				chartData
+				chartData,
+				citations
 			}
 		}
 	} catch (error) {
@@ -227,6 +239,7 @@ interface SharedSession {
 			suggestions?: any[]
 			charts?: any[]
 			chartData?: any[]
+			citations?: string[]
 		}
 		messageId?: string
 		timestamp: number
@@ -263,7 +276,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
 			question: string
-			response: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
+			response: {
+				answer: string
+				metadata?: any
+				suggestions?: any[]
+				charts?: any[]
+				chartData?: any[]
+				citations?: string[]
+			}
 			timestamp: number
 			messageId?: string
 			userRating?: 'good' | 'bad' | null
@@ -285,6 +305,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [streamingSuggestions, setStreamingSuggestions] = useState<any[] | null>(null)
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
+	const [streamingCitations, setStreamingCitations] = useState<string[] | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
@@ -423,6 +444,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setStreamingSuggestions(null)
 			setStreamingCharts(null)
 			setStreamingChartData(null)
+			setStreamingCitations(null)
 			setIsGeneratingCharts(false)
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
@@ -471,6 +493,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setStreamingChartData(data.chartData)
 						setIsGeneratingCharts(false)
 						setIsAnalyzingForCharts(false)
+					} else if (data.type === 'citations') {
+						setStreamingCitations(data.citations)
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
@@ -499,7 +523,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						metadata: data?.response?.metadata,
 						suggestions: data?.response?.suggestions,
 						charts: data?.response?.charts,
-						chartData: data?.response?.chartData
+						chartData: data?.response?.chartData,
+						citations: data?.response?.citations
 					},
 					messageId: currentMessageId,
 					timestamp: Date.now()
@@ -545,6 +570,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingSuggestions(null)
 				setStreamingCharts(null)
 				setStreamingChartData(null)
+				setStreamingCitations(null)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 			}
@@ -596,7 +622,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						metadata: { stopped: true, partial: true },
 						suggestions: streamingSuggestions,
 						charts: streamingCharts,
-						chartData: streamingChartData
+						chartData: streamingChartData,
+						citations: streamingCitations
 					},
 					messageId: currentMessageId,
 					timestamp: Date.now()
@@ -609,6 +636,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
 		setStreamingChartData(null)
+		setStreamingCitations(null)
 		setCurrentMessageId(null)
 		resetPrompt()
 		setTimeout(() => {
@@ -693,6 +721,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
 		setStreamingChartData(null)
+		setStreamingCitations(null)
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
@@ -742,6 +771,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
 		setStreamingChartData(null)
+		setStreamingCitations(null)
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
@@ -978,7 +1008,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													>
 														<SentPrompt prompt={item.question} />
 														<div className="flex flex-col gap-2.5">
-															<MarkdownRenderer content={item.response.answer} />
+															<MarkdownRenderer content={item.response.answer} citations={item.response.citations} />
 															{item.response.charts && item.response.charts.length > 0 && (
 																<ChartRenderer
 																	charts={item.response.charts}
@@ -1013,12 +1043,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													<PromptResponse
 														response={
 															promptResponse?.response ||
-															(streamingSuggestions || streamingCharts
+															(streamingSuggestions || streamingCharts || streamingCitations
 																? {
 																		answer: '',
 																		suggestions: streamingSuggestions,
 																		charts: streamingCharts,
-																		chartData: streamingChartData
+																		chartData: streamingChartData,
+																		citations: streamingCitations
 																	}
 																: undefined)
 														}
@@ -1188,7 +1219,14 @@ const PromptResponse = ({
 	resizeTrigger = 0,
 	showMetadata = false
 }: {
-	response?: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
+	response?: {
+		answer: string
+		metadata?: any
+		suggestions?: any[]
+		charts?: any[]
+		chartData?: any[]
+		citations?: string[]
+	}
 	error?: string
 	streamingError?: string
 	isPending: boolean
@@ -1213,7 +1251,7 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer content={streamingResponse} />
+					<MarkdownRenderer content={streamingResponse} citations={response?.citations} />
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
