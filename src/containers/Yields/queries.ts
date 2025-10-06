@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchCoinPrices } from '~/api'
 
+export const UNBOUNDED_DEBT_CEILING_PROJECTS = ['liquity-v1', 'liquity-v2'] as const
+
 export const useGetPrice = (tokens: Array<string>) => {
 	const prices = useQuery({
 		queryKey: ['prices', tokens],
