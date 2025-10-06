@@ -4,11 +4,12 @@ import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
+import { DashboardCardSkeleton } from './DashboardCardSkeleton'
 import { DashboardSearch } from './DashboardSearch'
-import { LoadingSpinner } from './LoadingSpinner'
 
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
+const PAGE_LIMIT = 20 as const
 const sortOptions = [
 	{ key: 'popular', name: 'Most Popular' },
 	{ key: 'recent', name: 'Recently Created' },
@@ -40,7 +41,7 @@ export function DashboardDiscovery() {
 		visibility: 'public',
 		sortBy: selectedSortBy.key,
 		page: selectedPage,
-		limit: 20
+		limit: PAGE_LIMIT
 	})
 
 	const handleTagClick = (tag: string) => {
@@ -223,9 +224,18 @@ export function DashboardDiscovery() {
 			</div>
 
 			{isLoading ? (
-				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
-					<LoadingSpinner />
-				</div>
+				<>
+					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
+					<div
+						className={
+							viewMode === 'grid' ? 'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'space-y-4'
+						}
+					>
+						{Array.from({ length: PAGE_LIMIT }).map((_, i) => (
+							<DashboardCardSkeleton key={`dashboard-skeleton-${i}`} viewMode={viewMode} />
+						))}
+					</div>
+				</>
 			) : dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 					<Icon name="search" height={48} width={48} className="text-(--text-label)" />
@@ -256,7 +266,8 @@ export function DashboardDiscovery() {
 						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 							<button
 								onClick={() => {
-									const { page, ...query } = router.query
+									const query = { ...router.query }
+									delete (query as any).page
 									router.push(
 										{
 											pathname: '/pro',
