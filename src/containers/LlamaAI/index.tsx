@@ -47,13 +47,14 @@ async function fetchPromptResponse({
 	prompt?: string
 	userQuestion: string
 	onProgress?: (data: {
-		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'error' | 'title' | 'message_id'
+		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'citations' | 'error' | 'title' | 'message_id'
 		content: string
 		stage?: string
 		sessionId?: string
 		suggestions?: any[]
 		charts?: any[]
 		chartData?: any[]
+		citations?: string[]
 		title?: string
 		messageId?: string
 	}) => void
@@ -110,6 +111,7 @@ async function fetchPromptResponse({
 		let suggestions = null
 		let charts = null
 		let chartData = null
+		let citations = null
 		let lineBuffer = ''
 
 		while (true) {
@@ -170,6 +172,15 @@ async function fetchPromptResponse({
 									chartData: data.chartData
 								})
 							}
+						} else if (data.type === 'citations') {
+							citations = data.citations
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'citations',
+									content: '',
+									citations: data.citations
+								})
+							}
 						} else if (data.type === 'error') {
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'error', content: data.content })
@@ -193,7 +204,8 @@ async function fetchPromptResponse({
 				metadata,
 				suggestions,
 				charts,
-				chartData
+				chartData,
+				citations
 			}
 		}
 	} catch (error) {
@@ -227,6 +239,7 @@ interface SharedSession {
 			suggestions?: any[]
 			charts?: any[]
 			chartData?: any[]
+			citations?: string[]
 		}
 		messageId?: string
 		timestamp: number
@@ -263,7 +276,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
 			question: string
-			response: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
+			response: {
+				answer: string
+				metadata?: any
+				suggestions?: any[]
+				charts?: any[]
+				chartData?: any[]
+				citations?: string[]
+			}
 			timestamp: number
 			messageId?: string
 			userRating?: 'good' | 'bad' | null
@@ -285,6 +305,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [streamingSuggestions, setStreamingSuggestions] = useState<any[] | null>(null)
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
+	const [streamingCitations, setStreamingCitations] = useState<string[] | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
@@ -423,6 +444,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setStreamingSuggestions(null)
 			setStreamingCharts(null)
 			setStreamingChartData(null)
+			setStreamingCitations(null)
 			setIsGeneratingCharts(false)
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
@@ -471,6 +493,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setStreamingChartData(data.chartData)
 						setIsGeneratingCharts(false)
 						setIsAnalyzingForCharts(false)
+					} else if (data.type === 'citations') {
+						setStreamingCitations(data.citations)
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
@@ -499,7 +523,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						metadata: data?.response?.metadata,
 						suggestions: data?.response?.suggestions,
 						charts: data?.response?.charts,
-						chartData: data?.response?.chartData
+						chartData: data?.response?.chartData,
+						citations: data?.response?.citations
 					},
 					messageId: currentMessageId,
 					timestamp: Date.now()
@@ -513,7 +538,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				promptInputRef.current?.focus()
 			}, 100)
 		},
-		onError: (error) => {
+		onError: (error, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
 
@@ -522,7 +547,31 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingResponse(finalContent)
 			}
 
-			if (error?.message !== 'Request aborted') {
+			const wasUserStopped = error?.message === 'Request aborted'
+
+			if (wasUserStopped && finalContent.trim()) {
+				setConversationHistory((prev) => [
+					...prev,
+					{
+						question: variables.userQuestion,
+						response: {
+							answer: finalContent,
+							metadata: { stopped: true, partial: true },
+							suggestions: streamingSuggestions,
+							charts: streamingCharts,
+							chartData: streamingChartData
+						},
+						messageId: currentMessageId,
+						timestamp: Date.now()
+					}
+				])
+
+				setStreamingResponse('')
+				setStreamingSuggestions(null)
+				setStreamingCharts(null)
+				setStreamingChartData(null)
+				setStreamingCitations(null)
+			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 			}
 
@@ -536,8 +585,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const handleStopRequest = async () => {
 		if (!sessionId || !isStreaming) return
 
+		const finalContent = streamingContentRef.current.getContent()
+
 		try {
-			// Call the backend stop endpoint
 			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
 				method: 'POST',
 				headers: {
@@ -558,11 +608,36 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			console.log('Error stopping streaming session:', error)
 		}
 
-		// Also abort the local controller as backup
 		if (abortControllerRef.current) {
 			abortControllerRef.current.abort()
 		}
 
+		if (finalContent.trim()) {
+			setConversationHistory((prev) => [
+				...prev,
+				{
+					question: prompt,
+					response: {
+						answer: finalContent,
+						metadata: { stopped: true, partial: true },
+						suggestions: streamingSuggestions,
+						charts: streamingCharts,
+						chartData: streamingChartData,
+						citations: streamingCitations
+					},
+					messageId: currentMessageId,
+					timestamp: Date.now()
+				}
+			])
+		}
+
+		setIsStreaming(false)
+		setStreamingResponse('')
+		setStreamingSuggestions(null)
+		setStreamingCharts(null)
+		setStreamingChartData(null)
+		setStreamingCitations(null)
+		setCurrentMessageId(null)
 		resetPrompt()
 		setTimeout(() => {
 			promptInputRef.current?.focus()
@@ -646,6 +721,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
 		setStreamingChartData(null)
+		setStreamingCitations(null)
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
@@ -695,6 +771,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
 		setStreamingChartData(null)
+		setStreamingCitations(null)
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
@@ -760,7 +837,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				const { scrollTop, scrollHeight, clientHeight } = container
 
 				const scrollBottom = Math.ceil(scrollTop + clientHeight)
-				const threshold = scrollHeight - 20
+				const threshold = scrollHeight - 150
 				const isAtBottom = scrollBottom >= threshold
 				const hasScrollableContent = scrollHeight > clientHeight
 
@@ -931,7 +1008,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													>
 														<SentPrompt prompt={item.question} />
 														<div className="flex flex-col gap-2.5">
-															<MarkdownRenderer content={item.response.answer} />
+															<MarkdownRenderer content={item.response.answer} citations={item.response.citations} />
 															{item.response.charts && item.response.charts.length > 0 && (
 																<ChartRenderer
 																	charts={item.response.charts}
@@ -966,12 +1043,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													<PromptResponse
 														response={
 															promptResponse?.response ||
-															(streamingSuggestions || streamingCharts
+															(streamingSuggestions || streamingCharts || streamingCitations
 																? {
 																		answer: '',
 																		suggestions: streamingSuggestions,
 																		charts: streamingCharts,
-																		chartData: streamingChartData
+																		chartData: streamingChartData,
+																		citations: streamingCitations
 																	}
 																: undefined)
 														}
@@ -1002,7 +1080,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-42.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky bottom-26.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1086,13 +1164,12 @@ const PromptInput = ({
 				}}
 			>
 				<textarea
-					rows={5}
 					placeholder="Ask LlamaAI..."
 					value={value}
 					onChange={onChange}
 					onKeyDown={onKeyDown}
 					name="prompt"
-					className="block w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base dark:border-[#222324] dark:caret-white"
+					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
 					autoCorrect="off"
 					autoComplete="off"
 					spellCheck="false"
@@ -1102,21 +1179,21 @@ const PromptInput = ({
 					maxLength={2000}
 				/>
 				{isStreaming ? (
-					<button
-						type="button"
-						onClick={handleStopRequest}
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-red-500/10 text-(--error)"
+					<Tooltip
+						content="Stop"
+						render={<button onClick={handleStopRequest} />}
+						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
 					>
-						<Icon name="x" height={14} width={14} />
-						<span className="sr-only">Stop streaming</span>
-					</button>
+						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
+						<span className="sr-only">Stop</span>
+					</Tooltip>
 				) : (
 					<button
 						type="submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white disabled:opacity-50"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming || !value.trim()}
 					>
-						<Icon name="arrow-up" height={16} width={16} />
+						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 						<span className="sr-only">Submit prompt</span>
 					</button>
 				)}
@@ -1142,7 +1219,14 @@ const PromptResponse = ({
 	resizeTrigger = 0,
 	showMetadata = false
 }: {
-	response?: { answer: string; metadata?: any; suggestions?: any[]; charts?: any[]; chartData?: any[] }
+	response?: {
+		answer: string
+		metadata?: any
+		suggestions?: any[]
+		charts?: any[]
+		chartData?: any[]
+		citations?: string[]
+	}
 	error?: string
 	streamingError?: string
 	isPending: boolean
@@ -1167,7 +1251,7 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer content={streamingResponse} />
+					<MarkdownRenderer content={streamingResponse} citations={response?.citations} />
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
@@ -1777,7 +1861,7 @@ const ChatControls = ({
 			<Tooltip
 				content="Open Chat History"
 				render={<button onClick={handleSidebarToggle} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/10 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 			>
 				<Icon name="arrow-right-to-line" height={16} width={16} />
 				<span className="sr-only">Open Chat History</span>

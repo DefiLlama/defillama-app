@@ -98,7 +98,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			totalBorrowUsd: pool.totalBorrowUsd,
 			totalAvailableUsd: pool.totalAvailableUsd,
 			ltv: pool.ltv,
-			poolMeta: pool.poolMeta
+			poolMeta: pool.poolMeta,
+			category: pool.category,
+			stablecoin: pool.stablecoin,
+			exposure: pool.exposure,
+			ilRisk: pool.ilRisk,
+			audits: pool.audits,
+			outlier: pool.outlier,
+			predictions: pool.predictions,
+			apyIncludingLsdApy: pool.apyIncludingLsdApy,
+			apyBaseIncludingLsdApy: pool.apyBaseIncludingLsdApy,
+			apyLsd: pool.apyLsd,
+			lsdTokenOnly: pool.lsdTokenOnly,
+			rewardTokens: pool.rewardTokens || [],
+			url: pool.url
 		}))
 
 		let filteredPools = transformedPools

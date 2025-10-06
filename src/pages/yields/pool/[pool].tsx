@@ -535,7 +535,7 @@ const PageView = (props) => {
 					</BasicLink>
 				</p>
 
-				{config.audits ? (
+				{config?.audits ? (
 					<>
 						<p className="flex items-center gap-1">
 							<span className="flex flex-nowrap items-center gap-1">
@@ -569,7 +569,7 @@ const PageView = (props) => {
 							<span>Website</span>
 						</a>
 					) : null}
-					{config.github?.length
+					{config?.github?.length
 						? config.github.map((github) => (
 								<a
 									href={`https://github.com/${github}`}
@@ -583,7 +583,7 @@ const PageView = (props) => {
 								</a>
 							))
 						: null}
-					{config.twitter ? (
+					{config?.twitter ? (
 						<a
 							href={`https://twitter.com/${config.twitter}`}
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"

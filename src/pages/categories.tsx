@@ -313,6 +313,7 @@ export const descriptions = {
 		'Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability',
 	'Physical TCG': 'Protocols that allow you to trade physical trading cards',
 	'Mining Pools': 'Protocols that coordinate user resources into shared mining pools',
+	'NFT Automated Strategies': 'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))

@@ -141,7 +141,7 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 					{pages.map(({ category }) => (
 						<button
 							key={category}
-							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue)/60 px-2 py-1 text-xs hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 							onClick={() => {
 								const element = document.querySelector(`[data-category="${category}"]`)
 								if (element) {
@@ -207,12 +207,12 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 hover:bg-(--link-button)"
 				href={page.route}
 			>
-				<span className="flex w-full flex-wrap items-center justify-end gap-1">
-					<span className="mr-auto font-medium">{page.name}</span>
+				<span className="flex w-full flex-wrap items-center gap-1">
+					<span className="font-medium">{page.name}</span>
 					{page.tags?.map((tag) =>
 						tag === 'Hot' ? (
 							<span
-								className="-mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-[#D24C1F] px-1.5 py-1 text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden"
+								className="flex items-center gap-1 rounded-md bg-[#D24C1F] px-1.5 py-1 text-[10px] text-white"
 								key={`tag-${page.route}-${tag}`}
 							>
 								<Icon name="flame" height={10} width={10} />
@@ -220,7 +220,7 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 							</span>
 						) : (
 							<span
-								className="-mt-1 -mr-0.5 flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-1 text-[10px] text-white group-hover:hidden group-data-[pinned=true]:hidden"
+								className="flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-1 text-[10px] text-white"
 								key={`tag-${page.route}-${tag}`}
 							>
 								<Icon name="sparkles" height={10} width={10} />
@@ -228,12 +228,11 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 							</span>
 						)
 					)}
-					{totalTrackedByMetric && page.totalTrackedKey ? (
-						<span className="text-xs text-(--link) group-hover:hidden group-data-[pinned=true]:hidden">
-							{getTotalTracked(totalTrackedByMetric, page.totalTrackedKey)}
-						</span>
-					) : null}
+					<Icon name="arrow-right" height={16} width={16} className="ml-auto" />
 				</span>
+				{totalTrackedByMetric && page.totalTrackedKey ? (
+					<span className="text-xs text-(--link)">{getTotalTracked(totalTrackedByMetric, page.totalTrackedKey)}</span>
+				) : null}
 				<span className="pt-0 text-start whitespace-pre-wrap text-(--text-form)">{page.description ?? ''}</span>
 			</BasicLink>
 
