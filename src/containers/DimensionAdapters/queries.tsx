@@ -301,12 +301,17 @@ export async function getAdapterProtocolSummary({
 }
 
 export async function getCexVolume() {
-	const [cexs, btcPriceRes] = await Promise.all([
+	const [cexs, cexDerivatives, btcPriceRes] = await Promise.all([
 		fetchJson(
 			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/exchanges?per_page=250'
 			)}`
 		),
+		fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=250`, {
+			headers: {
+				'x-cg-pro-api-key': process.env.CG_KEY
+			}
+		}),
 		fetchJson(
 			`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
 				'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
@@ -314,10 +319,24 @@ export async function getCexVolume() {
 		)
 	])
 	const btcPrice = btcPriceRes?.bitcoin?.usd
-	if (!btcPrice || !cexs || typeof cexs.filter !== 'function') return undefined
+	if (
+		!btcPrice ||
+		!cexs ||
+		typeof cexs.filter !== 'function' ||
+		!cexDerivatives ||
+		typeof cexDerivatives.filter !== 'function'
+	)
+		return undefined
+
 	// cexs might not be a list TypeError: cexs.filter is not a function
-	const volume = cexs.filter((c) => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
-	return volume
+	const spotVolume =
+		cexs.filter((c) => c.trust_score >= 9).reduce((sum, c) => sum + c.trade_volume_24h_btc, 0) * btcPrice
+	const derivativeVolume =
+		cexDerivatives
+			.filter((c) => c.number_of_perpetual_pairs >= 10)
+			.reduce((sum, c) => sum + Number(c.trade_volume_24h_btc), 0) * btcPrice
+
+	return { spotVolume, derivativeVolume }
 }
 
 async function getEmissionsData() {
