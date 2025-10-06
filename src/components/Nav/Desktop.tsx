@@ -1,176 +1,289 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Tooltip } from '../Tooltip'
+import { Tooltip } from '~/components/Tooltip'
+import { useSidebarState } from '~/contexts/SidebarContext'
+import { NavCollapseProvider } from './NavCollapseContext'
+import { NavItems, NavLink } from './NavGroup'
+import { primaryNavigation, resourcesNavigation } from './navStructure'
+import type { NavLink as NavLinkType } from './navStructure'
 import { ThemeSwitch } from './ThemeSwitch'
-import { TNavLink, TNavLinks } from './types'
+import { getPinnedNavStructure, unpinRoute } from './utils'
 
 const Account = React.lazy(() => import('./Account').then((mod) => ({ default: mod.Account })))
 
 export const DesktopNav = React.memo(function DesktopNav({
-	mainLinks,
 	pinnedPages,
 	userDashboards,
-	footerLinks
+	accountAttention
 }: {
-	mainLinks: TNavLinks
-	pinnedPages: TNavLink[]
-	userDashboards: TNavLink[]
-	footerLinks: TNavLinks
+	pinnedPages: string[]
+	userDashboards: NavLinkType[]
+	accountAttention?: boolean
 }) {
-	const { asPath } = useRouter()
+	// Convert pinned routes to grouped structure
+	const pinnedNavStructure = React.useMemo(() => getPinnedNavStructure(pinnedPages), [pinnedPages])
+
+	const { isCollapsed, isPinned, toggle, setCollapsed } = useSidebarState()
+	const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+	const leaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	// Handle mouse enter with delay
+	const handleMouseEnter = React.useCallback(() => {
+		// Clear any pending leave timer (user came back)
+		if (leaveTimerRef.current) {
+			clearTimeout(leaveTimerRef.current)
+			leaveTimerRef.current = null
+		}
+
+		if (!isCollapsed || isPinned) return
+
+		const timer = setTimeout(() => {
+			setCollapsed(false)
+		}, 200) // 200ms delay to prevent accidental triggers
+
+		hoverTimerRef.current = timer
+	}, [isCollapsed, isPinned, setCollapsed])
+
+	// Handle mouse leave with delay
+	const handleMouseLeave = React.useCallback(() => {
+		// Clear any pending hover timer
+		if (hoverTimerRef.current) {
+			clearTimeout(hoverTimerRef.current)
+			hoverTimerRef.current = null
+		}
+
+		// Don't auto-collapse if pinned
+		if (isPinned) return
+
+		// Set leave timer with grace period
+		leaveTimerRef.current = setTimeout(() => {
+			setCollapsed(true)
+		}, 800) // 800ms grace period for users to recover
+	}, [isPinned, setCollapsed])
+
+	// Handle Escape key to collapse when temporarily expanded (not pinned)
+	React.useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === 'Escape' && !isCollapsed && !isPinned) {
+				setCollapsed(true)
+			}
+		}
+
+		document.addEventListener('keydown', handleEscape)
+		return () => document.removeEventListener('keydown', handleEscape)
+	}, [isCollapsed, isPinned, setCollapsed])
+
+	// Determine if sidebar should appear expanded
+	const isExpanded = !isCollapsed
+	const showOverlay = !isCollapsed && !isPinned
+	const dynamicNavWidth = isExpanded ? 'w-[244px]' : 'w-[80px]'
+
+	console.log('Desktop Nav State:', { isCollapsed, isPinned, isExpanded, showOverlay })
 
 	return (
-		<nav className="thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
-			<BasicLink href="/" className="shrink-0">
-				<span className="sr-only">Navigate to Home Page</span>
-				<img
-					src="/icons/defillama.webp"
-					height={53}
-					width={155}
-					className="mr-auto mb-4 hidden object-contain object-left dark:block"
-					alt=""
-					fetchPriority="high"
+		<>
+			{/* Backdrop - only show when temporarily expanded (not pinned) */}
+			{showOverlay && (
+				<div
+					className="fixed inset-0 z-[9] bg-black/40 transition-opacity duration-200 dark:bg-black/70"
+					aria-hidden="true"
+					onClick={() => setCollapsed(true)}
+					style={{ overscrollBehavior: 'contain' }}
 				/>
-				<img
-					src="/icons/defillama-dark.webp"
-					height={53}
-					width={155}
-					className="mr-auto mb-4 object-contain object-left dark:hidden"
-					alt=""
-					fetchPriority="high"
-				/>
-			</BasicLink>
-
-			<div className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
-				{mainLinks.map(({ category, pages }) => (
-					<div key={`desktop-nav-${category}`} className="group">
-						{pages.map(({ name, route, icon, attention }) => (
-							<LinkToPage
-								key={`desktop-nav-${name}-${route}`}
-								route={route}
-								name={name}
-								icon={icon}
-								attention={attention}
-								asPath={asPath}
-							/>
-						))}
-					</div>
-				))}
-
-				{pinnedPages.length > 0 ? (
-					<div className="mt-4">
-						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Pinned Pages</p>
-
-						{pinnedPages.map(({ name, route }) => (
-							<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
-								<LinkToPage route={route} name={name} asPath={asPath} />
-								<Tooltip
-									content="Unpin from navigation"
-									render={
-										<button
-											onClick={(e) => {
-												const currentPinnedPages = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-												window.localStorage.setItem(
-													'pinned-metrics',
-													JSON.stringify(currentPinnedPages.filter((page: string) => page !== route))
-												)
-												window.dispatchEvent(new Event('pinnedMetricsChange'))
-												e.preventDefault()
-												e.stopPropagation()
-											}}
-										/>
-									}
-									className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
-								>
-									<Icon name="x" className="h-4 w-4" />
-								</Tooltip>
-							</span>
-						))}
-					</div>
-				) : null}
-
-				{userDashboards.length > 0 ? (
-					<div className="group my-4">
-						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Your Dashboards</p>
-						<div>
-							{userDashboards.map(({ name, route }) => (
-								<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} asPath={asPath} />
-							))}
-						</div>
-					</div>
-				) : null}
-
-				{footerLinks.map(({ category, pages }) => (
-					<details
-						key={`desktop-nav-${category}`}
-						className={`group ${category === 'More' ? 'mt-auto' : ''}`}
-						open={category === 'More'}
-					>
-						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5">
-							<span>{category}</span>
-							<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
-						</summary>
-						<hr className="-ml-1.5 border-black/20 pt-2 group-last:block dark:border-white/20" />
-						<div>
-							{pages.map(({ name, route, icon, attention }) => (
-								<LinkToPage
-									key={`desktop-nav-${name}-${route}`}
-									route={route}
-									name={name}
-									icon={icon}
-									attention={attention}
-									asPath={asPath}
+			)}
+			<nav
+				onMouseEnter={handleMouseEnter}
+				onMouseLeave={handleMouseLeave}
+				className={`thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen flex-col overflow-y-auto rounded-lg bg-(--app-bg) p-4 pb-0 pl-0 transition-all duration-200 ease-out lg:flex ${
+					dynamicNavWidth
+				}`}
+			>
+				<div className={`mb-4 flex h-[53px] items-center pl-4 ${isExpanded ? 'justify-between' : 'justify-center'}`}>
+					<BasicLink href="/" className="flex h-full shrink-0 items-center">
+						<span className="sr-only">Navigate to Home Page</span>
+						{isExpanded ? (
+							<>
+								<img
+									src="/icons/llama-logos/defi-llama-dark-theme.svg"
+									height={53}
+									width={155}
+									className="mr-auto hidden h-full object-contain object-left dark:block"
+									alt="DefiLlama"
+									fetchPriority="high"
 								/>
-							))}
+								<img
+									src="/icons/llama-logos/defillama-light-theme.svg"
+									height={53}
+									width={155}
+									className="mr-auto h-full object-contain object-left dark:hidden"
+									alt="DefiLlama"
+									fetchPriority="high"
+								/>
+							</>
+						) : (
+							<img
+								src="/icons/llama-logos/defi-llama-icon.svg"
+								height={32}
+								width={32}
+								className="h-full w-auto object-contain"
+								alt="DefiLlama"
+								fetchPriority="high"
+							/>
+						)}
+					</BasicLink>
+				</div>
+
+				<div className="flex flex-1 flex-col gap-1.5 pl-4">
+					{/* Primary Navigation */}
+					<div className="flex flex-col gap-1">
+						<NavItems items={primaryNavigation} isExpanded={isExpanded} />
+
+						{/* Metrics Link */}
+						<NavLink
+							link={{
+								type: 'link',
+								label: 'Metrics',
+								route: '/metrics',
+								icon: 'bar-chart-2'
+							}}
+							isExpanded={isExpanded}
+						/>
+
+						{/* Account and Custom Dashboards */}
+						<NavLink
+							link={{
+								type: 'link',
+								label: 'Account',
+								route: '/subscription',
+								icon: 'user',
+								attention: accountAttention
+							}}
+							isExpanded={isExpanded}
+						/>
+						<NavLink
+							link={{
+								type: 'link',
+								label: 'Custom Dashboards',
+								route: '/pro',
+								icon: 'blocks'
+							}}
+							isExpanded={isExpanded}
+						/>
+					</div>
+
+					{/* Pinned Pages with Grouped Structure or Empty State */}
+					{pinnedNavStructure.length > 0 ? (
+						<NavCollapseProvider>
+							<div className={isExpanded ? 'mt-4' : 'mt-2'}>
+								{/* Pinned header - text when expanded, icon with badge when collapsed */}
+								{isExpanded ? (
+									<p className="mb-1 flex items-center gap-2 text-xs opacity-65">Pinned</p>
+								) : (
+									<Tooltip content={`${pinnedPages.length} pinned`} placement="right">
+										<div className="relative mx-auto mb-2 flex h-10 w-10 items-center justify-center">
+											<Icon name="pin" className="h-4 w-4" style={{ '--icon-fill': 'currentColor' } as any} />
+											<span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-(--old-blue) px-1 text-[10px] font-medium text-white">
+												{pinnedPages.length}
+											</span>
+										</div>
+									</Tooltip>
+								)}
+								<div className="flex flex-col gap-1">
+									<NavItems items={pinnedNavStructure} isExpanded={isExpanded} showUnpin={true} onUnpin={unpinRoute} />
+								</div>
+							</div>
+						</NavCollapseProvider>
+					) : (
+						isExpanded && (
+							<div className="mt-4">
+								<p className="mb-1 text-xs opacity-65">Pinned</p>
+								<p className="text-xs text-(--text-form) opacity-75">
+									Visit Metrics page to pin your favorites
+								</p>
+							</div>
+						)
+					)}
+
+					{/* User Dashboards */}
+					{userDashboards.length > 0 && (
+						<div className={isExpanded ? 'my-4' : 'my-0'}>
+							<p
+								className={`flex items-center justify-between gap-3 rounded-md text-xs transition-opacity duration-200 ${
+									isExpanded ? 'mb-1 opacity-65' : 'mb-0 h-0 overflow-hidden opacity-0'
+								}`}
+							>
+								Your Dashboards
+							</p>
+							<div className="flex flex-col gap-0.5">
+								{userDashboards.map((dashboard) => (
+									<NavLink key={`dashboard-${dashboard.route}`} link={dashboard} isExpanded={isExpanded} />
+								))}
+							</div>
 						</div>
-					</details>
-				))}
-			</div>
+					)}
 
-			<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
-				<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
-				<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
-					<Account />
-				</React.Suspense>
-				<ThemeSwitch />
-			</div>
-		</nav>
-	)
-})
+					{/* Resources - Footer Section */}
+					<div className="mt-auto">
+						<p
+							className={`flex items-center justify-between gap-3 rounded-md text-xs transition-opacity duration-200 ${
+								isExpanded ? 'mb-1 opacity-50' : 'mb-0 h-0 overflow-hidden opacity-0'
+							}`}
+						>
+							Resources
+						</p>
+						<hr
+							className={`-ml-1.5 border-black/10 transition-opacity duration-200 dark:border-white/10 ${
+								isExpanded ? 'pt-1 opacity-100' : 'h-0 overflow-hidden pt-0 opacity-0'
+							}`}
+						/>
+						<div className="flex flex-col gap-0.5">
+							<NavItems items={resourcesNavigation} isExpanded={isExpanded} />
+						</div>
+					</div>
 
-const LinkToPage = React.memo(function LinkToPage({
-	route,
-	name,
-	icon,
-	attention,
-	asPath
-}: {
-	route: string
-	name: string
-	icon?: string
-	attention?: boolean
-	asPath: string
-}) {
-	const isActive = route === asPath.split('/?')[0].split('?')[0]
+					{/* Legal Footer */}
+					<div
+						className={`border-t border-black/20 transition-opacity duration-200 dark:border-white/20 ${
+							isExpanded ? 'mt-2 pt-2 opacity-100' : 'mt-0 h-0 overflow-hidden pt-0 opacity-0'
+						}`}
+					>
+						<div className="flex items-center justify-center gap-2 text-xs opacity-40">
+							<BasicLink href="/privacy-policy" className="transition-opacity hover:opacity-60">
+								Privacy
+							</BasicLink>
+							<span>•</span>
+							<BasicLink href="/terms" className="transition-opacity hover:opacity-60">
+								Terms
+							</BasicLink>
+						</div>
+					</div>
+				</div>
 
-	return (
-		<BasicLink
-			href={route}
-			data-linkactive={isActive}
-			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-		>
-			{icon ? <Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" /> : null}
-			<span className="relative inline-flex items-center gap-2">
-				{name}
-				{attention ? (
-					<span
-						aria-hidden
-						className="inline-block h-2 w-2 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--app-bg)]"
-					/>
-				) : null}
-			</span>
-		</BasicLink>
+				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg) px-2 pt-2 pb-4">
+					<hr className="-ml-1.5 border-black/20 dark:border-white/20" />
+					<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
+						<Account />
+					</React.Suspense>
+					<div className="flex items-center justify-between gap-2">
+						<ThemeSwitch />
+						<button
+							onClick={() => {
+								console.log('Toggle button clicked')
+								toggle()
+							}}
+							className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+							aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+							title={isCollapsed ? 'Expand sidebar (Cmd/Ctrl + B)' : 'Collapse sidebar (Cmd/Ctrl + B)'}
+						>
+							<Icon
+								name="arrow-right-to-line"
+								className={`h-4 w-4 transform transition-transform duration-200 ${isCollapsed ? '' : 'scale-x-[-1]'}`}
+							/>
+						</button>
+					</div>
+				</div>
+			</nav>
+		</>
 	)
 })
