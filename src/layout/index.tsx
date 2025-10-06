@@ -32,13 +32,14 @@ function Layout({
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
+
 	return (
 		<>
 			<SEO title={title} description={description} keywords={keywords} canonicalUrl={canonicalUrl} />
 			<Nav />
 			<main
 				{...props}
-				className="isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-[248px]"
+				className="isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) transition-all duration-200 ease-out lg:w-screen lg:p-4 lg:pl-[96px]"
 			>
 				{' '}
 				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
@@ -93,5 +94,6 @@ const MetricFilters = React.memo(function MetricFilters({
 
 export default React.memo(Layout)
 
-// sidebar + gap between nav & main + padding right
-// 228px + 4px + 16px = 248px
+// Sidebar widths + gap between nav & main + padding right
+// Expanded: 244px sidebar + 4px gap = 248px
+// Collapsed: 80px sidebar + 16px gap = 96px
