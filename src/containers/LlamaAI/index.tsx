@@ -513,7 +513,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				promptInputRef.current?.focus()
 			}, 100)
 		},
-		onError: (error) => {
+		onError: (error, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
 
@@ -522,7 +522,30 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingResponse(finalContent)
 			}
 
-			if (error?.message !== 'Request aborted') {
+			const wasUserStopped = error?.message === 'Request aborted'
+
+			if (wasUserStopped && finalContent.trim()) {
+				setConversationHistory((prev) => [
+					...prev,
+					{
+						question: variables.userQuestion,
+						response: {
+							answer: finalContent,
+							metadata: { stopped: true, partial: true },
+							suggestions: streamingSuggestions,
+							charts: streamingCharts,
+							chartData: streamingChartData
+						},
+						messageId: currentMessageId,
+						timestamp: Date.now()
+					}
+				])
+
+				setStreamingResponse('')
+				setStreamingSuggestions(null)
+				setStreamingCharts(null)
+				setStreamingChartData(null)
+			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 			}
 
@@ -536,8 +559,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const handleStopRequest = async () => {
 		if (!sessionId || !isStreaming) return
 
+		const finalContent = streamingContentRef.current.getContent()
+
 		try {
-			// Call the backend stop endpoint
 			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
 				method: 'POST',
 				headers: {
@@ -558,11 +582,34 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			console.log('Error stopping streaming session:', error)
 		}
 
-		// Also abort the local controller as backup
 		if (abortControllerRef.current) {
 			abortControllerRef.current.abort()
 		}
 
+		if (finalContent.trim()) {
+			setConversationHistory((prev) => [
+				...prev,
+				{
+					question: prompt,
+					response: {
+						answer: finalContent,
+						metadata: { stopped: true, partial: true },
+						suggestions: streamingSuggestions,
+						charts: streamingCharts,
+						chartData: streamingChartData
+					},
+					messageId: currentMessageId,
+					timestamp: Date.now()
+				}
+			])
+		}
+
+		setIsStreaming(false)
+		setStreamingResponse('')
+		setStreamingSuggestions(null)
+		setStreamingCharts(null)
+		setStreamingChartData(null)
+		setCurrentMessageId(null)
 		resetPrompt()
 		setTimeout(() => {
 			promptInputRef.current?.focus()
