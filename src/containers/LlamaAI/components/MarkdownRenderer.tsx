@@ -171,21 +171,25 @@ export function MarkdownRenderer({ content, citations }: MarkdownRendererProps) 
 				{processedData.content}
 			</ReactMarkdown>
 			{citations && citations.length > 0 && (
-				<div className="mt-4 border-t border-[#e6e6e6] pt-3 text-sm dark:border-[#222324]">
-					<h4 className="mb-2 font-semibold text-[#333] dark:text-[#d1d5db]">Sources</h4>
-					{citations.map((url, i) => (
-						<div key={i} className="mb-1 text-[#666] dark:text-[#919296]">
-							[{i + 1}]{' '}
-							<a
-								href={url}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="break-all text-blue-500 hover:underline"
+				<div className="border-t border-[#e6e6e6] pt-2.5 text-sm dark:border-[#222324]">
+					<h4 className="m-0! font-semibold">Sources</h4>
+					<ol className="list-none pl-0 [counter-reset:item]">
+						{citations.map((url) => (
+							<li
+								key={`citation-${url}`}
+								className="pl-0 text-[#666] [counter-increment:item] before:font-medium before:content-['['_counter(item)_']_'] dark:text-[#919296]"
 							>
-								{url}
-							</a>
-						</div>
-					))}
+								<a
+									href={url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="break-all text-(--link-text) hover:underline"
+								>
+									{url}
+								</a>
+							</li>
+						))}
+					</ol>
 				</div>
 			)}
 		</div>
