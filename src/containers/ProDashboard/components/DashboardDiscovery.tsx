@@ -266,8 +266,7 @@ export function DashboardDiscovery() {
 						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 							<button
 								onClick={() => {
-									const query = { ...router.query }
-									delete (query as any).page
+									const { page, ...query } = router.query
 									router.push(
 										{
 											pathname: '/pro',
