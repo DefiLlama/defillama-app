@@ -455,8 +455,9 @@ export function UpcomingUnlocksChart({
 							return (
 								prev +
 								'<li style="list-style:none;display:flex;align-items:center;gap:4px;">' +
+								`<span style="display:inline-block;width:10px;height:10px;background-color:${curr.color};border-radius:50%;flex-shrink:0;"></span>` +
 								curr.token +
-								'&nbsp;&nbsp;' +
+								':&nbsp;&nbsp;' +
 								'$' +
 								formattedNum(curr.value) +
 								` (${percentage}%)` +
