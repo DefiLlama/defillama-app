@@ -38,6 +38,8 @@ export interface IHacksPageData {
 	totalHackedDefi: string
 	totalRugs: string
 	pieChartData: Array<{ name: string; value: number }>
+	techniqueOptions: Array<{ key: string; name: string }>
+	classificationOptions: Array<{ key: string; name: string }>
 }
 
 export async function getHacksPageData(): Promise<IHacksPageData> {
@@ -105,6 +107,14 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		monthlyHacksChartData.push([+date, monthlyHacks[date]])
 	}
 
+	const techniqueOptions = Array.from(new Set((data || []).map((d) => d.technique).filter(Boolean)))
+		.sort((a: string, b: string) => a.localeCompare(b))
+		.map((name: string) => ({ key: slug(name), name }))
+
+	const classificationOptions = Array.from(new Set((data || []).map((d) => d.classification).filter(Boolean)))
+		.sort((a: string, b: string) => a.localeCompare(b))
+		.map((name: string) => ({ key: slug(name), name }))
+
 	return {
 		data,
 		monthlyHacksChartData: {
@@ -119,7 +129,9 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		totalHacked,
 		totalHackedDefi,
 		totalRugs,
-		pieChartData
+		pieChartData,
+		techniqueOptions,
+		classificationOptions
 	}
 }
 
