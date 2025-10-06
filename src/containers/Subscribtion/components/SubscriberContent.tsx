@@ -53,7 +53,7 @@ export const SubscriberContent = ({
 				<span className="mb-1 text-xl font-semibold text-white">Change Subscription</span>
 			</div>
 
-			<div className="mb-8 flex flex-row justify-center gap-4">
+			<div className="mb-8 flex flex-col justify-center gap-4">
 				<SubscribePlusCard
 					context="account"
 					active={isLlamaFeed && subscription?.provider !== 'trial'}
@@ -332,12 +332,12 @@ export const SubscriberContent = ({
 										{isPortalSessionLoading ? (
 											<>
 												<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
-												<span>Loading...</span>
+												<span className="hidden sm:inline">Loading...</span>
 											</>
 										) : (
 											<>
 												<Icon name="settings" height={14} width={14} />
-												<span>Manage Subscription</span>
+												<span className="hidden sm:inline">Manage Subscription</span>
 											</>
 										)}
 									</button>

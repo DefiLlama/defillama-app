@@ -662,7 +662,7 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology ? { methodology } : {}),
+			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {})
 		}
@@ -743,9 +743,9 @@ export const getAdapterByChainPageData = async ({
 				)
 			: null
 
-		const methodology = Array.from(
+		const methodology: Array<string> = Array.from(
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
-		).join(', ')
+		)
 
 		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
@@ -767,9 +767,17 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTax ? { tokenTax } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology
+			...(methodology.length > 0
 				? {
-						methodology
+						methodology:
+							methodology.length > 1
+								? methodology
+										.map((m) => {
+											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
+											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
+										})
+										.join('. ')
+								: methodology[0]
 					}
 				: {}),
 			...(doublecounted ? { doublecounted } : {}),

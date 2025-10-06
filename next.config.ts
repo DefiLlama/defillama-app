@@ -523,11 +523,6 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
-				source: '/protocol/lighter',
-				destination: '/protocol/lighter-v2',
-				permanent: true
-			},
-			{
 				source: '/subscribe',
 				destination: '/subscription',
 				permanent: true

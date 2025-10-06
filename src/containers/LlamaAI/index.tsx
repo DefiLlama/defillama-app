@@ -807,7 +807,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				const { scrollTop, scrollHeight, clientHeight } = container
 
 				const scrollBottom = Math.ceil(scrollTop + clientHeight)
-				const threshold = scrollHeight - 20
+				const threshold = scrollHeight - 150
 				const isAtBottom = scrollBottom >= threshold
 				const hasScrollableContent = scrollHeight > clientHeight
 
@@ -1049,7 +1049,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-42.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky bottom-26.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1149,12 +1149,12 @@ const PromptInput = ({
 				/>
 				{isStreaming ? (
 					<Tooltip
-						content="Stop streaming"
+						content="Stop"
 						render={<button onClick={handleStopRequest} />}
 						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
-						<span className="sr-only">Stop streaming</span>
+						<span className="sr-only">Stop</span>
 					</Tooltip>
 				) : (
 					<button

@@ -126,7 +126,7 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 								width={14}
 								className="text-[#5C5CF9] transition-transform group-hover:scale-110"
 							/>
-							<span className="bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-transparent transition-colors group-hover:from-white group-hover:to-white">
+							<span className="hidden bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-transparent transition-colors group-hover:from-white group-hover:to-white sm:inline">
 								Change Email
 							</span>
 						</button>
