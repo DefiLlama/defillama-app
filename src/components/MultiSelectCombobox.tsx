@@ -89,10 +89,9 @@ export const MultiSelectCombobox = ({
 				preventBodyScroll
 				gutter={6}
 				wrapperProps={{
-					className:
-						'max-sm:fixed! thin-scrollbar max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
+					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				portal
 				sameWidth
 			>
