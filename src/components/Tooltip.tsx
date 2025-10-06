@@ -11,6 +11,7 @@ interface ITooltip extends Ariakit.TooltipOptions {
 	color?: string
 	fontSize?: string
 	className?: string
+	tooltipClassName?: string
 	placement?:
 		| 'top'
 		| 'top-start'
@@ -27,7 +28,7 @@ interface ITooltip extends Ariakit.TooltipOptions {
 	portal?: boolean
 }
 
-export function Tooltip({ content, children, placement = 'top-start', className, ...props }: ITooltip) {
+export function Tooltip({ content, children, placement = 'top-start', className, tooltipClassName, ...props }: ITooltip) {
 	const store = Ariakit.useTooltipStore({ placement })
 
 	if (!content || content === '') return <>{children}</>
@@ -46,7 +47,10 @@ export function Tooltip({ content, children, placement = 'top-start', className,
 			</Ariakit.TooltipAnchor>
 			<Ariakit.Tooltip
 				store={store}
-				className="z-50 max-h-[calc(100dvh-80px)] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap data-[fullwidth=true]:max-w-(--popover-available-width) lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+				className={
+					tooltipClassName ||
+					'z-50 max-h-[calc(100dvh-80px)] max-w-56 overflow-auto rounded-md border border-gray-200 bg-gray-900 p-2 text-sm text-white whitespace-pre-wrap shadow-lg data-[fullwidth=true]:max-w-(--popover-available-width) lg:max-h-(--popover-available-height) dark:border-gray-700 dark:bg-gray-100 dark:text-gray-900'
+				}
 				unmountOnHide
 				portal
 				data-fullwidth={props['data-fullwidth']}
