@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
+import { NextRouter, useRouter } from 'next/router'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -149,11 +149,42 @@ const applyFilters = (
 		if (filters.techKeys && filters.techKeys.size > 0 && !filters.techKeys.has(slug(row.technique))) return false
 		if (filters.classKeys && filters.classKeys.size > 0 && !filters.classKeys.has(slug(row.classification)))
 			return false
-		if (filters.since !== null && filters.since !== undefined && row.date < filters.since) return false
-		if (filters.minLost !== null && filters.minLost !== undefined && row.amount < filters.minLost) return false
-		if (filters.maxLost !== null && filters.maxLost !== undefined && row.amount > filters.maxLost) return false
+		if (filters.since != null && row.date < filters.since) return false
+		if (filters.minLost != null && row.amount < filters.minLost) return false
+		if (filters.maxLost != null && row.amount > filters.maxLost) return false
 		return true
 	})
+}
+
+const toArrayParam = (p: string | string[] | undefined): string[] => {
+	if (!p) return []
+	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
+}
+
+const updateArrayQuery = (key: string, values: string[], router: NextRouter) => {
+	const nextQuery: Record<string, any> = { ...router.query }
+	if (values.length > 0) {
+		nextQuery[key] = values
+	} else {
+		delete nextQuery[key]
+	}
+	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
+const labelToKey = {
+	All: 'all',
+	'7D': '7d',
+	'30D': '30d',
+	'90D': '90d',
+	'1Y': '1y'
+} as const
+const keyToLabel: Record<string, (typeof timeOptions)[number]> = {
+	all: 'All',
+	'7d': '7D',
+	'30d': '30D',
+	'90d': '90D',
+	'1y': '1Y'
 }
 
 export const HacksContainer = ({
@@ -162,7 +193,9 @@ export const HacksContainer = ({
 	totalHacked,
 	totalHackedDefi,
 	totalRugs,
-	pieChartData
+	pieChartData,
+	techniqueOptions,
+	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
 	const router = useRouter()
@@ -181,11 +214,11 @@ export const HacksContainer = ({
 		const timeQLocal = typeof timeQuery === 'string' ? timeQuery : undefined
 
 		const since = getTimeSinceSeconds(timeQLocal)
-		const minLostValLocal = typeof minLostQuery === 'string' && minLostQuery !== '' ? Number(minLostQuery) : null
-		const maxLostValLocal = typeof maxLostQuery === 'string' && maxLostQuery !== '' ? Number(maxLostQuery) : null
+		const minLostValLocal = minLostQuery && Number.isNaN(Number(minLostQuery)) ? Number(minLostQuery) : null
+		const maxLostValLocal = maxLostQuery && Number.isNaN(Number(maxLostQuery)) ? Number(maxLostQuery) : null
 
-		const techKeys = new Set(selectedTechniquesLocal.map((s) => s))
-		const classKeys = new Set(selectedClassificationsLocal.map((s) => s))
+		const techKeys = new Set(selectedTechniquesLocal)
+		const classKeys = new Set(selectedClassificationsLocal)
 
 		const eligible = applyFilters(data || [], {
 			techKeys,
@@ -200,27 +233,6 @@ export const HacksContainer = ({
 			.sort((a, b) => a.localeCompare(b))
 			.map((name) => ({ key: slug(name), name }))
 	}, [data, router.query])
-
-	const techniqueOptions = React.useMemo(
-		() =>
-			Array.from(new Set((data || []).map((d) => d.technique).filter(Boolean)))
-				.sort((a, b) => a.localeCompare(b))
-				.map((name) => ({ key: slug(name), name })),
-		[data]
-	)
-
-	const classificationOptions = React.useMemo(
-		() =>
-			Array.from(new Set((data || []).map((d) => d.classification).filter(Boolean)))
-				.sort((a, b) => a.localeCompare(b))
-				.map((name) => ({ key: slug(name), name })),
-		[data]
-	)
-
-	const toArrayParam = (p: string | string[] | undefined): string[] => {
-		if (!p) return []
-		return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-	}
 
 	const { chain: chainQ, tech: techQ, class: classQ, time: timeQ } = router.query
 
@@ -242,81 +254,55 @@ export const HacksContainer = ({
 		return qs.filter((k) => validKeys.has(k))
 	}, [classQ, classificationOptions])
 
-	const updateArrayQuery = React.useCallback(
-		(key: string, values: string[]) => {
+	const setSelectedChains = React.useCallback((values: string[]) => updateArrayQuery('chain', values, router), [router])
+	const setSelectedTechniques = React.useCallback(
+		(values: string[]) => updateArrayQuery('tech', values, router),
+		[router]
+	)
+	const setSelectedClassifications = React.useCallback(
+		(values: string[]) => updateArrayQuery('class', values, router),
+		[router]
+	)
+
+	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
+
+	const setSelectedTime = React.useCallback(
+		(label: (typeof timeOptions)[number]) => {
+			const key = labelToKey[label]
 			const nextQuery: Record<string, any> = { ...router.query }
-			if (values.length > 0) {
-				nextQuery[key] = values
-			} else {
-				delete nextQuery[key]
-			}
+			if (key && key !== 'all') nextQuery.time = key
+			else delete nextQuery.time
 			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 		},
 		[router]
 	)
 
-	const setSelectedChains = React.useCallback(
-		(values: string[]) => updateArrayQuery('chain', values),
-		[updateArrayQuery]
-	)
-	const setSelectedTechniques = React.useCallback(
-		(values: string[]) => updateArrayQuery('tech', values),
-		[updateArrayQuery]
-	)
-	const setSelectedClassifications = React.useCallback(
-		(values: string[]) => updateArrayQuery('class', values),
-		[updateArrayQuery]
-	)
-
-	const timeOptions = ['All', '7D', '30D', '90D', '1Y'] as const
-	const labelToKey = {
-		All: 'all',
-		'7D': '7d',
-		'30D': '30d',
-		'90D': '90d',
-		'1Y': '1y'
-	} as const
-	const keyToLabel: Record<string, (typeof timeOptions)[number]> = {
-		all: 'All',
-		'7d': '7D',
-		'30d': '30D',
-		'90d': '90D',
-		'1y': '1Y'
-	}
-
-	const selectedTimeLabel = (typeof timeQ === 'string' && keyToLabel[timeQ]) || 'All'
-
-	const setSelectedTime = (label: (typeof timeOptions)[number]) => {
-		const key = labelToKey[label]
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (key && key !== 'all') nextQuery.time = key
-		else delete nextQuery.time
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
-
 	const { minLost, maxLost } = router.query
 
-	const handleAmountSubmit = (e) => {
-		e.preventDefault()
-		const form = e.target
-		const min = form.min?.value
-		const max = form.max?.value
-		router.push({ pathname: router.pathname, query: { ...router.query, minLost: min, maxLost: max } }, undefined, {
-			shallow: true
-		})
-	}
+	const handleAmountSubmit = React.useCallback(
+		(e) => {
+			e.preventDefault()
+			const form = e.target
+			const min = form.min?.value
+			const max = form.max?.value
+			router.push({ pathname: router.pathname, query: { ...router.query, minLost: min, maxLost: max } }, undefined, {
+				shallow: true
+			})
+		},
+		[router]
+	)
 
-	const handleAmountClear = () => {
+	const handleAmountClear = React.useCallback(() => {
 		const nextQuery: Record<string, any> = { ...router.query }
 		delete nextQuery.minLost
 		delete nextQuery.maxLost
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
+	}, [router])
 
-	const minLostVal = typeof minLost === 'string' && minLost !== '' ? Number(minLost) : null
-	const maxLostVal = typeof maxLost === 'string' && maxLost !== '' ? Number(maxLost) : null
+	const minLostVal = minLost && Number.isNaN(Number(minLost)) ? Number(minLost) : null
+	const maxLostVal = maxLost && Number.isNaN(Number(maxLost)) ? Number(maxLost) : null
 
-	const clearAllFilters = () => {
+	const clearAllFilters = React.useCallback(() => {
 		const nextQuery: Record<string, any> = { ...router.query }
 		delete nextQuery.chain
 		delete nextQuery.tech
@@ -327,7 +313,7 @@ export const HacksContainer = ({
 		delete nextQuery.maxLost
 		delete nextQuery.time
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}
+	}, [router])
 
 	const filteredData = React.useMemo(() => {
 		const chainKeys = new Set(selectedChains)

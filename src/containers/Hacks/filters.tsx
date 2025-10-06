@@ -50,32 +50,30 @@ export function HacksFilters({
 	onClearAll
 }: HacksFiltersProps) {
 	return (
-		<div className="mt-3 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 			<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
 				<React.Suspense fallback={<></>}>
 					<NestedMenu label="Filters">
-						<div className="flex flex-col gap-2 p-2">
-							<Filters
-								chainOptions={chainOptions}
-								selectedChains={selectedChains}
-								setSelectedChains={setSelectedChains}
-								minLostVal={minLostVal}
-								maxLostVal={maxLostVal}
-								handleAmountSubmit={handleAmountSubmit}
-								handleAmountClear={handleAmountClear}
-								classificationOptions={classificationOptions}
-								selectedClassifications={selectedClassifications}
-								setSelectedClassifications={setSelectedClassifications}
-								techniqueOptions={techniqueOptions}
-								selectedTechniques={selectedTechniques}
-								setSelectedTechniques={setSelectedTechniques}
-								timeOptions={timeOptions}
-								selectedTimeLabel={selectedTimeLabel}
-								setSelectedTime={setSelectedTime}
-								onClearAll={onClearAll}
-								isMobile
-							/>
-						</div>
+						<Filters
+							chainOptions={chainOptions}
+							selectedChains={selectedChains}
+							setSelectedChains={setSelectedChains}
+							minLostVal={minLostVal}
+							maxLostVal={maxLostVal}
+							handleAmountSubmit={handleAmountSubmit}
+							handleAmountClear={handleAmountClear}
+							classificationOptions={classificationOptions}
+							selectedClassifications={selectedClassifications}
+							setSelectedClassifications={setSelectedClassifications}
+							techniqueOptions={techniqueOptions}
+							selectedTechniques={selectedTechniques}
+							setSelectedTechniques={setSelectedTechniques}
+							timeOptions={timeOptions}
+							selectedTimeLabel={selectedTimeLabel}
+							setSelectedTime={setSelectedTime}
+							onClearAll={onClearAll}
+							isMobile
+						/>
 					</NestedMenu>
 				</React.Suspense>
 			</div>
@@ -181,7 +179,7 @@ const Filters = ({
 			</div>
 			<button
 				onClick={onClearAll}
-				className="w-full rounded-md bg-(--btn2-bg) px-3 py-2 text-xs hover:bg-(--btn2-hover-bg) md:w-auto"
+				className="rounded-md bg-(--btn2-bg) px-3 py-2 text-xs hover:bg-(--btn2-hover-bg) max-sm:mx-3 max-sm:my-6"
 			>
 				Reset filters
 			</button>
