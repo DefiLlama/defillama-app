@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
+import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 
 interface MarkdownRendererProps {
@@ -171,26 +172,42 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 				{processedData.content}
 			</ReactMarkdown>
 			{citations && citations.length > 0 && (
-				<div className="border-t border-[#e6e6e6] pt-2.5 text-sm dark:border-[#222324]">
-					<h4 className="m-0! font-semibold">Sources</h4>
-					<ol className="list-none pl-0 [counter-reset:item]">
-						{citations.map((url) => (
-							<li
+				<details className="flex flex-col pt-2.5 text-sm">
+					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<path d="M9 17H7A5 5 0 0 1 7 7h2" />
+							<path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+							<line x1="8" x2="16" y1="12" y2="12" />
+						</svg>
+						<span>Sources</span>
+					</summary>
+					<div className="flex flex-col gap-2.5 pt-2.5">
+						{citations.map((url, index) => (
+							<a
 								key={`citation-${url}`}
-								className="pl-0 text-[#666] [counter-increment:item] before:font-medium before:content-['['_counter(item)_']_'] dark:text-[#919296]"
+								href={url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
 							>
-								<a
-									href={url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="break-all text-(--link-text) hover:underline"
-								>
-									{url}
-								</a>
-							</li>
+								<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+									{index + 1}
+								</span>
+								<span className="overflow-hidden text-ellipsis whitespace-nowrap">{url}</span>
+							</a>
 						))}
-					</ol>
-				</div>
+					</div>
+				</details>
 			)}
 		</div>
 	)
