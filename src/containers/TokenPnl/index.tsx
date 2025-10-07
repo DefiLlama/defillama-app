@@ -428,11 +428,6 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					</div>
 					<TokenPriceChart
 						series={pnlData.priceSeries}
-						markers={{
-							start: metrics.startPrice,
-							end: metrics.endPrice,
-							current: currentPrice
-						}}
 						isLoading={isFetching}
 						onPointClick={(pt) => setFocusedPoint(pt)}
 					/>

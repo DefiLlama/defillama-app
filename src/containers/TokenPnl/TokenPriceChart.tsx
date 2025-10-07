@@ -1,79 +1,75 @@
-import { useEffect, useRef } from 'react'
-import { LineChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from 'echarts/components'
-import * as echarts from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
+import { useMemo } from 'react'
+import MultiSeriesChart from '~/components/ECharts/MultiSeriesChart'
 import { formattedNum } from '~/utils'
 import type { PricePoint } from './types'
 
-echarts.use([CanvasRenderer, LineChart, TooltipComponent, GridComponent, MarkLineComponent, LegendComponent])
-
-export const TokenPriceChart = ({
-	series,
-	markers,
-	isLoading,
-	overlaySeries,
-	onPointClick
-}: {
+interface TokenPriceChartProps {
 	series: PricePoint[]
-	markers: { start: number; end: number; current: number }
 	isLoading: boolean
-	overlaySeries?: Array<{ id: string; name: string; data: { timestamp: number; price: number }[]; color?: string }>
 	onPointClick?: (point: { timestamp: number; price: number }) => void
-}) => {
-	const containerRef = useRef<HTMLDivElement | null>(null)
-	const { start, end, current } = markers
+}
 
-	useEffect(() => {
-		if (!containerRef.current || isLoading) return
-		const chartDom = containerRef.current
-		let chart = echarts.getInstanceByDom(chartDom)
-		if (!chart) {
-			chart = echarts.init(chartDom)
+export const TokenPriceChart = ({ series, isLoading, onPointClick }: TokenPriceChartProps) => {
+	const startPrice = series[0]?.price || 0
+	const endPrice = series[series.length - 1]?.price || 0
+	const isPositive = endPrice >= startPrice
+
+	const primaryColor = isPositive ? '#10b981' : '#ef4444'
+
+	const yAxisConfig = useMemo(() => {
+		if (!series.length) return { min: 0, max: 0, interval: 1000 }
+		const prices = series.map((pt) => pt.price)
+		const min = Math.min(...prices)
+		const max = Math.max(...prices)
+		const range = max - min
+
+		const magnitude = Math.pow(10, Math.floor(Math.log10(range)))
+		const normalized = range / magnitude
+		const interval =
+			normalized <= 1
+				? magnitude * 0.2
+				: normalized <= 2
+					? magnitude * 0.5
+					: normalized <= 5
+						? magnitude
+						: magnitude * 2
+
+		return {
+			min: Math.floor(min / interval) * interval,
+			max: Math.ceil(max / interval) * interval,
+			interval
 		}
-		const data = series.map((point) => [point.timestamp * 1000, point.price])
-		const markLineData: any[] = []
+	}, [series])
 
-		const startTimestamp = start * 1000
-		const endTimestamp = end * 1000
+	const chartSeries = useMemo(
+		() => [
+			{
+				name: 'Price',
+				type: 'line' as const,
+				color: primaryColor,
+				data: series.map((pt) => [pt.timestamp, pt.price] as [number, number])
+			}
+		],
+		[series, primaryColor]
+	)
 
-		const primaryColor = 'rgb(148, 163, 184)'
-		const areaGradient = new (echarts as any).graphic.LinearGradient(0, 0, 0, 1, [
-			{ offset: 0, color: 'rgba(148,163,184,0.22)' },
-			{ offset: 1, color: 'rgba(148,163,184,0.00)' }
-		])
-
-		const overlaySeriesOptions = (overlaySeries || []).map((ov, idx) => ({
-			name: ov.name,
-			type: 'line',
-			smooth: true,
-			showSymbol: false,
-			lineStyle: { width: 1.5, opacity: 0.85, color: ov.color || ['#94a3b8', '#64748b', '#475569'][idx % 3] },
-			data: ov.data.map((p) => [p.timestamp * 1000, p.price]),
-			yAxisIndex: 1
-		}))
-
-		const startPrice = series[0]?.price || 0
-
-		chart.setOption({
-			animation: true,
-			animationDuration: 750,
-			animationEasing: 'cubicOut',
-			grid: { left: 40, right: 20, top: 20, bottom: 40 },
-			xAxis: { type: 'time', splitLine: { show: false } },
-			yAxis: [
-				{ type: 'value', scale: true, splitLine: { lineStyle: { opacity: 0.12 } } },
-				{
-					type: 'value',
-					scale: true,
-					splitLine: { show: false },
-					axisLabel: { show: false },
-					axisLine: { show: false },
-					axisTick: { show: false }
-				}
-			],
+	const chartOptions = useMemo(
+		() => ({
+			grid: {
+				left: 0,
+				right: 0,
+				top: 12,
+				bottom: 12
+			},
+			yAxis: {
+				min: yAxisConfig.min,
+				max: yAxisConfig.max,
+				interval: yAxisConfig.interval
+			},
+			legend: {
+				show: false
+			},
 			tooltip: {
-				trigger: 'axis',
 				backgroundColor: 'transparent',
 				borderWidth: 0,
 				padding: 0,
@@ -82,10 +78,10 @@ export const TokenPriceChart = ({
 					lineStyle: { color: 'rgba(148,163,184,0.5)', width: 1.5, type: 'solid' },
 					z: 0
 				},
-				confine: true,
-				formatter: (items: any[]) => {
-					if (!items?.length) return ''
-					const point = items[0]
+				formatter: (items: any) => {
+					const itemsArray = Array.isArray(items) ? items : [items]
+					if (!itemsArray?.length) return ''
+					const point = itemsArray[0]
 					const date = new Date(point.value[0])
 					const price = point.value[1]
 					const changeFromStart = startPrice ? ((price - startPrice) / startPrice) * 100 : 0
@@ -99,26 +95,8 @@ export const TokenPriceChart = ({
 						</div>`
 				}
 			},
-			legend: overlaySeriesOptions.length ? { bottom: 6, left: 'center', textStyle: { color: '#cbd5e1' } } : undefined,
 			series: [
 				{
-					type: 'line',
-					smooth: true,
-					showSymbol: false,
-					symbolSize: 8,
-					symbol: 'circle',
-					itemStyle: {
-						color: primaryColor,
-						borderColor: 'var(--bg-card)',
-						borderWidth: 2
-					},
-					emphasis: {
-						scale: true,
-						focus: 'series',
-						lineStyle: { width: 2.5 }
-					},
-					areaStyle: { opacity: 1, color: areaGradient },
-					lineStyle: { width: 2.25, color: primaryColor },
 					markPoint: {
 						symbol: 'circle',
 						symbolSize: 10,
@@ -131,43 +109,44 @@ export const TokenPriceChart = ({
 						},
 						label: { show: false },
 						data: [
-							{ coord: [startTimestamp, series[0]?.price || 0], name: 'Start' },
-							{ coord: [endTimestamp, series[series.length - 1]?.price || 0], name: 'End' }
-						]
-					},
-					markLine: markLineData.length
-						? {
-								symbol: 'none',
-								lineStyle: { type: 'dashed', opacity: 0.35, width: 1 },
-								label: { color: 'var(--text-secondary)', fontSize: 11 },
-								data: markLineData
+							{ coord: [series[0]?.timestamp * 1000, series[0]?.price || 0], name: 'Start' },
+							{
+								coord: [series[series.length - 1]?.timestamp * 1000, series[series.length - 1]?.price || 0],
+								name: 'End'
 							}
-						: undefined,
-					data
-				},
-				...overlaySeriesOptions
+						]
+					}
+				}
 			]
-		})
+		}),
+		[series, startPrice, primaryColor, yAxisConfig]
+	)
 
-		const handleResize = () => {
-			chart?.resize()
-		}
-		window.addEventListener('resize', handleResize)
+	const handleReady = (instance: any) => {
+		if (!instance || !onPointClick) return
+
 		const handleClick = (params: any) => {
-			if (!params || !onPointClick) return
+			if (!params) return
 			if (params.componentType === 'series' && Array.isArray(params.value)) {
 				onPointClick({ timestamp: Math.floor(params.value[0] / 1000), price: params.value[1] })
 			}
 		}
-		chart.on('click', handleClick)
-		return () => {
-			window.removeEventListener('resize', handleResize)
-			try {
-				chart?.off('click', handleClick)
-			} catch {}
-			chart?.dispose()
-		}
-	}, [series, start, end, current, isLoading, overlaySeries, onPointClick])
 
-	return <div ref={containerRef} className="h-[360px] w-full" />
+		instance.on('click', handleClick)
+	}
+
+	if (isLoading) {
+		return <div className="h-[360px] w-full" />
+	}
+
+	return (
+		<MultiSeriesChart
+			series={chartSeries}
+			valueSymbol="$"
+			height="360px"
+			hideDataZoom
+			chartOptions={chartOptions}
+			onReady={handleReady}
+		/>
+	)
 }
