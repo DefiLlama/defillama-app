@@ -136,10 +136,12 @@ export function ChainsWithStablecoins({
 
 					<CSVDownloadButton prepareCsv={prepareeCsv} smol className="mt-auto mr-auto" />
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
+							<div className="px-2">
+								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+							</div>
 							<LineAndBarChart charts={peggedAreaTotalData} valueSymbol="$" />
 						</React.Suspense>
 					)}
@@ -152,6 +154,10 @@ export function ChainsWithStablecoins({
 								valueSymbol="$"
 								hideDefaultLegend={true}
 								hideGradient={true}
+								chartOptions={chartOptions}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
 							/>
 						</React.Suspense>
 					)}
@@ -165,12 +171,21 @@ export function ChainsWithStablecoins({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								expandTo100Percent={true}
+								chartOptions={chartOptions}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Pie' && (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={chainsCirculatingValues} />
+							<PieChart
+								chartData={chainsCirculatingValues}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+							/>
 						</React.Suspense>
 					)}
 				</div>
@@ -179,4 +194,15 @@ export function ChainsWithStablecoins({
 			<PeggedChainsTable data={groupedChains} />
 		</>
 	)
+}
+
+const chartOptions = {
+	grid: {
+		left: 12,
+		bottom: 68,
+		top: 12,
+		right: 12,
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
+	}
 }

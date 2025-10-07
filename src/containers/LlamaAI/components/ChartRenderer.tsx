@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
@@ -11,7 +12,6 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 const NonTimeSeriesBarChart = lazy(
 	() => import('~/components/ECharts/BarChart/NonTimeSeries')
 ) as React.FC<IBarChartProps>
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -147,6 +147,41 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				? (adaptedChart.props as any).series?.length > 0
 				: adaptedChart.data.length > 0
 
+		const prepareCsv = () => {
+			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			if (adaptedChart.chartType === 'multi-series') {
+				const rows = [['Timestamp', 'Date', ...(adaptedChart.props as any).series.map((series: any) => series.name)]]
+				for (const item of data) {
+					const row = [
+						new Date(item.date).getTime() / 1000,
+						new Date(item.date).toLocaleDateString(),
+						...(adaptedChart.props as any).series.map((series: any) => item[series.name] ?? '')
+					]
+					rows.push(row)
+				}
+				return {
+					filename,
+					rows
+				}
+			}
+
+			if (adaptedChart.chartType === 'pie') {
+				const rows = [['Name', 'Value']]
+				for (const item of (adaptedChart.props as any).chartData ?? []) {
+					rows.push([item.name, item.value])
+				}
+				return {
+					filename,
+					rows
+				}
+			}
+
+			return {
+				filename,
+				rows: []
+			}
+		}
+
 		if (!hasData) {
 			return (
 				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
@@ -166,18 +201,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
 						{isTimeSeriesChart ? (
-							<BarChart
-								key={chartKey}
-								chartData={adaptedChart.data}
-								{...(adaptedChart.props as IBarChartProps)}
-								height={'300px'}
-							/>
+							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
 						) : (
 							<NonTimeSeriesBarChart
 								key={chartKey}
 								chartData={adaptedChart.data}
 								{...(adaptedChart.props as IBarChartProps)}
-								height={'300px'}
 							/>
 						)}
 					</Suspense>
@@ -193,7 +222,6 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 							chartData={adaptedChart.data}
 							{...(adaptedChart.props as IChartProps)}
 							connectNulls={true}
-							height={'300px'}
 						/>
 					</Suspense>
 				)
@@ -202,7 +230,10 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'combo':
 				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
+						<div className="mx-2 flex items-center justify-end">
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
 				break
@@ -210,7 +241,10 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
+						<div className="mx-2 flex items-center justify-end">
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
 				break
@@ -218,7 +252,11 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'pie':
 				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} height={'300px'} />
+						<PieChart
+							key={chartKey}
+							{...(adaptedChart.props as IPieChartProps)}
+							customComponents={<CSVDownloadButton prepareCsv={prepareCsv} smol />}
+						/>
 					</Suspense>
 				)
 				break

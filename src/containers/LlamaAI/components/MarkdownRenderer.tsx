@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
@@ -71,7 +71,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 	)
 }
 
-export function MarkdownRenderer({ content, citations }: MarkdownRendererProps) {
+export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citations }: MarkdownRendererProps) {
 	const processedData = useMemo(() => {
 		const linkMap = new Map<string, string>()
 
@@ -194,4 +194,4 @@ export function MarkdownRenderer({ content, citations }: MarkdownRendererProps) 
 			)}
 		</div>
 	)
-}
+})
