@@ -39,10 +39,10 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 
 		let filteredData = data
 		if (timePeriod && timePeriod !== 'all') {
-			const tvlPoints: [number, number][] = data.map((el) => [el.date, el.TVL])
+			const tvlPoints: [number, number][] = data.map((el: { date: number; TVL: number; APY: number | null }) => [el.date, el.TVL])
 			const filtered = filterDataByTimePeriod(tvlPoints, timePeriod)
 			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-			filteredData = data.filter((el) => filteredTimestamps.has(el.date))
+			filteredData = data.filter((el: { date: number; TVL: number; APY: number | null }) => filteredTimestamps.has(el.date))
 		}
 
 		const latestData = filteredData.length > 0 ? filteredData[filteredData.length - 1] : null
@@ -86,16 +86,16 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				</div>
 			)}
 
-			<div className="min-h-[300px] flex-1">
+			<div className="flex-1">
 				<Suspense
 					fallback={
-						<div className="flex h-full min-h-[300px] items-center justify-center">
+						<div className="flex h-[320px] items-center justify-center">
 							<LocalLoader />
 						</div>
 					}
 				>
 					<TVLAPYChart
-						height="100%"
+						height="320px"
 						chartData={finalChartData}
 						stackColors={mainChartStackColors}
 						stacks={mainChartStacks}
