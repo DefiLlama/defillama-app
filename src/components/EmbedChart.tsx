@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { CopyHelper } from './Copy'
 
 export function EmbedChart() {
 	const router = useRouter()
@@ -11,36 +12,38 @@ export function EmbedChart() {
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [isDarkTheme] = useDarkModeManager()
 
-	let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
+	const url = React.useMemo(() => {
+		let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]
 
-	if (typeof document !== 'undefined') {
-		path += window.location.search
-	}
-
-	if (!path.includes('?')) {
-		path += '?'
-	} else {
-		path += '&'
-	}
-
-	const extras = []
-	for (const option in tvlSettings) {
-		if (tvlSettings[option]) {
-			extras.push(`include_${option}_in_tvl=true`)
+		if (typeof document !== 'undefined') {
+			path += window.location.search
 		}
-	}
 
-	for (const option in feesSettings) {
-		if (feesSettings[option]) {
-			extras.push(`include_${option}_in_fees=true`)
+		if (!path.includes('?')) {
+			path += '?'
+		} else {
+			path += '&'
 		}
-	}
 
-	extras.push(isDarkTheme ? 'theme=dark' : 'theme=light')
+		const extras = []
+		for (const option in tvlSettings) {
+			if (tvlSettings[option]) {
+				extras.push(`include_${option}_in_tvl=true`)
+			}
+		}
 
-	const url = `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}${extras.join(
-		'&'
-	)}" title="DefiLlama" frameborder="0"></iframe>`
+		for (const option in feesSettings) {
+			if (feesSettings[option]) {
+				extras.push(`include_${option}_in_fees=true`)
+			}
+		}
+
+		extras.push(isDarkTheme ? 'theme=dark' : 'theme=light')
+
+		return `<iframe width="640px" height="360px" src="https://defillama.com/chart${path}${extras.join(
+			'&'
+		)}" title="DefiLlama" frameborder="0"></iframe>`
+	}, [router.asPath, tvlSettings, feesSettings, isDarkTheme])
 
 	return (
 		<Ariakit.PopoverProvider>
@@ -56,8 +59,14 @@ export function EmbedChart() {
 				className="z-10 max-h-[calc(100dvh-80px)] w-full overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-[hsl(204,20%,100%)] text-[hsl(204,10%,10%)] sm:max-w-[min(calc(100vw-16px),320px)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)] dark:bg-[hsl(204,3%,12%)] dark:text-[hsl(0,0%,100%)]"
 			>
 				<div className="p-1">
-					<p className="rounded-md bg-white p-2 break-all dark:bg-black">{url}</p>
+					<div className="flex flex-col space-y-1 rounded-md bg-white p-2 break-all dark:bg-black">
+						<p>{url}</p>
+
+						<CopyHelper toCopy={url} className="flex justify-end" />
+					</div>
 				</div>
+
+				<span className="sr-only">Copy</span>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
 	)
