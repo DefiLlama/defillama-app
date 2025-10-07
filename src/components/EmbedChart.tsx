@@ -62,7 +62,9 @@ export function EmbedChart() {
 					<div className="flex flex-col space-y-1 rounded-md bg-white p-2 break-all dark:bg-black">
 						<p>{url}</p>
 
-						<CopyHelper toCopy={url} className="flex justify-end" />
+						<div className="flex justify-end">
+							<CopyHelper toCopy={url} />
+						</div>
 					</div>
 				</div>
 
