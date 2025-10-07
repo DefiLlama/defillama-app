@@ -33,6 +33,7 @@ import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
+import { WarRoom } from '~/components/WarRoom'
 
 export interface CustomColumnDef {
 	name: string
@@ -53,6 +54,7 @@ export const ChainProtocolsTable = ({
 	borderless?: boolean
 }) => {
 	const { customColumns, setCustomColumns } = useCustomColumns()
+	const [showHeatmap, setShowHeatmap] = useState(false)
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -471,10 +473,35 @@ export const ChainProtocolsTable = ({
 						/>
 						<TVLRange triggerClassName="w-full sm:w-auto" />
 						<CSVDownloadButton prepareCsv={prepareCsv} />
+						<button
+							onClick={() => setShowHeatmap(!showHeatmap)}
+							className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${
+								showHeatmap 
+									? 'bg-(--old-blue) text-white border-(--old-blue) hover:bg-(--old-blue-hover)' 
+									: 'border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg)'
+							}`}
+						>
+							<Icon name="layout-grid" height={14} width={14} />
+							Heatmap
+							<span className="ml-0.5 text-[10px] bg-white/20 px-1 py-0.5 rounded">NEW</span>
+						</button>
 					</div>
 				</div>
 			</div>
-			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
+			
+			{showHeatmap ? (
+				<div className="flex gap-3 p-3 pt-0 min-h-[700px]">
+					<div className="flex-1 overflow-auto max-h-[800px]">
+						<VirtualTable instance={instance} useStickyHeader={false} />
+					</div>
+					<div className="w-[600px] min-w-[500px] lg:w-[800px] xl:w-[900px] sticky top-0 h-[700px]">
+						<WarRoom protocols={finalProtocols} />
+					</div>
+				</div>
+			) : (
+				<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
+			)}
+			
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
