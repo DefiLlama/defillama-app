@@ -198,9 +198,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 						isExpanded && (
 							<div className="mt-4">
 								<p className="mb-1 text-xs opacity-65">Pinned</p>
-								<p className="text-xs text-(--text-form) opacity-75">
-									Visit Metrics page to pin your favorites
-								</p>
+								<p className="text-xs text-(--text-form) opacity-75">Visit Metrics page to pin your favorites</p>
 							</div>
 						)
 					)}
@@ -244,16 +242,16 @@ export const DesktopNav = React.memo(function DesktopNav({
 
 					{/* Legal Footer */}
 					<div
-						className={`border-t border-black/20 transition-opacity duration-200 dark:border-white/20 ${
+						className={`transition-opacity duration-200 ${
 							isExpanded ? 'mt-2 pt-2 opacity-100' : 'mt-0 h-0 overflow-hidden pt-0 opacity-0'
 						}`}
 					>
-						<div className="flex items-center justify-center gap-2 text-xs opacity-40">
-							<BasicLink href="/privacy-policy" className="transition-opacity hover:opacity-60">
+						<div className="flex items-center gap-2 text-xs">
+							<BasicLink href="/privacy-policy" className="opacity-60 transition-opacity hover:opacity-90">
 								Privacy
 							</BasicLink>
-							<span>•</span>
-							<BasicLink href="/terms" className="transition-opacity hover:opacity-60">
+							<span className="opacity-50">•</span>
+							<BasicLink href="/terms" className="opacity-60 transition-opacity hover:opacity-90">
 								Terms
 							</BasicLink>
 						</div>
