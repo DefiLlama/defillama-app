@@ -8,7 +8,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 	const id = useRef(null)
 
 	// cleanup timeout on unmount
-	// so if user navigates way, we dont change the url back to discovery page with searchquery params
+	// so if user navigates way, we don't change the url back to discovery page with searchquery params
 	useEffect(() => {
 		return () => {
 			if (id.current) {
