@@ -397,7 +397,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					</div>
 					<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">Holding Period</span>
-						<div className="text-3xl font-bold">
+						<div className="text-3xl font-bold text-(--text-secondary)">
 							{holdingPeriodDays} <span className="text-xl font-medium text-(--text-secondary)">days</span>
 						</div>
 						<span className="text-xs text-(--text-secondary)">
@@ -474,7 +474,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const selectedCoin = coinInfoMap.get(id)
 
 	return (
-		<div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4">
+		<div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
 			<h1 className="text-2xl font-semibold">Token Holder Profit and Loss</h1>
 			<div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
 				<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
