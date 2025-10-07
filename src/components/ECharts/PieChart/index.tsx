@@ -170,7 +170,7 @@ export default function PieChart({
 			) : title ? (
 				<h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>
 			) : null}
-			<div id={id} className="mx-0 my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			<div id={id} className="mx-0 my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

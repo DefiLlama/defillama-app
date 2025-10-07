@@ -9,7 +9,6 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 const NonTimeSeriesBarChart = lazy(
 	() => import('~/components/ECharts/BarChart/NonTimeSeries')
 ) as React.FC<IBarChartProps>
-const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
