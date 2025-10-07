@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { RefObject, startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -1080,7 +1080,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-26.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky ${readOnly ? 'bottom-6.5' : 'bottom-26.5'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1141,16 +1141,14 @@ const PromptInput = ({
 }) => {
 	const [value, setValue] = useState('')
 
+	const deferredValue = useDeferredValue(value)
+
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
 			event.preventDefault()
 			handleSubmit(value)
 			setValue('')
 		}
-	}
-
-	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setValue(event.target.value)
 	}
 
 	return (
@@ -1165,8 +1163,38 @@ const PromptInput = ({
 			>
 				<textarea
 					placeholder="Ask LlamaAI..."
-					value={value}
-					onChange={onChange}
+					value={deferredValue}
+					onChange={async (e) => {
+						startTransition(() => {
+							setValue(e.target.value)
+							if (promptInputRef.current) {
+								try {
+									// Calculate rows based on newlines and character length
+									const text = e.target.value
+									const textarea = promptInputRef.current
+									const lineBreaks = (text.match(/\n/g) || []).length
+
+									// Calculate actual characters per line based on container width
+									const style = window.getComputedStyle(textarea)
+									const paddingLeft = parseFloat(style.paddingLeft)
+									const paddingRight = parseFloat(style.paddingRight)
+									const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+									const fontSize = parseFloat(style.fontSize)
+									// Average character width is approximately 0.6 of font size for monospace-like text
+									const avgCharWidth = fontSize * 0.5
+									const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+
+									const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+									const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+
+									// Set rows with minimum 1 and maximum 5
+									promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+								} catch (error) {
+									console.error('Error calculating rows:', error)
+								}
+							}
+						})
+					}}
 					onKeyDown={onKeyDown}
 					name="prompt"
 					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
@@ -1177,6 +1205,7 @@ const PromptInput = ({
 					autoFocus
 					ref={promptInputRef}
 					maxLength={2000}
+					rows={1}
 				/>
 				{isStreaming ? (
 					<Tooltip
