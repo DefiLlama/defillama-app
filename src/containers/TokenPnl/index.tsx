@@ -14,7 +14,6 @@ import { ComparisonPanel } from './ComparisonPanel'
 import { DailyPnLGrid } from './DailyPnLGrid'
 import { DateInput } from './DateInput'
 import { formatDateLabel, formatPercent } from './format'
-import { ShareButton } from './ShareButton'
 import { StatsCard } from './StatsCard'
 import { TokenPriceChart } from './TokenPriceChart'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
@@ -238,6 +237,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 
 	const [quantityInput, setQuantityInput] = useState('')
 	const [mode, setMode] = useState<ChangeMode>('percent')
+	const [focusedPoint, setFocusedPoint] = useState<{ timestamp: number; price: number } | null>(null)
 
 	const selectedCoins = useMemo(() => {
 		const queryCoins = router.query?.coin || ['bitcoin']
@@ -365,26 +365,18 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			<div className="flex flex-col gap-6">
 				<div
 					className={`flex flex-col gap-2 rounded-md border p-4 ${
-						isProfit ? 'border-emerald-400/40 bg-emerald-400/10' : 'border-red-400/40 bg-red-400/10'
+						isProfit ? 'border-emerald-500/25 bg-emerald-600/15' : 'border-red-500/25 bg-red-600/15'
 					}`}
 				>
 					<div className="flex items-center justify-between">
 						<div>
-							<span className="text-sm font-medium tracking-wide uppercase">{isProfit ? 'Profit' : 'Loss'}</span>
-							<div className="text-3xl font-semibold">
+							<span className="text-sm font-light tracking-wide uppercase">{isProfit ? 'Profit' : 'Loss'}</span>
+							<div className={`text-3xl font-bold ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
 								{mode === 'percent'
 									? formatPercent(summaryValue)
 									: `${summaryValue >= 0 ? '+' : ''}$${formattedNum(summaryValue, false)}`}
 							</div>
 						</div>
-						<ShareButton
-							coin={coinInfo}
-							percent={metrics.percentChange}
-							absolute={metrics.absoluteChange}
-							quantity={quantity}
-							startDate={startDate}
-							endDate={endDate}
-						/>
 					</div>
 					<span className="text-sm text-(--text-secondary)">{quantityLabel}</span>
 				</div>
@@ -407,14 +399,20 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							ath: coinInfo?.ath
 						}}
 						isLoading={isFetching}
+						onPointClick={(pt) => setFocusedPoint(pt)}
 					/>
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					<StatsCard
 						label="Current Price"
-						value={`$${formattedNum(currentPrice)}`}
-						subtle={coinInfo?.symbol?.toUpperCase()}
+						value={`$${formattedNum(focusedPoint?.price || currentPrice)}`}
+						subtle={
+							focusedPoint
+								? new Date(focusedPoint.timestamp * 1000).toLocaleDateString()
+								: coinInfo?.symbol?.toUpperCase()
+						}
+						variant="highlight"
 					/>
 					<StatsCard label="Start Price" value={`$${formattedNum(metrics.startPrice)}`} />
 					<StatsCard label="End Price" value={`$${formattedNum(metrics.endPrice)}`} />
@@ -470,7 +468,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						<span>Token</span>
 						<button
 							onClick={() => dialogStore.toggle()}
-							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-2 text-base text-black dark:bg-black dark:text-white"
+							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-base text-(--text-primary)"
 						>
 							{selectedCoin ? (
 								<>
@@ -508,24 +506,30 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 								placeholder="Tokens held"
 								value={quantityInput}
 								onChange={(event) => setQuantityInput(event.target.value)}
-								className="rounded-md border border-(--form-control-border) bg-white px-3 py-2 text-base text-black outline-0 dark:bg-black dark:text-white"
+								className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-base text-(--text-primary)"
 							/>
 						</label>
 					</div>
-					<div className="flex items-center gap-2 text-sm">
-						<span>Display as</span>
-						<div className="flex rounded-md border border-(--form-control-border) p-1">
-							{MODE_OPTIONS.map((option) => (
+					<div className="flex items-center justify-between text-sm">
+						<span className="text-(--text-secondary)">Display as</span>
+						<div className="relative h-8 w-[180px] rounded-full border border-(--form-control-border) bg-(--bg-cards-bg) p-1">
+							<div
+								className={`absolute inset-1 w-[calc(50%-4px)] rounded-full bg-(--form-control-border) transition-all duration-300 ${mode === 'percent' ? 'translate-x-0' : 'translate-x-full'}`}
+							></div>
+							<div className="relative z-[1] grid h-full grid-cols-2 text-xs">
 								<button
-									key={option}
-									onClick={() => setMode(option)}
-									className={`rounded-md px-3 py-1 text-sm font-medium ${
-										mode === option ? 'bg-(--link-active-bg) text-white' : 'text-(--text-secondary)'
-									}`}
+									onClick={() => setMode('percent')}
+									className={`rounded-full font-medium ${mode === 'percent' ? 'text-(--text-primary)' : 'text-(--text-secondary)'}`}
 								>
-									{option === 'percent' ? '% Change' : '$ Change'}
+									% Change
 								</button>
-							))}
+								<button
+									onClick={() => setMode('absolute')}
+									className={`rounded-full font-medium ${mode === 'absolute' ? 'text-(--text-primary)' : 'text-(--text-secondary)'}`}
+								>
+									$ Change
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>

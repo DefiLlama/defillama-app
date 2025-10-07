@@ -16,15 +16,15 @@ export const ComparisonPanel = ({ entries, activeId }: { entries: ComparisonEntr
 					return (
 						<div
 							key={entry.id}
-							className={`flex flex-col gap-1 rounded-md border p-3 ${
-								entry.id === activeId ? 'border-(--link-active-bg)' : 'border-(--cards-border)'
+							className={`flex flex-col gap-1 rounded-md border border-(--cards-border) p-3 transition-colors duration-200 ${
+								entry.id === activeId ? 'bg-(--bg-surface)' : 'bg-(--cards-bg)'
 							}`}
 						>
 							<div className="flex items-center gap-2">
 								{entry.image ? (
 									<img src={entry.image} alt={entry.name} width={20} height={20} className="rounded-full" />
 								) : null}
-								<span className="text-sm font-semibold tracking-wide uppercase">{entry.symbol}</span>
+								<span className="text-sm font-medium tracking-wide uppercase">{entry.symbol}</span>
 							</div>
 							<span className={`text-xl font-semibold ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
 								{formatPercent(entry.percentChange)}
