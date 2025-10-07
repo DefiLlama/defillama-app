@@ -1,6 +1,6 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
@@ -188,6 +188,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				}
 			}
 
+
 			return {
 				filename,
 				rows: []
@@ -276,7 +277,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<ScatterChart key={chartKey} chartData={adaptedChart.data} />
+						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} />
 					</Suspense>
 				)
 				break
