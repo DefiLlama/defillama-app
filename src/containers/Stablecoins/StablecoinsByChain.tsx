@@ -281,12 +281,10 @@ export function StablecoinsByChain({
 					</p>
 				</div>
 				<div
-					className={`relative col-span-2 flex min-h-[424px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) ${
+					className={`relative col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 ${
 						chartType === 'Token Inflows' && tokenInflows ? '*:first:-mb-6' : ''
 					}`}
 				>
-					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
 							<AreaChart
@@ -297,6 +295,10 @@ export function StablecoinsByChain({
 								hideDefaultLegend={true}
 								hallmarks={[]}
 								color={CHART_COLORS[0]}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+								chartOptions={chartOptions}
 							/>
 						</React.Suspense>
 					)}
@@ -310,6 +312,10 @@ export function StablecoinsByChain({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+								chartOptions={chartOptions}
 							/>
 						</React.Suspense>
 					)}
@@ -324,12 +330,22 @@ export function StablecoinsByChain({
 								hideGradient={true}
 								expandTo100Percent={true}
 								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+								chartOptions={chartOptions}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Pie' && (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={chainsCirculatingValues} stackColors={tokenColors} />
+							<PieChart
+								chartData={chainsCirculatingValues}
+								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Token Inflows' && tokenInflows && (
@@ -343,12 +359,22 @@ export function StablecoinsByChain({
 								key={tokenInflowNames} // escape hatch to rerender state in legend options
 								chartOptions={inflowsChartOptions}
 								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'USD Inflows' && usdInflows && (
 						<React.Suspense fallback={<></>}>
-							<BarChart chartData={usdInflows} color={CHART_COLORS[0]} title="" />
+							<BarChart
+								chartData={usdInflows}
+								color={CHART_COLORS[0]}
+								title=""
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+							/>
 						</React.Suspense>
 					)}
 				</div>
@@ -406,4 +432,14 @@ const tokenColors = {
 	USDTB: '#C0C0C0',
 	FDUSD: '#00FF00',
 	Others: '#FF1493'
+}
+const chartOptions = {
+	grid: {
+		left: 12,
+		bottom: 68,
+		top: 12,
+		right: 12,
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
+	}
 }
