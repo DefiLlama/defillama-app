@@ -111,7 +111,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterOverview | null,
-			number | null,
+			{ spotVolume: number | null; derivativeVolume: number | null } | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
 			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
@@ -562,13 +562,19 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				total7d: dexs?.total7d ?? null,
 				change_7dover7d: dexs?.change_7dover7d ?? null,
 				dexsDominance:
-					cexVolume && dexs?.total24h ? +((dexs.total24h / (cexVolume + dexs.total24h)) * 100).toFixed(2) : null,
+					cexVolume && dexs?.total24h
+						? +((dexs.total24h / (cexVolume.spotVolume + dexs.total24h)) * 100).toFixed(2)
+						: null,
 				chart: dexs ? dexs.totalDataChart.slice(-14).map((x) => [x[0] * 1000, x[1]]) : null
 			},
 			perps: {
 				total24h: perps?.total24h ?? null,
 				total7d: perps?.total7d ?? null,
-				change_7dover7d: perps?.change_7dover7d ?? null
+				change_7dover7d: perps?.change_7dover7d ?? null,
+				dexsDominance:
+					cexVolume && perps?.total24h
+						? +((perps.total24h / (cexVolume.derivativeVolume + perps.total24h)) * 100).toFixed(2)
+						: null
 			},
 			users: { activeUsers, newUsers, transactions: transactions ? +transactions : null },
 			inflows: inflowsData,
