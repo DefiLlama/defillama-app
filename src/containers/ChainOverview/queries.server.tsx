@@ -551,6 +551,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chainFees: {
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
+				change7d: fees?.change_7d ?? null,
 				topProtocolsChart: topProtocolsByFeesChart,
 				totalREV24h: chainREV
 			},
