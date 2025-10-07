@@ -27,6 +27,7 @@ import {
 import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
+import { YieldsChartCard } from './YieldsChartCard'
 
 const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
@@ -178,6 +179,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					<ChartBuilderCard builder={item} />
 				</Suspense>
 			)
+		}
+
+		if (item.kind === 'yields') {
+			return <YieldsChartCard config={item} />
 		}
 
 		if (item.kind === 'text') {

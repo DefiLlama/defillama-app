@@ -8,7 +8,7 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
-export type ChartTabType = 'chain' | 'protocol'
+export type ChartTabType = 'chain' | 'protocol' | 'yields'
 export type CombinedTableType =
 	| 'protocols'
 	| 'cex'
@@ -34,6 +34,7 @@ export interface ChartBuilderConfig {
 		| 'revenue'
 		| 'volume'
 		| 'perps'
+		| 'open-interest'
 		| 'options-notional'
 		| 'options-premium'
 		| 'bridge-aggregators'
@@ -88,6 +89,12 @@ export interface ModalState {
 	metricWindow: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 	metricLabel: string
 	metricShowSparkline: boolean
+	selectedYieldPool: { configID: string; name: string; project: string; chain: string } | null
+	selectedYieldChains: string[]
+	selectedYieldProjects: string[]
+	selectedYieldCategories: string[]
+	minTvl: number | null
+	maxTvl: number | null
 }
 
 export interface ModalActions {
@@ -131,4 +138,10 @@ export interface ModalActions {
 	setMetricWindow: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') => void
 	setMetricLabel: (s: string) => void
 	setMetricShowSparkline: (v: boolean) => void
+	setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
+	setSelectedYieldChains: (chains: string[]) => void
+	setSelectedYieldProjects: (projects: string[]) => void
+	setSelectedYieldCategories: (categories: string[]) => void
+	setMinTvl: (tvl: number | null) => void
+	setMaxTvl: (tvl: number | null) => void
 }

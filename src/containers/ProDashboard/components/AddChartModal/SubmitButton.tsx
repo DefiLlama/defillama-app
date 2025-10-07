@@ -9,6 +9,7 @@ interface SubmitButtonProps {
 	selectedChains: string[]
 	selectedProtocol: string | null
 	selectedChartTypes?: string[]
+	selectedYieldPool?: { configID: string; name: string; project: string; chain: string } | null
 	composerItems: ChartConfig[]
 	textContent: string
 	chartTypesLoading: boolean
@@ -33,6 +34,7 @@ export function SubmitButton({
 	selectedChains = [],
 	selectedProtocol,
 	selectedChartTypes = [],
+	selectedYieldPool,
 	composerItems,
 	textContent,
 	chartTypesLoading,
@@ -50,7 +52,11 @@ export function SubmitButton({
 }: SubmitButtonProps) {
 	const isDisabled =
 		chartTypesLoading ||
-		(selectedMainTab === 'charts' && chartMode === 'manual' && composerItems.length === 0) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'yields' && !selectedYieldPool) ||
+		(selectedMainTab === 'charts' &&
+			chartMode === 'manual' &&
+			selectedChartTab !== 'yields' &&
+			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'protocols' &&
