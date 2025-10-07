@@ -106,6 +106,16 @@ export interface ChartBuilderConfig {
 	colSpan?: StoredColSpan
 }
 
+export interface YieldsChartConfig {
+	id: string
+	kind: 'yields'
+	poolConfigId: string
+	poolName: string
+	project: string
+	chain: string
+	colSpan?: StoredColSpan
+}
+
 export type DashboardItemConfig =
 	| ChartConfig
 	| ProtocolsTableConfig
@@ -113,6 +123,7 @@ export type DashboardItemConfig =
 	| TextConfig
 	| MetricConfig
 	| ChartBuilderConfig
+	| YieldsChartConfig
 
 export interface ChartConfig {
 	id: string

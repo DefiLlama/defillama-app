@@ -18,7 +18,8 @@ import {
 	ProtocolsTableConfig,
 	StoredColSpan,
 	TableFilters,
-	TextConfig
+	TextConfig,
+	YieldsChartConfig
 } from './types'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 
@@ -78,6 +79,7 @@ interface ProDashboardContextType {
 	setDashboardTags: (tags: string[]) => void
 	setDashboardDescription: (description: string) => void
 	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
+	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -872,6 +874,29 @@ export function ProDashboardAPIProvider({
 		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
 	)
 
+	const handleAddYieldChart = useCallback(
+		(poolConfigId: string, poolName: string, project: string, chain: string) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newYieldChart: YieldsChartConfig = {
+				id: generateItemId('yields', poolConfigId),
+				kind: 'yields',
+				poolConfigId,
+				poolName,
+				project,
+				chain,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newYieldChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
+
 	const handleAddTable = useCallback(
 		(
 			chains: string[],
@@ -1362,6 +1387,7 @@ export function ProDashboardAPIProvider({
 			setDashboardTags,
 			setDashboardDescription,
 			handleAddChart,
+			handleAddYieldChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1426,6 +1452,7 @@ export function ProDashboardAPIProvider({
 			setDashboardTags,
 			setDashboardDescription,
 			handleAddChart,
+			handleAddYieldChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
