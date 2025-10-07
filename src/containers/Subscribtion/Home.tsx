@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
-import { EnterpriseCardContent } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
+import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -107,27 +107,10 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	return (
 		<>
 			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 overflow-x-hidden px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
-				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
-					<div
-						style={{
-							filter: 'blur(64px)',
-							background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
-						}}
-						className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
-					/>
-					<img
-						src="/icons/llama.webp"
-						height={118}
-						width={118}
-						className="z-10 mx-auto aspect-square rounded-full object-contain"
-						alt=""
-					/>
-				</div>
-				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
-				{isSubscribed ? null : (
-					<p className="text-center text-[#919296]">
+				{!isAuthenticated && !isSubscribed && (
+					<h1 className="text-left text-2xl font-semibold leading-relaxed text-white">
 						Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.
-					</p>
+					</h1>
 				)}
 
 				{!isAuthenticated && isTrial && (
@@ -236,6 +219,9 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							subscription={subscription}
 							onEmailChange={() => setShowEmailForm(true)}
 						/>
+						<h1 className="mt-6 text-left text-2xl font-semibold leading-relaxed text-white">
+							Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.
+						</h1>
 					</>
 				)}
 				<EmailChangeModal
@@ -255,7 +241,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					<div className="relative">
 						<div
 							ref={pricingContainer}
-							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
+							className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
 						>
 							<FreeCard context="page" />
 							<SubscribePlusCard
@@ -270,14 +256,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								context="page"
 								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
 							/>
-							<div
-								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
-							>
-								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
-									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-									<EnterpriseCardContent />
-								</span>
-							</div>
+							<SubscribeEnterpriseCard context="page" />
 						</div>
 					</div>
 				)}
