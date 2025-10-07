@@ -134,6 +134,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 								formatter: '{value}%'
 							}
 						},
+						grid: {
+							top: 24,
+							right: 12,
+							bottom: 12,
+							left: 12
+						},
 						tooltip: {
 							valueFormatter: (value: number) => value.toFixed(2) + '%'
 						}
