@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -20,9 +20,8 @@ import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 
 const DAY_IN_SECONDS = 86_400
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
-const MODE_OPTIONS = ['percent', 'absolute'] as const
 
-type ChangeMode = (typeof MODE_OPTIONS)[number]
+type ChangeMode = 'percent' | 'absolute'
 
 type TokenPnlResult = {
 	coinInfo?: IResponseCGMarketsAPI
@@ -122,21 +121,16 @@ const fetchPriceSeries = async (tokenId: string, start: number, end: number) => 
 		.sort((a: PricePoint, b: PricePoint) => a.timestamp - b.timestamp)
 }
 
-const computeTokenPnl = async (
-	params: {
-		id: string
-		start: number
-		end: number
-	} & {
-		coinsData: IResponseCGMarketsAPI[]
-	}
-): Promise<TokenPnlResult | null> => {
-	const { id, start, end, coinsData } = params
+const computeTokenPnl = async (params: {
+	id: string
+	start: number
+	end: number
+	coinInfo?: IResponseCGMarketsAPI
+}): Promise<TokenPnlResult | null> => {
+	const { id, start, end, coinInfo } = params
 	if (!id || !start || !end || end <= start) return null
-	const [series, coinInfo] = await Promise.all([
-		fetchPriceSeries(id, start, end),
-		Promise.resolve(coinsData.find((coin) => coin.id === id))
-	])
+
+	const series = await fetchPriceSeries(id, start, end)
 
 	if (!series.length) {
 		return {
@@ -183,49 +177,23 @@ const computeTokenPnl = async (
 	}
 }
 
-const fetchComparison = async (start: number, end: number, coinsData: IResponseCGMarketsAPI[]) => {
-	if (!start || !end || end <= start) return [] as ComparisonEntry[]
-	const tokens = DEFAULT_COMPARISON_IDS
-	const uniqueTokens = Array.from(new Set(tokens))
-	const results = await Promise.all(
-		uniqueTokens.map(async (tokenId) => {
-			const series = await fetchPriceSeries(tokenId, start, end)
-			if (!series.length) return null
-			const startPrice = series[0].price
-			const endPrice = series[series.length - 1].price
-			const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
-			const absoluteChange = endPrice - startPrice
-			const coin = coinsData.find((entry) => entry.id === tokenId)
-			return {
-				id: tokenId,
-				name: coin?.name ?? tokenId,
-				symbol: coin?.symbol ?? tokenId,
-				image: coin?.image,
-				percentChange,
-				absoluteChange,
-				startPrice,
-				endPrice
-			} as ComparisonEntry
-		})
-	)
-	return results.filter(Boolean) as ComparisonEntry[]
-}
-
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 60
 
-	const startQuery = useMemo(() => {
-		const raw = router.query?.start
-		const value = Array.isArray(raw) ? raw[0] : raw
-		return value ? Number(value) : null
-	}, [router.query?.start])
+	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
 
-	const endQuery = useMemo(() => {
-		const raw = router.query?.end
-		const value = Array.isArray(raw) ? raw[0] : raw
-		return value ? Number(value) : null
-	}, [router.query?.end])
+	const queryParams = useMemo(() => {
+		const startRaw = router.query?.start
+		const endRaw = router.query?.end
+
+		return {
+			start: startRaw ? Number(Array.isArray(startRaw) ? startRaw[0] : startRaw) : null,
+			end: endRaw ? Number(Array.isArray(endRaw) ? endRaw[0] : endRaw) : null
+		}
+	}, [router.query?.start, router.query?.end])
+
+	const { start: startQuery, end: endQuery } = queryParams
 
 	const defaultStart = startQuery ? unixToDateString(startQuery) : unixToDateString(now - 7 * DAY_IN_SECONDS)
 	const defaultEnd = endQuery ? unixToDateString(endQuery) : unixToDateString(now)
@@ -252,7 +220,10 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const start = dateStringToUnix(startDate)
 	const end = dateStringToUnix(endDate)
 
-	const fetchData = useCallback(() => computeTokenPnl({ id, start, end, coinsData }), [id, start, end, coinsData])
+	const fetchData = useCallback(
+		() => computeTokenPnl({ id, start, end, coinInfo: coinInfoMap.get(id) }),
+		[id, start, end, coinInfoMap]
+	)
 
 	const {
 		data: pnlData,
@@ -265,20 +236,70 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		queryKey: ['token-pnl', id, start, end],
 		queryFn: fetchData,
 		enabled: Boolean(id && start && end && end > start),
-		staleTime: 5 * 60 * 1000,
+		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 
-	const { data: comparisonData } = useQuery({
-		queryKey: ['token-pnl-comparison', start, end],
-		queryFn: () => fetchComparison(start, end, coinsData),
-		enabled: Boolean(start && end && end > start)
+	const comparisonQueries = useQueries({
+		queries: DEFAULT_COMPARISON_IDS.map((tokenId) => ({
+			queryKey: ['token-pnl-comparison-item', tokenId, start, end],
+			queryFn: () =>
+				fetchPriceSeries(tokenId, start, end).then((series) => {
+					if (!series.length) return null
+					const startPrice = series[0].price
+					const endPrice = series[series.length - 1].price
+					const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
+					const absoluteChange = endPrice - startPrice
+					const coin = coinInfoMap.get(tokenId)
+					return {
+						id: tokenId,
+						name: coin?.name ?? tokenId,
+						symbol: coin?.symbol ?? tokenId,
+						image: coin?.image,
+						percentChange,
+						absoluteChange,
+						startPrice,
+						endPrice
+					} as ComparisonEntry
+				}),
+			enabled: Boolean(start && end && end > start),
+			staleTime: 60 * 60 * 1000
+		}))
 	})
+
+	const comparisonData = useMemo(
+		() => comparisonQueries.map((q) => q.data).filter(Boolean) as ComparisonEntry[],
+		[comparisonQueries]
+	)
 
 	const quantity = useMemo(() => {
 		const parsed = parseFloat(quantityInput)
 		return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
 	}, [quantityInput])
+
+	const displayMetrics = useMemo(() => {
+		if (!pnlData?.metrics) return null
+
+		const { metrics } = pnlData
+		const quantityValue = quantity ? metrics.absoluteChange * quantity : metrics.absoluteChange
+		const summaryValue = mode === 'percent' ? metrics.percentChange : quantity ? quantityValue : metrics.absoluteChange
+		const isProfit = summaryValue >= 0
+		const quantityLabel = quantity
+			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
+			: `$${formattedNum(metrics.absoluteChange, false)} per token`
+
+		const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
+		const annualizedReturn =
+			holdingPeriodDays > 0 ? (Math.pow(1 + metrics.percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
+
+		return {
+			summaryValue,
+			isProfit,
+			quantityLabel,
+			holdingPeriodDays,
+			annualizedReturn
+		}
+	}, [pnlData, quantity, mode, start, end])
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -344,7 +365,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 				</div>
 			)
 		}
-		if (!pnlData || !pnlData.priceSeries.length) {
+		if (!pnlData || !pnlData.priceSeries.length || !displayMetrics) {
 			return (
 				<div className="flex flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-center">
 					<span className="text-lg font-semibold">No historical data available for this range.</span>
@@ -354,16 +375,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		}
 
 		const { metrics, timeline, coinInfo, currentPrice } = pnlData
-		const quantityValue = quantity ? metrics.absoluteChange * quantity : metrics.absoluteChange
-		const summaryValue = mode === 'percent' ? metrics.percentChange : quantity ? quantityValue : metrics.absoluteChange
-		const isProfit = summaryValue >= 0
-		const quantityLabel = quantity
-			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
-			: `$${formattedNum(metrics.absoluteChange, false)} per token`
-
-		const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
-		const annualizedReturn =
-			holdingPeriodDays > 0 ? (Math.pow(1 + metrics.percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
+		const { summaryValue, isProfit, quantityLabel, holdingPeriodDays, annualizedReturn } = displayMetrics
 
 		return (
 			<div className="flex flex-col gap-6">
@@ -419,8 +431,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						markers={{
 							start: metrics.startPrice,
 							end: metrics.endPrice,
-							current: currentPrice,
-							ath: coinInfo?.ath
+							current: currentPrice
 						}}
 						isLoading={isFetching}
 						onPointClick={(pt) => setFocusedPoint(pt)}
@@ -465,7 +476,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		)
 	}
 
-	const selectedCoin = useMemo(() => coinsData.find((coin) => coin.id === id), [coinsData, id])
+	const selectedCoin = coinInfoMap.get(id)
 
 	return (
 		<div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4">

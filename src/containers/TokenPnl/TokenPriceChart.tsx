@@ -16,13 +16,13 @@ export const TokenPriceChart = ({
 	onPointClick
 }: {
 	series: PricePoint[]
-	markers: { start: number; end: number; current: number; ath?: number }
+	markers: { start: number; end: number; current: number }
 	isLoading: boolean
 	overlaySeries?: Array<{ id: string; name: string; data: { timestamp: number; price: number }[]; color?: string }>
 	onPointClick?: (point: { timestamp: number; price: number }) => void
 }) => {
 	const containerRef = useRef<HTMLDivElement | null>(null)
-	const { start, end, current, ath } = markers
+	const { start, end, current } = markers
 
 	useEffect(() => {
 		if (!containerRef.current || isLoading) return
@@ -33,13 +33,9 @@ export const TokenPriceChart = ({
 		}
 		const data = series.map((point) => [point.timestamp * 1000, point.price])
 		const markLineData: any[] = []
-		if (ath) {
-			markLineData.push({
-				name: 'ATH',
-				label: { formatter: `ATH: $${formattedNum(ath)}` },
-				yAxis: ath
-			})
-		}
+
+		const startTimestamp = start * 1000
+		const endTimestamp = end * 1000
 
 		const primaryColor = 'rgb(148, 163, 184)'
 		const areaGradient = new (echarts as any).graphic.LinearGradient(0, 0, 0, 1, [
@@ -57,8 +53,12 @@ export const TokenPriceChart = ({
 			yAxisIndex: 1
 		}))
 
+		const startPrice = series[0]?.price || 0
+
 		chart.setOption({
-			animation: false,
+			animation: true,
+			animationDuration: 750,
+			animationEasing: 'cubicOut',
 			grid: { left: 40, right: 20, top: 20, bottom: 40 },
 			xAxis: { type: 'time', splitLine: { show: false } },
 			yAxis: [
@@ -77,15 +77,25 @@ export const TokenPriceChart = ({
 				backgroundColor: 'transparent',
 				borderWidth: 0,
 				padding: 0,
-				axisPointer: { type: 'line', lineStyle: { color: 'rgba(148,163,184,0.35)', width: 1 } },
+				axisPointer: {
+					type: 'line',
+					lineStyle: { color: 'rgba(148,163,184,0.5)', width: 1.5, type: 'solid' },
+					z: 0
+				},
 				confine: true,
 				formatter: (items: any[]) => {
 					if (!items?.length) return ''
 					const point = items[0]
 					const date = new Date(point.value[0])
-					return `<div style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: rgba(10,14,20,0.85); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 6px 24px rgba(0,0,0,0.35); border-radius: 10px; padding: 8px 10px; font-size: 12px; line-height: 1.2; white-space: nowrap;">
-							<div style="opacity: .8;">${date.toLocaleDateString()}</div>
-							<div style="font-weight: 600;">Price: $${formattedNum(point.value[1])}</div>
+					const price = point.value[1]
+					const changeFromStart = startPrice ? ((price - startPrice) / startPrice) * 100 : 0
+					const changeColor = changeFromStart >= 0 ? '#10b981' : '#ef4444'
+					const changeSign = changeFromStart >= 0 ? '+' : ''
+
+					return `<div style="background: var(--bg-card); border: 1px solid var(--bg-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); color: var(--text-primary); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; white-space: nowrap;">
+							<div style="opacity: .75; margin-bottom: 4px;">${date.toLocaleDateString()}</div>
+							<div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;">$${formattedNum(price)}</div>
+							<div style="font-size: 11px; color: ${changeColor}; font-weight: 500;">${changeSign}${changeFromStart.toFixed(2)}% from start</div>
 						</div>`
 				}
 			},
@@ -95,13 +105,41 @@ export const TokenPriceChart = ({
 					type: 'line',
 					smooth: true,
 					showSymbol: false,
+					symbolSize: 8,
+					symbol: 'circle',
+					itemStyle: {
+						color: primaryColor,
+						borderColor: 'var(--bg-card)',
+						borderWidth: 2
+					},
+					emphasis: {
+						scale: true,
+						focus: 'series',
+						lineStyle: { width: 2.5 }
+					},
 					areaStyle: { opacity: 1, color: areaGradient },
 					lineStyle: { width: 2.25, color: primaryColor },
+					markPoint: {
+						symbol: 'circle',
+						symbolSize: 10,
+						itemStyle: {
+							color: primaryColor,
+							borderColor: 'var(--bg-card)',
+							borderWidth: 2,
+							shadowBlur: 4,
+							shadowColor: 'rgba(148,163,184,0.5)'
+						},
+						label: { show: false },
+						data: [
+							{ coord: [startTimestamp, series[0]?.price || 0], name: 'Start' },
+							{ coord: [endTimestamp, series[series.length - 1]?.price || 0], name: 'End' }
+						]
+					},
 					markLine: markLineData.length
 						? {
 								symbol: 'none',
-								lineStyle: { type: 'dashed', opacity: 0.5 },
-								label: { color: '#cbd5e1' },
+								lineStyle: { type: 'dashed', opacity: 0.35, width: 1 },
+								label: { color: 'var(--text-secondary)', fontSize: 11 },
 								data: markLineData
 							}
 						: undefined,
@@ -129,7 +167,7 @@ export const TokenPriceChart = ({
 			} catch {}
 			chart?.dispose()
 		}
-	}, [series, start, end, current, ath, isLoading, overlaySeries, onPointClick])
+	}, [series, start, end, current, isLoading, overlaySeries, onPointClick])
 
 	return <div ref={containerRef} className="h-[360px] w-full" />
 }
