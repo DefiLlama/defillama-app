@@ -189,5 +189,5 @@ export default function LineAndBarChart({
 		}
 	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip, hideDataZoom])
 
-	return <div id={id} className={height ? '' : 'min-h-[360px]'} style={height ? { height } : undefined}></div>
+	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
 }

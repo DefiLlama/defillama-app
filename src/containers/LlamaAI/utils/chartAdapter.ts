@@ -429,7 +429,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 
 			chartOptions: {
 				grid: {
-					top: 12,
+					top: 24,
 					right: 12,
 					bottom: 12,
 					left: 12

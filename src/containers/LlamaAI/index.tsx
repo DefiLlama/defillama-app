@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -12,9 +12,11 @@ import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
+import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
 
 class StreamingContent {
@@ -47,10 +49,21 @@ async function fetchPromptResponse({
 	prompt?: string
 	userQuestion: string
 	onProgress?: (data: {
-		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'citations' | 'error' | 'title' | 'message_id'
+		type:
+			| 'token'
+			| 'progress'
+			| 'session'
+			| 'inline_suggestions'
+			| 'suggestions'
+			| 'charts'
+			| 'citations'
+			| 'error'
+			| 'title'
+			| 'message_id'
 		content: string
 		stage?: string
 		sessionId?: string
+		inlineSuggestions?: string
 		suggestions?: any[]
 		charts?: any[]
 		chartData?: any[]
@@ -108,6 +121,7 @@ async function fetchPromptResponse({
 		const decoder = new TextDecoder()
 		let fullResponse = ''
 		let metadata = null
+		let inlineSuggestions = null
 		let suggestions = null
 		let charts = null
 		let chartData = null
@@ -159,6 +173,11 @@ async function fetchPromptResponse({
 							}
 						} else if (data.type === 'metadata') {
 							metadata = data.metadata
+						} else if (data.type === 'inline_suggestions') {
+							inlineSuggestions = data.content
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({ type: 'inline_suggestions', content: data.content, inlineSuggestions: data.content })
+							}
 						} else if (data.type === 'suggestions') {
 							suggestions = data.suggestions
 						} else if (data.type === 'charts') {
@@ -202,6 +221,7 @@ async function fetchPromptResponse({
 			response: {
 				answer: fullResponse,
 				metadata,
+				inlineSuggestions,
 				suggestions,
 				charts,
 				chartData,
@@ -283,6 +303,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				charts?: any[]
 				chartData?: any[]
 				citations?: string[]
+				inlineSuggestions?: string
 			}
 			timestamp: number
 			messageId?: string
@@ -376,43 +397,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				})
 		}
 	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
-
-	const parseChartInfo = (message: string): { count?: number; types?: string[] } => {
-		const info: { count?: number; types?: string[] } = {}
-
-		const patterns = [
-			/(?:generating|creating|building|analyzing)\s+([^.]+?)\s+charts?/i,
-			/(?:will create|planning)\s+([^.]+?)\s+(?:chart|visualization)/i,
-			/(?:identified|detected)\s+([^.]+?)\s+chart\s+(?:opportunity|type)/i
-		]
-
-		for (const pattern of patterns) {
-			const typesMatch = message.match(pattern)
-			if (typesMatch) {
-				const typesStr = typesMatch[1]
-				const extractedTypes = typesStr
-					.split(/[,\s]+/)
-					.filter((type) =>
-						['line', 'bar', 'area', 'combo', 'pie', 'time-series', 'timeseries'].includes(type.toLowerCase())
-					)
-					.map((type) => type.toLowerCase().replace('time-series', 'line').replace('timeseries', 'line'))
-
-				if (extractedTypes.length > 0) {
-					info.types = extractedTypes
-					break
-				}
-			}
-		}
-
-		const countMatch = message.match(
-			/(?:generated?|creating?|building|will create)\s*(\d+)\s+(?:charts?|visualizations?)/i
-		)
-		if (countMatch) {
-			info.count = parseInt(countMatch[1], 10)
-		}
-
-		return info
-	}
 
 	const {
 		data: promptResponse,
@@ -521,6 +505,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					response: {
 						answer: data?.response?.answer || finalContent,
 						metadata: data?.response?.metadata,
+						inlineSuggestions: data?.response?.inlineSuggestions,
 						suggestions: data?.response?.suggestions,
 						charts: data?.response?.charts,
 						chartData: data?.response?.chartData,
@@ -582,7 +567,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	})
 
-	const handleStopRequest = async () => {
+	const handleStopRequest = useCallback(async () => {
 		if (!sessionId || !isStreaming) return
 
 		const finalContent = streamingContentRef.current.getContent()
@@ -642,38 +627,63 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setTimeout(() => {
 			promptInputRef.current?.focus()
 		}, 100)
-	}
+	}, [
+		sessionId,
+		isStreaming,
+		streamingSuggestions,
+		streamingCharts,
+		streamingChartData,
+		streamingCitations,
+		currentMessageId,
+		prompt,
+		setConversationHistory,
+		setStreamingResponse,
+		setStreamingSuggestions,
+		setStreamingCharts,
+		setStreamingChartData,
+		setStreamingCitations,
+		setCurrentMessageId,
+		resetPrompt,
+		promptInputRef,
+		authorizedFetch
+	])
 
-	const handleSubmit = (prompt: string) => {
-		const finalPrompt = prompt.trim()
-		setPrompt(finalPrompt)
-		shouldAutoScrollRef.current = true
+	const handleSubmit = useCallback(
+		(prompt: string) => {
+			const finalPrompt = prompt.trim()
+			setPrompt(finalPrompt)
+			shouldAutoScrollRef.current = true
 
-		if (sessionId) {
-			moveSessionToTop(sessionId)
-		}
+			if (sessionId) {
+				moveSessionToTop(sessionId)
+			}
 
-		submitPrompt({ userQuestion: finalPrompt })
-	}
+			submitPrompt({ userQuestion: finalPrompt })
+		},
+		[sessionId, moveSessionToTop, submitPrompt]
+	)
 
-	const handleSubmitWithSuggestion = (prompt: string, suggestion: any) => {
-		const finalPrompt = prompt.trim()
-		setPrompt(finalPrompt)
-		shouldAutoScrollRef.current = true
+	const handleSubmitWithSuggestion = useCallback(
+		(prompt: string, suggestion: any) => {
+			const finalPrompt = prompt.trim()
+			setPrompt(finalPrompt)
+			shouldAutoScrollRef.current = true
 
-		if (sessionId) {
-			moveSessionToTop(sessionId)
-		}
+			if (sessionId) {
+				moveSessionToTop(sessionId)
+			}
 
-		submitPrompt({
-			userQuestion: finalPrompt,
-			suggestionContext: suggestion
-		})
-	}
+			submitPrompt({
+				userQuestion: finalPrompt,
+				suggestionContext: suggestion
+			})
+		},
+		[sessionId, moveSessionToTop, submitPrompt]
+	)
 
 	const router = useRouter()
 
-	const handleNewChat = async () => {
+	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
 			router.push('/ai', undefined, { shallow: true })
 			return
@@ -730,7 +740,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}
+	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
 
 	const handleSessionSelect = async (
 		selectedSessionId: string,
@@ -809,19 +819,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages])
 
-	const handleSuggestionClick = (suggestion: any) => {
-		let promptText = ''
+	const handleSuggestionClick = useCallback(
+		(suggestion: any) => {
+			let promptText = ''
 
-		promptText = suggestion.title || suggestion.description
+			promptText = suggestion.title || suggestion.description
 
-		handleSubmitWithSuggestion(promptText, suggestion)
-	}
+			handleSubmitWithSuggestion(promptText, suggestion)
+		},
+		[handleSubmitWithSuggestion]
+	)
 
-	const handleSidebarToggle = () => {
+	const handleSidebarToggle = useCallback(() => {
 		toggleSidebar()
 		setShouldAnimateSidebar(true)
 		setResizeTrigger((prev) => prev + 1)
-	}
+	}, [toggleSidebar])
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
@@ -1016,13 +1029,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																	resizeTrigger={resizeTrigger}
 																/>
 															)}
+															{item.response.inlineSuggestions && (
+																<InlineSuggestions text={item.response.inlineSuggestions} />
+															)}
 															<ResponseControls
 																messageId={item.messageId}
 																content={item.response.answer}
 																initialRating={item.userRating}
 																sessionId={sessionId}
 															/>
-															{item.response.suggestions && item.response.suggestions.length > 0 && (
+															{!readOnly && item.response.suggestions && item.response.suggestions.length > 0 && (
 																<SuggestedActions
 																	suggestions={item.response.suggestions}
 																	handleSuggestionClick={handleSuggestionClick}
@@ -1067,6 +1083,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														expectedChartInfo={expectedChartInfo}
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
+														readOnly={readOnly}
 													/>
 												</div>
 											)}
@@ -1080,7 +1097,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky bottom-26.5 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky ${readOnly ? 'bottom-6.5' : 'bottom-26.5'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1126,7 +1143,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	)
 }
 
-const PromptInput = ({
+const PromptInput = memo(function PromptInput({
 	handleSubmit,
 	promptInputRef,
 	isPending,
@@ -1138,8 +1155,10 @@ const PromptInput = ({
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
-}) => {
+}) {
 	const [value, setValue] = useState('')
+
+	const deferredValue = useDeferredValue(value)
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
@@ -1147,10 +1166,6 @@ const PromptInput = ({
 			handleSubmit(value)
 			setValue('')
 		}
-	}
-
-	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setValue(event.target.value)
 	}
 
 	return (
@@ -1165,8 +1180,38 @@ const PromptInput = ({
 			>
 				<textarea
 					placeholder="Ask LlamaAI..."
-					value={value}
-					onChange={onChange}
+					value={deferredValue}
+					onChange={async (e) => {
+						startTransition(() => {
+							setValue(e.target.value)
+							if (promptInputRef.current) {
+								try {
+									// Calculate rows based on newlines and character length
+									const text = e.target.value
+									const textarea = promptInputRef.current
+									const lineBreaks = (text.match(/\n/g) || []).length
+
+									// Calculate actual characters per line based on container width
+									const style = window.getComputedStyle(textarea)
+									const paddingLeft = parseFloat(style.paddingLeft)
+									const paddingRight = parseFloat(style.paddingRight)
+									const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+									const fontSize = parseFloat(style.fontSize)
+									// Average character width is approximately 0.6 of font size for monospace-like text
+									const avgCharWidth = fontSize * 0.5
+									const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+
+									const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+									const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+
+									// Set rows with minimum 1 and maximum 5
+									promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+								} catch (error) {
+									console.error('Error calculating rows:', error)
+								}
+							}
+						})
+					}}
 					onKeyDown={onKeyDown}
 					name="prompt"
 					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
@@ -1177,6 +1222,7 @@ const PromptInput = ({
 					autoFocus
 					ref={promptInputRef}
 					maxLength={2000}
+					rows={1}
 				/>
 				{isStreaming ? (
 					<Tooltip
@@ -1200,7 +1246,7 @@ const PromptInput = ({
 			</form>
 		</>
 	)
-}
+})
 
 const PromptResponse = ({
 	response,
@@ -1217,7 +1263,8 @@ const PromptResponse = ({
 	hasChartError = false,
 	expectedChartInfo,
 	resizeTrigger = 0,
-	showMetadata = false
+	showMetadata = false,
+	readOnly = false
 }: {
 	response?: {
 		answer: string
@@ -1226,6 +1273,7 @@ const PromptResponse = ({
 		charts?: any[]
 		chartData?: any[]
 		citations?: string[]
+		inlineSuggestions?: string
 	}
 	error?: string
 	streamingError?: string
@@ -1241,6 +1289,7 @@ const PromptResponse = ({
 	expectedChartInfo?: { count?: number; types?: string[] } | null
 	resizeTrigger?: number
 	showMetadata?: boolean
+	readOnly?: boolean
 }) => {
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
@@ -1303,7 +1352,8 @@ const PromptResponse = ({
 					resizeTrigger={resizeTrigger}
 				/>
 			)}
-			{response?.suggestions && response.suggestions.length > 0 && (
+			{response?.inlineSuggestions && <InlineSuggestions text={response.inlineSuggestions} />}
+			{!readOnly && response?.suggestions && response.suggestions.length > 0 && (
 				<SuggestedActions
 					suggestions={response.suggestions}
 					handleSuggestionClick={onSuggestionClick}
@@ -1427,7 +1477,7 @@ const FadingLoader = () => {
 	)
 }
 
-const SuggestedActions = ({
+const SuggestedActions = memo(function SuggestedActions({
 	suggestions,
 	handleSuggestionClick,
 	isPending,
@@ -1437,7 +1487,7 @@ const SuggestedActions = ({
 	handleSuggestionClick: (suggestion: any) => void
 	isPending: boolean
 	isStreaming: boolean
-}) => {
+}) {
 	return (
 		<div className="mt-4 grid gap-2">
 			<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
@@ -1447,7 +1497,7 @@ const SuggestedActions = ({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324] ${
+						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
 								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
@@ -1465,9 +1515,9 @@ const SuggestedActions = ({
 			</div>
 		</div>
 	)
-}
+})
 
-const QueryMetadata = ({ metadata }: { metadata: any }) => {
+const QueryMetadata = memo(function QueryMetadata({ metadata }: { metadata: any }) {
 	const [copied, setCopied] = useState(false)
 
 	const handleCopy = async () => {
@@ -1504,17 +1554,17 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 			</pre>
 		</details>
 	)
-}
+})
 
-const SentPrompt = ({ prompt }: { prompt: string }) => {
+const SentPrompt = memo(function SentPrompt({ prompt }: { prompt: string }) {
 	return (
 		<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{prompt}
 		</p>
 	)
-}
+})
 
-const ResponseControls = ({
+const ResponseControls = memo(function ResponseControls({
 	messageId,
 	content,
 	initialRating,
@@ -1524,7 +1574,7 @@ const ResponseControls = ({
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
-}) => {
+}) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
@@ -1715,7 +1765,7 @@ const ResponseControls = ({
 			</Ariakit.DialogProvider>
 		</>
 	)
-}
+})
 
 const FeedbackForm = ({
 	messageId,
@@ -1849,13 +1899,13 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 	)
 }
 
-const ChatControls = ({
+const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
 	handleNewChat
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
-}) => {
+}) {
 	return (
 		<div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-2">
 			<Tooltip
@@ -1876,4 +1926,4 @@ const ChatControls = ({
 			</Tooltip>
 		</div>
 	)
-}
+})
