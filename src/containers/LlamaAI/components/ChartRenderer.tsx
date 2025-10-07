@@ -1,8 +1,10 @@
-import { lazy, memo, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
+import { ChartDataTransformer } from '../utils/chartDataTransformer'
+import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -31,12 +33,114 @@ interface SingleChartProps {
 	isActive: boolean
 }
 
+type ChartState = {
+	stacked: boolean
+	percentage: boolean
+	cumulative: boolean
+	grouping: 'day' | 'week' | 'month' | 'quarter'
+}
+
+type ChartAction =
+	| { type: 'SET_STACKED'; payload: boolean }
+	| { type: 'SET_PERCENTAGE'; payload: boolean }
+	| { type: 'SET_CUMULATIVE'; payload: boolean }
+	| { type: 'SET_GROUPING'; payload: 'day' | 'week' | 'month' | 'quarter' }
+
+const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
+	switch (action.type) {
+		case 'SET_STACKED':
+			return { ...state, stacked: action.payload }
+		case 'SET_PERCENTAGE':
+			return { ...state, percentage: action.payload }
+		case 'SET_CUMULATIVE':
+			return { ...state, cumulative: action.payload }
+		case 'SET_GROUPING':
+			return { ...state, grouping: action.payload }
+		default:
+			return state
+	}
+}
+
 const SingleChart = memo(function SingleChart({ config, data, isActive }: SingleChartProps) {
+	const [chartState, dispatch] = useReducer(chartReducer, {
+		stacked: config.displayOptions?.defaultStacked || false,
+		percentage: config.displayOptions?.defaultPercentage || false,
+		cumulative: false,
+		grouping: 'day' as const
+	})
+
 	if (!isActive) return null
 
 	try {
 		const isMultiSeries = config.series && config.series.length > 1
-		const adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
+		let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
+
+		const dataLength = isMultiSeries
+			? (adaptedChart.props as any).series?.[0]?.data?.length || 0
+			: adaptedChart.data?.length || data?.length || 0
+
+		const shouldTransform =
+			isMultiSeries &&
+			(chartState.stacked || chartState.percentage || chartState.cumulative || chartState.grouping !== 'day')
+
+		if (shouldTransform) {
+			let transformedSeries = (adaptedChart.props as any).series || []
+
+			if (chartState.grouping !== 'day' && config.displayOptions?.supportsGrouping) {
+				transformedSeries = ChartDataTransformer.groupByInterval(transformedSeries, chartState.grouping, config.type)
+			}
+
+			if (chartState.cumulative && config.displayOptions?.canShowCumulative) {
+				transformedSeries = ChartDataTransformer.applyCumulativeToSeries(transformedSeries)
+			}
+
+			if (chartState.stacked && config.displayOptions?.canStack && !chartState.percentage) {
+				transformedSeries = ChartDataTransformer.toStacked(transformedSeries, config.type)
+			}
+
+			if (chartState.percentage && config.displayOptions?.canShowPercentage) {
+				transformedSeries = ChartDataTransformer.toPercentage(transformedSeries, chartState.stacked)
+			}
+
+			adaptedChart = {
+				...adaptedChart,
+				props: {
+					...(adaptedChart.props as any),
+					series: transformedSeries,
+					groupBy:
+						chartState.grouping === 'week'
+							? 'weekly'
+							: chartState.grouping === 'month'
+								? 'monthly'
+								: chartState.grouping === 'quarter'
+									? 'quarterly'
+									: 'daily'
+				}
+			}
+		}
+
+		const valueSymbol = chartState.percentage ? '%' : config.valueSymbol || '$'
+		adaptedChart = {
+			...adaptedChart,
+			props: {
+				...(adaptedChart.props as any),
+				valueSymbol,
+				...(chartState.percentage && {
+					chartOptions: {
+						yAxis: {
+							max: 100,
+							min: 0,
+							axisLabel: {
+								formatter: '{value}%'
+							}
+						},
+						tooltip: {
+							valueFormatter: (value: number) => value.toFixed(2) + '%'
+						}
+					}
+				})
+			}
+		}
 
 		const hasData =
 			adaptedChart.chartType === 'multi-series'
@@ -52,15 +156,25 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			)
 		}
 
+		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}`
+
+		let chartContent: React.ReactNode
+
 		switch (adaptedChart.chartType) {
 			case 'bar':
 				const isTimeSeriesChart = config.axes.x.type === 'time'
-				return (
+				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
 						{isTimeSeriesChart ? (
-							<BarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} height={'300px'} />
+							<BarChart
+								key={chartKey}
+								chartData={adaptedChart.data}
+								{...(adaptedChart.props as IBarChartProps)}
+								height={'300px'}
+							/>
 						) : (
 							<NonTimeSeriesBarChart
+								key={chartKey}
 								chartData={adaptedChart.data}
 								{...(adaptedChart.props as IBarChartProps)}
 								height={'300px'}
@@ -68,12 +182,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						)}
 					</Suspense>
 				)
+				break
 
 			case 'line':
 			case 'area':
-				return (
+				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
 						<AreaChart
+							key={chartKey}
 							chartData={adaptedChart.data}
 							{...(adaptedChart.props as IChartProps)}
 							connectNulls={true}
@@ -81,43 +197,68 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						/>
 					</Suspense>
 				)
+				break
 
 			case 'combo':
-				return (
+				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
+						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
 					</Suspense>
 				)
+				break
 
 			case 'multi-series':
-				return (
+				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
+						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
 					</Suspense>
 				)
+				break
 
 			case 'pie':
-				return (
+				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<PieChart {...(adaptedChart.props as IPieChartProps)} height={'300px'} />
+						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} height={'300px'} />
 					</Suspense>
 				)
+				break
 
 			case 'scatter':
-				return (
+				chartContent = (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<ScatterChart chartData={adaptedChart.data} />
+						<ScatterChart key={chartKey} chartData={adaptedChart.data} />
 					</Suspense>
 				)
+				break
 
 			default:
-				return (
+				chartContent = (
 					<div className="flex flex-col items-center justify-center gap-2 rounded-md bg-red-50 p-1 py-8 text-red-700 dark:bg-red-900/10 dark:text-red-300">
 						<Icon name="alert-triangle" height={16} width={16} />
 						<p>Unsupported chart type: {adaptedChart.chartType}</p>
 					</div>
 				)
 		}
+
+		return (
+			<div className="flex flex-col">
+				{config.displayOptions && (
+					<ChartControls
+						displayOptions={config.displayOptions}
+						stacked={chartState.stacked}
+						percentage={chartState.percentage}
+						cumulative={chartState.cumulative}
+						grouping={chartState.grouping}
+						dataLength={dataLength}
+						onStackedChange={(stacked) => dispatch({ type: 'SET_STACKED', payload: stacked })}
+						onPercentageChange={(percentage) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })}
+						onCumulativeChange={(cumulative) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })}
+						onGroupingChange={(grouping) => dispatch({ type: 'SET_GROUPING', payload: grouping })}
+					/>
+				)}
+				{chartContent}
+			</div>
+		)
 	} catch (error) {
 		console.log('Chart render error:', error)
 		return (
@@ -166,8 +307,8 @@ export const ChartRenderer = memo(function ChartRenderer({
 	chartTypes,
 	resizeTrigger = 0
 }: ChartRendererProps) {
-	const [activeTabIndex, setActiveTabIndex] = useState(0)
 	const containerRef = useRef<HTMLDivElement>(null)
+	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
 	useEffect(() => {
 		if (!containerRef.current) return
@@ -216,7 +357,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 					{charts.map((chart, index) => (
 						<button
 							key={`toggle-${chart.id}`}
-							onClick={() => setActiveTabIndex(index)}
+							onClick={() => setActiveTab(index)}
 							className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
 								activeTabIndex === index
 									? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -230,7 +371,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 			)}
 			{charts.map((chart, index) => (
 				<SingleChart
-					key={`${chart.id}`}
+					key={chart.id}
 					config={chart}
 					data={chartData}
 					isActive={!hasMultipleCharts || activeTabIndex === index}

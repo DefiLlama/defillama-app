@@ -42,4 +42,13 @@ export interface ChartConfiguration {
 		timeField: string
 		metrics: string[]
 	}
+
+	displayOptions?: {
+		canStack: boolean
+		canShowPercentage: boolean
+		canShowCumulative: boolean
+		supportsGrouping: boolean
+		defaultStacked?: boolean
+		defaultPercentage?: boolean
+	}
 }

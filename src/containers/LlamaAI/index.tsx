@@ -1450,7 +1450,7 @@ const SuggestedActions = ({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324] ${
+						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
 								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
