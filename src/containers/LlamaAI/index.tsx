@@ -1022,7 +1022,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																initialRating={item.userRating}
 																sessionId={sessionId}
 															/>
-															{item.response.suggestions && item.response.suggestions.length > 0 && (
+															{!readOnly && item.response.suggestions && item.response.suggestions.length > 0 && (
 																<SuggestedActions
 																	suggestions={item.response.suggestions}
 																	handleSuggestionClick={handleSuggestionClick}
@@ -1067,6 +1067,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														expectedChartInfo={expectedChartInfo}
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
+														readOnly={readOnly}
 													/>
 												</div>
 											)}
@@ -1217,7 +1218,8 @@ const PromptResponse = ({
 	hasChartError = false,
 	expectedChartInfo,
 	resizeTrigger = 0,
-	showMetadata = false
+	showMetadata = false,
+	readOnly = false
 }: {
 	response?: {
 		answer: string
@@ -1241,6 +1243,7 @@ const PromptResponse = ({
 	expectedChartInfo?: { count?: number; types?: string[] } | null
 	resizeTrigger?: number
 	showMetadata?: boolean
+	readOnly?: boolean
 }) => {
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
@@ -1303,7 +1306,7 @@ const PromptResponse = ({
 					resizeTrigger={resizeTrigger}
 				/>
 			)}
-			{response?.suggestions && response.suggestions.length > 0 && (
+			{!readOnly && response?.suggestions && response.suggestions.length > 0 && (
 				<SuggestedActions
 					suggestions={response.suggestions}
 					handleSuggestionClick={onSuggestionClick}
