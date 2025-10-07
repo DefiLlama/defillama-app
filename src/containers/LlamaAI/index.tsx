@@ -1,4 +1,4 @@
-import { RefObject, startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -15,6 +15,7 @@ import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
+import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
 
 class StreamingContent {
@@ -377,43 +378,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
 
-	const parseChartInfo = (message: string): { count?: number; types?: string[] } => {
-		const info: { count?: number; types?: string[] } = {}
-
-		const patterns = [
-			/(?:generating|creating|building|analyzing)\s+([^.]+?)\s+charts?/i,
-			/(?:will create|planning)\s+([^.]+?)\s+(?:chart|visualization)/i,
-			/(?:identified|detected)\s+([^.]+?)\s+chart\s+(?:opportunity|type)/i
-		]
-
-		for (const pattern of patterns) {
-			const typesMatch = message.match(pattern)
-			if (typesMatch) {
-				const typesStr = typesMatch[1]
-				const extractedTypes = typesStr
-					.split(/[,\s]+/)
-					.filter((type) =>
-						['line', 'bar', 'area', 'combo', 'pie', 'time-series', 'timeseries'].includes(type.toLowerCase())
-					)
-					.map((type) => type.toLowerCase().replace('time-series', 'line').replace('timeseries', 'line'))
-
-				if (extractedTypes.length > 0) {
-					info.types = extractedTypes
-					break
-				}
-			}
-		}
-
-		const countMatch = message.match(
-			/(?:generated?|creating?|building|will create)\s*(\d+)\s+(?:charts?|visualizations?)/i
-		)
-		if (countMatch) {
-			info.count = parseInt(countMatch[1], 10)
-		}
-
-		return info
-	}
-
 	const {
 		data: promptResponse,
 		mutate: submitPrompt,
@@ -582,7 +546,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	})
 
-	const handleStopRequest = async () => {
+	const handleStopRequest = useCallback(async () => {
 		if (!sessionId || !isStreaming) return
 
 		const finalContent = streamingContentRef.current.getContent()
@@ -642,38 +606,63 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setTimeout(() => {
 			promptInputRef.current?.focus()
 		}, 100)
-	}
+	}, [
+		sessionId,
+		isStreaming,
+		streamingSuggestions,
+		streamingCharts,
+		streamingChartData,
+		streamingCitations,
+		currentMessageId,
+		prompt,
+		setConversationHistory,
+		setStreamingResponse,
+		setStreamingSuggestions,
+		setStreamingCharts,
+		setStreamingChartData,
+		setStreamingCitations,
+		setCurrentMessageId,
+		resetPrompt,
+		promptInputRef,
+		authorizedFetch
+	])
 
-	const handleSubmit = (prompt: string) => {
-		const finalPrompt = prompt.trim()
-		setPrompt(finalPrompt)
-		shouldAutoScrollRef.current = true
+	const handleSubmit = useCallback(
+		(prompt: string) => {
+			const finalPrompt = prompt.trim()
+			setPrompt(finalPrompt)
+			shouldAutoScrollRef.current = true
 
-		if (sessionId) {
-			moveSessionToTop(sessionId)
-		}
+			if (sessionId) {
+				moveSessionToTop(sessionId)
+			}
 
-		submitPrompt({ userQuestion: finalPrompt })
-	}
+			submitPrompt({ userQuestion: finalPrompt })
+		},
+		[sessionId, moveSessionToTop, submitPrompt]
+	)
 
-	const handleSubmitWithSuggestion = (prompt: string, suggestion: any) => {
-		const finalPrompt = prompt.trim()
-		setPrompt(finalPrompt)
-		shouldAutoScrollRef.current = true
+	const handleSubmitWithSuggestion = useCallback(
+		(prompt: string, suggestion: any) => {
+			const finalPrompt = prompt.trim()
+			setPrompt(finalPrompt)
+			shouldAutoScrollRef.current = true
 
-		if (sessionId) {
-			moveSessionToTop(sessionId)
-		}
+			if (sessionId) {
+				moveSessionToTop(sessionId)
+			}
 
-		submitPrompt({
-			userQuestion: finalPrompt,
-			suggestionContext: suggestion
-		})
-	}
+			submitPrompt({
+				userQuestion: finalPrompt,
+				suggestionContext: suggestion
+			})
+		},
+		[sessionId, moveSessionToTop, submitPrompt]
+	)
 
 	const router = useRouter()
 
-	const handleNewChat = async () => {
+	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
 			router.push('/ai', undefined, { shallow: true })
 			return
@@ -730,7 +719,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}
+	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
 
 	const handleSessionSelect = async (
 		selectedSessionId: string,
@@ -809,19 +798,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages])
 
-	const handleSuggestionClick = (suggestion: any) => {
-		let promptText = ''
+	const handleSuggestionClick = useCallback(
+		(suggestion: any) => {
+			let promptText = ''
 
-		promptText = suggestion.title || suggestion.description
+			promptText = suggestion.title || suggestion.description
 
-		handleSubmitWithSuggestion(promptText, suggestion)
-	}
+			handleSubmitWithSuggestion(promptText, suggestion)
+		},
+		[handleSubmitWithSuggestion]
+	)
 
-	const handleSidebarToggle = () => {
+	const handleSidebarToggle = useCallback(() => {
 		toggleSidebar()
 		setShouldAnimateSidebar(true)
 		setResizeTrigger((prev) => prev + 1)
-	}
+	}, [toggleSidebar])
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
@@ -1126,7 +1118,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	)
 }
 
-const PromptInput = ({
+const PromptInput = memo(function PromptInput({
 	handleSubmit,
 	promptInputRef,
 	isPending,
@@ -1138,7 +1130,7 @@ const PromptInput = ({
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
-}) => {
+}) {
 	const [value, setValue] = useState('')
 
 	const deferredValue = useDeferredValue(value)
@@ -1229,7 +1221,7 @@ const PromptInput = ({
 			</form>
 		</>
 	)
-}
+})
 
 const PromptResponse = ({
 	response,
@@ -1456,7 +1448,7 @@ const FadingLoader = () => {
 	)
 }
 
-const SuggestedActions = ({
+const SuggestedActions = memo(function SuggestedActions({
 	suggestions,
 	handleSuggestionClick,
 	isPending,
@@ -1466,7 +1458,7 @@ const SuggestedActions = ({
 	handleSuggestionClick: (suggestion: any) => void
 	isPending: boolean
 	isStreaming: boolean
-}) => {
+}) {
 	return (
 		<div className="mt-4 grid gap-2">
 			<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
@@ -1494,9 +1486,9 @@ const SuggestedActions = ({
 			</div>
 		</div>
 	)
-}
+})
 
-const QueryMetadata = ({ metadata }: { metadata: any }) => {
+const QueryMetadata = memo(function QueryMetadata({ metadata }: { metadata: any }) {
 	const [copied, setCopied] = useState(false)
 
 	const handleCopy = async () => {
@@ -1533,17 +1525,17 @@ const QueryMetadata = ({ metadata }: { metadata: any }) => {
 			</pre>
 		</details>
 	)
-}
+})
 
-const SentPrompt = ({ prompt }: { prompt: string }) => {
+const SentPrompt = memo(function SentPrompt({ prompt }: { prompt: string }) {
 	return (
 		<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{prompt}
 		</p>
 	)
-}
+})
 
-const ResponseControls = ({
+const ResponseControls = memo(function ResponseControls({
 	messageId,
 	content,
 	initialRating,
@@ -1553,7 +1545,7 @@ const ResponseControls = ({
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
-}) => {
+}) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
@@ -1744,7 +1736,7 @@ const ResponseControls = ({
 			</Ariakit.DialogProvider>
 		</>
 	)
-}
+})
 
 const FeedbackForm = ({
 	messageId,
@@ -1878,13 +1870,13 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 	)
 }
 
-const ChatControls = ({
+const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
 	handleNewChat
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
-}) => {
+}) {
 	return (
 		<div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-2">
 			<Tooltip
@@ -1905,4 +1897,4 @@ const ChatControls = ({
 			</Tooltip>
 		</div>
 	)
-}
+})
