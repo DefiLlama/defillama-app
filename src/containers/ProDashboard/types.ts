@@ -79,6 +79,7 @@ export interface ChartBuilderConfig {
 			| 'revenue'
 			| 'volume'
 			| 'perps'
+			| 'open-interest'
 			| 'options-notional'
 			| 'options-premium'
 			| 'bridge-aggregators'
