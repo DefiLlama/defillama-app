@@ -12,6 +12,7 @@ import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
@@ -47,10 +48,21 @@ async function fetchPromptResponse({
 	prompt?: string
 	userQuestion: string
 	onProgress?: (data: {
-		type: 'token' | 'progress' | 'session' | 'suggestions' | 'charts' | 'citations' | 'error' | 'title' | 'message_id'
+		type:
+			| 'token'
+			| 'progress'
+			| 'session'
+			| 'inline_suggestions'
+			| 'suggestions'
+			| 'charts'
+			| 'citations'
+			| 'error'
+			| 'title'
+			| 'message_id'
 		content: string
 		stage?: string
 		sessionId?: string
+		inlineSuggestions?: string
 		suggestions?: any[]
 		charts?: any[]
 		chartData?: any[]
@@ -108,6 +120,7 @@ async function fetchPromptResponse({
 		const decoder = new TextDecoder()
 		let fullResponse = ''
 		let metadata = null
+		let inlineSuggestions = null
 		let suggestions = null
 		let charts = null
 		let chartData = null
@@ -159,6 +172,11 @@ async function fetchPromptResponse({
 							}
 						} else if (data.type === 'metadata') {
 							metadata = data.metadata
+						} else if (data.type === 'inline_suggestions') {
+							inlineSuggestions = data.content
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({ type: 'inline_suggestions', content: data.content, inlineSuggestions: data.content })
+							}
 						} else if (data.type === 'suggestions') {
 							suggestions = data.suggestions
 						} else if (data.type === 'charts') {
@@ -202,6 +220,7 @@ async function fetchPromptResponse({
 			response: {
 				answer: fullResponse,
 				metadata,
+				inlineSuggestions,
 				suggestions,
 				charts,
 				chartData,
@@ -283,6 +302,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				charts?: any[]
 				chartData?: any[]
 				citations?: string[]
+				inlineSuggestions?: string
 			}
 			timestamp: number
 			messageId?: string
@@ -521,6 +541,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					response: {
 						answer: data?.response?.answer || finalContent,
 						metadata: data?.response?.metadata,
+						inlineSuggestions: data?.response?.inlineSuggestions,
 						suggestions: data?.response?.suggestions,
 						charts: data?.response?.charts,
 						chartData: data?.response?.chartData,
@@ -1016,6 +1037,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																	resizeTrigger={resizeTrigger}
 																/>
 															)}
+															{item.response.inlineSuggestions && (
+																<InlineSuggestions text={item.response.inlineSuggestions} />
+															)}
 															<ResponseControls
 																messageId={item.messageId}
 																content={item.response.answer}
@@ -1228,6 +1252,7 @@ const PromptResponse = ({
 		charts?: any[]
 		chartData?: any[]
 		citations?: string[]
+		inlineSuggestions?: string
 	}
 	error?: string
 	streamingError?: string
@@ -1306,6 +1331,7 @@ const PromptResponse = ({
 					resizeTrigger={resizeTrigger}
 				/>
 			)}
+			{response?.inlineSuggestions && <InlineSuggestions text={response.inlineSuggestions} />}
 			{!readOnly && response?.suggestions && response.suggestions.length > 0 && (
 				<SuggestedActions
 					suggestions={response.suggestions}
