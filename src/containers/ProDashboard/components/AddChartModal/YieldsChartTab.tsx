@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -101,6 +101,9 @@ export function YieldsChartTab({
 		return matchSorter(projectOptions, projectSearch, { keys: ['label'] })
 	}, [projectOptions, projectSearch])
 
+	const chainOpen = chainPopover.useState('open')
+	const projectOpen = projectPopover.useState('open')
+
 	const chainVirtualizer = useVirtualizer({
 		count: filteredChainOptions.length,
 		getScrollElement: () => chainListRef.current,
@@ -114,6 +117,18 @@ export function YieldsChartTab({
 		estimateSize: () => 44,
 		overscan: 8
 	})
+
+	useEffect(() => {
+		if (chainOpen) {
+			setTimeout(() => chainVirtualizer.measure(), 0)
+		}
+	}, [chainOpen, chainVirtualizer])
+
+	useEffect(() => {
+		if (projectOpen) {
+			setTimeout(() => projectVirtualizer.measure(), 0)
+		}
+	}, [projectOpen, projectVirtualizer])
 
 	const toggleChain = (value: string) => {
 		if (selectedYieldChains.includes(value)) {
@@ -269,7 +284,7 @@ export function YieldsChartTab({
 												/>
 											</div>
 											<div
-												className="thin-scrollbar max-h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+												className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 												ref={chainListRef}
 											>
 												<div
@@ -384,7 +399,7 @@ export function YieldsChartTab({
 												/>
 											</div>
 											<div
-												className="thin-scrollbar max-h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+												className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 												ref={projectListRef}
 											>
 												<div
