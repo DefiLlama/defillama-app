@@ -40,6 +40,7 @@ export interface IChartProps {
 	containerClassName?: string
 	connectNulls?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
+	customComponents?: React.ReactNode
 }
 
 export interface ISingleSeriesChartProps
@@ -140,4 +141,5 @@ export interface IPieChartProps {
 		orient?: 'horizontal' | 'vertical'
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
+	customComponents?: React.ReactNode
 }

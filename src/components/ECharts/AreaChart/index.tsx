@@ -33,6 +33,7 @@ export default function AreaChart({
 	containerClassName,
 	connectNulls = false,
 	onReady,
+	customComponents,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -339,6 +340,7 @@ export default function AreaChart({
 			{title || showLegend || !hideDownloadButton ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
 					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{customComponents ?? null}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
 							allValues={customLegendOptions}
