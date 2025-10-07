@@ -361,24 +361,48 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
 			: `$${formattedNum(metrics.absoluteChange, false)} per token`
 
+		const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
+		const annualizedReturn =
+			holdingPeriodDays > 0 ? (Math.pow(1 + metrics.percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
+
 		return (
 			<div className="flex flex-col gap-6">
-				<div
-					className={`flex flex-col gap-2 rounded-md border p-4 ${
-						isProfit ? 'border-emerald-500/25 bg-emerald-600/15' : 'border-red-500/25 bg-red-600/15'
-					}`}
-				>
-					<div className="flex items-center justify-between">
-						<div>
-							<span className="text-sm font-light tracking-wide uppercase">{isProfit ? 'Profit' : 'Loss'}</span>
-							<div className={`text-3xl font-bold ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
-								{mode === 'percent'
-									? formatPercent(summaryValue)
-									: `${summaryValue >= 0 ? '+' : ''}$${formattedNum(summaryValue, false)}`}
-							</div>
+				<div className="grid gap-3 sm:grid-cols-3">
+					<div
+						className={`flex flex-col gap-1.5 rounded-md border p-4 ${
+							isProfit ? 'border-emerald-500/30 bg-emerald-600/10' : 'border-red-500/30 bg-red-600/10'
+						}`}
+					>
+						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">
+							{mode === 'percent' ? 'Return' : isProfit ? 'Profit' : 'Loss'}
+						</span>
+						<div className={`text-3xl font-bold ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+							{mode === 'percent'
+								? formatPercent(summaryValue)
+								: `${summaryValue >= 0 ? '+' : ''}$${formattedNum(summaryValue, false)}`}
 						</div>
+						<span className="text-xs text-(--text-secondary)">{quantityLabel}</span>
 					</div>
-					<span className="text-sm text-(--text-secondary)">{quantityLabel}</span>
+					<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">Holding Period</span>
+						<div className="text-3xl font-bold">
+							{holdingPeriodDays} <span className="text-xl font-medium text-(--text-secondary)">days</span>
+						</div>
+						<span className="text-xs text-(--text-secondary)">
+							{formatDateLabel(start)} → {formatDateLabel(end)}
+						</span>
+					</div>
+					<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">
+							Annualised Return
+						</span>
+						<div className={`text-3xl font-bold ${annualizedReturn >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+							{formatPercent(annualizedReturn)}
+						</div>
+						<span className="text-xs text-(--text-secondary)">
+							{annualizedReturn >= 0 ? '↑' : '↓'} Based on {holdingPeriodDays}d period
+						</span>
+					</div>
 				</div>
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
