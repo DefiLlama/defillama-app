@@ -133,7 +133,7 @@ export default function NonTimeSeriesBarChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
+				className={containerClassName ? containerClassName : 'h-[360px]} mx-0 my-auto'}
 				style={height ? { height } : undefined}
 			></div>
 		</div>

@@ -75,9 +75,7 @@ export default function MultiSeriesChart({
 					itemStyle: {
 						color: serie.color
 					},
-					data: serie.data?.map(([x, y]: [any, number]) =>
-						xAxisType === 'time' ? [+x * 1e3, y] : [x, y]
-					) || [],
+					data: serie.data?.map(([x, y]: [any, number]) => (xAxisType === 'time' ? [+x * 1e3, y] : [x, y])) || [],
 					metricType: serie.metricType,
 					...(serie.logo && {
 						legendIcon: 'image://' + serie.logo
@@ -263,7 +261,7 @@ export default function MultiSeriesChart({
 
 	return (
 		<div className="relative">
-			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

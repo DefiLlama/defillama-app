@@ -328,7 +328,7 @@ export default function AreaChart({
 					)}
 				</div>
 			) : null}
-			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined} />
+			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }
