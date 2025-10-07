@@ -1,3 +1,4 @@
+import { Tooltip } from '~/components/Tooltip'
 import { formatDateLabel, formatPercent } from './format'
 import type { TimelinePoint } from './types'
 
@@ -11,25 +12,29 @@ export const DailyPnLGrid = ({ timeline }: { timeline: TimelinePoint[] }) => {
 				<h3 className="text-base font-semibold">Daily Change Grid</h3>
 				<span className="text-xs text-(--text-secondary)">Green = up, Red = down</span>
 			</div>
-			<div className="no-scrollbar flex max-w-full gap-1 overflow-x-auto pb-1">
+			<div className="no-scrollbar flex max-w-full gap-1.5 overflow-x-auto pb-1">
 				{days.map((day) => {
 					const isPositive = day.percentChange > 0
 					const isZero = day.percentChange === 0
-					const intensity = Math.min(0.85, Math.abs(day.percentChange) / 12)
+					const alpha = Math.min(0.6, Math.max(0.22, Math.abs(day.percentChange) / 9))
 					const backgroundColor = isZero
-						? 'rgba(148, 163, 184, 0.25)'
+						? 'rgba(148, 163, 184, 0.22)'
 						: isPositive
-							? `rgba(34, 197, 94, ${Math.max(0.25, intensity)})`
-							: `rgba(239, 68, 68, ${Math.max(0.25, intensity)})`
+							? `rgba(16, 185, 129, ${alpha})` // emerald-500 with controlled alpha
+							: `rgba(239, 68, 68, ${alpha})` // red-500 with controlled alpha
 					return (
-						<div
+						<Tooltip
 							key={day.timestamp}
-							title={`${formatPercent(day.percentChange)} on ${formatDateLabel(day.timestamp)}`}
-							className="flex h-12 w-5 shrink-0 items-end justify-center rounded-sm"
-							style={{ backgroundColor }}
+							placement="top"
+							content={`${formatPercent(day.percentChange)} • ${formatDateLabel(day.timestamp)}`}
 						>
-							<span className="sr-only">{`${formatPercent(day.percentChange)} on ${formatDateLabel(day.timestamp)}`}</span>
-						</div>
+							<div
+								className="flex h-12 w-5 shrink-0 items-end justify-center rounded-md border border-white/5 transition-transform duration-200 hover:scale-[1.035]"
+								style={{ background: backgroundColor }}
+							>
+								<span className="sr-only">{`${formatPercent(day.percentChange)} on ${formatDateLabel(day.timestamp)}`}</span>
+							</div>
+						</Tooltip>
 					)
 				})}
 			</div>
