@@ -199,7 +199,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'bar':
 				const isTimeSeriesChart = config.axes.x.type === 'time'
 				chartContent = (
-					<Suspense fallback={<div className="h-[300px]" />}>
+					<Suspense fallback={<div className="h-[338px]" />}>
 						{isTimeSeriesChart ? (
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
 						) : (
@@ -216,7 +216,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'line':
 			case 'area':
 				chartContent = (
-					<Suspense fallback={<div className="h-[300px]" />}>
+					<Suspense fallback={<div className="h-[338px]" />}>
 						<AreaChart
 							key={chartKey}
 							chartData={adaptedChart.data}
@@ -229,8 +229,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 			case 'combo':
 				chartContent = (
-					<Suspense fallback={<div className="h-[300px]" />}>
-						<div className="mx-2 flex items-center justify-end">
+					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="m-2 mt-0 flex items-center justify-end">
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -240,8 +240,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 			case 'multi-series':
 				chartContent = (
-					<Suspense fallback={<div className="h-[300px]" />}>
-						<div className="mx-2 flex items-center justify-end">
+					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="m-2 mt-0 flex items-center justify-end">
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -251,7 +251,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 			case 'pie':
 				chartContent = (
-					<Suspense fallback={<div className="h-[300px]" />}>
+					<Suspense fallback={<div className="h-[338px]" />}>
 						<PieChart
 							key={chartKey}
 							{...(adaptedChart.props as IPieChartProps)}
@@ -263,7 +263,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 			case 'scatter':
 				chartContent = (
-					<Suspense fallback={<div className="h-[300px]" />}>
+					<Suspense fallback={<div className="h-[338px]" />}>
 						<ScatterChart key={chartKey} chartData={adaptedChart.data} />
 					</Suspense>
 				)
