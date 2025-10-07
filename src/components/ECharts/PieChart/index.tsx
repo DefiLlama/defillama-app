@@ -164,8 +164,8 @@ export default function PieChart({
 		<div className="relative" {...props}>
 			{customComponents ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
-					<>{customComponents}</>
 					<>{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}</>
+					<>{customComponents}</>
 				</div>
 			) : title ? (
 				<h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>

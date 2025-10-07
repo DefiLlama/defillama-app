@@ -1,4 +1,5 @@
-import { lazy, memo, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
@@ -42,6 +43,41 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				? (adaptedChart.props as any).series?.length > 0
 				: adaptedChart.data.length > 0
 
+		const prepareCsv = () => {
+			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			if (adaptedChart.chartType === 'multi-series') {
+				const rows = [['Timestamp', 'Date', ...(adaptedChart.props as any).series.map((series: any) => series.name)]]
+				for (const item of data) {
+					const row = [
+						new Date(item.date).getTime() / 1000,
+						new Date(item.date).toLocaleDateString(),
+						...(adaptedChart.props as any).series.map((series: any) => item[series.name] ?? '')
+					]
+					rows.push(row)
+				}
+				return {
+					filename,
+					rows
+				}
+			}
+
+			if (adaptedChart.chartType === 'pie') {
+				const rows = [['Name', 'Value']]
+				for (const item of (adaptedChart.props as any).chartData ?? []) {
+					rows.push([item.name, item.value])
+				}
+				return {
+					filename,
+					rows
+				}
+			}
+
+			return {
+				filename,
+				rows: []
+			}
+		}
+
 		if (!hasData) {
 			return (
 				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
@@ -57,13 +93,9 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
 						{isTimeSeriesChart ? (
-							<BarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} height={'300px'} />
+							<BarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
 						) : (
-							<NonTimeSeriesBarChart
-								chartData={adaptedChart.data}
-								{...(adaptedChart.props as IBarChartProps)}
-								height={'300px'}
-							/>
+							<NonTimeSeriesBarChart chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
 						)}
 					</Suspense>
 				)
@@ -72,33 +104,37 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'area':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<AreaChart
-							chartData={adaptedChart.data}
-							{...(adaptedChart.props as IChartProps)}
-							connectNulls={true}
-							height={'300px'}
-						/>
+						<AreaChart chartData={adaptedChart.data} {...(adaptedChart.props as IChartProps)} connectNulls={true} />
 					</Suspense>
 				)
 
 			case 'combo':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
+						<div className="mx-2 flex items-center justify-end">
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
 
 			case 'multi-series':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} height={'300px'} />
+						<div className="mx-2 flex items-center justify-end">
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<MultiSeriesChart {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
 
 			case 'pie':
 				return (
 					<Suspense fallback={<div className="h-[300px]" />}>
-						<PieChart {...(adaptedChart.props as IPieChartProps)} height={'300px'} />
+						<PieChart
+							{...(adaptedChart.props as IPieChartProps)}
+							customComponents={<CSVDownloadButton prepareCsv={prepareCsv} smol />}
+						/>
 					</Suspense>
 				)
 
