@@ -10,301 +10,527 @@ import { CoinsPicker } from '~/containers/Correlations'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { ComparisonPanel } from './ComparisonPanel'
+import { DailyPnLGrid } from './DailyPnLGrid'
+import { DateInput } from './DateInput'
+import { formatDateLabel, formatPercent } from './format'
+import { ShareButton } from './ShareButton'
+import { StatsCard } from './StatsCard'
+import { TokenPriceChart } from './TokenPriceChart'
+import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 
-const unixToDateString = (unixTimestamp) => {
+const DAY_IN_SECONDS = 86_400
+const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
+const MODE_OPTIONS = ['percent', 'absolute'] as const
+
+type ChangeMode = (typeof MODE_OPTIONS)[number]
+
+type TokenPnlResult = {
+	coinInfo?: IResponseCGMarketsAPI
+	priceSeries: PricePoint[]
+	timeline: TimelinePoint[]
+	metrics: {
+		startPrice: number
+		endPrice: number
+		percentChange: number
+		absoluteChange: number
+		maxDrawdown: number
+		volatility: number
+		rangeHigh: number
+		rangeLow: number
+	}
+	currentPrice: number
+}
+
+const unixToDateString = (unixTimestamp?: number) => {
 	if (!unixTimestamp) return ''
 	const date = new Date(unixTimestamp * 1000)
 	return date.toISOString().split('T')[0]
 }
 
 const dateStringToUnix = (dateString: string) => {
+	if (!dateString) return 0
 	return Math.floor(new Date(dateString).getTime() / 1000)
 }
 
-const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
-	return (
-		<label className="flex flex-col gap-1 text-sm">
-			<span>{label}:</span>
-			<input
-				type="date"
-				className={`rounded-md bg-white p-1.5 text-base text-black outline-0 dark:bg-black dark:text-white ${
-					hasError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
-				}`}
-				value={value}
-				onChange={onChange}
-				min={min}
-				max={max}
-			/>
-		</label>
-	)
+const buildDailyTimeline = (series: PricePoint[]): TimelinePoint[] => {
+	return series.map((point, index) => {
+		if (index === 0) {
+			return { ...point, change: 0, percentChange: 0 }
+		}
+		const prev = series[index - 1]
+		const delta = point.price - prev.price
+		const pct = prev.price ? (delta / prev.price) * 100 : 0
+		return { ...point, change: delta, percentChange: pct }
+	})
 }
 
-export function TokenPnl({ coinsData }) {
-	const router = useRouter()
-	const now = Math.floor(Date.now() / 1000) - 1000
-
-	const [isModalOpen, setModalOpen] = useState(0)
-
-	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
-		useDateRangeValidation({
-			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
-			initialEndDate: unixToDateString(now)
-		})
-
-	const { selectedCoins, coins } = useMemo(() => {
-		const queryCoins = router.query?.coin || (['bitcoin'] as Array<string>)
-		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
-
-		return {
-			selectedCoins:
-				(queryCoins && coins.map((coin) => coinsData.find((c) => c.id === coin))) || ([] as IResponseCGMarketsAPI[]),
-			coins
+const calculateMaxDrawdown = (series: PricePoint[]) => {
+	if (series.length === 0) return 0
+	let peak = series[0].price
+	let maxDrawdown = 0
+	for (const point of series) {
+		if (point.price > peak) {
+			peak = point.price
+			continue
 		}
-	}, [router.query, coinsData])
+		if (peak === 0) continue
+		const drawdown = ((point.price - peak) / peak) * 100
+		if (drawdown < maxDrawdown) {
+			maxDrawdown = drawdown
+		}
+	}
+	return Math.abs(maxDrawdown)
+}
 
-	const id = useMemo(() => {
-		return coins.length > 0 ? coins[0] : ''
-	}, [coins])
+const calculateAnnualizedVolatility = (series: PricePoint[]) => {
+	if (series.length < 2) return 0
+	const returns: number[] = []
+	for (let i = 1; i < series.length; i++) {
+		const prev = series[i - 1].price
+		const curr = series[i].price
+		if (!prev) continue
+		returns.push((curr - prev) / prev)
+	}
+	if (returns.length < 2) return 0
+	const mean = returns.reduce((acc, value) => acc + value, 0) / returns.length
+	const variance = returns.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / (returns.length - 1 || 1)
+	const dailyVol = Math.sqrt(variance)
+	return dailyVol * Math.sqrt(365) * 100
+}
+
+type RawPriceEntry = {
+	timestamp?: number
+	price?: number
+}
+
+const fetchPriceSeries = async (tokenId: string, start: number, end: number) => {
+	if (!tokenId || !start || !end || end <= start) return [] as PricePoint[]
+	const key = `coingecko:${tokenId}`
+	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS) + 1)
+	const url = `${COINS_CHART_API}/${key}?start=${start}&span=${spanInDays}&searchWidth=600`
+	const response = await fetchJson(url)
+	const raw: RawPriceEntry[] = response?.coins?.[key]?.prices ?? []
+	return raw
+		.filter(
+			(entry): entry is { timestamp: number; price: number } =>
+				typeof entry?.price === 'number' && typeof entry?.timestamp === 'number'
+		)
+		.map((entry) => ({
+			timestamp: entry.timestamp,
+			price: entry.price
+		}))
+		.sort((a: PricePoint, b: PricePoint) => a.timestamp - b.timestamp)
+}
+
+const computeTokenPnl = async (
+	params: {
+		id: string
+		start: number
+		end: number
+	} & {
+		coinsData: IResponseCGMarketsAPI[]
+	}
+): Promise<TokenPnlResult | null> => {
+	const { id, start, end, coinsData } = params
+	if (!id || !start || !end || end <= start) return null
+	const [series, coinInfo] = await Promise.all([
+		fetchPriceSeries(id, start, end),
+		Promise.resolve(coinsData.find((coin) => coin.id === id))
+	])
+
+	if (!series.length) {
+		return {
+			coinInfo,
+			priceSeries: [],
+			timeline: [],
+			metrics: {
+				startPrice: 0,
+				endPrice: 0,
+				percentChange: 0,
+				absoluteChange: 0,
+				maxDrawdown: 0,
+				volatility: 0,
+				rangeHigh: 0,
+				rangeLow: 0
+			},
+			currentPrice: coinInfo?.current_price ?? 0
+		}
+	}
+
+	const startPrice = series[0].price
+	const endPrice = series[series.length - 1].price
+	const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
+	const absoluteChange = endPrice - startPrice
+	const timeline = buildDailyTimeline(series)
+	const rangeHigh = Math.max(...series.map((point) => point.price))
+	const rangeLow = Math.min(...series.map((point) => point.price))
+
+	return {
+		coinInfo,
+		priceSeries: series,
+		timeline,
+		metrics: {
+			startPrice,
+			endPrice,
+			percentChange,
+			absoluteChange,
+			maxDrawdown: calculateMaxDrawdown(series),
+			volatility: calculateAnnualizedVolatility(series),
+			rangeHigh,
+			rangeLow
+		},
+		currentPrice: coinInfo?.current_price ?? endPrice
+	}
+}
+
+const fetchComparison = async (start: number, end: number, coinsData: IResponseCGMarketsAPI[]) => {
+	if (!start || !end || end <= start) return [] as ComparisonEntry[]
+	const tokens = DEFAULT_COMPARISON_IDS
+	const uniqueTokens = Array.from(new Set(tokens))
+	const results = await Promise.all(
+		uniqueTokens.map(async (tokenId) => {
+			const series = await fetchPriceSeries(tokenId, start, end)
+			if (!series.length) return null
+			const startPrice = series[0].price
+			const endPrice = series[series.length - 1].price
+			const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
+			const absoluteChange = endPrice - startPrice
+			const coin = coinsData.find((entry) => entry.id === tokenId)
+			return {
+				id: tokenId,
+				name: coin?.name ?? tokenId,
+				symbol: coin?.symbol ?? tokenId,
+				image: coin?.image,
+				percentChange,
+				absoluteChange,
+				startPrice,
+				endPrice
+			} as ComparisonEntry
+		})
+	)
+	return results.filter(Boolean) as ComparisonEntry[]
+}
+
+export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
+	const router = useRouter()
+	const now = Math.floor(Date.now() / 1000) - 60
+
+	const startQuery = useMemo(() => {
+		const raw = router.query?.start
+		const value = Array.isArray(raw) ? raw[0] : raw
+		return value ? Number(value) : null
+	}, [router.query?.start])
+
+	const endQuery = useMemo(() => {
+		const raw = router.query?.end
+		const value = Array.isArray(raw) ? raw[0] : raw
+		return value ? Number(value) : null
+	}, [router.query?.end])
+
+	const defaultStart = startQuery ? unixToDateString(startQuery) : unixToDateString(now - 7 * DAY_IN_SECONDS)
+	const defaultEnd = endQuery ? unixToDateString(endQuery) : unixToDateString(now)
+
+	const { startDate, endDate, handleStartDateChange, handleEndDateChange, validateDateRange } = useDateRangeValidation({
+		initialStartDate: defaultStart,
+		initialEndDate: defaultEnd
+	})
+
+	const [quantityInput, setQuantityInput] = useState('')
+	const [mode, setMode] = useState<ChangeMode>('percent')
+
+	const selectedCoins = useMemo(() => {
+		const queryCoins = router.query?.coin || ['bitcoin']
+		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
+		return {
+			selected: coins
+		}
+	}, [router.query])
+
+	const id = selectedCoins.selected[0] ?? ''
 
 	const start = dateStringToUnix(startDate)
 	const end = dateStringToUnix(endDate)
 
-	const fetchPnlData = useCallback(async () => {
-		if (!id) return null
-		const key = `coingecko:${id}`
-		const spanInDays = Math.ceil((end - start) / (24 * 60 * 60))
-		const chartRes = await fetchJson(`${COINS_CHART_API}/${key}?start=${start}&span=${spanInDays}&searchWidth=600`)
-
-		const selectedCoin = coinsData.find((coin) => coin.id === id)
-
-		if (!chartRes.coins[key] || chartRes.coins[key].prices.length < 2) {
-			return {
-				pnl: 'No data',
-				coinInfo: selectedCoin,
-				startPrice: null,
-				endPrice: null
-			}
-		}
-
-		const prices = chartRes.coins[key].prices
-		const startPrice = prices[0].price
-		const endPrice = prices[prices.length - 1].price
-		const pnlValue = ((endPrice - startPrice) / startPrice) * 100
-
-		return {
-			pnl: `${pnlValue.toFixed(2)}%`,
-			coinInfo: selectedCoin,
-			startPrice,
-			endPrice
-		}
-	}, [id, start, end, coinsData])
+	const fetchData = useCallback(() => computeTokenPnl({ id, start, end, coinsData }), [id, start, end, coinsData])
 
 	const {
 		data: pnlData,
 		isLoading,
 		isError,
 		error,
-		refetch
+		refetch,
+		isFetching
 	} = useQuery({
-		queryKey: ['pnlData', id, start, end],
-		queryFn: fetchPnlData,
-		staleTime: 10 * 60 * 1000,
-		enabled: !!id,
+		queryKey: ['token-pnl', id, start, end],
+		queryFn: fetchData,
+		enabled: Boolean(id && start && end && end > start),
+		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 
-	const updateDateAndFetchPnl = (newDate, isStart) => {
-		const unixTimestamp = dateStringToUnix(newDate)
-		const currentStartDate = isStart ? newDate : startDate
-		const currentEndDate = isStart ? endDate : newDate
+	const { data: comparisonData } = useQuery({
+		queryKey: ['token-pnl-comparison', start, end],
+		queryFn: () => fetchComparison(start, end, coinsData),
+		enabled: Boolean(start && end && end > start)
+	})
 
-		if (validateDateRange(currentStartDate, currentEndDate)) {
-			if (isStart) {
-				handleStartDateChange(newDate)
-			} else {
-				handleEndDateChange(newDate)
-			}
-
-			router.push(
-				{
-					pathname: router.pathname,
-					query: {
-						...router.query,
-						[isStart ? 'start' : 'end']: unixTimestamp
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-			refetch()
-		}
-	}
+	const quantity = useMemo(() => {
+		const parsed = parseFloat(quantityInput)
+		return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+	}, [quantityInput])
 
 	const dialogStore = Ariakit.useDialogStore()
 
-	return (
-		<>
-			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[132px]">
-				<h1 className="text-center text-xl font-semibold">Token Holder Profit and Loss</h1>
-				<div className="flex w-full flex-col gap-3">
-					<DateInput
-						label="Start Date"
-						value={startDate}
-						onChange={(e) => updateDateAndFetchPnl(e.target.value, true)}
-						min={unixToDateString(0)}
-						max={unixToDateString(now)}
-					/>
+	const handleDateChange = (value: string, isStart: boolean) => {
+		if (!value) return
+		const nextStart = isStart ? value : startDate
+		const nextEnd = isStart ? endDate : value
+		if (!nextStart || !nextEnd) return
+		if (!validateDateRange(nextStart, nextEnd)) return
+		if (isStart) {
+			handleStartDateChange(value)
+		} else {
+			handleEndDateChange(value)
+		}
+		const unixValue = dateStringToUnix(value)
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...router.query,
+					[isStart ? 'start' : 'end']: unixValue
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
 
-					<DateInput
-						label="End Date"
-						value={endDate}
-						onChange={(e) => updateDateAndFetchPnl(e.target.value, false)}
-						min={startDate}
-						max={new Date().toISOString().split('T')[0]}
-						hasError={!!dateError}
-					/>
+	const updateCoin = (coinId: string) => {
+		const newCoins = [coinId]
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...router.query, coin: newCoins }
+			},
+			undefined,
+			{ shallow: true }
+		)
+		dialogStore.toggle()
+	}
 
-					{dateError && <p className="text-center text-sm text-red-500">{dateError}</p>}
+	const renderContent = () => {
+		if (isLoading || isFetching) {
+			return (
+				<div className="flex h-[360px] items-center justify-center">
+					<LocalLoader />
+				</div>
+			)
+		}
+		if (isError) {
+			return (
+				<div className="flex flex-col items-center gap-2 rounded-md border border-red-400 bg-red-400/10 p-6 text-center">
+					<span className="text-lg font-semibold text-red-500">Failed to load data</span>
+					<span className="text-sm text-red-400">
+						{error instanceof Error ? error.message : 'Something went wrong fetching price data.'}
+					</span>
+					<button
+						onClick={() => refetch()}
+						className="rounded-md bg-(--link-active-bg) px-4 py-2 text-sm font-medium text-white"
+					>
+						Retry
+					</button>
+				</div>
+			)
+		}
+		if (!pnlData || !pnlData.priceSeries.length) {
+			return (
+				<div className="flex flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-center">
+					<span className="text-lg font-semibold">No historical data available for this range.</span>
+					<span className="text-sm text-(--text-secondary)">Try a different date range or another token.</span>
+				</div>
+			)
+		}
 
-					<label className="flex flex-col gap-1 text-sm">
-						<span>Token:</span>
+		const { metrics, timeline, coinInfo, currentPrice } = pnlData
+		const quantityValue = quantity ? metrics.absoluteChange * quantity : metrics.absoluteChange
+		const summaryValue = mode === 'percent' ? metrics.percentChange : quantity ? quantityValue : metrics.absoluteChange
+		const isProfit = summaryValue >= 0
+		const quantityLabel = quantity
+			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
+			: `$${formattedNum(metrics.absoluteChange, false)} per token`
 
-						{selectedCoins[0] ? (
-							<button
-								onClick={() => {
-									setModalOpen(1)
-									dialogStore.toggle()
-								}}
-								className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
-							>
-								<img
-									src={selectedCoins[0].image}
-									alt={selectedCoins[0].name}
-									width={24}
-									height={24}
-									className="rounded-full"
-								/>
-								<span>{selectedCoins[0].name}</span>
-							</button>
-						) : (
-							<>
-								<button
-									onClick={() => {
-										setModalOpen(1)
-										dialogStore.toggle()
-									}}
-									className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black/60 dark:bg-black dark:text-white/60"
-								>
-									<Icon name="search" height={16} width={16} />
-									<span>Search coins...</span>
-								</button>
-							</>
-						)}
-					</label>
-
-					<>
-						{coins.length === 1 && (
-							<div className="flex flex-col items-center justify-center">
-								{isLoading ? (
-									<div className="m-auto flex items-center justify-center">
-										<LocalLoader />
-									</div>
-								) : isError ? (
-									<div className="flex flex-col items-center gap-1 text-base">
-										<h2 className="text-2xl font-bold text-red-500">Error</h2>
-										<p>{error instanceof Error ? error.message : 'An error occurred'}</p>
-										<button
-											onClick={() => refetch()}
-											className="rounded-md bg-(--link-active-bg) px-4 py-1.5 text-white"
-										>
-											Retry
-										</button>
-									</div>
-								) : (
-									pnlData && (
-										<div className="flex flex-col items-center gap-3">
-											<h2 className="flex flex-col items-center text-2xl font-bold">
-												{pnlData.pnl === 'No data' ? (
-													<span className="text-red-500">No data</span>
-												) : (
-													<>
-														<span style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}>
-															{parseFloat(pnlData.pnl) >= 0 ? 'Profit' : 'Loss'}
-														</span>
-														<span style={{ color: parseFloat(pnlData.pnl) >= 0 ? 'green' : 'red' }}>{pnlData.pnl}</span>
-													</>
-												)}
-											</h2>
-
-											{pnlData.coinInfo && (
-												<div className="grid w-full grid-cols-2 gap-4">
-													<p className="flex flex-col items-center">
-														<span className="text-(--text-secondary)">Start Price:</span>
-														<span className="text-lg font-semibold">
-															{pnlData.startPrice ? `$${formattedNum(pnlData.startPrice)}` : 'N/A'}
-														</span>
-													</p>
-													<p className="flex flex-col items-center">
-														<span className="text-(--text-secondary)">End Price:</span>
-														<span className="text-lg font-semibold">
-															{pnlData.endPrice ? `$${formattedNum(pnlData.endPrice)}` : 'N/A'}
-														</span>
-													</p>
-													<p className="flex flex-col items-center">
-														<span className="text-(--text-secondary)">Current Price:</span>
-														<span className="text-lg font-semibold">
-															${formattedNum(pnlData.coinInfo.current_price)}
-														</span>
-													</p>
-
-													<p className="flex flex-col items-center">
-														<span className="text-(--text-secondary)">24h Change:</span>
-														<span
-															className="text-lg font-semibold"
-															style={{ color: pnlData.coinInfo.price_change_percentage_24h >= 0 ? 'green' : 'red' }}
-														>
-															{pnlData.coinInfo.price_change_percentage_24h.toFixed(2)}%
-														</span>
-													</p>
-													<p className="flex flex-col items-center">
-														<span className="text-(--text-secondary)">All-Time High:</span>
-														<span className="text-lg font-semibold">${formattedNum(pnlData.coinInfo.ath)}</span>
-													</p>
-												</div>
-											)}
-										</div>
-									)
-								)}
+		return (
+			<div className="flex flex-col gap-6">
+				<div
+					className={`flex flex-col gap-2 rounded-md border p-4 ${
+						isProfit ? 'border-emerald-400/40 bg-emerald-400/10' : 'border-red-400/40 bg-red-400/10'
+					}`}
+				>
+					<div className="flex items-center justify-between">
+						<div>
+							<span className="text-sm font-medium tracking-wide uppercase">{isProfit ? 'Profit' : 'Loss'}</span>
+							<div className="text-3xl font-semibold">
+								{mode === 'percent'
+									? formatPercent(summaryValue)
+									: `${summaryValue >= 0 ? '+' : ''}$${formattedNum(summaryValue, false)}`}
 							</div>
-						)}
-					</>
+						</div>
+						<ShareButton
+							coin={coinInfo}
+							percent={metrics.percentChange}
+							absolute={metrics.absoluteChange}
+							quantity={quantity}
+							startDate={startDate}
+							endDate={endDate}
+						/>
+					</div>
+					<span className="text-sm text-(--text-secondary)">{quantityLabel}</span>
+				</div>
 
-					<CoinsPicker
-						coinsData={coinsData}
-						dialogStore={dialogStore}
-						selectedCoins={{}}
-						queryCoins={coins}
-						selectCoin={(coin) => {
-							const newCoins = coins.slice()
-							newCoins[isModalOpen - 1] = coin.id
-							router.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										coin: newCoins
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-							refetch()
-							setModalOpen(0)
-							dialogStore.toggle()
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<div className="mb-3 flex items-center justify-between">
+						<h3 className="text-base font-semibold">Price Over Time</h3>
+						<div className="flex items-center gap-2 text-xs text-(--text-secondary)">
+							<span>{formatDateLabel(pnlData.priceSeries[0].timestamp)}</span>
+							<Icon name="arrow-right" width={14} height={14} />
+							<span>{formatDateLabel(pnlData.priceSeries[pnlData.priceSeries.length - 1].timestamp)}</span>
+						</div>
+					</div>
+					<TokenPriceChart
+						series={pnlData.priceSeries}
+						markers={{
+							start: metrics.startPrice,
+							end: metrics.endPrice,
+							current: currentPrice,
+							ath: coinInfo?.ath
 						}}
+						isLoading={isFetching}
 					/>
 				</div>
+
+				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					<StatsCard
+						label="Current Price"
+						value={`$${formattedNum(currentPrice)}`}
+						subtle={coinInfo?.symbol?.toUpperCase()}
+					/>
+					<StatsCard label="Start Price" value={`$${formattedNum(metrics.startPrice)}`} />
+					<StatsCard label="End Price" value={`$${formattedNum(metrics.endPrice)}`} />
+					<StatsCard
+						label="24h Change"
+						value={coinInfo?.price_change_percentage_24h ? formatPercent(coinInfo.price_change_percentage_24h) : '0%'}
+						subtle={
+							coinInfo?.price_change_24h
+								? `${coinInfo.price_change_24h >= 0 ? '+' : ''}$${formattedNum(coinInfo.price_change_24h)}`
+								: undefined
+						}
+					/>
+					<StatsCard
+						label="All-Time High"
+						value={`$${formattedNum(coinInfo?.ath ?? 0)}`}
+						subtle={coinInfo?.ath_date ? new Date(coinInfo.ath_date).toLocaleDateString() : undefined}
+					/>
+					<StatsCard label="Max Drawdown" value={formatPercent(-Math.abs(metrics.maxDrawdown))} />
+					<StatsCard label="Volatility (Ann.)" value={formatPercent(metrics.volatility)} />
+				</div>
+
+				<DailyPnLGrid timeline={timeline} />
+
+				<ComparisonPanel entries={comparisonData ?? []} activeId={id} />
 			</div>
-		</>
+		)
+	}
+
+	const selectedCoin = useMemo(() => coinsData.find((coin) => coin.id === id), [coinsData, id])
+
+	return (
+		<div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4">
+			<h1 className="text-2xl font-semibold">Token Holder Profit and Loss</h1>
+			<div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+				<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<div className="flex flex-col gap-3">
+						<DateInput
+							label="Start Date"
+							value={startDate}
+							onChange={(value) => handleDateChange(value, true)}
+							min={unixToDateString(0)}
+							max={unixToDateString(now)}
+						/>
+						<DateInput
+							label="End Date"
+							value={endDate}
+							onChange={(value) => handleDateChange(value, false)}
+							min={startDate}
+							max={unixToDateString(now)}
+						/>
+					</div>
+					<div className="flex flex-col gap-2 text-sm">
+						<span>Token</span>
+						<button
+							onClick={() => dialogStore.toggle()}
+							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-white px-3 py-2 text-base text-black dark:bg-black dark:text-white"
+						>
+							{selectedCoin ? (
+								<>
+									<img
+										src={selectedCoin.image}
+										alt={selectedCoin.name}
+										width={24}
+										height={24}
+										className="rounded-full"
+									/>
+									<span className="text-sm font-medium">{selectedCoin.name}</span>
+								</>
+							) : (
+								<>
+									<Icon name="search" width={16} height={16} />
+									<span>Select token</span>
+								</>
+							)}
+						</button>
+						<CoinsPicker
+							dialogStore={dialogStore}
+							coinsData={coinsData}
+							selectedCoins={{}}
+							queryCoins={selectedCoins.selected}
+							selectCoin={(coin) => updateCoin(coin.id)}
+						/>
+					</div>
+					<div className="flex flex-col gap-2 text-sm">
+						<label className="flex flex-col gap-1">
+							<span>Quantity (optional)</span>
+							<input
+								type="number"
+								min="0"
+								step="any"
+								placeholder="Tokens held"
+								value={quantityInput}
+								onChange={(event) => setQuantityInput(event.target.value)}
+								className="rounded-md border border-(--form-control-border) bg-white px-3 py-2 text-base text-black outline-0 dark:bg-black dark:text-white"
+							/>
+						</label>
+					</div>
+					<div className="flex items-center gap-2 text-sm">
+						<span>Display as</span>
+						<div className="flex rounded-md border border-(--form-control-border) p-1">
+							{MODE_OPTIONS.map((option) => (
+								<button
+									key={option}
+									onClick={() => setMode(option)}
+									className={`rounded-md px-3 py-1 text-sm font-medium ${
+										mode === option ? 'bg-(--link-active-bg) text-white' : 'text-(--text-secondary)'
+									}`}
+								>
+									{option === 'percent' ? '% Change' : '$ Change'}
+								</button>
+							))}
+						</div>
+					</div>
+				</div>
+				<div>{renderContent()}</div>
+			</div>
+		</div>
 	)
 }
