@@ -43,7 +43,7 @@ export const ChartControls = memo(function ChartControls({
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
 
 	return (
-		<div className="flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 p-2 dark:border-gray-700">
+		<div className="mb-2 flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 p-2 pt-0 dark:border-gray-700">
 			{showGrouping && (
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{groupingOptions.map((interval) => (

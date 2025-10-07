@@ -149,14 +149,20 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 		const prepareCsv = () => {
 			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
-			if (adaptedChart.chartType === 'multi-series') {
+			if (['multi-series', 'combo'].includes(adaptedChart.chartType)) {
 				const rows = [['Timestamp', 'Date', ...(adaptedChart.props as any).series.map((series: any) => series.name)]]
-				for (const item of data) {
-					const row = [
-						new Date(item.date).getTime() / 1000,
-						new Date(item.date).toLocaleDateString(),
-						...(adaptedChart.props as any).series.map((series: any) => item[series.name] ?? '')
-					]
+				const valuesByDate = {}
+				for (const adaptedSeries of (adaptedChart.props as any).series ?? []) {
+					for (const item of adaptedSeries.data ?? []) {
+						valuesByDate[item[0]] = valuesByDate[item[0]] || {}
+						valuesByDate[item[0]][adaptedSeries.name] = item[1]
+					}
+				}
+				for (const date in valuesByDate) {
+					const row = [date, new Date(+date * 1e3).toLocaleDateString()]
+					for (const series of (adaptedChart.props as any).series ?? []) {
+						row.push(valuesByDate[date][series.name] ?? '')
+					}
 					rows.push(row)
 				}
 				return {
