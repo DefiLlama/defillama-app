@@ -1,4 +1,4 @@
-import { memo, RefObject, startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -1216,37 +1216,35 @@ const PromptInput = memo(function PromptInput({
 			>
 				<textarea
 					placeholder="Ask LlamaAI..."
-					value={deferredValue}
-					onChange={async (e) => {
-						startTransition(() => {
-							setValue(e.target.value)
-							if (promptInputRef.current) {
-								try {
-									// Calculate rows based on newlines and character length
-									const text = e.target.value
-									const textarea = promptInputRef.current
-									const lineBreaks = (text.match(/\n/g) || []).length
+					value={value}
+					onChange={(e) => {
+						setValue(e.target.value)
+						if (promptInputRef.current) {
+							try {
+								// Calculate rows based on newlines and character length
+								const text = e.target.value
+								const textarea = promptInputRef.current
+								const lineBreaks = (text.match(/\n/g) || []).length
 
-									// Calculate actual characters per line based on container width
-									const style = window.getComputedStyle(textarea)
-									const paddingLeft = parseFloat(style.paddingLeft)
-									const paddingRight = parseFloat(style.paddingRight)
-									const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-									const fontSize = parseFloat(style.fontSize)
-									// Average character width is approximately 0.6 of font size for monospace-like text
-									const avgCharWidth = fontSize * 0.5
-									const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+								// Calculate actual characters per line based on container width
+								const style = window.getComputedStyle(textarea)
+								const paddingLeft = parseFloat(style.paddingLeft)
+								const paddingRight = parseFloat(style.paddingRight)
+								const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+								const fontSize = parseFloat(style.fontSize)
+								// Average character width is approximately 0.6 of font size for monospace-like text
+								const avgCharWidth = fontSize * 0.5
+								const charsPerLine = Math.floor(availableWidth / avgCharWidth)
 
-									const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-									const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+								const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+								const totalRows = Math.max(lineBreaks + 1, estimatedLines)
 
-									// Set rows with minimum 1 and maximum 5
-									promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-								} catch (error) {
-									console.error('Error calculating rows:', error)
-								}
+								// Set rows with minimum 1 and maximum 5
+								promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+							} catch (error) {
+								console.error('Error calculating rows:', error)
 							}
-						})
+						}
 					}}
 					onKeyDown={onKeyDown}
 					name="prompt"
