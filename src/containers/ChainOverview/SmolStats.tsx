@@ -202,9 +202,9 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 							<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
 								<Tooltip
-									render={<BasicLink href="/etfs" />}
+									render={<BasicLink href="/digital-asset-treasuries" />}
 									className="text-sm font-semibold"
-									content="Daily net inflows/outflows into Digital Asset Treasury companies"
+									content="Daily net inflows/outflows into Digital Asset Treasury Companies"
 								>
 									DAT Inflows
 								</Tooltip>
