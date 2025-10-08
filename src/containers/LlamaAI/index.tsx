@@ -1373,6 +1373,15 @@ const PromptResponse = ({
 						resizeTrigger={resizeTrigger}
 					/>
 				)}
+				{!readOnly && isGeneratingSuggestions && (
+					<div className="mt-4 grid gap-2">
+						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
+						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
+							<FadingLoader />
+							<span>Generating follow-up suggestions...</span>
+						</p>
+					</div>
+				)}
 			</>
 		)
 	}
@@ -1398,15 +1407,6 @@ const PromptResponse = ({
 					isPending={isPending}
 					isStreaming={isStreaming}
 				/>
-			)}
-			{!readOnly && isGeneratingSuggestions && !response?.suggestions && (
-				<div className="mt-4 grid gap-2">
-					<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
-					<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-						<FadingLoader />
-						<span>Generating follow-up suggestions...</span>
-					</p>
-				</div>
 			)}
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
