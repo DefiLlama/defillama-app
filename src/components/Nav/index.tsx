@@ -43,7 +43,7 @@ function NavComponent() {
 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
-			{ name: 'Account', route: '/subscription', icon: 'user', attention: showAttentionIcon },
+			{ name: 'Subscription', route: '/subscription', icon: 'user', attention: showAttentionIcon },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]

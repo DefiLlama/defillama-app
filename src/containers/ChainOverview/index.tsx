@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
@@ -13,6 +13,15 @@ const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtoc
 
 const pageName = ['Overview']
 
+const Announcement = () => (
+	<>
+		We just launched{' '}
+		<BasicLink href="/digital-asset-treasuries" className="underline">
+			DAT tracking
+		</BasicLink>
+	</>
+)
+
 export function ChainOverview(props: IChainOverviewData) {
 	return (
 		<Layout
@@ -23,6 +32,7 @@ export function ChainOverview(props: IChainOverviewData) {
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
+			annonuncement={<Announcement />}
 		>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			{props.isDataAvailable ? (
@@ -45,7 +55,6 @@ export function ChainOverview(props: IChainOverviewData) {
 					</div>
 				</>
 			)}
-
 			{props.metadata.name === 'All' ? (
 				<div className="thin-scrollbar relative isolate flex flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
 					{linksToOtherLlamaApps.map((app) => (

@@ -49,6 +49,17 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [metricWindow, setMetricWindow] = useState<'7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'>('30d')
 	const [metricLabel, setMetricLabel] = useState<string>('')
 	const [metricShowSparkline, setMetricShowSparkline] = useState<boolean>(true)
+	const [selectedYieldPool, setSelectedYieldPool] = useState<{
+		configID: string
+		name: string
+		project: string
+		chain: string
+	} | null>(null)
+	const [selectedYieldChains, setSelectedYieldChains] = useState<string[]>([])
+	const [selectedYieldProjects, setSelectedYieldProjects] = useState<string[]>([])
+	const [selectedYieldCategories, setSelectedYieldCategories] = useState<string[]>([])
+	const [minTvl, setMinTvl] = useState<number | null>(null)
+	const [maxTvl, setMaxTvl] = useState<number | null>(null)
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -115,6 +126,16 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setMetricWindow(editItem.window)
 				setMetricLabel(editItem.label || '')
 				setMetricShowSparkline(editItem.showSparkline !== false)
+			} else if (editItem.kind === 'yields') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('yields')
+				setSelectedYieldPool({
+					configID: editItem.poolConfigId,
+					name: editItem.poolName,
+					project: editItem.project,
+					chain: editItem.chain
+				})
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -158,6 +179,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMetricWindow('30d')
 			setMetricLabel('')
 			setMetricShowSparkline(true)
+			setSelectedYieldPool(null)
+			setSelectedYieldChains([])
+			setSelectedYieldProjects([])
+			setSelectedYieldCategories([])
+			setMinTvl(null)
+			setMaxTvl(null)
 		}
 	}, [editItem, isOpen])
 
@@ -200,6 +227,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setMetricWindow('30d')
 		setMetricLabel('')
 		setMetricShowSparkline(true)
+		setSelectedYieldPool(null)
+		setSelectedYieldChains([])
+		setSelectedYieldProjects([])
+		setSelectedYieldCategories([])
+		setMinTvl(null)
+		setMaxTvl(null)
 	}
 
 	const state: ModalState = {
@@ -231,7 +264,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		metricAggregator,
 		metricWindow,
 		metricLabel,
-		metricShowSparkline
+		metricShowSparkline,
+		selectedYieldPool,
+		selectedYieldChains,
+		selectedYieldProjects,
+		selectedYieldCategories,
+		minTvl,
+		maxTvl
 	}
 
 	const actionsObj = useMemo(
@@ -264,7 +303,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMetricAggregator,
 			setMetricWindow,
 			setMetricLabel,
-			setMetricShowSparkline
+			setMetricShowSparkline,
+			setSelectedYieldPool,
+			setSelectedYieldChains,
+			setSelectedYieldProjects,
+			setSelectedYieldCategories,
+			setMinTvl,
+			setMaxTvl
 		}),
 		[
 			setSelectedMainTab,
@@ -294,7 +339,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMetricAggregator,
 			setMetricWindow,
 			setMetricLabel,
-			setMetricShowSparkline
+			setMetricShowSparkline,
+			setSelectedYieldPool,
+			setSelectedYieldChains,
+			setSelectedYieldProjects,
+			setSelectedYieldCategories,
+			setMinTvl,
+			setMaxTvl
 		]
 	)
 

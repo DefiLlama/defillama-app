@@ -39,6 +39,7 @@ export interface IChartProps {
 	hideDownloadButton?: boolean
 	containerClassName?: string
 	connectNulls?: boolean
+	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	customComponents?: React.ReactNode
 }

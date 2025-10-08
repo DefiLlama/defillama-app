@@ -62,6 +62,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							selectedChartTypes={state.selectedChartTypes}
 							selectedChains={state.selectedChains}
 							selectedProtocols={state.selectedProtocols}
+							selectedYieldPool={state.selectedYieldPool}
 							chainOptions={computed.chainOptions}
 							protocolOptions={computed.protocolOptions}
 							availableChartTypes={availableChartTypes}
@@ -76,6 +77,17 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onChartTypesChange={actions.setSelectedChartTypes}
 							onSelectedChainsChange={actions.setSelectedChains}
 							onSelectedProtocolsChange={actions.setSelectedProtocols}
+							onSelectedYieldPoolChange={actions.setSelectedYieldPool}
+							selectedYieldChains={state.selectedYieldChains}
+							selectedYieldProjects={state.selectedYieldProjects}
+							selectedYieldCategories={state.selectedYieldCategories}
+							minTvl={state.minTvl}
+							maxTvl={state.maxTvl}
+							onSelectedYieldChainsChange={actions.setSelectedYieldChains}
+							onSelectedYieldProjectsChange={actions.setSelectedYieldProjects}
+							onSelectedYieldCategoriesChange={actions.setSelectedYieldCategories}
+							onMinTvlChange={actions.setMinTvl}
+							onMaxTvlChange={actions.setMaxTvl}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onAddToComposer={actions.handleAddToComposer}
@@ -147,6 +159,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						selectedChains={state.selectedChains}
 						selectedProtocol={state.selectedProtocol}
 						selectedChartTypes={state.selectedChartTypes}
+						selectedYieldPool={state.selectedYieldPool}
 						composerItems={state.composerItems}
 						textContent={state.textContent}
 						chartTypesLoading={chartTypesLoading}
