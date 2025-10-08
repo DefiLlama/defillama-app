@@ -39,6 +39,7 @@ interface ChartTabProps {
 	onMaxTvlChange?: (tvl: number | null) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
+	onComposerItemColorChange: (id: string, color: string) => void
 	onAddToComposer: (types?: string[]) => void
 	onRemoveFromComposer: (id: string) => void
 	chartBuilder: any
@@ -119,6 +120,7 @@ export function ChartTab(props: ChartTabProps) {
 					onMaxTvlChange={props.onMaxTvlChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
+					onComposerItemColorChange={props.onComposerItemColorChange}
 					onAddToComposer={props.onAddToComposer}
 					onRemoveFromComposer={props.onRemoveFromComposer}
 				/>

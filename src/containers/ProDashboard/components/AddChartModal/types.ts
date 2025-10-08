@@ -125,6 +125,7 @@ export interface ModalActions {
 	handleTokensChange: (tokens: string[]) => void
 	handleAddToComposer: (typesToAdd?: string[]) => void
 	handleRemoveFromComposer: (id: string) => void
+	handleUpdateComposerItemColor: (id: string, color: string) => void
 	handleMainTabChange: (tab: MainTabType) => void
 	handleSubmit: () => void
 	handleChartTabChange: (tab: ChartTabType) => void

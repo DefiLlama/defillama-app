@@ -78,7 +78,13 @@ interface ProDashboardContextType {
 	setDashboardVisibility: (visibility: 'private' | 'public') => void
 	setDashboardTags: (tags: string[]) => void
 	setDashboardDescription: (description: string) => void
-	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
+	handleAddChart: (
+		item: string,
+		chartType: string,
+		itemType: 'chain' | 'protocol',
+		geckoId?: string | null,
+		color?: string
+	) => void
 	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddTable: (
 		chains: string[],
@@ -831,7 +837,7 @@ export function ProDashboardAPIProvider({
 
 	// Handle adding items
 	const handleAddChart = useCallback(
-		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
+		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null, color?: string) => {
 			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
 				return
 			}
@@ -842,7 +848,8 @@ export function ProDashboardAPIProvider({
 				id: newChartId,
 				kind: 'chart',
 				type: chartType,
-				colSpan: 1
+				colSpan: 1,
+				color
 			}
 
 			if (chartTypeDetails?.groupable) {
