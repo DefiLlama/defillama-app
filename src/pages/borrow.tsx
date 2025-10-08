@@ -13,6 +13,7 @@ import Layout from '~/layout'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getQueryValue } from '~/utils/url'
+import Link from 'next/link'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {
@@ -98,8 +99,8 @@ export default function YieldBorrow(data) {
 			pageName={pageName}
 		>
 			<Announcement>{disclaimer}</Announcement>
-			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
-				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
+			<div className="relative mx-auto flex flex-col md:flex-row w-full items-start gap-3 rounded-md bg-(--cards-bg) p-3">
+				<div className="flex w-full md:w-1/3 mx-auto flex-col gap-2 overflow-y-auto p-3 max-w-100">
 					<TokensSelect
 						label="Borrow"
 						searchData={data.searchData}
@@ -301,6 +302,7 @@ const safeProjects = [
 ].map((x) => x.toLowerCase())
 
 interface IPool {
+	project: string
 	projectName: string
 	totalAvailableUsd: number
 	chain: string
@@ -314,6 +316,7 @@ interface IPool {
 	apyReward?: number | null
 	apyRewardBorrow?: number | null
 	ltv?: number | null
+	url: string
 }
 
 const getAPY = (
@@ -387,15 +390,23 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 			{finalPools.length === 0 ? (
 				<p className="m-4 mb-6 text-center">Couldn't find any pools</p>
 			) : (
-				<table className="my-4 border-separate border-spacing-y-2">
+				<table className="my-4 border-separate border-spacing-y-2 px-1">
+					<thead >
+						<tr>
+							<th align='left' className='pl-2'>Project</th>
+							<th align='left' className='pl-2'>APY</th>
+							<th align='left' className='pl-2'>Chain</th>
+							<th align='left'>Link</th>
+						</tr>
+					</thead>
 					<tbody>
 						{finalPools.map((pool) => (
 							<tr key={JSON.stringify(pool)} className="p-3">
 								<th className="rounded-l-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
-									<span className="flex flex-nowrap items-center gap-1">
+									<Link href={`/protocol/${pool.project}`} className="flex flex-nowrap items-center gap-1 text-sm font-medium text-(--link-text) hover:underline">
 										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} />
 										<span className="whitespace-nowrap">{pool.projectName}</span>
-									</span>
+									</Link>
 								</th>
 
 								<td className="bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
@@ -411,11 +422,16 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 										</span>
 									</span>
 								</td>
-								<td className="rounded-r-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
+								<td className="bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
 									<span className="flex items-center gap-1.5">
 										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
 										<span>{pool.chain}</span>
 									</span>
+								</td>
+								<td className="min-w-10 w-10 rounded-r-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
+										<a href={pool.url} target='_blank' rel="noreferrer" aria-label='Pool link'>
+											<Icon name='external-link' height={16} width={16}/>
+										</a>
 								</td>
 							</tr>
 						))}
