@@ -347,7 +347,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 			{/* Top Movers Cards */}
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				{(['1d', '7d', '1m'] as const).map((period) => (
-					<div key={period} className="rounded-lg bg-(--bg-secondary) p-4">
+					<div key={period} className="rounded-lg bg-(--bg-glass) p-4">
 						<h3 className="mb-3 text-center font-medium text-(--text-primary)">
 							{period === '1d' ? '24 Hours' : period === '7d' ? '7 Days' : '30 Days'}
 						</h3>
@@ -357,7 +357,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 								{topMovers[period].map((mover, index) => (
 									<div
 										key={mover.name}
-										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors hover:bg-(--primary-hover)"
+										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2">
 											<span className="w-4 shrink-0 text-xs font-medium text-(--text-secondary)">#{index + 1}</span>
@@ -369,7 +369,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 												{parseFloat(mover.change.toFixed(2))}%
 											</span>
 											<Icon
-												name={mover.change >= 0 ? 'chevron-up' : 'chevron-down'}
+												name={mover.change >= 0 ? 'arrow-up' : 'arrow-down'}
 												height={16}
 												width={16}
 												className={`${mover.change >= 0 ? 'text-green-600' : 'text-red-600'} shrink-0`}
