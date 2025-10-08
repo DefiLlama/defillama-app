@@ -569,7 +569,7 @@ export function downloadCSV(filename, csvData, options = {}) {
 
 		window.URL.revokeObjectURL(downloadUrl)
 	} catch (error) {
-		console.error('CSV download error:', error)
+		console.log('CSV download error:', error)
 		download(filename, String(csvData))
 	}
 }
@@ -610,7 +610,7 @@ export function downloadDatasetCSV({
 
 		downloadCSV(finalFilename, csvData, { addTimestamp })
 	} catch (error) {
-		console.error('Dataset CSV download error:', error)
+		console.log('Dataset CSV download error:', error)
 	}
 }
 
@@ -677,6 +677,8 @@ export function lastDayOfWeek(dateString) {
 	const daysToAdd = weekDay === 0 ? 0 : 7 - weekDay
 	// Create a new date by adding days (this handles month boundaries automatically)
 	const lastDayDate = new Date(date.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
+	// Normalize to start of day (00:00:00)
+	lastDayDate.setUTCHours(0, 0, 0, 0)
 	return Math.trunc(lastDayDate.getTime() / 1000)
 }
 
@@ -844,4 +846,9 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 	}
 
 	return mainSlices
+}
+
+export const formatEthAddress = (address) => {
+	if (!address) return ''
+	return `${address.slice(0, 6)}...${address.slice(-4)}`
 }

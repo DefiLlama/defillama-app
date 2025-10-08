@@ -66,7 +66,7 @@ export function YieldsSearch({
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex max-h-[var(--popover-available-height)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100vh-80px)]"
+					className="max-sm:drawer z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
@@ -117,7 +117,7 @@ interface IInputProps {
 function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) {
 	return (
 		<>
-			<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
+			<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 				{open ? (
 					<>
 						<span className="sr-only">Close Search</span>
@@ -137,7 +137,7 @@ function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) 
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-base text-black dark:text-white"
+				className="min-h-8 w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-black dark:text-white"
 			/>
 		</>
 	)

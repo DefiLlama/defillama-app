@@ -11,16 +11,16 @@ export const ProTableCSVButton = ({
 	isLoading?: boolean
 	className?: string
 }) => {
-	return (
-		<CSVDownloadButton
-			onClick={onClick}
-			className={
-				className ||
-				'pro-border flex items-center gap-2 border bg-(--bg-main) px-3 py-1.5 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]'
-			}
-			replaceClassName={true}
-			smol={smol}
-			isLoading={isLoading}
-		/>
-	)
+    return (
+        <CSVDownloadButton
+            onClick={onClick}
+            className={
+                className ||
+                'pro-border pro-bg1 pro-hover-bg pro-text1 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+            }
+            replaceClassName={true}
+            smol={smol}
+            isLoading={isLoading}
+        />
+    )
 }

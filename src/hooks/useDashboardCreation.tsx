@@ -62,7 +62,7 @@ export const useDashboardCreation = () => {
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: Error) => {
-			console.error('Error creating dashboard:', error)
+			console.log('Error creating dashboard:', error)
 			toast.error('Failed to create dashboard. Please try again.')
 		}
 	})
@@ -70,7 +70,7 @@ export const useDashboardCreation = () => {
 	const createDashboardWithDataset = useCallback(() => {
 		const datasetType = getDatasetTypeFromPath(router.pathname)
 		if (!datasetType) {
-			console.error('Unknown dataset type for path:', router.pathname)
+			console.log('Unknown dataset type for path:', router.pathname)
 			toast.error('Unable to determine dataset type for this page')
 			return
 		}

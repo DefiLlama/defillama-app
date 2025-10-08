@@ -18,7 +18,8 @@
     "name": "Yields: All Pools",
     "route": "/yields",
     "category": "Trending",
-    "description": "Pools by APY, TVL, and other metrics on all chains"
+    "description": "Pools by APY, TVL, and other metrics on all chains",
+    "totalTrackedKey": "yields.pools"
   },
   {
     "name": "Stablecoins by Market Cap",
@@ -32,10 +33,11 @@
     "tab": "Protocols"
   },
   {
-    "name": "Airdrops",
-    "route": "/airdrops",
+    "name": "Revenue by Protocol",
+    "route": "/revenue",
     "category": "Trending",
-    "description": "Tokenless protocols that may airdrop tokens to their users",
+    "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team, or distributed among token holders. This doesn't include any fees distributed to liquidity providers",
+    "totalTrackedKey": "revenue.protocols",
     "tab": "Protocols"
   }
 ]

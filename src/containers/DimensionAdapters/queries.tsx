@@ -1,5 +1,11 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, PROTOCOLS_API, REV_PROTOCOLS } from '~/constants'
+import {
+	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
+	PROTOCOLS_API,
+	REV_PROTOCOLS,
+	ZERO_FEE_PERPS
+} from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -60,6 +66,7 @@ export interface IAdapterOverview {
 		slug: string
 		linkedProtocols: Array<string>
 		id: string
+		doublecounted?: boolean
 	}>
 }
 
@@ -108,6 +115,7 @@ export interface IAdapterSummary {
 		methodology: Record<string, string>
 	}>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	doublecounted?: boolean
 }
 
 //breakdown is using chain internal name so we need to map it
@@ -611,6 +619,7 @@ export const getAdapterByChainPageData = async ({
 	const protocols = {}
 	const parentProtocols = {}
 	const categories = new Set<string>()
+
 	for (const protocol of allProtocols) {
 		const methodology =
 			adapterType === 'fees'
@@ -653,7 +662,9 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology ? { methodology } : {})
+			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
+			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
+			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -691,7 +702,8 @@ export const getAdapterByChainPageData = async ({
 		const totalAllTime = parentProtocols[protocol].some((p) => p.totalAllTime != null)
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
 			: null
-
+		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
+		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
 		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
 			? parentProtocols[protocol].reduce(
 					(acc, p) => {
@@ -731,9 +743,9 @@ export const getAdapterByChainPageData = async ({
 				)
 			: null
 
-		const methodology = Array.from(
+		const methodology: Array<string> = Array.from(
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
-		).join(', ')
+		)
 
 		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
@@ -755,11 +767,21 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTax ? { tokenTax } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology
+			...(methodology.length > 0
 				? {
-						methodology
+						methodology:
+							methodology.length > 1
+								? methodology
+										.map((m) => {
+											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
+											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
+										})
+										.join('. ')
+								: methodology[0]
 					}
-				: {})
+				: {}),
+			...(doublecounted ? { doublecounted } : {}),
+			...(zeroFeePerp ? { zeroFeePerp } : {})
 		}
 	}
 

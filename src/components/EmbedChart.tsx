@@ -53,7 +53,7 @@ export function EmbedChart() {
 				unmountOnHide
 				hideOnInteractOutside
 				gutter={6}
-				className="z-10 max-h-[calc(100vh-200px)] w-full overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-[hsl(204,20%,100%)] text-[hsl(204,10%,10%)] sm:max-w-[min(calc(100vw-16px),320px)] dark:border-[hsl(204,3%,32%)] dark:bg-[hsl(204,3%,12%)] dark:text-[hsl(0,0%,100%)]"
+				className="z-10 max-h-[calc(100dvh-80px)] w-full overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-[hsl(204,20%,100%)] text-[hsl(204,10%,10%)] sm:max-w-[min(calc(100vw-16px),320px)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)] dark:bg-[hsl(204,3%,12%)] dark:text-[hsl(0,0%,100%)]"
 			>
 				<div className="p-1">
 					<p className="rounded-md bg-white p-2 break-all dark:bg-black">{url}</p>

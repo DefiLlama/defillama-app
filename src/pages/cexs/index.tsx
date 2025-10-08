@@ -87,7 +87,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					// console.log(c.cgId, spot)
 					const spotEx = spot && !spot.status && spot.find((ex) => ex.id === c.cgId)
 					if (!spotEx) {
-						console.error(c.name + ' is not in spot list')
+						console.log(c.name + ' is not in spot list')
 					} else {
 						extra.spotVolume = spotEx.trade_volume_24h_btc * btcPrice
 					}
@@ -96,7 +96,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					const _derivs = derivs && !derivs.status && derivs.find((ex) => ex.id === c.cgDeriv)
 					// extra.oi = derivs.find((ex) => ex.id === c.cgDeriv).open_interest_btc * btcPrice
 					if (!_derivs) {
-						console.error(c.name + ' is not in derivs list')
+						console.log(c.name + ' is not in derivs list')
 					} else {
 						extra.oi = _derivs.open_interest_btc * btcPrice
 						extra.leverage = extra.oi / cleanTvl
@@ -145,4 +145,4 @@ export default function CexsPage({ cexs }) {
 			<Cexs cexs={cexs} />
 		</Layout>
 	)
-}
+} // trigger

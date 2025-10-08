@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TimePeriod } from '../ProDashboardAPIContext'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
 export function useDashboardAPI() {
@@ -24,7 +24,7 @@ export function useDashboardAPI() {
 			try {
 				return await dashboardAPI.listDashboards(authorizedFetch)
 			} catch (error) {
-				console.error('Failed to load dashboards:', error)
+				console.log('Failed to load dashboards:', error)
 				return []
 			}
 		},
@@ -70,6 +70,7 @@ export function useDashboardAPI() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
@@ -83,6 +84,7 @@ export function useDashboardAPI() {
 		},
 		onSuccess: (_, deletedId) => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
@@ -101,7 +103,7 @@ export function useDashboardAPI() {
 				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
 				return dashboard
 			} catch (error: any) {
-				console.error('Failed to load dashboard:', error)
+				console.log('Failed to load dashboard:', error)
 				return null
 			}
 		},

@@ -14,6 +14,8 @@ import { Parser } from 'expr-eval'
 import {
 	useGetProtocolsFeesAndRevenueByMultiChain,
 	useGetProtocolsListMultiChain,
+	useGetProtocolsOpenInterestByMultiChain,
+	useGetProtocolsPerpsVolumeByMultiChain,
 	useGetProtocolsVolumeByMultiChain
 } from '~/api/categories/chains/multiChainClient'
 import { Icon } from '~/components/Icon'
@@ -22,7 +24,7 @@ import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/colum
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { downloadCSV, formattedNum, getPercentChange } from '~/utils'
+import { downloadCSV, getPercentChange } from '~/utils'
 import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
@@ -52,9 +54,15 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let revenue_7d = 0
 	let revenue_30d = 0
 	let revenue_1y = 0
+	let perps_volume_24h = 0
+	let perps_volume_7d = 0
+	let perps_volume_30d = 0
+	let openInterest = 0
 
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
+	let weightedPerpsVolumeChange = 0
+	let totalPerpsVolumeWeight = 0
 
 	// Aggregate metrics from filtered children
 	filteredSubRows.forEach((child) => {
@@ -78,6 +86,14 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		if (child.revenue_7d) revenue_7d += child.revenue_7d
 		if (child.revenue_30d) revenue_30d += child.revenue_30d
 		if (child.revenue_1y) revenue_1y += child.revenue_1y
+		if (child.perps_volume_24h) perps_volume_24h += child.perps_volume_24h
+		if (child.perps_volume_7d) perps_volume_7d += child.perps_volume_7d
+		if (child.perps_volume_30d) perps_volume_30d += child.perps_volume_30d
+		if (child.perps_volume_7d && child.perps_volume_change_7d !== undefined && child.perps_volume_change_7d !== null) {
+			weightedPerpsVolumeChange += child.perps_volume_change_7d * child.perps_volume_7d
+			totalPerpsVolumeWeight += child.perps_volume_7d
+		}
+		if (child.openInterest) openInterest += child.openInterest
 	})
 
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
@@ -89,11 +105,36 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
+	let perps_volume_change_7d = null
+	if (totalPerpsVolumeWeight > 0) {
+		perps_volume_change_7d = weightedPerpsVolumeChange / totalPerpsVolumeWeight
+	}
+
 	let mcaptvl = null
 	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
 	if (tvl && finalMcap) {
-		mcaptvl = +formattedNum(finalMcap / tvl)
+		mcaptvl = +(finalMcap / tvl).toFixed(2)
 	}
+
+	const oracleSet = new Set<string>()
+	const oraclesByChainAgg: Record<string, Set<string>> = {}
+	const addOracles = (obj: any) => {
+		if (Array.isArray(obj?.oracles)) {
+			obj.oracles.forEach((o: string) => oracleSet.add(o))
+		}
+		if (obj?.oraclesByChain) {
+			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
+				;(obj.oraclesByChain[k] || []).forEach((o: string) => set.add(o))
+			}
+		}
+	}
+	addOracles(parent)
+	filteredSubRows.forEach(addOracles)
+
+	const aggregatedOraclesByChain = Object.fromEntries(
+		Object.entries(oraclesByChainAgg).map(([k, v]) => [k, Array.from(v).sort((a, b) => a.localeCompare(b))])
+	)
 
 	return {
 		...parent,
@@ -114,11 +155,18 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		revenue_7d,
 		revenue_30d,
 		revenue_1y,
+		perps_volume_24h,
+		perps_volume_7d,
+		perps_volume_30d,
+		perps_volume_change_7d,
+		openInterest,
 		change_1d,
 		change_7d,
 		change_1m,
 		mcaptvl,
-		subRows: filteredSubRows
+		subRows: filteredSubRows,
+		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
+		oraclesByChain: Object.keys(aggregatedOraclesByChain).length ? aggregatedOraclesByChain : parent.oraclesByChain
 	}
 }
 
@@ -144,6 +192,8 @@ export function useProTable(
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
+	const { data: chainProtocolsPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
+	const { data: chainProtocolsOpenInterest } = useGetProtocolsOpenInterestByMultiChain(chains)
 	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
@@ -152,7 +202,9 @@ export function useProTable(
 			protocols: fullProtocolsList,
 			parentProtocols,
 			volumeData: chainProtocolsVolumes,
-			feesData: chainProtocolsFees
+			feesData: chainProtocolsFees,
+			perpsData: chainProtocolsPerps,
+			openInterestData: chainProtocolsOpenInterest
 		})
 
 		// Apply filters
@@ -161,6 +213,7 @@ export function useProTable(
 			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
 			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
 			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null
+			const oracleSet = filters.oracles?.length ? new Set(filters.oracles) : null
 
 			if (excludedCategorySet) {
 				protocols = protocols
@@ -212,6 +265,36 @@ export function useProTable(
 					})
 					.filter((p) => p !== null)
 			}
+
+			if (oracleSet) {
+				protocols = protocols
+					.map((p) => {
+						const getOracles = (obj: any): string[] => {
+							if (Array.isArray(obj?.oracles) && obj.oracles.length) return obj.oracles
+							if (obj?.oraclesByChain) {
+								return Array.from(new Set(Object.values(obj.oraclesByChain as Record<string, string[]>).flat()))
+							}
+							return []
+						}
+
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter((child: any) => {
+								const childOracles = getOracles(child)
+								return childOracles.some((o) => oracleSet.has(o))
+							})
+
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							}
+							return null
+						}
+
+						const pOracles = getOracles(p)
+						return pOracles.some((o) => oracleSet.has(o)) ? p : null
+					})
+					.filter((p) => p !== null)
+			}
 			if (categorySet) {
 				protocols = protocols
 					.map((p) => {
@@ -237,7 +320,15 @@ export function useProTable(
 		}
 
 		return protocols
-	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, filters])
+	}, [
+		fullProtocolsList,
+		parentProtocols,
+		chainProtocolsVolumes,
+		chainProtocolsFees,
+		chainProtocolsPerps,
+		chainProtocolsOpenInterest,
+		filters
+	])
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -339,13 +430,18 @@ export function useProTable(
 
 	// Create custom columns with filter button
 	const columnsWithFilter = React.useMemo(() => {
-		if (!onFilterClick) return { name: null, category: null }
+		if (!onFilterClick) return { name: null, category: null, oracles: null }
 
 		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
 		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
+		const originalOraclesColumn = protocolsByChainColumns.find((col) => col.id === 'oracles')
 
 		const hasActiveFilters =
-			filters && (filters.protocols?.length || filters.categories?.length || filters.excludedCategories?.length)
+			filters &&
+			(filters.protocols?.length ||
+				filters.categories?.length ||
+				filters.excludedCategories?.length ||
+				filters.oracles?.length)
 
 		const filterButton = (
 			<button
@@ -353,8 +449,8 @@ export function useProTable(
 					e.stopPropagation()
 					onFilterClick()
 				}}
-				className={`rounded p-1 transition-colors hover:bg-(--bg-tertiary) ${
-					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text-tertiary)'
+				className={`rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
+					hasActiveFilters ? 'text-pro-blue-400 dark:text-pro-blue-200' : 'text-(--text-tertiary)'
 				}`}
 				title="Filter protocols"
 			>
@@ -388,7 +484,20 @@ export function useProTable(
 				}
 			: null
 
-		return { name: nameColumn, category: categoryColumn }
+		const oraclesColumn = originalOraclesColumn
+			? {
+					...originalOraclesColumn,
+					id: 'oracles',
+					header: () => (
+						<div className="flex items-center justify-end gap-2">
+							<span>Oracles</span>
+							{React.cloneElement(filterButton, { key: 'oracles-filter' })}
+						</div>
+					)
+				}
+			: null
+
+		return { name: nameColumn, category: categoryColumn, oracles: oraclesColumn }
 	}, [filters, onFilterClick])
 
 	const totals = React.useMemo(() => {
@@ -408,7 +517,11 @@ export function useProTable(
 			'volume_24h',
 			'volume_7d',
 			'cumulativeFees',
-			'cumulativeVolume'
+			'cumulativeVolume',
+			'perps_volume_24h',
+			'perps_volume_7d',
+			'perps_volume_30d',
+			'openInterest'
 		]
 
 		usdMetrics.forEach((metric) => {
@@ -483,6 +596,13 @@ export function useProTable(
 			const categoryIndex = baseColumns.findIndex((col) => col.id === 'category')
 			if (categoryIndex !== -1) {
 				baseColumns[categoryIndex] = columnsWithFilter.category as ColumnDef<IProtocolRow>
+			}
+		}
+
+		if (columnsWithFilter.oracles) {
+			const oraclesIndex = baseColumns.findIndex((col) => col.id === 'oracles')
+			if (oraclesIndex !== -1) {
+				baseColumns[oraclesIndex] = columnsWithFilter.oracles as ColumnDef<IProtocolRow>
 			}
 		}
 
@@ -852,6 +972,7 @@ export function useProTable(
 		updateCustomColumn,
 		categories,
 		availableProtocols,
+		parentProtocols,
 		customViews,
 		saveCustomView,
 		deleteCustomView,

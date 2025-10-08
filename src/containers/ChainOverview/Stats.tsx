@@ -68,8 +68,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-		const toggledCharts = props.charts.filter((tchart) =>
-			tchart === 'TVL' ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+		const toggledCharts = props.charts.filter((tchart, index) =>
+			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
@@ -148,7 +148,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 
 				downloadCSV(`${props.metadata.name}.csv`, csvData)
 			} catch (error) {
-				console.error('CSV download error:', error)
+				console.log('CSV download error:', error)
 				toast.error('Failed to download CSV data')
 			}
 		}
@@ -168,39 +168,41 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
 				)}
-				<div className="flex flex-nowrap items-end justify-between gap-8">
-					<h2 className="flex flex-col">
-						<Tooltip
-							content={
-								props.metadata.name === 'All'
-									? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
-									: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
-							}
-							className="!inline text-(--text-label) underline decoration-dotted"
-						>
-							Total Value Locked in DeFi
-						</Tooltip>
-						<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
-							{formattedNum(totalValueUSD, true)}
-						</span>
-					</h2>
-					{change24h != null ? (
-						<Tooltip
-							content={`${formattedNum(valueChange24hUSD, true)}`}
-							render={<p />}
-							className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
-						>
-							<span
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
-									change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
-								}`}
+				{props.protocols.length > 0 ? (
+					<div className="flex flex-nowrap items-end justify-between gap-8">
+						<h2 className="flex flex-col">
+							<Tooltip
+								content={
+									props.metadata.name === 'All'
+										? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
+										: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
+								}
+								className="!inline text-(--text-label) underline decoration-dotted"
 							>
-								{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+								Total Value Locked in DeFi
+							</Tooltip>
+							<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								{formattedNum(totalValueUSD, true)}
 							</span>
-							<span className="text-(--text-label)">24h</span>
-						</Tooltip>
-					) : null}
-				</div>
+						</h2>
+						{change24h != null ? (
+							<Tooltip
+								content={`${formattedNum(valueChange24hUSD, true)}`}
+								render={<p />}
+								className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
+							>
+								<span
+									className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+										change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
+									}`}
+								>
+									{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+								</span>
+								<span className="text-(--text-label)">24h</span>
+							</Tooltip>
+						) : null}
+					</div>
+				) : null}
 				<div className="flex flex-1 flex-col gap-2">
 					<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
 					<div className="flex flex-col">
@@ -707,24 +709,10 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 												<button
 													key={`add-chain-metric-${chainCharts[tchart]}`}
 													onClick={() => {
-														updateRoute(
-															chainCharts[tchart],
-															chainCharts[tchart] === 'tvl'
-																? router.query[chainCharts[tchart]] !== 'false'
-																	? 'false'
-																	: 'true'
-																: router.query[chainCharts[tchart]] === 'true'
-																	? 'false'
-																	: 'true',
-															router
-														)
+														updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
 														metricsDialogStore.toggle()
 													}}
-													data-active={
-														chainCharts[tchart] === 'tvl'
-															? router.query[chainCharts[tchart]] !== 'false'
-															: router.query[chainCharts[tchart]] === 'true'
-													}
+													data-active={toggledCharts.includes(tchart)}
 													className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 												>
 													<span>
@@ -737,13 +725,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 																)
 															: tchart}
 													</span>
-													{chainCharts[tchart] === 'tvl' ? (
-														router.query[chainCharts[tchart]] === 'false' ? (
-															<Icon name="plus" className="h-3.5 w-3.5" />
-														) : (
-															<Icon name="x" className="h-3.5 w-3.5" />
-														)
-													) : router.query[chainCharts[tchart]] === 'true' ? (
+													{toggledCharts.includes(tchart) ? (
 														<Icon name="x" className="h-3.5 w-3.5" />
 													) : (
 														<Icon name="plus" className="h-3.5 w-3.5" />
@@ -764,17 +746,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										value={tchart}
 										checked={true}
 										onChange={() => {
-											updateRoute(
-												chainCharts[tchart],
-												chainCharts[tchart] === 'tvl'
-													? router.query[chainCharts[tchart]] !== 'false'
-														? 'false'
-														: 'true'
-													: router.query[chainCharts[tchart]] === 'true'
-														? 'false'
-														: 'true',
-												router
-											)
+											updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
 										}}
 										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 									/>

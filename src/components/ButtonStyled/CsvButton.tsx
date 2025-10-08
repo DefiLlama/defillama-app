@@ -74,10 +74,19 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 								setStaticLoading(true)
 								const { filename, rows } = prepareCsv()
 
-								download(filename, rows.map((row) => row.join(',')).join('\n'))
+								const escapeCell = (value: string | number | boolean | null | undefined) => {
+									if (value == null) return ''
+									const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
+									if (str.includes(',') || str.includes('"')) {
+										return `"${str.replace(/"/g, '""')}"`
+									}
+									return str
+								}
+
+								download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
 							} catch (error) {
 								toast.error('Failed to download CSV')
-								console.error(error)
+								console.log(error)
 							} finally {
 								setStaticLoading(false)
 							}
@@ -88,7 +97,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				}}
 				disabled={isClient ? isLoading : true}
 			>
-				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" className="h-3 w-3 shrink-0" />}
+				{isLoading || !isClient ? (
+					<LoadingSpinner size={12} />
+				) : (
+					<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+				)}
 				{children || (
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}

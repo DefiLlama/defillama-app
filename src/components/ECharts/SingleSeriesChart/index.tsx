@@ -177,5 +177,5 @@ export default function SingleSeriesChart({
 		}
 	}, [id])
 
-	return <div id={id} className={height ? '' : 'min-h-[360px]'} style={height ? { height } : undefined}></div>
+	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
 }

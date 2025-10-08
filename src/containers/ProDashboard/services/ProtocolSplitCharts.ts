@@ -84,7 +84,8 @@ export default class SProtocolSplitCharts {
 			| 'user-fees'
 			| 'holders-revenue'
 			| 'protocol-revenue'
-			| 'supply-side-revenue',
+			| 'supply-side-revenue'
+			| 'open-interest',
 		chains: string[],
 		limit: number = 10,
 		categories: string[] = [],
@@ -110,7 +111,7 @@ export default class SProtocolSplitCharts {
 
 			return data
 		} catch (error) {
-			console.error(`Error fetching ${metric} split data:`, error)
+			console.log(`Error fetching ${metric} split data:`, error)
 
 			return {
 				series: [],
@@ -154,13 +155,14 @@ export default class SProtocolSplitCharts {
 	}
 
 	static async getProtocolChainData(
-		protocol: string,
+		protocol: string | undefined,
 		metric:
 			| 'tvl'
 			| 'fees'
 			| 'revenue'
 			| 'volume'
 			| 'perps'
+			| 'open-interest'
 			| 'options-notional'
 			| 'options-premium'
 			| 'bridge-aggregators'
@@ -172,10 +174,11 @@ export default class SProtocolSplitCharts {
 			| 'supply-side-revenue',
 		chains?: string[],
 		limit: number = 5,
-		filterMode: 'include' | 'exclude' = 'include'
+		filterMode: 'include' | 'exclude' = 'include',
+		chainCategories?: string[]
 	): Promise<any> {
 		const params = new URLSearchParams()
-		params.append('protocol', protocol)
+		if (protocol) params.append('protocol', protocol)
 		params.append('metric', metric)
 
 		if (chains && chains.length > 0) {
@@ -187,6 +190,9 @@ export default class SProtocolSplitCharts {
 		if (filterMode) {
 			params.append('filterMode', filterMode)
 		}
+		if (chainCategories && chainCategories.length > 0) {
+			params.append('chainCategories', chainCategories.join(','))
+		}
 
 		try {
 			const response = await fetch(`/api/protocols/split/protocol-chain?${params.toString()}`)
@@ -197,7 +203,7 @@ export default class SProtocolSplitCharts {
 
 			return response.json()
 		} catch (error) {
-			console.error(`Error fetching protocol chain data for ${protocol}:`, error)
+			console.log(`Error fetching protocol chain data for ${protocol}:`, error)
 			return {
 				series: [],
 				metadata: {

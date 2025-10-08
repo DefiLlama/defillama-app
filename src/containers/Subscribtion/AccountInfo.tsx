@@ -54,13 +54,13 @@ export const AccountInfo = () => {
 		try {
 			logout()
 		} catch (error) {
-			console.error('Error logging out:', error)
+			console.log('Error logging out:', error)
 		}
 	}
 
 	if (loaders.userLoading || loaders.userFetching) {
 		return (
-			<div className="flex h-[40vh] items-center justify-center">
+			<div className="flex h-[40dvh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)

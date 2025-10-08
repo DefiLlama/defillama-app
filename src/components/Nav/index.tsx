@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
-import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -25,11 +26,6 @@ const MobileFallback = () => {
 	)
 }
 
-const otherMainPages = [
-	{ name: 'Pricing', route: '/subscription', icon: 'banknote' },
-	{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
-]
-const mainLinks = [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
 const footerLinks = ['More', 'About Us'].map((category) => ({
 	category,
 	pages: defillamaPages[category]
@@ -37,6 +33,22 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 
 function NavComponent() {
 	const { dashboards } = useDashboardAPI()
+	const { user, isAuthenticated } = useAuthContext()
+
+	const hasEthWallet = Boolean(user?.walletAddress)
+	const hasSeenWalletPrompt =
+		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
+
+	const showAttentionIcon = isAuthenticated && !hasEthWallet && !hasSeenWalletPrompt
+
+	const mainLinks = useMemo(() => {
+		const otherMainPages = [
+			{ name: 'Account', route: '/subscription', icon: 'user', attention: showAttentionIcon },
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
+		]
+		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
+	}, [showAttentionIcon])
+
 	const userDashboards = useMemo(
 		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
 		[dashboards]
@@ -48,21 +60,21 @@ function NavComponent() {
 	)
 
 	const pinnedPages = useMemo(() => {
-		return JSON.parse(pinnedMetrics)
-			.map((metric: string) => {
-				let pageData = null
-				for (const category in defillamaPages) {
-					const pages = defillamaPages[category]
-					for (const page of pages) {
-						if (page.route === metric) {
-							pageData = page
-							break
-						}
-					}
-				}
-				return pageData ? { name: pageData.name, route: pageData.route } : null
-			})
-			.filter((page) => page !== null)
+		if (!pinnedMetrics) return []
+
+		const parsedMetrics = JSON.parse(pinnedMetrics)
+		if (!Array.isArray(parsedMetrics) || parsedMetrics.length === 0) return []
+
+		// Create a lookup map for faster access
+		const routeToPageMap = new Map()
+		for (const category in defillamaPages) {
+			const pages = defillamaPages[category]
+			for (const page of pages) {
+				routeToPageMap.set(page.route, { name: page.name, route: page.route })
+			}
+		}
+
+		return parsedMetrics.map((metric: string) => routeToPageMap.get(metric)).filter((page) => page !== undefined)
 	}, [pinnedMetrics])
 
 	return (

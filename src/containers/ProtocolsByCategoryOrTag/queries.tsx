@@ -1,4 +1,4 @@
-import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API } from '~/constants'
+import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
@@ -42,11 +42,13 @@ export async function getProtocolsByCategoryOrTag({
 		revenueData,
 		dexVolumeData,
 		perpVolumeData,
+		openInterestData,
 		chartData,
 		chainsByCategoriesOrTags,
 		rwaStats
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -73,7 +75,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChartBreakdown: true
 				})
 			: null,
-		chainMetadata?.dexs
+		chainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
@@ -81,10 +83,19 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChartBreakdown: true
 				})
 			: null,
-		chainMetadata?.perps
+		chainMetadata?.perps && category && ['Derivatives', 'Interface'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true
+				})
+			: null,
+		chainMetadata?.perps && category && ['Derivatives'].includes(category)
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'open-interest',
+					dataType: 'openInterestAtEnd',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
@@ -149,6 +160,19 @@ export async function getProtocolsByCategoryOrTag({
 			total24h: protocol.total24h ?? null,
 			total7d: protocol.total7d ?? null,
 			total30d: protocol.total30d ?? null,
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains])),
+			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
+			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {})
+		}
+	}
+	for (const protocol of openInterestData?.protocols ?? []) {
+		if (!adapterDataStore[protocol.defillamaId]) {
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
+		}
+		adapterDataStore[protocol.defillamaId].openInterest = {
+			total24h: protocol.total24h ?? null,
 			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
 		}
 	}
@@ -159,10 +183,14 @@ export async function getProtocolsByCategoryOrTag({
 	for (const protocol of protocols) {
 		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category == category
 		if (isProtocolInCategoryOrTag) {
-			let tvl = 0
+			let tvl = null
 			const extraTvls: Record<string, number> = {}
 			if (chain) {
 				for (const pchain in protocol.chainTvls) {
+					if (protocol.chainTvls[pchain].tvl == null) {
+						continue
+					}
+
 					const chainName = pchain.split('-')[0]
 					if (chainName !== chainMetadata.name) {
 						continue
@@ -189,10 +217,14 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
+					tvl = (tvl ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			} else {
 				for (const pchain in protocol.chainTvls) {
+					if (protocol.chainTvls[pchain].tvl == null) {
+						continue
+					}
+
 					if (pchain === 'excludeParent') {
 						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 						continue
@@ -211,17 +243,18 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					tvl = tvl + (protocol.chainTvls[pchain].tvl ?? 0)
+					tvl = (tvl ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 				}
 			}
 
 			const borrowed = extraTvls.borrowed ?? null
-			const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
-			const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
+			const supplied = borrowed && tvl != null && tvl > 0 ? borrowed + tvl : null
+			const suppliedTvl = supplied && tvl != null ? (supplied / tvl).toFixed(2) : null
 			const fees = adapterDataStore[protocol.defillamaId]?.fees ?? null
 			const revenue = adapterDataStore[protocol.defillamaId]?.revenue ?? null
 			const dexVolume = adapterDataStore[protocol.defillamaId]?.dexVolume ?? null
 			const perpVolume = adapterDataStore[protocol.defillamaId]?.perpVolume ?? null
+			const openInterest = adapterDataStore[protocol.defillamaId]?.openInterest ?? null
 
 			const finalData = {
 				name: protocol.name,
@@ -238,6 +271,7 @@ export async function getProtocolsByCategoryOrTag({
 				revenue,
 				dexVolume,
 				perpVolume,
+				openInterest,
 				tags: protocol.tags ?? [],
 				...(isRWA ? { rwaStats: rwaStats[protocol.defillamaId] ?? null } : {})
 			}
@@ -263,7 +297,9 @@ export async function getProtocolsByCategoryOrTag({
 				continue
 			}
 
-			let tvl = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => acc + p.tvl, 0)
+			let tvl = parentProtocolsStore[parentProtocol.id].some((p) => p.tvl != null)
+				? parentProtocolsStore[parentProtocol.id].reduce((acc, p) => acc + (p.tvl ?? 0), 0)
+				: null
 			const extraTvls = parentProtocolsStore[parentProtocol.id].reduce((acc, p) => {
 				for (const key in p.extraTvls) {
 					acc[key] = (acc[key] ?? 0) + p.extraTvls[key]
@@ -271,11 +307,13 @@ export async function getProtocolsByCategoryOrTag({
 				return acc
 			}, {})
 
-			tvl -= extraTvls.excludeParent ?? 0
+			if (extraTvls.excludeParent != null) {
+				tvl = (tvl ?? 0) - (extraTvls.excludeParent ?? 0)
+			}
 
 			const borrowed = extraTvls.borrowed ?? null
-			const supplied = borrowed && tvl > 0 ? borrowed + tvl : null
-			const suppliedTvl = supplied ? (supplied / tvl).toFixed(2) : null
+			const supplied = borrowed && tvl != null && tvl > 0 ? borrowed + (tvl ?? 0) : null
+			const suppliedTvl = supplied && tvl != null ? (supplied / tvl).toFixed(2) : null
 			const fees = parentProtocolsStore[parentProtocol.id].reduce(
 				(acc, p) => ({
 					total24h: acc.total24h + (p.fees?.total24h ?? 0),
@@ -324,6 +362,14 @@ export async function getProtocolsByCategoryOrTag({
 					total30d: 0
 				}
 			)
+			const openInterest = parentProtocolsStore[parentProtocol.id].reduce(
+				(acc, p) => ({
+					total24h: acc.total24h + (p.openInterest?.total24h ?? 0)
+				}),
+				{
+					total24h: 0
+				}
+			)
 
 			const hasRWAStats = parentProtocolsStore[parentProtocol.id].some((p) => p.rwaStats != null)
 			const rwaStats: IRWAStats = {
@@ -362,6 +408,7 @@ export async function getProtocolsByCategoryOrTag({
 				revenue: revenue.total24h == 0 && revenue.total7d == 0 && revenue.total30d == 0 ? null : revenue,
 				dexVolume: dexVolume.total24h == 0 && dexVolume.total7d == 0 && dexVolume.total30d == 0 ? null : dexVolume,
 				perpVolume: perpVolume.total24h == 0 && perpVolume.total7d == 0 && perpVolume.total30d == 0 ? null : perpVolume,
+				openInterest: openInterest.total24h == 0 ? null : openInterest,
 				subRows: parentProtocolsStore[parentProtocol.id].sort((a, b) => b.tvl - a.tvl),
 				tags: Array.from(new Set(parentProtocolsStore[parentProtocol.id].flatMap((p) => p.tags ?? []))),
 				...(hasRWAStats ? { rwaStats } : {})
@@ -394,12 +441,14 @@ export async function getProtocolsByCategoryOrTag({
 	let revenue7d = 0
 	let dexVolume7d = 0
 	let perpVolume7d = 0
+	let openInterest = 0
 
 	for (const protocol of finalProtocols) {
 		fees7d += protocol.fees?.total7d ?? 0
 		revenue7d += protocol.revenue?.total7d ?? 0
 		dexVolume7d += protocol.dexVolume?.total7d ?? 0
 		perpVolume7d += protocol.perpVolume?.total7d ?? 0
+		openInterest += protocol.openInterest?.total24h ?? 0
 	}
 
 	return {
@@ -427,6 +476,7 @@ export async function getProtocolsByCategoryOrTag({
 		revenue7d: revenue7d > 0 ? revenue7d : null,
 		dexVolume7d: dexVolume7d > 0 ? dexVolume7d : null,
 		perpVolume7d: perpVolume7d > 0 ? perpVolume7d : null,
+		openInterest: openInterest > 0 ? openInterest : null,
 		extraTvlCharts
 	}
 }

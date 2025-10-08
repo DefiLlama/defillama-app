@@ -89,11 +89,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
-					{formattedPercent(value)}
-				</span>
-			)
+			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
 		},
 		size: 100,
 		meta: {
@@ -105,11 +101,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
-					{formattedPercent(value)}
-				</span>
-			)
+			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
 		},
 		size: 100,
 		meta: {
@@ -121,11 +113,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1m',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
-					{formattedPercent(value)}
-				</span>
-			)
+			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
 		},
 		size: 100,
 		meta: {

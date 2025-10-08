@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { trim } from 'lodash'
 import { maxAgeForNext } from '~/api'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -58,12 +57,24 @@ async function generateVCList(): Promise<VC[]> {
 export const getStaticProps = withPerformanceLogging('pitch', async () => {
 	return { notFound: true }
 	const vcList = await generateVCList()
-	const categories = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.categories)?.filter(Boolean)?.map(trim))))
-	const chains = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map(trim)))
-	const defiCategories = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.defiCategories)?.filter(Boolean))?.map(trim))
+	const categories = Array.from(
+		new Set(
+			vcList.flatMap((vc) =>
+				Array.from(vc.categories)
+					?.filter(Boolean)
+					?.map((x) => x.trim())
+			)
+		)
 	)
-	const roundTypes = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.roundTypes)?.filter(Boolean))?.map(trim)))
+	const chains = Array.from(
+		new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map((x) => x.trim()))
+	)
+	const defiCategories = Array.from(
+		new Set(vcList.flatMap((vc) => Array.from(vc.defiCategories)?.filter(Boolean))?.map((x) => x.trim()))
+	)
+	const roundTypes = Array.from(
+		new Set(vcList.flatMap((vc) => Array.from(vc.roundTypes)?.filter(Boolean))?.map((x) => x.trim()))
+	)
 	const lastRounds = vcList.map((vc) => vc.lastRound).sort((a, b) => b - a)
 
 	return {
@@ -176,7 +187,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 			window.open(data.link, '_blank')
 			setPaymentLink(data.link)
 		} catch (error) {
-			console.error('Error creating payment:', error)
+			console.log('Error creating payment:', error)
 		} finally {
 			setIsSubmitting(false)
 		}

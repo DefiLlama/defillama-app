@@ -1,26 +1,26 @@
 export const reactSelectStyles = {
 	control: (provided: any, state: any) => ({
 		...provided,
-		backgroundColor: 'var(--pro-bg2)',
-		border: '1px solid var(--pro-border)',
-		borderRadius: 0,
+		backgroundColor: 'var(--bg-input)',
+		border: '1px solid var(--form-control-border)',
+		borderRadius: 6,
 		minHeight: '40px',
 		boxShadow: 'none',
 		'&:hover': {
-			border: '1px solid var(--pro-border)'
+			border: '1px solid var(--form-control-border)'
 		},
 		...(state.isFocused && {
-			border: '1px solid var(--primary1)',
+			border: '1px solid var(--primary)',
 			'&:hover': {
-				border: '1px solid var(--primary1)'
+				border: '1px solid var(--primary)'
 			}
 		})
 	}),
 	menu: (provided: any) => ({
 		...provided,
-		backgroundColor: 'var(--pro-bg1)',
-		border: '1px solid var(--pro-border)',
-		borderRadius: 0,
+		backgroundColor: 'var(--cards-bg)',
+		border: '1px solid var(--cards-border)',
+		borderRadius: 6,
 		boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
 	}),
 	menuList: (provided: any) => ({
@@ -30,11 +30,11 @@ export const reactSelectStyles = {
 	}),
 	option: (provided: any, state: any) => ({
 		...provided,
-		backgroundColor: state.isSelected ? 'var(--primary1)' : state.isFocused ? 'var(--pro-bg3)' : 'transparent',
+		backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--bg-tertiary)' : 'transparent',
 		color: state.isSelected ? 'white' : 'var(--pro-text1)',
 		padding: '8px 12px',
 		'&:hover': {
-			backgroundColor: state.isSelected ? 'var(--primary1)' : 'var(--pro-bg3)'
+			backgroundColor: state.isSelected ? 'var(--primary)' : 'var(--bg-tertiary)'
 		}
 	}),
 	singleValue: (provided: any) => ({

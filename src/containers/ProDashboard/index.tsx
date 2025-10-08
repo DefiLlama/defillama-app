@@ -5,7 +5,6 @@ import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
@@ -46,7 +45,6 @@ function ProDashboardContent() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		items,
 		protocolsLoading,
@@ -68,8 +66,7 @@ function ProDashboardContent() {
 		setDashboardVisibility,
 		setDashboardTags,
 		setDashboardDescription,
-		showCreateDashboardModal,
-		setShowCreateDashboardModal,
+		createDashboardDialogStore,
 		showGenerateDashboardModal,
 		setShowGenerateDashboardModal,
 		showIterateDashboardModal,
@@ -95,7 +92,7 @@ function ProDashboardContent() {
 	]
 
 	const hasChartItems = items?.some(
-		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder'
+		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder' || item?.kind === 'yields'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()
@@ -154,10 +151,7 @@ function ProDashboardContent() {
 									<span>Private</span>
 								</p>
 							)}
-							{!featureFlagsLoading &&
-							hasFeature('dashboard-gen') &&
-							currentDashboard?.aiGenerated &&
-							Object.keys(currentDashboard.aiGenerated).length > 0 ? (
+							{currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 ? (
 								<p className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
 									<Icon name="sparkles" height={14} width={14} />
 									<span className="text-xs font-medium">AI Generated</span>
@@ -232,7 +226,7 @@ function ProDashboardContent() {
 				</div>
 			</div>
 
-			{!featureFlagsLoading && hasFeature('dashboard-gen') && currentDashboard?.aiGenerated && (
+			{currentDashboard?.aiGenerated && (
 				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
 			)}
 
@@ -260,10 +254,10 @@ function ProDashboardContent() {
 							{timePeriods.map((period) => (
 								<button
 									key={period.value}
-									className={`flex-1 border px-3 py-1.5 text-sm font-medium transition-colors duration-200 md:flex-initial md:px-4 md:py-2 ${
+									className={`-ml-px flex-1 rounded-none border px-3 py-1.5 text-sm font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:flex-initial md:px-4 md:py-2 ${
 										timePeriod === period.value
-											? 'border-(--primary) bg-(--primary) text-white'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-text2 hover:pro-text1 pro-hover-bg'
 									} ${!hasChartItems ? 'cursor-not-allowed opacity-50' : ''}`}
 									onClick={() => hasChartItems && setTimePeriod(period.value)}
 									disabled={!hasChartItems}
@@ -277,15 +271,15 @@ function ProDashboardContent() {
 						{dashboardId && (
 							<button
 								onClick={() => setShowSettingsModal(true)}
-								className="bg-opacity-30 pro-hover-bg hidden bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border) md:flex"
+								className="pro-glass pro-hover-bg hidden rounded-md p-2 transition-colors md:flex"
 								title="Dashboard Settings"
 							>
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
 							</button>
 						)}
-						{items.length > 0 && !featureFlagsLoading && hasFeature('dashboard-gen') && (
+						{items.length > 0 && (
 							<button
-								className="animate-ai-glow hidden items-center gap-2 border border-(--primary) px-4 py-2 text-base whitespace-nowrap text-(--primary) transition-colors hover:bg-(--primary) hover:text-white md:flex"
+								className="animate-ai-glow pro-btn-blue-outline hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
 								onClick={() => setShowIterateDashboardModal(true)}
 								title="Edit with LlamaAI"
 							>
@@ -295,7 +289,7 @@ function ProDashboardContent() {
 						)}
 						{canUndo && (
 							<button
-								className="pro-border pro-text2 hover:pro-text1 hidden items-center gap-2 border px-4 py-2 text-base whitespace-nowrap transition-colors hover:border-(--primary) md:flex"
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg hidden items-center gap-2 rounded-md border px-4 py-2 text-base whitespace-nowrap transition-colors md:flex"
 								onClick={undoAIGeneration}
 								title="Undo AI changes"
 							>
@@ -305,7 +299,7 @@ function ProDashboardContent() {
 						)}
 
 						<button
-							className="hidden items-center gap-2 bg-(--primary) px-4 py-2 text-base whitespace-nowrap text-white hover:bg-(--primary-hover) md:flex"
+							className="pro-btn-blue hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
 							onClick={() => setShowAddModal(true)}
 							disabled={isReadOnly}
 						>
@@ -340,7 +334,7 @@ function ProDashboardContent() {
 			{!protocolsLoading && items.length === 0 && (
 				<EmptyState
 					onAddChart={() => setShowAddModal(true)}
-					onGenerateWithAI={hasFeature('dashboard-gen') ? () => setShowIterateDashboardModal(true) : undefined}
+					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
 					isReadOnly={isReadOnly}
 				/>
 			)}
@@ -360,11 +354,7 @@ function ProDashboardContent() {
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardModal
-					isOpen={showCreateDashboardModal}
-					onClose={() => setShowCreateDashboardModal(false)}
-					onCreate={handleCreateDashboard}
-				/>
+				<CreateDashboardModal dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
 			</Suspense>
 
 			<Suspense fallback={<></>}>
@@ -385,7 +375,8 @@ function ProDashboardContent() {
 						visibility: dashboardVisibility,
 						tags: dashboardTags,
 						description: dashboardDescription,
-						items
+						items,
+						aiGenerated: currentDashboard?.aiGenerated
 					}}
 					onGenerate={handleIterateDashboard}
 				/>

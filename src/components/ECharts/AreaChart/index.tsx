@@ -31,7 +31,9 @@ export default function AreaChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
+	connectNulls = false,
 	onReady,
+	customComponents,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -66,6 +68,7 @@ export default function AreaChart({
 					shadowBlur: 10
 				},
 				symbol: 'none',
+				connectNulls,
 				itemStyle: {
 					color: chartColor
 				},
@@ -126,6 +129,7 @@ export default function AreaChart({
 						shadowBlur: 10
 					},
 					symbol: 'none',
+					connectNulls,
 					itemStyle: {
 						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
@@ -211,7 +215,8 @@ export default function AreaChart({
 		stackColors,
 		expandTo100Percent,
 		isStackedChart,
-		hideGradient
+		hideGradient,
+		connectNulls
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
@@ -335,6 +340,7 @@ export default function AreaChart({
 			{title || showLegend || !hideDownloadButton ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
 					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{customComponents ?? null}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
 							allValues={customLegendOptions}
@@ -359,7 +365,7 @@ export default function AreaChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
+				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
 				style={height ? { height } : undefined}
 			/>
 		</div>

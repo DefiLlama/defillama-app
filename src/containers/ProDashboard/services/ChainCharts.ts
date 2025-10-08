@@ -10,6 +10,7 @@ import {
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
+import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat } from '../utils'
 
 const CHART_METADATA = {
@@ -77,7 +78,7 @@ export default class ChainCharts {
 				return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
 			}
 		} catch (error) {
-			console.error('Error merging chain data:', error)
+			console.log('Error merging chain data:', error)
 		}
 
 		return []
@@ -119,13 +120,17 @@ export default class ChainCharts {
 		if (chainNames.length === 1) {
 			const response = await fetch(`${CHART_API}/${chain}`)
 			const data = await response.json()
-			return convertToNumberFormat(data?.tvl ?? [])
+			const adjustedTvl = processAdjustedTvl(data)
+			return convertToNumberFormat(adjustedTvl)
 		}
 
 		return this.fetchAndMergeChains(
 			chainNames,
 			(chainName) => `${CHART_API}/${chainName}`,
-			(data) => convertToNumberFormat(data?.tvl ?? [])
+			(data) => {
+				const adjustedTvl = processAdjustedTvl(data)
+				return convertToNumberFormat(adjustedTvl)
+			}
 		)
 	}
 
@@ -224,7 +229,7 @@ export default class ChainCharts {
 		const metadata = CHART_METADATA[chartType]
 
 		if (!metadata) {
-			console.error(`Unknown chart type: ${chartType}`)
+			console.log(`Unknown chart type: ${chartType}`)
 			return []
 		}
 
@@ -249,7 +254,7 @@ export default class ChainCharts {
 				}
 				return []
 			default:
-				console.error(`Unknown metadata type: ${metadata.type}`)
+				console.log(`Unknown metadata type: ${metadata.type}`)
 				return []
 		}
 	}

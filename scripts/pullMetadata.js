@@ -181,7 +181,7 @@ async function pullData() {
 		console.log('Data pulled and cached successfully.')
 		return true
 	} catch (error) {
-		console.error('Error pulling data:', error)
+		console.log('Error pulling data:', error)
 		process.exit(1) // Exit with error code
 	}
 }
@@ -203,7 +203,7 @@ if (shouldPullData()) {
 			process.exit(0) // Exit successfully
 		})
 		.catch((error) => {
-			console.error('Fatal error:', error)
+			console.log('Fatal error:', error)
 			process.exit(1) // Exit with error code
 		})
 } else {

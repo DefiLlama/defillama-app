@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import * as React from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
 
@@ -41,6 +42,7 @@ const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags
 	revenue: 'revenue',
 	volume: 'dexs',
 	perps: 'perps',
+	'open-interest': 'openInterest',
 	'options-notional': 'optionsNotionalVolume',
 	'options-premium': 'optionsPremiumVolume',
 	'bridge-aggregators': 'bridgeAggregators',
@@ -218,10 +220,14 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 			types.add('gasUsed')
 		}
 		if (flags.chainAssets) {
-			types.add('stablecoins')
 			types.add('bridgedTvl')
 		}
-		if (flags.inflows) types.add('stablecoinInflows')
+		if (flags.stablecoins) {
+			types.add('stablecoins')
+		}
+		if (flags.inflows) {
+			types.add('stablecoinInflows')
+		}
 		if (flags.chainFees) types.add('chainFees')
 		if (flags.chainRevenue) types.add('chainRevenue')
 		if (opts?.hasGeckoId || flags.gecko_id) {

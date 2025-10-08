@@ -38,7 +38,10 @@ export interface IChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	containerClassName?: string
+	connectNulls?: boolean
+	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
+	customComponents?: React.ReactNode
 }
 
 export interface ISingleSeriesChartProps
@@ -114,6 +117,7 @@ export interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	xAxisType?: 'time' | 'category'
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
@@ -138,4 +142,5 @@ export interface IPieChartProps {
 		orient?: 'horizontal' | 'vertical'
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
+	customComponents?: React.ReactNode
 }

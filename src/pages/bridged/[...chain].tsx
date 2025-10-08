@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getChainsBridged } from '~/api/categories/protocols'
 import { BridgedTVLByChain } from '~/containers/BridgedTVL/BridgedTVLByChain'
+import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
 import Layout from '~/layout'
-import { capitalizeFirstLetter } from '~/utils'
+import { capitalizeFirstLetter, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -13,7 +13,13 @@ export const getStaticProps = withPerformanceLogging(
 			chain: [chain]
 		}
 	}) => {
-		const data = await getChainsBridged(chain)
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const chainMetadata = metadataCache.chainMetadata[slug(chain)]
+		if (!chainMetadata || !chainMetadata.chainAssets) {
+			return { notFound: true }
+		}
+
+		const data = await getBridgedTVLByChain(chain)
 
 		return {
 			props: { ...data, chain, chainName: capitalizeFirstLetter(chain) },

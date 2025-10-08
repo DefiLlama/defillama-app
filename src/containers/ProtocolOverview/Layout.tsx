@@ -190,7 +190,7 @@ export function ProtocolOverviewLayout({
 								wrapperProps={{
 									className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 								}}
-								className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
+								className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 								portal
 							>
 								<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
@@ -265,7 +265,16 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						)
 					) : null}
-					{protocolTabs.map((pt) => (
+					{metrics.stablecoins && isCEX ? (
+						<BasicLink
+							href={`/cex/stablecoins/${slug(name)}`}
+							data-active={tab === 'stablecoins'}
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+						>
+							Stablecoin Info
+						</BasicLink>
+					) : null}
+					{protocolTabs.filter(pt => isCEX ? pt.id !== 'stablecoins' : true).map((pt) => (
 						<BasicLink
 							key={`${pt.id}-${name}`}
 							href={`${pt.route}/${slug(name)}`}

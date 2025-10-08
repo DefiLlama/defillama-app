@@ -44,7 +44,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		if (raises.length === 0) {
 			return {
-				notFound: true
+				notFound: true,
+				revalidate: maxAgeForNext([22])
 			}
 		}
 

@@ -182,7 +182,7 @@ export function OptionsDataset({ chains }: { chains?: string[] }) {
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

@@ -49,7 +49,7 @@ export function useParentChildMapping() {
 	return { data: parentToChildren }
 }
 
-function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod): [number, number][] {
+export function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod): [number, number][] {
 	if (timePeriod === 'all' || !data.length) {
 		return data
 	}
@@ -300,7 +300,7 @@ function getChartQueryFn(
 	if (itemType === 'protocol') {
 		const handler = protocolChartHandlers[type]
 		if (!handler) {
-			console.error(`Unknown chart type for protocol: ${type}`)
+			console.log(`Unknown chart type for protocol: ${type}`)
 			return () => Promise.resolve([])
 		}
 
@@ -348,7 +348,7 @@ function getChartQueryFn(
 		if (handler) {
 			return handler(item, geckoId, timePeriod)
 		}
-		console.error(`Unknown chart type for chain: ${type}`)
+		console.log(`Unknown chart type for chain: ${type}`)
 		return async () => {
 			const data = await ChainCharts.tvl(item)
 			return filterDataByTimePeriod(data, timePeriod || 'all')

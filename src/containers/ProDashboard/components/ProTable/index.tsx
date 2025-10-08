@@ -55,6 +55,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		updateCustomColumn,
 		categories,
 		availableProtocols,
+		parentProtocols,
 		customViews: currentCustomViews,
 		saveCustomView,
 		deleteCustomView,
@@ -123,6 +124,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 					isOpen={showFilterModal}
 					onClose={() => setShowFilterModal(false)}
 					protocols={availableProtocols}
+					parentProtocols={parentProtocols as any}
 					categories={categories}
 					currentFilters={filters || {}}
 					onFiltersChange={handleFiltersChange}

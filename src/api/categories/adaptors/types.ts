@@ -142,4 +142,6 @@ type ExtraTypes = {
 	feesChange_30dover30d?: number | null
 	revenueChange_7dover7d?: number | null
 	revenueChange_30dover30d?: number | null
+	holdersRevenueChange_7dover7d?: number | null
+	holdersRevenueChange_30dover30d?: number | null
 }

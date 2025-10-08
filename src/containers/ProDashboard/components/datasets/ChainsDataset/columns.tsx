@@ -24,7 +24,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 100,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text1 font-mono">{value || 0}</span>
+				return <span className="pro-text1">{value || 0}</span>
 		}
 	},
 	{
@@ -33,7 +33,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 130,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text1 font-mono">{value ? formattedNum(value) : ''}</span>
+				return <span className="pro-text1">{value ? formattedNum(value) : ''}</span>
 		}
 	},
 	{
@@ -42,44 +42,53 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 90,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
-				</span>
-			)
-		}
-	},
+		return (
+			<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
+				{value ? formattedPercent(value, false, 100) : '-'}
+			</span>
+		)
+	}
+},
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		size: 90,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
-				</span>
-			)
-		}
-	},
+		return (
+			<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
+				{value ? formattedPercent(value, false, 100) : '-'}
+			</span>
+		)
+	}
+},
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
 		size: 90,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
-				</span>
-			)
-		}
+		return (
+			<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
+				{value ? formattedPercent(value, false, 100) : '-'}
+			</span>
+		)
+	}
 	},
 	{
 		header: 'DeFi TVL',
 		accessorKey: 'tvl',
 		size: 140,
-		cell: ({ getValue }) => <span className="pro-text1 font-mono">{formattedNum(getValue() as number, true)}</span>
+		cell: ({ getValue }) => <span className="pro-text1">{formattedNum(getValue() as number, true)}</span>
+	},
+	{
+		header: 'Bridged TVL',
+		accessorKey: 'bridgedTvl',
+		size: 120,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
+		}
 	},
 	{
 		header: 'Stables',
@@ -87,7 +96,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
 	},
 	{
@@ -96,7 +105,16 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 150,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d DEXs Volume',
+		accessorKey: 'totalVolume30d',
+		size: 150,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
 	},
 	{
@@ -105,7 +123,16 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 130,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d Chain Fees',
+		accessorKey: 'totalFees30d',
+		size: 130,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
 	},
 	{
@@ -114,7 +141,25 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d App Revenue',
+		accessorKey: 'totalAppRevenue30d',
+		size: 140,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
+		}
+	},
+	{
+		header: '30d Chain Revenue',
+		accessorKey: 'totalRevenue30d',
+		size: 140,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
 	},
 	{
@@ -123,7 +168,16 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{value ? value.toFixed(2) : '-'}</span>
+			return <span className="pro-text2">{value ? value.toFixed(2) : '-'}</span>
+		}
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		size: 140,
+		cell: ({ getValue }) => {
+			const value = getValue() as number
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
 	},
 	{
@@ -132,7 +186,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{value ? formattedNum(value, true) : '-'}</span>
+			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
 	}
 ]

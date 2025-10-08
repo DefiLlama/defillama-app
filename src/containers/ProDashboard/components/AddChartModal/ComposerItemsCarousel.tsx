@@ -49,7 +49,7 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 					<button
 						onClick={handlePrevious}
 						disabled={validItems.length <= 1}
-						className="pro-hover-bg pro-text2 disabled:pro-text3 flex h-6 w-6 items-center justify-center text-xs disabled:cursor-not-allowed"
+						className="pro-hover-bg pro-text2 disabled:pro-text3 flex h-6 w-6 items-center justify-center rounded-md text-xs disabled:cursor-not-allowed"
 					>
 						<Icon name="chevron-left" height={14} width={14} />
 					</button>
@@ -59,7 +59,7 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 					<button
 						onClick={handleNext}
 						disabled={validItems.length <= 1}
-						className="pro-hover-bg pro-text2 disabled:pro-text3 flex h-6 w-6 items-center justify-center text-xs disabled:cursor-not-allowed"
+						className="pro-hover-bg pro-text2 disabled:pro-text3 flex h-6 w-6 items-center justify-center rounded-md text-xs disabled:cursor-not-allowed"
 					>
 						<Icon name="chevron-right" height={14} width={14} />
 					</button>

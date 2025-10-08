@@ -50,6 +50,7 @@ export enum TABLE_PERIODS {
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
+	{ name: 'Oracles', key: 'oracles' },
 	{ name: 'Chains', key: 'chains' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
 	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
@@ -135,12 +136,29 @@ export const protocolsByChainTableColumns = [
 		category: TABLE_CATEGORIES.VOLUME,
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
-	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
+	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Perp Volume 24h', key: 'perps_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Perp Volume 7d', key: 'perps_volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Perp Volume 30d', key: 'perps_volume_30d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Perp Volume Change 7d',
+		key: 'perps_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{ name: 'Open Interest', key: 'openInterest', category: TABLE_CATEGORIES.VOLUME },
+	{
+		name: 'Holders Revenue 30d Change',
+		key: 'holdersRevenueChange_30dover30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	}
 ]
 
 export const defaultColumns = JSON.stringify({
 	name: true,
 	category: true,
+	oracles: false,
 	chains: false,
 	tvl: true,
 	change_1d: true,
@@ -173,7 +191,13 @@ export const defaultColumns = JSON.stringify({
 	volume_24h: true,
 	volume_7d: false,
 	volumeChange_7d: false,
-	cumulativeVolume: false
+	cumulativeVolume: false,
+	perps_volume_24h: false,
+	perps_volume_7d: false,
+	perps_volume_30d: false,
+	perps_volume_change_7d: false,
+	openInterest: false,
+	holdersRevenueChange_30dover30d: false
 })
 
 const optionsKey = 'protocolsTableColumns'
@@ -436,7 +460,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-0.5 pr-2 pl-7 text-base text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>

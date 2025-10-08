@@ -27,9 +27,9 @@ const CHART_SYMBOLS = {
 	'Median APY': '%',
 	Treasury: '$',
 	Tweets: '',
-	Contributers: '',
+	Contributors: '',
 	Developers: '',
-	'Contributers Commits': '',
+	'Contributors Commits': '',
 	Commits: '',
 	'Devs Commits': ''
 }
@@ -62,6 +62,7 @@ interface IUseDefaultsProps {
 	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
 	alwaysShowTooltip?: boolean
 	showAggregateInTooltip?: boolean
+	xAxisType?: 'time' | 'category'
 }
 
 export function useDefaults({
@@ -78,7 +79,8 @@ export function useDefaults({
 	hideOthersInTooltip,
 	groupBy,
 	alwaysShowTooltip,
-	showAggregateInTooltip = false
+	showAggregateInTooltip = false,
+	xAxisType = 'time'
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -339,8 +341,8 @@ export function useDefaults({
 		}
 
 		const xAxis = {
-			type: 'time',
-			boundaryGap: false,
+			type: xAxisType,
+			boundaryGap: xAxisType === 'category',
 			nameTextStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 14,

@@ -1,5 +1,5 @@
 import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
-import { attributeOptions } from './Filters/Attributes'
+import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
 export function toFilterPool({
 	curr,
@@ -34,7 +34,7 @@ export function toFilterPool({
 	})
 
 	selectedAttributes.forEach((attribute) => {
-		const attributeOption = attributeOptions.find((o) => o.key === attribute)
+		const attributeOption = attributeOptionsMap.get(attribute)
 
 		if (attributeOption) {
 			toFilter = toFilter && attributeOption.filterFn(curr)
@@ -126,13 +126,13 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 		return removeMetaTag(symbol).includes(tokenToLend) && ltv > 0 && !removeMetaTag(symbol).includes('AMM')
 	})
 
-	const availableProjects = availableToLend.map(({ project }) => project)
-	const availableChains = availableToLend.map(({ chain }) => chain)
+	const availableProjectsSet = new Set(availableToLend.map(({ project }) => project))
+	const availableChainsSet = new Set(availableToLend.map(({ chain }) => chain))
 
 	const lendBorrowPairs = pools.reduce((acc, pool) => {
 		if (
-			!availableProjects.includes(pool.project) ||
-			!availableChains.includes(pool.chain) ||
+			!availableProjectsSet.has(pool.project) ||
+			!availableChainsSet.has(pool.chain) ||
 			(tokenToBorrow && (isStable(tokenToBorrow) ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow))) ||
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.borrowable === false ||
@@ -196,14 +196,14 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 			ltv > 0 &&
 			!removeMetaTag(symbol).includes('AMM')
 	)
-	const availableProjects = availableToLend.map(({ project }) => project)
-	const availableChains = availableToLend.map(({ chain }) => chain)
+	const availableProjectsSet = new Set(availableToLend.map(({ project }) => project))
+	const availableChainsSet = new Set(availableToLend.map(({ chain }) => chain))
 
 	// lendBorrowPairs is the same as in the optimizer, only difference is the optional filter on tokenToBorrow
 	let lendBorrowPairs = pools.reduce((acc, pool) => {
 		if (
-			!availableProjects.includes(pool.project) ||
-			!availableChains.includes(pool.chain) ||
+			!availableProjectsSet.has(pool.project) ||
+			!availableChainsSet.has(pool.chain) ||
 			(isStable(tokenToBorrow) ? false : !removeMetaTag(pool.symbol).includes(tokenToBorrow)) ||
 			removeMetaTag(pool.symbol).includes('AMM') ||
 			pool.apyBorrow === null ||
@@ -502,7 +502,7 @@ export const filterPool = ({
 	}
 	if (selectedAttributes) {
 		selectedAttributes.forEach((attribute) => {
-			const attributeOption = attributeOptions.find((o) => o.key === attribute)
+			const attributeOption = attributeOptionsMap.get(attribute)
 
 			if (attributeOption) {
 				toFilter = toFilter && attributeOption.filterFn(pool)

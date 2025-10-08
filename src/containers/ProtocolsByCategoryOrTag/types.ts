@@ -25,7 +25,8 @@ interface IProtocolByCategory {
 	fees?: Record<string, number> | null
 	revenue?: Record<string, number> | null
 	dexVolume?: Record<string, number>
-	perpVolume?: Record<string, number>
+	perpVolume?: Record<string, number> & { doublecounted?: boolean; zeroFeePerp?: boolean }
+	openInterest?: { total24h: number }
 	tags: Array<string>
 	rwaStats?: IRWAStats | null
 }
@@ -46,5 +47,6 @@ export interface IProtocolByCategoryOrTagPageData {
 	revenue7d: number | null
 	dexVolume7d: number | null
 	perpVolume7d: number | null
+	openInterest: number | null
 	extraTvlCharts: Record<string, Record<string, number>>
 }

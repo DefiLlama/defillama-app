@@ -1,14 +1,18 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
-import { PROTOCOLS_API } from '~/constants'
+import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
-import { ItemMultiSelect } from '../ItemMultiSelect'
-import { ItemSelect } from '../ItemSelect'
-import { ProtocolSelect } from '../ProtocolSelect'
+import { getItemIconUrl } from '../../utils'
+import { AriakitSelect } from '../AriakitSelect'
+import { AriakitMultiSelect } from '../AriakitMultiSelect'
+import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
 import { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -21,6 +25,7 @@ interface ChartBuilderTabProps {
 	protocolsLoading: boolean
 	onChartBuilderChange: (updates: Partial<ChartBuilderConfig>) => void
 	onChartBuilderNameChange: (name: string) => void
+	timePeriod: TimePeriod
 }
 
 const METRIC_OPTIONS = [
@@ -33,6 +38,7 @@ const METRIC_OPTIONS = [
 	{ value: 'holders-revenue', label: 'Holders Revenue' },
 	{ value: 'user-fees', label: 'User Fees' },
 	{ value: 'perps', label: 'Perps Volume' },
+	{ value: 'open-interest', label: 'Open Interest' },
 	{ value: 'dex-aggregators', label: 'DEX Aggregator Volume' },
 	{ value: 'options-notional', label: 'Options Notional' },
 	{ value: 'options-premium', label: 'Options Premium' },
@@ -69,7 +75,8 @@ export function ChartBuilderTab({
 	protocolOptions,
 	protocolsLoading,
 	onChartBuilderChange,
-	onChartBuilderNameChange
+	onChartBuilderNameChange,
+	timePeriod
 }: ChartBuilderTabProps) {
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboard()
@@ -79,6 +86,16 @@ export function ChartBuilderTab({
 			const response = await fetch(PROTOCOLS_API)
 			const data = await response.json()
 			return data.protocols || []
+		},
+		staleTime: 60 * 60 * 1000
+	})
+
+	const { data: chainCategoriesList } = useQuery({
+		queryKey: ['chains2-categories'],
+		queryFn: async () => {
+			const res = await fetch(CHAINS_API_V2)
+			const data = await res.json()
+			return (data?.categories as string[]) || []
 		},
 		staleTime: 60 * 60 * 1000
 	})
@@ -108,25 +125,28 @@ export function ChartBuilderTab({
 			chartBuilder.chains,
 			chartBuilder.limit,
 			chartBuilder.categories,
+			chartBuilder.chainCategories,
 			chartBuilder.groupByParent,
-			chartBuilder.filterMode || 'include'
+			chartBuilder.filterMode || 'include',
+			timePeriod
 		],
 		queryFn: async () => {
 			if (chartBuilder.mode === 'protocol') {
-				if (!chartBuilder.protocol) return null
-
 				const data = await ProtocolSplitCharts.getProtocolChainData(
 					chartBuilder.protocol,
 					chartBuilder.metric,
 					chartBuilder.chains.length > 0 ? chartBuilder.chains : undefined,
 					chartBuilder.limit,
-					chartBuilder.filterMode || 'include'
+					chartBuilder.filterMode || 'include',
+					chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0
+						? chartBuilder.chainCategories
+						: undefined
 				)
 
 				if (data && data.series.length > 0) {
 					data.series = data.series.map((serie) => ({
 						...serie,
-						data: serie.data.slice(-365)
+						data: filterDataByTimePeriod(serie.data, timePeriod)
 					}))
 				}
 
@@ -145,13 +165,13 @@ export function ChartBuilderTab({
 			if (data && data.series.length > 0) {
 				data.series = data.series.map((serie) => ({
 					...serie,
-					data: serie.data.slice(-365)
+					data: filterDataByTimePeriod(serie.data, timePeriod)
 				}))
 			}
 
 			return data
 		},
-		enabled: chartBuilder.mode === 'protocol' ? !!chartBuilder.protocol : !!chartBuilder.metric,
+		enabled: !!chartBuilder.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -164,17 +184,21 @@ export function ChartBuilderTab({
 	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
 
 	const handleMetricChange = (option: any) => {
-		onChartBuilderChange({ metric: option?.value || 'tvl' })
+		const newMetric = option?.value || 'tvl'
+		const newChartType = newMetric === 'tvl' ? 'stackedArea' : 'stackedBar'
+		onChartBuilderChange({ metric: newMetric, chartType: newChartType })
 	}
 
-	const handleChainsChange = (options: any[]) => {
-		const chains = options.map((opt) => opt.value)
+	const handleChainsChange = (chains: string[]) => {
 		onChartBuilderChange({ chains })
 	}
 
-	const handleCategoriesChange = (options: any[]) => {
-		const categories = options.map((opt) => opt.value)
+	const handleCategoriesChange = (categories: string[]) => {
 		onChartBuilderChange({ categories })
+	}
+
+	const handleChainCategoriesChange = (chainCategories: string[]) => {
+		onChartBuilderChange({ chainCategories })
 	}
 
 	const handleLimitChange = (option: any) => {
@@ -197,6 +221,15 @@ export function ChartBuilderTab({
 		onChartBuilderChange({ mode, chains: [], protocol: undefined })
 	}
 
+	useEffect(() => {
+		if (chartBuilder.mode === 'protocol') {
+			const shouldHideOthers = (chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0) || false
+			if (chartBuilder.hideOthers !== shouldHideOthers) {
+				onChartBuilderChange({ hideOthers: shouldHideOthers })
+			}
+		}
+	}, [chartBuilder.mode, chartBuilder.chainCategories])
+
 	const handleProtocolChange = (option: any) => {
 		onChartBuilderChange({ protocol: option?.value || undefined })
 	}
@@ -204,22 +237,21 @@ export function ChartBuilderTab({
 	return (
 		<div className="flex h-full flex-col">
 			<div className="mb-1">
-				<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>
 				<input
 					type="text"
 					value={chartBuilderName}
 					onChange={(e) => onChartBuilderNameChange(e.target.value)}
 					placeholder="Enter chart name..."
-					className="pro-border pro-text1 placeholder-pro-text3 pro-bg2 w-full border px-2 py-1.5 text-sm focus:border-(--primary1) focus:outline-hidden"
+					className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-				<div className="pro-border max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto border p-2 lg:w-[320px] xl:w-[360px]">
+				<div className="max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
 					<h3 className="pro-text1 text-[11px] font-semibold">Chart Configuration</h3>
 
 					<div>
-						<ItemSelect
+						<AriakitSelect
 							label="Metric"
 							options={METRIC_OPTIONS}
 							selectedValue={chartBuilder.metric}
@@ -231,15 +263,15 @@ export function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Mode</h4>
-						<div className="mb-1.5 flex gap-1">
+						<div className="mb-1.5 flex gap-0">
 							{MODE_OPTIONS.map((option) => (
 								<button
 									key={option.value}
 									onClick={() => handleModeChange(option.value as any)}
-									className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+									className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
 										chartBuilder.mode === option.value
-											? 'border-(--primary1) bg-(--primary1) text-white'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									}`}
 								>
 									{option.label}
@@ -253,7 +285,7 @@ export function ChartBuilderTab({
 
 						<div className="mb-1.5">
 							<h5 className="pro-text2 mb-1 text-[11px] font-medium">Filter Mode</h5>
-							<div className="mb-1.5 flex gap-1">
+							<div className="mb-1.5 flex gap-0">
 								{[
 									{ value: 'include', label: 'Include' },
 									{ value: 'exclude', label: 'Exclude' }
@@ -261,10 +293,10 @@ export function ChartBuilderTab({
 									<button
 										key={option.value}
 										onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
-										className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+										className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
 											(chartBuilder.filterMode || 'include') === option.value
-												? 'border-(--primary1) bg-(--primary1) text-white'
-												: 'pro-border pro-hover-bg pro-text2'
+												? 'pro-border pro-btn-blue'
+												: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 										}`}
 									>
 										{option.label}
@@ -276,9 +308,9 @@ export function ChartBuilderTab({
 						{chartBuilder.mode === 'chains' ? (
 							<>
 								<div className="mb-1.5">
-									<ItemMultiSelect
+									<AriakitVirtualizedMultiSelect
 										label="Chains"
-										options={chainOptions}
+										options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
@@ -286,14 +318,14 @@ export function ChartBuilderTab({
 												? 'Select chains to exclude...'
 												: 'Select chains...'
 										}
-										isLoading={protocolsLoading}
-										itemType="chain"
+										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
+										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 									/>
 								</div>
 
 								<div className="mb-1.5">
-									<ItemMultiSelect
+									<AriakitMultiSelect
 										label="Categories"
 										options={categoryOptions}
 										selectedValues={chartBuilder.categories}
@@ -304,13 +336,12 @@ export function ChartBuilderTab({
 												: 'Select categories...'
 										}
 										isLoading={false}
-										itemType="text"
 										maxSelections={5}
 									/>
 								</div>
 
 								<div className="mb-1.5">
-									<ItemSelect
+									<AriakitSelect
 										label="Number of Protocols"
 										options={LIMIT_OPTIONS}
 										selectedValue={chartBuilder.limit.toString()}
@@ -325,7 +356,7 @@ export function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
 											/>
 											<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
 										</label>
@@ -337,7 +368,7 @@ export function ChartBuilderTab({
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) => onChartBuilderChange({ groupByParent: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
 											/>
 											<span className="pro-text2 text-[10px]">Group by parent protocol</span>
 										</label>
@@ -347,20 +378,21 @@ export function ChartBuilderTab({
 						) : (
 							<>
 								<div className="mb-1.5">
-									<ProtocolSelect
+									<AriakitVirtualizedSelect
 										label="Protocol"
 										options={protocolOptionsFiltered}
-										selectedValue={chartBuilder.protocol}
+										selectedValue={chartBuilder.protocol || null}
 										onChange={handleProtocolChange}
 										placeholder="Select protocol..."
 										isLoading={protocolsLoading}
+										renderIcon={(option) => option.logo || getItemIconUrl('protocol', option, option.value)}
 									/>
 								</div>
 
 								<div className="mb-1.5">
-									<ItemMultiSelect
+									<AriakitVirtualizedMultiSelect
 										label="Chains"
-										options={chainOptions}
+										options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
@@ -368,13 +400,28 @@ export function ChartBuilderTab({
 												? 'Select chains to exclude...'
 												: 'Select chains...'
 										}
-										isLoading={protocolsLoading}
-										itemType="chain"
+										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
+										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 									/>
 								</div>
 								<div className="mb-1.5">
-									<ItemSelect
+									<AriakitMultiSelect
+										label="Chain Categories"
+										options={(chainCategoriesList || []).map((c) => ({ value: c, label: c }))}
+										selectedValues={chartBuilder.chainCategories || []}
+										onChange={handleChainCategoriesChange}
+										placeholder={
+											(chartBuilder.filterMode || 'include') === 'exclude'
+												? 'Select chain categories to exclude...'
+												: 'Select chain categories...'
+										}
+										isLoading={false}
+										maxSelections={5}
+									/>
+								</div>
+								<div className="mb-1.5">
+									<AriakitSelect
 										label="Number of Chains"
 										options={LIMIT_OPTIONS}
 										selectedValue={chartBuilder.limit.toString()}
@@ -383,17 +430,21 @@ export function ChartBuilderTab({
 										isLoading={false}
 									/>
 								</div>
-								<div className="mb-1">
-									<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
-										<label className="flex cursor-pointer items-center gap-1.5">
-											<Ariakit.Checkbox
-												onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
-												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
-											/>
-											<span className="pro-text2 text-[10px]">Hide "Others" (show only top {chartBuilder.limit})</span>
-										</label>
-									</Ariakit.CheckboxProvider>
-								</div>
+								{(!chartBuilder.chainCategories || chartBuilder.chainCategories.length === 0) && (
+									<div className="mb-1">
+										<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
+											<label className="flex cursor-pointer items-center gap-1.5">
+												<Ariakit.Checkbox
+													onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
+													className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
+												/>
+												<span className="pro-text2 text-[10px]">
+													Hide "Others" (show only top {chartBuilder.limit})
+												</span>
+											</label>
+										</Ariakit.CheckboxProvider>
+									</div>
+								)}
 							</>
 						)}
 					</div>
@@ -405,10 +456,10 @@ export function ChartBuilderTab({
 								<button
 									key={option.value}
 									onClick={() => handleChartTypeChange(option.value as any)}
-									className={`flex flex-col items-center gap-0.5 border p-1 transition-colors ${
+									className={`flex flex-col items-center gap-0.5 rounded-md border p-1 transition-colors ${
 										chartBuilder.chartType === option.value
-											? 'border-(--primary1) bg-(--primary1)/10 text-(--primary1)'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'border-pro-blue-100 bg-pro-blue-300/20 text-pro-blue-400 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20 dark:text-pro-blue-200'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									}`}
 								>
 									<Icon name={option.icon as any} height={14} width={14} />
@@ -420,15 +471,15 @@ export function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Display value as</h4>
-						<div className="flex gap-1">
+						<div className="flex gap-0">
 							{DISPLAY_OPTIONS.map((option) => (
 								<button
 									key={option.value}
 									onClick={() => handleDisplayChange(option.value as any)}
-									className={`flex-1 border px-2 py-1 text-xs transition-colors ${
+									className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
 										chartBuilder.displayAs === option.value
-											? 'border-(--primary1) bg-(--primary1) text-white'
-											: 'pro-border pro-hover-bg pro-text2'
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 									}`}
 								>
 									{option.label}
@@ -438,7 +489,7 @@ export function ChartBuilderTab({
 					</div>
 				</div>
 
-				<div className="pro-border flex min-h-0 flex-1 flex-col border p-3">
+				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
 						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
 						<div className="pro-text3 flex items-center gap-1 text-[10px]">
@@ -448,24 +499,33 @@ export function ChartBuilderTab({
 					</div>
 
 					<div
-						className="pro-bg2 relative flex flex-1 items-center justify-center rounded"
+						className="relative flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)"
 						style={{ minHeight: '450px' }}
 					>
 						{previewLoading ? (
 							<div className="text-center">
-								<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary1)"></div>
+								<div className="border-pro-blue-100 dark:border-pro-blue-300/20 mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2"></div>
 								<p className="pro-text2 text-sm">Loading preview...</p>
 							</div>
 						) : previewData && previewData.series.length > 0 ? (
 							<div className="absolute inset-0 p-2">
-								<Suspense fallback={<div className="pro-bg3 h-full w-full animate-pulse"></div>}>
+								<Suspense
+									fallback={
+										<div className="h-full w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
+									}
+								>
 									<MultiSeriesChart
 										height="450px"
 										key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}
 										series={(() => {
-											let filteredSeries = chartBuilder.hideOthers
-												? previewData.series.filter((s) => !s.name.startsWith('Others'))
-												: previewData.series
+											const forceHideOthers =
+												chartBuilder.mode === 'protocol' &&
+												chartBuilder.chainCategories &&
+												chartBuilder.chainCategories.length > 0
+											let filteredSeries =
+												chartBuilder.hideOthers || forceHideOthers
+													? previewData.series.filter((s) => !s.name.startsWith('Others'))
+													: previewData.series
 
 											if (chartBuilder.metric !== 'tvl' && chartBuilder.mode === 'chains') {
 												filteredSeries = filteredSeries.map((s) => {
@@ -549,9 +609,14 @@ export function ChartBuilderTab({
 												pageButtonItemGap: 5,
 												pageButtonGap: 20,
 												data: (() => {
-													let filteredSeries = chartBuilder.hideOthers
-														? previewData.series.filter((s) => !s.name.startsWith('Others'))
-														: previewData.series
+													const forceHideOthers =
+														chartBuilder.mode === 'protocol' &&
+														chartBuilder.chainCategories &&
+														chartBuilder.chainCategories.length > 0
+													let filteredSeries =
+														chartBuilder.hideOthers || forceHideOthers
+															? previewData.series.filter((s) => !s.name.startsWith('Others'))
+															: previewData.series
 													return filteredSeries?.map((s) => s.name) || []
 												})()
 											},
@@ -637,12 +702,16 @@ export function ChartBuilderTab({
 									? ` for ${
 											chartBuilder.protocol
 												? getProtocolInfo(chartBuilder.protocol)?.name || chartBuilder.protocol
-												: 'selected protocol'
+												: 'All Protocols'
 										} across different chains`
 									: ` breakdown by top ${chartBuilder.limit} protocols`}
 								{chartBuilder.mode === 'chains' &&
 									chartBuilder.chains.length > 0 &&
 									` on ${chartBuilder.chains.join(', ')}`}
+								{chartBuilder.mode === 'protocol' &&
+									chartBuilder.chainCategories &&
+									chartBuilder.chainCategories.length > 0 &&
+									` in ${chartBuilder.chainCategories.join(', ')} chain categories`}
 								{chartBuilder.mode === 'chains' &&
 									chartBuilder.categories.length > 0 &&
 									` in ${chartBuilder.categories.join(', ')} categories`}

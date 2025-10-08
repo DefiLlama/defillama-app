@@ -17,8 +17,8 @@ if (typeof window === 'undefined' && USE_REDIS) {
 				redis = new Redis.default(redisUrl)
 				redis.on('connect', () => console.log('[cache] [redis] connected'))
 				redis.on('error', (error) => {
-					console.error('[cache] [redis error]', redisUrl)
-					console.error(error)
+					console.log('[cache] [redis error]', redisUrl)
+					console.log(error)
 				})
 			} catch (e) {
 				console.log('[cache] [redis connection error]', e)
@@ -80,8 +80,8 @@ export const setCache = async (payload: RedisCachePayload, ttl?: string | number
 		}
 		return true
 	} catch (error) {
-		console.error('[error] [cache] [failed to set]', payload.Key)
-		console.error(error)
+		console.log('[error] [cache] [failed to set]', payload.Key)
+		console.log(error)
 		return false
 	}
 }
@@ -95,8 +95,8 @@ export const setPageBuildTimes = async (pageUrl, cacheObject) => {
 		await redis.hset('page_build_times', pageUrl, JSON.stringify(cacheObject))
 		return true
 	} catch (error) {
-		console.error('[error] [cache] [failed to set]', cacheObject)
-		console.error(error)
+		console.log('[error] [cache] [failed to set]', cacheObject)
+		console.log(error)
 		return false
 	}
 }
@@ -132,8 +132,8 @@ export const isCpusHot = async () => {
 		const hotMoments = usage.some((u) => u.cpusUsage.filter((u) => u > 0.75).length >= 1)
 		return hotMoments
 	} catch (error) {
-		console.error('[error] [cache] [failed to get cpu usage]')
-		console.error(error)
+		console.log('[error] [cache] [failed to get cpu usage]')
+		console.log(error)
 		return false
 	}
 	*/
@@ -159,8 +159,8 @@ export const getCache = async (Key: string) => {
 		}
 		return payload
 	} catch (error) {
-		console.error('[error] [cache] [failed to get]', Key)
-		console.error(error)
+		console.log('[error] [cache] [failed to get]', Key)
+		console.log(error)
 		return null
 	}
 }
@@ -174,8 +174,8 @@ export const deleteCache = async (Key: string) => {
 		await redis.del(Key)
 		return true
 	} catch (error) {
-		console.error('[error] [cache] [failed to delete]', Key)
-		console.error(error)
+		console.log('[error] [cache] [failed to delete]', Key)
+		console.log(error)
 		return false
 	}
 }
@@ -189,8 +189,8 @@ export const setObjectCache = async (key: string, data: any, ttl = 3600) => {
 		await redis.set(key, JSON.stringify(data), 'EX', ttl)
 		return true
 	} catch (error) {
-		console.error('[error] [cache] [failed to set]', key)
-		console.error(error)
+		console.log('[error] [cache] [failed to set]', key)
+		console.log(error)
 		return false
 	}
 }

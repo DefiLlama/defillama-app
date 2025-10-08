@@ -53,6 +53,7 @@ export function YieldsDataset({
 		filters,
 		setFilters,
 		availableChains,
+		availableProtocols,
 		availableTokens,
 		activeFilterCount,
 		applyFilters,
@@ -159,14 +160,15 @@ export function YieldsDataset({
 			<YieldsFiltersPanel
 				showFiltersPanel={showFiltersPanel}
 				setShowFiltersPanel={setShowFiltersPanel}
-				filters={filters}
-				setFilters={setFilters}
-				availableChains={availableChains}
-				availableTokens={availableTokens}
-				onApplyFilters={applyFilters}
-				onResetFilters={resetFilters}
-				activeFilterCount={activeFilterCount}
-			/>
+			filters={filters}
+			setFilters={setFilters}
+			availableChains={availableChains}
+			availableProtocols={availableProtocols}
+			availableTokens={availableTokens}
+			onApplyFilters={applyFilters}
+			onResetFilters={resetFilters}
+			activeFilterCount={activeFilterCount}
+		/>
 
 			<TableBody table={table} />
 

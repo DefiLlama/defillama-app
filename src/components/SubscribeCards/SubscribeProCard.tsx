@@ -19,7 +19,7 @@ export function SubscribeProCard({
 	const shouldShowLightMode = isModal && !isDarkMode
 	return (
 		<div
-			className={`flex w-[92vw] shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
+			className={`flex w-full shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
 				shouldShowLightMode ? 'border-[#e5e7eb] bg-[#f8f9fa]' : 'border-[#4a4a50] bg-[#22242930]'
 			} relative overflow-hidden rounded-xl border shadow-md backdrop-blur-md transition-all duration-300${
 				isModal ? '' : 'hover:transform md:hover:scale-[1.02]'
@@ -48,8 +48,9 @@ export function SubscribeProCard({
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 					<span>Access to all data (unlocks, active users, token liq...)</span>
 				</li>
-				<li className="mt-1 flex flex-col gap-1 px-6.5">
-					<span className="font-medium">Priority support</span>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span>Priority support</span>
 				</li>
 				<p className="px-6.5 font-medium">
 					<a href="https://api-docs.defillama.com/" target="_blank" rel="noreferrer noopener" className="underline">

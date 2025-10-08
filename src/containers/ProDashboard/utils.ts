@@ -87,8 +87,9 @@ export const getItemIconUrl = (itemType: 'chain' | 'protocol', itemInfo: any, it
 		// Replicate chainIconUrl logic from main utils
 		return `https://icons.llamao.fi/icons/chains/rsz_${itemIdentifier?.toLowerCase()}?w=48&h=48`
 	} else {
-		// Protocol icon logic
-		return itemInfo?.logo || `https://icons.llamao.fi/icons/protocols/${itemInfo?.id || itemIdentifier}.jpg`
+		if (itemInfo?.logo) return itemInfo.logo
+		const key = (itemInfo?.id || itemIdentifier)?.toString()
+		return `https://icons.llamao.fi/icons/protocols/${key}?w=48&h=48`
 	}
 }
 

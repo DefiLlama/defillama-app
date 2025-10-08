@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		}
 	} catch (error) {
-		console.error('Error fetching bridge aggregators data:', error)
+		console.log('Error fetching bridge aggregators data:', error)
 		res.status(500).json({ error: 'Failed to fetch bridge aggregators data' })
 	}
 }

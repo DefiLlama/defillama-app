@@ -329,7 +329,7 @@ const chartOptions = {
 	grid: {
 		top: 40,
 		right: 12,
-		bottom: 12,
+		bottom: 68,
 		left: 12,
 		outerBoundsMode: 'same',
 		outerBoundsContain: 'axisLabel'

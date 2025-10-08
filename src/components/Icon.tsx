@@ -46,7 +46,6 @@ type Name =
 	| 'file-text'
 	| 'layers'
 	| 'pie-chart'
-	| 'trending-up'
 	| 'dollar-sign'
 	| 'check'
 	| 'card'
@@ -78,6 +77,21 @@ type Name =
 	| 'chevrons-right'
 	| 'tag'
 	| 'file-lock-2'
+	| 'message-square-plus'
+	| 'arrow-up'
+	| 'arrow-right-to-line'
+	| 'ellipsis'
+	| 'thumbs-up'
+	| 'thumbs-down'
+	| 'chain'
+	| 'protocol'
+	| 'clipboard'
+	| 'message-square-warning'
+	| 'minus'
+	| 'package'
+	| 'layout-grid'
+	| 'arrow-down'
+	| 'share'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -85,7 +99,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v13.svg#${name}`} />
+			<use href={`/icons/v25.svg#${name}`} />
 		</svg>
 	)
 })

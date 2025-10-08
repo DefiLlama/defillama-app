@@ -1,5 +1,4 @@
 import { Icon } from '~/components/Icon'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 
 interface EmptyStateProps {
 	onAddChart: () => void
@@ -8,8 +7,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ onAddChart, onGenerateWithAI, isReadOnly = false }: EmptyStateProps) {
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
-	const showAIGeneration = !featureFlagsLoading && hasFeature('dashboard-gen') && onGenerateWithAI && !isReadOnly
+	const showAIGeneration = onGenerateWithAI && !isReadOnly
 
 	return (
 		<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">

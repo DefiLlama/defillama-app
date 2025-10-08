@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getChainsBridged } from '~/api/categories/protocols'
 import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
+import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridged', async () => {
-	const data = await getChainsBridged()
+	const data = await getBridgedTVLByChain()
 
 	return {
 		props: data,

@@ -178,7 +178,7 @@ export function IncludeExcludeTokens({
 					<span>Search for a token to filter by</span>
 				</Ariakit.DialogDisclosure>
 			</div>
-			<Ariakit.Dialog className="dialog sm:h-[70vh]">
+			<Ariakit.Dialog className="dialog sm:h-[70dvh]">
 				<div className="flex items-center gap-2">
 					<Ariakit.DialogHeading className="text-lg font-bold">Search for</Ariakit.DialogHeading>
 					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border-(--bg-input) bg-(--bg-input) p-1 text-xs font-medium">

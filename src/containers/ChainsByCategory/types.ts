@@ -77,12 +77,17 @@ export interface IChainsByCategory {
 interface IChain extends IChainTvl {
 	nftVolume: number | null
 	totalVolume24h: number | null
+	totalVolume30d?: number | null
 	totalFees24h: number | null
+	totalFees30d?: number | null
 	totalRevenue24h: number | null
+	totalRevenue30d?: number | null
 	stablesMcap: number | null
 	users: number | null
 	totalAppRevenue24h: number | null
+	totalAppRevenue30d?: number | null
 	chainAssets: IChainAsset | null
+	bridgedTvl?: number | null
 	childGroups: Record<string, Array<string>> | null
 }
 

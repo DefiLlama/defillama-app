@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChartConfig, DashboardItemConfig } from '../../types'
-import { ChartBuilderConfig, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
+import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('charts')
@@ -8,11 +8,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [composerItems, setComposerItems] = useState<ChartConfig[]>([])
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
+	const [selectedProtocols, setSelectedProtocols] = useState<string[]>([])
 	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
 	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
 	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
 	const [unifiedChartName, setUnifiedChartName] = useState<string>('')
-	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('separate')
+	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('combined')
+	const [chartMode, setChartMode] = useState<ChartModeType>('builder')
 
 	const setChartCreationMode = (mode: 'separate' | 'combined') => {
 		setChartCreationModeState(mode)
@@ -30,6 +32,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		mode: 'chains',
 		filterMode: 'include',
 		chains: [],
+		chainCategories: [],
 		categories: [],
 		groupBy: 'protocol',
 		limit: 10,
@@ -38,28 +41,49 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		additionalFilters: {}
 	})
 
+	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
+	const [metricChain, setMetricChain] = useState<string | null>(null)
+	const [metricProtocol, setMetricProtocol] = useState<string | null>(null)
+	const [metricType, setMetricType] = useState<string>('tvl')
+	const [metricAggregator, setMetricAggregator] = useState<MetricAggregator>('latest')
+	const [metricWindow, setMetricWindow] = useState<'7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'>('30d')
+	const [metricLabel, setMetricLabel] = useState<string>('')
+	const [metricShowSparkline, setMetricShowSparkline] = useState<boolean>(true)
+	const [selectedYieldPool, setSelectedYieldPool] = useState<{
+		configID: string
+		name: string
+		project: string
+		chain: string
+	} | null>(null)
+	const [selectedYieldChains, setSelectedYieldChains] = useState<string[]>([])
+	const [selectedYieldProjects, setSelectedYieldProjects] = useState<string[]>([])
+	const [selectedYieldCategories, setSelectedYieldCategories] = useState<string[]>([])
+	const [minTvl, setMinTvl] = useState<number | null>(null)
+	const [maxTvl, setMaxTvl] = useState<number | null>(null)
+
 	// Initialize state based on editItem
 	useEffect(() => {
 		if (editItem) {
 			if (editItem.kind === 'chart') {
 				setSelectedMainTab('charts')
+				setChartMode('manual')
 				setSelectedChartTab(editItem.protocol ? 'protocol' : 'chain')
 				setSelectedChain(editItem.chain || null)
 				setSelectedProtocol(editItem.protocol || null)
 				setSelectedChartType(editItem.type)
 				setSelectedChartTypes([editItem.type])
-				setChartCreationModeState('separate')
+				setChartCreationModeState('combined')
 				setUnifiedChartName('')
 			} else if (editItem.kind === 'multi') {
 				setSelectedMainTab('charts')
+				setChartMode('manual')
 				setComposerItems(editItem.items)
 				setUnifiedChartName(editItem.name || '')
 				setChartCreationModeState('combined')
 				if (editItem.items.length > 0) {
 					const firstItem = editItem.items[0]
 					setSelectedChartTab(firstItem.protocol ? 'protocol' : 'chain')
-					const chartTypes = editItem.items.map((item) => item.type)
-					setSelectedChartTypes(chartTypes)
+					setSelectedChartTypes([])
 					if (firstItem.protocol) {
 						setSelectedProtocol(firstItem.protocol)
 					} else if (firstItem.chain) {
@@ -85,24 +109,47 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setTextTitle(editItem.title || '')
 				setTextContent(editItem.content)
 			} else if (editItem.kind === 'builder') {
-				setSelectedMainTab('builder')
+				setSelectedMainTab('charts')
+				setChartMode('builder')
 				setChartBuilderName(editItem.name || '')
 				setChartBuilder({
 					...editItem.config,
 					mode: editItem.config.mode || 'chains'
 				})
+			} else if (editItem.kind === 'metric') {
+				setSelectedMainTab('metric')
+				setMetricSubjectType(editItem.subject.itemType)
+				setMetricChain(editItem.subject.chain || null)
+				setMetricProtocol(editItem.subject.protocol || null)
+				setMetricType(editItem.type)
+				setMetricAggregator(editItem.aggregator)
+				setMetricWindow(editItem.window)
+				setMetricLabel(editItem.label || '')
+				setMetricShowSparkline(editItem.showSparkline !== false)
+			} else if (editItem.kind === 'yields') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('yields')
+				setSelectedYieldPool({
+					configID: editItem.poolConfigId,
+					name: editItem.poolName,
+					project: editItem.project,
+					chain: editItem.chain
+				})
 			}
 		} else {
 			setSelectedMainTab('charts')
 			setSelectedChartTab('chain')
+			setChartMode('builder')
 			setComposerItems([])
 			setSelectedChain(null)
 			setSelectedChains([])
 			setSelectedProtocol(null)
+			setSelectedProtocols([])
 			setSelectedChartType('tvl')
 			setSelectedChartTypes([])
 			setUnifiedChartName('')
-			setChartCreationModeState('separate')
+			setChartCreationModeState('combined')
 			setTextTitle('')
 			setTextContent('')
 			setSelectedTableType('protocols')
@@ -116,6 +163,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				mode: 'chains',
 				filterMode: 'include',
 				chains: [],
+				chainCategories: [],
 				categories: [],
 				groupBy: 'protocol',
 				limit: 10,
@@ -123,6 +171,20 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				displayAs: 'timeSeries',
 				additionalFilters: {}
 			})
+			setMetricSubjectType('chain')
+			setMetricChain(null)
+			setMetricProtocol(null)
+			setMetricType('tvl')
+			setMetricAggregator('latest')
+			setMetricWindow('30d')
+			setMetricLabel('')
+			setMetricShowSparkline(true)
+			setSelectedYieldPool(null)
+			setSelectedYieldChains([])
+			setSelectedYieldProjects([])
+			setSelectedYieldCategories([])
+			setMinTvl(null)
+			setMaxTvl(null)
 		}
 	}, [editItem, isOpen])
 
@@ -133,10 +195,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedChartType('tvl')
 		setSelectedChartTypes([])
 		setUnifiedChartName('')
-		setChartCreationModeState('separate')
+		setChartCreationModeState('combined')
+		setChartMode('builder')
 		setSelectedChain(null)
 		setSelectedChains([])
 		setSelectedProtocol(null)
+		setSelectedProtocols([])
 		setSelectedTableType('protocols')
 		setSelectedDatasetChain(null)
 		setSelectedDatasetTimeframe(null)
@@ -147,6 +211,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			metric: 'tvl',
 			mode: 'chains',
 			chains: [],
+			chainCategories: [],
 			categories: [],
 			groupBy: 'protocol',
 			limit: 10,
@@ -154,15 +219,31 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			displayAs: 'timeSeries',
 			additionalFilters: {}
 		})
+		setMetricSubjectType('chain')
+		setMetricChain(null)
+		setMetricProtocol(null)
+		setMetricType('tvl')
+		setMetricAggregator('latest')
+		setMetricWindow('30d')
+		setMetricLabel('')
+		setMetricShowSparkline(true)
+		setSelectedYieldPool(null)
+		setSelectedYieldChains([])
+		setSelectedYieldProjects([])
+		setSelectedYieldCategories([])
+		setMinTvl(null)
+		setMaxTvl(null)
 	}
 
 	const state: ModalState = {
 		selectedMainTab,
 		selectedChartTab,
+		chartMode,
 		composerItems,
 		selectedChain,
 		selectedChains,
 		selectedProtocol,
+		selectedProtocols,
 		selectedChartType,
 		selectedChartTypes,
 		unifiedChartName,
@@ -175,17 +256,33 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedTokens,
 		includeCex,
 		chartBuilderName,
-		chartBuilder
+		chartBuilder,
+		metricSubjectType,
+		metricChain,
+		metricProtocol,
+		metricType,
+		metricAggregator,
+		metricWindow,
+		metricLabel,
+		metricShowSparkline,
+		selectedYieldPool,
+		selectedYieldChains,
+		selectedYieldProjects,
+		selectedYieldCategories,
+		minTvl,
+		maxTvl
 	}
 
 	const actionsObj = useMemo(
 		() => ({
 			setSelectedMainTab,
 			setSelectedChartTab,
+			setChartMode,
 			setComposerItems,
 			setSelectedChain,
 			setSelectedChains,
 			setSelectedProtocol,
+			setSelectedProtocols,
 			setSelectedChartType,
 			setSelectedChartTypes,
 			setUnifiedChartName,
@@ -198,11 +295,26 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedTokens,
 			setIncludeCex,
 			setChartBuilderName,
-			setChartBuilder
+			setChartBuilder,
+			setMetricSubjectType,
+			setMetricChain,
+			setMetricProtocol,
+			setMetricType,
+			setMetricAggregator,
+			setMetricWindow,
+			setMetricLabel,
+			setMetricShowSparkline,
+			setSelectedYieldPool,
+			setSelectedYieldChains,
+			setSelectedYieldProjects,
+			setSelectedYieldCategories,
+			setMinTvl,
+			setMaxTvl
 		}),
 		[
 			setSelectedMainTab,
 			setSelectedChartTab,
+			setChartMode,
 			setComposerItems,
 			setSelectedChain,
 			setSelectedChains,
@@ -219,7 +331,21 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedTokens,
 			setIncludeCex,
 			setChartBuilderName,
-			setChartBuilder
+			setChartBuilder,
+			setMetricSubjectType,
+			setMetricChain,
+			setMetricProtocol,
+			setMetricType,
+			setMetricAggregator,
+			setMetricWindow,
+			setMetricLabel,
+			setMetricShowSparkline,
+			setSelectedYieldPool,
+			setSelectedYieldChains,
+			setSelectedYieldProjects,
+			setSelectedYieldCategories,
+			setMinTvl,
+			setMaxTvl
 		]
 	)
 

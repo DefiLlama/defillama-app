@@ -17,6 +17,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
@@ -268,6 +269,7 @@ export function AdapterByChain(props: IProps) {
 				protocol.category,
 				protocol.chains.join(', '),
 				protocol.total24h,
+				protocol.total7d,
 				protocol.total30d,
 				protocol.total1y,
 				protocol.totalAllTime,
@@ -332,7 +334,7 @@ export function AdapterByChain(props: IProps) {
 		)
 	}
 
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type)
+	const metricName = ['Fees', 'Revenue', 'Holders Revenue', 'Open Interest'].includes(props.type)
 		? props.type
 		: props.type.includes('Volume')
 			? props.type
@@ -373,7 +375,7 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
+			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' && (
@@ -445,7 +447,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 py-0.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
 					<SelectWithCombobox
@@ -971,7 +973,17 @@ const getColumnsByType = (
 				id: 'total24h',
 				header: 'DEX Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -984,7 +996,17 @@ const getColumnsByType = (
 				id: 'total7d',
 				header: 'DEX Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -997,7 +1019,17 @@ const getColumnsByType = (
 				id: 'total30d',
 				header: 'DEX Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1013,7 +1045,33 @@ const getColumnsByType = (
 				id: 'total24h',
 				header: 'Perp Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1027,7 +1085,33 @@ const getColumnsByType = (
 				id: 'total7d',
 				header: 'Perp Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1040,7 +1124,33 @@ const getColumnsByType = (
 				id: 'total30d',
 				header: 'Perp Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {

@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig } from '../../types'
+import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
 
 export interface AddChartModalProps {
 	isOpen: boolean
@@ -6,8 +6,9 @@ export interface AddChartModalProps {
 	editItem?: DashboardItemConfig | null
 }
 
-export type MainTabType = 'charts' | 'table' | 'text' | 'builder'
-export type ChartTabType = 'chain' | 'protocol'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
+export type ChartModeType = 'manual' | 'builder'
+export type ChartTabType = 'chain' | 'protocol' | 'yields'
 export type CombinedTableType =
 	| 'protocols'
 	| 'cex'
@@ -33,6 +34,7 @@ export interface ChartBuilderConfig {
 		| 'revenue'
 		| 'volume'
 		| 'perps'
+		| 'open-interest'
 		| 'options-notional'
 		| 'options-premium'
 		| 'bridge-aggregators'
@@ -46,6 +48,7 @@ export interface ChartBuilderConfig {
 	filterMode?: 'include' | 'exclude'
 	protocol?: string
 	chains: string[]
+	chainCategories?: string[]
 	categories: string[]
 	groupBy: 'protocol'
 	limit: number
@@ -59,9 +62,11 @@ export interface ChartBuilderConfig {
 export interface ModalState {
 	selectedMainTab: MainTabType
 	selectedChartTab: ChartTabType
+	chartMode: ChartModeType
 	composerItems: ChartConfig[]
 	selectedChain: string | null
 	selectedChains: string[]
+	selectedProtocols: string[]
 	selectedProtocol: string | null
 	selectedChartType: string
 	selectedChartTypes: string[]
@@ -76,14 +81,30 @@ export interface ModalState {
 	includeCex: boolean
 	chartBuilderName: string
 	chartBuilder: ChartBuilderConfig
+	metricSubjectType: 'chain' | 'protocol'
+	metricChain: string | null
+	metricProtocol: string | null
+	metricType: string
+	metricAggregator: MetricAggregator
+	metricWindow: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
+	metricLabel: string
+	metricShowSparkline: boolean
+	selectedYieldPool: { configID: string; name: string; project: string; chain: string } | null
+	selectedYieldChains: string[]
+	selectedYieldProjects: string[]
+	selectedYieldCategories: string[]
+	minTvl: number | null
+	maxTvl: number | null
 }
 
 export interface ModalActions {
 	setSelectedMainTab: (tab: MainTabType) => void
 	setSelectedChartTab: (tab: ChartTabType) => void
+	setChartMode: (mode: ChartModeType) => void
 	setComposerItems: React.Dispatch<React.SetStateAction<ChartConfig[]>>
 	setSelectedChain: (chain: string | null) => void
 	setSelectedChains: (chains: string[]) => void // New action for multi-chain selection
+	setSelectedProtocols: (protocols: string[]) => void
 	setSelectedProtocol: (protocol: string | null) => void
 	setSelectedChartType: (type: string) => void
 	setSelectedChartTypes: (types: string[]) => void
@@ -98,10 +119,10 @@ export interface ModalActions {
 	setIncludeCex: (include: boolean) => void
 	setChartBuilderName: (name: string) => void
 	handleChainChange: (option: any) => void
-	handleChainsChange: (options: any[]) => void // New handler for multi-chain selection
+	handleChainsChange: (values: string[]) => void // New handler for multi-chain selection
 	handleProtocolChange: (option: any) => void
-	handleDatasetChainChange: (option: any) => void
-	handleTokensChange: (options: any) => void
+	handleDatasetChainChange: (value: string | null) => void
+	handleTokensChange: (tokens: string[]) => void
 	handleAddToComposer: (typesToAdd?: string[]) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleMainTabChange: (tab: MainTabType) => void
@@ -109,4 +130,18 @@ export interface ModalActions {
 	handleChartTabChange: (tab: ChartTabType) => void
 	setChartBuilder: React.Dispatch<React.SetStateAction<ChartBuilderConfig>>
 	updateChartBuilder: (updates: Partial<ChartBuilderConfig>) => void
+	setMetricSubjectType: (t: 'chain' | 'protocol') => void
+	setMetricChain: (v: string | null) => void
+	setMetricProtocol: (v: string | null) => void
+	setMetricType: (t: string) => void
+	setMetricAggregator: (a: MetricAggregator) => void
+	setMetricWindow: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') => void
+	setMetricLabel: (s: string) => void
+	setMetricShowSparkline: (v: boolean) => void
+	setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
+	setSelectedYieldChains: (chains: string[]) => void
+	setSelectedYieldProjects: (projects: string[]) => void
+	setSelectedYieldCategories: (categories: string[]) => void
+	setMinTvl: (tvl: number | null) => void
+	setMaxTvl: (tvl: number | null) => void
 }

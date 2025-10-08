@@ -23,6 +23,8 @@ export function cleanItemsForSaving(items: DashboardItemConfig[]): DashboardItem
 				return cleanItem
 			})
 			return { ...rest, items: cleanNestedItems }
+		} else if (item.kind === 'metric') {
+			return item
 		}
 		return item
 	})

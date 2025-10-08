@@ -55,7 +55,7 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 		btcPrice = priceData.coins['coingecko:bitcoin']?.price || 0
 		cexList = cexData.cexs
 	} catch (error) {
-		console.error('Error fetching CoinGecko data:', error)
+		console.log('Error fetching CoinGecko data:', error)
 	}
 
 	const cexsWithData = await Promise.all(
@@ -120,7 +120,7 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 					...extra
 				}
 			} catch (error) {
-				console.error(`Error fetching data for ${c.name}:`, error)
+				console.log(`Error fetching data for ${c.name}:`, error)
 				return {
 					...c,
 					tvl: 0,

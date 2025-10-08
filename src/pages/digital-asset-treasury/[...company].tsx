@@ -4,12 +4,14 @@ import dayjs from 'dayjs'
 import { maxAgeForNext } from '~/api'
 import { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
+import { TRADFI_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -27,6 +29,7 @@ interface IDigitalAssetTreasuryCompany {
 			amount: number
 			usdValue?: number | null
 			cost?: number | null
+			avgPrice?: number | null
 		}
 	}
 	last30dChanges: Array<{
@@ -38,6 +41,7 @@ interface IDigitalAssetTreasuryCompany {
 	}>
 	totalAssetAmount: number
 	totalCost?: number | null
+	avgPrice?: number | null
 	totalUsdValue?: number | null
 	transactionCount: number
 	firstAnnouncementDate: string
@@ -45,6 +49,8 @@ interface IDigitalAssetTreasuryCompany {
 	transactions: Array<{
 		ticker: string
 		asset: string
+		assetName: string
+		assetTicker: string
 		amount: number // DECIMAL(20, 8)
 		avg_price?: number // DECIMAL(20, 8)
 		usd_value?: number // DECIMAL(20, 2)
@@ -59,12 +65,11 @@ interface IDigitalAssetTreasuryCompany {
 		reject_reason?: string
 		last_updated?: Date
 	}>
-}
-
-const SYMBOL_MAP = {
-	bitcoin: 'BTC',
-	ethereum: 'ETH',
-	solana: 'SOL'
+	realized_mNAV?: number | null
+	realistic_mNAV?: number | null
+	max_mNAV?: number | null
+	price?: number | null
+	priceChange24h?: number | null
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -74,24 +79,32 @@ export const getStaticProps = withPerformanceLogging(
 			company: [company]
 		}
 	}) => {
-		const data: IDigitalAssetTreasuryCompany | null = await fetchJson(
-			`http://pkg0k8088o4cckkoww44scwo.37.27.48.106.sslip.io/v1/companies/${company}`
-		).catch(() => null)
+		const data: IDigitalAssetTreasuryCompany | null = await fetchJson(`${TRADFI_API}/v1/companies/${company}`).catch(
+			() => null
+		)
 
 		if (!data) {
 			return { notFound: true, props: null }
 		}
 
+		const assetsByNameAndTicker = Object.fromEntries(
+			data.assets.map((asset) => {
+				const assetTx = data.transactions.find((a) => a.asset === asset)
+				return [asset, { name: assetTx?.assetName ?? null, ticker: assetTx?.assetTicker ?? null }]
+			})
+		)
+
 		const chartByAsset = data.assets.map((asset) => {
 			let totalAmount = 0
 			return {
-				assetName: capitalizeFirstLetter(asset),
-				assetSymbol: SYMBOL_MAP[asset] ?? asset,
+				asset,
+				name: assetsByNameAndTicker[asset].name,
+				ticker: assetsByNameAndTicker[asset].ticker,
 				chart: data.transactions
 					.filter((item) => item.asset === asset)
 					.map((item) => [
 						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
-						Number(item.amount),
+						item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
 						item.avg_price ? Number(item.avg_price) : null,
 						item.usd_value ? Number(item.usd_value) : null
 					])
@@ -109,14 +122,17 @@ export const getStaticProps = withPerformanceLogging(
 		return {
 			props: {
 				...data,
-				assets: data.assets.map((asset) => capitalizeFirstLetter(asset)),
-				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(([asset, { amount, cost, usdValue }]) => ({
-					assetName: capitalizeFirstLetter(asset),
-					assetSymbol: SYMBOL_MAP[asset] ?? asset,
-					amount: amount,
-					cost: cost ?? null,
-					usdValue: usdValue ?? null
-				})),
+				assets: data.assets,
+				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(
+					([asset, { amount, cost, usdValue, avgPrice }]) => ({
+						name: assetsByNameAndTicker[asset].name,
+						ticker: assetsByNameAndTicker[asset].ticker,
+						amount: amount,
+						cost: cost ?? null,
+						usdValue: usdValue ?? null,
+						avgPrice: avgPrice ?? null
+					})
+				),
 				chartByAsset
 			},
 			revalidate: maxAgeForNext([22])
@@ -125,20 +141,32 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	return { paths: [], fallback: 'blocking' }
+	const data = await fetchJson(`${TRADFI_API}/v1/companies`)
+	const tickers = new Set<string>()
+	for (const asset in data.breakdownByAsset) {
+		for (const company of data.breakdownByAsset[asset]) {
+			tickers.add(company.ticker)
+		}
+	}
+	const paths = Array.from(tickers).map((ticker) => ({
+		params: { company: [slug(ticker)] }
+	}))
+	return { paths, fallback: false }
 }
 
 interface IProps extends IDigitalAssetTreasuryCompany {
 	assetsBreakdown: Array<{
-		assetName: string
-		assetSymbol: string
+		name: string
+		ticker: string
 		amount: number
 		cost: number | null
 		usdValue: number | null
+		avgPrice: number | null
 	}>
 	chartByAsset: Array<{
-		assetName: string
-		assetSymbol: string
+		asset: string
+		name: string
+		ticker: string
 		chart: Array<[number, number, number, number | null, number | null]>
 	}>
 }
@@ -146,8 +174,9 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 export default function DigitalAssetTreasury(props: IProps) {
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(props.assets[0])
 	const chartData = useMemo(() => {
-		return props.chartByAsset.find((asset) => asset.assetName === selectedAsset)
+		return props.chartByAsset.find((asset) => asset.asset === selectedAsset)
 	}, [selectedAsset, props.chartByAsset])
+
 	return (
 		<Layout
 			title={`${props.name} Digital Asset Treasury - DefiLlama`}
@@ -166,27 +195,37 @@ export default function DigitalAssetTreasury(props: IProps) {
 									<span className="font-jetbrains ml-auto">{props.assets.join(', ')}</span>
 								</p>
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									<span className="text-(--text-label)">Assets Cost Basis</span>
-									<span className="font-jetbrains ml-auto">
-										{props.totalCost != null ? formattedNum(props.totalCost, true) : null}
-									</span>
-								</p>
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">Assets Today's Value (USD)</span>
 									<span className="font-jetbrains ml-auto">
 										{props.totalUsdValue != null ? formattedNum(props.totalUsdValue, true) : null}
 									</span>
 								</p>
+								{props.totalCost != null && (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Assets Cost Basis</span>
+										<span className="font-jetbrains ml-auto">
+											{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
+										</span>
+									</p>
+								)}
+								{props.avgPrice != null && (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Assets Average Price</span>
+										<span className="font-jetbrains ml-auto">
+											{props.avgPrice != null ? formattedNum(props.avgPrice, true) : '-'}
+										</span>
+									</p>
+								)}
 							</>
 						)}
 						{props.assetsBreakdown.map((asset, index) => (
 							<details
 								className="group"
-								key={`${props.ticker}-${asset.assetName}`}
+								key={`${props.ticker}-${asset.name}`}
 								open={props.assetsBreakdown.length === 1 && index === 0}
 							>
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<span className="text-(--text-label)">Total {asset.assetName}</span>
+									<span className="text-(--text-label)">Total {asset.name}</span>
 									<Icon
 										name="chevron-down"
 										height={16}
@@ -194,20 +233,26 @@ export default function DigitalAssetTreasury(props: IProps) {
 										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
-										{formattedNum(asset.amount, false)} {asset.assetSymbol}
+										{formattedNum(asset.amount, false)} {asset.ticker}
 									</span>
 								</summary>
 								<div className="mb-3 flex flex-col">
 									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-										<span className="text-(--text-label)">Cost Basis</span>
-										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
-											{asset.cost != null ? formattedNum(asset.cost, true) : null}
-										</span>
-									</p>
-									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Today's Value (USD)</span>
 										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
 											{asset.usdValue != null ? formattedNum(asset.usdValue, true) : null}
+										</span>
+									</p>
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Cost Basis</span>
+										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+											{asset.cost != null ? formattedNum(asset.cost, true) : '-'}
+										</span>
+									</p>
+									<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Average Purchase Price</span>
+										<span className="font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap">
+											{asset.avgPrice != null ? formattedNum(asset.avgPrice, true) : '-'}
 										</span>
 									</p>
 								</div>
@@ -229,7 +274,65 @@ export default function DigitalAssetTreasury(props: IProps) {
 							<span className="text-(--text-label)">Total Transactions</span>
 							<span className="font-jetbrains ml-auto">{props.transactionCount}</span>
 						</p>
+						{props.price != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<span className="text-(--text-label)">${props.ticker} price</span>
+								{props.priceChange24h != null ? (
+									<Tooltip
+										content={
+											<>
+												24h change:{' '}
+												<span
+													className={props.priceChange24h > 0 ? 'text-(--success)' : 'text-(--error)'}
+												>{`${props.priceChange24h > 0 ? '+' : ''}${props.priceChange24h.toFixed(2)}%`}</span>
+											</>
+										}
+										className="font-jetbrains ml-auto underline decoration-dotted"
+									>
+										${props.price}
+									</Tooltip>
+								) : (
+									<span className="font-jetbrains ml-auto">${props.price}</span>
+								)}
+							</p>
+						) : null}
+						{props.realized_mNAV != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<Tooltip
+									content="Market Net Asset Value based only on the current outstanding common shares, with no dilution considered"
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									Realized mNAV
+								</Tooltip>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.realized_mNAV, false)}</span>
+							</p>
+						) : null}
+						{props.realistic_mNAV != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<Tooltip
+									content="Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised"
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									Realistic mNAV
+								</Tooltip>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.realistic_mNAV, false)}</span>
+							</p>
+						) : null}
+						{props.max_mNAV != null ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<Tooltip
+									content={`Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)`}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									Max mNAV
+								</Tooltip>
+								<span className="font-jetbrains ml-auto">{formattedNum(props.max_mNAV, false)}</span>
+							</p>
+						) : null}
 					</div>
+					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+						Report incorrect data
+					</BasicLink>
 				</div>
 				<div className="col-span-2 flex min-h-[402px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-between p-2">
@@ -246,13 +349,14 @@ export default function DigitalAssetTreasury(props: IProps) {
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<SingleSeriesChart
-							chartName={chartData.assetSymbol}
-							chartType="line"
+							chartName={chartData.ticker}
+							chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
 							chartData={chartData.chart}
-							valueSymbol={chartData.assetSymbol}
+							valueSymbol={chartData.ticker}
 							color={CHART_COLORS[0]}
 							chartOptions={chartOptions}
 							symbolOnChart="circle"
+							hideDataZoom={chartData.chart.length < 2}
 						/>
 					</Suspense>
 				</div>
@@ -260,8 +364,8 @@ export default function DigitalAssetTreasury(props: IProps) {
 			<TableWithSearch
 				data={props.transactions}
 				columns={columns}
-				placeholder="Search transactions"
-				columnToSearch="asset"
+				placeholder="Search assets"
+				columnToSearch="assetName"
 				sortingState={[{ id: 'report_date', desc: true }]}
 			/>
 		</Layout>
@@ -271,7 +375,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 	{
 		header: 'Asset',
-		accessorKey: 'asset',
+		accessorKey: 'assetName',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return <>{getValue()}</>
@@ -279,16 +383,24 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 	},
 	{
 		header: 'Amount',
-		accessorKey: 'amount',
-		cell: ({ getValue }) => {
-			return <>{formattedNum(getValue(), false)}</>
+		id: 'amount',
+		accessorFn: (row) => {
+			return row.type === 'sale' ? -Number(row.amount) : Number(row.amount)
+		},
+		cell: ({ getValue, row }) => {
+			const value = getValue() as number
+			return (
+				<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
+					{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)} ${row.original.assetTicker}`}
+				</span>
+			)
 		},
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: 'Avg Price',
+		header: 'Avg Purchase Price',
 		accessorKey: 'avg_price',
 		cell: ({ getValue }) => {
 			if (getValue() == null) return null
@@ -304,28 +416,6 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 		cell: ({ getValue }) => {
 			if (getValue() == null) return null
 			return <>{formattedNum(getValue(), true)}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Start Date',
-		accessorKey: 'start_date',
-		cell: ({ getValue }) => {
-			if (getValue() == null) return null
-			return <>{dayjs(getValue() as string).format('MMM D, YYYY')}</>
-		},
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'End Date',
-		accessorKey: 'end_date',
-		cell: ({ getValue }) => {
-			if (getValue() == null) return null
-			return <>{dayjs(getValue() as string).format('MMM D, YYYY')}</>
 		},
 		meta: {
 			align: 'end'
@@ -430,13 +520,15 @@ const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
 const chartOptions = {
 	tooltip: {
 		formatter: (params: any) => {
+			const label = params[0].value[2] < 0 ? 'Sold' : 'Purchased'
+			const valueLabel = params[0].value[2] < 0 ? 'Sale value' : 'Purchase value'
 			let val =
 				dayjs(params[0].value[0]).format('MMM D, YYYY') +
 				'<li style="list-style:none">' +
-				'Purchased:' +
+				`${label}:` +
 				'&nbsp;&nbsp;' +
 				'<span style="font-weight:600;">' +
-				formattedNum(params[0].value[2], false) +
+				formattedNum(Math.abs(params[0].value[2]), false) +
 				'&nbsp;' +
 				params[0].seriesName +
 				'</span>' +
@@ -456,7 +548,7 @@ const chartOptions = {
 			if (params[0].value[4] != null) {
 				val +=
 					'<li style="list-style:none">' +
-					`Purchase value:` +
+					`${valueLabel}:` +
 					'&nbsp;&nbsp;' +
 					'<span style="font-weight:600;">' +
 					formattedNum(params[0].value[4], true) +

@@ -145,7 +145,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 				downloadDataURL(imageFilename, outURL)
 			} catch (error) {
 				toast.error('Failed to export chart image')
-				console.error('Image export error:', error)
+				console.log('Image export error:', error)
 			} finally {
 				setIsLoading(false)
 			}

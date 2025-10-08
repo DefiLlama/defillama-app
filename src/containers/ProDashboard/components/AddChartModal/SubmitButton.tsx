@@ -1,5 +1,5 @@
 import { ChartConfig, DashboardItemConfig } from '../../types'
-import { ChartBuilderConfig, ChartTabType, CombinedTableType, MainTabType } from './types'
+import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
 
 interface SubmitButtonProps {
 	editItem?: DashboardItemConfig | null
@@ -9,6 +9,7 @@ interface SubmitButtonProps {
 	selectedChains: string[]
 	selectedProtocol: string | null
 	selectedChartTypes?: string[]
+	selectedYieldPool?: { configID: string; name: string; project: string; chain: string } | null
 	composerItems: ChartConfig[]
 	textContent: string
 	chartTypesLoading: boolean
@@ -17,6 +18,11 @@ interface SubmitButtonProps {
 	selectedTokens?: string[]
 	chartBuilder?: ChartBuilderConfig
 	chartCreationMode?: 'separate' | 'combined'
+	chartMode?: ChartModeType
+	metricSubjectType?: 'chain' | 'protocol'
+	metricChain?: string | null
+	metricProtocol?: string | null
+	metricType?: string
 	onSubmit: () => void
 }
 
@@ -28,6 +34,7 @@ export function SubmitButton({
 	selectedChains = [],
 	selectedProtocol,
 	selectedChartTypes = [],
+	selectedYieldPool,
 	composerItems,
 	textContent,
 	chartTypesLoading,
@@ -36,11 +43,21 @@ export function SubmitButton({
 	selectedTokens = [],
 	chartBuilder,
 	chartCreationMode = 'separate',
+	chartMode = 'manual',
+	metricSubjectType,
+	metricChain,
+	metricProtocol,
+	metricType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled =
 		chartTypesLoading ||
-		(selectedMainTab === 'charts' && composerItems.length === 0) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'yields' && !selectedYieldPool) ||
+		(selectedMainTab === 'charts' &&
+			chartMode === 'manual' &&
+			selectedChartTab !== 'yields' &&
+			composerItems.length === 0) ||
+		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'protocols' &&
 			(!selectedChains || selectedChains.length === 0)) ||
@@ -50,10 +67,10 @@ export function SubmitButton({
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||
 		(selectedMainTab === 'text' && !textContent.trim()) ||
-		(selectedMainTab === 'builder' &&
-			(!chartBuilder ||
-				(chartBuilder.mode === 'chains' && chartBuilder.chains.length === 0) ||
-				(chartBuilder.mode === 'protocol' && !chartBuilder.protocol)))
+		(selectedMainTab === 'metric' &&
+			(!metricType ||
+				(metricSubjectType === 'chain' && !metricChain) ||
+				(metricSubjectType === 'protocol' && !metricProtocol)))
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
@@ -61,7 +78,12 @@ export function SubmitButton({
 		switch (selectedMainTab) {
 			case 'table':
 				return 'Add Table'
+			case 'metric':
+				return 'Add Metric'
 			case 'charts':
+				if (chartMode === 'builder') {
+					return 'Add Chart'
+				}
 				if (chartCreationMode === 'combined') {
 					return 'Add Multi-Chart'
 				} else if (composerItems.length > 1) {
@@ -74,8 +96,6 @@ export function SubmitButton({
 				return 'Add Chart'
 			case 'text':
 				return 'Add Text'
-			case 'builder':
-				return 'Add Chart'
 			default:
 				return 'Add Chart'
 		}
@@ -84,7 +104,9 @@ export function SubmitButton({
 	return (
 		<div className="pro-border mt-2 flex justify-end border-t pt-2">
 			<button
-				className="bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors duration-200 hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50 md:px-4 md:py-2 md:text-sm"
+				className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 md:px-4 md:py-2 md:text-sm ${
+					isDisabled ? 'pro-border pro-text3 cursor-not-allowed border opacity-50' : 'pro-btn-blue'
+				}`}
 				onClick={onSubmit}
 				disabled={isDisabled}
 			>

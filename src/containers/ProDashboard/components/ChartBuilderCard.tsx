@@ -1,9 +1,8 @@
 import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import dayjs from 'dayjs'
 import { Select } from '~/components/Select'
-import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
@@ -22,6 +21,7 @@ interface ChartBuilderCardProps {
 				| 'revenue'
 				| 'volume'
 				| 'perps'
+				| 'open-interest'
 				| 'options-notional'
 				| 'options-premium'
 				| 'bridge-aggregators'
@@ -36,6 +36,7 @@ interface ChartBuilderCardProps {
 			filterMode?: 'include' | 'exclude'
 			protocol?: string
 			chains: string[]
+			chainCategories?: string[]
 			categories: string[]
 			groupBy: 'protocol'
 			limit: number
@@ -48,38 +49,6 @@ interface ChartBuilderCardProps {
 		name?: string
 		grouping?: 'day' | 'week' | 'month' | 'quarter'
 	}
-}
-
-function filterDataByTimePeriod(data: any[], timePeriod: string): any[] {
-	if (timePeriod === 'all' || !data.length) {
-		return data
-	}
-
-	const now = dayjs()
-	let cutoffDate: dayjs.Dayjs
-
-	switch (timePeriod) {
-		case '30d':
-			cutoffDate = now.subtract(30, 'day')
-			break
-		case '90d':
-			cutoffDate = now.subtract(90, 'day')
-			break
-		case '365d':
-			cutoffDate = now.subtract(365, 'day')
-			break
-		case 'ytd':
-			cutoffDate = now.startOf('year')
-			break
-		case '3y':
-			cutoffDate = now.subtract(3, 'year')
-			break
-		default:
-			return data
-	}
-
-	const cutoffTimestamp = cutoffDate.unix()
-	return data.filter(([timestamp]: [number, any]) => timestamp >= cutoffTimestamp)
 }
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
@@ -106,6 +75,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.chains,
 			config.limit,
 			config.categories,
+			config.chainCategories,
 			config.hideOthers,
 			config.groupByParent,
 			config.filterMode || 'include',
@@ -113,14 +83,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
-				if (!config.protocol) return { series: [] }
-
 				const data = await ProtocolSplitCharts.getProtocolChainData(
 					config.protocol,
 					config.metric,
 					config.chains.length > 0 ? config.chains : undefined,
 					config.limit,
-					config.filterMode || 'include'
+					config.filterMode || 'include',
+					config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories : undefined
 				)
 
 				if (!data || !data.series) {
@@ -135,14 +104,15 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					}))
 				}
 
-				if (config.hideOthers) {
+				if (
+					config.hideOthers ||
+					(config.mode === 'protocol' && config.chainCategories && config.chainCategories.length > 0)
+				) {
 					series = series.filter((s) => !s.name.startsWith('Others'))
 				}
 
 				return { series }
 			}
-
-			if ((config.filterMode || 'include') === 'include' && config.chains.length === 0) return { series: [] }
 
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
 				config.metric,
@@ -165,13 +135,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				}))
 			}
 
-			if (config.hideOthers) {
+			if (config.hideOthers || (config.chainCategories && config.chainCategories.length > 0)) {
 				series = series.filter((s) => !s.name.startsWith('Others'))
 			}
 
 			return { series }
 		},
-		enabled: config.mode === 'protocol' ? !!config.protocol : config.chains.length > 0,
+		enabled: !!config.metric,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -182,7 +152,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		let processedSeries = chartData.series
 		if (builder.grouping && builder.grouping !== 'day') {
 			processedSeries = chartData.series.map((s: any) => {
-				const aggregatedData: Map<number, number> = new Map()
+				const aggregatedData: Map<number, { value: number; lastTimestamp: number }> = new Map()
 
 				s.data.forEach(([timestamp, value]: [number, number]) => {
 					const date = new Date(timestamp * 1000)
@@ -208,12 +178,26 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							groupKey = timestamp
 					}
 
-					aggregatedData.set(groupKey, (aggregatedData.get(groupKey) || 0) + value)
+					const existingEntry = aggregatedData.get(groupKey)
+					if (isTvlChart) {
+						if (!existingEntry || timestamp > existingEntry.lastTimestamp) {
+							aggregatedData.set(groupKey, { value, lastTimestamp: timestamp })
+						}
+					} else {
+						const currentValue = existingEntry?.value ?? 0
+						const lastTimestamp = existingEntry?.lastTimestamp ?? timestamp
+						aggregatedData.set(groupKey, {
+							value: currentValue + value,
+							lastTimestamp
+						})
+					}
 				})
 
 				return {
 					...s,
-					data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
+					data: Array.from(aggregatedData.entries())
+						.sort((a, b) => a[0] - b[0])
+						.map(([periodStart, { value }]) => [periodStart, value])
 				}
 			})
 		}
@@ -257,7 +241,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, builder.grouping])
+	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
@@ -280,9 +264,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		})
 
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		const fileName = `${builder.name || config.metric}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${new Date().toISOString().split('T')[0]}.csv`
+		const fileName = `${
+			builder.name || config.metric
+		}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${
+			config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories.join('-') + '_' : ''
+		}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [chartSeries, builder.name, config.metric, config.chains, config.categories])
+	}, [chartSeries, builder.name, config.metric, config.chains, config.categories, config.chainCategories])
 
 	return (
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
@@ -291,11 +279,11 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					<h1 className="mr-auto text-base font-semibold">
 						{builder.name ||
 							(config.mode === 'protocol'
-								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'Selected protocol'} ${config.metric} by Chain`
+								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'All Protocols'} ${config.metric} by Chain`
 								: `${config.metric} by Protocol`)}
 					</h1>
 					{!isReadOnly && chartSeries.length > 0 && (
-						<div className="flex overflow-hidden border border-(--form-control-border)">
+						<div className="flex overflow-hidden rounded-md border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
 								<button
 									key={option}
@@ -329,27 +317,28 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							}}
 						/>
 					)}
-					{!isReadOnly && (
-						<Select
-							allValues={[
-								{ name: config.mode === 'protocol' ? 'Show all chains' : 'Show all protocols', key: 'All' },
-								{
-									name: config.mode === 'protocol' ? `Show only top chains` : `Show only top protocols`,
-									key: `Top ${config.limit}`
-								}
-							]}
-							selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
-							setSelectedValues={(value) => {
-								handleHideOthersChange(builder.id, value === 'All' ? false : true)
-							}}
-							label={config.hideOthers ? `Top ${config.limit}` : 'All'}
-							labelType="none"
-							triggerProps={{
-								className:
-									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-							}}
-						/>
-					)}
+					{!isReadOnly &&
+						(config.mode !== 'protocol' || !(config.chainCategories && config.chainCategories.length > 0)) && (
+							<Select
+								allValues={[
+									{ name: config.mode === 'protocol' ? 'Show all chains' : 'Show all protocols', key: 'All' },
+									{
+										name: config.mode === 'protocol' ? `Show only top chains` : `Show only top protocols`,
+										key: `Top ${config.limit}`
+									}
+								]}
+								selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
+								setSelectedValues={(value) => {
+									handleHideOthersChange(builder.id, value === 'All' ? false : true)
+								}}
+								label={config.hideOthers ? `Top ${config.limit}` : 'All'}
+								labelType="none"
+								triggerProps={{
+									className:
+										'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+								}}
+							/>
+						)}
 					{chartSeries.length > 0 && (
 						<>
 							<ImageExportButton
@@ -366,13 +355,32 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</>
 					)}
 				</div>
-				<p className="text-xs text-(--text-label)">
-					{config.mode === 'protocol'
-						? `${config.protocol} • All chains`
-						: `${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`}
-					{config.mode === 'chains' && config.categories.length > 0 && ` • ${config.categories.join(', ')}`}
-					{timePeriod && timePeriod !== 'all' && ` • ${timePeriod.toUpperCase()}`}
-				</p>
+				{(() => {
+					const parts: string[] = []
+					if (config.mode === 'protocol') {
+						const protoName = config.protocol
+							? getProtocolInfo(config.protocol)?.name || config.protocol
+							: 'All Protocols'
+						parts.push(protoName)
+						if ((config.filterMode || 'include') === 'exclude' && config.chains.length > 0) {
+							parts.push(`Excluding ${config.chains.join(', ')}`)
+						} else if (config.chains.length > 0) {
+							parts.push(config.chains.join(', '))
+						} else {
+							parts.push('All chains')
+						}
+						if (config.chainCategories && config.chainCategories.length > 0) {
+							const cats = config.chainCategories.join(', ')
+							if ((config.filterMode || 'include') === 'exclude') parts.push(`Excluding ${cats}`)
+							else parts.push(cats)
+						}
+					} else {
+						parts.push(`${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`)
+						if (config.categories.length > 0) parts.push(config.categories.join(', '))
+					}
+					if (timePeriod && timePeriod !== 'all') parts.push(timePeriod.toUpperCase())
+					return <p className="text-xs text-(--text-label)">{parts.join(' • ')}</p>
+				})()}
 			</div>
 
 			{isLoading ? (
@@ -383,7 +391,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			) : chartSeries.length > 0 ? (
 				<Suspense fallback={<div className="min-h-[300px]" />}>
 					<MultiSeriesChart
-						key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}`}
+						key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}-${config.limit}`}
 						series={chartSeries as any}
 						valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
 						groupBy={

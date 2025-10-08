@@ -220,7 +220,7 @@ export async function getBridgeChainsPageData() {
 			fetchJson(`${NETFLOWS_API}/week`).catch(() => null)
 		])
 	} catch (e) {
-		console.error('Failed to fetch netflows data:', e)
+		console.log('Failed to fetch netflows data:', e)
 	}
 
 	let prevDayDataByChain = []
@@ -314,8 +314,12 @@ export async function getBridgePageDatanew(bridge: string) {
 	// fetch list of all bridges
 	const { bridges } = await getBridges()
 
-	// find datqa of bridge
-	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))[0]
+	// find data of bridge
+	const bridgeData = bridges.find((obj) => slug(obj.displayName) === slug(bridge) || slug(obj.slug) === slug(bridge))
+
+	if (!bridgeData) {
+		return null
+	}
 
 	const { id, chains, icon, displayName, destinationChain } = bridgeData
 
@@ -511,7 +515,7 @@ export async function getBridgePageDatanew(bridge: string) {
 
 			tokenColor = Object.fromEntries(
 				[...tokenDeposits, ...tokenWithdrawals, 'Others'].map((token, i) => {
-					return typeof token === 'string' ? ['-', colors[i]] : [token.name, colors[i]]
+					return typeof token === 'string' ? ['-', colors[i] ?? '#AAAAAA'] : [token.name, colors[i] ?? '#AAAAAA']
 				})
 			)
 			const totalAddressesDeposited = prevDayData.totalAddressDeposited

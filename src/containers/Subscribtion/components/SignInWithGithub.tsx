@@ -8,7 +8,7 @@ export const SignInWithGithub = ({ className, onSuccess }: { className?: string;
 		try {
 			await signInWithGithub(onSuccess)
 		} catch (error) {
-			console.error('Error signing in with GitHub:', error)
+			console.log('Error signing in with GitHub:', error)
 		}
 	}
 

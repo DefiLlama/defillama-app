@@ -30,9 +30,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				tvl: chain.tvl || 0,
 				stablesMcap: chain.stablesMcap || null,
 				totalVolume24h: chain.totalVolume24h || null,
+				totalVolume30d: chain.totalVolume30d || null,
 				totalFees24h: chain.totalFees24h || null,
+				totalFees30d: chain.totalFees30d || null,
 				totalRevenue24h: chain.totalRevenue24h || null,
+				totalRevenue30d: chain.totalRevenue30d || null,
 				totalAppRevenue24h: chain.totalAppRevenue24h || null,
+				totalAppRevenue30d: chain.totalAppRevenue30d || null,
+				bridgedTvl: chain.bridgedTvl ?? chain.chainAssets?.total?.total ?? null,
 				mcaptvl: chain.mcaptvl || null,
 				nftVolume: chain.nftVolume || null,
 				mcap: chain.mcap || null,
@@ -45,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.status(200).json(sortedChains)
 	} catch (error) {
-		console.error('Error fetching chains data:', error)
+		console.log('Error fetching chains data:', error)
 		res.status(500).json({ error: 'Failed to fetch chains data' })
 	}
 }

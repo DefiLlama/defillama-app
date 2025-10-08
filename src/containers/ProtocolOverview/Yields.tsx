@@ -4,7 +4,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { slug } from '~/utils'
-import { sluggify } from '~/utils/cache-client'
+import { sluggifyProtocol } from '~/utils/cache-client'
 
 export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }) {
 	const protocolSlug = slug(protocol)
@@ -21,7 +21,7 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 						?.filter(
 							(p) =>
 								p.project === protocolSlug ||
-								(parentProtocol ? false : otherProtocols?.map((p) => sluggify(p)).includes(p.project))
+								(parentProtocol ? false : otherProtocols?.map((p) => sluggifyProtocol(p)).includes(p.project))
 						)
 						.map((i) => ({
 							...i,
@@ -46,12 +46,12 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 					<p className="flex items-center gap-2">
 						<span>Number of pools tracked</span>
 						<span>:</span>
-						<span>{data.noOfPoolsTracked}</span>
+						<span>{data?.noOfPoolsTracked}</span>
 					</p>
 					<p className="flex items-center gap-2">
 						<span>Average APY</span>
 						<span>:</span>
-						<span>{data.averageAPY.toFixed(2)}%</span>
+						<span>{data?.averageAPY.toFixed(2)}%</span>
 					</p>
 
 					{isLoading ? (

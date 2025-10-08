@@ -21,7 +21,7 @@ export function SubscribePlusCard({
 	const shouldShowLightMode = isModal && !isDarkMode
 	return (
 		<div
-			className={`flex w-[92vw] shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
+			className={`flex w-full shrink-0 snap-center flex-col px-4 py-8 md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 ${
 				shouldShowLightMode ? 'border-[#e5e7eb] bg-[#f8f9fa]' : 'border-[#4a4a50] bg-[#22242930]'
 			} relative overflow-hidden rounded-xl border shadow-md backdrop-blur-md transition-all duration-300${
 				isModal ? '' : 'hover:transform md:hover:scale-[1.02]'
@@ -38,9 +38,17 @@ export function SubscribePlusCard({
 			</div>
 			<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Create Custom DefiLlama Pro Dashboards</span>
+				<li className="flex flex-col gap-3">
+					<div className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>Create Custom DefiLlama Pro Dashboards</span>
+					</div>
+					<ul className="flex flex-col gap-3 pl-6">
+						<li className="flex flex-nowrap items-start gap-1">
+							<span className="relative w-4 shrink-0 text-center">•</span>
+							<span>Generate custom dashboards with LlamaAI</span>
+						</li>
+					</ul>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -81,6 +89,10 @@ export function SubscribePlusCard({
 							<span>Redesigned for better usability on all devices</span>
 						</li>
 					</ul>
+				</li>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
+					<span>API access</span>
 				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">

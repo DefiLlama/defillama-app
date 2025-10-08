@@ -8,7 +8,7 @@ import { TNavLink, TNavLinks } from './types'
 
 const Account = React.lazy(() => import('./Account').then((mod) => ({ default: mod.Account })))
 
-export const DesktopNav = ({
+export const DesktopNav = React.memo(function DesktopNav({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
@@ -18,7 +18,9 @@ export const DesktopNav = ({
 	pinnedPages: TNavLink[]
 	userDashboards: TNavLink[]
 	footerLinks: TNavLinks
-}) => {
+}) {
+	const { asPath } = useRouter()
+
 	return (
 		<nav className="thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
 			<BasicLink href="/" className="shrink-0">
@@ -44,8 +46,15 @@ export const DesktopNav = ({
 			<div className="flex flex-1 flex-col gap-1.5 overflow-y-auto">
 				{mainLinks.map(({ category, pages }) => (
 					<div key={`desktop-nav-${category}`} className="group">
-						{pages.map(({ name, route, icon }) => (
-							<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} icon={icon} />
+						{pages.map(({ name, route, icon, attention }) => (
+							<LinkToPage
+								key={`desktop-nav-${name}-${route}`}
+								route={route}
+								name={name}
+								icon={icon}
+								attention={attention}
+								asPath={asPath}
+							/>
 						))}
 					</div>
 				))}
@@ -56,7 +65,7 @@ export const DesktopNav = ({
 
 						{pinnedPages.map(({ name, route }) => (
 							<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
-								<LinkToPage route={route} name={name} />
+								<LinkToPage route={route} name={name} asPath={asPath} />
 								<Tooltip
 									content="Unpin from navigation"
 									render={
@@ -87,7 +96,7 @@ export const DesktopNav = ({
 						<p className="flex items-center justify-between gap-3 rounded-md text-xs opacity-65">Your Dashboards</p>
 						<div>
 							{userDashboards.map(({ name, route }) => (
-								<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} />
+								<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} asPath={asPath} />
 							))}
 						</div>
 					</div>
@@ -105,8 +114,15 @@ export const DesktopNav = ({
 						</summary>
 						<hr className="-ml-1.5 border-black/20 pt-2 group-last:block dark:border-white/20" />
 						<div>
-							{pages.map(({ name, route, icon }) => (
-								<LinkToPage key={`desktop-nav-${name}-${route}`} route={route} name={name} icon={icon} />
+							{pages.map(({ name, route, icon, attention }) => (
+								<LinkToPage
+									key={`desktop-nav-${name}-${route}`}
+									route={route}
+									name={name}
+									icon={icon}
+									attention={attention}
+									asPath={asPath}
+								/>
 							))}
 						</div>
 					</details>
@@ -122,19 +138,39 @@ export const DesktopNav = ({
 			</div>
 		</nav>
 	)
-}
+})
 
-const LinkToPage = ({ route, name, icon }: { route: string; name: string; icon?: string }) => {
-	const { asPath } = useRouter()
+const LinkToPage = React.memo(function LinkToPage({
+	route,
+	name,
+	icon,
+	attention,
+	asPath
+}: {
+	route: string
+	name: string
+	icon?: string
+	attention?: boolean
+	asPath: string
+}) {
+	const isActive = route === asPath.split('/?')[0].split('?')[0]
 
 	return (
 		<BasicLink
 			href={route}
-			data-linkactive={route === asPath.split('/?')[0].split('?')[0]}
+			data-linkactive={isActive}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 		>
 			{icon ? <Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" /> : null}
-			{name}
+			<span className="relative inline-flex items-center gap-2">
+				{name}
+				{attention ? (
+					<span
+						aria-hidden
+						className="inline-block h-2 w-2 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--app-bg)]"
+					/>
+				) : null}
+			</span>
 		</BasicLink>
 	)
-}
+})

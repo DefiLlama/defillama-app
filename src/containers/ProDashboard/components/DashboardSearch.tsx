@@ -42,7 +42,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 						}, 300)
 					}}
 					placeholder="Search dashboards by name or description or tags..."
-					className="w-full rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-2 pl-8 text-base text-black dark:text-white"
+					className="w-full rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-2 pl-8"
 				/>
 			</div>
 		</div>

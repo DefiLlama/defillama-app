@@ -98,7 +98,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		(loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription)))
 	) {
 		return (
-			<div className="flex h-[60vh] items-center justify-center">
+			<div className="flex h-[60dvh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -106,7 +106,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 overflow-x-hidden px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
 					<div
 						style={{
@@ -273,7 +273,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							<div
 								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
 							>
-								<span className="mx-auto flex w-[92vw] flex-col md:w-auto md:max-w-[400px]">
+								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
 									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
 									<EnterpriseCardContent />
 								</span>

@@ -23,11 +23,11 @@ import {
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { formattedNum, getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
 import type {
-	IChainAssets,
+	IChainAsset,
 	IChainMetadata,
 	IChainOverviewData,
 	IChildProtocol,
@@ -105,7 +105,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				}
 			} | null,
 			Record<string, number>,
-			IChainAssets | null,
+			IChainAsset | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
 			IAdapterSummary | null,
@@ -118,65 +118,62 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			any,
 			any
 		] = await Promise.all([
-			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`).then(async (res) => {
-				if (!res) {
-					const data = await fetchJson(`https://api.llama.fi/lite/charts${chain === 'All' ? '' : `/${metadata.name}`}`)
-					if (!data) {
-						throw new Error('Missing chart data')
-					}
-					return data
-				}
-				return res
-			}),
+			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`, { timeout: 2 * 60 * 1000 }),
 			getProtocolsByChain({ chain, metadata }),
-			getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
-				.then((data) => {
-					const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
-						chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
-						assetsOrChainsList: data?.peggedAssetNames,
-						filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
-						issuanceType: 'mcap',
-						selectedChain: chain === 'All' ? 'All' : metadata.name,
-						doublecountedIds: data?.doublecountedIds
-					})
-					let totalMcapCurrent = (peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap ?? null) as number | null
-					let totalMcapPrevWeek = (peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap ?? null) as number | null
-					const percentChange =
-						totalMcapCurrent != null && totalMcapPrevWeek != null
-							? getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
-							: null
+			metadata.stablecoins
+				? getPeggedOverviewPageData(chain === 'All' ? null : metadata.name)
+						.then((data) => {
+							const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
+								chartDataByAssetOrChain: data?.chartDataByPeggedAsset,
+								assetsOrChainsList: data?.peggedAssetNames,
+								filteredIndexes: Object.values(data?.peggedNameToChartDataIndex || {}),
+								issuanceType: 'mcap',
+								selectedChain: chain === 'All' ? 'All' : metadata.name,
+								doublecountedIds: data?.doublecountedIds
+							})
+							let totalMcapCurrent = (peggedAreaTotalData?.[peggedAreaTotalData.length - 1]?.Mcap ?? null) as
+								| number
+								| null
+							let totalMcapPrevWeek = (peggedAreaTotalData?.[peggedAreaTotalData.length - 8]?.Mcap ?? null) as
+								| number
+								| null
+							const percentChange =
+								totalMcapCurrent != null && totalMcapPrevWeek != null
+									? getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2)
+									: null
 
-					let topToken = { symbol: 'USDT', mcap: 0 }
+							let topToken = { symbol: 'USDT', mcap: 0 }
 
-					if (peggedAreaChartData && peggedAreaChartData.length > 0) {
-						const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
+							if (peggedAreaChartData && peggedAreaChartData.length > 0) {
+								const recentMcaps = peggedAreaChartData[peggedAreaChartData.length - 1]
 
-						for (const token in recentMcaps) {
-							if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
-								topToken = { symbol: token, mcap: recentMcaps[token] }
+								for (const token in recentMcaps) {
+									if (token !== 'date' && recentMcaps[token] > topToken.mcap) {
+										topToken = { symbol: token, mcap: recentMcaps[token] }
+									}
+								}
 							}
-						}
-					}
 
-					const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
+							const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
-					return {
-						mcap: totalMcapCurrent ?? null,
-						change7dUsd:
-							totalMcapCurrent != null && totalMcapPrevWeek != null ? totalMcapCurrent - totalMcapPrevWeek : null,
-						change7d: percentChange ?? null,
-						topToken,
-						dominance: dominance ?? null,
-						mcapChartData:
-							peggedAreaTotalData && peggedAreaTotalData.length >= 14
-								? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
-								: null
-					}
-				})
-				.catch((err) => {
-					console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
-					return null
-				}),
+							return {
+								mcap: totalMcapCurrent ?? null,
+								change7dUsd:
+									totalMcapCurrent != null && totalMcapPrevWeek != null ? totalMcapCurrent - totalMcapPrevWeek : null,
+								change7d: percentChange ?? null,
+								topToken,
+								dominance: dominance ?? null,
+								mcapChartData:
+									peggedAreaTotalData && peggedAreaTotalData.length >= 14
+										? peggedAreaTotalData.slice(-14).map((p) => [+p.date * 1000, p.Mcap ?? 0] as [number, number])
+										: null
+							}
+						})
+						.catch((err) => {
+							console.log('ERROR fetching stablecoins data of chain', metadata.name, err)
+							return null
+						})
+				: Promise.resolve(null),
 			!metadata.inflows
 				? Promise.resolve(null)
 				: getBridgeOverviewPageData(metadata.name)
@@ -218,7 +215,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chain && chain !== 'All'
 				? fetchJson(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
-			fetchJson(CHAINS_ASSETS).catch(() => ({})),
+			fetchJson(CHAINS_ASSETS)
+				.then((chainAssets) => (chain !== 'All' ? (chainAssets[metadata.name] ?? null) : null))
+				.catch(() => null),
 			metadata.revenue && chain !== 'All'
 				? getAdapterChainOverview({
 						adapterType: 'fees',
@@ -466,7 +465,11 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
 
-		const charts: ChainChartLabels[] = ['TVL']
+		const charts: ChainChartLabels[] = []
+
+		if (chartData) {
+			charts.push('TVL')
+		}
 
 		if (stablecoins?.mcap != null) {
 			charts.push('Stablecoins Mcap')
@@ -492,9 +495,11 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (appFees?.total24h != null) {
 			charts.push('App Fees')
 		}
+
 		if (chain !== 'All' && chainAssets != null) {
 			charts.push('Bridged TVL')
 		}
+
 		if (activeUsers != null) {
 			charts.push('Active Addresses')
 		}
@@ -523,6 +528,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (chain === 'All' && tvlChart.length === 0) {
 			throw new Error('Missing chart data')
 		}
+
+		const isDataAvailable = charts.length > 0 || protocols.length > 0
 
 		return {
 			chain,
@@ -567,7 +574,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,
-			chainAssets: chain !== 'All' ? formatChainAssets(chainAssets[metadata.name]) : null,
+			chainAssets: formatChainAssets(chainAssets),
 			devMetrics: null,
 			nfts:
 				nftVolumesData && chain !== 'All' && nftVolumesData[metadata.name.toLowerCase()]
@@ -605,11 +612,16 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			description:
 				metadata.name === 'All'
 					? 'Comprehensive overview of all metrics tracked on all chains, including TVL, Stablecoins Mcap, DEXs Volume, Perps Volume, protocols on all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.'
-					: `Comprehensive overview of all metrics tracked on ${metadata.name}, including ${charts.join(', ')}, and protocols on ${metadata.name}.`,
+					: isDataAvailable
+						? `Comprehensive overview of all metrics tracked on ${metadata.name}, including ${charts.join(', ')}, and protocols on ${metadata.name}.`
+						: `Comprehensive overview of all metrics tracked on ${metadata.name}`,
 			keywords:
 				metadata.name === 'All'
 					? 'blockchains, tvl, total value locked, defi, protocols on all chains, defillama, blockchain analytics'
-					: `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
+					: isDataAvailable
+						? `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
+						: '',
+			isDataAvailable
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
@@ -839,14 +851,20 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				slug: slug(metadataCache.protocolMetadata[protocol.defillamaId].displayName),
 				chains: metadataCache.protocolMetadata[protocol.defillamaId].chains,
 				category: protocol.category ?? null,
-				tvl: protocol.tvl != null ? tvls : null,
-				tvlChange: protocol.tvl != null ? tvlChange : null,
+				tvl: protocol.tvl != null && protocol.category !== 'Bridge' ? tvls : null,
+				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
-				mcaptvl: protocol.mcap && tvls?.default?.tvl ? +formattedNum(protocol.mcap / tvls.default.tvl) : null,
-				strikeTvl: toStrikeTvl(protocol, {
-					liquidstaking: tvls?.liquidstaking ? true : false,
-					doublecounted: tvls?.doublecounted ? true : false
-				})
+				mcaptvl:
+					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
+						? +(protocol.mcap / tvls.default.tvl).toFixed(2)
+						: null,
+				strikeTvl:
+					protocol.category !== 'Bridge'
+						? toStrikeTvl(protocol, {
+								liquidstaking: tvls?.liquidstaking ? true : false,
+								doublecounted: tvls?.doublecounted ? true : false
+							})
+						: false
 			}
 
 			if (protocol.deprecated) {
@@ -1030,7 +1048,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
 					parentProtocol.mcap && parentTvl?.default?.tvl
-						? +formattedNum(parentProtocol.mcap / parentTvl.default.tvl)
+						? +(parentProtocol.mcap / parentTvl.default.tvl).toFixed(2)
 						: null
 			}
 

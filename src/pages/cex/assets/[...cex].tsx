@@ -26,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 		const cexs = metadataCache.cexs
 
 		// if cex is not string, return 404
-		const exchangeData = cexs.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
+		const exchangeData = cexs.find((cex) => cex.slug && cex.slug.toLowerCase() === exchangeName.toLowerCase())
 		if (typeof exchangeName !== 'string' || !exchangeData) {
 			return {
 				notFound: true
@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				metrics: { tvlTab: true }
+				metrics: { tvlTab: true, stablecoins: true }
 			},
 			revalidate: maxAgeForNext([22])
 		}

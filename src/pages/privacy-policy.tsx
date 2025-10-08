@@ -1,4 +1,4 @@
-import { SubscribeLayout2 } from './fulfillment-policies'
+import { SubscribeLayout2 } from './subscription/fulfillment-policies'
 
 export default function PrivacyPolicy() {
 	return (
@@ -8,8 +8,8 @@ export default function PrivacyPolicy() {
 				<p>
 					This Privacy Policy explains how information about you is collected, used, and disclosed by DefiLlama. This
 					Privacy Policy applies to information we collect when you use the website operated by us and located at{' '}
-					<a href="https://llama.fi" className="underline">
-						https://llama.fi
+					<a href="https://defillama.com" className="underline">
+						https://defillama.com
 					</a>
 					, or when you otherwise interact with the services or tools we provide.
 				</p>
@@ -55,6 +55,13 @@ export default function PrivacyPolicy() {
 						are electronic images that may be used in our services or emails and help deliver cookies, count visits and
 						understand usage and campaign effectiveness. For more information about cookies, and how to disable them,
 						please see “Your Choices” below.
+					</p>
+					<p>
+						<span className="font-medium text-white">1.4</span>{' '}
+						<span className="font-medium text-white">No Sensitive Personal Information.</span> We do not intentionally
+						collect sensitive personal information such as government ID numbers, payment card or financial account
+						numbers, precise geolocation, health or biometric data, or information about children under 13. Please do
+						not submit such data to our Services.
 					</p>
 				</div>
 
@@ -125,18 +132,28 @@ export default function PrivacyPolicy() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl font-semibold text-white">4. Transfer of Information</h2>
+					<h2 className="text-xl font-semibold text-white">4. Security</h2>
 					<p>
-						<span className="font-medium text-white">4.1</span> All our servers are in the EU and all data is hosted
+						<span className="font-medium text-white">4.1</span> Security procedures are in place to protect the
+						confidentiality of your data. We use encryption to protect your information in transit (e.g., HTTPS/TLS) and
+						apply industry-standard access controls and least-privilege practices to limit access to any stored data. We
+						collect and retain only the minimum information necessary to operate the Services.
+					</p>
+				</div>
+
+				<div className="flex flex-col gap-3">
+					<h2 className="text-xl font-semibold text-white">5. Transfer of Information</h2>
+					<p>
+						<span className="font-medium text-white">5.1</span> All our servers are in the EU and all data is hosted
 						there. This is also true for our analytics provider, Fathom, but your data might be exposed to some
 						providers such as Cloudflare that are based out of the EU.
 					</p>
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl font-semibold text-white">5. Your Choices</h2>
+					<h2 className="text-xl font-semibold text-white">6. Your Choices</h2>
 					<p>
-						<span className="font-medium text-white">5.1</span> You may update, correct or delete information about you
+						<span className="font-medium text-white">6.1</span> You may update, correct or delete information about you
 						at any time emailing us at{' '}
 						<a href="mailto:support@defillama.com" className="underline">
 							support@defillama.com
@@ -147,9 +164,9 @@ export default function PrivacyPolicy() {
 				</div>
 
 				<div className="flex flex-col gap-3">
-					<h2 className="text-xl font-semibold text-white">6. Contact Us</h2>
+					<h2 className="text-xl font-semibold text-white">7. Contact Us</h2>
 					<p>
-						<span className="font-medium text-white">6.1</span> If you have any questions about this Privacy Policy,
+						<span className="font-medium text-white">7.1</span> If you have any questions about this Privacy Policy,
 						please contact us by email at{' '}
 						<a href="mailto:support@defillama.com" className="underline">
 							support@defillama.com

@@ -43,7 +43,8 @@ export const getStaticProps = withPerformanceLogging(
 		const noUpcomingEvent = emissions.upcomingEvent[0].timestamp === null
 		if (emissions.chartData?.documented?.length === 0 && emissions.chartData?.realtime?.length === 0) {
 			return {
-				notFound: true
+				notFound: true,
+				revalidate: maxAgeForNext([22])
 			}
 		}
 

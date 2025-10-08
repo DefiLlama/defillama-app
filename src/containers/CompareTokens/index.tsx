@@ -151,7 +151,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -276,7 +276,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1.5 pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</div>
 				</div>
@@ -289,7 +289,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 						unmountOnHide
 						hideOnInteractOutside
 						sameWidth
-						className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+						className="max-sm:drawer z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />

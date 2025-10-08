@@ -69,6 +69,19 @@ export default function YieldBorrow(data) {
 
 	const collateralToken = getQueryValue(router.query, 'collateral')
 
+	const handleSwap = React.useCallback(() => {
+		const newBorrow = collateralToken ?? ''
+		const newCollateral = borrowToken ?? ''
+
+		const nextQuery: Record<string, any> = { ...router.query }
+		if (newBorrow) nextQuery['borrow'] = newBorrow
+		else delete nextQuery['borrow']
+		if (newCollateral) nextQuery['collateral'] = newCollateral
+		else delete nextQuery['collateral']
+
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [borrowToken, collateralToken, router])
+
 	const filteredPools = findOptimizerPools({
 		pools: data.pools,
 		tokenToLend: collateralToken,
@@ -86,13 +99,24 @@ export default function YieldBorrow(data) {
 		>
 			<Announcement>{disclaimer}</Announcement>
 			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
-				<div className="flex w-full flex-col gap-5 overflow-y-auto p-3">
+				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
 					<TokensSelect
 						label="Borrow"
 						searchData={data.searchData}
 						queryParam={'borrow'}
 						placeholder="Select token to borrow"
 					/>
+
+					<div className="mt-2 flex items-center justify-center">
+						<button
+							aria-label="Swap borrow and collateral"
+							onClick={handleSwap}
+							className="inline-flex items-center justify-center rounded-full border border-(--form-control-border) bg-(--btn-bg) p-2 text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							title="Swap borrow and collateral"
+						>
+							<Icon name="repeat" className="h-4 w-4" />
+						</button>
+					</div>
 
 					<TokensSelect
 						label="Collateral"
@@ -214,7 +238,7 @@ const TokensSelect = ({
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-sm:drawer z-10 flex h-[calc(100vh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] lg:h-full lg:max-h-[var(--popover-available-height)] dark:border-[hsl(204,3%,32%)]"
+						className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />

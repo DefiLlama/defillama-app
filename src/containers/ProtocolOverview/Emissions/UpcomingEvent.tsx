@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
-import { sum } from 'lodash'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -39,7 +38,7 @@ export const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage })
 				unmountOnHide
 				hideOnInteractOutside
 				gutter={8}
-				className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 				portal
 			>
 				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
@@ -100,7 +99,7 @@ export const UpcomingEvent = ({
 			totalAmount = perDayAmount * (rateDurationDays || 1)
 			displayUnit = 'per day'
 		} else {
-			perDayAmount = totalAmount = sum(noOfTokens)
+			perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
 			displayUnit = ''
 		}
 		return {
@@ -113,7 +112,7 @@ export const UpcomingEvent = ({
 		}
 	})
 
-	const totalAmount = sum(currentUnlockBreakdown.map((item) => item.totalAmount))
+	const totalAmount = currentUnlockBreakdown.reduce((sum, item) => sum + item.totalAmount, 0)
 	const tokenValue = price ? totalAmount * price : null
 	const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 	const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null

@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
@@ -20,7 +19,7 @@ import {
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { getPercentChange, getPrevTvlFromChart, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ChainChartLabels, chainCharts } from './constants'
+import { ChainChartLabels } from './constants'
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -41,8 +40,6 @@ export const useFetchChainChartData = ({
 	toggledCharts: Array<ChainChartLabels>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 }) => {
-	const router = useRouter()
-
 	const denominationGeckoId =
 		denomination !== 'USD' ||
 		toggledCharts.includes('Token Price') ||
@@ -96,8 +93,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainFeesEnabled
 	})
 
-	const isChainRevenueEnabled =
-		toggledCharts.includes('Chain Revenue') && router.query[chainCharts['Chain Revenue']] === 'true' ? true : false
+	const isChainRevenueEnabled = toggledCharts.includes('Chain Revenue') ? true : false
 	const { data: chainRevenueData = null, isLoading: fetchingChainRevenue } = useQuery<IAdapterSummary>({
 		queryKey: ['chainRevenue', selectedChain, isChainRevenueEnabled],
 		queryFn: () =>
@@ -115,8 +111,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainRevenueEnabled
 	})
 
-	const isDexVolumeEnabled =
-		toggledCharts.includes('DEXs Volume') && router.query[chainCharts['DEXs Volume']] === 'true' ? true : false
+	const isDexVolumeEnabled = toggledCharts.includes('DEXs Volume') ? true : false
 	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery<IAdapterOverview>({
 		queryKey: ['dexVolume', selectedChain, isDexVolumeEnabled],
 		queryFn: () =>
@@ -133,8 +128,7 @@ export const useFetchChainChartData = ({
 		enabled: isDexVolumeEnabled
 	})
 
-	const isPerpsVolumeEnabled =
-		toggledCharts.includes('Perps Volume') && router.query[chainCharts['Perps Volume']] === 'true' ? true : false
+	const isPerpsVolumeEnabled = toggledCharts.includes('Perps Volume') ? true : false
 	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery<IAdapterOverview>({
 		queryKey: ['perpVolume', selectedChain, isPerpsVolumeEnabled],
 		queryFn: () =>
@@ -151,8 +145,7 @@ export const useFetchChainChartData = ({
 		enabled: isPerpsVolumeEnabled
 	})
 
-	const isChainAppFeesEnabled =
-		toggledCharts.includes('App Fees') && router.query[chainCharts['App Fees']] === 'true' ? true : false
+	const isChainAppFeesEnabled = toggledCharts.includes('App Fees') ? true : false
 	const { data: chainAppFeesData = null, isLoading: fetchingChainAppFees } = useQuery<IAdapterOverview>({
 		queryKey: ['chainAppFees', selectedChain, isChainAppFeesEnabled],
 		queryFn: () =>
@@ -170,8 +163,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainAppFeesEnabled
 	})
 
-	const isChainAppRevenueEnabled =
-		toggledCharts.includes('App Revenue') && router.query[chainCharts['App Revenue']] === 'true' ? true : false
+	const isChainAppRevenueEnabled = toggledCharts.includes('App Revenue') ? true : false
 	const { data: chainAppRevenueData = null, isLoading: fetchingChainAppRevenue } = useQuery<IAdapterOverview>({
 		queryKey: ['chainAppRevenue', selectedChain, isChainAppRevenueEnabled],
 		queryFn: () =>

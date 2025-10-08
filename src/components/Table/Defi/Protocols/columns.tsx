@@ -6,7 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { removedCategoriesFromChainTvl } from '~/constants'
+import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { formatColumnOrder } from '../../utils'
@@ -115,6 +115,42 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				''
 			),
 		size: 140,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
+		id: 'oracles',
+		header: 'Oracles',
+		accessorFn: (row) => {
+			const direct = Array.isArray((row as any).oracles) ? ((row as any).oracles as string[]) : []
+			if (direct.length) return direct
+			const byChain = (row as any).oraclesByChain as Record<string, string[]> | undefined
+			if (!byChain) return []
+			return Array.from(new Set(Object.values(byChain).flat()))
+		},
+		enableSorting: false,
+		cell: ({ getValue }) => {
+			const oracles = (getValue() as string[]) || []
+			if (!oracles.length) return ''
+			const visible = oracles.slice(0, 3)
+			const extra = oracles.length - visible.length
+			return (
+				<span className="flex flex-wrap items-center justify-end gap-1">
+					{visible.map((o) => (
+						<BasicLink
+							key={o}
+							href={`/oracles/${slug(o)}`}
+							className="text-sm font-medium text-(--link-text) hover:underline"
+						>
+							{o}
+						</BasicLink>
+					))}
+					{extra > 0 ? <Tooltip content={oracles.slice(3).join(', ')}>+{extra}</Tooltip> : null}
+				</span>
+			)
+		},
+		size: 180,
 		meta: {
 			align: 'end'
 		}
@@ -470,6 +506,78 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		meta: {
 			headerHelperText: 'Volume traded on the protocol'
 		}
+	}),
+
+	columnHelper.group({
+		id: 'perps',
+		header: 'Perps Volume',
+		columns: [
+			columnHelper.accessor('perps_volume_24h', {
+				header: 'Perp Volume 24h',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Perpetuals trading volume in the last 24 hours'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('perps_volume_7d', {
+				header: 'Perp Volume 7d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Perpetuals trading volume in the last 7 days'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('perps_volume_30d', {
+				header: 'Perp Volume 30d',
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Perpetuals trading volume in the last 30 days'
+				},
+				size: 150
+			}),
+			columnHelper.accessor('perps_volume_change_7d', {
+				header: 'Perp Volume Change 7d',
+				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+				sortUndefined: 'last',
+				meta: {
+					align: 'end',
+					headerHelperText: 'Change of last 7d perps volume over the previous 7d'
+				},
+				size: 180
+			})
+		],
+		meta: {
+			headerHelperText: 'Perpetuals volume traded on the protocol'
+		}
+	}),
+
+	columnHelper.accessor('openInterest', {
+		header: 'Open Interest',
+		cell: (info) => <>{info.getValue() != null && info.getValue() > 0 ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Total notional value of all open perpetual futures positions'
+		},
+		size: 140
+	}),
+
+	columnHelper.accessor('holdersRevenueChange_30dover30d', {
+		header: 'Holders Revenue 30d Change',
+		cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change of last 30d holders revenue over the previous 30d'
+		},
+		size: 200
 	}),
 
 	columnHelper.accessor('mcap', {
@@ -1156,11 +1264,9 @@ export const ProtocolTvlCell = ({ value, rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategoriesFromChainTvl.forEach((removedCategory) => {
-			if (rowValues.category === removedCategory) {
-				text = `${removedCategory} protocols are not counted into Chain TVL`
-			}
-		})
+		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+			text = `${rowValues.category} protocols are not counted into Chain TVL`
+		}
 
 		if (text && rowValues.isParentProtocol) {
 			text = 'Some sub-protocols are excluded from chain tvl'

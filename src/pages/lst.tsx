@@ -228,7 +228,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			const data = await fetchJson(`${COINS_PRICES_API}/current/ethereum:0x0000000000000000000000000000000000000000`)
 			return data.coins['ethereum:0x0000000000000000000000000000000000000000'].price
 		} catch (error) {
-			console.error('Error fetching ETH price:', error)
+			console.log('Error fetching ETH price:', error)
 			return null
 		}
 	}

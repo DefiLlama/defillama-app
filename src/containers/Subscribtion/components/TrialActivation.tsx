@@ -51,7 +51,7 @@ export function TrialActivation({ onSuccess, hasUsedTrial }: TrialActivationProp
 				}
 			}
 		} catch (error) {
-			console.error('Error activating trial:', error)
+			console.log('Error activating trial:', error)
 			toast.error('Failed to activate trial. Please try again.')
 		} finally {
 			setIsActivating(false)

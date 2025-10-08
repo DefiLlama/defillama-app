@@ -28,12 +28,14 @@ export interface Dashboard {
 	aiGenerated?: Record<
 		string,
 		{
+			mode: 'create' | 'iterate'
+			prompt: string
+			rated: boolean
 			rating?: number
 			feedback?: string
-			mode: 'create' | 'iterate'
+			skipped?: boolean
 			timestamp: string
 			userId: string
-			rated?: boolean
 		}
 	> | null
 }
@@ -66,6 +68,18 @@ class DashboardAPIService {
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards`)
 		const data = await this.handleResponse<{ items: Dashboard[] }>(response)
 		return data.items || []
+	}
+
+	async listDashboardsPaginated(
+		params: { page?: number; limit?: number },
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<{ items: Dashboard[]; page: number; perPage: number; totalItems: number; totalPages: number }> {
+		const searchParams = new URLSearchParams()
+		if (params.page) searchParams.append('page', params.page.toString())
+		if (params.limit) searchParams.append('limit', params.limit.toString())
+
+		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards?${searchParams.toString()}`)
+		return this.handleResponse(response)
 	}
 
 	async getDashboard(

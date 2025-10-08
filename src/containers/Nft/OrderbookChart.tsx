@@ -237,5 +237,5 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 		}
 	}, [id, chartData, createInstance, isDark, isSmall])
 
-	return <div id={id} className="min-h-[360px]" style={height ? { height } : undefined} />
+	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }

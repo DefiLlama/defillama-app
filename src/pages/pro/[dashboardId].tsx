@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -38,7 +39,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 	const router = useRouter()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { isAuthenticated, loaders } = useAuthContext()
-	const { isLoadingDashboard, dashboardVisibility, currentDashboard } = useProDashboard()
+	const { isLoadingDashboard, dashboardVisibility, currentDashboard, dashboardName } = useProDashboard()
 	const [isValidating, setIsValidating] = useState(true)
 	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
 	const hasTrackedView = useRef(false)
@@ -105,13 +106,18 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	if (dashboardVisibility === 'public' && currentDashboard) {
 		return (
-			<Suspense
+			<>
+				<Head>
+					<title>{`${dashboardName} - DefiLlama`}</title>
+				</Head>
+				<Suspense
 				fallback={
 					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
 				}
-			>
-				<ProDashboard />
-			</Suspense>
+				>
+					<ProDashboard />
+				</Suspense>
+			</>
 		)
 	}
 
@@ -172,12 +178,17 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 	}
 
 	return (
-		<Suspense
-			fallback={
-				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
-			}
-		>
-			<ProDashboard />
-		</Suspense>
+		<>
+			<Head>
+				<title>{`${dashboardName} - DefiLlama`}</title>
+			</Head>
+			<Suspense
+				fallback={
+					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+				}
+			>
+				<ProDashboard />
+			</Suspense>
+		</>
 	)
 }

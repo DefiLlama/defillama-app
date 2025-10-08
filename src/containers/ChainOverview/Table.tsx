@@ -24,7 +24,7 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { ICONS_CDN, removedCategoriesFromChainTvl } from '~/constants'
+import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
@@ -44,7 +44,7 @@ export interface CustomColumnDef {
 export const ChainProtocolsTable = ({
 	protocols,
 	sampleRow = sampleProtocol,
-	useStickyHeader = false,
+	useStickyHeader = true,
 	borderless = false
 }: {
 	protocols: Array<IProtocol>
@@ -500,7 +500,7 @@ const MAIN_COLUMN_BY_CATEGORY = {
 	[TABLE_CATEGORIES.TVL]: 'tvl',
 	[TABLE_CATEGORIES.FEES]: 'fees_24h',
 	[TABLE_CATEGORIES.REVENUE]: 'revenue_24h',
-	[TABLE_CATEGORIES.VOLUME]: 'volume_24h'
+	[TABLE_CATEGORIES.VOLUME]: 'dex_volume_24h'
 }
 
 enum TABLE_PERIODS {
@@ -1315,11 +1315,9 @@ export const ProtocolTvlCell = ({ rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategoriesFromChainTvl.forEach((removedCategory) => {
-			if (rowValues.category === removedCategory) {
-				text = `${removedCategory} protocols are not counted into Chain TVL`
-			}
-		})
+		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+			text = `${rowValues.category} protocols are not counted into Chain TVL`
+		}
 
 		if (text && rowValues.childProtocols) {
 			text = 'Some sub-protocols are excluded from chain tvl'
