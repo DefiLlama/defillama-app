@@ -99,7 +99,7 @@ export default function YieldBorrow(data) {
 			pageName={pageName}
 		>
 			<Announcement>{disclaimer}</Announcement>
-			<div className="relative mx-auto flex flex-col md:flex-row w-full items-start gap-3 rounded-md bg-(--cards-bg) p-3">
+			<div className="relative mx-auto flex flex-col md:flex-row w-full items-start gap-3 rounded-md bg-(--cards-bg) p-3 max-w-450">
 				<div className="flex w-full md:w-1/3 mx-auto flex-col gap-2 overflow-y-auto p-3 max-w-100">
 					<TokensSelect
 						label="Borrow"
