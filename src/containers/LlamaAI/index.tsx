@@ -60,6 +60,7 @@ async function fetchPromptResponse({
 			| 'error'
 			| 'title'
 			| 'message_id'
+			| 'reset'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -208,6 +209,14 @@ async function fetchPromptResponse({
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'title', content: data.content, title: data.content })
 							}
+						} else if (data.type === 'reset') {
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'reset',
+									content: data.content || 'Retrying...'
+								})
+							}
+							fullResponse = ''
 						}
 					} catch (e) {
 						console.log('SSE JSON parse error:', e)
@@ -483,6 +492,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
 						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
+					} else if (data.type === 'reset') {
+						setStreamingResponse('')
+						setProgressMessage(data.content || 'Retrying due to output error...')
 					}
 				},
 				abortSignal: abortControllerRef.current.signal
