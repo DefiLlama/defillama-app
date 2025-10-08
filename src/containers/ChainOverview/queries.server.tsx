@@ -10,7 +10,8 @@ import {
 	PROTOCOLS_API,
 	PROTOCOLS_TREASURY,
 	RAISES_API,
-	REV_PROTOCOLS
+	REV_PROTOCOLS,
+	TRADFI_API
 } from '~/constants'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import {
@@ -74,7 +75,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			globalMcapChartData,
 			rwaTvlChartData,
 			upcomingUnlocks,
-			chainIncentives
+			chainIncentives,
+			datInflows
 		]: [
 			ILiteChart,
 			{
@@ -116,7 +118,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			Array<[number, number]> | null,
 			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
 			any,
-			any
+			any,
+			Array<[number, number]> | null
 		] = await Promise.all([
 			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`, { timeout: 2 * 60 * 1000 }),
 			getProtocolsByChain({ chain, metadata }),
@@ -328,7 +331,8 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 							}
 						})
 						.catch(() => null)
-				: Promise.resolve(null)
+				: Promise.resolve(null),
+			chain === 'All' ? getDATInflows() : Promise.resolve(null)
 		])
 
 		const {
@@ -621,7 +625,18 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 					: isDataAvailable
 						? `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
 						: '',
-			isDataAvailable
+			isDataAvailable,
+			datInflows: datInflows
+				? {
+						chart: datInflows.slice(-14),
+						total30d: datInflows.reduce((acc, curr) => {
+							if (curr[0] >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
+								return (acc += curr[1])
+							}
+							return acc
+						}, 0)
+					}
+				: null
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
@@ -1082,5 +1097,46 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 		fees,
 		dexs,
 		emissionsData
+	}
+}
+
+interface IDATInflow {
+	dailyFlows: Record<string, Array<[number, number]>>
+	statsByAsset: Record<
+		string,
+		{
+			totalHoldings: number
+			totalUsdValue: number
+		}
+	>
+}
+export const getDATInflows = async () => {
+	try {
+		const data: IDATInflow = await fetchJson(`${TRADFI_API}/v1/companies`)
+		const inflowsByDate: Record<string, number> = {}
+		const priceOfAssets: Record<string, number> = {}
+
+		for (const asset in data.statsByAsset) {
+			priceOfAssets[asset] = Number(
+				(data.statsByAsset[asset].totalUsdValue / data.statsByAsset[asset].totalHoldings).toFixed(2)
+			)
+		}
+
+		for (const asset in data.dailyFlows) {
+			for (const [date, value] of data.dailyFlows[asset]) {
+				const usdValue = (value || 0) * (priceOfAssets[asset] || 0)
+				inflowsByDate[date] = (inflowsByDate[date] || 0) + usdValue
+			}
+		}
+
+		const finalChart = []
+		for (const date in inflowsByDate) {
+			finalChart.push([+date, inflowsByDate[date]])
+		}
+
+		return finalChart.sort((a, b) => a[0] - b[0])
+	} catch (error) {
+		console.error('Error fetching DAT inflows:', error)
+		return null
 	}
 }

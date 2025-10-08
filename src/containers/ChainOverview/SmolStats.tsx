@@ -21,30 +21,30 @@ const UpcomingUnlocksChart: any = lazy(() =>
 )
 
 export const SmolStats = (props: IChainOverviewData) => {
-	const rwaTvl = useMemo(() => {
-		if (!props.rwaTvlChartData) return null
-		const chart = props.rwaTvlChartData.map((item) => [item[0], item[1].tvl])
-		return {
-			chart,
-			change7d: chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[0][1]).toFixed(2) : 0
-		}
-	}, [props.rwaTvlChartData])
+	// const rwaTvl = useMemo(() => {
+	// 	if (!props.rwaTvlChartData) return null
+	// 	const chart = props.rwaTvlChartData.map((item) => [item[0], item[1].tvl])
+	// 	return {
+	// 		chart,
+	// 		change7d: chart.length > 1 ? getPercentChange(chart[chart.length - 1][1], chart[0][1]).toFixed(2) : 0
+	// 	}
+	// }, [props.rwaTvlChartData])
 
-	if (
-		props.chain !== 'All' &&
-		!props.dexs?.chart?.length &&
-		!props.chainFees?.topProtocolsChart?.length &&
-		!props.stablecoins?.mcapChartData?.length
-	) {
-		return null
-	}
+	// if (
+	// 	props.chain !== 'All' &&
+	// 	!props.dexs?.chart?.length &&
+	// 	!props.chainFees?.topProtocolsChart?.length &&
+	// 	!props.stablecoins?.mcapChartData?.length
+	// ) {
+	// 	return null
+	// }
 
 	return (
 		<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
 			{props.chain === 'All' ? (
 				<>
 					{/* {props.globalmcap?.chart?.length > 0 ? (
-						<div className="col-span-1 min-h-[137px] xl:min-h-[69px] max-h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 min-h-[119px] xl:min-h-[71px] max-h-[196px] bg-(--cards-bg) border border-(--cards-border) rounded-md p-2 flex flex-col xl:flex-row xl:flex-nowrap gap-1 xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<h3 />}
@@ -79,7 +79,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null} */}
 					{props.unlocks?.chart?.length > 0 ? (
-						<div className="col-span-1 flex max-h-[196px] min-h-[137px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[69px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[71px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<BasicLink href="/unlocks" />}
@@ -106,7 +106,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.dexs?.chart?.length > 0 ? (
-						<div className="col-span-1 flex max-h-[196px] min-h-[137px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[69px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[71px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={
@@ -136,7 +136,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						</div>
 					) : null}
 					{props.etfs?.length > 0 ? (
-						<div className="col-span-1 flex max-h-[196px] min-h-[137px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[69px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
+						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[71px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
 									render={<BasicLink href="/etfs" />}
@@ -157,7 +157,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</Suspense>
 						</div>
 					) : null}
-					{rwaTvl ? (
+					{/* {rwaTvl ? (
 						<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 							<Tooltip
 								placement="top-start"
@@ -196,6 +196,32 @@ export const SmolStats = (props: IChainOverviewData) => {
 									</Suspense>
 								</>
 							) : null}
+						</div>
+					) : null} */}
+					{props.datInflows.chart?.length > 0 ? (
+						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+							<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
+								<Tooltip
+									render={<BasicLink href="/etfs" />}
+									className="text-sm font-semibold"
+									content="Daily net inflows/outflows into Digital Asset Treasury companies"
+								>
+									DAT Inflows
+								</Tooltip>
+								{props.datInflows.chart?.length > 0 ? (
+									<p className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-form)">{`${formattedNum(
+										props.datInflows.total30d,
+										true
+									)} (30d)`}</p>
+								) : null}
+							</div>
+							<Suspense fallback={<></>}>
+								<SmolBarChart
+									series={props.datInflows.chart}
+									name="DAT Inflows"
+									className={'my-auto h-[53px] md:h-[132px] xl:h-[156px]'}
+								/>
+							</Suspense>
 						</div>
 					) : null}
 				</>
