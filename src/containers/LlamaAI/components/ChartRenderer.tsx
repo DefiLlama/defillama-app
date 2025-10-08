@@ -188,7 +188,6 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				}
 			}
 
-
 			return {
 				filename,
 				rows: []
@@ -276,8 +275,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 			case 'scatter':
 				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} />
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" />
 					</Suspense>
 				)
 				break
@@ -293,7 +292,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 		return (
 			<div className="flex flex-col">
-				{config.displayOptions && (
+				{config.displayOptions && !['pie', 'scatter'].includes(adaptedChart.chartType) && (
 					<ChartControls
 						displayOptions={config.displayOptions}
 						stacked={chartState.stacked}

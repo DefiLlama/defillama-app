@@ -151,11 +151,10 @@ export default function ScatterChart({
 				}
 			},
 			grid: {
-				left: '3%',
-				right: '7%',
-				bottom: '7%',
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				right: 12,
+				bottom: 12,
+				left: 12,
+				outerBoundsMode: 'same'
 			},
 			tooltip: {
 				showDelay: 0,
@@ -182,7 +181,6 @@ export default function ScatterChart({
 					scale: true,
 					name: xAxisLabel || 'APY Standard Deviation',
 					nameLocation: 'middle',
-					nameGap: 30,
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
 						fontSize: 14,
@@ -190,7 +188,8 @@ export default function ScatterChart({
 					},
 					axisLabel: {
 						formatter: '{value}',
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+						inside: true
 					},
 					splitLine: {
 						lineStyle: {
@@ -206,7 +205,6 @@ export default function ScatterChart({
 					scale: true,
 					name: yAxisLabel || 'APY Geometric Average',
 					nameLocation: 'middle',
-					nameGap: 40,
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
 						fontSize: 14,
@@ -214,7 +212,8 @@ export default function ScatterChart({
 					},
 					axisLabel: {
 						formatter: '{value}',
-						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+						inside: true
 					},
 					splitLine: {
 						lineStyle: {
@@ -250,8 +249,8 @@ export default function ScatterChart({
 	}, [id, chartData, createInstance, isDark])
 
 	return (
-		<div className="relative rounded-md bg-(--cards-bg) p-3">
-			<div id={id} style={{ minHeight: height, width: '100%' }} />
+		<div>
+			<div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }
