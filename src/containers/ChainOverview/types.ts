@@ -104,6 +104,10 @@ export interface IChainOverviewData {
 	description: string
 	keywords: string
 	isDataAvailable: boolean
+	datInflows: {
+		chart: Array<[number, number]>
+		total30d: number
+	} | null
 }
 
 export interface ILiteChart {
