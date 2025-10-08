@@ -144,3 +144,13 @@ export interface IPieChartProps {
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 	customComponents?: React.ReactNode
 }
+
+export interface IScatterChartProps {
+	chartData: any
+	title?: string
+	xAxisLabel?: string
+	yAxisLabel?: string
+	valueSymbol?: string
+	height?: string
+	tooltipFormatter?: (params: any) => string
+}
