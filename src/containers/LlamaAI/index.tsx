@@ -1501,8 +1501,8 @@ const SuggestedActions = memo(function SuggestedActions({
 	isStreaming: boolean
 }) {
 	return (
-		<div className="mt-4 grid gap-2">
-			<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
+		<div className="mt-4 grid gap-2 text-[#666] dark:text-[#919296]">
+			<h1>Suggested actions:</h1>
 			<div className="grid gap-2">
 				{suggestions.map((suggestion) => (
 					<button
@@ -1516,10 +1516,8 @@ const SuggestedActions = memo(function SuggestedActions({
 						}`}
 					>
 						<span className="flex flex-1 flex-col items-start gap-1">
-							<span>{suggestion.title}</span>
-							{suggestion.description ? (
-								<span className="text-[#666] dark:text-[#919296]">{suggestion.description}</span>
-							) : null}
+							<span className={suggestion.description ? 'font-semibold' : ''}>{suggestion.title}</span>
+							{suggestion.description ? <span>{suggestion.description}</span> : null}
 						</span>
 						<Icon name="arrow-right" height={16} width={16} className="shrink-0" />
 					</button>
