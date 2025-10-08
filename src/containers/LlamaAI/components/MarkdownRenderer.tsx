@@ -61,8 +61,8 @@ function TableWrapper({ children }: { children: React.ReactNode }) {
 	}
 
 	return (
-		<div className="relative">
-			<div className="absolute -top-8 right-0 z-10">
+		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
+			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2">
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 			<div ref={tableRef} className="overflow-x-auto">
