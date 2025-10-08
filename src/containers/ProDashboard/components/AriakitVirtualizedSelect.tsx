@@ -24,6 +24,7 @@ interface AriakitVirtualizedSelectProps {
 	isLoading?: boolean
 	className?: string
 	renderIcon?: (option: VirtualizedSelectOption) => string | null
+	placement?: 'top-start' | 'top' | 'top-end' | 'bottom-start' | 'bottom' | 'bottom-end'
 }
 
 export function AriakitVirtualizedSelect({
@@ -34,11 +35,12 @@ export function AriakitVirtualizedSelect({
 	placeholder = 'Select...',
 	isLoading = false,
 	className = '',
-	renderIcon
+	renderIcon,
+	placement = 'bottom-start'
 }: AriakitVirtualizedSelectProps) {
 	const [search, setSearch] = useState('')
 	const listRef = useRef<HTMLDivElement | null>(null)
-	const popover = usePopoverStore({ placement: 'bottom-start' })
+	const popover = usePopoverStore({ placement })
 	const isPopoverOpen = popover.useState('open')
 
 	const filteredOptions = useMemo(() => {
