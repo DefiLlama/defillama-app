@@ -90,6 +90,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onMaxTvlChange={actions.setMaxTvl}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
+							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
 							onAddToComposer={actions.handleAddToComposer}
 							onRemoveFromComposer={actions.handleRemoveFromComposer}
 							chartBuilder={state.chartBuilder}

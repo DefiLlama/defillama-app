@@ -132,6 +132,7 @@ export interface ChartConfig {
 	chain: string
 	protocol?: string
 	type: string
+	color?: string
 	data?: [string, number][]
 	isLoading?: boolean
 	hasError?: boolean
