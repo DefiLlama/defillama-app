@@ -8,7 +8,7 @@ import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 export const ANNOUNCEMENT = {
 	defi: {
 		key: 'defi-flag-announcement',
-		value: 'defi4'
+		value: 'defi5'
 	},
 	yields: {
 		key: 'yield-flag-announcement',
@@ -69,7 +69,7 @@ export function Announcement({
 
 	return (
 		<p
-			className="relative rounded-md bg-(--bg-input) p-3 text-center text-sm text-black dark:text-white"
+			className="relative rounded-md border border-(--link-bg) bg-(--link-bg) p-2 text-center text-sm"
 			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
 		>
 			{children}

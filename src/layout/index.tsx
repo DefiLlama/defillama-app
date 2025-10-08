@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Announcement } from '~/components/Announcement'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
@@ -15,6 +16,7 @@ interface ILayoutProps extends ISEOProps {
 	metricFilters?: { name: string; key: string }[]
 	metricFiltersLabel?: string
 	pageName?: Array<string>
+	annonuncement?: React.ReactNode
 }
 
 function Layout({
@@ -26,6 +28,7 @@ function Layout({
 	pageName,
 	metricFilters,
 	metricFiltersLabel,
+	annonuncement,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
@@ -38,6 +41,8 @@ function Layout({
 				{...props}
 				className="isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) transition-all duration-200 ease-out lg:w-screen lg:p-4 lg:pl-[96px]"
 			>
+				{' '}
+				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
 					<React.Suspense fallback={<SearchFallback />}>
 						<DesktopSearch />
