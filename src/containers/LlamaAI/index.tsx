@@ -339,6 +339,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
+	const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
 	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
@@ -441,6 +442,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setIsGeneratingCharts(false)
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
+			setIsGeneratingSuggestions(false)
 			setExpectedChartInfo(null)
 
 			streamingContentRef.current.reset()
@@ -474,6 +476,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								setIsAnalyzingForCharts(false)
 								setIsGeneratingCharts(true)
 							}
+						} else if (data.stage === 'suggestions_loading') {
+							setIsGeneratingSuggestions(true)
 						}
 					} else if (data.type === 'session' && data.sessionId) {
 						newlyCreatedSessionsRef.current.add(data.sessionId)
@@ -481,6 +485,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						sessionIdRef.current = data.sessionId
 					} else if (data.type === 'suggestions') {
 						setStreamingSuggestions(data.suggestions)
+						setIsGeneratingSuggestions(false)
 					} else if (data.type === 'charts') {
 						setStreamingCharts(data.charts)
 						setStreamingChartData(data.chartData)
@@ -568,6 +573,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingCharts(null)
 				setStreamingChartData(null)
 				setStreamingCitations(null)
+				setPrompt('')
+			} else if (wasUserStopped && !finalContent.trim()) {
+				setPrompt(variables.userQuestion)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 			}
@@ -583,6 +591,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		if (!sessionId || !isStreaming) return
 
 		const finalContent = streamingContentRef.current.getContent()
+		setIsStreaming(false)
 
 		try {
 			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
@@ -626,9 +635,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					timestamp: Date.now()
 				}
 			])
+			setPrompt('')
+		} else {
+			setPrompt(prompt)
 		}
 
-		setIsStreaming(false)
 		setStreamingResponse('')
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
@@ -747,6 +758,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
+		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
 		setConversationHistory([])
 		streamingContentRef.current.reset()
@@ -797,6 +809,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
+		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
@@ -1002,6 +1015,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isPending={isPending}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
+											initialValue={prompt}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1092,6 +1106,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														isGeneratingCharts={isGeneratingCharts}
 														isAnalyzingForCharts={isAnalyzingForCharts}
 														hasChartError={hasChartError}
+														isGeneratingSuggestions={isGeneratingSuggestions}
 														expectedChartInfo={expectedChartInfo}
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
@@ -1144,6 +1159,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isPending={isPending}
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
+										initialValue={prompt}
 									/>
 								)}
 							</div>
@@ -1160,17 +1176,25 @@ const PromptInput = memo(function PromptInput({
 	promptInputRef,
 	isPending,
 	handleStopRequest,
-	isStreaming
+	isStreaming,
+	initialValue
 }: {
 	handleSubmit: (prompt: string) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
+	initialValue?: string
 }) {
 	const [value, setValue] = useState('')
 
 	const deferredValue = useDeferredValue(value)
+
+	useEffect(() => {
+		if (initialValue && !isStreaming && !isPending) {
+			setValue(initialValue)
+		}
+	}, [initialValue, isStreaming, isPending])
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
@@ -1273,6 +1297,7 @@ const PromptResponse = ({
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
+	isGeneratingSuggestions = false,
 	expectedChartInfo,
 	resizeTrigger = 0,
 	showMetadata = false,
@@ -1298,6 +1323,7 @@ const PromptResponse = ({
 	isGeneratingCharts?: boolean
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
+	isGeneratingSuggestions?: boolean
 	expectedChartInfo?: { count?: number; types?: string[] } | null
 	resizeTrigger?: number
 	showMetadata?: boolean
@@ -1372,6 +1398,15 @@ const PromptResponse = ({
 					isPending={isPending}
 					isStreaming={isStreaming}
 				/>
+			)}
+			{!readOnly && isGeneratingSuggestions && !response?.suggestions && (
+				<div className="mt-4 grid gap-2">
+					<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
+					<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
+						<FadingLoader />
+						<span>Generating follow-up suggestions...</span>
+					</p>
+				</div>
 			)}
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
