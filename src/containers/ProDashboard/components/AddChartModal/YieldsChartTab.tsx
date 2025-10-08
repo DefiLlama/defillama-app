@@ -177,7 +177,8 @@ export function YieldsChartTab({
 			.map((pool: any) => ({
 				value: pool.configID,
 				label: `${pool.pool} (${pool.project})`,
-				description: `${pool.chains[0]} • APY: ${pool.apy?.toFixed(2) || '0.00'}%`
+				description: `${pool.chains[0]} • APY: ${pool.apy?.toFixed(2) || '0.00'}% • TVL: ${formattedNum(pool.tvl, true)}`,
+				logo: getItemIconUrl('protocol', null, pool.project)
 			}))
 	}, [filteredPools])
 
@@ -521,6 +522,7 @@ export function YieldsChartTab({
 										}
 									}}
 									placeholder="Search pools..."
+									placement="top-start"
 								/>
 							</div>
 
