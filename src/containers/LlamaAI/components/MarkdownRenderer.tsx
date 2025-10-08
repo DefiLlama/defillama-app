@@ -2,7 +2,6 @@ import { memo, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
-import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 
 interface MarkdownRendererProps {
