@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import toast from 'react-hot-toast'
 import { useIsClient } from '~/hooks'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
@@ -396,6 +397,10 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			savedProtocols: new Set(Object.values(watchlist[selectedPortfolio] ?? {})) as Set<string>,
 			addPortfolio: (name: string) => {
 				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				if (Object.keys(watchlist).includes(name)) {
+					toast.error(`Portfolio ${name} already exists`)
+					return
+				}
 				const newWatchlist = { ...watchlist, [name]: {} }
 				localStorage.setItem(
 					DEFILLAMA,
