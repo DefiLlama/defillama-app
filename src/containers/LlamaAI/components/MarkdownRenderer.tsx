@@ -1,7 +1,8 @@
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TokenLogo } from '~/components/TokenLogo'
 
 interface MarkdownRendererProps {
@@ -38,6 +39,39 @@ function getEntityIcon(type: string, slug: string): string {
 		default:
 			return ''
 	}
+}
+
+function TableWrapper({ children }: { children: React.ReactNode }) {
+	const tableRef = useRef<HTMLDivElement>(null)
+
+	const prepareCsv = () => {
+		const table = tableRef.current?.querySelector('table')
+		if (!table) return { filename: 'table.csv', rows: [] }
+
+		const rows: Array<Array<string>> = []
+		const tableRows = Array.from(table.querySelectorAll('tr'))
+
+		tableRows.forEach((row) => {
+			const cells = Array.from(row.querySelectorAll('th, td'))
+			rows.push(cells.map((cell) => cell.textContent || ''))
+		})
+
+		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+		return { filename: `table-${timestamp}.csv`, rows }
+	}
+
+	return (
+		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
+			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2">
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+			</div>
+			<div ref={tableRef} className="overflow-x-auto">
+				<table className="m-0! table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
+					{children}
+				</table>
+			</div>
+		</div>
+	)
 }
 
 function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps) {
@@ -146,13 +180,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 				rehypePlugins={[rehypeRaw]}
 				components={{
 					a: LinkRenderer,
-					table: ({ children }) => (
-						<div className="overflow-x-auto">
-							<table className="m-0! table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
-								{children}
-							</table>
-						</div>
-					),
+					table: ({ children }) => <TableWrapper>{children}</TableWrapper>,
 					th: ({ children }) => (
 						<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
 							{children}
