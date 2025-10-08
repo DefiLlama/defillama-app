@@ -385,37 +385,40 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				: type === 'yields'
 					? YIELDS_SELECTED_PORTFOLIO
 					: CHAINS_SELECTED_PORTFOLIO
-		const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 
+		const parsedStore = JSON.parse(store)
+		const watchlist = parsedStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 		const portfolios = Object.keys(watchlist)
-
-		const selectedPortfolio = JSON.parse(store)?.[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
+		const selectedPortfolio = parsedStore[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
 
 		return {
 			portfolios,
 			selectedPortfolio,
 			savedProtocols: new Set(Object.values(watchlist[selectedPortfolio] ?? {})) as Set<string>,
 			addPortfolio: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
-				if (Object.keys(watchlist).includes(name)) {
-					toast.error(`Portfolio ${name} already exists`)
-					return
-				}
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 				const newWatchlist = { ...watchlist, [name]: {} }
 				localStorage.setItem(
 					DEFILLAMA,
-					JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist, [selectedPortfolioKey]: name })
+					JSON.stringify({
+						...currentStore,
+						[watchlistKey]: newWatchlist,
+						[selectedPortfolioKey]: name
+					})
 				)
 				window.dispatchEvent(new Event('storage'))
 			},
 			removePortfolio: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 				const newWatchlist = { ...watchlist }
 				delete newWatchlist[name]
+
 				localStorage.setItem(
 					DEFILLAMA,
 					JSON.stringify({
-						...JSON.parse(store),
+						...currentStore,
 						[watchlistKey]: newWatchlist,
 						[selectedPortfolioKey]: DEFAULT_PORTFOLIO_NAME
 					})
@@ -423,23 +426,54 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				window.dispatchEvent(new Event('storage'))
 			},
 			setSelectedPortfolio: (name: string) => {
-				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [selectedPortfolioKey]: name }))
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				localStorage.setItem(
+					DEFILLAMA,
+					JSON.stringify({
+						...currentStore,
+						[selectedPortfolioKey]: name
+					})
+				)
 				window.dispatchEvent(new Event('storage'))
 			},
 			addProtocol: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentSelectedPortfolio = currentStore[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
+
 				const newWatchlist = {
 					...watchlist,
-					[selectedPortfolio]: { ...watchlist[selectedPortfolio], [slug(name)]: name }
+					[currentSelectedPortfolio]: {
+						...watchlist[currentSelectedPortfolio],
+						[slug(name)]: name
+					}
 				}
-				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist }))
+
+				const updatedStore = {
+					...currentStore,
+					[watchlistKey]: newWatchlist
+				}
+
+				localStorage.setItem(DEFILLAMA, JSON.stringify(updatedStore))
 				window.dispatchEvent(new Event('storage'))
 			},
 			removeProtocol: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
-				const newWatchlist = { ...watchlist, [selectedPortfolio]: { ...watchlist[selectedPortfolio] } }
-				delete newWatchlist[selectedPortfolio][slug(name)]
-				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist }))
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentSelectedPortfolio = currentStore[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
+
+				const newWatchlist = {
+					...watchlist,
+					[currentSelectedPortfolio]: { ...watchlist[currentSelectedPortfolio] }
+				}
+				delete newWatchlist[currentSelectedPortfolio][slug(name)]
+
+				const updatedStore = {
+					...currentStore,
+					[watchlistKey]: newWatchlist
+				}
+
+				localStorage.setItem(DEFILLAMA, JSON.stringify(updatedStore))
 				window.dispatchEvent(new Event('storage'))
 			}
 		}

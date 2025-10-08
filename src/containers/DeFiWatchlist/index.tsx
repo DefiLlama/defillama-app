@@ -28,7 +28,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	const {
 		savedProtocols: savedChains,
 		addProtocol: addChain,
-		removeProtocol: removeChain
+		removeProtocol: removeChain,
+		setSelectedPortfolio: setSelectedChainPortfolio
 	} = useWatchlistManager('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
@@ -94,7 +95,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 				<PortfolioSelection
 					portfolios={portfolios}
 					selectedPortfolio={selectedPortfolio}
-					setSelectedPortfolio={setSelectedPortfolio}
+					setSelectedPortfolio={(portfolio) => {
+						setSelectedPortfolio(portfolio)
+						setSelectedChainPortfolio(portfolio)
+					}}
 					addPortfolio={addPortfolio}
 					removePortfolio={removePortfolio}
 				/>
