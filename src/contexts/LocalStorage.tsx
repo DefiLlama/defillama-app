@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useIsClient } from '~/hooks'
 import { slug } from '~/utils'
-import { getThemeCookie, setThemeCookie, THEME_COOKIE_NAME } from '~/utils/cookies'
+import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
 
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
