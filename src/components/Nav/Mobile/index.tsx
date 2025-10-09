@@ -11,12 +11,14 @@ export const MobileNav = ({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
-	footerLinks
+	footerLinks,
+	metricFilters
 }: {
 	mainLinks: TNavLinks
 	pinnedPages: TNavLink[]
 	userDashboards: TNavLink[]
 	footerLinks: TNavLinks
+	metricFilters?: { name: string; key: string }[]
 }) => {
 	return (
 		<nav className="flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
@@ -36,7 +38,7 @@ export const MobileNav = ({
 				<MobileSearch />
 			</React.Suspense>
 
-			<Settings />
+			<Settings metricFilters={metricFilters} />
 
 			<Menu mainLinks={mainLinks} pinnedPages={pinnedPages} userDashboards={userDashboards} footerLinks={footerLinks} />
 		</nav>
