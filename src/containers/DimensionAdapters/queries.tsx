@@ -1,11 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import {
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
-	PROTOCOLS_API,
-	REV_PROTOCOLS,
-	ZERO_FEE_PERPS
-} from '~/constants'
+import { DIMENSIONS_V2_SERVER_URL, PROTOCOLS_API, REV_PROTOCOLS, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -108,14 +102,18 @@ export interface IAdapterSummary {
 	totalDataChartBreakdown: Array<[number, Record<string, Record<string, number>>]>
 	totalDataChart: Array<[number, number]>
 	linkedProtocols?: string[]
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	doublecounted?: boolean
+	hasLabelBreakdown?: boolean
+	breakdownMethodology?: Record<string, Record<string, string>>
 	childProtocols?: Array<{
+		name: string
 		defillamaId: string
 		displayName: string
 		methodologyURL: string
 		methodology: Record<string, string>
+		breakdownMethodology: Record<string, Record<string, string>>
 	}>
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
-	doublecounted?: boolean
 }
 
 //breakdown is using chain internal name so we need to map it
@@ -156,7 +154,7 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}${
+		let url = `${DIMENSIONS_V2_SERVER_URL}/${adapterType}/overview${
 			chain && chain !== 'All' ? `/${slug(chain)}` : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -169,7 +167,7 @@ export async function getAdapterChainOverview({
 		return data as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let url = `${DIMENSIONS_V2_SERVER_URL}/${adapterType}/overview?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 		if (dataType) {
 			url += `&dataType=dailyRevenue`
@@ -287,9 +285,9 @@ export async function getAdapterProtocolSummary({
 	excludeTotalDataChartBreakdown: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
-	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${adapterType}${
-		protocol && protocol !== 'All' ? `/${slug(protocol)}` : ''
-	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	if (protocol == 'All') throw new Error('Protocol cannot be All')
+
+	let url = `${DIMENSIONS_V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 	if (dataType) {
 		url += `&dataType=${dataType}`

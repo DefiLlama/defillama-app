@@ -46,20 +46,20 @@
       "tab": "Protocols"
     },
     {
-      "name": "Bridged TVL by Chain",
-      "route": "/bridged",
-      "category": "Total Value Locked",
-      "description": "Value of all tokens held on the chain",
-      "totalTrackedKey": "bridgedTVL.chains",
-      "tab": "Chains"
-    },
-    {
       "name": "Oracles",
       "route": "/oracles",
       "category": "Total Value Locked",
       "description": "Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS",
       "totalTrackedKey": "oracles.protocols",
       "tab": "Protocols"
+    },
+    {
+      "name": "Bridged TVL by Chain",
+      "route": "/bridged",
+      "category": "Total Value Locked",
+      "description": "Value of all tokens held on the chain",
+      "totalTrackedKey": "bridgedTVL.chains",
+      "tab": "Chains"
     },
     {
       "name": "Forks",
@@ -587,6 +587,12 @@
       "description": "Watchlist of all pools that we track in our yields section"
     },
     {
+      "name": "Borrow Aggregator: Simple",
+      "route": "/borrow",
+      "category": "Borrow Aggregator",
+      "description": "Simple view of optimal lending routes by collateral to borrow assets"
+    },
+    {
       "name": "Token Holder Profit and Loss",
       "route": "/token-pnl",
       "category": "Tools",
@@ -597,6 +603,12 @@
       "route": "/liquidity",
       "category": "Tools",
       "description": "Check how deep the liquidity is for a given token"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
       "name": "Transactions by Bridge",
@@ -610,6 +622,15 @@
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama",
       "tab": "Protocols"
+    },
+    {
+      "name": "Report Error",
+      "route": "/report-error",
+      "category": "Tools",
+      "description": "Report errors in methodology, protocol metrics, or suggest site improvements",
+      "tags": [
+        "New"
+      ]
     },
     {
       "name": "Compare Chains",
@@ -631,27 +652,6 @@
       "category": "Tools",
       "description": "View token usage across different protocols",
       "tab": "Protocols"
-    },
-    {
-      "name": "Report Error",
-      "route": "/report-error",
-      "category": "Tools",
-      "description": "Report errors in methodology, protocol metrics, or suggest site improvements",
-      "tags": [
-        "New"
-      ]
-    },
-    {
-      "name": "Borrow Aggregator: Simple",
-      "route": "/borrow",
-      "category": "Borrow Aggregator",
-      "description": "Simple view of optimal lending routes by collateral to borrow assets"
-    },
-    {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets"
     },
     {
       "name": "Llama News Round-Up",

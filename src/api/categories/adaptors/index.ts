@@ -1,5 +1,5 @@
 import type { IParentProtocol } from '~/api/types'
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { capitalizeFirstLetter, getBlockExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
@@ -30,9 +30,7 @@ const getOverviewItem = (
 	excludeTotalDataChart?: boolean,
 	excludeTotalDataChartBreakdown?: boolean
 ): Promise<ProtocolAdaptorSummaryResponse> => {
-	return fetchJson(
-		`${DIMENISIONS_SUMMARY_BASE_API}/${type}/${slug(protocolName)}${dataType ? `?dataType=${dataType}` : ''}`
-	)
+	return fetchJson(`${DIMENSIONS_SUMMARY_API}/${type}/${slug(protocolName)}${dataType ? `?dataType=${dataType}` : ''}`)
 }
 
 export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {

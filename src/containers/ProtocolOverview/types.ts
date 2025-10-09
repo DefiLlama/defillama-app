@@ -126,7 +126,8 @@ interface IAdapterOverview {
 	totalAllTime: number | null
 	methodology?: string | null
 	methodologyURL?: string | null
-	childMethodologies?: Array<[string, string | null, string | null]>
+	breakdownMethodology?: Record<string, string> | null
+	childMethodologies?: Array<[string, string | null, string | null, Record<string, string> | null]>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 

@@ -263,7 +263,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-1 flex-col gap-2">
-			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="key-metrics">
+			<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
 				Key Metrics
 				<a
 					aria-hidden="true"
@@ -1843,41 +1843,118 @@ const MethodologyByAdapter = ({
 }) => {
 	if (adapter?.childMethodologies?.length) {
 		return (
-			<p>
-				<span className="font-medium">{title}:</span>
-				<br />
-				<span className="flex flex-col gap-1">
+			<div className="flex flex-col">
+				<h3 className="font-medium">{title}:</h3>
+				<div className="flex flex-col gap-0.5 text-(--text-label)">
 					{adapter.childMethodologies.map((child) =>
-						child[2] ? (
-							<a
-								key={`${title}-${child[0]}-${child[1] ?? ''}-${child[2] ?? ''}`}
-								href={child[2]}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="hover:underline"
-							>
-								<span>{child[0]}:</span> <span>{child[1]}</span>
-								{child[2] ? (
-									<span className="relative top-0.5 left-1 inline-block">
-										<Icon name="external-link" className="h-3.5 w-3.5" />
-										<span className="sr-only">View code on GitHub</span>
-									</span>
-								) : null}
-							</a>
-						) : (
-							<span key={`${title}-${child[0]}-${child[1] ?? ''}`}>
-								{child[0]}: {child[1]}
-							</span>
-						)
+						child[3] ? (
+							<>
+								<details className="group">
+									<summary className="flex items-center gap-1">
+										<Icon
+											name="chevron-right"
+											className="h-3.5 w-3.5 flex-shrink-0 transition-transform duration-100 group-open:rotate-90 xl:-ml-4"
+										/>
+										<span className="">
+											<span>{child[0]}</span>
+											{child[1] ? ` - ${child[1]}` : ''}
+										</span>
+									</summary>
+									<div className="overflow-x-auto pt-2">
+										<table className="border-collapse">
+											<tbody className="text-(--text-label)">
+												{Object.entries(child[3]).map(([key, value]) => (
+													<tr key={`${title}-${key}-${value}`}>
+														<th className="border border-(--cards-border) px-2 py-1 font-normal whitespace-nowrap">
+															{key}
+														</th>
+														<td className="border border-(--cards-border) px-2 py-1">{value}</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+									{child[2] ? (
+										<a
+											href={child[2]}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="mt-2 inline-flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+										>
+											<span>View code</span>
+											<Icon name="external-link" className="h-3 w-3" />
+										</a>
+									) : null}
+								</details>
+							</>
+						) : child[1] ? (
+							child[2] ? (
+								<a
+									key={`${title}-${child[0]}-${child[1] ?? ''}-${child[2] ?? ''}`}
+									href={child[2]}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="hover:underline"
+								>
+									<span>{child[0]} - </span> <span>{child[1]}</span>
+									{child[2] ? (
+										<span className="relative top-0.5 left-1 inline-block">
+											<Icon name="external-link" className="h-3.5 w-3.5" />
+											<span className="sr-only">View code on GitHub</span>
+										</span>
+									) : null}
+								</a>
+							) : (
+								<p key={`${title}-${child[0]}-${child[1] ?? ''}`}>
+									{child[0]}: {child[1]}
+								</p>
+							)
+						) : null
 					)}
-				</span>
-			</p>
+				</div>
+			</div>
 		)
 	}
 
 	return (
 		<>
-			{adapter?.methodology ? (
+			{adapter?.breakdownMethodology ? (
+				<details className="group">
+					<summary className="flex items-center gap-1">
+						<Icon
+							name="chevron-right"
+							className="h-3.5 w-3.5 flex-shrink-0 transition-transform duration-100 group-open:rotate-90 xl:-ml-4"
+						/>
+						<span className="">
+							<span className="font-medium">{title}</span>
+							{adapter.methodology ? `: ${adapter.methodology}` : ''}
+						</span>
+					</summary>
+					<div className="overflow-x-auto pt-2">
+						<table className="border-collapse">
+							<tbody className="text-(--text-label)">
+								{Object.entries(adapter.breakdownMethodology).map(([key, value]) => (
+									<tr key={`${title}-${key}-${value}`}>
+										<th className="border border-(--cards-border) px-2 py-1 font-normal">{key}</th>
+										<td className="border border-(--cards-border) px-2 py-1">{value}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+					{adapter?.methodologyURL ? (
+						<a
+							href={adapter.methodologyURL}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="mt-2 inline-flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<span>View code</span>
+							<Icon name="external-link" className="h-3 w-3" />
+						</a>
+					) : null}
+				</details>
+			) : adapter?.methodology ? (
 				adapter?.methodologyURL ? (
 					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
@@ -2482,3 +2559,30 @@ const PerformanceTooltipContent = ({
 // unlocks
 // governance
 // % change tvl, mcap, token price, etc.
+
+{
+	/* <details className="group">
+<summary className="flex items-center gap-1">
+	<span>{`${title}${adapter.methodology ? `: ${adapter.methodology}` : ''}`}</span>
+	<Icon name="chevron-down" className="h-3.5 w-3.5 transition-transform duration-100 group-open:rotate-180" />
+</summary>
+<div className="flex flex-col gap-2 pt-2">
+	{Object.entries(adapter.breakdownMethodology).map(([key, value]) => (
+		<p key={`${title}-${key}-${value}`}>
+			{key}: {value}
+		</p>
+	))}
+	{adapter?.methodologyURL ? (
+		<a
+			href={adapter.methodologyURL}
+			target="_blank"
+			rel="noopener noreferrer"
+			className="mr-auto flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+		>
+			<Icon name="external-link" className="h-3.5 w-3.5" />
+			<span>View code</span>
+		</a>
+	) : null}
+</div>
+</details> */
+}
