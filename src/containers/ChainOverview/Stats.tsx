@@ -9,6 +9,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -154,6 +155,19 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 		}
 	})
 
+	const compareUrl = useMemo(() => {
+		if (props.metadata.name === 'All') return null
+
+		const topChains = props.allChains
+			.filter((c) => c.label !== props.metadata.name && c.label !== 'All')
+			.slice(0, 1)
+			.map((c) => `chains=${encodeURIComponent(c.label)}`)
+
+		const chainsParams = [`chains=${encodeURIComponent(props.metadata.name)}`, ...topChains].join('&')
+
+		return `/compare-chains?${chainsParams}`
+	}, [props.metadata.name, props.allChains])
+
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 			<div
@@ -162,11 +176,24 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 				}`}
 			>
 				{props.metadata.name !== 'All' && (
-					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
-						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
-						<span className="text-xl font-semibold">{props.metadata.name}</span>
-						<Bookmark readableName={props.metadata.name} isChain />
-					</h1>
+					<div className="flex flex-nowrap items-center justify-between gap-2">
+						<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
+							<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
+							<span className="text-xl font-semibold">{props.metadata.name}</span>
+						</h1>
+						<div className="flex flex-nowrap items-center gap-2">
+							{compareUrl && (
+								<BasicLink
+									href={compareUrl}
+									className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+								>
+									<Icon name="repeat" className="h-3 w-3" />
+									<span>Compare</span>
+								</BasicLink>
+							)}
+							<Bookmark readableName={props.metadata.name} isChain />
+						</div>
+					</div>
 				)}
 				{props.protocols.length > 0 ? (
 					<div className="flex flex-nowrap items-end justify-between gap-8">
