@@ -5,6 +5,7 @@ import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
@@ -14,6 +15,7 @@ import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import { Flag } from '~/containers/ProtocolOverview/Flag'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { formatProtocolsList2 } from '~/hooks/data/defi'
 import Layout from '~/layout'
 import { formattedNum, getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -82,7 +84,16 @@ export default function CompareProtocols({ protocols, basicProtocolsData }) {
 
 	const isLoading = results.some((r) => r.isLoading)
 
-	// TODO handle extra tvl settings
+	const minTvl =
+		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
+			? +router.query.minTvl
+			: null
+
+	const maxTvl =
+		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
+			? +router.query.maxTvl
+			: null
+
 	const { charts } = React.useMemo(() => {
 		const formattedData =
 			results
@@ -166,8 +177,11 @@ export default function CompareProtocols({ protocols, basicProtocolsData }) {
 	const protocolsTableData = React.useMemo(() => {
 		const selectedSet = new Set(selectedProtocols)
 
-		return protocols.filter((c) => selectedSet.has(c.name) || c.childProtocols?.some((cp) => selectedSet.has(cp.name)))
-	}, [protocols, selectedProtocols])
+		const filteredProtocols = protocols.filter(
+			(c) => selectedSet.has(c.name) || c.childProtocols?.some((cp) => selectedSet.has(cp.name))
+		)
+		return formatProtocolsList2({ protocols: filteredProtocols, extraTvlsEnabled: extraTvlEnabled, minTvl, maxTvl })
+	}, [protocols, selectedProtocols, extraTvlEnabled, minTvl, maxTvl])
 
 	return (
 		<Layout
@@ -176,6 +190,7 @@ export default function CompareProtocols({ protocols, basicProtocolsData }) {
 			keywords={`compare protocols, compare protocols on blockchain`}
 			canonicalUrl={`/compare-protocols`}
 			pageName={pageName}
+			metricFilters={tvlOptions}
 		>
 			<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<MultiSelectCombobox
