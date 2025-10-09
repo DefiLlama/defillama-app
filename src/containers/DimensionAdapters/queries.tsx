@@ -1,5 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { DIMENSIONS_V2_SERVER_URL, PROTOCOLS_API, REV_PROTOCOLS, ZERO_FEE_PERPS } from '~/constants'
+import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -154,7 +154,7 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${DIMENSIONS_V2_SERVER_URL}/${adapterType}/overview${
+		let url = `${V2_SERVER_URL}/${adapterType}/overview${
 			chain && chain !== 'All' ? `/${slug(chain)}` : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
@@ -167,7 +167,7 @@ export async function getAdapterChainOverview({
 		return data as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${DIMENSIONS_V2_SERVER_URL}/${adapterType}/overview?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let url = `${V2_SERVER_URL}/${adapterType}/overview?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 		if (dataType) {
 			url += `&dataType=dailyRevenue`
@@ -287,7 +287,7 @@ export async function getAdapterProtocolSummary({
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
-	let url = `${DIMENSIONS_V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	let url = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 	if (dataType) {
 		url += `&dataType=${dataType}`

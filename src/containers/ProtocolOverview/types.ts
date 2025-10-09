@@ -251,13 +251,10 @@ export interface IProtocolOverviewPageData {
 	rangeHallmarks: Array<[[number, number], string]>
 	geckoId: string | null
 	governanceApis: Array<string> | null
-	incomeStatement?: {
-		feesByMonth: Record<string, number>
-		revenueByMonth: Record<string, number>
-		holdersRevenueByMonth: Record<string, number> | null
-		incentivesByMonth: Record<string, number> | null
-		monthDates: Array<[number, string]>
-	} | null
+	incomeStatement?: Record<
+		'monthly' | 'quarterly' | 'yearly',
+		Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
+	> | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'

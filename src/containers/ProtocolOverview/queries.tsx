@@ -15,13 +15,14 @@ import {
 	PROTOCOLS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
+	V2_SERVER_URL,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
@@ -1099,41 +1100,14 @@ const governanceApis = (governanceID) =>
 		) ?? []
 	).map((g) => g.toLowerCase())
 
-export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }): Promise<{
-	feesByMonth: Record<string, number>
-	revenueByMonth: Record<string, number>
-	holdersRevenueByMonth: Record<string, number> | null
-	incentivesByMonth: Record<string, number> | null
-	monthDates: Array<[number, string]>
-} | null> {
+export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }) {
 	try {
 		if (!metadata.fees || !metadata.revenue) {
 			return null
 		}
 
-		const [fees, revenue, holdersRevenue, incentives] = await Promise.all([
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				protocol: metadata.displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				protocol: metadata.displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true,
-				dataType: 'dailyRevenue'
-			}),
-			metadata.holdersRevenue
-				? getAdapterProtocolSummary({
-						adapterType: 'fees',
-						protocol: metadata.displayName,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
-						dataType: 'dailyHoldersRevenue'
-					})
-				: Promise.resolve(null),
+		const [incomeStatement, incentives] = await Promise.all([
+			fetchJson(`${V2_SERVER_URL}/financial-statement/protocol/${slug(metadata.displayName)}`).catch(() => null),
 			getProtocolEmissons(slug(metadata.displayName))
 				.then((data) => data.unlockUsdChart ?? [])
 				.then((chart) => {
@@ -1143,45 +1117,54 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				.catch(() => [])
 		])
 
-		const feesByMonth: Record<string, number> = {}
-		const revenueByMonth: Record<string, number> = {}
-		const holdersRevenueByMonth: Record<string, number> = {}
-		const incentivesByMonth: Record<string, number> = {}
-		const monthDates = new Set<number>()
-
-		for (const [date, value] of fees.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			feesByMonth[dateKey] = (feesByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
-
-		for (const [date, value] of revenue.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			revenueByMonth[dateKey] = (revenueByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
-
-		for (const [date, value] of holdersRevenue?.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			holdersRevenueByMonth[dateKey] = (holdersRevenueByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
+		const aggregates = (incomeStatement.aggregates ?? {}) as IProtocolOverviewPageData['incomeStatement']
 
 		for (const [date, value] of incentives ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			incentivesByMonth[dateKey] = (incentivesByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
+			const firstDayOfMonthDate = +firstDayOfMonth(+date * 1e3) * 1e3
+			const firstDayOfQuarterDate = +firstDayOfQuarter(firstDayOfMonthDate) * 1e3
+
+			aggregates.monthly = aggregates.monthly ?? {}
+			aggregates.quarterly = aggregates.quarterly ?? {}
+			aggregates.yearly = aggregates.yearly ?? {}
+
+			const monthKey = `${new Date(firstDayOfMonthDate).toISOString().slice(0, 7)}`
+			const quarterKey = `${new Date(firstDayOfMonthDate).getUTCFullYear()}-Q${Math.ceil((new Date(firstDayOfQuarterDate).getUTCMonth() + 1) / 3)}`
+			const yearKey = new Date(firstDayOfMonthDate).getUTCFullYear()
+
+			aggregates.monthly[monthKey] = {
+				...(aggregates.monthly[monthKey] ?? {}),
+				incentives: {
+					value: (aggregates.monthly[monthKey]?.incentives?.value ?? 0) + value,
+					'by-label': {}
+				}
+			}
+			aggregates.quarterly[quarterKey] = {
+				...(aggregates.quarterly[quarterKey] ?? {}),
+				incentives: {
+					value: (aggregates.quarterly[quarterKey]?.incentives?.value ?? 0) + value,
+					'by-label': {}
+				}
+			}
+			aggregates.yearly[yearKey] = {
+				...(aggregates.yearly[yearKey] ?? {}),
+				incentives: {
+					value: (aggregates.yearly[yearKey]?.incentives?.value ?? 0) + value,
+					'by-label': {}
+				}
+			}
 		}
 
-		return {
-			feesByMonth,
-			revenueByMonth,
-			holdersRevenueByMonth: holdersRevenue ? holdersRevenueByMonth : null,
-			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
-			monthDates: Array.from(monthDates)
-				.sort((a, b) => b - a)
-				.map((date) => [date, dayjs.utc(date).format('MMM YYYY')] as [number, string])
+		for (const group in aggregates) {
+			for (const date in aggregates[group]) {
+				aggregates[group][date].timestamp = date.includes('Q')
+					? new Date(
+							`${date.split('-')[0]}-${((parseInt(date.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
+						).getTime()
+					: new Date(date.length === 4 ? `${date}-01-01` : date).getTime()
+			}
 		}
+
+		return aggregates as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)
 		return null

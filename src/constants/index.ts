@@ -118,7 +118,7 @@ export const CHAINS_API_V2 = `${SERVER_URL}/chains2`
 export const CHAIN_ASSETS_FLOWS = `${SERVER_URL}/chain-assets/flows`
 export const CHAINS_ASSETS_CHART = `${SERVER_URL}/chain-assets/chart`
 
-export const DIMENSIONS_V2_SERVER_URL = process.env.DIMENSIONS_V2_SERVER_URL
+export const V2_SERVER_URL = process.env.V2_SERVER_URL
 export const DIMENISIONS_OVERVIEW_API = `${process.env.DIMENSIONS_SERVER_URL ?? SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${process.env.DIMENSIONS_SERVER_URL ?? SERVER_URL}/summary`
 
