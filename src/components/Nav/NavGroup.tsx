@@ -165,20 +165,22 @@ export const NavGroup = React.memo(function NavGroup({
 		<Disclosure
 			store={disclosure}
 			data-state={open ? 'open' : 'closed'}
-			className="group/disclosure flex w-full cursor-pointer flex-nowrap items-center gap-2 rounded-md border-0 p-2 no-underline transition-colors duration-200 ease-out hover:bg-black/5 hover:text-(--text-primary) focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+			className={`group/disclosure flex w-full cursor-pointer flex-nowrap items-center rounded-md border-0 p-2 no-underline transition-colors duration-200 ease-out hover:bg-black/5 hover:text-(--text-primary) focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${isExpanded ? 'gap-2' : 'justify-center'}`}
 		>
 			{group.icon ? (
 				<Icon name={group.icon as any} className={`${iconSize} order-1 shrink-0 fill-current`} />
 			) : group.emoji ? (
 				<span className={`${iconSize} order-1 shrink-0 text-center leading-none`}>{group.emoji}</span>
 			) : null}
-			<div
-				className={`order-2 flex min-w-0 flex-auto flex-col items-start justify-center self-stretch overflow-hidden transition-opacity duration-200 ${isExpanded ? 'opacity-100' : 'w-0 opacity-0'}`}
-			>
-				<span className="text-sm leading-normal font-medium whitespace-nowrap text-(--text-primary)">
-					{group.label}
-				</span>
-			</div>
+			{isExpanded ? (
+				<div className="order-2 flex min-w-0 flex-auto flex-col items-start justify-center self-stretch overflow-hidden">
+					<span className="text-sm leading-normal font-medium whitespace-nowrap text-(--text-primary)">
+						{group.label}
+					</span>
+				</div>
+			) : (
+				<span className="sr-only">{group.label}</span>
+			)}
 			{isExpanded && (
 				<Icon
 					name="chevron-down"
