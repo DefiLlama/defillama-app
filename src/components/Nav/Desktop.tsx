@@ -263,23 +263,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 					<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
 						<Account />
 					</React.Suspense>
-					<div className="flex items-center justify-between gap-2">
-						<ThemeSwitch />
-						<button
-							onClick={() => {
-								console.log('Toggle button clicked')
-								toggle()
-							}}
-							className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-							aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-							title={isCollapsed ? 'Expand sidebar (Cmd/Ctrl + B)' : 'Collapse sidebar (Cmd/Ctrl + B)'}
-						>
-							<Icon
-								name="arrow-right-to-line"
-								className={`h-4 w-4 transform transition-transform duration-200 ${isCollapsed ? '' : 'scale-x-[-1]'}`}
-							/>
-						</button>
-					</div>
+					<ThemeSwitch />
 				</div>
 			</nav>
 		</>
