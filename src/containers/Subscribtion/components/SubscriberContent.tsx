@@ -387,8 +387,8 @@ export const SubscriberContent = ({
 										<div className="flex-1">
 											<h4 className="mb-1 font-medium">Enable Overage</h4>
 											<p className="text-sm text-[#8a8c90]">
-												Allow your API calls to continue beyond the monthly limit. Additional usage will be charged at
-												standard rates.
+												Allow your API calls to continue beyond the 1M monthly limit. Additional usage will be charged at
+												$0.60 per 1,000 calls.
 											</p>
 										</div>
 									</div>
