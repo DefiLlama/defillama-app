@@ -79,8 +79,6 @@ export const DesktopNav = React.memo(function DesktopNav({
 	const showOverlay = !isCollapsed && !isPinned
 	const dynamicNavWidth = isExpanded ? 'w-[244px]' : 'w-[80px]'
 
-	console.log('Desktop Nav State:', { isCollapsed, isPinned, isExpanded, showOverlay })
-
 	return (
 		<>
 			{/* Backdrop - only show when temporarily expanded (not pinned) */}
@@ -137,37 +135,10 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<div className="flex flex-1 flex-col gap-1.5 pl-4">
 					{/* Primary Navigation */}
 					<div className="flex flex-col gap-1">
-						<NavItems items={primaryNavigation} isExpanded={isExpanded} />
-
-						{/* Metrics Link */}
-						<NavLink
-							link={{
-								type: 'link',
-								label: 'Metrics',
-								route: '/metrics',
-								icon: 'bar-chart-2'
-							}}
-							isExpanded={isExpanded}
-						/>
-
-						{/* Account and Custom Dashboards */}
-						<NavLink
-							link={{
-								type: 'link',
-								label: 'Account',
-								route: '/subscription',
-								icon: 'user',
-								attention: accountAttention
-							}}
-							isExpanded={isExpanded}
-						/>
-						<NavLink
-							link={{
-								type: 'link',
-								label: 'Custom Dashboards',
-								route: '/pro',
-								icon: 'blocks'
-							}}
+						<NavItems
+							items={primaryNavigation.map((item) =>
+								item.type === 'link' && item.route === '/subscription' ? { ...item, attention: accountAttention } : item
+							)}
 							isExpanded={isExpanded}
 						/>
 					</div>
@@ -178,7 +149,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 							<div className={isExpanded ? 'mt-4' : 'mt-2'}>
 								{/* Pinned header - text when expanded, icon with badge when collapsed */}
 								{isExpanded ? (
-									<p className="mb-1 flex items-center gap-2 text-xs opacity-65">Pinned</p>
+									<p className="mb-1 flex items-center gap-2 pl-2 text-xs opacity-65">Pinned</p>
 								) : (
 									<Tooltip content={`${pinnedPages.length} pinned`} placement="right">
 										<div className="relative mx-auto mb-2 flex h-10 w-10 items-center justify-center">
@@ -224,7 +195,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 					{/* Resources - Footer Section */}
 					<div className="mt-auto">
 						<p
-							className={`flex items-center justify-between gap-3 rounded-md text-xs transition-opacity duration-200 ${
+							className={`flex items-center justify-between gap-3 rounded-md pl-2 text-xs transition-opacity duration-200 ${
 								isExpanded ? 'mb-1 opacity-50' : 'mb-0 h-0 overflow-hidden opacity-0'
 							}`}
 						>
@@ -242,11 +213,11 @@ export const DesktopNav = React.memo(function DesktopNav({
 
 					{/* Legal Footer */}
 					<div
-						className={`transition-opacity duration-200 ${
+						className={`pl-2 transition-opacity duration-200 ${
 							isExpanded ? 'mt-2 pt-2 opacity-100' : 'mt-0 h-0 overflow-hidden pt-0 opacity-0'
 						}`}
 					>
-						<div className="flex items-center gap-2 text-xs">
+						<div className="flex items-center justify-center gap-2 text-xs">
 							<BasicLink href="/privacy-policy" className="opacity-60 transition-opacity hover:opacity-90">
 								Privacy
 							</BasicLink>
@@ -258,12 +229,14 @@ export const DesktopNav = React.memo(function DesktopNav({
 					</div>
 				</div>
 
-				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg) px-2 pt-2 pb-4">
-					<hr className="-ml-1.5 border-black/20 dark:border-white/20" />
+				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg) pt-2 pb-4 pl-4">
+					<hr className="border-black/20 dark:border-white/20" />
 					<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
 						<Account />
 					</React.Suspense>
-					<ThemeSwitch />
+					<div className="flex justify-center">
+						<ThemeSwitch />
+					</div>
 				</div>
 			</nav>
 		</>
