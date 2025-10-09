@@ -30,7 +30,10 @@ export type NavItem = NavLink | NavGroup | NavSeparator
 
 // Main navigation structure
 export const primaryNavigation: NavItem[] = [
-	{ type: 'link', label: 'Overview', route: '/', icon: 'house' }
+	{ type: 'link', label: 'Overview', route: '/', icon: 'house' },
+	{ type: 'link', label: 'Metrics', route: '/metrics', icon: 'bar-chart-2' },
+	{ type: 'link', label: 'Account', route: '/subscription', icon: 'user' },
+	{ type: 'link', label: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
 ]
 
 // Secondary navigation - reserved for pinned routes (dynamically populated)
@@ -91,7 +94,12 @@ export const resourcesNavigation: NavItem[] = [
 				route: 'https://docs.llama.fi/list-your-project/submit-a-project',
 				external: true
 			},
-			{ type: 'link', label: 'Careers', route: 'https://github.com/DefiLlama/careers/blob/master/README.md', external: true }
+			{
+				type: 'link',
+				label: 'Careers',
+				route: 'https://github.com/DefiLlama/careers/blob/master/README.md',
+				external: true
+			}
 		]
 	},
 	{
