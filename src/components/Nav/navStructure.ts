@@ -32,7 +32,7 @@ export type NavItem = NavLink | NavGroup | NavSeparator
 export const primaryNavigation: NavItem[] = [
 	{ type: 'link', label: 'Overview', route: '/', icon: 'house' },
 	{ type: 'link', label: 'Metrics', route: '/metrics', icon: 'bar-chart-2' },
-	{ type: 'link', label: 'Account', route: '/subscription', icon: 'user' },
+	{ type: 'link', label: 'Subscription', route: '/subscription', icon: 'user' },
 	{ type: 'link', label: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
 ]
 
