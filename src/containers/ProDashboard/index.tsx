@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -210,7 +211,7 @@ function ProDashboardContent() {
 						<Tooltip
 							content="Views"
 							render={<p />}
-							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled)"
+							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs"
 						>
 							<Icon name="eye" height={14} width={14} />
 							<span>{currentDashboard?.viewCount || 0}</span>
@@ -417,7 +418,18 @@ const LikeDashboardButton = ({
 	return (
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
-			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
+			render={
+				<button
+					onClick={() => {
+						if (isAuthenticated) {
+							toggleLike()
+						} else {
+							toast.error('Please sign in to like a dashboard')
+						}
+					}}
+					disabled={isLiking}
+				/>
+			}
 			className={`hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
 		>
 			{isLiking ? (
