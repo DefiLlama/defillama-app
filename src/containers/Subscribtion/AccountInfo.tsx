@@ -26,7 +26,9 @@ export const AccountInfo = () => {
 		isPortalSessionLoading,
 		apiSubscription,
 		llamafeedSubscription,
-		legacySubscription
+		legacySubscription,
+		enableOverage,
+		isEnableOverageLoading
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 	const isLegacyApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
@@ -156,6 +158,8 @@ export const AccountInfo = () => {
 					apiSubscription={apiSubscription}
 					llamafeedSubscription={llamafeedSubscription}
 					legacySubscription={legacySubscription}
+					enableOverage={enableOverage}
+					isEnableOverageLoading={isEnableOverageLoading}
 				/>
 			</div>
 

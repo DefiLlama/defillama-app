@@ -502,12 +502,13 @@ export const getAdapterByChainPageData = async ({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
 }): Promise<IAdapterByChainPageData | null> => {
-	const [data, protocolsData, bribesData, tokenTaxesData]: [
+	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData]: [
 		IAdapterOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
 		},
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null
 	] = await Promise.all([
@@ -536,6 +537,15 @@ export const getAdapterByChainPageData = async ({
 					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true
 				})
+			: Promise.resolve(null),
+		adapterType === 'derivatives'
+			? getAdapterChainOverview({
+					adapterType: 'open-interest',
+					chain,
+					dataType: 'openInterestAtEnd',
+					excludeTotalDataChart: false,
+					excludeTotalDataChartBreakdown: true
+				})
 			: Promise.resolve(null)
 	])
 
@@ -551,6 +561,7 @@ export const getAdapterByChainPageData = async ({
 
 	let bribesProtocols = {}
 	let tokenTaxesProtocols = {}
+	let openInterestProtocols = {}
 
 	if (dataType === 'dailyEarnings') {
 		if (bribesData) {
@@ -614,6 +625,13 @@ export const getAdapterByChainPageData = async ({
 			}, {}) ?? {}
 	}
 
+	if (openInterestData) {
+		openInterestProtocols = openInterestData.protocols.reduce((acc, p) => {
+			acc[p.name] = p.total24h ?? null
+			return acc
+		}, {})
+	}
+
 	const protocols = {}
 	const parentProtocols = {}
 	const categories = new Set<string>()
@@ -662,7 +680,8 @@ export const getAdapterByChainPageData = async ({
 			...(ps ? { ps } : {}),
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
-			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {})
+			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
+			...(openInterestProtocols[protocol.name] ? { openInterest: openInterestProtocols[protocol.name] } : {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -741,6 +760,10 @@ export const getAdapterByChainPageData = async ({
 				)
 			: null
 
+		const openInterest = parentProtocols[protocol].some((p) => p.openInterest != null)
+			? parentProtocols[protocol].reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
+			: null
+
 		const methodology: Array<string> = Array.from(
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
 		)
@@ -779,7 +802,8 @@ export const getAdapterByChainPageData = async ({
 					}
 				: {}),
 			...(doublecounted ? { doublecounted } : {}),
-			...(zeroFeePerp ? { zeroFeePerp } : {})
+			...(zeroFeePerp ? { zeroFeePerp } : {}),
+			...(openInterest ? { openInterest } : {})
 		}
 	}
 
@@ -819,6 +843,12 @@ export const getAdapterByChainPageData = async ({
 		)
 	}
 
+	let openInterest = 0
+
+	for (const protocol in openInterestProtocols) {
+		openInterest += openInterestProtocols[protocol] ?? 0
+	}
+
 	return {
 		chain,
 		chains: [
@@ -836,7 +866,8 @@ export const getAdapterByChainPageData = async ({
 		change_1d: data.change_1d ?? null,
 		change_7d: data.change_7d ?? null,
 		change_1m: data.change_1m ?? null,
-		change_7dover7d: data.change_7dover7d ?? null
+		change_7dover7d: data.change_7dover7d ?? null,
+		openInterest
 	}
 }
 

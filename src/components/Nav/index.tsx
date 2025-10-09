@@ -31,7 +31,7 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 	pages: defillamaPages[category]
 })) as TNavLinks
 
-function NavComponent() {
+function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { dashboards } = useDashboardAPI()
 	const { user, isAuthenticated } = useAuthContext()
 
@@ -91,6 +91,7 @@ function NavComponent() {
 					pinnedPages={pinnedPages}
 					userDashboards={userDashboards}
 					footerLinks={footerLinks}
+					metricFilters={metricFilters}
 				/>
 			</Suspense>
 		</>
