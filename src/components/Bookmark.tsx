@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -21,11 +22,25 @@ export function Bookmark({ readableName, isChain, ...props }: IBookmarkProps) {
 	const onClick = isSaved
 		? () => {
 				removeProtocol(readableName)
-				toast.success(`Removed ${readableName} from watchlist`)
+				toast.success(
+					<span>
+						Removed {readableName} from{' '}
+						<Link href="/watchlist" className="font-medium underline">
+							watchlist
+						</Link>
+					</span>
+				)
 			}
 		: () => {
 				addProtocol(readableName)
-				toast.success(`Added ${readableName} to watchlist`)
+				toast.success(
+					<span>
+						Added {readableName} to{' '}
+						<Link href="/watchlist" className="font-medium underline">
+							watchlist
+						</Link>
+					</span>
+				)
 			}
 
 	return (
