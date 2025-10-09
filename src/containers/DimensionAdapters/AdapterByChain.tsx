@@ -397,6 +397,17 @@ export function AdapterByChain(props: IProps) {
 						) : null}
 
 						<div className="flex flex-col">
+							{props.openInterest ? (
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+									<Tooltip
+										content="Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC"
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										Open Interest
+									</Tooltip>
+									<span className="font-jetbrains ml-auto">{formattedNum(props.openInterest, true)}</span>
+								</p>
+							) : null}
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">{metricName} (30d)</span>
@@ -500,8 +511,8 @@ const columnSizes = Object.entries({
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const columnOrders = Object.entries({
-	0: ['name', 'total24h', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'total7d', 'total30d']
+	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
+	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
@@ -1078,6 +1089,20 @@ const getColumnsByType = (
 					align: 'center',
 					headerHelperText:
 						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				},
+				size: 160
+			},
+			{
+				header: 'Open Interest',
+				id: 'open_interest',
+				accessorFn: (protocol) => protocol.openInterest,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
 				},
 				size: 160
 			},
