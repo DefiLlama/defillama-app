@@ -3,7 +3,7 @@ import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterS
 import { Icon } from '~/components/Icon'
 import { DARK_MODE, useDarkModeManager } from '~/contexts/LocalStorage'
 
-export function Settings({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
+export function Settings({ metricFilters = [] }: { metricFilters?: { name: string; key: string }[] }) {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(metricFilters)
