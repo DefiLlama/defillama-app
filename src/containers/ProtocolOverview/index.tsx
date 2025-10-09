@@ -2131,8 +2131,8 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		holdersRevenueData,
 		feesByLabels,
 		revenueByLabels,
-		incentivesByLabels,
-		holdersRevenueByLabels
+		holdersRevenueByLabels,
+		earningsData
 	} = useMemo(() => {
 		const groupKey = groupBy.toLowerCase()
 		const tableHeaders = [] as [string, string, number][]
@@ -2140,10 +2140,15 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const revenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const holdersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
 			tableHeaders.push([
 				key,
-				groupKey === 'monthly' ? dayjs.utc(key).format('MMM YYYY') : key.replace('-', ' '),
+				groupKey === 'monthly'
+					? dayjs.utc(key).format('MMM YYYY')
+					: groupKey === 'quarterly'
+						? key.split('-').reverse().join(' ')
+						: key,
 				props.incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
 			])
 			feesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.df ?? {
@@ -2162,6 +2167,10 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				value: 0,
 				'by-label': {}
 			}
+			earningsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.earnings ?? {
+				value: 0,
+				'by-label': {}
+			}
 		}
 
 		return {
@@ -2172,8 +2181,8 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			holdersRevenueData,
 			feesByLabels: props.incomeStatement?.labelsByType?.df ?? [],
 			revenueByLabels: props.incomeStatement?.labelsByType?.dr ?? [],
-			incentivesByLabels: [],
-			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? []
+			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? [],
+			earningsData
 		}
 	}, [groupBy, props.incomeStatement])
 
@@ -2233,292 +2242,162 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-								{props.fees?.methodology ? (
-									<Tooltip
-										content={props.fees?.methodology ?? ''}
-										className="flex justify-start underline decoration-dotted"
-									>
-										Fees
-									</Tooltip>
-								) : (
-									<>Fees</>
-								)}
-							</th>
-							{tableHeaders.map((header, i) => (
-								<td
-									key={`${props.name}-${groupBy}-fees-${header[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{feesData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={feesData[header[0]].value}
-													previousValue={tableHeaders[i + 1] ? feesData[tableHeaders[i + 1][0]].value : null}
-													groupBy={groupBy}
-													dataType="fees"
-												/>
-											}
-											className="justify-start underline decoration-dotted"
-										>
-											{formattedNum(feesData[header[0]].value, true)}
-										</Tooltip>
-									) : (
-										<>{formattedNum(feesData[header[0]].value, true)}</>
-									)}
-								</td>
-							))}
-						</tr>
-						{feesByLabels.length > 0 ? (
-							<>
-								{feesByLabels.map((feeLabel) => (
-									<tr key={`${props.name}-${groupBy}-fees-${feeLabel}`}>
-										<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
-											{feeLabel}
-										</th>
-										{tableHeaders.map((header, i) => (
-											<td
-												key={`${props.name}-${groupBy}-fees-by-label-${feeLabel}-${header[0]}`}
-												className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-											>
-												{feesData[header[0]]?.['by-label']?.[feeLabel] == null ? null : i !== 0 &&
-												  tableHeaders[i + 1] &&
-												  feesData[tableHeaders[i + 1][0]]['by-label']?.[feeLabel] ? (
-													<Tooltip
-														content={
-															<PerformanceTooltipContent
-																currentValue={feesData[header[0]]['by-label']?.[feeLabel]}
-																previousValue={
-																	tableHeaders[i + 1] ? feesData[tableHeaders[i + 1][0]]['by-label']?.[feeLabel] : null
-																}
-																groupBy={groupBy}
-																dataType="fees"
-															/>
-														}
-														className="justify-start underline decoration-dotted"
-													>
-														{formattedNum(feesData[header[0]]['by-label']?.[feeLabel], true)}
-													</Tooltip>
-												) : (
-													<>{formattedNum(feesData[header[0]]['by-label']?.[feeLabel], true)}</>
-												)}
-											</td>
-										))}
-									</tr>
-								))}
-							</>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={feesData}
+							dataType="fees"
+							label="Fees"
+							methodology={props.fees?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={feesByLabels}
+						/>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={revenueData}
+							dataType="revenue"
+							label="Revenue"
+							methodology={props.revenue?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={revenueByLabels}
+						/>
+						{props.metrics?.incentives ? (
+							<IncomeStatementByLabel
+								protocolName={props.name}
+								groupBy={groupBy}
+								data={incentivesData}
+								dataType="incentives"
+								label="Incentives"
+								methodology={props.incentives?.methodology ?? ''}
+								tableHeaders={tableHeaders}
+								breakdownByLabels={[]}
+							/>
 						) : null}
-						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-								{props.revenue?.methodology ? (
-									<Tooltip
-										content={props.revenue?.methodology}
-										className="flex justify-start underline decoration-dotted"
-									>
-										Revenue
-									</Tooltip>
-								) : (
-									<>Revenue</>
-								)}
-							</th>
-							{tableHeaders.map((header, i) => (
-								<td
-									key={`${props.name}-${groupBy}-revenue-${header[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{revenueData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={revenueData[header[0]].value}
-													previousValue={tableHeaders[i + 1] ? revenueData[tableHeaders[i + 1][0]].value : null}
-													groupBy={groupBy}
-													dataType="revenue"
-												/>
-											}
-											className="justify-start underline decoration-dotted"
-										>
-											{formattedNum(revenueData[header[0]].value, true)}
-										</Tooltip>
-									) : (
-										<>{formattedNum(revenueData[header[0]].value, true)}</>
-									)}
-								</td>
-							))}
-						</tr>
-						{revenueByLabels.length > 0 ? (
-							<>
-								{revenueByLabels.map((revenueLabel) => (
-									<tr key={`${props.name}-${groupBy}-revenue-${revenueLabel}`}>
-										<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
-											{revenueLabel}
-										</th>
-										{tableHeaders.map((header, i) => (
-											<td
-												key={`${props.name}-${groupBy}-revenue-by-label-${revenueLabel}-${header[0]}`}
-												className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-											>
-												{revenueData[header[0]]?.['by-label']?.[revenueLabel] == null ? null : i !== 0 &&
-												  tableHeaders[i + 1] &&
-												  revenueData[tableHeaders[i + 1][0]]['by-label']?.[revenueLabel] ? (
-													<Tooltip
-														content={
-															<PerformanceTooltipContent
-																currentValue={revenueData[header[0]]['by-label']?.[revenueLabel]}
-																previousValue={
-																	tableHeaders[i + 1]
-																		? revenueData[tableHeaders[i + 1][0]]['by-label']?.[revenueLabel]
-																		: null
-																}
-																groupBy={groupBy}
-																dataType="revenue"
-															/>
-														}
-														className="justify-start underline decoration-dotted"
-													>
-														{formattedNum(revenueData[header[0]]['by-label']?.[revenueLabel], true)}
-													</Tooltip>
-												) : (
-													<>{formattedNum(revenueData[header[0]]['by-label']?.[revenueLabel], true)}</>
-												)}
-											</td>
-										))}
-									</tr>
-								))}
-							</>
-						) : null}
-						{props.metrics.incentives ? (
-							<tr>
-								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-									{props.incentives?.methodology ? (
-										<Tooltip
-											content={props.incentives?.methodology ?? ''}
-											className="flex justify-start underline decoration-dotted"
-										>
-											Incentives
-										</Tooltip>
-									) : (
-										<>Incentives</>
-									)}
-								</th>
-								{tableHeaders.map((header, i) => (
-									<td
-										key={`${props.name}-${groupBy}-incentives-${header[0]}`}
-										className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-									>
-										{incentivesData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
-											<Tooltip
-												content={
-													<PerformanceTooltipContent
-														currentValue={incentivesData[header[0]].value}
-														previousValue={tableHeaders[i + 1] ? incentivesData[tableHeaders[i + 1][0]].value : null}
-														groupBy={groupBy}
-														dataType="incentives"
-													/>
-												}
-												className="justify-start underline decoration-dotted"
-											>
-												{formattedNum(incentivesData[header[0]].value, true)}
-											</Tooltip>
-										) : (
-											<>{formattedNum(incentivesData[header[0]].value, true)}</>
-										)}
-									</td>
-								))}
-							</tr>
-						) : null}
-						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-								<Tooltip
-									content="Revenue of the protocol minus the incentives distributed to users"
-									className="flex justify-start underline decoration-dotted"
-								>
-									Earnings
-								</Tooltip>
-							</th>
-							{tableHeaders.map((header, i) => {
-								const earnings = (revenueData[header[0]]?.value ?? 0) - (incentivesData[header[0]]?.value ?? 0)
-								const previousEarnings = tableHeaders[i + 1]
-									? (revenueData[tableHeaders[i + 1][0]]?.value ?? 0) -
-										(incentivesData[tableHeaders[i + 1][0]]?.value ?? 0)
-									: null
-								return (
-									<td
-										key={`${props.name}-${groupBy}-earnings-${header[0]}`}
-										className={`overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${
-											earnings > 0 ? 'text-(--success)' : earnings < 0 ? 'text-(--error)' : ''
-										}`}
-									>
-										{revenueData[header[0]]?.value == null && incentivesData[header[0]]?.value == null ? null : i !==
-												0 && tableHeaders[i + 1] ? (
-											<Tooltip
-												content={
-													<PerformanceTooltipContent
-														currentValue={earnings}
-														previousValue={previousEarnings}
-														groupBy={groupBy}
-														dataType="earnings"
-													/>
-												}
-												className="justify-start underline decoration-dotted"
-											>
-												{formattedNum(earnings, true)}
-											</Tooltip>
-										) : (
-											<span>{formattedNum(earnings, true)}</span>
-										)}
-									</td>
-								)
-							})}
-						</tr>
-						{props.holdersRevenue?.totalAllTime != null ? (
-							<tr>
-								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-									{props.holdersRevenue?.methodology ? (
-										<Tooltip
-											content={props.holdersRevenue?.methodology}
-											className="flex justify-start underline decoration-dotted"
-										>
-											Token Holder Net Income
-										</Tooltip>
-									) : (
-										<>Token Holder Net Income</>
-									)}
-								</th>
-								{tableHeaders.map((header, i) => (
-									<td
-										key={`${props.name}-${groupBy}-holders-revenue-${header[0]}`}
-										className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-									>
-										{holdersRevenueData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
-											<Tooltip
-												content={
-													<PerformanceTooltipContent
-														currentValue={holdersRevenueData[header[0]]?.value ?? 0}
-														previousValue={
-															tableHeaders[i + 1] ? (holdersRevenueData[tableHeaders[i + 1][0]]?.value ?? 0) : null
-														}
-														groupBy={groupBy}
-														dataType="token holders net income"
-													/>
-												}
-												className="justify-start underline decoration-dotted"
-											>
-												{formattedNum(holdersRevenueData[header[0]]?.value ?? 0, true)}
-											</Tooltip>
-										) : (
-											<span>{formattedNum(holdersRevenueData[header[0]]?.value ?? 0, true)}</span>
-										)}
-									</td>
-								))}
-							</tr>
-						) : null}
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={earningsData}
+							dataType="earnings"
+							label="Earnings"
+							methodology={''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={[]}
+						/>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={holdersRevenueData}
+							dataType="token holders net income"
+							label="Token Holder Net Income"
+							methodology={props.holdersRevenue?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={holdersRevenueByLabels}
+						/>
 					</tbody>
 				</table>
 			</div>
 		</div>
+	)
+}
+
+const IncomeStatementByLabel = ({
+	protocolName,
+	groupBy,
+	data,
+	dataType,
+	label,
+	methodology,
+	tableHeaders,
+	breakdownByLabels
+}: {
+	protocolName: string
+	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
+	data: Record<string, { value: number; 'by-label': Record<string, number> }>
+	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income'
+	label: string
+	methodology: string
+	tableHeaders: [string, string, number][]
+	breakdownByLabels: string[]
+}) => {
+	const isEarnings = dataType === 'earnings'
+	return (
+		<>
+			<tr>
+				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+					{methodology ? (
+						<Tooltip content={methodology} className="flex justify-start underline decoration-dotted">
+							{label}
+						</Tooltip>
+					) : (
+						<>{label}</>
+					)}
+				</th>
+				{tableHeaders.map((header, i) => (
+					<td
+						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
+						className={`overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value > 0 ? 'text-(--success)' : data[header[0]]?.value < 0 ? 'text-(--error)' : '') : ''}`}
+					>
+						{data[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
+							<Tooltip
+								content={
+									<PerformanceTooltipContent
+										currentValue={data[header[0]].value}
+										previousValue={tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]].value : null}
+										groupBy={groupBy}
+										dataType={dataType}
+									/>
+								}
+								className="justify-start underline decoration-dotted"
+							>
+								{formattedNum(data[header[0]].value, true)}
+							</Tooltip>
+						) : (
+							<>{formattedNum(data[header[0]].value, true)}</>
+						)}
+					</td>
+				))}
+			</tr>
+			{breakdownByLabels.length > 0 ? (
+				<>
+					{breakdownByLabels.map((breakdownlabel) => (
+						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}>
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
+								{breakdownlabel}
+							</th>
+							{tableHeaders.map((header, i) => (
+								<td
+									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
+									className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+								>
+									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
+									  tableHeaders[i + 1] &&
+									  data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] ? (
+										<Tooltip
+											content={
+												<PerformanceTooltipContent
+													currentValue={data[header[0]]['by-label']?.[breakdownlabel]}
+													previousValue={
+														tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] : null
+													}
+													groupBy={groupBy}
+													dataType={dataType}
+												/>
+											}
+											className="justify-start underline decoration-dotted"
+										>
+											{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}
+										</Tooltip>
+									) : (
+										<>{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}</>
+									)}
+								</td>
+							))}
+						</tr>
+					))}
+				</>
+			) : null}
+		</>
 	)
 }
 

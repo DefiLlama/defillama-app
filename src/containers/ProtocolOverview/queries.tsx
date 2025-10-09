@@ -1169,6 +1169,11 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 						labelsByType[label] = (labelsByType[label] ?? new Set()).add(type)
 					}
 				}
+
+				aggregates[group][date].earnings = {
+					value: (aggregates[group][date].dr?.value ?? 0) - (aggregates[group][date].incentives?.value ?? 0),
+					'by-label': {}
+				}
 			}
 		}
 
