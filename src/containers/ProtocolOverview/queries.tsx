@@ -971,8 +971,7 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; me
 				childMethodologies.push([
 					childProtocol.displayName,
 					childProtocol.methodology?.[methodologyKey] ?? null,
-					childProtocol.methodologyURL ?? null,
-					childProtocol.breakdownMethodology?.[methodologyKey] ?? null
+					childProtocol.methodologyURL ?? null
 				])
 			}
 		}
@@ -1009,7 +1008,6 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; me
 			? (data.methodology?.[methodologyKey] ?? commonMethodology[methodologyKey] ?? null)
 			: null,
 		methodologyURL: data.methodologyURL ?? null,
-		breakdownMethodology: methodologyKey ? (data.breakdownMethodology?.[methodologyKey] ?? null) : null,
 		defaultChartView: data.defaultChartView ?? 'daily'
 	}
 }
