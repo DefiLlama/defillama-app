@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 
@@ -17,7 +18,15 @@ export function Bookmark({ readableName, isChain, ...props }: IBookmarkProps) {
 
 	const isSaved: boolean = savedProtocols.has(readableName)
 
-	const onClick = isSaved ? () => removeProtocol(readableName) : () => addProtocol(readableName)
+	const onClick = isSaved
+		? () => {
+				removeProtocol(readableName)
+				toast.success(`Removed ${readableName} from watchlist`)
+			}
+		: () => {
+				addProtocol(readableName)
+				toast.success(`Added ${readableName} to watchlist`)
+			}
 
 	return (
 		<button
