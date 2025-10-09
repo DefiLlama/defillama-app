@@ -1115,15 +1115,17 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				.catch(() => [])
 		])
 
-		const aggregates = (incomeStatement.aggregates ?? {}) as IProtocolOverviewPageData['incomeStatement']
+		const aggregates =
+			incomeStatement.aggregates ??
+			({
+				monthly: {},
+				quarterly: {},
+				yearly: {}
+			} as IProtocolOverviewPageData['incomeStatement']['data'])
 
 		for (const [date, value] of incentives ?? []) {
 			const firstDayOfMonthDate = +firstDayOfMonth(+date * 1e3) * 1e3
 			const firstDayOfQuarterDate = +firstDayOfQuarter(firstDayOfMonthDate) * 1e3
-
-			aggregates.monthly = aggregates.monthly ?? {}
-			aggregates.quarterly = aggregates.quarterly ?? {}
-			aggregates.yearly = aggregates.yearly ?? {}
 
 			const monthKey = `${new Date(firstDayOfMonthDate).toISOString().slice(0, 7)}`
 			const quarterKey = `${new Date(firstDayOfMonthDate).getUTCFullYear()}-Q${Math.ceil((new Date(firstDayOfQuarterDate).getUTCMonth() + 1) / 3)}`
@@ -1152,6 +1154,8 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			}
 		}
 
+		const labelsByType: Record<string, Set<string>> = {}
+
 		for (const group in aggregates) {
 			for (const date in aggregates[group]) {
 				aggregates[group][date].timestamp = date.includes('Q')
@@ -1159,10 +1163,19 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 							`${date.split('-')[0]}-${((parseInt(date.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
 						).getTime()
 					: new Date(date.length === 4 ? `${date}-01-01` : date).getTime()
+
+				for (const label in aggregates[group][date]) {
+					for (const type in aggregates[group][date][label]['by-label'] ?? {}) {
+						labelsByType[label] = (labelsByType[label] ?? new Set()).add(type)
+					}
+				}
 			}
 		}
 
-		return aggregates as IProtocolOverviewPageData['incomeStatement']
+		return {
+			data: aggregates,
+			labelsByType: Object.fromEntries(Object.entries(labelsByType).map(([label, types]) => [label, Array.from(types)]))
+		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)
 		return null

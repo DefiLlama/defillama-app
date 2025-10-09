@@ -167,7 +167,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
-				{props.incomeStatement ? (
+				{props.incomeStatement?.data ? (
 					<Suspense fallback={<></>}>
 						<IncomeStatement {...props} />
 					</Suspense>
@@ -2123,42 +2123,57 @@ const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as cons
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 
-	const { tableHeaders, feesData, revenueData, incentivesData, holdersRevenueData } = useMemo(() => {
+	const {
+		tableHeaders,
+		feesData,
+		revenueData,
+		incentivesData,
+		holdersRevenueData,
+		feesByLabels,
+		revenueByLabels,
+		incentivesByLabels,
+		holdersRevenueByLabels
+	} = useMemo(() => {
 		const groupKey = groupBy.toLowerCase()
 		const tableHeaders = [] as [string, string, number][]
 		const feesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const revenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const holdersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		for (const key in props.incomeStatement[groupKey]) {
+		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
 			tableHeaders.push([
 				key,
 				groupKey === 'monthly' ? dayjs.utc(key).format('MMM YYYY') : key.replace('-', ' '),
-				props.incomeStatement?.[groupKey]?.[key]?.timestamp ?? 0
+				props.incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
 			])
-			feesData[key] = props.incomeStatement?.[groupKey]?.[key]?.df ?? {
+			feesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.df ?? {
 				value: 0,
 				'by-label': {}
 			}
-			revenueData[key] = props.incomeStatement?.[groupKey]?.[key]?.dr ?? {
+			revenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dr ?? {
 				value: 0,
 				'by-label': {}
 			}
-			incentivesData[key] = props.incomeStatement?.[groupKey]?.[key]?.incentives ?? {
+			incentivesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.incentives ?? {
 				value: 0,
 				'by-label': {}
 			}
-			holdersRevenueData[key] = props.incomeStatement?.[groupKey]?.[key]?.dhr ?? {
+			holdersRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dhr ?? {
 				value: 0,
 				'by-label': {}
 			}
 		}
+
 		return {
 			tableHeaders: tableHeaders.sort((a, b) => b[2] - a[2]),
 			feesData,
 			revenueData,
 			incentivesData,
-			holdersRevenueData
+			holdersRevenueData,
+			feesByLabels: props.incomeStatement?.labelsByType?.df ?? [],
+			revenueByLabels: props.incomeStatement?.labelsByType?.dr ?? [],
+			incentivesByLabels: [],
+			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? []
 		}
 	}, [groupBy, props.incomeStatement])
 
@@ -2194,14 +2209,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				<table className="w-full border-collapse">
 					<thead>
 						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
+							<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
 							{tableHeaders.map((header, i) => (
 								<th
 									key={`${props.name}-${groupBy}-income-statement-${header[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
+									className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{i === 0 ? (
-										<span className="-mr-2 flex items-center justify-center gap-1">
+										<span className="-mr-2 flex items-center justify-start gap-1">
 											<span className="overflow-hidden text-ellipsis whitespace-nowrap">{header[1]}</span>
 											<Tooltip
 												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
@@ -2219,11 +2234,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					</thead>
 					<tbody>
 						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								{props.fees?.methodology ? (
 									<Tooltip
 										content={props.fees?.methodology ?? ''}
-										className="flex justify-center underline decoration-dotted"
+										className="flex justify-start underline decoration-dotted"
 									>
 										Fees
 									</Tooltip>
@@ -2234,7 +2249,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							{tableHeaders.map((header, i) => (
 								<td
 									key={`${props.name}-${groupBy}-fees-${header[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+									className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{feesData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 										<Tooltip
@@ -2246,7 +2261,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 													dataType="fees"
 												/>
 											}
-											className="justify-center underline decoration-dotted"
+											className="justify-start underline decoration-dotted"
 										>
 											{formattedNum(feesData[header[0]].value, true)}
 										</Tooltip>
@@ -2256,12 +2271,51 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								</td>
 							))}
 						</tr>
+						{feesByLabels.length > 0 ? (
+							<>
+								{feesByLabels.map((feeLabel) => (
+									<tr key={`${props.name}-${groupBy}-fees-${feeLabel}`}>
+										<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
+											{feeLabel}
+										</th>
+										{tableHeaders.map((header, i) => (
+											<td
+												key={`${props.name}-${groupBy}-fees-by-label-${feeLabel}-${header[0]}`}
+												className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+											>
+												{feesData[header[0]]?.['by-label']?.[feeLabel] == null ? null : i !== 0 &&
+												  tableHeaders[i + 1] &&
+												  feesData[tableHeaders[i + 1][0]]['by-label']?.[feeLabel] ? (
+													<Tooltip
+														content={
+															<PerformanceTooltipContent
+																currentValue={feesData[header[0]]['by-label']?.[feeLabel]}
+																previousValue={
+																	tableHeaders[i + 1] ? feesData[tableHeaders[i + 1][0]]['by-label']?.[feeLabel] : null
+																}
+																groupBy={groupBy}
+																dataType="fees"
+															/>
+														}
+														className="justify-start underline decoration-dotted"
+													>
+														{formattedNum(feesData[header[0]]['by-label']?.[feeLabel], true)}
+													</Tooltip>
+												) : (
+													<>{formattedNum(feesData[header[0]]['by-label']?.[feeLabel], true)}</>
+												)}
+											</td>
+										))}
+									</tr>
+								))}
+							</>
+						) : null}
 						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								{props.revenue?.methodology ? (
 									<Tooltip
 										content={props.revenue?.methodology}
-										className="flex justify-center underline decoration-dotted"
+										className="flex justify-start underline decoration-dotted"
 									>
 										Revenue
 									</Tooltip>
@@ -2272,7 +2326,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							{tableHeaders.map((header, i) => (
 								<td
 									key={`${props.name}-${groupBy}-revenue-${header[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+									className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{revenueData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 										<Tooltip
@@ -2284,7 +2338,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 													dataType="revenue"
 												/>
 											}
-											className="justify-center underline decoration-dotted"
+											className="justify-start underline decoration-dotted"
 										>
 											{formattedNum(revenueData[header[0]].value, true)}
 										</Tooltip>
@@ -2294,13 +2348,54 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								</td>
 							))}
 						</tr>
+						{revenueByLabels.length > 0 ? (
+							<>
+								{revenueByLabels.map((revenueLabel) => (
+									<tr key={`${props.name}-${groupBy}-revenue-${revenueLabel}`}>
+										<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
+											{revenueLabel}
+										</th>
+										{tableHeaders.map((header, i) => (
+											<td
+												key={`${props.name}-${groupBy}-revenue-by-label-${revenueLabel}-${header[0]}`}
+												className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+											>
+												{revenueData[header[0]]?.['by-label']?.[revenueLabel] == null ? null : i !== 0 &&
+												  tableHeaders[i + 1] &&
+												  revenueData[tableHeaders[i + 1][0]]['by-label']?.[revenueLabel] ? (
+													<Tooltip
+														content={
+															<PerformanceTooltipContent
+																currentValue={revenueData[header[0]]['by-label']?.[revenueLabel]}
+																previousValue={
+																	tableHeaders[i + 1]
+																		? revenueData[tableHeaders[i + 1][0]]['by-label']?.[revenueLabel]
+																		: null
+																}
+																groupBy={groupBy}
+																dataType="revenue"
+															/>
+														}
+														className="justify-start underline decoration-dotted"
+													>
+														{formattedNum(revenueData[header[0]]['by-label']?.[revenueLabel], true)}
+													</Tooltip>
+												) : (
+													<>{formattedNum(revenueData[header[0]]['by-label']?.[revenueLabel], true)}</>
+												)}
+											</td>
+										))}
+									</tr>
+								))}
+							</>
+						) : null}
 						{props.metrics.incentives ? (
 							<tr>
-								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 									{props.incentives?.methodology ? (
 										<Tooltip
 											content={props.incentives?.methodology ?? ''}
-											className="flex justify-center underline decoration-dotted"
+											className="flex justify-start underline decoration-dotted"
 										>
 											Incentives
 										</Tooltip>
@@ -2311,7 +2406,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{tableHeaders.map((header, i) => (
 									<td
 										key={`${props.name}-${groupBy}-incentives-${header[0]}`}
-										className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+										className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 									>
 										{incentivesData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 											<Tooltip
@@ -2323,7 +2418,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 														dataType="incentives"
 													/>
 												}
-												className="justify-center underline decoration-dotted"
+												className="justify-start underline decoration-dotted"
 											>
 												{formattedNum(incentivesData[header[0]].value, true)}
 											</Tooltip>
@@ -2335,10 +2430,10 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							</tr>
 						) : null}
 						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								<Tooltip
 									content="Revenue of the protocol minus the incentives distributed to users"
-									className="flex justify-center underline decoration-dotted"
+									className="flex justify-start underline decoration-dotted"
 								>
 									Earnings
 								</Tooltip>
@@ -2352,7 +2447,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								return (
 									<td
 										key={`${props.name}-${groupBy}-earnings-${header[0]}`}
-										className={`overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${
+										className={`overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${
 											earnings > 0 ? 'text-(--success)' : earnings < 0 ? 'text-(--error)' : ''
 										}`}
 									>
@@ -2367,7 +2462,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 														dataType="earnings"
 													/>
 												}
-												className="justify-center underline decoration-dotted"
+												className="justify-start underline decoration-dotted"
 											>
 												{formattedNum(earnings, true)}
 											</Tooltip>
@@ -2380,11 +2475,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						</tr>
 						{props.holdersRevenue?.totalAllTime != null ? (
 							<tr>
-								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 									{props.holdersRevenue?.methodology ? (
 										<Tooltip
 											content={props.holdersRevenue?.methodology}
-											className="flex justify-center underline decoration-dotted"
+											className="flex justify-start underline decoration-dotted"
 										>
 											Token Holder Net Income
 										</Tooltip>
@@ -2395,7 +2490,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								{tableHeaders.map((header, i) => (
 									<td
 										key={`${props.name}-${groupBy}-holders-revenue-${header[0]}`}
-										className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+										className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 									>
 										{holdersRevenueData[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 											<Tooltip
@@ -2409,7 +2504,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 														dataType="token holders net income"
 													/>
 												}
-												className="justify-center underline decoration-dotted"
+												className="justify-start underline decoration-dotted"
 											>
 												{formattedNum(holdersRevenueData[header[0]]?.value ?? 0, true)}
 											</Tooltip>
