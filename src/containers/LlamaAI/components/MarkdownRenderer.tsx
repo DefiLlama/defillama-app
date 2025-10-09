@@ -118,11 +118,29 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 		let processedContent = content
 
 		if (!citations || citations.length === 0) {
-			processedContent = content.replace(/\[(\d+(?:,\s*\d+)*)\]/g, '')
+			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
 		} else {
-			processedContent = content.replace(/\[(\d+(?:,\s*\d+)*)\]/g, (match, nums) => {
-				const citationNums = nums.split(',').map((n: string) => parseInt(n.trim()))
-				const badges = citationNums
+			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (match, nums) => {
+				const parts = nums.split(',').map((p: string) => p.trim())
+				const expandedNums: number[] = []
+
+				parts.forEach((part: string) => {
+					if (part.includes('-')) {
+						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
+						if (!isNaN(start) && !isNaN(end) && start <= end) {
+							for (let i = start; i <= end; i++) {
+								expandedNums.push(i)
+							}
+						}
+					} else {
+						const num = parseInt(part.trim())
+						if (!isNaN(num)) {
+							expandedNums.push(num)
+						}
+					}
+				})
+
+				const badges = expandedNums
 					.map((num: number) => {
 						const idx = num - 1
 						if (citations[idx]) {

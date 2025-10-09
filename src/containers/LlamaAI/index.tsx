@@ -304,8 +304,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
-			question: string
-			response: {
+			role?: string
+			content?: string
+			question?: string
+			response?: {
 				answer: string
 				metadata?: any
 				suggestions?: any[]
@@ -317,6 +319,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			timestamp: number
 			messageId?: string
 			userRating?: 'good' | 'bad' | null
+			metadata?: any
+			suggestions?: any[]
+			charts?: any[]
+			chartData?: any[]
+			citations?: string[]
+			inlineSuggestions?: string
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -1040,44 +1048,42 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</p>
 											)}
 											<div className="flex flex-col gap-2.5">
-												{conversationHistory.map((item) => (
-													<div
-														key={`${item.question}-${item.timestamp}`}
-														className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100dvh-260px)]'}`}
-													>
-														<SentPrompt prompt={item.question} />
-														<div className="flex flex-col gap-2.5">
-															<MarkdownRenderer content={item.response.answer} citations={item.response.citations} />
-															{item.response.charts && item.response.charts.length > 0 && (
-																<ChartRenderer
-																	charts={item.response.charts}
-																	chartData={item.response.chartData || []}
-																	resizeTrigger={resizeTrigger}
+												{conversationHistory.map((item) => {
+													if (item.role === 'user') {
+														return <SentPrompt key={`${item.messageId}-${item.timestamp}`} prompt={item.content} />
+													}
+													if (item.role === 'assistant') {
+														return (
+															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
+																<MarkdownRenderer content={item.content} citations={item.citations} />
+																{item.charts && item.charts.length > 0 && (
+																	<ChartRenderer
+																		charts={item.charts}
+																		chartData={item.chartData || []}
+																		resizeTrigger={resizeTrigger}
+																	/>
+																)}
+																{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
+																<ResponseControls
+																	messageId={item.messageId}
+																	content={item.content}
+																	initialRating={item.userRating}
+																	sessionId={sessionId}
 																/>
-															)}
-															{item.response.inlineSuggestions && (
-																<InlineSuggestions text={item.response.inlineSuggestions} />
-															)}
-															<ResponseControls
-																messageId={item.messageId}
-																content={item.response.answer}
-																initialRating={item.userRating}
-																sessionId={sessionId}
-															/>
-															{!readOnly && item.response.suggestions && item.response.suggestions.length > 0 && (
-																<SuggestedActions
-																	suggestions={item.response.suggestions}
-																	handleSuggestionClick={handleSuggestionClick}
-																	isPending={isPending}
-																	isStreaming={isStreaming}
-																/>
-															)}
-															{showDebug && item.response.metadata && (
-																<QueryMetadata metadata={item.response.metadata} />
-															)}
-														</div>
-													</div>
-												))}
+																{!readOnly && item.suggestions && item.suggestions.length > 0 && (
+																	<SuggestedActions
+																		suggestions={item.suggestions}
+																		handleSuggestionClick={handleSuggestionClick}
+																		isPending={isPending}
+																		isStreaming={isStreaming}
+																	/>
+																)}
+																{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
+															</div>
+														)
+													}
+													return null
+												})}
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
 												<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
