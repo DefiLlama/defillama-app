@@ -92,7 +92,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 		return formattedNum(value, true)
 	}
 
-	const compareProtocolsUrl = () => {
+	const compareProtocolsUrl = useMemo(() => {
 		// If this is a combined protocol with child versions, compare the child protocols
 		if (props.otherProtocols && props.otherProtocols.length > 1) {
 			const childProtocols = props.otherProtocols
@@ -106,7 +106,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			return `/compare-protocols?protocol=${encodeURIComponent(props.name)}&protocol=${encodeURIComponent(props.competitors[0].name)}`
 		}
 		return `/compare-protocols?protocol=${encodeURIComponent(props.name)}`
-	}
+	}, [props.otherProtocols, props.competitors, props.name])
 
 	return (
 		<ProtocolOverviewLayout
@@ -140,7 +140,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						) : null}
 						<div className="flex items-center gap-2">
 							<BasicLink
-								href={compareProtocolsUrl()}
+								href={compareProtocolsUrl}
 								className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 							>
 								<Icon name="repeat" className="h-3 w-3" />
@@ -172,7 +172,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 									<span className="mr-auto font-normal">({props.token.symbol})</span>
 								) : null}
 								<BasicLink
-									href={compareProtocolsUrl()}
+									href={compareProtocolsUrl}
 									className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
 								>
 									<Icon name="repeat" className="h-3 w-3" />
