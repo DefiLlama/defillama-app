@@ -10,7 +10,8 @@ import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOL_API } from '~/constants'
-import { CHART_COLORS } from '~/constants/colors'
+import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import { Flag } from '~/containers/ProtocolOverview/Flag'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
@@ -23,11 +24,15 @@ const LineAndBarChart = React.lazy(
 ) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
-	const { protocols } = await getSimpleProtocolsPageData([...basicPropertiesToKeep, 'logo'])
+	const [{ protocols }, { protocols: basicProtocolsData }] = await Promise.all([
+		getChainOverviewData({ chain: 'All' }),
+		getSimpleProtocolsPageData([...basicPropertiesToKeep, 'logo'])
+	])
 
 	return {
 		props: {
-			protocols
+			protocols,
+			basicProtocolsData
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -50,12 +55,12 @@ const fetchProtocol = async (selectedProtocol: string | null) => {
 
 const pageName = ['Compare Protocols']
 
-export default function CompareProtocolsTvls({ protocols }) {
+export default function CompareProtocols({ protocols, basicProtocolsData }) {
 	const router = useRouter()
 
 	const protocolsNames = React.useMemo(() => {
-		return protocols.map((p) => p.name)
-	}, [protocols])
+		return basicProtocolsData.map((p) => p.name)
+	}, [basicProtocolsData])
 
 	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 
@@ -153,10 +158,16 @@ export default function CompareProtocolsTvls({ protocols }) {
 	const selectedProtocolsData = React.useMemo(() => {
 		return selectedProtocols
 			.map((protocolName) => {
-				return protocols.find((p) => p.name === protocolName)
+				return basicProtocolsData.find((p) => p.name === protocolName)
 			})
 			.filter(Boolean)
-	}, [selectedProtocols, protocols])
+	}, [selectedProtocols, basicProtocolsData])
+
+	const protocolsTableData = React.useMemo(() => {
+		const selectedSet = new Set(selectedProtocols)
+
+		return protocols.filter((c) => selectedSet.has(c.name) || c.childProtocols?.some((cp) => selectedSet.has(cp.name)))
+	}, [protocols, selectedProtocols])
 
 	return (
 		<Layout
@@ -189,7 +200,7 @@ export default function CompareProtocolsTvls({ protocols }) {
 			</div>
 
 			{selectedProtocols.length > 1 ? (
-				<div className="relative flex flex-col gap-1">
+				<div className="relative flex flex-col gap-2">
 					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						{isLoading || !router.isReady ? (
 							<div className="flex h-full w-full items-center justify-center">
@@ -206,6 +217,12 @@ export default function CompareProtocolsTvls({ protocols }) {
 							<ProtocolInfoCard key={protocolData.name} protocolData={protocolData} />
 						))}
 					</div>
+
+					{protocolsTableData.length && (
+						<div>
+							<ChainProtocolsTable protocols={protocolsTableData} useStickyHeader={false} />
+						</div>
+					)}
 				</div>
 			) : (
 				<div className="flex min-h-[362px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
