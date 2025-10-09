@@ -8,6 +8,7 @@ import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
 import { FeatureFlagsProvider } from '~/contexts/FeatureFlagsContext'
+import { SidebarProvider } from '~/contexts/SidebarContext'
 
 NProgress.configure({ showSpinner: false })
 
@@ -64,7 +65,9 @@ function App({ Component, pageProps }: AppProps) {
 		<QueryClientProvider client={client}>
 			<AuthProvider>
 				<FeatureFlagsProvider>
-					<Component {...pageProps} />
+					<SidebarProvider>
+						<Component {...pageProps} />
+					</SidebarProvider>
 				</FeatureFlagsProvider>
 			</AuthProvider>
 			<ReactQueryDevtools initialIsOpen={false} />

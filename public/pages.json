@@ -716,56 +716,53 @@
       "icon": "pencil-ruler"
     }
   ],
-  "More": [
+  "Resources": [
     {
       "name": "Support",
-      "route": "/support"
+      "route": "/support",
+      "icon": "help-circle"
+    },
+    {
+      "name": "Documentation",
+      "route": "https://api-docs.defillama.com",
+      "icon": "code"
+    },
+    {
+      "name": "Contact us",
+      "route": "/about",
+      "icon": "chat"
     },
     {
       "name": "Careers",
-      "route": "https://github.com/DefiLlama/careers/blob/master/README.md"
+      "route": "https://github.com/DefiLlama/careers/blob/master/README.md",
+      "icon": "users"
     },
     {
       "name": "Report Incorrect Data",
-      "route": "/report-error"
+      "route": "/report-error",
+      "icon": "flag"
     },
     {
       "name": "Press / Media",
       "route": "/press"
     },
     {
-      "name": "API Reference",
-      "route": "https://api-docs.defillama.com"
-    },
-    {
       "name": "List your project",
       "route": "https://docs.llama.fi/list-your-project/submit-a-project"
-    }
-  ],
-  "About Us": [
-    {
-      "name": "About / Contact",
-      "route": "/about"
     },
     {
       "name": "Twitter",
-      "route": "https://x.com/DefiLlama"
+      "route": "https://x.com/DefiLlama",
+      "icon": "twitter"
     },
     {
       "name": "Discord",
-      "route": "https://discord.defillama.com"
+      "route": "https://discord.defillama.com",
+      "icon": "discord"
     },
     {
       "name": "Donate",
       "route": "/donations"
-    },
-    {
-      "name": "Terms of Service",
-      "route": "/terms"
-    },
-    {
-      "name": "Privacy Policy",
-      "route": "/privacy-policy"
     }
   ],
   "Hidden": [

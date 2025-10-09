@@ -66,6 +66,7 @@ type Name =
 	| 'chat'
 	| 'earth'
 	| 'twitter'
+	| 'discord'
 	| 'file-text'
 	| 'flame'
 	| 'house'

@@ -1,37 +1,41 @@
 import * as React from 'react'
 import { Suspense, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
-import { TNavLink, TNavLinks } from '../types'
+import { NavItems, NavLink } from '../NavGroup'
+import { NavCollapseProvider } from '../NavCollapseContext'
+import { primaryNavigation, resourcesNavigation } from '../navStructure'
+import type { NavLink as NavLinkType } from '../navStructure'
+import { getPinnedNavStructure, unpinRoute } from '../utils'
 
 export const Menu = React.memo(function Menu({
-	mainLinks,
 	pinnedPages,
 	userDashboards,
-	footerLinks
+	accountAttention
 }: {
-	mainLinks: TNavLinks
-	pinnedPages: TNavLink[]
-	userDashboards: TNavLink[]
-	footerLinks: TNavLinks
+	pinnedPages: string[]
+	userDashboards: NavLinkType[]
+	accountAttention?: boolean
 }) {
 	const [show, setShow] = useState(false)
 	const buttonEl = useRef<HTMLButtonElement>(null)
 	const navEl = useRef<HTMLDivElement>(null)
-	const { asPath } = useRouter()
+
+	// Convert pinned routes to grouped structure
+	const pinnedNavStructure = React.useMemo(() => getPinnedNavStructure(pinnedPages), [pinnedPages])
 
 	useEffect(() => {
-		function handleClick(e) {
+		function handleClick(e: MouseEvent) {
+			const target = e.target as HTMLElement
 			if (
 				!(
 					buttonEl.current &&
 					navEl.current &&
-					(buttonEl.current.contains(e.target) ||
-						navEl.current.isSameNode(e.target) ||
-						'togglemenuoff' in e.target.dataset)
+					(buttonEl.current.contains(target) ||
+						navEl.current.contains(target) ||
+						target.dataset?.togglemenuoff)
 				)
 			) {
 				setShow(false)
@@ -55,60 +59,105 @@ export const Menu = React.memo(function Menu({
 			>
 				<nav
 					ref={navEl}
-					className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
+					className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col gap-3 overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
 				>
 					<Ariakit.DialogDismiss className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
 					</Ariakit.DialogDismiss>
 
-					{mainLinks.map(({ category, pages }) => (
-						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">{category}</p>
-							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route, attention }) => (
-								<LinkToPage
-									route={route}
-									name={name}
-									attention={attention}
-									key={`mobile-nav-${name}-${route}`}
-									asPath={asPath}
-								/>
-							))}
-						</div>
-					))}
+					{/* Primary Navigation */}
+					<div className="flex flex-col gap-1">
+						<NavItems items={primaryNavigation} isExpanded={true} />
 
-					{pinnedPages.length > 0 ? (
-						<div className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">Pinned Pages</p>
-							<hr className="border-black/20 dark:border-white/20" />
-							{pinnedPages.map(({ name, route }) => (
-								<LinkToPage route={route} name={name} key={`mobile-nav-pinned-${name}-${route}`} asPath={asPath} />
-							))}
-						</div>
-					) : null}
+						{/* Metrics Link */}
+						<NavLink
+							link={{
+								type: 'link',
+								label: 'Metrics',
+								route: '/metrics',
+								icon: 'bar-chart-2'
+							}}
+							isExpanded={true}
+						/>
 
-					{userDashboards.length > 0 ? (
-						<div className="group mb-3 flex flex-col first:mb-auto">
+						{/* Account and Custom Dashboards */}
+						<NavLink
+							link={{
+								type: 'link',
+								label: 'Account',
+								route: '/subscription',
+								icon: 'user',
+								attention: accountAttention
+							}}
+							isExpanded={true}
+						/>
+						<NavLink
+							link={{
+								type: 'link',
+								label: 'Custom Dashboards',
+								route: '/pro',
+								icon: 'blocks'
+							}}
+							isExpanded={true}
+						/>
+					</div>
+
+					{/* Pinned Pages with Grouped Structure or Empty State */}
+					{pinnedNavStructure.length > 0 ? (
+						<NavCollapseProvider>
+							<div className="group flex flex-col">
+								<p className="mb-1 text-xs opacity-65">Pinned</p>
+								<hr className="border-black/20 dark:border-white/20" />
+								<div className="flex flex-col gap-1 mt-1">
+									<NavItems items={pinnedNavStructure} isExpanded={true} showUnpin={true} onUnpin={unpinRoute} />
+								</div>
+							</div>
+						</NavCollapseProvider>
+					) : (
+						<div className="group flex flex-col">
+							<p className="mb-1 text-xs opacity-65">Pinned</p>
+							<hr className="border-black/20 dark:border-white/20" />
+							<p className="mt-2 text-xs text-(--text-form) opacity-75">
+								Visit Metrics page to pin your favorites
+							</p>
+						</div>
+					)}
+
+					{/* User Dashboards */}
+					{userDashboards.length > 0 && (
+						<div className="group flex flex-col">
 							<p className="mb-1 text-xs opacity-65">Your Dashboards</p>
 							<hr className="border-black/20 dark:border-white/20" />
-							{userDashboards.map(({ name, route }) => (
-								<LinkToPage route={route} name={name} key={`mobile-nav-${name}-${route}`} asPath={asPath} />
-							))}
+							<div className="flex flex-col gap-0.5 mt-1">
+								{userDashboards.map((dashboard) => (
+									<NavLink key={`mobile-dashboard-${dashboard.route}`} link={dashboard} isExpanded={true} />
+								))}
+							</div>
 						</div>
-					) : null}
+					)}
 
-					{footerLinks.map(({ category, pages }) => (
-						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">{category}</p>
-							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route }) => (
-								<LinkToPage route={route} name={name} key={`mobile-nav-${name}-${route}`} asPath={asPath} />
-							))}
+					{/* Resources - Footer Section */}
+					<div>
+						<p className="mb-1 text-xs opacity-50">Resources</p>
+						<hr className="border-black/10 dark:border-white/10" />
+						<div className="flex flex-col gap-0.5 mt-1">
+							<NavItems items={resourcesNavigation} isExpanded={true} />
 						</div>
-					))}
+					</div>
 
-					<hr className="my-3 border-black/20 dark:border-white/20" />
+					{/* Legal Footer */}
+					<div className="flex items-center justify-center gap-2 text-xs opacity-40">
+						<BasicLink href="/privacy-policy" className="transition-opacity hover:opacity-60">
+							Privacy
+						</BasicLink>
+						<span>•</span>
+						<BasicLink href="/terms" className="transition-opacity hover:opacity-60">
+							Terms
+						</BasicLink>
+					</div>
+
+					<hr className="border-black/20 dark:border-white/20" />
 
 					<Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
 						<Account />
@@ -116,36 +165,5 @@ export const Menu = React.memo(function Menu({
 				</nav>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
-	)
-})
-
-const LinkToPage = React.memo(function LinkToPage({
-	route,
-	name,
-	attention,
-	asPath
-}: {
-	route: string
-	name: string
-	attention?: boolean
-	asPath: string
-}) {
-	const isActive = route === asPath.split('/?')[0].split('?')[0]
-	return (
-		<BasicLink
-			href={route}
-			data-linkactive={isActive}
-			className="-ml-1.5 flex items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-		>
-			<span className="relative inline-flex items-center gap-1">
-				{name}
-				{attention ? (
-					<span
-						aria-hidden
-						className="inline-block h-2 w-2 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
-					/>
-				) : null}
-			</span>
-		</BasicLink>
 	)
 })

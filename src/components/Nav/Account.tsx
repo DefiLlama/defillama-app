@@ -6,6 +6,7 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { formatEthAddress } from '~/utils'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+import { useSidebarState } from '~/contexts/SidebarContext'
 
 export const resolveUserEmail = (user: any): string | null => {
 	if (!user) return null
@@ -23,6 +24,7 @@ export const Account = memo(function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { isCollapsed } = useSidebarState()
 	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
 
 	const userHandle = resolveUserHandle(user)
@@ -43,48 +45,64 @@ export const Account = memo(function Account() {
 							{user && (
 								<BasicLink
 									href="/subscription"
-									className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline"
+									className={`flex items-center gap-1.5 text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline ${
+										isCollapsed ? 'justify-center' : 'truncate'
+									}`}
 								>
 									<Icon name="users" className="h-4 w-4 shrink-0" />
-									{userHandle}
+									{!isCollapsed && userHandle}
 								</BasicLink>
 							)}
 							{subscription?.status === 'active' ? (
-								<span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-500">
+								<span
+									className={`flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-500 ${
+										isCollapsed ? 'justify-center' : ''
+									}`}
+								>
 									<Icon name="check-circle" className="h-3.5 w-3.5" />
-									Subscribed
+									{!isCollapsed && 'Subscribed'}
 								</span>
 							) : (
 								user && (
 									<>
-										<span className="flex items-center gap-1 text-xs font-medium text-(--error)">
-											Subscription inactive
+										<span
+											className={`flex items-center gap-1 text-xs font-medium text-(--error) ${
+												isCollapsed ? 'justify-center' : ''
+											}`}
+										>
+											{!isCollapsed && 'Subscription inactive'}
 										</span>
 										<BasicLink
 											href="/subscription"
-											className="flex items-center gap-1 text-xs font-medium text-(--link) hover:underline"
+											className={`flex items-center gap-1 text-xs font-medium text-(--link) hover:underline ${
+												isCollapsed ? 'justify-center' : ''
+											}`}
 										>
 											<Icon name="plus" className="h-3.5 w-3.5" />
-											Upgrade
+											{!isCollapsed && 'Upgrade'}
 										</BasicLink>
 									</>
 								)
 							)}
 							<button
 								onClick={logout}
-								className="flex items-center justify-center gap-2 rounded-md bg-red-500/10 p-1 text-sm font-medium text-(--error)"
+								className={`flex items-center justify-center gap-2 rounded-md bg-red-500/10 p-1 text-sm font-medium text-(--error) ${
+									isCollapsed ? 'w-full' : ''
+								}`}
 							>
 								<Icon name="x" className="h-4 w-4" />
-								Logout
+								{!isCollapsed && 'Logout'}
 							</button>
 						</div>
 					) : (
 						<BasicLink
 							href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
-							className="pro-btn-purple flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium"
+							className={`pro-btn-purple flex items-center justify-center gap-2 rounded-md p-1 text-sm font-medium ${
+								isCollapsed ? 'w-full' : ''
+							}`}
 						>
 							<Icon name="users" className="h-4 w-4" />
-							Sign In / Subscribe
+							{!isCollapsed && 'Sign In / Subscribe'}
 						</BasicLink>
 					)}
 				</>
