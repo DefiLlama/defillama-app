@@ -987,14 +987,21 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; me
 			total7d: data.total7d ?? null,
 			total30d: data.total30d ?? null,
 			totalAllTime: data.totalAllTime ?? null,
-			...(areMethodologiesDifferent
-				? { childMethodologies: childMethodologies.filter((m) => (m[1] || m[2] ? true : false)) }
-				: {
+			...(methodologyKey === 'HoldersRevenue'
+				? {
 						methodology: methodologyKey
-							? (topChildMethodology?.[1] ?? commonMethodology[methodologyKey] ?? null)
+							? (childMethodologies.find((m) => m[1] != null)?.[1] ?? commonMethodology[methodologyKey] ?? null)
 							: null,
-						methodologyURL: topChildMethodology?.[2] ?? null
-					}),
+						methodologyURL: childMethodologies.find((m) => m[2] != null)?.[2] ?? null
+					}
+				: areMethodologiesDifferent
+					? { childMethodologies: childMethodologies.filter((m) => (m[1] || m[2] ? true : false)) }
+					: {
+							methodology: methodologyKey
+								? (topChildMethodology?.[1] ?? commonMethodology[methodologyKey] ?? null)
+								: null,
+							methodologyURL: topChildMethodology?.[2] ?? null
+						}),
 			defaultChartView: data.defaultChartView ?? 'daily'
 		}
 	}

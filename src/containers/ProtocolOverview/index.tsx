@@ -2324,7 +2324,7 @@ const IncomeStatementByLabel = ({
 	return (
 		<>
 			<tr>
-				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+				<th className="overflow-hidden border border-black/10 p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 					{methodology ? (
 						<Tooltip
 							content={methodology}
@@ -2339,7 +2339,7 @@ const IncomeStatementByLabel = ({
 				{tableHeaders.map((header, i) => (
 					<td
 						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
+						className={`overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
 					>
 						{data[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 							<Tooltip
@@ -2365,13 +2365,13 @@ const IncomeStatementByLabel = ({
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
+							<th className="overflow-hidden border border-black/10 p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
 								{breakdownlabel}
 							</th>
 							{tableHeaders.map((header, i) => (
 								<td
 									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  tableHeaders[i + 1] &&
@@ -2438,30 +2438,3 @@ const PerformanceTooltipContent = ({
 // unlocks
 // governance
 // % change tvl, mcap, token price, etc.
-
-{
-	/* <details className="group">
-<summary className="flex items-center gap-1">
-	<span>{`${title}${adapter.methodology ? `: ${adapter.methodology}` : ''}`}</span>
-	<Icon name="chevron-down" className="h-3.5 w-3.5 transition-transform duration-100 group-open:rotate-180" />
-</summary>
-<div className="flex flex-col gap-2 pt-2">
-	{Object.entries(adapter.breakdownMethodology).map(([key, value]) => (
-		<p key={`${title}-${key}-${value}`}>
-			{key}: {value}
-		</p>
-	))}
-	{adapter?.methodologyURL ? (
-		<a
-			href={adapter.methodologyURL}
-			target="_blank"
-			rel="noopener noreferrer"
-			className="mr-auto flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-		>
-			<Icon name="external-link" className="h-3.5 w-3.5" />
-			<span>View code</span>
-		</a>
-	) : null}
-</div>
-</details> */
-}
