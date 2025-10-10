@@ -2214,8 +2214,24 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					))}
 				</div>
 			</div>
-			<div className="overflow-x-auto">
-				<table className="w-full border-collapse">
+			<div className="relative overflow-x-auto">
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full" style={{ top: '50%' }}>
+					<img
+						src="/icons/defillama-dark-neutral.webp"
+						alt="defillama"
+						height={40}
+						width={155}
+						className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
+					/>
+					<img
+						src="/icons/defillama-light-neutral.webp"
+						alt="defillama"
+						height={40}
+						width={155}
+						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
+					/>
+				</div>
+				<table className="z-10 w-full border-collapse">
 					<thead>
 						<tr>
 							<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
