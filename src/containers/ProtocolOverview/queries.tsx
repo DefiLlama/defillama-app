@@ -1184,9 +1184,38 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			}
 		}
 
+		const finalLabelsByType = {}
+		for (const label in labelsByType) {
+			finalLabelsByType[label] = Array.from(labelsByType[label])
+		}
+
+		const labelMap = {
+			df: 'Fees',
+			dr: 'Revenue',
+			dhr: 'Holders Revenue'
+		}
+		const methodologyByType = {}
+		for (const shortLabel in finalLabelsByType) {
+			const label = labelMap[shortLabel]
+			if (!label) continue
+			methodologyByType[label] = methodologyByType[label] ?? {}
+			for (const type of finalLabelsByType[shortLabel]) {
+				for (const childProtocol of incomeStatement.childProtocols ?? []) {
+					if (childProtocol.breakdownMethodology?.[label]?.[type]) {
+						methodologyByType[label][type] = childProtocol.breakdownMethodology[label][type]
+						break
+					}
+				}
+				if (incomeStatement.breakdownMethodology?.[label]?.[type]) {
+					methodologyByType[label][type] = incomeStatement.breakdownMethodology[label][type]
+				}
+			}
+		}
+
 		return {
 			data: aggregates,
-			labelsByType: Object.fromEntries(Object.entries(labelsByType).map(([label, types]) => [label, Array.from(types)]))
+			labelsByType: finalLabelsByType,
+			methodologyByType
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)

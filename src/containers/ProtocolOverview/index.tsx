@@ -2251,6 +2251,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							methodology={props.fees?.methodology ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={feesByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Fees'] ?? {}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
@@ -2261,6 +2262,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							methodology={props.revenue?.methodology ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={revenueByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Revenue'] ?? {}}
 						/>
 						{props.metrics?.incentives ? (
 							<IncomeStatementByLabel
@@ -2272,6 +2274,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								methodology={props.incentives?.methodology ?? ''}
 								tableHeaders={tableHeaders}
 								breakdownByLabels={[]}
+								methodologyByType={{}}
 							/>
 						) : null}
 						<IncomeStatementByLabel
@@ -2283,6 +2286,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							methodology={''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={[]}
+							methodologyByType={{}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
@@ -2293,6 +2297,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							methodology={props.holdersRevenue?.methodology ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={holdersRevenueByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Holders Revenue'] ?? {}}
 						/>
 					</tbody>
 				</table>
@@ -2309,7 +2314,8 @@ const IncomeStatementByLabel = ({
 	label,
 	methodology,
 	tableHeaders,
-	breakdownByLabels
+	breakdownByLabels,
+	methodologyByType
 }: {
 	protocolName: string
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
@@ -2319,6 +2325,7 @@ const IncomeStatementByLabel = ({
 	methodology: string
 	tableHeaders: [string, string, number][]
 	breakdownByLabels: string[]
+	methodologyByType: Record<string, string>
 }) => {
 	const isEarnings = dataType === 'earnings'
 	return (
@@ -2366,7 +2373,16 @@ const IncomeStatementByLabel = ({
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}>
 							<th className="overflow-hidden border border-black/10 p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
-								{breakdownlabel}
+								{methodologyByType[breakdownlabel] ? (
+									<Tooltip
+										content={methodologyByType[breakdownlabel]}
+										className="flex justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+									>
+										{breakdownlabel}
+									</Tooltip>
+								) : (
+									<>{breakdownlabel}</>
+								)}
 							</th>
 							{tableHeaders.map((header, i) => (
 								<td
