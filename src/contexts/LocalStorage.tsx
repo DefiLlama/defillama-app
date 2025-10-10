@@ -88,6 +88,7 @@ const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
 
 // Pro Dashboard
 export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS'
+export const LLAMA_AI_WELCOME_DISMISSED = 'LLAMA_AI_WELCOME_DISMISSED'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
@@ -477,4 +478,21 @@ export function useCustomColumns() {
 		editCustomColumn,
 		deleteCustomColumn
 	}
+}
+
+export function useLlamaAIWelcome(): [boolean, () => void] {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
+
+	const dismissed = useMemo(() => JSON.parse(store)?.[LLAMA_AI_WELCOME_DISMISSED] ?? false, [store])
+
+	const setDismissed = () => {
+		localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [LLAMA_AI_WELCOME_DISMISSED]: true }))
+		window.dispatchEvent(new Event('storage'))
+	}
+
+	return [dismissed, setDismissed]
 }

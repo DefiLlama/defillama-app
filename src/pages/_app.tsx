@@ -3,15 +3,41 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import '~/tailwind.css'
 import '~/nprogress.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
+import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { FeatureFlagsProvider } from '~/contexts/FeatureFlagsContext'
+import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 
 NProgress.configure({ showSpinner: false })
 
 const client = new QueryClient()
+
+function LlamaAIWelcomeWrapper() {
+	const [dismissed, setDismissed] = useLlamaAIWelcome()
+	const isClient = useIsClient()
+	const { hasFeature, loading } = useFeatureFlagsContext()
+	const [showModal, setShowModal] = useState(false)
+
+	useEffect(() => {
+		if (dismissed) return
+		if (isClient && !loading && hasFeature('llamaai')) {
+			setShowModal(true)
+		}
+	}, [dismissed, isClient, loading, hasFeature])
+
+	const handleClose = () => {
+		setShowModal(false)
+		setDismissed()
+	}
+
+	if (dismissed) return null
+
+	return <LlamaAIWelcomeModal isOpen={showModal} onClose={handleClose} />
+}
 
 function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
@@ -65,6 +91,7 @@ function App({ Component, pageProps }: AppProps) {
 			<AuthProvider>
 				<FeatureFlagsProvider>
 					<Component {...pageProps} />
+					<LlamaAIWelcomeWrapper />
 				</FeatureFlagsProvider>
 			</AuthProvider>
 			<ReactQueryDevtools initialIsOpen={false} />
