@@ -2326,7 +2326,10 @@ const IncomeStatementByLabel = ({
 			<tr>
 				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 					{methodology ? (
-						<Tooltip content={methodology} className="flex justify-start underline decoration-dotted">
+						<Tooltip
+							content={methodology}
+							className="flex justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+						>
 							{label}
 						</Tooltip>
 					) : (
@@ -2336,7 +2339,7 @@ const IncomeStatementByLabel = ({
 				{tableHeaders.map((header, i) => (
 					<td
 						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value > 0 ? 'text-(--success)' : data[header[0]]?.value < 0 ? 'text-(--error)' : '') : ''}`}
+						className={`overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
 					>
 						{data[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 							<Tooltip
@@ -2348,7 +2351,7 @@ const IncomeStatementByLabel = ({
 										dataType={dataType}
 									/>
 								}
-								className="justify-start underline decoration-dotted"
+								className={`justify-start underline decoration-dotted ${isEarnings ? (data[header[0]]?.value >= 0 ? 'decoration-(--success)/60' : 'decoration-(--error)/60') : 'decoration-black/60 dark:decoration-white/60'}`}
 							>
 								{formattedNum(data[header[0]].value, true)}
 							</Tooltip>
@@ -2384,7 +2387,7 @@ const IncomeStatementByLabel = ({
 													dataType={dataType}
 												/>
 											}
-											className="justify-start underline decoration-dotted"
+											className="justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
 										>
 											{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}
 										</Tooltip>
