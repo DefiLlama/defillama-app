@@ -17,21 +17,24 @@ NProgress.configure({ showSpinner: false })
 const client = new QueryClient()
 
 function LlamaAIWelcomeWrapper() {
+	const [dismissed, setDismissed] = useLlamaAIWelcome()
 	const isClient = useIsClient()
 	const { hasFeature, loading } = useFeatureFlagsContext()
-	const [dismissed, setDismissed] = useLlamaAIWelcome()
 	const [showModal, setShowModal] = useState(false)
 
 	useEffect(() => {
-		if (isClient && !loading && hasFeature('llamaai') && !dismissed) {
+		if (dismissed) return
+		if (isClient && !loading && hasFeature('llamaai')) {
 			setShowModal(true)
 		}
-	}, [isClient, loading, hasFeature, dismissed])
+	}, [dismissed, isClient, loading, hasFeature])
 
 	const handleClose = () => {
 		setShowModal(false)
 		setDismissed()
 	}
+
+	if (dismissed) return null
 
 	return <LlamaAIWelcomeModal isOpen={showModal} onClose={handleClose} />
 }
