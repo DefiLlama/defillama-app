@@ -88,7 +88,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						className="block w-full rounded-xl bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] px-6 py-3.5 text-center text-base font-semibold text-white shadow-lg shadow-[#5C5CF9]/25 transition-all hover:scale-[1.02] hover:from-[#4A4AF0] hover:to-[#6A6AFF] hover:shadow-xl hover:shadow-[#5C5CF9]/30"
 						onClick={onClose}
 					>
-						Go to Llama AI
+						Go to LlamaAI
 					</BasicLink>
 				</div>
 			</div>
