@@ -2263,7 +2263,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							groupBy={groupBy}
 							data={feesData}
 							dataType="fees"
-							label="Fees"
+							label="Gross Protocol Revenue"
 							methodology={props.fees?.methodology ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={feesByLabels}
@@ -2274,7 +2274,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							groupBy={groupBy}
 							data={revenueData}
 							dataType="revenue"
-							label="Revenue"
+							label="Gross Profit"
 							methodology={props.revenue?.methodology ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={revenueByLabels}
@@ -2351,9 +2351,10 @@ const IncomeStatementByLabel = ({
 					{methodology ? (
 						<Tooltip
 							content={methodology}
-							className="flex justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+							className="flex items-center justify-start gap-1 underline decoration-black/60 decoration-dotted dark:decoration-white/60"
 						>
 							{label}
+							<Icon name="help-circle" height={14} width={14} className="relative top-0.25 shrink-0" />
 						</Tooltip>
 					) : (
 						<>{label}</>
