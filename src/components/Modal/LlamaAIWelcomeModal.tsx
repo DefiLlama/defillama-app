@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 
@@ -9,59 +8,27 @@ interface LlamaAIWelcomeModalProps {
 }
 
 export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProps) {
-	const modalContentRef = useRef<HTMLDivElement>(null)
-	const [isMounted, setIsMounted] = useState(false)
-
-	useEffect(() => {
-		setIsMounted(true)
-	}, [])
-
-	useEffect(() => {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') onClose()
-		}
-
-		const handleClickOutside = (event: MouseEvent) => {
-			if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) onClose()
-		}
-
-		if (isOpen) {
-			document.addEventListener('keydown', handleKeyDown)
-			document.addEventListener('mousedown', handleClickOutside)
-		}
-
-		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
-			document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [isOpen, onClose])
-
-	if (!isOpen || !isMounted) return null
-
-	return createPortal(
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-			<div
-				ref={modalContentRef}
-				onMouseDown={(e) => e.stopPropagation()}
-				className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-[#0a0b0d] shadow-[0_0_150px_75px_rgba(92,92,249,0.2),0_0_75px_25px_rgba(123,123,255,0.15)]"
+	return (
+		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
+			<Ariakit.Dialog
+				className="dialog fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-[#0a0b0d] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.2),0_0_75px_25px_rgba(123,123,255,0.15)]"
+				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
+				portal
+				unmountOnHide
 			>
 				<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
 				<div className="absolute top-[-60px] right-[-60px] h-[150px] w-[150px] rounded-full bg-[#5c5cf9] opacity-15 blur-3xl"></div>
 
-				<button
-					className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-white"
-					onClick={onClose}
-					aria-label="Close modal"
-				>
+				<Ariakit.DialogDismiss className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-white">
 					<Icon name="x" className="h-5 w-5" />
-				</button>
+				</Ariakit.DialogDismiss>
 
 				<div className="relative z-10 px-8 py-10">
 					<div className="mb-6 flex justify-center">
 						<img src="/icons/llama-ai.svg" alt="LlamaAI" className="h-20 w-16 object-contain" />
 					</div>
 
-					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-white">Exclusive access to LlamaAI</h2>
+					<h2 className="mb-4 text-center text-2xl font-bold leading-snug text-white">Exclusive access to LlamaAI</h2>
 
 					<p className="mb-1 text-center text-base text-[#888]">
 						As one of our longest active subscribers we've given you early access to LlamaAI, our biggest upcoming
@@ -91,8 +58,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						Go to LlamaAI
 					</BasicLink>
 				</div>
-			</div>
-		</div>,
-		document.body
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }
