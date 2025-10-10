@@ -526,16 +526,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setConversationHistory((prev) => [
 				...prev,
 				{
-					question: variables.userQuestion,
-					response: {
-						answer: data?.response?.answer || finalContent,
-						metadata: data?.response?.metadata,
-						inlineSuggestions: data?.response?.inlineSuggestions,
-						suggestions: data?.response?.suggestions,
-						charts: data?.response?.charts,
-						chartData: data?.response?.chartData,
-						citations: data?.response?.citations
-					},
+					role: 'user',
+					content: variables.userQuestion,
+					timestamp: Date.now()
+				},
+				{
+					role: 'assistant',
+					content: data?.response?.answer || finalContent,
+					metadata: data?.response?.metadata,
+					inlineSuggestions: data?.response?.inlineSuggestions,
+					suggestions: data?.response?.suggestions,
+					charts: data?.response?.charts,
+					chartData: data?.response?.chartData,
+					citations: data?.response?.citations,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
@@ -563,14 +566,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setConversationHistory((prev) => [
 					...prev,
 					{
-						question: variables.userQuestion,
-						response: {
-							answer: finalContent,
-							metadata: { stopped: true, partial: true },
-							suggestions: streamingSuggestions,
-							charts: streamingCharts,
-							chartData: streamingChartData
-						},
+						role: 'user',
+						content: variables.userQuestion,
+						timestamp: Date.now()
+					},
+					{
+						role: 'assistant',
+						content: finalContent,
+						metadata: { stopped: true, partial: true },
+						suggestions: streamingSuggestions,
+						charts: streamingCharts,
+						chartData: streamingChartData,
 						messageId: currentMessageId,
 						timestamp: Date.now()
 					}
@@ -630,15 +636,18 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setConversationHistory((prev) => [
 				...prev,
 				{
-					question: prompt,
-					response: {
-						answer: finalContent,
-						metadata: { stopped: true, partial: true },
-						suggestions: streamingSuggestions,
-						charts: streamingCharts,
-						chartData: streamingChartData,
-						citations: streamingCitations
-					},
+					role: 'user',
+					content: prompt,
+					timestamp: Date.now()
+				},
+				{
+					role: 'assistant',
+					content: finalContent,
+					metadata: { stopped: true, partial: true },
+					suggestions: streamingSuggestions,
+					charts: streamingCharts,
+					chartData: streamingChartData,
+					citations: streamingCitations,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
@@ -1048,13 +1057,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</p>
 											)}
 											<div className="flex flex-col gap-2.5">
-												{conversationHistory.map((item) => {
+												{conversationHistory.map((item, index) => {
 													if (item.role === 'user') {
-														return <SentPrompt key={`${item.messageId}-${item.timestamp}`} prompt={item.content} />
+														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
 													}
 													if (item.role === 'assistant') {
 														return (
-															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
+															<div key={`assistant-${item.messageId || item.timestamp}-${index}`} className="flex flex-col gap-2.5">
 																<MarkdownRenderer content={item.content} citations={item.citations} />
 																{item.charts && item.charts.length > 0 && (
 																	<ChartRenderer
@@ -1069,6 +1078,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																	content={item.content}
 																	initialRating={item.userRating}
 																	sessionId={sessionId}
+																	readOnly={readOnly}
 																/>
 																{!readOnly && item.suggestions && item.suggestions.length > 0 && (
 																	<SuggestedActions
@@ -1109,6 +1119,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		content={item.response?.answer}
 																		initialRating={item.userRating}
 																		sessionId={sessionId}
+																		readOnly={readOnly}
 																	/>
 																	{!readOnly &&
 																		((item.response?.suggestions && item.response.suggestions.length > 0) ||
@@ -1663,12 +1674,14 @@ const ResponseControls = memo(function ResponseControls({
 	messageId,
 	content,
 	initialRating,
-	sessionId
+	sessionId,
+	readOnly = false
 }: {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
+	readOnly?: boolean
 }) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
@@ -1807,7 +1820,7 @@ const ResponseControls = memo(function ResponseControls({
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
 					<span className="sr-only">Thumbs Down</span>
 				</Tooltip>
-				{sessionId && (
+				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"
 						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
@@ -1817,14 +1830,16 @@ const ResponseControls = memo(function ResponseControls({
 						<span className="sr-only">Share</span>
 					</Tooltip>
 				)}
-				<Tooltip
-					content="Provide Feedback"
-					render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
-					className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
-				>
-					<Icon name="message-square-warning" height={14} width={14} />
-					<span className="sr-only">Provide Feedback</span>
-				</Tooltip>
+				{!readOnly && (
+					<Tooltip
+						content="Provide Feedback"
+						render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
+						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
+					>
+						<Icon name="message-square-warning" height={14} width={14} />
+						<span className="sr-only">Provide Feedback</span>
+					</Tooltip>
+				)}
 			</div>
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog
