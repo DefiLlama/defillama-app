@@ -11,7 +11,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
 			<Ariakit.Dialog
-				className="dialog fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-[#0a0b0d] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.2),0_0_75px_25px_rgba(123,123,255,0.15)]"
+				className="dialog fixed inset-0 z-50 m-auto h-fit w-full max-w-lg overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-[#0a0b0d] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.2),0_0_75px_25px_rgba(123,123,255,0.15)]"
 				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
 				portal
 				unmountOnHide
@@ -28,7 +28,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						<img src="/icons/llama-ai.svg" alt="LlamaAI" className="h-20 w-16 object-contain" />
 					</div>
 
-					<h2 className="mb-4 text-center text-2xl font-bold leading-snug text-white">Exclusive access to LlamaAI</h2>
+					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-white">Exclusive access to LlamaAI</h2>
 
 					<p className="mb-1 text-center text-base text-[#888]">
 						As one of our longest active subscribers we've given you early access to LlamaAI, our biggest upcoming
