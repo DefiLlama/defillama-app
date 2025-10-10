@@ -1082,6 +1082,51 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															</div>
 														)
 													}
+													if (item.question) {
+														return (
+															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
+																<SentPrompt prompt={item.question} />
+																<div className="flex flex-col gap-2.5">
+																	<MarkdownRenderer
+																		content={item.response?.answer || ''}
+																		citations={item.response?.citations || item.citations}
+																	/>
+																	{((item.response?.charts && item.response.charts.length > 0) ||
+																		(item.charts && item.charts.length > 0)) && (
+																		<ChartRenderer
+																			charts={item.response?.charts || item.charts || []}
+																			chartData={item.response?.chartData || item.chartData || []}
+																			resizeTrigger={resizeTrigger}
+																		/>
+																	)}
+																	{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
+																		<InlineSuggestions
+																			text={item.response?.inlineSuggestions || item.inlineSuggestions}
+																		/>
+																	)}
+																	<ResponseControls
+																		messageId={item.messageId}
+																		content={item.response?.answer}
+																		initialRating={item.userRating}
+																		sessionId={sessionId}
+																	/>
+																	{!readOnly &&
+																		((item.response?.suggestions && item.response.suggestions.length > 0) ||
+																			(item.suggestions && item.suggestions.length > 0)) && (
+																			<SuggestedActions
+																				suggestions={item.response?.suggestions || item.suggestions || []}
+																				handleSuggestionClick={handleSuggestionClick}
+																				isPending={isPending}
+																				isStreaming={isStreaming}
+																			/>
+																		)}
+																	{showDebug && (item.response?.metadata || item.metadata) && (
+																		<QueryMetadata metadata={item.response?.metadata || item.metadata} />
+																	)}
+																</div>
+															</div>
+														)
+													}
 													return null
 												})}
 											</div>
@@ -1392,6 +1437,7 @@ const PromptResponse = ({
 
 	return (
 		<>
+			{response?.answer && <MarkdownRenderer content={response.answer} citations={response.citations} />}
 			{response?.charts && response.charts.length > 0 && (
 				<ChartRenderer
 					charts={response.charts}
