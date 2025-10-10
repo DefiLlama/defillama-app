@@ -87,15 +87,14 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 
 	const { linksInRow, dropdownLinks, isLinkInDropdown } = useMemo(() => {
 		if (lastIndexToRender === 'renderMenu') {
-			return { linksInRow: null, dropdownLinks: links }
+			const isActivePresent = !!links.find((link) => link.label === activeLink)
+			return { linksInRow: null, dropdownLinks: links, isLinkInDropdown: isActivePresent }
 		}
 
-		const linksInRow = lastIndexToRender ? links.slice(0, lastIndexToRender - 1) : links
+		const linksInRow = lastIndexToRender ? links.slice(0, lastIndexToRender) : links
 
-		const dropdownLinks = lastIndexToRender ? links : null
-		const dropdownLinks2 = lastIndexToRender ? links.slice(linksInRow.length) : null
-
-		const isLinkInDropdown = dropdownLinks2?.find((link) => link.label === activeLink) ? true : false
+		const dropdownLinks = lastIndexToRender ? links.slice(linksInRow.length) : null
+		const isLinkInDropdown = dropdownLinks ? dropdownLinks.some((link) => link.label === activeLink) : false
 
 		return { linksInRow, dropdownLinks, isLinkInDropdown }
 	}, [links, lastIndexToRender, activeLink])
