@@ -2299,7 +2299,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							data={earningsData}
 							dataType="earnings"
 							label="Earnings"
-							methodology={''}
+							methodology={'Gross Profit minus Incentives'}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={[]}
 							methodologyByType={{}}
