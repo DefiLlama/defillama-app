@@ -53,11 +53,9 @@ export function EmbedChart() {
 				unmountOnHide
 				hideOnInteractOutside
 				gutter={6}
-				className="z-10 max-h-[calc(100dvh-80px)] w-full overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-[hsl(204,20%,100%)] text-[hsl(204,10%,10%)] sm:max-w-[min(calc(100vw-16px),320px)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)] dark:bg-[hsl(204,3%,12%)] dark:text-[hsl(0,0%,100%)]"
+				className="z-10 mr-1 max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),320px)] overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-[hsl(204,20%,100%)] text-[hsl(204,10%,10%)] lg:mr-4 lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)] dark:bg-[hsl(204,3%,12%)] dark:text-[hsl(0,0%,100%)]"
 			>
-				<div className="p-1">
-					<p className="rounded-md bg-white p-2 break-all dark:bg-black">{url}</p>
-				</div>
+				<code className="block rounded-md bg-white p-2 text-xs break-all sm:p-3 sm:text-sm dark:bg-black">{url}</code>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
 	)
