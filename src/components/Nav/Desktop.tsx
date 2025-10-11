@@ -141,7 +141,7 @@ const NavDetailsSection = React.memo(function NavDetailsSection({
 				}
 			}}
 		>
-			<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5">
+			<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">
 				<span>{category}</span>
 				<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 			</summary>
