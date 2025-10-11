@@ -103,29 +103,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 				) : null}
 
 				{footerLinks.map(({ category, pages }) => (
-					<details
-						key={`desktop-nav-${category}`}
-						className={`group ${category === 'More' ? 'mt-auto' : ''}`}
-						open={category === 'More'}
-					>
-						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5">
-							<span>{category}</span>
-							<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
-						</summary>
-						<hr className="-ml-1.5 border-black/20 pt-2 group-last:block dark:border-white/20" />
-						<div>
-							{pages.map(({ name, route, icon, attention }) => (
-								<LinkToPage
-									key={`desktop-nav-${name}-${route}`}
-									route={route}
-									name={name}
-									icon={icon}
-									attention={attention}
-									asPath={asPath}
-								/>
-							))}
-						</div>
-					</details>
+					<NavDetailsSection key={`desktop-nav-${category}`} category={category} pages={pages} asPath={asPath} />
 				))}
 			</div>
 
@@ -137,6 +115,45 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<ThemeSwitch />
 			</div>
 		</nav>
+	)
+})
+
+const NavDetailsSection = React.memo(function NavDetailsSection({
+	category,
+	pages,
+	asPath
+}: {
+	category: string
+	pages: TNavLink[]
+	asPath: string
+}) {
+	const lastItemRef = React.useRef<HTMLDivElement>(null)
+
+	return (
+		<details
+			className={`group ${category === 'More' ? 'mt-auto' : ''}`}
+			open={category === 'More'}
+			onToggle={(e) => {
+				if (e.currentTarget.open) {
+					setTimeout(() => {
+						lastItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+					}, 0)
+				}
+			}}
+		>
+			<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5">
+				<span>{category}</span>
+				<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
+			</summary>
+			<hr className="-ml-1.5 border-black/20 pt-2 group-last:block dark:border-white/20" />
+			<div>
+				{pages.map(({ name, route, icon, attention }, index) => (
+					<div key={`desktop-nav-${name}-${route}`} ref={index === pages.length - 1 ? lastItemRef : null}>
+						<LinkToPage route={route} name={name} icon={icon} attention={attention} asPath={asPath} />
+					</div>
+				))}
+			</div>
+		</details>
 	)
 })
 
@@ -161,7 +178,11 @@ const LinkToPage = React.memo(function LinkToPage({
 			data-linkactive={isActive}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 		>
-			{icon ? <Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" /> : null}
+			{icon ? (
+				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
+			) : name === 'LlamaAI' ? (
+				<img src="/icons/ask-llama-ai.svg" alt="LlamaAI" className="h-4 w-4" />
+			) : null}
 			<span className="relative inline-flex items-center gap-2">
 				{name}
 				{attention ? (

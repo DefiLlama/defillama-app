@@ -44,7 +44,8 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
 			{ name: 'Subscription', route: '/subscription', icon: 'user', attention: showAttentionIcon },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
+			{ name: 'LlamaAI', route: '/ai', icon: '' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
 	}, [showAttentionIcon])
