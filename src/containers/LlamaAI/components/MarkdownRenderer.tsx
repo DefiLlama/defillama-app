@@ -118,11 +118,29 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 		let processedContent = content
 
 		if (!citations || citations.length === 0) {
-			processedContent = content.replace(/\[(\d+(?:,\s*\d+)*)\]/g, '')
+			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
 		} else {
-			processedContent = content.replace(/\[(\d+(?:,\s*\d+)*)\]/g, (match, nums) => {
-				const citationNums = nums.split(',').map((n: string) => parseInt(n.trim()))
-				const badges = citationNums
+			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (match, nums) => {
+				const parts = nums.split(',').map((p: string) => p.trim())
+				const expandedNums: number[] = []
+
+				parts.forEach((part: string) => {
+					if (part.includes('-')) {
+						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
+						if (!isNaN(start) && !isNaN(end) && start <= end) {
+							for (let i = start; i <= end; i++) {
+								expandedNums.push(i)
+							}
+						}
+					} else {
+						const num = parseInt(part.trim())
+						if (!isNaN(num)) {
+							expandedNums.push(num)
+						}
+					}
+				})
+
+				const badges = expandedNums
 					.map((num: number) => {
 						const idx = num - 1
 						if (citations[idx]) {
@@ -199,7 +217,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 				{processedData.content}
 			</ReactMarkdown>
 			{citations && citations.length > 0 && (
-				<details className="flex flex-col pt-2.5 text-sm">
+				<details className="flex flex-col text-sm">
 					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
