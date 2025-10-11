@@ -406,13 +406,15 @@ export function useDefaults({
 			{
 				type: 'inside',
 				start: 0,
-				end: 100
+				end: 100,
+				minValueSpan: groupBy === 'daily' ? 60 * 1000 : 60 * 60 * 1000
 			},
 			{
 				start: 0,
 				end: 100,
 				left: 12,
 				right: 12,
+				minValueSpan: groupBy === 'daily' ? 60 * 1000 : 60 * 60 * 1000,
 				textStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
