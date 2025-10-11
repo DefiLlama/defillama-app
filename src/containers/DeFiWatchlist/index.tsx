@@ -10,6 +10,7 @@ import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
+import { PortfolioDialog } from './PortfolioDialog'
 
 export function DefiWatchlistContainer({ protocols, chains }) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -194,6 +195,7 @@ function PortfolioSelection({
 	addPortfolio,
 	removePortfolio
 }: PortfolioSelectionProps) {
+	const [open, setOpen] = useState(false)
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<h1 className="mb-4 text-xl font-semibold">Portfolio</h1>
@@ -206,13 +208,9 @@ function PortfolioSelection({
 					onItemClick={(value) => setSelectedPortfolio(value)}
 					className="relative flex min-w-[120px] cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
+				<PortfolioDialog open={open} setOpen={setOpen} addPortfolio={addPortfolio} />
 				<button
-					onClick={() => {
-						const newPortfolio = prompt('Enter a name for the new portfolio')
-						if (newPortfolio) {
-							addPortfolio(newPortfolio)
-						}
-					}}
+					onClick={() => setOpen(true)}
 					className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					title="Create new portfolio"
 				>

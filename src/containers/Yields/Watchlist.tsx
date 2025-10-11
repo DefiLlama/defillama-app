@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -7,6 +7,7 @@ import { Switch } from '~/components/Switch'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { DEFAULT_PORTFOLIO_NAME, useWatchlistManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
+import { PortfolioDialog } from '../DeFiWatchlist/PortfolioDialog'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -71,6 +72,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 			}))
 		} else return []
 	}, [isClient, savedProtocols, protocolsDict])
+	const [open, setOpen] = useState(false)
 
 	return (
 		<>
@@ -86,13 +88,9 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						onItemClick={(value) => setSelectedPortfolio(value)}
 						className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
+					<PortfolioDialog open={open} setOpen={setOpen} addPortfolio={addPortfolio}/>
 					<button
-						onClick={() => {
-							const newPortfolio = prompt('Enter a name for the new portfolio')
-							if (newPortfolio) {
-								addPortfolio(newPortfolio)
-							}
-						}}
+						onClick={() => setOpen(true)}
 					>
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
