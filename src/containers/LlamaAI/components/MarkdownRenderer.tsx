@@ -217,7 +217,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 				{processedData.content}
 			</ReactMarkdown>
 			{citations && citations.length > 0 && (
-				<details className="flex flex-col pt-2.5 text-sm">
+				<details className="flex flex-col text-sm">
 					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
