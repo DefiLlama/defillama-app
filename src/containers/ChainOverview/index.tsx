@@ -50,7 +50,7 @@ export function ChainOverview(props: IChainOverviewData) {
 							<span className="text-xl font-semibold">{props.metadata.name}</span>
 						</h1>
 						<p className="my-auto py-10 text-center text-sm text-(--text-form)">
-							We dont track any protocols with TVL, Fees, Revenue or Volume on this chain
+							We don't track any protocols with TVL, Fees, Revenue or Volume on this chain
 						</p>
 					</div>
 				</>
