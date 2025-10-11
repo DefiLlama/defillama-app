@@ -441,7 +441,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				type: chartType,
 				name: seriesConfig.name,
 				color,
-				metricType: (seriesConfig as any).metricType || 'default'
+				metricType: seriesConfig.yAxisId || 'default'
 			})
 		}
 
