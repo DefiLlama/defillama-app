@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
@@ -76,7 +76,7 @@ export function VirtualTable({
 		window.addEventListener('keydown', focusSearchBar)
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [])
-
+	const [showScrollToTop, setShowScrollToTop] = useState(false)
 	const onScrollOrResize = React.useCallback(() => {
 		if (!useStickyHeader) return
 
@@ -96,6 +96,8 @@ export function VirtualTable({
 			tableHeaderRef.current.style['overflow-x'] = 'overlay'
 			tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
 			tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
+			if (window.scrollY > 2500) { setShowScrollToTop(true) }
+			else { setShowScrollToTop(false) }
 		} else if (tableHeaderRef.current) {
 			tableHeaderRef.current.style.position = 'relative'
 			tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
@@ -265,6 +267,10 @@ export function VirtualTable({
 						</React.Fragment>
 					)
 				})}
+				{showScrollToTop && 
+				<button onClick={() => rowVirtualizer.scrollToIndex(0, {behavior: 'smooth'})} className='hover:scale-110 transition-all group fixed bottom-0 right-0 m-4 p-3 rounded-3xl z-1 bg-(--btn-bg) dark:bg-(--app-bg)' title='Scroll to the top' aria-label='Scroll to the top'>							
+					<Icon name="chevron-up" className="h-5 w-5 shrink-0 group-hover:scale-120 transition-all" />
+				</button>}
 			</div>
 		</div>
 	)
