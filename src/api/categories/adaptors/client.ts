@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
+import { DIMENISIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
 import type { IGetOverviewResponseBody } from './types'
 
@@ -30,7 +30,7 @@ export const getAPIUrl = (
 }
 
 export const getAPIUrlSummary = (type: string, protocolName: string, dataType?: string, fullChart?: boolean) => {
-	let API = `${DIMENISIONS_SUMMARY_BASE_API}/${type}/${protocolName}?`
+	let API = `${DIMENSIONS_SUMMARY_API}/${type}/${protocolName}?`
 	if (dataType) API = `${API}dataType=${dataType}&`
 	if (fullChart) API = `${API}fullChart=${true}`
 	return API

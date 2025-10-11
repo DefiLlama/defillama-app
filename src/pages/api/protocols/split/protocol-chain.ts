@@ -4,7 +4,7 @@ import {
 	CHAINS_API_V2,
 	CHART_API,
 	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
+	DIMENSIONS_SUMMARY_API,
 	PROTOCOL_API
 } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
@@ -262,7 +262,7 @@ async function getDimensionsProtocolChainData(
 	}
 
 	try {
-		let apiUrl = `${DIMENISIONS_SUMMARY_BASE_API}/${config.endpoint}/${protocol}`
+		let apiUrl = `${DIMENSIONS_SUMMARY_API}/${config.endpoint}/${protocol}`
 		if (config.dataType) {
 			apiUrl += `?dataType=${config.dataType}`
 		}

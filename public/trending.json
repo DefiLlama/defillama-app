@@ -22,6 +22,18 @@
     "totalTrackedKey": "yields.pools"
   },
   {
+    "name": "Perp Volume by Protocol",
+    "route": "/perps",
+    "category": "Trending",
+    "description": "Notional volume of all trades in a perp exchange, includes leverage",
+    "totalTrackedKey": "perps.protocols",
+    "keys": [
+      "derivatives",
+      "futures"
+    ],
+    "tab": "Protocols"
+  },
+  {
     "name": "Stablecoins by Market Cap",
     "route": "/stablecoins",
     "category": "Trending",
@@ -30,14 +42,6 @@
     "keys": [
       "pegged"
     ],
-    "tab": "Protocols"
-  },
-  {
-    "name": "Revenue by Protocol",
-    "route": "/revenue",
-    "category": "Trending",
-    "description": "Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team, or distributed among token holders. This doesn't include any fees distributed to liquidity providers",
-    "totalTrackedKey": "revenue.protocols",
     "tab": "Protocols"
   }
 ]
