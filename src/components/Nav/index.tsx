@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
@@ -34,7 +35,9 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { dashboards } = useDashboardAPI()
 	const { user, isAuthenticated } = useAuthContext()
+	const { hasFeature } = useFeatureFlagsContext()
 
+	const hasLlamaAI = hasFeature('llamaai')
 	const hasEthWallet = Boolean(user?.walletAddress)
 	const hasSeenWalletPrompt =
 		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
@@ -45,10 +48,10 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		const otherMainPages = [
 			{ name: 'Subscription', route: '/subscription', icon: 'user', attention: showAttentionIcon },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
-			{ name: 'LlamaAI', route: '/ai', icon: '' }
+			...(hasLlamaAI ? [{ name: 'LlamaAI', route: '/ai', icon: '' }] : [])
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
-	}, [showAttentionIcon])
+	}, [showAttentionIcon, hasLlamaAI])
 
 	const userDashboards = useMemo(
 		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
