@@ -2,8 +2,10 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useQueries } from '@tanstack/react-query'
+import { useChainsChartFilterState } from '~/components/Filters/useProtocolFilterState'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
+import { Select } from '~/components/Select'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -12,6 +14,50 @@ import { IChainOverviewData } from '../ChainOverview/types'
 import { IAdapterOverview, IAdapterSummary } from '../DimensionAdapters/queries'
 
 const LineAndBarChart: any = React.lazy(() => import('~/components/ECharts/LineAndBarChart'))
+
+// Supported charts configuration
+const supportedCharts = [
+	{
+		id: 'tvl',
+		name: 'TVL',
+		key: 'tvlChart'
+	},
+	{
+		id: 'volume',
+		name: 'DEXs Volume',
+		key: 'dexVolumeChart'
+	},
+	{
+		id: 'chainFees',
+		name: 'Chain Fees',
+		key: 'chainFeesChart'
+	},
+	{
+		id: 'chainRevenue',
+		name: 'Chain Revenue',
+		key: 'chainRevenueChart'
+	}
+	// {
+	// 	id: 'appRevenue',
+	// 	name: 'App Revenue',
+	// 	key: 'appRevenueChart'
+	// },
+	// {
+	// 	id: 'appFees',
+	// 	name: 'App Fees',
+	// 	key: 'appFeesChart'
+	// },
+	// {
+	// 	id: 'addresses',
+	// 	name: 'Active Addresses',
+	// 	key: 'activeAddressesChart'
+	// },
+	// {
+	// 	id: 'txs',
+	// 	name: 'Transactions',
+	// 	key: 'txsChart'
+	// }
+]
 
 export const getChainData = async (chain: string) => {
 	const { chain: chainData } = (await fetchJson(`/api/cache/chain/${chain}`)) as {
@@ -47,41 +93,26 @@ export const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 	}
 }
 
-const getSelectedCharts = (query: any) => {
-	const selectedCharts = []
-
-	if (query.tvl !== 'false') {
-		selectedCharts.push('tvl')
-	}
-
-	for (const key of Object.keys(query)) {
-		if (key !== 'tvl' && query[key] === 'true' && supportedCharts.find((chart) => chart.id === key)) {
-			selectedCharts.push(key)
-		}
-	}
-
-	return selectedCharts
-}
-
-const formatChartData = (chainsData: any, query: any) => {
+const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 	if (!chainsData || !chainsData.length || !chainsData.every(Boolean)) return []
 
 	const finalCharts = {}
 
-	const selectedCharts = getSelectedCharts(query)
-
 	for (const chart of selectedCharts) {
-		const targetChart = supportedCharts.find((c) => c.id === chart)
-		const dateInMs = chart === 'tvl'
+		const targetChart = supportedCharts.find((c) => c.key === chart)
+		if (!targetChart) continue
+
+		const dateInMs = chart === 'tvlChart'
 		let colors = getNDistinctColors(chainsData.length)
 		let i = 0
+
 		for (const chainData of chainsData) {
 			const name = `${chainData.chain} - ${targetChart.name}`
 			finalCharts[name] = {
 				name,
 				stack: name,
 				data: chainData[targetChart.key].map((data) => [!dateInMs ? Number(data[0]) * 1e3 : data[0], data[1]]),
-				type: chart === 'tvl' ? 'line' : 'bar',
+				type: chart === 'tvlChart' ? 'line' : 'bar',
 				color: colors[i]
 			}
 			i++
@@ -104,8 +135,30 @@ const updateRoute = (key, val, router: NextRouter) => {
 	)
 }
 
+const ChartFilters = () => {
+	const { selectedValues, setSelectedValues } = useChainsChartFilterState(supportedCharts)
+
+	return (
+		<Select
+			allValues={supportedCharts}
+			selectedValues={selectedValues}
+			setSelectedValues={setSelectedValues}
+			selectOnlyOne={(newOption) => {
+				setSelectedValues([newOption])
+			}}
+			label="Charts to Display"
+			triggerProps={{
+				className:
+					'whitespace-nowrap *:shrink-0 flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto h-full'
+			}}
+			placement="bottom-end"
+		/>
+	)
+}
+
 export function CompareChains({ chains }) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+	const { selectedValues: selectedChartFilters } = useChainsChartFilterState(supportedCharts)
 
 	const router = useRouter()
 
@@ -136,21 +189,25 @@ export function CompareChains({ chains }) {
 			data
 				.filter(Boolean)
 				.map((chainData) => ({ ...chainData, tvlChart: tvlCharts[chainData.chain]?.finalTvlChart ?? null })),
-			router.query
+			selectedChartFilters
 		)
-	}, [data, router.query, tvlCharts])
+	}, [data, selectedChartFilters, tvlCharts])
 
 	return (
 		<>
-			<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<MultiSelectCombobox
-					data={chains}
-					placeholder="Select Chains..."
-					selectedValues={selectedChains.map((chain) => chain.value)}
-					setSelectedValues={(values) => {
-						updateRoute('chains', values, router)
-					}}
-				/>
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<MultiSelectCombobox
+						data={chains}
+						placeholder="Select Chains..."
+						selectedValues={selectedChains.map((chain) => chain.value)}
+						setSelectedValues={(values) => {
+							updateRoute('chains', values, router)
+						}}
+					/>
+				</div>
+
+				{selectedChains.length > 1 && <ChartFilters />}
 			</div>
 
 			{selectedChains.length > 1 ? (
@@ -202,50 +259,6 @@ const ChainContainer = (
 ) => {
 	return <Stats {...props} hideChart />
 }
-// TODO fix bar charts not showing up
-const supportedCharts = [
-	{
-		id: 'tvl',
-		name: 'TVL',
-		isVisible: true,
-		key: 'tvlChart'
-	}
-	// {
-	// 	id: 'volume',
-	// 	name: 'DEXs Volume',
-	// 	key: 'dexVolumeChart'
-	// },
-	// {
-	// 	id: 'chainFees',
-	// 	name: 'Chain Fees',
-	// 	key: 'chainFeesChart'
-	// },
-	// {
-	// 	id: 'chainRevenue',
-	// 	name: 'Chain Revenue',
-	// 	key: 'chainRevenueChart'
-	// }
-	// {
-	// 	id: 'appRevenue',
-	// 	name: 'App Revenue',
-	// 	key: 'appRevenueChart'
-	// },
-	// {
-	// 	id: 'appFees',
-	// 	name: 'App Fees',
-	// 	key: 'appFeesChart'
-	// },
-	// {
-	// 	id: 'addresses',
-	// 	name: 'Active Addresses',
-	// 	key: 'activeAddressesChart'
-	// },
-	// {
-	// 	id: 'txs',
-	// 	name: 'Transactions',
-	// 	key: 'txsChart'
-	// }
-]
 
 const formatTvlChart = ({
 	tvlChart,
