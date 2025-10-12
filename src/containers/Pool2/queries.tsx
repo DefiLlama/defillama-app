@@ -87,7 +87,7 @@ export async function getPool2TVLByChain({
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && pool2Tvl != null
-					? (Number(getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2)) ?? 0)
+					? Number(getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2)) || 0
 					: null
 		}
 
@@ -119,7 +119,7 @@ export async function getPool2TVLByChain({
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
 					pool2Tvl != null && totalPrevMonth != null
-						? (Number(getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2)) ?? 0)
+						? Number(getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2)) || 0
 						: null,
 				subRows: finalParentProtocols[parent]
 			})

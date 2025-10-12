@@ -87,7 +87,7 @@ export async function getTotalBorrowedByChain({
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && totalBorrowed != null
-					? (Number(getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2)) ?? 0)
+					? Number(getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2)) || 0
 					: null
 		}
 
@@ -119,7 +119,7 @@ export async function getTotalBorrowedByChain({
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
 					totalBorrowed != null && totalPrevMonth != null
-						? (Number(getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2)) ?? 0)
+						? Number(getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2)) || 0
 						: null,
 				subRows: finalParentProtocols[parent]
 			})

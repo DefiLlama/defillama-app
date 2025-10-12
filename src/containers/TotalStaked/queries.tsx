@@ -83,7 +83,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && totalStaked != null
-					? (Number(getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2)) ?? 0)
+					? Number(getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2)) || 0
 					: null
 		}
 
