@@ -1063,7 +1063,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 													}
 													if (item.role === 'assistant') {
 														return (
-															<div key={`assistant-${item.messageId || item.timestamp}-${index}`} className="flex flex-col gap-2.5">
+															<div
+																key={`assistant-${item.messageId || item.timestamp}-${index}`}
+																className="flex flex-col gap-2.5"
+															>
 																<MarkdownRenderer content={item.content} citations={item.citations} />
 																{item.charts && item.charts.length > 0 && (
 																	<ChartRenderer
@@ -1398,7 +1401,7 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer content={streamingResponse} citations={response?.citations} />
+					<MarkdownRenderer content={streamingResponse} citations={response?.citations} isStreaming={true} />
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
