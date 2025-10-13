@@ -8,9 +8,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
-import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
-import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -34,15 +32,12 @@ export function BridgesOverviewByChain({
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
-	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging'>('bridges')
+	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
 
 	useEffect(() => {
 		setChartView('netflow')
 	}, [])
-
-	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
-	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/bridges`
@@ -343,26 +338,32 @@ export function BridgesOverviewByChain({
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				{/* First variant */}
-
-				{/* <div className="flex w-full flex-col items-center gap-3 p-3 sm:flex-row">
-					<div className="order-2 flex w-full min-w-fit items-center sm:w-fit">
+				<div className="flex w-full flex-wrap items-center justify-between gap-3 p-3">
+					<div className="flex items-center overflow-x-auto">
 						<button
-							className="flex flex-1 justify-center border-b-2 border-transparent px-4 py-2 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:flex-none sm:text-sm"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'bridges'}
 							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
-							className="flex flex-1 justify-center border-b-2 border-transparent px-4 py-2 text-xs font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:flex-none sm:text-sm"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'messaging'}
 							onClick={() => setActiveTab('messaging')}
 						>
 							Messaging Protocols
 						</button>
+						<button
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+							data-active={activeTab === 'largeTxs'}
+							onClick={() => setActiveTab('largeTxs')}
+						>
+							Large Txs
+						</button>
 					</div>
-					<label className="relative order-2 w-full sm:max-w-[280px]">
+
+					<label className="relative w-full max-w-full sm:max-w-[280px]">
 						<span className="sr-only">Search bridges</span>
 						<Icon
 							name="search"
@@ -374,56 +375,12 @@ export function BridgesOverviewByChain({
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1.5 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
-					<div className="order-1 min-w-full sm:order-3 sm:ml-auto sm:min-w-fit">
-						<TxsTableSwitch />
-					</div>
-				</div> */}
-
-				{/* Second variant */}
-
-				<div className="flex w-full flex-col items-center gap-3 p-3 sm:flex-row">
-					<div className="flex w-full min-w-fit items-center sm:w-fit">
-						<button
-							className="flex w-full justify-center border-b-2 border-transparent px-4 py-2 font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:w-fit"
-							data-active={activeTab === 'bridges'}
-							onClick={() => setActiveTab('bridges')}
-						>
-							Bridges
-						</button>
-						<button
-							className="flex w-full justify-center border-b-2 border-transparent px-4 py-2 font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) sm:w-fit"
-							data-active={activeTab === 'messaging'}
-							onClick={() => setActiveTab('messaging')}
-						>
-							Messaging Protocols
-						</button>
-					</div>
-					<div className="flex w-full items-center justify-around gap-3">
-						<label className="relative w-full max-w-full sm:max-w-[280px]">
-							<span className="sr-only">Search bridges</span>
-							<Icon
-								name="search"
-								height={16}
-								width={16}
-								className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-							/>
-							<input
-								value={searchValue}
-								onChange={(e) => setSearchValue(e.target.value)}
-								placeholder="Search..."
-								className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
-							/>
-						</label>
-						<div className="ml-0 min-w-fit sm:ml-auto">
-							<TxsTableSwitch />
-						</div>
-					</div>
 				</div>
 
-				{isBridgesShowingTxs ? (
+				{activeTab === 'largeTxs' ? (
 					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
 				) : (
 					<BridgesTable
