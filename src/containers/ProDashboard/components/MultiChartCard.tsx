@@ -109,16 +109,17 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
 			let color =
-				isSingleChain || isSingleProtocol
+				cfg.color ||
+				(isSingleChain || isSingleProtocol
 					? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
-					: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+					: generateChartColor(itemIdentifier, meta?.color || '#8884d8'))
 
 			let color_indexOfItemId = color_sortedItemIds.indexOf(itemIdentifier)
 			if (color_indexesTaken.has(color_indexOfItemId)) {
 				color_indexOfItemId = color_sortedItemIds.findIndex((id) => cfg.id === id)
 			}
 
-			if (color_indexOfItemId !== -1) {
+			if (!cfg.color && color_indexOfItemId !== -1) {
 				color = COLOR_PALETTE_2[color_indexOfItemId % COLOR_PALETTE_2.length]
 				color_indexesTaken.add(color_indexOfItemId)
 			}
@@ -254,7 +255,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		const sortedSeries = seriesWithAverages.sort((a, b) => a.avgPercentage - b.avgPercentage)
 
 		const finalSeries = sortedSeries.map((serie, index) => {
-			const color = percentageColors[index % percentageColors.length]
+			const color = serie.color || percentageColors[index % percentageColors.length]
 			return {
 				...serie,
 				color: color,
@@ -513,65 +514,65 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 										}
 									}
 								: allPercentMetrics
-								? {
-										yAxis: {
-											max: undefined,
-											min: undefined,
-											axisLabel: {
-												formatter: '{value}%'
-											}
-										},
-										tooltip: {
-											valueFormatter: (value: number) => value.toFixed(2) + '%'
-										},
-										grid: {
-											top: series.length > 5 ? 80 : 40,
-											bottom: 12,
-											left: 12,
-											right: 12,
-											outerBoundsMode: 'same',
-											outerBoundsContain: 'axisLabel'
-										},
-										legend: {
-											top: 0,
-											type: 'scroll',
-											pageButtonPosition: 'end',
-											height: series.length > 5 ? 80 : 40
-										}
-									}
-								: {
-										yAxis: {
-											max: undefined,
-											min: undefined,
-											axisLabel: {
-												formatter: (value: number) => {
-													const absValue = Math.abs(value)
-													if (absValue >= 1e9) {
-														return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-													} else if (absValue >= 1e6) {
-														return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-													} else if (absValue >= 1e3) {
-														return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-													}
-													return '$' + value.toString()
+									? {
+											yAxis: {
+												max: undefined,
+												min: undefined,
+												axisLabel: {
+													formatter: '{value}%'
 												}
+											},
+											tooltip: {
+												valueFormatter: (value: number) => value.toFixed(2) + '%'
+											},
+											grid: {
+												top: series.length > 5 ? 80 : 40,
+												bottom: 12,
+												left: 12,
+												right: 12,
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
+											},
+											legend: {
+												top: 0,
+												type: 'scroll',
+												pageButtonPosition: 'end',
+												height: series.length > 5 ? 80 : 40
 											}
-										},
-										grid: {
-											top: series.length > 5 ? 80 : 40,
-											bottom: 12,
-											left: 12,
-											right: 12,
-											outerBoundsMode: 'same',
-											outerBoundsContain: 'axisLabel'
-										},
-										legend: {
-											top: 0,
-											type: 'scroll',
-											pageButtonPosition: 'end',
-											height: series.length > 5 ? 80 : 40
 										}
-								}
+									: {
+											yAxis: {
+												max: undefined,
+												min: undefined,
+												axisLabel: {
+													formatter: (value: number) => {
+														const absValue = Math.abs(value)
+														if (absValue >= 1e9) {
+															return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+														} else if (absValue >= 1e6) {
+															return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+														} else if (absValue >= 1e3) {
+															return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+														}
+														return '$' + value.toString()
+													}
+												}
+											},
+											grid: {
+												top: series.length > 5 ? 80 : 40,
+												bottom: 12,
+												left: 12,
+												right: 12,
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
+											},
+											legend: {
+												top: 0,
+												type: 'scroll',
+												pageButtonPosition: 'end',
+												height: series.length > 5 ? 80 : 40
+											}
+										}
 						}
 					/>
 				</Suspense>

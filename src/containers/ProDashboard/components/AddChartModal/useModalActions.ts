@@ -25,13 +25,14 @@ export function useModalActions(
 		protocolsLoading,
 		timePeriod,
 		handleAddChart,
+		handleAddYieldChart,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
 		handleAddMetric,
 		handleAddChartBuilder,
 		handleEditItem
-	} = useProDashboard()
+	} = useProDashboard() as any
 
 	const { state, actions, resetState } = useModalState(editItem, isOpen)
 
@@ -224,6 +225,13 @@ export function useModalActions(
 	const handleRemoveFromComposer = useCallback(
 		(id: string) => {
 			actions.setComposerItems((prev) => prev.filter((item) => item.id !== id))
+		},
+		[actions]
+	)
+
+	const handleUpdateComposerItemColor = useCallback(
+		(id: string, color: string) => {
+			actions.setComposerItems((prev) => prev.map((item) => (item.id === id ? { ...item, color } : item)))
 		},
 		[actions]
 	)
@@ -477,22 +485,43 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
+			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'yields' && state.selectedYieldPool) {
+				newItem = {
+					...editItem,
+					kind: 'yields',
+					poolConfigId: state.selectedYieldPool.configID,
+					poolName: state.selectedYieldPool.name,
+					project: state.selectedYieldPool.project,
+					chain: state.selectedYieldPool.chain
+				} as any
 			}
 
 			if (newItem) {
 				handleEditItem(editItem.id, newItem)
 			}
 		} else {
-			if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
+			if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'yields' &&
+				state.selectedYieldPool
+			) {
+				handleAddYieldChart(
+					state.selectedYieldPool.configID,
+					state.selectedYieldPool.name,
+					state.selectedYieldPool.project,
+					state.selectedYieldPool.chain
+				)
+			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
 						handleAddMultiChart(state.composerItems, state.unifiedChartName.trim() || undefined)
 					} else {
 						state.composerItems.forEach((item) => {
 							if (item.chain) {
-								handleAddChart(item.chain, item.type, 'chain', item.geckoId)
+								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color)
 							} else if (item.protocol) {
-								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId)
+								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color)
 							}
 						})
 					}
@@ -595,6 +624,7 @@ export function useModalActions(
 		handleEditItem,
 		handleAddMultiChart,
 		handleAddChart,
+		handleAddYieldChart,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,
@@ -613,6 +643,7 @@ export function useModalActions(
 			handleTokensChange,
 			handleAddToComposer,
 			handleRemoveFromComposer,
+			handleUpdateComposerItemColor,
 			handleMainTabChange,
 			handleChartTabChange,
 			handleSubmit,
@@ -628,6 +659,7 @@ export function useModalActions(
 			handleTokensChange,
 			handleAddToComposer,
 			handleRemoveFromComposer,
+			handleUpdateComposerItemColor,
 			handleMainTabChange,
 			handleChartTabChange,
 			handleSubmit,

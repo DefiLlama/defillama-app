@@ -42,6 +42,7 @@ const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags
 	revenue: 'revenue',
 	volume: 'dexs',
 	perps: 'perps',
+	'open-interest': 'openInterest',
 	'options-notional': 'optionsNotionalVolume',
 	'options-premium': 'optionsPremiumVolume',
 	'bridge-aggregators': 'bridgeAggregators',

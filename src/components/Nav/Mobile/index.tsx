@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { lazy } from 'react'
 import { BasicLink } from '~/components/Link'
-import { TNavLink, TNavLinks } from '../types'
+import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
 
@@ -11,12 +11,16 @@ export const MobileNav = ({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
-	footerLinks
+	footerLinks,
+	metricFilters,
+	oldMetricLinks
 }: {
 	mainLinks: TNavLinks
-	pinnedPages: TNavLink[]
-	userDashboards: TNavLink[]
+	pinnedPages: Array<TNavLink>
+	userDashboards: Array<TNavLink>
 	footerLinks: TNavLinks
+	metricFilters?: { name: string; key: string }[]
+	oldMetricLinks: Array<TOldNavLink>
 }) => {
 	return (
 		<nav className="flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
@@ -36,9 +40,15 @@ export const MobileNav = ({
 				<MobileSearch />
 			</React.Suspense>
 
-			<Settings />
+			<Settings metricFilters={metricFilters} />
 
-			<Menu mainLinks={mainLinks} pinnedPages={pinnedPages} userDashboards={userDashboards} footerLinks={footerLinks} />
+			<Menu
+				mainLinks={mainLinks}
+				pinnedPages={pinnedPages}
+				userDashboards={userDashboards}
+				footerLinks={footerLinks}
+				oldMetricLinks={oldMetricLinks}
+			/>
 		</nav>
 	)
 }

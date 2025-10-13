@@ -125,7 +125,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 			itemIdentifier = chart.chain
 		}
 
-		const chartColor = generateChartColor(itemIdentifier, chartTypeDetails?.color)
+		const chartColor = chart.color || generateChartColor(itemIdentifier, chartTypeDetails?.color)
 
 		return {
 			itemName,

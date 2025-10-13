@@ -1,6 +1,7 @@
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { BorrowAggregatorAdvanced } from '~/containers/Yields/indexOptimizer'
+import { UNBOUNDED_DEBT_CEILING_PROJECTS } from '~/containers/Yields/queries'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
@@ -32,6 +33,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 			pools: pools.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
 			yieldsList: [],
 			searchData,
+			unboundedDebtCeilingProjects: [...UNBOUNDED_DEBT_CEILING_PROJECTS],
 			...data
 		},
 		revalidate: maxAgeForNext([23])

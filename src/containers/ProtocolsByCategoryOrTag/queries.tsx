@@ -98,6 +98,9 @@ export async function getProtocolsByCategoryOrTag({
 					dataType: 'openInterestAtEnd',
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
+				}).catch((err) => {
+					console.log(err)
+					return null
 				})
 			: null,
 		tag

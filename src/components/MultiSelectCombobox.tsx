@@ -128,6 +128,7 @@ export const MultiSelectCombobox = ({
 						<Ariakit.ComboboxItem
 							value="__see_more__"
 							setValueOnClick={false}
+							selectValueOnClick={false}
 							hideOnClick={false}
 							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
 							onClick={handleSeeMore}
