@@ -6,7 +6,7 @@ import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalSto
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
-import { TNavLinks } from './types'
+import { TNavLinks, TOldNavLink } from './types'
 
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {
@@ -31,6 +31,19 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 	category,
 	pages: defillamaPages[category]
 })) as TNavLinks
+
+const oldMetricLinks: Array<TOldNavLink> = Object.values(
+	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce((acc, curr) => {
+		if (curr.oldCategory) {
+			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
+			acc[curr.oldCategory].pages.push({ name: curr.oldName, route: curr.route })
+		}
+		if (curr.oldName && !curr.oldCategory) {
+			acc[curr.oldName] = acc[curr.oldName] || { name: curr.oldName, route: curr.route }
+		}
+		return acc
+	}, {})
+)
 
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { dashboards } = useDashboardAPI()
@@ -88,6 +101,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 				pinnedPages={pinnedPages}
 				userDashboards={userDashboards}
 				footerLinks={footerLinks}
+				oldMetricLinks={oldMetricLinks}
 			/>
 			<Suspense fallback={<MobileFallback />}>
 				<MobileNav
@@ -96,6 +110,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 					userDashboards={userDashboards}
 					footerLinks={footerLinks}
 					metricFilters={metricFilters}
+					oldMetricLinks={oldMetricLinks}
 				/>
 			</Suspense>
 		</>

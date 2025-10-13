@@ -299,7 +299,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
-	const userRef = useRef<any>(null)
 	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
 	const [conversationHistory, setConversationHistory] = useState<
@@ -369,10 +368,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		shouldAutoScrollRef.current = true
 		isAutoScrollingRef.current = true
 	}, [])
-
-	useEffect(() => {
-		userRef.current = user
-	}, [user])
 
 	useEffect(() => {
 		sessionIdRef.current = sessionId
