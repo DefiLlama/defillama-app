@@ -12,10 +12,12 @@ import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { EntityAutocomplete } from './components/EntityAutocomplete'
 import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
+import { useEntityAutocomplete } from './hooks/useEntityAutocomplete'
 import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
 
@@ -43,6 +45,7 @@ async function fetchPromptResponse({
 	abortSignal,
 	sessionId,
 	suggestionContext,
+	preResolvedEntities,
 	mode,
 	authorizedFetch
 }: {
@@ -75,6 +78,7 @@ async function fetchPromptResponse({
 	abortSignal?: AbortSignal
 	sessionId?: string | null
 	suggestionContext?: any
+	preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
 	mode: 'auto' | 'sql_only'
 	authorizedFetch: any
 }) {
@@ -95,6 +99,10 @@ async function fetchPromptResponse({
 
 		if (suggestionContext) {
 			requestBody.suggestionContext = suggestionContext
+		}
+
+		if (preResolvedEntities) {
+			requestBody.preResolvedEntities = preResolvedEntities
 		}
 
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {
@@ -418,7 +426,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		error,
 		reset: resetPrompt
 	} = useMutation({
-		mutationFn: ({ userQuestion, suggestionContext }: { userQuestion: string; suggestionContext?: any }) => {
+		mutationFn: ({
+			userQuestion,
+			suggestionContext,
+			preResolvedEntities
+		}: {
+			userQuestion: string
+			suggestionContext?: any
+			preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+		}) => {
 			let currentSessionId = sessionId
 
 			if (!currentSessionId && user) {
@@ -454,6 +470,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				userQuestion,
 				sessionId: currentSessionId,
 				suggestionContext,
+				preResolvedEntities,
 				mode: 'auto',
 				authorizedFetch,
 				onProgress: (data) => {
@@ -508,7 +525,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				abortSignal: abortControllerRef.current.signal
 			})
 		},
-		onMutate: ({ userQuestion, suggestionContext }: { userQuestion: string; suggestionContext?: any }) => {},
+		onMutate: ({
+			userQuestion,
+			suggestionContext,
+			preResolvedEntities
+		}: {
+			userQuestion: string
+			suggestionContext?: any
+			preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+		}) => {},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
@@ -684,7 +709,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	])
 
 	const handleSubmit = useCallback(
-		(prompt: string) => {
+		(
+			prompt: string,
+			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+		) => {
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -693,7 +721,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				moveSessionToTop(sessionId)
 			}
 
-			submitPrompt({ userQuestion: finalPrompt })
+			submitPrompt({
+				userQuestion: finalPrompt,
+				preResolvedEntities: preResolved
+			})
 		},
 		[sessionId, moveSessionToTop, submitPrompt]
 	)
@@ -1239,7 +1270,10 @@ const PromptInput = memo(function PromptInput({
 	isStreaming,
 	initialValue
 }: {
-	handleSubmit: (prompt: string) => void
+	handleSubmit: (
+		prompt: string,
+		preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+	) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
@@ -1247,6 +1281,20 @@ const PromptInput = memo(function PromptInput({
 	initialValue?: string
 }) {
 	const [value, setValue] = useState('')
+	const [showAutocomplete, setShowAutocomplete] = useState(false)
+	const [autocompletePosition, setAutocompletePosition] = useState({ top: 0, left: 0 })
+	const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
+	const [currentSearch, setCurrentSearch] = useState('')
+	const [preResolvedEntities, setPreResolvedEntities] = useState<
+		Array<{
+			term: string
+			slug: string
+			type: 'chain' | 'protocol' | 'subprotocol'
+		}>
+	>([])
+
+	const { search: searchEntities } = useEntityAutocomplete()
+	const suggestions = currentSearch ? searchEntities(currentSearch, 5) : []
 
 	const deferredValue = useDeferredValue(value)
 
@@ -1256,13 +1304,124 @@ const PromptInput = memo(function PromptInput({
 		}
 	}, [initialValue, isStreaming, isPending])
 
+	const updateAutocomplete = (text: string, cursorPos: number) => {
+		const beforeCursor = text.slice(0, cursorPos)
+		const atIndex = beforeCursor.lastIndexOf('@')
+
+		if (atIndex !== -1 && atIndex === cursorPos - 1) {
+			setCurrentSearch('')
+			setShowAutocomplete(true)
+			setSelectedSuggestionIndex(0)
+			return
+		}
+
+		if (atIndex !== -1) {
+			const afterAt = beforeCursor.slice(atIndex + 1)
+			const hasSpace = afterAt.includes(' ')
+
+			if (!hasSpace && afterAt.length > 0) {
+				setCurrentSearch(afterAt)
+				setShowAutocomplete(true)
+				setSelectedSuggestionIndex(0)
+				return
+			}
+		}
+
+		setShowAutocomplete(false)
+		setCurrentSearch('')
+	}
+
+	const insertEntity = (displayName: string, slug: string, type: 'chain' | 'protocol' | 'subprotocol') => {
+		if (!promptInputRef.current) return
+
+		const cursorPos = promptInputRef.current.selectionStart
+		const beforeCursor = value.slice(0, cursorPos)
+		const afterCursor = value.slice(cursorPos)
+		const atIndex = beforeCursor.lastIndexOf('@')
+
+		if (atIndex !== -1) {
+			const mentionText = `@${displayName}`
+			const newValue = value.slice(0, atIndex) + mentionText + ' ' + afterCursor
+			setValue(newValue)
+
+			setPreResolvedEntities((prev) => [
+				...prev.filter((e) => e.term !== mentionText),
+				{ term: mentionText, slug, type }
+			])
+
+			setTimeout(() => {
+				if (promptInputRef.current) {
+					const newCursorPos = atIndex + mentionText.length + 1
+					promptInputRef.current.selectionStart = newCursorPos
+					promptInputRef.current.selectionEnd = newCursorPos
+					promptInputRef.current.focus()
+				}
+			}, 0)
+		}
+
+		setShowAutocomplete(false)
+		setCurrentSearch('')
+	}
+
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		if (showAutocomplete && suggestions.length > 0) {
+			if (event.key === 'ArrowDown') {
+				event.preventDefault()
+				setSelectedSuggestionIndex((prev) => (prev + 1) % suggestions.length)
+				return
+			}
+			if (event.key === 'ArrowUp') {
+				event.preventDefault()
+				setSelectedSuggestionIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length)
+				return
+			}
+			if (event.key === 'Enter' && !event.shiftKey) {
+				event.preventDefault()
+				const suggestion = suggestions[selectedSuggestionIndex]
+				insertEntity(suggestion.displayName, suggestion.slug, suggestion.type)
+				return
+			}
+			if (event.key === 'Escape') {
+				event.preventDefault()
+				setShowAutocomplete(false)
+				setCurrentSearch('')
+				return
+			}
+		}
+
 		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
 			event.preventDefault()
-			handleSubmit(value)
+			handleSubmit(value, preResolvedEntities)
 			setValue('')
+			setPreResolvedEntities([])
 		}
 	}
+
+	useEffect(() => {
+		if (showAutocomplete && promptInputRef.current) {
+			const textarea = promptInputRef.current
+			const rect = textarea.getBoundingClientRect()
+			const cursorPos = textarea.selectionStart
+
+			const textBeforeCursor = value.slice(0, cursorPos)
+			const lines = textBeforeCursor.split('\n')
+			const currentLine = lines.length
+			const lineHeight = 24
+
+			setAutocompletePosition({
+				top: rect.bottom + 4,
+				left: rect.left
+			})
+		}
+	}, [showAutocomplete, value, promptInputRef])
+
+	useEffect(() => {
+		if (value === '') {
+			setPreResolvedEntities([])
+		} else {
+			setPreResolvedEntities((prev) => prev.filter((entity) => value.includes(entity.term)))
+		}
+	}, [value])
 
 	return (
 		<>
@@ -1270,16 +1429,22 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
-					handleSubmit(value)
+					handleSubmit(value, preResolvedEntities)
 					setValue('')
+					setPreResolvedEntities([])
 				}}
 			>
 				<textarea
 					placeholder="Ask LlamaAI..."
 					value={value}
 					onChange={(e) => {
-						setValue(e.target.value)
+						const newValue = e.target.value
+						setValue(newValue)
+
 						if (promptInputRef.current) {
+							const cursorPos = promptInputRef.current.selectionStart
+							updateAutocomplete(newValue, cursorPos)
+
 							try {
 								// Calculate rows based on newlines and character length
 								const text = e.target.value
@@ -1338,6 +1503,18 @@ const PromptInput = memo(function PromptInput({
 					</button>
 				)}
 			</form>
+			{showAutocomplete && suggestions.length > 0 && (
+				<EntityAutocomplete
+					suggestions={suggestions}
+					onSelect={(suggestion) => insertEntity(suggestion.displayName, suggestion.slug, suggestion.type)}
+					onClose={() => {
+						setShowAutocomplete(false)
+						setCurrentSearch('')
+					}}
+					position={autocompletePosition}
+					selectedIndex={selectedSuggestionIndex}
+				/>
+			)}
 		</>
 	)
 })
@@ -1803,7 +1980,10 @@ const ResponseControls = memo(function ResponseControls({
 						<Tooltip
 							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
 							render={
-								<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood || showFeedback || !!lastRating} />
+								<button
+									onClick={() => rateAsGood(undefined)}
+									disabled={isRatingAsGood || showFeedback || !!lastRating}
+								/>
 							}
 							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
 						>
