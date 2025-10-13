@@ -81,7 +81,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					</span>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches + 1).map((value) => (
+							{matches.slice(0, viewableMatches).map((value) => (
 								<Item label={value.label} to={value.to} key={`other-link-${value.to}`} />
 							))}
 							{matches.length > viewableMatches ? (

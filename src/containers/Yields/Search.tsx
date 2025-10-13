@@ -81,7 +81,7 @@ export function YieldsSearch({
 					/>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches + 1).map((option) => (
+							{matches.slice(0, viewableMatches).map((option) => (
 								<Row key={option.name} data={option} lend={lend} setOpen={setOpen} />
 							))}
 							{matches.length > viewableMatches ? (
