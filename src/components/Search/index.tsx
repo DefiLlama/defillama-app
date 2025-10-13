@@ -261,7 +261,7 @@ const Desktop = () => {
 					className="mr-auto hidden items-center justify-between gap-[10px] rounded-md bg-[linear-gradient(94deg,#1F67D2_24.73%,#5A9CFF_57.42%,#1F67D2_99.73%)] px-4 py-2 text-xs text-white shadow-[0px_0px_30px_0px_rgba(31,103,210,0.50),_0px_0px_1px_2px_rgba(255,255,255,0.10)] lg:flex"
 				>
 					<span className="whitespace-nowrap">Ask LlamaAI</span>
-					<img src="/icons/ask-llama-ai.svg" alt="Ask LlamaAI" className="h-4 w-4 shrink-0" />
+					<img src="/icons/ask-llama-ai.svg" alt="Ask LlamaAI" className="h-4 w-4 shrink-0 brightness-100" />
 				</BasicLink>
 			)}
 		</>
