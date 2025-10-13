@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -39,6 +39,12 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 	)
 }
 
+const isValidDate = (dateString: string | string[] | undefined): boolean => {
+	if (!dateString || typeof dateString !== 'string') return false
+	const date = new Date(+dateString * 1000)
+	return !isNaN(date.getTime())
+}
+
 export function TokenPnl({ coinsData }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 1000
@@ -50,6 +56,20 @@ export function TokenPnl({ coinsData }) {
 			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
 			initialEndDate: unixToDateString(now)
 		})
+
+	useEffect(() => {
+		if (router.isReady) {
+			const startParam = isValidDate(router.query.start) ? unixToDateString(Number(router.query.start)) : null
+			const endParam = isValidDate(router.query.end) ? unixToDateString(Number(router.query.end)) : null
+
+			if (startParam && startParam !== startDate) {
+				handleStartDateChange(startParam)
+			}
+			if (endParam && endParam !== endDate) {
+				handleEndDateChange(endParam)
+			}
+		}
+	}, [router.isReady, router.query.start, router.query.end])
 
 	const { selectedCoins, coins } = useMemo(() => {
 		const queryCoins = router.query?.coin || (['bitcoin'] as Array<string>)
@@ -136,7 +156,6 @@ export function TokenPnl({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-			refetch()
 		}
 	}
 
@@ -298,7 +317,6 @@ export function TokenPnl({ coinsData }) {
 								undefined,
 								{ shallow: true }
 							)
-							refetch()
 							setModalOpen(0)
 							dialogStore.toggle()
 						}}

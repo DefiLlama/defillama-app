@@ -114,7 +114,7 @@ export function SelectWithCombobox({
 							</span>
 						) : null}
 						<Ariakit.ComboboxList>
-							{matches.slice(0, viewableMatches + 1).map((option) => (
+							{matches.slice(0, viewableMatches).map((option) => (
 								<NestedMenuItem
 									key={valuesAreAnArrayOfStrings ? option : option.key}
 									render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
@@ -231,7 +231,7 @@ export function SelectWithCombobox({
 								</span>
 							) : null}
 							<Ariakit.ComboboxList ref={comboboxRef}>
-								{matches.slice(0, viewableMatches + 1).map((option) => {
+								{matches.slice(0, viewableMatches).map((option) => {
 									const isCustom = typeof option === 'object' && option.isCustom
 									return (
 										<Ariakit.SelectItem

@@ -43,6 +43,7 @@ const pageName = ['Bridges Volume', 'by', 'Chain']
 export default function Bridges({
 	chains,
 	filteredBridges,
+	messagingProtocols,
 	bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
@@ -64,6 +65,7 @@ export default function Bridges({
 				chains={chains}
 				selectedChain={chain}
 				filteredBridges={filteredBridges}
+				messagingProtocols={messagingProtocols}
 				bridgeNames={bridgeNames}
 				bridgeNameToChartDataIndex={bridgeNameToChartDataIndex}
 				chartDataByBridge={chartDataByBridge}

@@ -285,11 +285,11 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+				className="thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 			>
 				{matches.length ? (
 					<Ariakit.ComboboxList ref={comboboxRef}>
-						{matches.slice(0, viewableMatches + 1).map((data) => (
+						{matches.slice(0, viewableMatches).map((data) => (
 							<Ariakit.ComboboxItem
 								key={`token-usage-${data.name}`}
 								value={data.name}

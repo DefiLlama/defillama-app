@@ -1,11 +1,12 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
-import { TNavLinks } from './types'
+import { TNavLinks, TOldNavLink } from './types'
 
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {
@@ -31,10 +32,25 @@ const footerLinks = ['More', 'About Us'].map((category) => ({
 	pages: defillamaPages[category]
 })) as TNavLinks
 
-function NavComponent() {
+const oldMetricLinks: Array<TOldNavLink> = Object.values(
+	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce((acc, curr) => {
+		if (curr.oldCategory) {
+			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
+			acc[curr.oldCategory].pages.push({ name: curr.oldName, route: curr.route })
+		}
+		if (curr.oldName && !curr.oldCategory) {
+			acc[curr.oldName] = acc[curr.oldName] || { name: curr.oldName, route: curr.route }
+		}
+		return acc
+	}, {})
+)
+
+function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { dashboards } = useDashboardAPI()
 	const { user, isAuthenticated } = useAuthContext()
+	const { hasFeature } = useFeatureFlagsContext()
 
+	const hasLlamaAI = hasFeature('llamaai')
 	const hasEthWallet = Boolean(user?.walletAddress)
 	const hasSeenWalletPrompt =
 		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
@@ -44,10 +60,11 @@ function NavComponent() {
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
 			{ name: 'Subscription', route: '/subscription', icon: 'user', attention: showAttentionIcon },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' }
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
+			...(hasLlamaAI ? [{ name: 'LlamaAI', route: '/ai', icon: '' }] : [])
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
-	}, [showAttentionIcon])
+	}, [showAttentionIcon, hasLlamaAI])
 
 	const userDashboards = useMemo(
 		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
@@ -84,6 +101,7 @@ function NavComponent() {
 				pinnedPages={pinnedPages}
 				userDashboards={userDashboards}
 				footerLinks={footerLinks}
+				oldMetricLinks={oldMetricLinks}
 			/>
 			<Suspense fallback={<MobileFallback />}>
 				<MobileNav
@@ -91,6 +109,8 @@ function NavComponent() {
 					pinnedPages={pinnedPages}
 					userDashboards={userDashboards}
 					footerLinks={footerLinks}
+					metricFilters={metricFilters}
+					oldMetricLinks={oldMetricLinks}
 				/>
 			</Suspense>
 		</>
