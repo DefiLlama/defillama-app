@@ -45,11 +45,13 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	selectedYieldChains?: string[]
 	selectedYieldProjects?: string[]
 	selectedYieldCategories?: string[]
+	selectedYieldTokens?: string[]
 	minTvl?: number | null
 	maxTvl?: number | null
 	onSelectedYieldChainsChange?: (chains: string[]) => void
 	onSelectedYieldProjectsChange?: (projects: string[]) => void
 	onSelectedYieldCategoriesChange?: (categories: string[]) => void
+	onSelectedYieldTokensChange?: (tokens: string[]) => void
 	onMinTvlChange?: (tvl: number | null) => void
 	onMaxTvlChange?: (tvl: number | null) => void
 }
@@ -85,11 +87,13 @@ export function UnifiedChartTab({
 	selectedYieldChains = [],
 	selectedYieldProjects = [],
 	selectedYieldCategories = [],
+	selectedYieldTokens = [],
 	minTvl = null,
 	maxTvl = null,
 	onSelectedYieldChainsChange,
 	onSelectedYieldProjectsChange,
 	onSelectedYieldCategoriesChange,
+	onSelectedYieldTokensChange,
 	onMinTvlChange,
 	onMaxTvlChange
 }: UnifiedChartTabPropsExtended) {
@@ -177,11 +181,13 @@ export function UnifiedChartTab({
 				selectedYieldChains={selectedYieldChains}
 				selectedYieldProjects={selectedYieldProjects}
 				selectedYieldCategories={selectedYieldCategories}
+				selectedYieldTokens={selectedYieldTokens}
 				minTvl={minTvl}
 				maxTvl={maxTvl}
 				onSelectedYieldChainsChange={onSelectedYieldChainsChange || (() => {})}
 				onSelectedYieldProjectsChange={onSelectedYieldProjectsChange || (() => {})}
 				onSelectedYieldCategoriesChange={onSelectedYieldCategoriesChange || (() => {})}
+				onSelectedYieldTokensChange={onSelectedYieldTokensChange || (() => {})}
 				onMinTvlChange={onMinTvlChange || (() => {})}
 				onMaxTvlChange={onMaxTvlChange || (() => {})}
 			/>

@@ -30,11 +30,13 @@ interface ChartTabProps {
 	selectedYieldChains?: string[]
 	selectedYieldProjects?: string[]
 	selectedYieldCategories?: string[]
+	selectedYieldTokens?: string[]
 	minTvl?: number | null
 	maxTvl?: number | null
 	onSelectedYieldChainsChange?: (chains: string[]) => void
 	onSelectedYieldProjectsChange?: (projects: string[]) => void
 	onSelectedYieldCategoriesChange?: (categories: string[]) => void
+	onSelectedYieldTokensChange?: (tokens: string[]) => void
 	onMinTvlChange?: (tvl: number | null) => void
 	onMaxTvlChange?: (tvl: number | null) => void
 	onUnifiedChartNameChange: (name: string) => void
@@ -111,11 +113,13 @@ export function ChartTab(props: ChartTabProps) {
 					selectedYieldChains={props.selectedYieldChains}
 					selectedYieldProjects={props.selectedYieldProjects}
 					selectedYieldCategories={props.selectedYieldCategories}
+					selectedYieldTokens={props.selectedYieldTokens}
 					minTvl={props.minTvl}
 					maxTvl={props.maxTvl}
 					onSelectedYieldChainsChange={props.onSelectedYieldChainsChange}
 					onSelectedYieldProjectsChange={props.onSelectedYieldProjectsChange}
 					onSelectedYieldCategoriesChange={props.onSelectedYieldCategoriesChange}
+					onSelectedYieldTokensChange={props.onSelectedYieldTokensChange}
 					onMinTvlChange={props.onMinTvlChange}
 					onMaxTvlChange={props.onMaxTvlChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}

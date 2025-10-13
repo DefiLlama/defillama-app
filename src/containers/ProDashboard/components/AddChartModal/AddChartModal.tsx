@@ -81,11 +81,13 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							selectedYieldChains={state.selectedYieldChains}
 							selectedYieldProjects={state.selectedYieldProjects}
 							selectedYieldCategories={state.selectedYieldCategories}
+							selectedYieldTokens={state.selectedYieldTokens}
 							minTvl={state.minTvl}
 							maxTvl={state.maxTvl}
 							onSelectedYieldChainsChange={actions.setSelectedYieldChains}
 							onSelectedYieldProjectsChange={actions.setSelectedYieldProjects}
 							onSelectedYieldCategoriesChange={actions.setSelectedYieldCategories}
+							onSelectedYieldTokensChange={actions.setSelectedYieldTokens}
 							onMinTvlChange={actions.setMinTvl}
 							onMaxTvlChange={actions.setMaxTvl}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
