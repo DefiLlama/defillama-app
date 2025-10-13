@@ -72,6 +72,7 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 				<ChartPreview
 					chartType={currentItem.type}
 					data={(currentItem.data || []).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]])}
+					color={currentItem.color}
 					itemName={itemName}
 				/>
 			</div>

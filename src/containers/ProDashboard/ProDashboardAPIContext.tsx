@@ -18,7 +18,8 @@ import {
 	ProtocolsTableConfig,
 	StoredColSpan,
 	TableFilters,
-	TextConfig
+	TextConfig,
+	YieldsChartConfig
 } from './types'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 
@@ -77,7 +78,14 @@ interface ProDashboardContextType {
 	setDashboardVisibility: (visibility: 'private' | 'public') => void
 	setDashboardTags: (tags: string[]) => void
 	setDashboardDescription: (description: string) => void
-	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
+	handleAddChart: (
+		item: string,
+		chartType: string,
+		itemType: 'chain' | 'protocol',
+		geckoId?: string | null,
+		color?: string
+	) => void
+	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -829,7 +837,7 @@ export function ProDashboardAPIProvider({
 
 	// Handle adding items
 	const handleAddChart = useCallback(
-		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
+		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null, color?: string) => {
 			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
 				return
 			}
@@ -840,7 +848,8 @@ export function ProDashboardAPIProvider({
 				id: newChartId,
 				kind: 'chart',
 				type: chartType,
-				colSpan: 1
+				colSpan: 1,
+				color
 			}
 
 			if (chartTypeDetails?.groupable) {
@@ -865,6 +874,29 @@ export function ProDashboardAPIProvider({
 
 			setItems((prev) => {
 				const newItems = [...prev, newChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
+
+	const handleAddYieldChart = useCallback(
+		(poolConfigId: string, poolName: string, project: string, chain: string) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newYieldChart: YieldsChartConfig = {
+				id: generateItemId('yields', poolConfigId),
+				kind: 'yields',
+				poolConfigId,
+				poolName,
+				project,
+				chain,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newYieldChart]
 				autoSave(newItems)
 				return newItems
 			})
@@ -1362,6 +1394,7 @@ export function ProDashboardAPIProvider({
 			setDashboardTags,
 			setDashboardDescription,
 			handleAddChart,
+			handleAddYieldChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1426,6 +1459,7 @@ export function ProDashboardAPIProvider({
 			setDashboardTags,
 			setDashboardDescription,
 			handleAddChart,
+			handleAddYieldChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,

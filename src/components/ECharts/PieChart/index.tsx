@@ -29,6 +29,7 @@ export default function PieChart({
 	formatTooltip = null,
 	legendPosition,
 	legendTextStyle,
+	customComponents,
 	...props
 }: IPieChartProps) {
 	const id = useId()
@@ -161,8 +162,15 @@ export default function PieChart({
 
 	return (
 		<div className="relative" {...props}>
-			{title && <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>}
-			<div id={id} className="mx-0 my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			{customComponents ? (
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					<>{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}</>
+					<>{customComponents}</>
+				</div>
+			) : title ? (
+				<h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>
+			) : null}
+			<div id={id} className="mx-0 my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

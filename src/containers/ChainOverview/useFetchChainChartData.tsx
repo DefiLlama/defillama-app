@@ -273,7 +273,7 @@ export const useFetchChainChartData = ({
 			store[date] = sum
 		}
 
-		// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you dont add twice
+		// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
 		if (toggledTvlSettings.includes('liquidstaking') && toggledTvlSettings.includes('doublecounted')) {
 			for (const date in store) {
 				store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0

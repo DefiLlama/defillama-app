@@ -253,7 +253,7 @@ const TokensSelect = ({
 						{matches.length > 0 ? (
 							<>
 								<Ariakit.ComboboxList ref={comboboxRef}>
-									{matches.slice(0, viewableMatches + 1).map((option) => (
+									{matches.slice(0, viewableMatches).map((option) => (
 										<Ariakit.SelectItem
 											key={`${queryParam}-${option.symbol}`}
 											value={option.symbol}

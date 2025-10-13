@@ -39,7 +39,9 @@ export interface IChartProps {
 	hideDownloadButton?: boolean
 	containerClassName?: string
 	connectNulls?: boolean
+	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
+	customComponents?: React.ReactNode
 }
 
 export interface ISingleSeriesChartProps
@@ -140,4 +142,15 @@ export interface IPieChartProps {
 		orient?: 'horizontal' | 'vertical'
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
+	customComponents?: React.ReactNode
+}
+
+export interface IScatterChartProps {
+	chartData: any
+	title?: string
+	xAxisLabel?: string
+	yAxisLabel?: string
+	valueSymbol?: string
+	height?: string
+	tooltipFormatter?: (params: any) => string
 }

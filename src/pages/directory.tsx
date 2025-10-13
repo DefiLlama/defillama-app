@@ -85,11 +85,11 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
+					className="thin-scrollbar z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches + 1).map((option) => (
+							{matches.slice(0, viewableMatches).map((option) => (
 								<Ariakit.ComboboxItem
 									key={option.name}
 									value={option.name}

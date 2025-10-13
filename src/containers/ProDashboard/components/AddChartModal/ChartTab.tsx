@@ -11,6 +11,7 @@ interface ChartTabProps {
 	selectedChartTypes: string[]
 	selectedChains: string[]
 	selectedProtocols: string[]
+	selectedYieldPool?: { configID: string; name: string; project: string; chain: string } | null
 	chainOptions: Array<{ value: string; label: string }>
 	protocolOptions: Array<{ value: string; label: string; logo?: string }>
 	availableChartTypes: string[]
@@ -25,8 +26,20 @@ interface ChartTabProps {
 	onChartTypesChange: (types: string[]) => void
 	onSelectedChainsChange?: (chains: string[]) => void
 	onSelectedProtocolsChange?: (protocols: string[]) => void
+	onSelectedYieldPoolChange?: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
+	selectedYieldChains?: string[]
+	selectedYieldProjects?: string[]
+	selectedYieldCategories?: string[]
+	minTvl?: number | null
+	maxTvl?: number | null
+	onSelectedYieldChainsChange?: (chains: string[]) => void
+	onSelectedYieldProjectsChange?: (projects: string[]) => void
+	onSelectedYieldCategoriesChange?: (categories: string[]) => void
+	onMinTvlChange?: (tvl: number | null) => void
+	onMaxTvlChange?: (tvl: number | null) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
+	onComposerItemColorChange: (id: string, color: string) => void
 	onAddToComposer: (types?: string[]) => void
 	onRemoveFromComposer: (id: string) => void
 	chartBuilder: any
@@ -45,9 +58,7 @@ export function ChartTab(props: ChartTabProps) {
 				<button
 					onClick={() => onChartModeChange('builder')}
 					className={`-ml-px flex-1 rounded-none border px-3 py-2 text-sm font-medium transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-						chartMode === 'builder'
-							? 'pro-border pro-btn-blue'
-							: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
+						chartMode === 'builder' ? 'pro-border pro-btn-blue' : 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 					}`}
 				>
 					Builder
@@ -55,9 +66,7 @@ export function ChartTab(props: ChartTabProps) {
 				<button
 					onClick={() => onChartModeChange('manual')}
 					className={`-ml-px flex-1 rounded-none border px-3 py-2 text-sm font-medium transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-						chartMode === 'manual'
-							? 'pro-border pro-btn-blue'
-							: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
+						chartMode === 'manual' ? 'pro-border pro-btn-blue' : 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
 					}`}
 				>
 					Manual
@@ -83,6 +92,7 @@ export function ChartTab(props: ChartTabProps) {
 					selectedChartTypes={props.selectedChartTypes}
 					selectedChains={props.selectedChains}
 					selectedProtocols={props.selectedProtocols}
+					selectedYieldPool={props.selectedYieldPool}
 					chainOptions={props.chainOptions}
 					protocolOptions={props.protocolOptions}
 					availableChartTypes={props.availableChartTypes}
@@ -97,8 +107,20 @@ export function ChartTab(props: ChartTabProps) {
 					onChartTypesChange={props.onChartTypesChange}
 					onSelectedChainsChange={props.onSelectedChainsChange}
 					onSelectedProtocolsChange={props.onSelectedProtocolsChange}
+					onSelectedYieldPoolChange={props.onSelectedYieldPoolChange}
+					selectedYieldChains={props.selectedYieldChains}
+					selectedYieldProjects={props.selectedYieldProjects}
+					selectedYieldCategories={props.selectedYieldCategories}
+					minTvl={props.minTvl}
+					maxTvl={props.maxTvl}
+					onSelectedYieldChainsChange={props.onSelectedYieldChainsChange}
+					onSelectedYieldProjectsChange={props.onSelectedYieldProjectsChange}
+					onSelectedYieldCategoriesChange={props.onSelectedYieldCategoriesChange}
+					onMinTvlChange={props.onMinTvlChange}
+					onMaxTvlChange={props.onMaxTvlChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
+					onComposerItemColorChange={props.onComposerItemColorChange}
 					onAddToComposer={props.onAddToComposer}
 					onRemoveFromComposer={props.onRemoveFromComposer}
 				/>
