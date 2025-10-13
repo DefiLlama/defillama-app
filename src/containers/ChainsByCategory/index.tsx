@@ -235,7 +235,6 @@ export const useGroupAndFormatChains = ({
 
 			// already counted as subchain of another chain
 			if (trackedSubChains.has(chain.name)) {
-				console.log('Skipping ', chain.name)
 				continue
 			}
 
