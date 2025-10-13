@@ -95,7 +95,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 				</details>
 
 				{pinnedPages.length > 0 ? (
-					<div className="">
+					<div>
 						<p className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65">Pinned Pages</p>
 
 						{pinnedPages.map(({ name, route }) => (
@@ -117,7 +117,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 											}}
 										/>
 									}
-									className="absolute top-1 right-1 bottom-1 my-auto hidden rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
+									className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
 								>
 									<Icon name="x" className="h-4 w-4" />
 								</Tooltip>
