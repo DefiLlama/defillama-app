@@ -1798,26 +1798,30 @@ const ResponseControls = memo(function ResponseControls({
 						)}
 					</Tooltip>
 				)}
-				<Tooltip
-					content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
-					render={
-						<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood || showFeedback || !!lastRating} />
-					}
-					className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
-				>
-					{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
-					<span className="sr-only">Thumbs Up</span>
-				</Tooltip>
-				<Tooltip
-					content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
-					render={
-						<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!lastRating} />
-					}
-					className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
-				>
-					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
-					<span className="sr-only">Thumbs Down</span>
-				</Tooltip>
+				{!readOnly && (
+					<>
+						<Tooltip
+							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
+							render={
+								<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood || showFeedback || !!lastRating} />
+							}
+							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
+						>
+							{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
+							<span className="sr-only">Thumbs Up</span>
+						</Tooltip>
+						<Tooltip
+							content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
+							render={
+								<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!lastRating} />
+							}
+							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
+						>
+							{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
+							<span className="sr-only">Thumbs Down</span>
+						</Tooltip>
+					</>
+				)}
 				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"

@@ -26,6 +26,8 @@ function getEntityUrl(type: string, slug: string): string {
 			return `/protocol/${slug}`
 		case 'chain':
 			return `/chain/${slug}`
+		case 'pool':
+			return `/yields/pool/${slug}`
 		default:
 			return `/${type}/${slug}`
 	}
@@ -90,7 +92,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool'].includes(type)) {
 			return <span>{children}</span>
 		}
 
@@ -105,7 +107,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 				rel="noreferrer noopener"
 				{...props}
 			>
-				<TokenLogo logo={iconUrl} size={14} />
+				{type !== 'pool' && <TokenLogo logo={iconUrl} size={14} />}
 				<span className="truncate">{children}</span>
 			</a>
 		)
