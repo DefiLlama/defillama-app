@@ -209,6 +209,8 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 		return pinnedPages.includes(page.route)
 	}, [pinnedMetrics, page.route])
 
+	const isExternalLink = page.route.startsWith('http')
+
 	return (
 		<div
 			className={`relative col-span-1 flex min-h-[120px] flex-col ${page.route === '/' ? '' : 'group'}`}
@@ -217,6 +219,8 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 			<BasicLink
 				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 hover:bg-(--link-button)"
 				href={page.route}
+				target={isExternalLink ? '_blank' : undefined}
+				rel={isExternalLink ? 'noopener noreferrer' : undefined}
 			>
 				<span className="flex w-full flex-wrap items-center gap-1">
 					<span className="font-medium">{page.name}</span>
