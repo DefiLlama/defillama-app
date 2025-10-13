@@ -1,10 +1,10 @@
+import { useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { safeInternalPath } from '~/utils/url'
 
 export default function AuthPage() {
 	return (
@@ -19,7 +19,17 @@ export default function AuthPage() {
 function AuthContent() {
 	const router = useRouter()
 	const { isAuthenticated, logout, user } = useAuthContext()
-	const returnUrl = safeInternalPath(router.query.returnUrl) || '/'
+	const redirectUrl = router.query.redirect_uri
+
+	useEffect(() => {
+		if (isAuthenticated && redirectUrl) {
+			console.log('hi')
+			router.push({
+				pathname: redirectUrl as string,
+				query: { ...router.query, data: 'data' }
+			})
+		}
+	}, [isAuthenticated, redirectUrl, router, user])
 
 	return (
 		<>
@@ -42,15 +52,6 @@ function AuthContent() {
 						</div>
 
 						<div className="space-y-3">
-							{returnUrl !== '/' && (
-								<button
-									onClick={() => router.push(returnUrl)}
-									className="w-full rounded-lg bg-[#5C5CF9] py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-								>
-									Continue to App
-								</button>
-							)}
-
 							<button
 								onClick={logout}
 								className="w-full rounded-lg border border-[#39393E] bg-transparent py-3 font-medium text-white transition-colors hover:bg-[#2a2b30]"
