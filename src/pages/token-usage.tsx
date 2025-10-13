@@ -289,7 +289,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 			>
 				{matches.length ? (
 					<Ariakit.ComboboxList ref={comboboxRef}>
-						{matches.slice(0, viewableMatches + 1).map((data) => (
+						{matches.slice(0, viewableMatches).map((data) => (
 							<Ariakit.ComboboxItem
 								key={`token-usage-${data.name}`}
 								value={data.name}

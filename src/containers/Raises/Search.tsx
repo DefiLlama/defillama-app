@@ -64,7 +64,7 @@ export function RaisesSearch({ list }) {
 					</Ariakit.PopoverDismiss>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches + 1).map((option) => (
+							{matches.slice(0, viewableMatches).map((option) => (
 								<Row key={option} name={option} setOpen={setOpen} />
 							))}
 							{matches.length > viewableMatches ? (
