@@ -39,6 +39,12 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 	)
 }
 
+const isValidDate = (dateString: string | string[] | undefined): boolean => {
+	if (!dateString || typeof dateString !== 'string') return false
+	const date = new Date(+dateString * 1000)
+	return !isNaN(date.getTime())
+}
+
 export function TokenPnl({ coinsData }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 1000
@@ -53,8 +59,8 @@ export function TokenPnl({ coinsData }) {
 
 	useEffect(() => {
 		if (router.isReady) {
-			const startParam = router.query?.start ? unixToDateString(Number(router.query.start)) : null
-			const endParam = router.query?.end ? unixToDateString(Number(router.query.end)) : null
+			const startParam = isValidDate(router.query.start) ? unixToDateString(Number(router.query.start)) : null
+			const endParam = isValidDate(router.query.end) ? unixToDateString(Number(router.query.end)) : null
 
 			if (startParam && startParam !== startDate) {
 				handleStartDateChange(startParam)
