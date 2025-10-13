@@ -28,6 +28,7 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
+	overage?: boolean
 	metadata?: {
 		is_trial?: boolean
 		trial_started_at?: string
@@ -350,6 +351,58 @@ export const useSubscribe = () => {
 		}
 	}
 
+	const enableOverageMutation = useMutation({
+		mutationFn: async () => {
+			if (!isAuthenticated) {
+				throw new Error('Not authenticated')
+			}
+
+			const response = await authorizedFetch(
+				`${AUTH_SERVER}/subscription/enable-overage`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				},
+				true
+			)
+
+			if (!response.ok) {
+				const error = await response.json()
+				throw new Error(error.message || 'Failed to enable overage')
+			}
+
+			return response.json()
+		},
+		onSuccess: () => {
+			toast.success('Overage has been enabled successfully')
+			queryClient.invalidateQueries({ queryKey: ['subscription', pb.authStore.record?.id, 'api'] })
+		},
+		onError: (error) => {
+			console.log('Failed to enable overage:', error)
+			toast.error('Failed to enable overage. Please try again.')
+		}
+	})
+
+	const enableOverage = async () => {
+		if (!isAuthenticated) {
+			toast.error('Please sign in to enable overage')
+			return
+		}
+
+		if (apiSubscription?.subscription?.status !== 'active') {
+			toast.error('No active API subscription found')
+			return
+		}
+
+		try {
+			await enableOverageMutation.mutateAsync()
+		} catch (error) {
+			console.log('Enable overage error:', error)
+		}
+	}
+
 	return {
 		createSubscription,
 		handleSubscribe,
@@ -382,6 +435,8 @@ export const useSubscribe = () => {
 		refetchCredits,
 		createPortalSession,
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
+		enableOverage,
+		isEnableOverageLoading: enableOverageMutation.isPending,
 		isContributor: false,
 		apiSubscription: apiSubscription?.subscription,
 		llamafeedSubscription: llamafeedSubscription?.subscription,

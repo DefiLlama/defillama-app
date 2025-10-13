@@ -266,7 +266,7 @@ export default function BarChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : `mx-0 my-auto ${height ? '' : 'min-h-[360px]'}`}
+				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
 				style={height ? { height } : undefined}
 			></div>
 		</div>

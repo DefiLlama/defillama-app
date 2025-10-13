@@ -9,6 +9,7 @@ import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
 import { SubjectMultiPanel } from './SubjectMultiPanel'
 import { ChartTabType } from './types'
+import { YieldsChartTab } from './YieldsChartTab'
 
 interface UnifiedChartTabProps {
 	selectedChartTab: ChartTabType
@@ -29,6 +30,7 @@ interface UnifiedChartTabProps {
 	onChartTypesChange: (types: string[]) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
+	onComposerItemColorChange: (id: string, color: string) => void
 	onAddToComposer: (typesToAdd?: string[]) => void
 	onRemoveFromComposer: (id: string) => void
 }
@@ -36,8 +38,20 @@ interface UnifiedChartTabProps {
 interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	selectedChains?: string[]
 	selectedProtocols?: string[]
+	selectedYieldPool?: { configID: string; name: string; project: string; chain: string } | null
 	onSelectedChainsChange?: (values: string[]) => void
 	onSelectedProtocolsChange?: (values: string[]) => void
+	onSelectedYieldPoolChange?: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
+	selectedYieldChains?: string[]
+	selectedYieldProjects?: string[]
+	selectedYieldCategories?: string[]
+	minTvl?: number | null
+	maxTvl?: number | null
+	onSelectedYieldChainsChange?: (chains: string[]) => void
+	onSelectedYieldProjectsChange?: (projects: string[]) => void
+	onSelectedYieldCategoriesChange?: (categories: string[]) => void
+	onMinTvlChange?: (tvl: number | null) => void
+	onMaxTvlChange?: (tvl: number | null) => void
 }
 
 export function UnifiedChartTab({
@@ -59,12 +73,25 @@ export function UnifiedChartTab({
 	onChartTypesChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
+	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
 	selectedChains = [],
 	selectedProtocols = [],
+	selectedYieldPool = null,
 	onSelectedChainsChange,
-	onSelectedProtocolsChange
+	onSelectedProtocolsChange,
+	onSelectedYieldPoolChange,
+	selectedYieldChains = [],
+	selectedYieldProjects = [],
+	selectedYieldCategories = [],
+	minTvl = null,
+	maxTvl = null,
+	onSelectedYieldChainsChange,
+	onSelectedYieldProjectsChange,
+	onSelectedYieldCategoriesChange,
+	onMinTvlChange,
+	onMaxTvlChange
 }: UnifiedChartTabPropsExtended) {
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
@@ -130,7 +157,8 @@ export function UnifiedChartTab({
 	const selectedChartTypeSingle = useMemo(() => selectedChartTypes[0] || null, [selectedChartTypes])
 
 	const chartTypeOptions = useMemo(() => {
-		const availableTypes = instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : globalAvailableChartTypes
+		const availableTypes =
+			instantAvailableChartTypes.length > 0 ? instantAvailableChartTypes : globalAvailableChartTypes
 		const chartTypesOrder = selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes
 		return chartTypesOrder
 			.filter((type) => availableTypes.includes(type))
@@ -140,10 +168,58 @@ export function UnifiedChartTab({
 			}))
 	}, [instantAvailableChartTypes, globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
 
+	if (selectedChartTab === 'yields') {
+		return (
+			<YieldsChartTab
+				selectedYieldPool={selectedYieldPool}
+				onSelectedYieldPoolChange={onSelectedYieldPoolChange || (() => {})}
+				onChartTabChange={onChartTabChange}
+				selectedYieldChains={selectedYieldChains}
+				selectedYieldProjects={selectedYieldProjects}
+				selectedYieldCategories={selectedYieldCategories}
+				minTvl={minTvl}
+				maxTvl={maxTvl}
+				onSelectedYieldChainsChange={onSelectedYieldChainsChange || (() => {})}
+				onSelectedYieldProjectsChange={onSelectedYieldProjectsChange || (() => {})}
+				onSelectedYieldCategoriesChange={onSelectedYieldCategoriesChange || (() => {})}
+				onMinTvlChange={onMinTvlChange || (() => {})}
+				onMaxTvlChange={onMaxTvlChange || (() => {})}
+			/>
+		)
+	}
+
 	return (
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
 			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
 				<div className="flex h-full flex-col p-3">
+					<div className="mb-3 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
+						<div className="grid grid-cols-2 gap-1">
+							<button
+								type="button"
+								className="group rounded-md bg-(--primary)/10 px-3 py-2.5 text-xs font-semibold text-(--primary) shadow-sm transition-all"
+							>
+								<div className="flex items-center justify-center gap-2">
+									<Icon name="bar-chart-2" width={14} height={14} className="text-(--primary)" />
+									<span>Protocols/Chains</span>
+								</div>
+							</button>
+							<button
+								type="button"
+								onClick={() => onChartTabChange('yields')}
+								className="group rounded-md px-3 py-2.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--cards-bg) hover:text-(--text-primary)"
+							>
+								<div className="flex items-center justify-center gap-2">
+									<Icon
+										name="percent"
+										width={14}
+										height={14}
+										className="text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)"
+									/>
+									<span>Yields</span>
+								</div>
+							</button>
+						</div>
+					</div>
 					{chartCreationMode === 'combined' && (
 						<div className="mb-2 flex-shrink-0">
 							<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>
@@ -186,10 +262,10 @@ export function UnifiedChartTab({
 					<button
 						onClick={handleAddToSelection}
 						disabled={
-						selectedChartTypes.length === 0 ||
-						(selectedChartTab === 'chain' && selectedChains.length === 0) ||
-						(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
-					}
+							selectedChartTypes.length === 0 ||
+							(selectedChartTab === 'chain' && selectedChains.length === 0) ||
+							(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
+						}
 						className={`mb-2 w-full flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
 							selectedChartTypes.length === 0 ||
 							(selectedChartTab === 'chain' && selectedChains.length === 0) ||
@@ -259,6 +335,13 @@ export function UnifiedChartTab({
 									<span className="pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 									</span>
+									<input
+										type="color"
+										value={item.color || CHART_TYPES[item.type]?.color || '#3366ff'}
+										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
+										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
+										aria-label="Select chart color"
+									/>
 									<button
 										onClick={() => onRemoveFromComposer(item.id)}
 										className="pro-text3 transition-colors hover:text-red-500"

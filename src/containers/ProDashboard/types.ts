@@ -79,6 +79,7 @@ export interface ChartBuilderConfig {
 			| 'revenue'
 			| 'volume'
 			| 'perps'
+			| 'open-interest'
 			| 'options-notional'
 			| 'options-premium'
 			| 'bridge-aggregators'
@@ -106,6 +107,16 @@ export interface ChartBuilderConfig {
 	colSpan?: StoredColSpan
 }
 
+export interface YieldsChartConfig {
+	id: string
+	kind: 'yields'
+	poolConfigId: string
+	poolName: string
+	project: string
+	chain: string
+	colSpan?: StoredColSpan
+}
+
 export type DashboardItemConfig =
 	| ChartConfig
 	| ProtocolsTableConfig
@@ -113,6 +124,7 @@ export type DashboardItemConfig =
 	| TextConfig
 	| MetricConfig
 	| ChartBuilderConfig
+	| YieldsChartConfig
 
 export interface ChartConfig {
 	id: string
@@ -120,6 +132,7 @@ export interface ChartConfig {
 	chain: string
 	protocol?: string
 	type: string
+	color?: string
 	data?: [string, number][]
 	isLoading?: boolean
 	hasError?: boolean

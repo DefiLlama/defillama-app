@@ -1,4 +1,4 @@
-import { Fragment, memo, useDeferredValue, useMemo, useState, useSyncExternalStore } from 'react'
+import { Fragment, memo, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -48,6 +48,16 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
+
+	const metricsInputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		if (metricsInputRef.current) {
+			requestAnimationFrame(() => {
+				metricsInputRef.current?.focus()
+			})
+		}
+	}, [])
 
 	const tabPages = useMemo(() => {
 		return metricsByCategory
@@ -129,9 +139,11 @@ export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
+						ref={metricsInputRef}
 						type="text"
+						inputMode="search"
 						placeholder="Search..."
-						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 						value={searchValue}
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
@@ -197,6 +209,8 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 		return pinnedPages.includes(page.route)
 	}, [pinnedMetrics, page.route])
 
+	const isExternalLink = page.route.startsWith('http')
+
 	return (
 		<div
 			className={`relative col-span-1 flex min-h-[120px] flex-col ${page.route === '/' ? '' : 'group'}`}
@@ -205,6 +219,8 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 			<BasicLink
 				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 hover:bg-(--link-button)"
 				href={page.route}
+				target={isExternalLink ? '_blank' : undefined}
+				rel={isExternalLink ? 'noopener noreferrer' : undefined}
 			>
 				<span className="flex w-full flex-wrap items-center gap-1">
 					<span className="font-medium">{page.name}</span>

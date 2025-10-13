@@ -162,6 +162,7 @@ export default class SProtocolSplitCharts {
 			| 'revenue'
 			| 'volume'
 			| 'perps'
+			| 'open-interest'
 			| 'options-notional'
 			| 'options-premium'
 			| 'bridge-aggregators'

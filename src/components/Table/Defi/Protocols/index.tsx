@@ -126,7 +126,7 @@ export const protocolsByChainTableColumns = [
 		category: TABLE_CATEGORIES.REVENUE,
 		period: TABLE_PERIODS.ONE_DAY
 	},
-	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
@@ -137,9 +137,24 @@ export const protocolsByChainTableColumns = [
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
 	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME },
-	{ name: 'Perp Volume 24h', key: 'perps_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
-	{ name: 'Perp Volume 7d', key: 'perps_volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
-	{ name: 'Perp Volume 30d', key: 'perps_volume_30d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Perp Volume 24h',
+		key: 'perps_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume 7d',
+		key: 'perps_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Perp Volume 30d',
+		key: 'perps_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
 	{
 		name: 'Perp Volume Change 7d',
 		key: 'perps_volume_change_7d',

@@ -38,6 +38,7 @@ const METRIC_OPTIONS = [
 	{ value: 'holders-revenue', label: 'Holders Revenue' },
 	{ value: 'user-fees', label: 'User Fees' },
 	{ value: 'perps', label: 'Perps Volume' },
+	{ value: 'open-interest', label: 'Open Interest' },
 	{ value: 'dex-aggregators', label: 'DEX Aggregator Volume' },
 	{ value: 'options-notional', label: 'Options Notional' },
 	{ value: 'options-premium', label: 'Options Premium' },
