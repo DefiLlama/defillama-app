@@ -96,6 +96,7 @@ interface IProtocol {
 		total1y: number | null
 		totalAllTime: number | null
 	}
+	openInterest?: number | null
 	pf?: number | null
 	ps?: number | null
 	methodology?: string | null
@@ -122,6 +123,7 @@ export interface IAdapterByChainPageData {
 	change_7d: number | null
 	change_1m: number | null
 	change_7dover7d: number | null
+	openInterest: number | null
 }
 
 export interface IChainsByAdapterPageData {

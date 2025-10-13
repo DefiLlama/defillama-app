@@ -30,6 +30,7 @@ interface UnifiedChartTabProps {
 	onChartTypesChange: (types: string[]) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
+	onComposerItemColorChange: (id: string, color: string) => void
 	onAddToComposer: (typesToAdd?: string[]) => void
 	onRemoveFromComposer: (id: string) => void
 }
@@ -72,6 +73,7 @@ export function UnifiedChartTab({
 	onChartTypesChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
+	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
 	selectedChains = [],
@@ -333,6 +335,13 @@ export function UnifiedChartTab({
 									<span className="pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 									</span>
+									<input
+										type="color"
+										value={item.color || CHART_TYPES[item.type]?.color || '#3366ff'}
+										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
+										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
+										aria-label="Select chart color"
+									/>
 									<button
 										onClick={() => onRemoveFromComposer(item.id)}
 										className="pro-text3 transition-colors hover:text-red-500"

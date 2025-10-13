@@ -1,4 +1,4 @@
-import { memo, RefObject, startTransition, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -60,6 +60,7 @@ async function fetchPromptResponse({
 			| 'error'
 			| 'title'
 			| 'message_id'
+			| 'reset'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -208,6 +209,14 @@ async function fetchPromptResponse({
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'title', content: data.content, title: data.content })
 							}
+						} else if (data.type === 'reset') {
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'reset',
+									content: data.content || 'Retrying...'
+								})
+							}
+							fullResponse = ''
 						}
 					} catch (e) {
 						console.log('SSE JSON parse error:', e)
@@ -290,13 +299,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
-	const userRef = useRef<any>(null)
 	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
 	const [conversationHistory, setConversationHistory] = useState<
 		Array<{
-			question: string
-			response: {
+			role?: string
+			content?: string
+			question?: string
+			response?: {
 				answer: string
 				metadata?: any
 				suggestions?: any[]
@@ -308,6 +318,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			timestamp: number
 			messageId?: string
 			userRating?: 'good' | 'bad' | null
+			metadata?: any
+			suggestions?: any[]
+			charts?: any[]
+			chartData?: any[]
+			citations?: string[]
+			inlineSuggestions?: string
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -330,6 +346,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
+	const [isGeneratingSuggestions, setIsGeneratingSuggestions] = useState(false)
 	const [expectedChartInfo, setExpectedChartInfo] = useState<{ count?: number; types?: string[] } | null>(null)
 	const [resizeTrigger, setResizeTrigger] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
@@ -351,10 +368,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		shouldAutoScrollRef.current = true
 		isAutoScrollingRef.current = true
 	}, [])
-
-	useEffect(() => {
-		userRef.current = user
-	}, [user])
 
 	useEffect(() => {
 		sessionIdRef.current = sessionId
@@ -432,6 +445,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setIsGeneratingCharts(false)
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
+			setIsGeneratingSuggestions(false)
 			setExpectedChartInfo(null)
 
 			streamingContentRef.current.reset()
@@ -465,6 +479,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								setIsAnalyzingForCharts(false)
 								setIsGeneratingCharts(true)
 							}
+						} else if (data.stage === 'suggestions_loading') {
+							setIsGeneratingSuggestions(true)
 						}
 					} else if (data.type === 'session' && data.sessionId) {
 						newlyCreatedSessionsRef.current.add(data.sessionId)
@@ -472,6 +488,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						sessionIdRef.current = data.sessionId
 					} else if (data.type === 'suggestions') {
 						setStreamingSuggestions(data.suggestions)
+						setIsGeneratingSuggestions(false)
 					} else if (data.type === 'charts') {
 						setStreamingCharts(data.charts)
 						setStreamingChartData(data.chartData)
@@ -483,6 +500,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
 						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
+					} else if (data.type === 'reset') {
+						setStreamingResponse('')
+						setProgressMessage(data.content || 'Retrying due to output error...')
 					}
 				},
 				abortSignal: abortControllerRef.current.signal
@@ -501,16 +521,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setConversationHistory((prev) => [
 				...prev,
 				{
-					question: variables.userQuestion,
-					response: {
-						answer: data?.response?.answer || finalContent,
-						metadata: data?.response?.metadata,
-						inlineSuggestions: data?.response?.inlineSuggestions,
-						suggestions: data?.response?.suggestions,
-						charts: data?.response?.charts,
-						chartData: data?.response?.chartData,
-						citations: data?.response?.citations
-					},
+					role: 'user',
+					content: variables.userQuestion,
+					timestamp: Date.now()
+				},
+				{
+					role: 'assistant',
+					content: data?.response?.answer || finalContent,
+					metadata: data?.response?.metadata,
+					inlineSuggestions: data?.response?.inlineSuggestions,
+					suggestions: data?.response?.suggestions,
+					charts: data?.response?.charts,
+					chartData: data?.response?.chartData,
+					citations: data?.response?.citations,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
@@ -538,14 +561,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setConversationHistory((prev) => [
 					...prev,
 					{
-						question: variables.userQuestion,
-						response: {
-							answer: finalContent,
-							metadata: { stopped: true, partial: true },
-							suggestions: streamingSuggestions,
-							charts: streamingCharts,
-							chartData: streamingChartData
-						},
+						role: 'user',
+						content: variables.userQuestion,
+						timestamp: Date.now()
+					},
+					{
+						role: 'assistant',
+						content: finalContent,
+						metadata: { stopped: true, partial: true },
+						suggestions: streamingSuggestions,
+						charts: streamingCharts,
+						chartData: streamingChartData,
 						messageId: currentMessageId,
 						timestamp: Date.now()
 					}
@@ -556,6 +582,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingCharts(null)
 				setStreamingChartData(null)
 				setStreamingCitations(null)
+				setPrompt('')
+			} else if (wasUserStopped && !finalContent.trim()) {
+				setPrompt(variables.userQuestion)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
 			}
@@ -571,6 +600,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		if (!sessionId || !isStreaming) return
 
 		const finalContent = streamingContentRef.current.getContent()
+		setIsStreaming(false)
 
 		try {
 			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
@@ -601,22 +631,27 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setConversationHistory((prev) => [
 				...prev,
 				{
-					question: prompt,
-					response: {
-						answer: finalContent,
-						metadata: { stopped: true, partial: true },
-						suggestions: streamingSuggestions,
-						charts: streamingCharts,
-						chartData: streamingChartData,
-						citations: streamingCitations
-					},
+					role: 'user',
+					content: prompt,
+					timestamp: Date.now()
+				},
+				{
+					role: 'assistant',
+					content: finalContent,
+					metadata: { stopped: true, partial: true },
+					suggestions: streamingSuggestions,
+					charts: streamingCharts,
+					chartData: streamingChartData,
+					citations: streamingCitations,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
 			])
+			setPrompt('')
+		} else {
+			setPrompt(prompt)
 		}
 
-		setIsStreaming(false)
 		setStreamingResponse('')
 		setStreamingSuggestions(null)
 		setStreamingCharts(null)
@@ -735,6 +770,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
+		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
 		setConversationHistory([])
 		streamingContentRef.current.reset()
@@ -785,6 +821,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsGeneratingCharts(false)
 		setIsAnalyzingForCharts(false)
 		setHasChartError(false)
+		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
@@ -990,6 +1027,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isPending={isPending}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
+											initialValue={prompt}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1014,44 +1052,92 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</p>
 											)}
 											<div className="flex flex-col gap-2.5">
-												{conversationHistory.map((item) => (
-													<div
-														key={`${item.question}-${item.timestamp}`}
-														className={`flex flex-col gap-2.5 ${isPending || isStreaming || promptResponse || error ? '' : 'last:min-h-[calc(100dvh-260px)]'}`}
-													>
-														<SentPrompt prompt={item.question} />
-														<div className="flex flex-col gap-2.5">
-															<MarkdownRenderer content={item.response.answer} citations={item.response.citations} />
-															{item.response.charts && item.response.charts.length > 0 && (
-																<ChartRenderer
-																	charts={item.response.charts}
-																	chartData={item.response.chartData || []}
-																	resizeTrigger={resizeTrigger}
+												{conversationHistory.map((item, index) => {
+													if (item.role === 'user') {
+														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
+													}
+													if (item.role === 'assistant') {
+														return (
+															<div
+																key={`assistant-${item.messageId || item.timestamp}-${index}`}
+																className="flex flex-col gap-2.5"
+															>
+																<MarkdownRenderer content={item.content} citations={item.citations} />
+																{item.charts && item.charts.length > 0 && (
+																	<ChartRenderer
+																		charts={item.charts}
+																		chartData={item.chartData || []}
+																		resizeTrigger={resizeTrigger}
+																	/>
+																)}
+																{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
+																<ResponseControls
+																	messageId={item.messageId}
+																	content={item.content}
+																	initialRating={item.userRating}
+																	sessionId={sessionId}
+																	readOnly={readOnly}
 																/>
-															)}
-															{item.response.inlineSuggestions && (
-																<InlineSuggestions text={item.response.inlineSuggestions} />
-															)}
-															<ResponseControls
-																messageId={item.messageId}
-																content={item.response.answer}
-																initialRating={item.userRating}
-																sessionId={sessionId}
-															/>
-															{!readOnly && item.response.suggestions && item.response.suggestions.length > 0 && (
-																<SuggestedActions
-																	suggestions={item.response.suggestions}
-																	handleSuggestionClick={handleSuggestionClick}
-																	isPending={isPending}
-																	isStreaming={isStreaming}
-																/>
-															)}
-															{showDebug && item.response.metadata && (
-																<QueryMetadata metadata={item.response.metadata} />
-															)}
-														</div>
-													</div>
-												))}
+																{!readOnly && item.suggestions && item.suggestions.length > 0 && (
+																	<SuggestedActions
+																		suggestions={item.suggestions}
+																		handleSuggestionClick={handleSuggestionClick}
+																		isPending={isPending}
+																		isStreaming={isStreaming}
+																	/>
+																)}
+																{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
+															</div>
+														)
+													}
+													if (item.question) {
+														return (
+															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
+																<SentPrompt prompt={item.question} />
+																<div className="flex flex-col gap-2.5">
+																	<MarkdownRenderer
+																		content={item.response?.answer || ''}
+																		citations={item.response?.citations || item.citations}
+																	/>
+																	{((item.response?.charts && item.response.charts.length > 0) ||
+																		(item.charts && item.charts.length > 0)) && (
+																		<ChartRenderer
+																			charts={item.response?.charts || item.charts || []}
+																			chartData={item.response?.chartData || item.chartData || []}
+																			resizeTrigger={resizeTrigger}
+																		/>
+																	)}
+																	{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
+																		<InlineSuggestions
+																			text={item.response?.inlineSuggestions || item.inlineSuggestions}
+																		/>
+																	)}
+																	<ResponseControls
+																		messageId={item.messageId}
+																		content={item.response?.answer}
+																		initialRating={item.userRating}
+																		sessionId={sessionId}
+																		readOnly={readOnly}
+																	/>
+																	{!readOnly &&
+																		((item.response?.suggestions && item.response.suggestions.length > 0) ||
+																			(item.suggestions && item.suggestions.length > 0)) && (
+																			<SuggestedActions
+																				suggestions={item.response?.suggestions || item.suggestions || []}
+																				handleSuggestionClick={handleSuggestionClick}
+																				isPending={isPending}
+																				isStreaming={isStreaming}
+																			/>
+																		)}
+																	{showDebug && (item.response?.metadata || item.metadata) && (
+																		<QueryMetadata metadata={item.response?.metadata || item.metadata} />
+																	)}
+																</div>
+															</div>
+														)
+													}
+													return null
+												})}
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
 												<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
@@ -1080,6 +1166,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														isGeneratingCharts={isGeneratingCharts}
 														isAnalyzingForCharts={isAnalyzingForCharts}
 														hasChartError={hasChartError}
+														isGeneratingSuggestions={isGeneratingSuggestions}
 														expectedChartInfo={expectedChartInfo}
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
@@ -1132,6 +1219,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isPending={isPending}
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
+										initialValue={prompt}
 									/>
 								)}
 							</div>
@@ -1148,17 +1236,25 @@ const PromptInput = memo(function PromptInput({
 	promptInputRef,
 	isPending,
 	handleStopRequest,
-	isStreaming
+	isStreaming,
+	initialValue
 }: {
 	handleSubmit: (prompt: string) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
+	initialValue?: string
 }) {
 	const [value, setValue] = useState('')
 
 	const deferredValue = useDeferredValue(value)
+
+	useEffect(() => {
+		if (initialValue && !isStreaming && !isPending) {
+			setValue(initialValue)
+		}
+	}, [initialValue, isStreaming, isPending])
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
@@ -1180,37 +1276,35 @@ const PromptInput = memo(function PromptInput({
 			>
 				<textarea
 					placeholder="Ask LlamaAI..."
-					value={deferredValue}
-					onChange={async (e) => {
-						startTransition(() => {
-							setValue(e.target.value)
-							if (promptInputRef.current) {
-								try {
-									// Calculate rows based on newlines and character length
-									const text = e.target.value
-									const textarea = promptInputRef.current
-									const lineBreaks = (text.match(/\n/g) || []).length
+					value={value}
+					onChange={(e) => {
+						setValue(e.target.value)
+						if (promptInputRef.current) {
+							try {
+								// Calculate rows based on newlines and character length
+								const text = e.target.value
+								const textarea = promptInputRef.current
+								const lineBreaks = (text.match(/\n/g) || []).length
 
-									// Calculate actual characters per line based on container width
-									const style = window.getComputedStyle(textarea)
-									const paddingLeft = parseFloat(style.paddingLeft)
-									const paddingRight = parseFloat(style.paddingRight)
-									const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-									const fontSize = parseFloat(style.fontSize)
-									// Average character width is approximately 0.6 of font size for monospace-like text
-									const avgCharWidth = fontSize * 0.5
-									const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+								// Calculate actual characters per line based on container width
+								const style = window.getComputedStyle(textarea)
+								const paddingLeft = parseFloat(style.paddingLeft)
+								const paddingRight = parseFloat(style.paddingRight)
+								const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+								const fontSize = parseFloat(style.fontSize)
+								// Average character width is approximately 0.6 of font size for monospace-like text
+								const avgCharWidth = fontSize * 0.5
+								const charsPerLine = Math.floor(availableWidth / avgCharWidth)
 
-									const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-									const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+								const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+								const totalRows = Math.max(lineBreaks + 1, estimatedLines)
 
-									// Set rows with minimum 1 and maximum 5
-									promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-								} catch (error) {
-									console.error('Error calculating rows:', error)
-								}
+								// Set rows with minimum 1 and maximum 5
+								promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+							} catch (error) {
+								console.error('Error calculating rows:', error)
 							}
-						})
+						}
 					}}
 					onKeyDown={onKeyDown}
 					name="prompt"
@@ -1261,6 +1355,7 @@ const PromptResponse = ({
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
+	isGeneratingSuggestions = false,
 	expectedChartInfo,
 	resizeTrigger = 0,
 	showMetadata = false,
@@ -1286,6 +1381,7 @@ const PromptResponse = ({
 	isGeneratingCharts?: boolean
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
+	isGeneratingSuggestions?: boolean
 	expectedChartInfo?: { count?: number; types?: string[] } | null
 	resizeTrigger?: number
 	showMetadata?: boolean
@@ -1300,7 +1396,7 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer content={streamingResponse} citations={response?.citations} />
+					<MarkdownRenderer content={streamingResponse} citations={response?.citations} isStreaming={true} />
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
@@ -1335,12 +1431,22 @@ const PromptResponse = ({
 						resizeTrigger={resizeTrigger}
 					/>
 				)}
+				{!readOnly && isGeneratingSuggestions && (
+					<div className="mt-4 grid gap-2">
+						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
+						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
+							<FadingLoader />
+							<span>Generating follow-up suggestions...</span>
+						</p>
+					</div>
+				)}
 			</>
 		)
 	}
 
 	return (
 		<>
+			{response?.answer && <MarkdownRenderer content={response.answer} citations={response.citations} />}
 			{response?.charts && response.charts.length > 0 && (
 				<ChartRenderer
 					charts={response.charts}
@@ -1489,8 +1595,8 @@ const SuggestedActions = memo(function SuggestedActions({
 	isStreaming: boolean
 }) {
 	return (
-		<div className="mt-4 grid gap-2">
-			<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
+		<div className="mt-4 grid gap-2 text-[#666] dark:text-[#919296]">
+			<h1>Suggested actions:</h1>
 			<div className="grid gap-2">
 				{suggestions.map((suggestion) => (
 					<button
@@ -1504,10 +1610,8 @@ const SuggestedActions = memo(function SuggestedActions({
 						}`}
 					>
 						<span className="flex flex-1 flex-col items-start gap-1">
-							<span>{suggestion.title}</span>
-							{suggestion.description ? (
-								<span className="text-[#666] dark:text-[#919296]">{suggestion.description}</span>
-							) : null}
+							<span className={suggestion.description ? 'font-semibold' : ''}>{suggestion.title}</span>
+							{suggestion.description ? <span>{suggestion.description}</span> : null}
 						</span>
 						<Icon name="arrow-right" height={16} width={16} className="shrink-0" />
 					</button>
@@ -1568,12 +1672,14 @@ const ResponseControls = memo(function ResponseControls({
 	messageId,
 	content,
 	initialRating,
-	sessionId
+	sessionId,
+	readOnly = false
 }: {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
+	readOnly?: boolean
 }) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
@@ -1712,7 +1818,7 @@ const ResponseControls = memo(function ResponseControls({
 					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
 					<span className="sr-only">Thumbs Down</span>
 				</Tooltip>
-				{sessionId && (
+				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"
 						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
@@ -1722,14 +1828,16 @@ const ResponseControls = memo(function ResponseControls({
 						<span className="sr-only">Share</span>
 					</Tooltip>
 				)}
-				<Tooltip
-					content="Provide Feedback"
-					render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
-					className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
-				>
-					<Icon name="message-square-warning" height={14} width={14} />
-					<span className="sr-only">Provide Feedback</span>
-				</Tooltip>
+				{!readOnly && (
+					<Tooltip
+						content="Provide Feedback"
+						render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
+						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
+					>
+						<Icon name="message-square-warning" height={14} width={14} />
+						<span className="sr-only">Provide Feedback</span>
+					</Tooltip>
+				)}
 			</div>
 			<Ariakit.DialogProvider open={showFeedback} setOpen={setShowFeedback}>
 				<Ariakit.Dialog

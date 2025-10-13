@@ -109,7 +109,9 @@ export const PlotsPage = ({
 				<TreemapChart chartData={poolsData} />
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
-				<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
+				<div className="relative rounded-md bg-(--cards-bg) p-3">
+					<ScatterChart chartData={poolsData.filter((p) => !p.outlier)} />
+				</div>
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
 				<BoxplotChart chartData={poolsData.filter((p) => !p.outlier)} />

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { tvlOptionsMap } from '~/components/Filters/options'
 import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -11,7 +12,7 @@ import {
 	getProtocolWarningBanners,
 	useFetchProtocolAddlChartsData
 } from '~/containers/ProtocolOverview/utils'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -51,6 +52,17 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
+		const toggleOptions = []
+
+		for (const chain in protocolData.chainTvls) {
+			if (DEFI_SETTINGS_KEYS.includes(chain)) {
+				const option = tvlOptionsMap.get(chain as any)
+				if (option) {
+					toggleOptions.push(option)
+				}
+			}
+		}
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -58,7 +70,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
 				metrics,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				toggleOptions
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -90,6 +103,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="tvl"
 			warningBanners={props.warningBanners}
+			toggleOptions={props.toggleOptions}
 		>
 			{isLoading ? (
 				<div className="flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
