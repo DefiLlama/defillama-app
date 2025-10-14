@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Select } from '~/components/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
@@ -10,6 +10,10 @@ import { ProTableCSVButton } from './ProTable/CsvButton'
 import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+
+const DEFAULT_SERIES_COLOR = '#3366ff'
+const EMPTY_SERIES_COLORS: Record<string, string> = {}
+const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
 
 interface ChartBuilderCardProps {
 	builder: {
@@ -45,6 +49,7 @@ interface ChartBuilderCardProps {
 			hideOthers?: boolean
 			groupByParent?: boolean
 			additionalFilters?: Record<string, any>
+			seriesColors?: Record<string, string>
 		}
 		name?: string
 		grouping?: 'day' | 'week' | 'month' | 'quarter'
@@ -56,13 +61,23 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handlePercentageChange,
 		handleGroupingChange,
 		handleHideOthersChange,
+		handleEditItem,
 		isReadOnly,
 		timePeriod,
 		getProtocolInfo
 	} = useProDashboard()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const config = builder.config
+	const [showColors, setShowColors] = useState(false)
+	const seriesColors = config.seriesColors ?? EMPTY_SERIES_COLORS
+	const hasCustomSeriesColors = Object.keys(seriesColors).length > 0
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+
+	useEffect(() => {
+		if (isReadOnly) {
+			setShowColors(false)
+		}
+	}, [isReadOnly])
 
 	const isTvlChart = config.metric === 'tvl'
 
@@ -202,6 +217,17 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			})
 		}
 
+		const resolveSeriesColor = (name: string, fallback?: string) => {
+			const override = seriesColors[name]
+			if (override) {
+				return override
+			}
+			if (fallback && HEX_COLOR_REGEX.test(fallback)) {
+				return fallback
+			}
+			return DEFAULT_SERIES_COLOR
+		}
+
 		if (config.displayAs === 'percentage') {
 			const timestampTotals = new Map<number, number>()
 			processedSeries.forEach((s: any) => {
@@ -216,7 +242,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					const total = timestampTotals.get(timestamp) || 0
 					return [timestamp, total > 0 ? (value / total) * 100 : 0]
 				}),
-				color: s.color,
+				color: resolveSeriesColor(s.name, s.color),
 				type: config.chartType === 'stackedBar' ? 'bar' : 'line',
 				...(config.chartType === 'stackedArea' && {
 					areaStyle: { opacity: 0.7 },
@@ -231,7 +257,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		return processedSeries.map((s: any) => ({
 			name: s.name,
 			data: s.data,
-			color: s.color,
+			color: resolveSeriesColor(s.name, s.color),
 			type: config.chartType === 'stackedBar' ? 'bar' : 'line',
 			...(config.chartType === 'stackedArea' && {
 				areaStyle: { opacity: 0.7 },
@@ -241,7 +267,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart])
+	}, [chartData, config.displayAs, config.chartType, config.seriesColors, builder.grouping, isTvlChart, seriesColors])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
@@ -271,6 +297,58 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
 	}, [chartSeries, builder.name, config.metric, config.chains, config.categories, config.chainCategories])
+
+	const updateSeriesColors = useCallback(
+		(nextColors: Record<string, string>) => {
+			if (isReadOnly) {
+				return
+			}
+			handleEditItem(
+				builder.id,
+				{
+					...builder,
+					config: {
+						...builder.config,
+						seriesColors: nextColors
+					}
+				}
+			)
+		},
+		[builder, handleEditItem, isReadOnly]
+	)
+
+	const handleSeriesColorChange = useCallback(
+		(seriesName: string, colorValue: string) => {
+			const currentColors = builder.config.seriesColors || {}
+			if (currentColors[seriesName] === colorValue) {
+				return
+			}
+			updateSeriesColors({
+				...currentColors,
+				[seriesName]: colorValue
+			})
+		},
+		[builder.config.seriesColors, updateSeriesColors]
+	)
+
+	const handleSeriesColorReset = useCallback(
+		(seriesName: string) => {
+			if (!builder.config.seriesColors || !(seriesName in builder.config.seriesColors)) {
+				return
+			}
+			const nextColors = { ...builder.config.seriesColors }
+			delete nextColors[seriesName]
+			updateSeriesColors(nextColors)
+		},
+		[builder.config.seriesColors, updateSeriesColors]
+	)
+
+	const handleResetAllSeriesColors = useCallback(() => {
+		if (!builder.config.seriesColors || Object.keys(builder.config.seriesColors).length === 0) {
+			return
+		}
+		updateSeriesColors({})
+	}, [builder.config.seriesColors, updateSeriesColors])
 
 	return (
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
@@ -313,9 +391,24 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							labelType="none"
 							triggerProps={{
 								className:
-									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
 							}}
 						/>
+					)}
+					{chartSeries.length > 0 && (
+						<button
+							type="button"
+							onClick={() => setShowColors((prev) => !prev)}
+							disabled={isReadOnly}
+							aria-pressed={showColors}
+							className={`flex items-center gap-1 rounded-md border px-1.5 py-1 text-xs transition-colors disabled:cursor-not-allowed ${
+								showColors
+									? 'border-transparent bg-(--primary) text-white'
+									: 'border-(--form-control-border) hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue'
+							} disabled:border-(--cards-border) disabled:text-(--text-disabled)`}
+						>
+							Colors
+						</button>
 					)}
 					{!isReadOnly &&
 						(config.mode !== 'protocol' || !(config.chainCategories && config.chainCategories.length > 0)) && (
@@ -355,6 +448,57 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</>
 					)}
 				</div>
+				{showColors && chartSeries.length > 0 && (
+					<div className="thin-scrollbar flex items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
+						{chartSeries.map((series: any) => {
+							const colorValue = seriesColors[series.name] || series.color || DEFAULT_SERIES_COLOR
+							const hasOverride = Boolean(seriesColors[series.name])
+							return (
+								<div
+									key={series.name}
+									className="flex shrink-0 items-center gap-1.5 rounded border border-(--cards-border) bg-(--bg-input) px-2 py-1 text-xs"
+								>
+									<span className="max-w-[140px] truncate" title={series.name}>
+										{series.name}
+									</span>
+									<input
+										type="color"
+										value={colorValue}
+										onChange={(event) => handleSeriesColorChange(series.name, event.target.value)}
+										disabled={isReadOnly}
+										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0 disabled:cursor-not-allowed"
+										aria-label={`Select color for ${series.name}`}
+									/>
+									<button
+										type="button"
+										onClick={() => handleSeriesColorReset(series.name)}
+										disabled={isReadOnly || !hasOverride}
+										className={`text-[10px] font-medium transition-colors disabled:cursor-not-allowed ${
+											isReadOnly || !hasOverride
+												? 'text-(--text-disabled)'
+												: 'text-(--text-tertiary) hover:text-(--text-primary)'
+										}`}
+									>
+										Reset
+									</button>
+								</div>
+							)
+						})}
+						<button
+							type="button"
+							onClick={handleResetAllSeriesColors}
+							disabled={isReadOnly || !hasCustomSeriesColors}
+							className={`flex shrink-0 items-center rounded-md border px-2 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
+								isReadOnly || !hasCustomSeriesColors
+									? 'border-(--cards-border) text-(--text-disabled)'
+									: 'border-(--form-control-border) text-(--text-tertiary) hover:text-(--text-primary)'
+							}`}
+						>
+							Reset All
+						</button>
+					</div>
+				)}
 				{(() => {
 					const parts: string[] = []
 					if (config.mode === 'protocol') {

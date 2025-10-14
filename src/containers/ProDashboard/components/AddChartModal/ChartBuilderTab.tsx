@@ -17,6 +17,9 @@ import { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
+const DEFAULT_SERIES_COLOR = '#3366ff'
+const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
+
 interface ChartBuilderTabProps {
 	chartBuilder: ChartBuilderConfig
 	chartBuilderName: string
@@ -176,6 +179,33 @@ export function ChartBuilderTab({
 		refetchOnWindowFocus: false
 	})
 
+	const seriesColors: Record<string, string> = chartBuilder.seriesColors || {}
+	const hasCustomSeriesColors = Object.keys(seriesColors).length > 0
+
+	const visibleSeries = useMemo(() => {
+		if (!previewData?.series) {
+			return []
+		}
+
+		const forceHideOthers =
+			chartBuilder.mode === 'protocol' && (chartBuilder.chainCategories?.length || 0) > 0
+
+		return chartBuilder.hideOthers || forceHideOthers
+			? previewData.series.filter((s) => !s.name.startsWith('Others'))
+			: previewData.series
+	}, [previewData, chartBuilder.hideOthers, chartBuilder.mode, chartBuilder.chainCategories])
+
+	const resolveSeriesColor = (seriesName: string, fallback?: string) => {
+		const override = seriesColors[seriesName]
+		if (override) {
+			return override
+		}
+		if (fallback && HEX_COLOR_REGEX.test(fallback)) {
+			return fallback
+		}
+		return DEFAULT_SERIES_COLOR
+	}
+
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
 		const metric = chartBuilder.metric
@@ -219,6 +249,32 @@ export function ChartBuilderTab({
 
 	const handleModeChange = (mode: 'chains' | 'protocol') => {
 		onChartBuilderChange({ mode, chains: [], protocol: undefined })
+	}
+
+	const handleSeriesColorChange = (seriesName: string, color: string) => {
+		onChartBuilderChange({
+			seriesColors: {
+				...(chartBuilder.seriesColors || {}),
+				[seriesName]: color
+			}
+		})
+	}
+
+	const handleSeriesColorReset = (seriesName: string) => {
+		const current = chartBuilder.seriesColors || {}
+		if (!(seriesName in current)) {
+			return
+		}
+		const next = { ...current }
+		delete next[seriesName]
+		onChartBuilderChange({ seriesColors: next })
+	}
+
+	const handleResetAllSeriesColors = () => {
+		if (!hasCustomSeriesColors) {
+			return
+		}
+		onChartBuilderChange({ seriesColors: {} })
 	}
 
 	useEffect(() => {
@@ -487,6 +543,7 @@ export function ChartBuilderTab({
 							))}
 						</div>
 					</div>
+
 				</div>
 
 				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -518,14 +575,7 @@ export function ChartBuilderTab({
 										height="450px"
 										key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}
 										series={(() => {
-											const forceHideOthers =
-												chartBuilder.mode === 'protocol' &&
-												chartBuilder.chainCategories &&
-												chartBuilder.chainCategories.length > 0
-											let filteredSeries =
-												chartBuilder.hideOthers || forceHideOthers
-													? previewData.series.filter((s) => !s.name.startsWith('Others'))
-													: previewData.series
+											let filteredSeries = visibleSeries
 
 											if (chartBuilder.metric !== 'tvl' && chartBuilder.mode === 'chains') {
 												filteredSeries = filteredSeries.map((s) => {
@@ -564,7 +614,7 @@ export function ChartBuilderTab({
 														const total = timestampTotals.get(timestamp) || 0
 														return [timestamp, total > 0 ? (value / total) * 100 : 0]
 													}),
-													color: s.color,
+													color: resolveSeriesColor(s.name, s.color),
 													type: chartBuilder.chartType === 'stackedBar' ? 'bar' : 'line',
 													...(chartBuilder.chartType === 'stackedArea' && {
 														areaStyle: { opacity: 0.7 },
@@ -579,7 +629,7 @@ export function ChartBuilderTab({
 											return filteredSeries.map((s) => ({
 												name: s.name,
 												data: s.data,
-												color: s.color,
+												color: resolveSeriesColor(s.name, s.color),
 												type: chartBuilder.chartType === 'stackedBar' ? 'bar' : 'line',
 												...(chartBuilder.chartType === 'stackedArea' && {
 													areaStyle: { opacity: 0.7 },
@@ -608,17 +658,7 @@ export function ChartBuilderTab({
 												selectedMode: 'multiple',
 												pageButtonItemGap: 5,
 												pageButtonGap: 20,
-												data: (() => {
-													const forceHideOthers =
-														chartBuilder.mode === 'protocol' &&
-														chartBuilder.chainCategories &&
-														chartBuilder.chainCategories.length > 0
-													let filteredSeries =
-														chartBuilder.hideOthers || forceHideOthers
-															? previewData.series.filter((s) => !s.name.startsWith('Others'))
-															: previewData.series
-													return filteredSeries?.map((s) => s.name) || []
-												})()
+												data: visibleSeries.map((s) => s.name)
 											},
 											tooltip: {
 												formatter: function (params: any) {
@@ -692,6 +732,59 @@ export function ChartBuilderTab({
 							</div>
 						)}
 					</div>
+
+					{visibleSeries.length > 0 && (
+						<div className="mt-2 flex flex-col gap-1">
+							<div className="flex items-center justify-between gap-2">
+								<h4 className="pro-text2 text-[11px] font-medium">Series Colors</h4>
+								<button
+									type="button"
+									onClick={handleResetAllSeriesColors}
+									disabled={!hasCustomSeriesColors}
+									className={`text-[10px] font-medium transition-colors disabled:cursor-not-allowed ${
+										hasCustomSeriesColors
+											? 'pro-text2 hover:pro-text1'
+											: 'pro-text3 cursor-not-allowed'
+									}`}
+								>
+									Reset All
+								</button>
+							</div>
+							<div className="thin-scrollbar flex items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
+								{visibleSeries.map((series) => {
+									const activeColor = resolveSeriesColor(series.name, series.color)
+									const hasOverride = !!seriesColors[series.name]
+									return (
+										<div
+											key={series.name}
+											className="flex shrink-0 items-center gap-1.5 rounded border border-(--cards-border) bg-(--bg-input) px-2 py-1 text-xs"
+										>
+											<span className="max-w-[140px] truncate pro-text2" title={series.name}>
+												{series.name}
+											</span>
+											<input
+												type="color"
+												value={activeColor}
+												onChange={(event) => handleSeriesColorChange(series.name, event.target.value)}
+												className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
+												aria-label={`Select color for ${series.name}`}
+											/>
+											<button
+												type="button"
+												onClick={() => handleSeriesColorReset(series.name)}
+												disabled={!hasOverride}
+												className={`text-[10px] font-medium transition-colors disabled:cursor-not-allowed ${
+													hasOverride ? 'pro-text3 hover:pro-text1' : 'pro-text4 cursor-not-allowed'
+												}`}
+											>
+												Reset
+											</button>
+										</div>
+									)
+								})}
+							</div>
+						</div>
+					)}
 
 					<div className="pro-bg2 mt-2 flex-shrink-0 rounded p-2">
 						<div className="flex items-start gap-1">

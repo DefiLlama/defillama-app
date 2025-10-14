@@ -102,6 +102,7 @@ export interface ChartBuilderConfig {
 		hideOthers?: boolean
 		groupByParent?: boolean
 		additionalFilters?: Record<string, any>
+		seriesColors?: Record<string, string>
 	}
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	colSpan?: StoredColSpan

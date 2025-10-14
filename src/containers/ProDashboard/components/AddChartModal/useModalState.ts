@@ -38,7 +38,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		limit: 10,
 		chartType: 'stackedArea',
 		displayAs: 'timeSeries',
-		additionalFilters: {}
+		additionalFilters: {},
+		seriesColors: {}
 	})
 
 	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
@@ -115,7 +116,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setChartBuilderName(editItem.name || '')
 				setChartBuilder({
 					...editItem.config,
-					mode: editItem.config.mode || 'chains'
+					mode: editItem.config.mode || 'chains',
+					seriesColors: editItem.config.seriesColors || {}
 				})
 			} else if (editItem.kind === 'metric') {
 				setSelectedMainTab('metric')
@@ -170,7 +172,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				limit: 10,
 				chartType: 'stackedArea',
 				displayAs: 'timeSeries',
-				additionalFilters: {}
+				additionalFilters: {},
+				seriesColors: {}
 			})
 			setMetricSubjectType('chain')
 			setMetricChain(null)
@@ -212,6 +215,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setChartBuilder({
 			metric: 'tvl',
 			mode: 'chains',
+			filterMode: 'include',
 			chains: [],
 			chainCategories: [],
 			categories: [],
@@ -219,7 +223,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			limit: 10,
 			chartType: 'stackedArea',
 			displayAs: 'timeSeries',
-			additionalFilters: {}
+			additionalFilters: {},
+			seriesColors: {}
 		})
 		setMetricSubjectType('chain')
 		setMetricChain(null)

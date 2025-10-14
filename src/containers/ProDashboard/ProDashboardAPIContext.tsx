@@ -138,6 +138,7 @@ interface ProDashboardContextType {
 			chartType: 'stackedBar' | 'stackedArea' | 'line'
 			displayAs: 'timeSeries' | 'percentage'
 			additionalFilters?: Record<string, any>
+			seriesColors?: Record<string, string>
 		}
 	) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -1037,6 +1038,7 @@ export function ProDashboardAPIProvider({
 				hideOthers?: boolean
 				groupByParent?: boolean
 				additionalFilters?: Record<string, any>
+				seriesColors?: Record<string, string>
 			}
 		) => {
 			if (isReadOnly) {

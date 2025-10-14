@@ -57,6 +57,7 @@ export interface ChartBuilderConfig {
 	hideOthers?: boolean
 	groupByParent?: boolean
 	additionalFilters?: Record<string, any>
+	seriesColors?: Record<string, string>
 }
 
 export interface ModalState {
