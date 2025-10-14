@@ -402,19 +402,28 @@ export function useDefaults({
 			right: !hideLegend && isSmall ? null : 20
 		}
 
+		const minValueSpan =
+			groupBy === 'quarterly'
+				? 6 * 90 * 24 * 60 * 60 * 1000
+				: groupBy === 'monthly'
+					? 6 * 30 * 24 * 60 * 60 * 1000
+					: groupBy === 'weekly'
+						? 6 * 7 * 24 * 60 * 60 * 1000
+						: 6 * 24 * 60 * 60 * 1000 // min value in frame: 6 days
+
 		const dataZoom = [
 			{
 				type: 'inside',
 				start: 0,
 				end: 100,
-				minValueSpan: groupBy === 'daily' ? 60 * 1000 : 60 * 60 * 1000
+				minValueSpan
 			},
 			{
 				start: 0,
 				end: 100,
 				left: 12,
 				right: 12,
-				minValueSpan: groupBy === 'daily' ? 60 * 1000 : 60 * 60 * 1000,
+				minValueSpan,
 				textStyle: {
 					color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				},
