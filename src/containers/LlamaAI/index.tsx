@@ -89,7 +89,7 @@ async function fetchPromptResponse({
 	abortSignal?: AbortSignal
 	sessionId?: string | null
 	suggestionContext?: any
-	preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+	preResolvedEntities?: Array<{ term: string; slug: string }>
 	mode: 'auto' | 'sql_only'
 	authorizedFetch: any
 }) {
@@ -444,7 +444,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}: {
 			userQuestion: string
 			suggestionContext?: any
-			preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+			preResolvedEntities?: Array<{ term: string; slug: string }>
 		}) => {
 			let currentSessionId = sessionId
 
@@ -543,7 +543,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}: {
 			userQuestion: string
 			suggestionContext?: any
-			preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+			preResolvedEntities?: Array<{ term: string; slug: string }>
 		}) => {},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
@@ -1281,10 +1281,7 @@ const PromptInput = memo(function PromptInput({
 	isStreaming,
 	initialValue
 }: {
-	handleSubmit: (
-		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
-	) => void
+	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
@@ -1327,22 +1324,20 @@ const PromptInput = memo(function PromptInput({
 				if (!data) return null
 				return {
 					term: name,
-					slug: data.id,
-					type: data.type
+					slug: data.id
 				}
 			})
 			.filter((entity) => entity !== null && value.includes(entity.term)) as Array<{
 			term: string
 			slug: string
-			type: 'chain' | 'protocol' | 'subprotocol'
 		}>
 	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-			combobox.setValue('')
-			combobox.hide()
-		}
+		// if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+		// 	combobox.setValue('')
+		// 	combobox.hide()
+		// }
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
