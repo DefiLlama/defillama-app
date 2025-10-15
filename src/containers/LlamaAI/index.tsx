@@ -1348,7 +1348,6 @@ const PromptInput = memo(function PromptInput({
 			event.preventDefault()
 			combobox.setValue('')
 			combobox.hide()
-			console.log(getFinalEntities())
 			handleSubmit(promptInputRef.current?.value ?? '', getFinalEntities())
 			setValue('')
 			if (highlightRef.current) {
