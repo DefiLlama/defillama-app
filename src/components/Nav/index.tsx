@@ -59,7 +59,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
-			{ name: 'Subscription', route: '/subscription', icon: 'user', attention: showAttentionIcon },
+			{ name: 'Pricing', route: '/subscription', icon: 'user', attention: showAttentionIcon },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			...(hasLlamaAI ? [{ name: 'LlamaAI', route: '/ai', icon: '' }] : [])
 		]
