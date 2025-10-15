@@ -27,6 +27,7 @@ export default function ProtocolLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	isLogScale = false,
 	...props
 }) {
 	const id = useId()
@@ -174,7 +175,7 @@ export default function ProtocolLineBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis: defaultYAxis, dataZoom } = defaultChartSettings
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -192,7 +193,7 @@ export default function ProtocolLineBarChart({
 
 		allYAxis.forEach(([type, index]) => {
 			const options = {
-				...yAxis,
+				...defaultYAxis,
 				name: '',
 				type: 'value',
 				alignTicks: true,
@@ -203,7 +204,7 @@ export default function ProtocolLineBarChart({
 			}
 
 			if (type === 'TVL') {
-				finalYAxis.push(yAxis)
+				finalYAxis.push(defaultYAxis)
 			}
 
 			if (type === 'Token Price') {
@@ -506,8 +507,16 @@ export default function ProtocolLineBarChart({
 		})
 
 		if (allYAxis.length === 0) {
-			finalYAxis.push(yAxis)
+			finalYAxis.push(defaultYAxis)
 		}
+
+		const yAxis = !isLogScale
+			? finalYAxis
+			: finalYAxis.map((axis) => ({
+					...axis,
+					type: 'log',
+					startValue: 1
+				}))
 
 		chartInstance.setOption({
 			graphic,
@@ -521,7 +530,7 @@ export default function ProtocolLineBarChart({
 				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
-			yAxis: finalYAxis,
+			yAxis: yAxis,
 			...(series.every((s) => s.data.length > 1) ? { dataZoom } : {}),
 			series
 		})
@@ -545,7 +554,8 @@ export default function ProtocolLineBarChart({
 		chartColors,
 		allYAxis,
 		rangeHallmarks,
-		height
+		height,
+		isLogScale
 	])
 
 	return (

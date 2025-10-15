@@ -56,6 +56,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 	const [isThemeDark] = useDarkModeManager()
 	const chartContainerRef = useRef<HTMLDivElement>(null)
 	const [isFullscreen, setIsFullscreen] = useState(false)
+	const [isLogScale, setIsLogScale] = useState(true)
 
 	useEffect(() => {
 		function handleFullscreenChange() {
@@ -188,6 +189,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 	})
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+	const chartSettingsPopover = Ariakit.usePopoverStore()
 
 	const prepareCsv = useCallback(() => {
 		return prepareChartCsv(finalCharts, `${props.name}.csv`)
@@ -397,6 +399,31 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 						<Icon name={isFullscreen ? 'minimize' : 'maximize'} height={12} width={12} />
 						<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
 					</button>
+					<Ariakit.PopoverProvider store={chartSettingsPopover}>
+						<Ariakit.PopoverDisclosure className="flex items-center justify-center rounded-md border border-(--form-control-border) px-2 py-2 text-sm font-medium text-(--text-form)! hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+							<Icon name="settings" height={12} width={12} />
+							<span className="sr-only">Chart Settings</span>
+						</Ariakit.PopoverDisclosure>
+						<Ariakit.Popover
+							unmountOnHide
+							hideOnInteractOutside
+							gutter={6}
+							className="z-10 flex flex-col gap-1 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm shadow-lg dark:border-[hsl(204,3%,32%)]"
+						>
+							<button
+								onClick={() => {
+									setIsLogScale(!isLogScale)
+									chartSettingsPopover.hide()
+								}}
+								className="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							>
+								<span className="flex h-4 w-4 items-center justify-center">
+									{isLogScale ? <Icon name="check" height={14} width={14} /> : null}
+								</span>
+								<span>Log scale</span>
+							</button>
+						</Ariakit.Popover>
+					</Ariakit.PopoverProvider>
 				</div>
 			</div>
 			<div className={`flex ${isFullscreen ? 'h-full' : 'min-h-[360px]'} flex-col`}>
@@ -423,6 +450,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
 							unlockTokenSymbol={props.token.symbol}
+							isLogScale={isLogScale}
 						/>
 					</Suspense>
 				)}
