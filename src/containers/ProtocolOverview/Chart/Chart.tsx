@@ -544,7 +544,8 @@ export default function ProtocolLineBarChart({
 		unlockTokenSymbol,
 		chartColors,
 		allYAxis,
-		rangeHallmarks
+		rangeHallmarks,
+		height
 	])
 
 	return (

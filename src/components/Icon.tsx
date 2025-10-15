@@ -92,6 +92,8 @@ type Name =
 	| 'layout-grid'
 	| 'arrow-down'
 	| 'share'
+	| 'maximize'
+	| 'minimize'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
