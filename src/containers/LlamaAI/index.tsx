@@ -1381,8 +1381,11 @@ const PromptInput = memo(function PromptInput({
 			}
 		}
 
+		// Capture the value before setTimeout to avoid synthetic event pooling issues
+		const currentValue = event.target.value
+
 		if (highlightRef.current) {
-			highlightRef.current.innerHTML = event.target.value
+			highlightRef.current.innerHTML = currentValue
 		}
 
 		// delay the highlight to avoid flickering
@@ -1391,7 +1394,7 @@ const PromptInput = memo(function PromptInput({
 		}
 		highlightTimerId.current = setTimeout(() => {
 			if (highlightRef.current) {
-				highlightRef.current.innerHTML = highlightWord(event.target.value, Array.from(entitiesRef.current))
+				highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
 			}
 		}, 300)
 
