@@ -707,6 +707,10 @@
 			opacity: 1;
 		}
 	}
+
+	.highlighted-text .highlight {
+		@apply bg-(--link-bg) text-(--link-text);
+	}
 }
 
 @keyframes slideInRight {

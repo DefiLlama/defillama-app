@@ -1,10 +1,21 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import {
+	memo,
+	RefObject,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState
+} from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -12,12 +23,12 @@ import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
-import { EntityAutocomplete } from './components/EntityAutocomplete'
 import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
-import { useEntityAutocomplete } from './hooks/useEntityAutocomplete'
+import { useGetEntities } from './hooks/useGetEntities'
+import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
 import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
 
@@ -1281,147 +1292,156 @@ const PromptInput = memo(function PromptInput({
 	initialValue?: string
 }) {
 	const [value, setValue] = useState('')
-	const [showAutocomplete, setShowAutocomplete] = useState(false)
-	const [autocompletePosition, setAutocompletePosition] = useState({ top: 0, left: 0 })
-	const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0)
-	const [currentSearch, setCurrentSearch] = useState('')
-	const [preResolvedEntities, setPreResolvedEntities] = useState<
-		Array<{
+	const highlightRef = useRef<HTMLDivElement>(null)
+	const entitiesRef = useRef<Set<string>>(new Set())
+	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
+	const [caretOffset, setCaretOffset] = useState<number | null>(null)
+
+	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
+	const searchValue = Ariakit.useStoreState(combobox, 'value')
+
+	const { data: matches } = useGetEntities(searchValue)
+
+	const hasMatches = matches && matches.length > 0
+
+	useLayoutEffect(() => {
+		combobox.setOpen(hasMatches)
+	}, [combobox, hasMatches])
+
+	useLayoutEffect(() => {
+		if (caretOffset != null) {
+			promptInputRef.current?.setSelectionRange(caretOffset, caretOffset)
+		}
+	}, [promptInputRef, caretOffset])
+
+	// Re-calculates the position of the combobox popover in case the changes on
+	// the textarea value have shifted the trigger character.
+	useEffect(() => {
+		combobox.render()
+	}, [combobox, value])
+
+	const getFinalEntities = () => {
+		return Array.from(entitiesRef.current)
+			.map((name) => {
+				const data = entitiesMapRef.current.get(name)
+				if (!data) return null
+				return {
+					term: name,
+					slug: data.id,
+					type: data.type
+				}
+			})
+			.filter((entity) => entity !== null && value.includes(entity.term)) as Array<{
 			term: string
 			slug: string
 			type: 'chain' | 'protocol' | 'subprotocol'
 		}>
-	>([])
-
-	const { search: searchEntities } = useEntityAutocomplete()
-	const suggestions = currentSearch ? searchEntities(currentSearch, 5) : []
-
-	const deferredValue = useDeferredValue(value)
-
-	useEffect(() => {
-		if (initialValue && !isStreaming && !isPending) {
-			setValue(initialValue)
-		}
-	}, [initialValue, isStreaming, isPending])
-
-	const updateAutocomplete = (text: string, cursorPos: number) => {
-		const beforeCursor = text.slice(0, cursorPos)
-		const atIndex = beforeCursor.lastIndexOf('@')
-
-		if (atIndex !== -1 && atIndex === cursorPos - 1) {
-			setCurrentSearch('')
-			setShowAutocomplete(true)
-			setSelectedSuggestionIndex(0)
-			return
-		}
-
-		if (atIndex !== -1) {
-			const afterAt = beforeCursor.slice(atIndex + 1)
-			const hasSpace = afterAt.includes(' ')
-
-			if (!hasSpace && afterAt.length > 0) {
-				setCurrentSearch(afterAt)
-				setShowAutocomplete(true)
-				setSelectedSuggestionIndex(0)
-				return
-			}
-		}
-
-		setShowAutocomplete(false)
-		setCurrentSearch('')
-	}
-
-	const insertEntity = (displayName: string, slug: string, type: 'chain' | 'protocol' | 'subprotocol') => {
-		if (!promptInputRef.current) return
-
-		const cursorPos = promptInputRef.current.selectionStart
-		const beforeCursor = value.slice(0, cursorPos)
-		const afterCursor = value.slice(cursorPos)
-		const atIndex = beforeCursor.lastIndexOf('@')
-
-		if (atIndex !== -1) {
-			const mentionText = `@${displayName}`
-			const newValue = value.slice(0, atIndex) + mentionText + ' ' + afterCursor
-			setValue(newValue)
-
-			setPreResolvedEntities((prev) => [
-				...prev.filter((e) => e.term !== mentionText),
-				{ term: mentionText, slug, type }
-			])
-
-			setTimeout(() => {
-				if (promptInputRef.current) {
-					const newCursorPos = atIndex + mentionText.length + 1
-					promptInputRef.current.selectionStart = newCursorPos
-					promptInputRef.current.selectionEnd = newCursorPos
-					promptInputRef.current.focus()
-				}
-			}, 0)
-		}
-
-		setShowAutocomplete(false)
-		setCurrentSearch('')
 	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (showAutocomplete && suggestions.length > 0) {
-			if (event.key === 'ArrowDown') {
-				event.preventDefault()
-				setSelectedSuggestionIndex((prev) => (prev + 1) % suggestions.length)
-				return
-			}
-			if (event.key === 'ArrowUp') {
-				event.preventDefault()
-				setSelectedSuggestionIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length)
-				return
-			}
-			if (event.key === 'Enter' && !event.shiftKey) {
-				event.preventDefault()
-				const suggestion = suggestions[selectedSuggestionIndex]
-				insertEntity(suggestion.displayName, suggestion.slug, suggestion.type)
-				return
-			}
-			if (event.key === 'Escape') {
-				event.preventDefault()
-				setShowAutocomplete(false)
-				setCurrentSearch('')
-				return
-			}
+		if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+			combobox.setValue('')
+			combobox.hide()
 		}
 
-		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
+		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
-			handleSubmit(value, preResolvedEntities)
+			combobox.setValue('')
+			combobox.hide()
+			console.log(getFinalEntities())
+			handleSubmit(promptInputRef.current?.value ?? '', getFinalEntities())
 			setValue('')
-			setPreResolvedEntities([])
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = ''
+			}
 		}
 	}
 
-	useEffect(() => {
-		if (showAutocomplete && promptInputRef.current) {
+	const highlightTimerId = useRef<NodeJS.Timeout | null>(null)
+
+	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+		if (promptInputRef.current) {
+			try {
+				// Calculate rows based on newlines and character length
+				const text = event.target.value
+				const textarea = promptInputRef.current
+				const lineBreaks = (text.match(/\n/g) || []).length
+
+				// Calculate actual characters per line based on container width
+				const style = window.getComputedStyle(textarea)
+				const paddingLeft = parseFloat(style.paddingLeft)
+				const paddingRight = parseFloat(style.paddingRight)
+				const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+				const fontSize = parseFloat(style.fontSize)
+				// Average character width is approximately 0.6 of font size for monospace-like text
+				const avgCharWidth = fontSize * 0.5
+				const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+
+				const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+				const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+
+				// Set rows with minimum 1 and maximum 5
+				promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+			} catch (error) {
+				console.error('Error calculating rows:', error)
+			}
+		}
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = event.target.value
+		}
+
+		// delay the highlight to avoid flickering
+		if (highlightTimerId.current) {
+			clearTimeout(highlightTimerId.current)
+		}
+		highlightTimerId.current = setTimeout(() => {
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = highlightWord(event.target.value, Array.from(entitiesRef.current))
+			}
+		}, 300)
+
+		const trigger = getTrigger(event.target)
+		const searchValue = getSearchValue(event.target)
+		// If there's a trigger character, we'll show the combobox popover. This can
+		// be true both when the trigger character has just been typed and when
+		// content has been deleted (e.g., with backspace) and the character right
+		// before the caret is the trigger.
+		if (trigger) {
+			combobox.show()
+		}
+		// There will be no trigger and no search value if the trigger character has
+		// just been deleted.
+		else if (!searchValue) {
+			combobox.setValue('')
+			combobox.hide()
+		}
+		// Sets our textarea value.
+		setValue(event.target.value)
+		// Sets the combobox value that will be used to search in the list.
+		combobox.setValue(searchValue)
+	}
+
+	const onItemClick =
+		({ id, name, type }: { id: string; name: string; type: string }) =>
+		() => {
 			const textarea = promptInputRef.current
-			const rect = textarea.getBoundingClientRect()
-			const cursorPos = textarea.selectionStart
+			if (!textarea) return
 
-			const textBeforeCursor = value.slice(0, cursorPos)
-			const lines = textBeforeCursor.split('\n')
-			const currentLine = lines.length
-			const lineHeight = 24
+			const offset = getTriggerOffset(textarea)
 
-			setAutocompletePosition({
-				top: rect.bottom + 4,
-				left: rect.left
-			})
+			entitiesRef.current.add(name)
+			entitiesMapRef.current.set(name, { id, name, type })
+
+			const getNewValue = replaceValue(offset, searchValue, name)
+			setValue(getNewValue)
+			const nextCaretOffset = offset + name.length + 1
+			setCaretOffset(nextCaretOffset)
+
+			if (highlightRef.current) {
+				highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
+			}
 		}
-	}, [showAutocomplete, value, promptInputRef])
-
-	useEffect(() => {
-		if (value === '') {
-			setPreResolvedEntities([])
-		} else {
-			setPreResolvedEntities((prev) => prev.filter((entity) => value.includes(entity.term)))
-		}
-	}, [value])
 
 	return (
 		<>
@@ -1429,60 +1449,94 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
-					handleSubmit(value, preResolvedEntities)
+					const form = e.target as HTMLFormElement
+					handleSubmit(form.prompt.value, getFinalEntities())
 					setValue('')
-					setPreResolvedEntities([])
+					if (highlightRef.current) {
+						highlightRef.current.innerHTML = ''
+					}
 				}}
 			>
-				<textarea
-					placeholder="Ask LlamaAI..."
-					value={value}
-					onChange={(e) => {
-						const newValue = e.target.value
-						setValue(newValue)
-
-						if (promptInputRef.current) {
-							const cursorPos = promptInputRef.current.selectionStart
-							updateAutocomplete(newValue, cursorPos)
-
-							try {
-								// Calculate rows based on newlines and character length
-								const text = e.target.value
-								const textarea = promptInputRef.current
-								const lineBreaks = (text.match(/\n/g) || []).length
-
-								// Calculate actual characters per line based on container width
-								const style = window.getComputedStyle(textarea)
-								const paddingLeft = parseFloat(style.paddingLeft)
-								const paddingRight = parseFloat(style.paddingRight)
-								const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-								const fontSize = parseFloat(style.fontSize)
-								// Average character width is approximately 0.6 of font size for monospace-like text
-								const avgCharWidth = fontSize * 0.5
-								const charsPerLine = Math.floor(availableWidth / avgCharWidth)
-
-								const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-								const totalRows = Math.max(lineBreaks + 1, estimatedLines)
-
-								// Set rows with minimum 1 and maximum 5
-								promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-							} catch (error) {
-								console.error('Error calculating rows:', error)
-							}
+				<div className="relative w-full">
+					<Ariakit.Combobox
+						store={combobox}
+						autoSelect
+						value={value}
+						// We'll overwrite how the combobox popover is shown, so we disable
+						// the default behaviors.
+						showOnClick={false}
+						showOnChange={false}
+						showOnKeyPress={false}
+						// To the combobox state, we'll only set the value after the trigger
+						// character (the search value), so we disable the default behavior.
+						setValueOnChange={false}
+						render={
+							<textarea
+								ref={promptInputRef}
+								rows={1}
+								maxLength={2000}
+								placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+								// We need to re-calculate the position of the combobox popover
+								// when the textarea contents are scrolled.
+								onScroll={combobox.render}
+								// Hide the combobox popover whenever the selection changes.
+								onPointerDown={combobox.hide}
+								onChange={onChange}
+								onKeyDown={onKeyDown}
+								name="prompt"
+								className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-(--app-bg) caret-black placeholder:text-[#666] max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+								autoCorrect="off"
+								autoComplete="off"
+								spellCheck="false"
+							/>
 						}
-					}}
-					onKeyDown={onKeyDown}
-					name="prompt"
-					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
-					autoCorrect="off"
-					autoComplete="off"
-					spellCheck="false"
-					disabled={isPending && !isStreaming}
-					autoFocus
-					ref={promptInputRef}
-					maxLength={2000}
-					rows={1}
-				/>
+						disabled={isPending && !isStreaming}
+					/>
+					<div
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 whitespace-pre-wrap"
+						ref={highlightRef}
+					/>
+				</div>
+				{value.length > 0 && hasMatches && (
+					<Ariakit.ComboboxPopover
+						store={combobox}
+						hidden={!hasMatches}
+						unmountOnHide
+						fitViewport
+						getAnchorRect={() => {
+							const textarea = promptInputRef.current
+							if (!textarea) return null
+							return getAnchorRect(textarea)
+						}}
+						className="relative z-50 flex max-h-(--popover-available-height) max-w-[280px] min-w-[100px] flex-col overflow-auto overscroll-contain rounded-lg border border-[#e6e6e6] bg-(--app-bg) shadow-lg dark:border-[#222324]"
+					>
+						{matches.map(({ id, name, logo, type }) => (
+							<Ariakit.ComboboxItem
+								key={id}
+								value={id}
+								focusOnHover
+								onClick={onItemClick({ id, name, type })}
+								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] data-[active-item]:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+							>
+								<TokenLogo logo={logo} size={20} />
+								<span className="flex items-center gap-1.5">
+									<span className="text-sm font-medium">{name}</span>
+									<span
+										className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+											type === 'Chain'
+												? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+												: type == 'protocol'
+													? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+													: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+										}`}
+									>
+										{type}
+									</span>
+								</span>
+							</Ariakit.ComboboxItem>
+						))}
+					</Ariakit.ComboboxPopover>
+				)}
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
@@ -1496,25 +1550,13 @@ const PromptInput = memo(function PromptInput({
 					<button
 						type="submit"
 						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
-						disabled={isPending || isStreaming || !value.trim()}
+						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 						<span className="sr-only">Submit prompt</span>
 					</button>
 				)}
 			</form>
-			{showAutocomplete && suggestions.length > 0 && (
-				<EntityAutocomplete
-					suggestions={suggestions}
-					onSelect={(suggestion) => insertEntity(suggestion.displayName, suggestion.slug, suggestion.type)}
-					onClose={() => {
-						setShowAutocomplete(false)
-						setCurrentSearch('')
-					}}
-					position={autocompletePosition}
-					selectedIndex={selectedSuggestionIndex}
-				/>
-			)}
 		</>
 	)
 })
@@ -2219,3 +2261,34 @@ const ChatControls = memo(function ChatControls({
 		</div>
 	)
 })
+
+function highlightWord(text: string, words: string[]) {
+	if (!text || typeof text !== 'string') return text
+	if (!Array.isArray(words) || words.length === 0) return text
+
+	// HTML escape the text first
+	const escapeHtml = (str: string) =>
+		str.replace(
+			/[&<>"']/g,
+			(char) =>
+				({
+					'&': '&amp;',
+					'<': '&lt;',
+					'>': '&gt;',
+					'"': '&quot;',
+					"'": '&#39;'
+				})[char] || char
+		)
+
+	const escapedText = escapeHtml(text)
+
+	// Filter out empty strings and escape special regex characters
+	const escapedWords = words
+		.filter((word) => word && word.trim())
+		.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
+	if (escapedWords.length === 0) return escapedText
+
+	const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi')
+	return escapedText.replace(regex, '<span class="highlight">$1</span>')
+}
