@@ -1371,30 +1371,7 @@ const PromptInput = memo(function PromptInput({
 
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		if (promptInputRef.current) {
-			try {
-				// Calculate rows based on newlines and character length
-				const text = event.target.value
-				const textarea = promptInputRef.current
-				const lineBreaks = (text.match(/\n/g) || []).length
-
-				// Calculate actual characters per line based on container width
-				const style = window.getComputedStyle(textarea)
-				const paddingLeft = parseFloat(style.paddingLeft)
-				const paddingRight = parseFloat(style.paddingRight)
-				const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-				const fontSize = parseFloat(style.fontSize)
-				// Average character width is approximately 0.6 of font size for monospace-like text
-				const avgCharWidth = fontSize * 0.5
-				const charsPerLine = Math.floor(availableWidth / avgCharWidth)
-
-				const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-				const totalRows = Math.max(lineBreaks + 1, estimatedLines)
-
-				// Set rows with minimum 1 and maximum 5
-				promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-			} catch (error) {
-				console.error('Error calculating rows:', error)
-			}
+			setInputSize(event, promptInputRef)
 		}
 
 		// Capture the value before setTimeout to avoid synthetic event pooling issues
@@ -2308,4 +2285,31 @@ function highlightWord(text: string, words: string[]) {
 
 	const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi')
 	return escapedText.replace(regex, '<span class="highlight">$1</span>')
+}
+
+function setInputSize(event, promptInputRef) {
+	try {
+		// Calculate rows based on newlines and character length
+		const text = event.target.value
+		const textarea = promptInputRef.current
+		const lineBreaks = (text.match(/\n/g) || []).length
+
+		// Calculate actual characters per line based on container width
+		const style = window.getComputedStyle(textarea)
+		const paddingLeft = parseFloat(style.paddingLeft)
+		const paddingRight = parseFloat(style.paddingRight)
+		const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+		const fontSize = parseFloat(style.fontSize)
+		// Average character width is approximately 0.6 of font size for monospace-like text
+		const avgCharWidth = fontSize * 0.5
+		const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+
+		const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+		const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+
+		// Set rows with minimum 1 and maximum 5
+		promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+	} catch (error) {
+		console.error('Error calculating rows:', error)
+	}
 }
