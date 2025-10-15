@@ -1085,7 +1085,11 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 					(protocols?.protocols ?? []).reduce((acc, curr) => {
 						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total24h ?? 0) : acc
 					}, 0),
-				total30d: chainFees?.total30d ?? null
+				total30d:
+					(chainFees?.total30d ?? 0) +
+					(protocols?.protocols ?? []).reduce((acc, curr) => {
+						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total30d ?? 0) : acc
+					}, 0)
 			}
 		})
 
