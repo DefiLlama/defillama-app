@@ -1333,6 +1333,25 @@ const PromptInput = memo(function PromptInput({
 		}>
 	}
 
+	const resetInput = () => {
+		setValue('')
+		combobox.setValue('')
+		combobox.hide()
+
+		// Clear any pending highlight timeout
+		if (highlightTimerId.current) {
+			clearTimeout(highlightTimerId.current)
+			highlightTimerId.current = null
+		}
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = ''
+			highlightRef.current.textContent = ''
+		}
+		entitiesRef.current.clear()
+		entitiesMapRef.current.clear()
+	}
+
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		// if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
 		// 	combobox.setValue('')
@@ -1341,13 +1360,10 @@ const PromptInput = memo(function PromptInput({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
-			combobox.setValue('')
-			combobox.hide()
-			handleSubmit(promptInputRef.current?.value ?? '', getFinalEntities())
-			setValue('')
-			if (highlightRef.current) {
-				highlightRef.current.innerHTML = ''
-			}
+			const finalEntities = getFinalEntities()
+			const promptValue = promptInputRef.current?.value ?? ''
+			resetInput()
+			handleSubmit(promptValue, finalEntities)
 		}
 	}
 
@@ -1384,11 +1400,12 @@ const PromptInput = memo(function PromptInput({
 		// Capture the value before setTimeout to avoid synthetic event pooling issues
 		const currentValue = event.target.value
 
+		// Show text immediately as plain text for instant feedback
 		if (highlightRef.current) {
-			highlightRef.current.innerHTML = currentValue
+			highlightRef.current.textContent = currentValue
 		}
 
-		// delay the highlight to avoid flickering
+		// Delay the highlighted version to avoid flickering during fast typing
 		if (highlightTimerId.current) {
 			clearTimeout(highlightTimerId.current)
 		}
@@ -1438,6 +1455,10 @@ const PromptInput = memo(function PromptInput({
 			if (highlightRef.current) {
 				highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
 			}
+
+			// Clear combobox state to prevent reopening
+			combobox.setValue('')
+			combobox.hide()
 		}
 
 	return (
@@ -1447,11 +1468,10 @@ const PromptInput = memo(function PromptInput({
 				onSubmit={(e) => {
 					e.preventDefault()
 					const form = e.target as HTMLFormElement
-					handleSubmit(form.prompt.value, getFinalEntities())
-					setValue('')
-					if (highlightRef.current) {
-						highlightRef.current.innerHTML = ''
-					}
+					const finalEntities = getFinalEntities()
+					const promptValue = form.prompt.value
+					resetInput()
+					handleSubmit(promptValue, finalEntities)
 				}}
 			>
 				<div className="relative w-full">
@@ -1481,7 +1501,7 @@ const PromptInput = memo(function PromptInput({
 								onChange={onChange}
 								onKeyDown={onKeyDown}
 								name="prompt"
-								className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-(--app-bg) caret-black placeholder:text-[#666] max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+								className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black placeholder:text-[#666] max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 								autoCorrect="off"
 								autoComplete="off"
 								spellCheck="false"
@@ -1490,7 +1510,7 @@ const PromptInput = memo(function PromptInput({
 						disabled={isPending && !isStreaming}
 					/>
 					<div
-						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 whitespace-pre-wrap"
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 leading-normal break-words whitespace-pre-wrap"
 						ref={highlightRef}
 					/>
 				</div>
