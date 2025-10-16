@@ -29,7 +29,7 @@ const blockExplorers = {
 	okex: ['https://www.oklink.com/okexchain/tokenAddr/', 'Oklink'],
 	celo: ['https://explorer.celo.org/tokens/', 'Celo'],
 	waves: ['https://wavesexplorer.com/assets/', 'Waves Explorer'],
-	eos: ['https://bloks.io/tokens/', 'bloks'],
+	eos: ['https://unicove.com/token/eosio.token/', 'Unicove'],
 	energyweb: ['https://explorer.energyweb.org/address/', 'EnergyWeb'],
 	cronos: ['https://cronoscan.com/address/', 'Cronoscan'],
 	harmony: ['https://explorer.harmony.one/address/', 'Harmony Explorer'],
