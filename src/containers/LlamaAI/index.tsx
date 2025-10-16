@@ -21,6 +21,7 @@ import { useGetEntities } from './hooks/useGetEntities'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
 import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
+import { convertLlamaLinksToDefillama } from './utils/entityLinks'
 
 class StreamingContent {
 	private content: string = ''
@@ -2009,7 +2010,8 @@ const ResponseControls = memo(function ResponseControls({
 	const handleCopy = async () => {
 		if (!content) return
 		try {
-			await navigator.clipboard.writeText(content)
+			const convertedContent = convertLlamaLinksToDefillama(content)
+			await navigator.clipboard.writeText(convertedContent)
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {

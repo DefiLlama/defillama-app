@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { getEntityUrl } from '../utils/entityLinks'
 
 interface MarkdownRendererProps {
 	content: string
@@ -17,20 +18,6 @@ interface EntityLinkProps {
 	children?: any
 	node?: any
 	[key: string]: any
-}
-
-function getEntityUrl(type: string, slug: string): string {
-	switch (type) {
-		case 'protocol':
-		case 'subprotocol':
-			return `/protocol/${slug}`
-		case 'chain':
-			return `/chain/${slug}`
-		case 'pool':
-			return `/yields/pool/${slug}`
-		default:
-			return `/${type}/${slug}`
-	}
 }
 
 function getEntityIcon(type: string, slug: string): string {
