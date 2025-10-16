@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function AuthPage() {
@@ -21,15 +22,22 @@ function AuthContent() {
 	const { isAuthenticated, logout, user } = useAuthContext()
 	const redirectUrl = router.query.redirect_uri
 
+	const { subscription, isSubscriptionLoading } = useSubscribe()
+
 	useEffect(() => {
-		if (isAuthenticated && redirectUrl) {
-			console.log('hi')
+		if (isAuthenticated && redirectUrl && !isSubscriptionLoading) {
 			router.push({
 				pathname: redirectUrl as string,
-				query: { ...router.query, data: 'data' }
+				query: {
+					...router.query,
+					subscription_id: subscription?.id || '',
+					subscription_status: subscription?.status || '',
+					expires_at: subscription?.expires_at || '',
+					provider: subscription?.provider || ''
+				}
 			})
 		}
-	}, [isAuthenticated, redirectUrl, router, user])
+	}, [isAuthenticated, redirectUrl, router, user, isSubscriptionLoading, subscription])
 
 	return (
 		<>
@@ -47,8 +55,9 @@ function AuthContent() {
 									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
 								</svg>
 							</div>
-							<h2 className="mb-2 text-2xl font-bold text-white">Successfully Logged In</h2>
+							<h2 className="mb-2 text-2xl font-bold text-white">Successfully logged in.</h2>
 							{user?.email && <p className="text-sm text-[#8a8c90]">Signed in as {user.email}</p>}
+							<p className="mt-2 text-sm text-[#8a8c90]">You can close this page.</p>
 						</div>
 
 						<div className="space-y-3">
