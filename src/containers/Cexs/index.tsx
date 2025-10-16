@@ -223,15 +223,20 @@ const columns: ColumnDef<any>[] = [
 		accessorKey: '24hInflows',
 		accessorFn: (row) => row['24hInflows'] ?? undefined,
 		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
+		cell: (info) =>
+			info.row.original.slug === 'Binance-CEX' ? null : (
+				<span
+					className={`${
+						(info.getValue() as number) < 0
+							? 'text-(--error)'
+							: (info.getValue() as number) > 0
+								? 'text-(--success)'
+								: ''
+					}`}
+				>
+					{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				</span>
+			),
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
