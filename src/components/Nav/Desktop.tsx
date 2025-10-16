@@ -24,7 +24,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 	const { asPath } = useRouter()
 
 	return (
-		<nav className="thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen w-[244px] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
+		<nav className="thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen w-[var(--nav-width)] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
 			<BasicLink href="/" className="shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img

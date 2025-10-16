@@ -531,6 +531,9 @@
 		--cards-border: oklch(0.9 0 0);
 		--form-control-border: oklch(0.9 0 0);
 		--old-blue: oklch(0.533 0.18 259);
+
+		/* Dimensions */
+		--nav-width: 244px; /* Navigation sidebar */
 	}
 
 	* {
