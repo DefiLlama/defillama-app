@@ -1,9 +1,19 @@
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
 export function useGetEntities(q: string) {
+	const [debouncedQuery, setDebouncedQuery] = useState(q)
+
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setDebouncedQuery(q)
+		}, 200)
+		return () => clearTimeout(timer)
+	}, [q])
+
 	return useQuery({
-		queryKey: ['get-entities', q],
+		queryKey: ['get-entities', debouncedQuery],
 		queryFn: async () => {
 			const response: Array<{ id: string; name: string; logo: string; type: string }> = await fetch(
 				'https://search.defillama.com/multi-search',
@@ -19,7 +29,7 @@ export function useGetEntities(q: string) {
 								indexUid: 'pages',
 								limit: 10,
 								offset: 0,
-								q,
+								q: debouncedQuery,
 								filter: [
 									['type = Chain', 'type = Protocol', 'type = Stablecoin'],
 									['deprecated = false', 'NOT deprecated EXISTS'],
@@ -36,7 +46,7 @@ export function useGetEntities(q: string) {
 
 			return response
 		},
-		enabled: q.length > 0, // Only fetch when there's a query
+		enabled: debouncedQuery.length > 0, // Only fetch when there's a query
 		staleTime: 5 * 60 * 1000, // Cache results for 5 minutes
 		refetchOnWindowFocus: false
 	})
