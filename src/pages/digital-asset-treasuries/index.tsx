@@ -1,6 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
@@ -124,6 +125,54 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
+const prepareInstitutionsCsv = (institutions) => {
+	const headers = [
+		'Institution',
+		'Ticker',
+		'Type',
+		'Cost Basis',
+		"Today's Holdings Value",
+		'Stock Price',
+		'24h Price Change (%)',
+		'Realized mNAV',
+		'Realistic mNAV',
+		'Max mNAV',
+		'Asset Breakdown'
+	]
+
+	const rows = institutions.map((institution) => {
+		const assetBreakdownStr = institution.assetBreakdown
+			.map((asset) => {
+				const parts = [`${asset.name} (${asset.ticker})`]
+				if (asset.usdValue != null) parts.push(`Value: $${asset.usdValue.toLocaleString()}`)
+				if (asset.amount != null) parts.push(`Amount: ${asset.amount.toLocaleString()} ${asset.ticker}`)
+				if (asset.dominance != null) parts.push(`${asset.dominance}%`)
+				return parts.join(' - ')
+			})
+			.join(' | ')
+
+		return [
+			institution.name,
+			institution.ticker,
+			institution.type,
+			institution.totalCost ?? '',
+			institution.totalUsdValue ?? '',
+			institution.price ?? '',
+			institution.priceChange24h ?? '',
+			institution.realized_mNAV ?? '',
+			institution.realistic_mNAV ?? '',
+			institution.max_mNAV ?? '',
+			assetBreakdownStr
+		]
+	})
+
+	const date = new Date().toISOString().split('T')[0]
+	return {
+		filename: `digital-asset-treasuries-${date}.csv`,
+		rows: [headers, ...rows]
+	}
+}
+
 export default function TreasuriesByInstitution({ allAssets, institutions }) {
 	return (
 		<Layout
@@ -133,7 +182,10 @@ export default function TreasuriesByInstitution({ allAssets, institutions }) {
 			canonicalUrl={`/digital-asset-treasuries`}
 			pageName={pageName}
 		>
-			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
+			<div className="flex flex-wrap items-center justify-between gap-4">
+				<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
+				<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />
+			</div>
 			<TableWithSearch
 				data={institutions}
 				columns={columns}
