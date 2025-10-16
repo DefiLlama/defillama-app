@@ -18,10 +18,10 @@ import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
+import { convertLlamaLinksToDefillama } from './utils/entityLinks'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
 import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
-import { convertLlamaLinksToDefillama } from './utils/entityLinks'
 
 class StreamingContent {
 	private content: string = ''
@@ -1644,7 +1644,7 @@ const PromptResponse = ({
 						{progressMessage.includes('encountered an issue') ? (
 							<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
 						) : (
-							<FadingLoader />
+							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
@@ -1673,7 +1673,7 @@ const PromptResponse = ({
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-							<FadingLoader />
+							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 							<span>Generating follow-up suggestions...</span>
 						</p>
 					</div>
@@ -1707,117 +1707,6 @@ const PromptResponse = ({
 			)}
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
-	)
-}
-
-const FadingLoader = () => {
-	return (
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
-			<style jsx>{`
-				@keyframes colorPulse {
-					0%,
-					100% {
-						stroke: #1f67d2;
-						opacity: 0.3;
-					}
-					50% {
-						stroke: #1f67d2;
-						opacity: 1;
-					}
-				}
-				.loading-line {
-					animation: colorPulse 1.5s ease-in-out infinite;
-				}
-				.loading-line:nth-child(1) {
-					animation-delay: 0s;
-				}
-				.loading-line:nth-child(2) {
-					animation-delay: 0.2s;
-				}
-				.loading-line:nth-child(3) {
-					animation-delay: 0.4s;
-				}
-				.loading-line:nth-child(4) {
-					animation-delay: 0.6s;
-				}
-				.loading-line:nth-child(5) {
-					animation-delay: 0.8s;
-				}
-				.loading-line:nth-child(6) {
-					animation-delay: 1s;
-				}
-				.loading-line:nth-child(7) {
-					animation-delay: 1.2s;
-				}
-				.loading-line:nth-child(8) {
-					animation-delay: 1.4s;
-				}
-			`}</style>
-			<path
-				d="M12 2V6"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M16.2 7.80002L19.1 4.90002"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M18 12H22"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M16.2 16.2L19.1 19.1"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M12 18V22"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M4.8999 19.1L7.7999 16.2"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M2 12H6"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M4.8999 4.90002L7.7999 7.80002"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-		</svg>
 	)
 }
 
