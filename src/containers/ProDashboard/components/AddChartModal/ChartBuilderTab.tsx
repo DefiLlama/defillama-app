@@ -46,8 +46,13 @@ const METRIC_OPTIONS = [
 	{ value: 'options-notional', label: 'Options Notional' },
 	{ value: 'options-premium', label: 'Options Premium' },
 	{ value: 'bridge-aggregators', label: 'Bridge Aggregator Volume' },
-	{ value: 'perps-aggregators', label: 'Perps Aggregator Volume' }
+	{ value: 'perps-aggregators', label: 'Perps Aggregator Volume' },
+	{ value: 'stablecoins', label: 'Stablecoin Mcap (Chains only)' },
+	{ value: 'chain-fees', label: 'Chain Fees (Chains only)' },
+	{ value: 'chain-revenue', label: 'Chain Revenue (Chains only)' }
 ]
+
+const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
 
 const CHART_TYPE_OPTIONS = [
 	{ value: 'stackedBar', label: 'Stacked Bar', icon: 'bar-chart-2' },
@@ -119,6 +124,15 @@ export function ChartBuilderTab({
 			}))
 	}, [protocols])
 
+	const metricOptions = useMemo(() => {
+		return METRIC_OPTIONS.filter(
+			(option) =>
+				!CHAIN_ONLY_METRICS.has(option.value) ||
+				chartBuilder.mode === 'protocol' ||
+				option.value === chartBuilder.metric
+		)
+	}, [chartBuilder.mode, chartBuilder.metric])
+
 	const { data: previewData, isLoading: previewLoading } = useQuery({
 		queryKey: [
 			'chartBuilder',
@@ -156,8 +170,24 @@ export function ChartBuilderTab({
 				return data
 			}
 
+			if (CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
+				return {
+					series: [],
+					metadata: {
+						chain: chartBuilder.chains.join(','),
+						chains: chartBuilder.chains,
+						categories: chartBuilder.categories,
+						metric: chartBuilder.metric,
+						topN: chartBuilder.limit,
+						totalProtocols: 0,
+						othersCount: 0,
+						marketSector: chartBuilder.categories.join(',') || null
+					}
+				}
+			}
+
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
-				chartBuilder.metric,
+				chartBuilder.metric as Exclude<ChartBuilderConfig['metric'], 'stablecoins' | 'chain-fees' | 'chain-revenue'>,
 				chartBuilder.chains,
 				chartBuilder.limit,
 				chartBuilder.categories,
@@ -213,10 +243,19 @@ export function ChartBuilderTab({
 		return protocolOptions.filter((opt) => hasProtocolBuilderMetric(opt.value, metric))
 	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
 
+	const isChainOnlyMetric = chartBuilder.metric ? CHAIN_ONLY_METRICS.has(chartBuilder.metric) : false
+
 	const handleMetricChange = (option: any) => {
 		const newMetric = option?.value || 'tvl'
-		const newChartType = newMetric === 'tvl' ? 'stackedArea' : 'stackedBar'
-		onChartBuilderChange({ metric: newMetric, chartType: newChartType })
+		let newChartType: 'stackedBar' | 'stackedArea' | 'line' = 'stackedBar'
+		if (newMetric === 'tvl' || newMetric === 'stablecoins') {
+			newChartType = 'stackedArea'
+		}
+		const updates: Partial<ChartBuilderConfig> = { metric: newMetric, chartType: newChartType }
+		if (CHAIN_ONLY_METRICS.has(newMetric)) {
+			updates.protocol = undefined
+		}
+		onChartBuilderChange(updates)
 	}
 
 	const handleChainsChange = (chains: string[]) => {
@@ -248,7 +287,12 @@ export function ChartBuilderTab({
 	}
 
 	const handleModeChange = (mode: 'chains' | 'protocol') => {
-		onChartBuilderChange({ mode, chains: [], protocol: undefined })
+		const updates: Partial<ChartBuilderConfig> = { mode, chains: [], protocol: undefined }
+		if (mode === 'chains' && chartBuilder.metric && CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
+			updates.metric = 'tvl'
+			updates.chartType = 'stackedArea'
+		}
+		onChartBuilderChange(updates)
 	}
 
 	const handleSeriesColorChange = (seriesName: string, color: string) => {
@@ -276,6 +320,18 @@ export function ChartBuilderTab({
 		}
 		onChartBuilderChange({ seriesColors: {} })
 	}
+
+	useEffect(() => {
+		if (chartBuilder.mode === 'chains' && chartBuilder.metric && CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
+			onChartBuilderChange({ metric: 'tvl', chartType: 'stackedArea' })
+		}
+	}, [chartBuilder.mode, chartBuilder.metric, onChartBuilderChange])
+
+	useEffect(() => {
+		if (chartBuilder.mode === 'protocol' && isChainOnlyMetric && chartBuilder.protocol) {
+			onChartBuilderChange({ protocol: undefined })
+		}
+	}, [chartBuilder.mode, isChainOnlyMetric, chartBuilder.protocol, onChartBuilderChange])
 
 	useEffect(() => {
 		if (chartBuilder.mode === 'protocol') {
@@ -309,7 +365,7 @@ export function ChartBuilderTab({
 					<div>
 						<AriakitSelect
 							label="Metric"
-							options={METRIC_OPTIONS}
+							options={metricOptions}
 							selectedValue={chartBuilder.metric}
 							onChange={handleMetricChange}
 							placeholder="Select metric..."
@@ -433,17 +489,23 @@ export function ChartBuilderTab({
 							</>
 						) : (
 							<>
-								<div className="mb-1.5">
-									<AriakitVirtualizedSelect
-										label="Protocol"
-										options={protocolOptionsFiltered}
-										selectedValue={chartBuilder.protocol || null}
-										onChange={handleProtocolChange}
-										placeholder="Select protocol..."
-										isLoading={protocolsLoading}
-										renderIcon={(option) => option.logo || getItemIconUrl('protocol', option, option.value)}
-									/>
-								</div>
+								{isChainOnlyMetric ? (
+									<div className="mb-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2 py-1.5">
+										<p className="pro-text3 text-[10px]">This metric is available only for All Protocols.</p>
+									</div>
+								) : (
+									<div className="mb-1.5">
+										<AriakitVirtualizedSelect
+											label="Protocol"
+											options={protocolOptionsFiltered}
+											selectedValue={chartBuilder.protocol || null}
+											onChange={handleProtocolChange}
+											placeholder="Select protocol..."
+											isLoading={protocolsLoading}
+											renderIcon={(option) => option.logo || getItemIconUrl('protocol', option, option.value)}
+										/>
+									</div>
+								)}
 
 								<div className="mb-1.5">
 									<AriakitVirtualizedMultiSelect

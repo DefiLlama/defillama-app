@@ -14,47 +14,54 @@ const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChar
 const DEFAULT_SERIES_COLOR = '#3366ff'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
+const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
 
 interface ChartBuilderCardProps {
 	builder: {
 		id: string
 		kind: 'builder'
-		config: {
-			metric:
-				| 'fees'
-				| 'revenue'
-				| 'volume'
-				| 'perps'
-				| 'open-interest'
-				| 'options-notional'
-				| 'options-premium'
-				| 'bridge-aggregators'
-				| 'dex-aggregators'
-				| 'perps-aggregators'
-				| 'user-fees'
-				| 'holders-revenue'
-				| 'protocol-revenue'
-				| 'supply-side-revenue'
-				| 'tvl'
-			mode: 'chains' | 'protocol'
-			filterMode?: 'include' | 'exclude'
-			protocol?: string
-			chains: string[]
-			chainCategories?: string[]
-			categories: string[]
-			groupBy: 'protocol'
-			limit: number
-			chartType: 'stackedBar' | 'stackedArea' | 'line'
-			displayAs: 'timeSeries' | 'percentage'
-			hideOthers?: boolean
-			groupByParent?: boolean
-			additionalFilters?: Record<string, any>
-			seriesColors?: Record<string, string>
-		}
-		name?: string
-		grouping?: 'day' | 'week' | 'month' | 'quarter'
+	config: {
+		metric:
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'open-interest'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue'
+			| 'tvl'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue'
+		mode: 'chains' | 'protocol'
+		filterMode?: 'include' | 'exclude'
+		protocol?: string
+		chains: string[]
+		chainCategories?: string[]
+		categories: string[]
+		groupBy: 'protocol'
+		limit: number
+		chartType: 'stackedBar' | 'stackedArea' | 'line'
+		displayAs: 'timeSeries' | 'percentage'
+		hideOthers?: boolean
+		groupByParent?: boolean
+		additionalFilters?: Record<string, any>
+		seriesColors?: Record<string, string>
+	}
+	name?: string
+	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	}
 }
+
+type BuilderMetric = ChartBuilderCardProps['builder']['config']['metric']
+type ProtocolSplitMetric = Exclude<BuilderMetric, 'stablecoins' | 'chain-fees' | 'chain-revenue'>
 
 export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const {
@@ -79,7 +86,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		}
 	}, [isReadOnly])
 
-	const isTvlChart = config.metric === 'tvl'
+	const isTvlChart = config.metric === 'tvl' || config.metric === 'stablecoins'
 
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
@@ -129,8 +136,12 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				return { series }
 			}
 
+			if (CHAIN_ONLY_METRICS.has(config.metric)) {
+				return { series: [] }
+			}
+
 			const data = await ProtocolSplitCharts.getProtocolSplitData(
-				config.metric,
+				config.metric as ProtocolSplitMetric,
 				config.chains,
 				config.limit,
 				config.categories,

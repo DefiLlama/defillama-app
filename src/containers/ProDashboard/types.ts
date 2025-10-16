@@ -90,6 +90,9 @@ export interface ChartBuilderConfig {
 			| 'protocol-revenue'
 			| 'supply-side-revenue'
 			| 'tvl'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue'
 		mode: 'chains' | 'protocol'
 		filterMode?: 'include' | 'exclude'
 		protocol?: string

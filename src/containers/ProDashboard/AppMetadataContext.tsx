@@ -51,7 +51,10 @@ const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags
 	'user-fees': 'fees',
 	'holders-revenue': 'holdersRevenue',
 	'protocol-revenue': 'revenue',
-	'supply-side-revenue': 'fees'
+	'supply-side-revenue': 'fees',
+	stablecoins: 'stablecoins',
+	'chain-fees': 'chainFees',
+	'chain-revenue': 'chainRevenue'
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
