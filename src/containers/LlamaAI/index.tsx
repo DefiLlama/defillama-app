@@ -1295,14 +1295,25 @@ const PromptInput = memo(function PromptInput({
 	useLayoutEffect(() => {
 		if (caretOffset != null) {
 			promptInputRef.current?.setSelectionRange(caretOffset, caretOffset)
+			// Clear the offset after applying it to prevent unnecessary re-renders
+			setCaretOffset(null)
 		}
-	}, [promptInputRef, caretOffset])
+		// promptInputRef is stable (ref object), safe to exclude from deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [caretOffset])
 
 	// Re-calculates the position of the combobox popover in case the changes on
 	// the textarea value have shifted the trigger character.
 	useEffect(() => {
 		combobox.render()
 	}, [combobox, value])
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			combobox.hide()
+		}
+	}, [combobox])
 
 	const getFinalEntities = () => {
 		return Array.from(entitiesRef.current)
@@ -1324,12 +1335,6 @@ const PromptInput = memo(function PromptInput({
 		setValue('')
 		combobox.setValue('')
 		combobox.hide()
-
-		// Clear any pending highlight timeout
-		if (highlightTimerId.current) {
-			clearTimeout(highlightTimerId.current)
-			highlightTimerId.current = null
-		}
 
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = ''
@@ -1386,8 +1391,6 @@ const PromptInput = memo(function PromptInput({
 		}
 	}
 
-	const highlightTimerId = useRef<NodeJS.Timeout | null>(null)
-
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		if (promptInputRef.current) {
 			setInputSize(event, promptInputRef)
@@ -1427,34 +1430,38 @@ const PromptInput = memo(function PromptInput({
 		combobox.setValue(searchValue)
 	}
 
-	const onItemClick =
+	const onItemClick = useCallback(
 		({ id, name, type }: { id: string; name: string; type: string }) =>
-		() => {
-			const textarea = promptInputRef.current
-			if (!textarea) return
+			() => {
+				const textarea = promptInputRef.current
+				if (!textarea) return
 
-			const offset = getTriggerOffset(textarea)
+				const offset = getTriggerOffset(textarea)
 
-			entitiesRef.current.add(name)
-			entitiesMapRef.current.set(name, { id, name, type })
+				entitiesRef.current.add(name)
+				entitiesMapRef.current.set(name, { id, name, type })
 
-			const getNewValue = replaceValue(offset, searchValue, name)
+				const getNewValue = replaceValue(offset, searchValue, name)
 
-			// Mark as programmatic update to prevent onChange from reopening combobox
-			isProgrammaticUpdateRef.current = true
+				// Mark as programmatic update to prevent onChange from reopening combobox
+				isProgrammaticUpdateRef.current = true
 
-			// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
-			combobox.setValue('')
-			combobox.hide()
+				// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
+				combobox.setValue('')
+				combobox.hide()
 
-			setValue(getNewValue)
-			const nextCaretOffset = offset + name.length + 1
-			setCaretOffset(nextCaretOffset)
+				setValue(getNewValue)
+				const nextCaretOffset = offset + name.length + 1
+				setCaretOffset(nextCaretOffset)
 
-			if (highlightRef.current) {
-				highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
-			}
-		}
+				if (highlightRef.current) {
+					highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
+				}
+			},
+		// promptInputRef, highlightRef, entitiesRef, entitiesMapRef, isProgrammaticUpdateRef are stable refs
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[combobox, searchValue, value]
+	)
 
 	return (
 		<>
@@ -1509,10 +1516,9 @@ const PromptInput = memo(function PromptInput({
 						ref={highlightRef}
 					/>
 				</div>
-				{value.length > 0 && hasMatches && (
+				{hasMatches && (
 					<Ariakit.ComboboxPopover
 						store={combobox}
-						hidden={!hasMatches}
 						unmountOnHide
 						fitViewport
 						getAnchorRect={() => {
