@@ -1353,10 +1353,42 @@ const PromptInput = memo(function PromptInput({
 	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		// if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-		// 	combobox.setValue('')
-		// 	combobox.hide()
-		// }
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		if (event.key === 'Backspace' || event.key === 'Delete') {
+			const { selectionStart, selectionEnd, value } = textarea
+
+			if (selectionStart !== selectionEnd) return
+
+			const isBackspace = event.key === 'Backspace'
+			const checkPos = isBackspace ? selectionStart - 1 : selectionStart
+
+			for (const entityName of entitiesRef.current) {
+				const entityIndex = value.indexOf(entityName, Math.max(0, checkPos - entityName.length))
+				if (entityIndex === -1 || entityIndex > checkPos) continue
+
+				const entityEnd = entityIndex + entityName.length
+				if (checkPos >= entityIndex && checkPos < entityEnd) {
+					event.preventDefault()
+					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
+					setValue(newValue)
+					combobox.setValue('')
+
+					entitiesRef.current.delete(entityName)
+					entitiesMapRef.current.delete(entityName)
+
+					if (highlightRef.current) {
+						highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
+					}
+
+					setTimeout(() => {
+						textarea.setSelectionRange(entityIndex, entityIndex)
+					}, 0)
+					return
+				}
+			}
+		}
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
@@ -1374,23 +1406,11 @@ const PromptInput = memo(function PromptInput({
 			setInputSize(event, promptInputRef)
 		}
 
-		// Capture the value before setTimeout to avoid synthetic event pooling issues
 		const currentValue = event.target.value
 
-		// Show text immediately as plain text for instant feedback
 		if (highlightRef.current) {
-			highlightRef.current.textContent = currentValue
+			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
 		}
-
-		// Delay the highlighted version to avoid flickering during fast typing
-		if (highlightTimerId.current) {
-			clearTimeout(highlightTimerId.current)
-		}
-		highlightTimerId.current = setTimeout(() => {
-			if (highlightRef.current) {
-				highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
-			}
-		}, 300)
 
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
