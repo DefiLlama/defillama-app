@@ -155,7 +155,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	})
 
 	return (
-		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
+		<div className="relative isolate grid h-full grid-cols-2 gap-2 xl:grid-cols-3">
 			<div
 				className={`col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 ${
 					props.hideChart ? 'xl:col-span-full' : 'xl:col-span-1'
