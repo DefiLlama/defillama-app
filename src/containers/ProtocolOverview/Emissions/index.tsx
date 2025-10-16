@@ -279,8 +279,36 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		)
 	}, [data.categoriesBreakdown])
 
+	const allocationPieChartFormatTooltip = useCallback(
+		({
+			value,
+			data: { name },
+			percent,
+			color
+		}: {
+			value: number
+			data: { name: string; pieChartData: IEmission['pieChartData'] }
+			percent: number
+			color: string
+		}) => {
+			const totalAllocation = data.pieChartData?.[dataType]?.reduce((sum, item) => sum + item.value, 0)
+
+			// return `${name}: ${formattedNum(value, true)} (${percent}%)`
+
+			return `<div style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${color};"></span>
+        <span><strong>${name}</strong>: ${formattedNum(value, true)} (${percent}%)</span>
+      </div>`
+		},
+		[]
+	)
+
 	const unlockedPieChartFormatTooltip = useCallback(
-		({ value, data: { name } }: { value: number; data: { name: string } }) => `${name}: ${value?.toFixed(2)}%`,
+		({ value, data: { name }, color }: { value: number; data: { name: string }; color: string }) =>
+			`<div style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${color};"></span>
+        <span><strong>${name}</strong>: ${value?.toFixed(2)}%</span>
+      </div>`,
 		[]
 	)
 
@@ -455,6 +483,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
+									formatTooltip={allocationPieChartFormatTooltip}
 									showLegend
 									title="Allocation"
 									chartData={pieChartDataAllocationMode}
