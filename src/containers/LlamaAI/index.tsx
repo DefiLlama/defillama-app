@@ -1282,6 +1282,7 @@ const PromptInput = memo(function PromptInput({
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
+	const isProgrammaticUpdateRef = useRef(false)
 	const [caretOffset, setCaretOffset] = useState<number | null>(null)
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
@@ -1290,10 +1291,6 @@ const PromptInput = memo(function PromptInput({
 	const { data: matches } = useGetEntities(searchValue)
 
 	const hasMatches = matches && matches.length > 0
-
-	useLayoutEffect(() => {
-		combobox.setOpen(hasMatches)
-	}, [combobox, hasMatches])
 
 	useLayoutEffect(() => {
 		if (caretOffset != null) {
@@ -1402,6 +1399,13 @@ const PromptInput = memo(function PromptInput({
 			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
 		}
 
+		// Skip trigger logic if this is a programmatic update (e.g., after item selection)
+		if (isProgrammaticUpdateRef.current) {
+			isProgrammaticUpdateRef.current = false
+			setValue(event.target.value)
+			return
+		}
+
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
 		// If there's a trigger character, we'll show the combobox popover. This can
@@ -1435,6 +1439,14 @@ const PromptInput = memo(function PromptInput({
 			entitiesMapRef.current.set(name, { id, name, type })
 
 			const getNewValue = replaceValue(offset, searchValue, name)
+
+			// Mark as programmatic update to prevent onChange from reopening combobox
+			isProgrammaticUpdateRef.current = true
+
+			// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
+			combobox.setValue('')
+			combobox.hide()
+
 			setValue(getNewValue)
 			const nextCaretOffset = offset + name.length + 1
 			setCaretOffset(nextCaretOffset)
@@ -1442,10 +1454,6 @@ const PromptInput = memo(function PromptInput({
 			if (highlightRef.current) {
 				highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
 			}
-
-			// Clear combobox state to prevent reopening
-			combobox.setValue('')
-			combobox.hide()
 		}
 
 	return (
