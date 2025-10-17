@@ -1842,59 +1842,10 @@ const ResponseControls = memo(function ResponseControls({
 		}
 	})
 
-	const {
-		data: sessionRatingAsGood,
-		mutate: rateAsGood,
-		isPending: isRatingAsGood
-	} = useMutation({
-		mutationFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: 'good' })
-			})
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
-
-			return res
-		},
-		onSuccess: () => {
-			setShowFeedback(true)
-		},
-		onError: (err) => {
-			toast.error('Failed to rate as good')
-			console.log(err)
-		}
-	})
-
-	const {
-		data: sessionRatingAsBad,
-		mutate: rateAsBad,
-		isPending: isRatingAsBad
-	} = useMutation({
-		mutationFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: 'bad' })
-			})
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
-
-			return res
-		},
-		onSuccess: () => {
-			setShowFeedback(true)
-		},
-		onError: (err) => {
-			toast.error('Failed to rate as good')
-			console.log(err)
-		}
-	})
-
-	const isRatedAsGood = initialRating === 'good' || sessionRatingAsGood?.rating === 'good'
-	const isRatedAsBad = initialRating === 'bad' || sessionRatingAsBad?.rating === 'bad'
-	const lastRating = isRatedAsGood ? 'good' : isRatedAsBad ? 'bad' : null
+	const [selectedRating, setSelectedRating] = useState<'good' | 'bad' | null>(initialRating || null)
+	const [submittedRating, setSubmittedRating] = useState<'good' | 'bad' | null>(initialRating || null)
+	const isRatedAsGood = submittedRating === 'good'
+	const isRatedAsBad = submittedRating === 'bad'
 
 	const handleCopy = async () => {
 		if (!content) return
@@ -1932,23 +1883,32 @@ const ResponseControls = memo(function ResponseControls({
 							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
 							render={
 								<button
-									onClick={() => rateAsGood(undefined)}
-									disabled={isRatingAsGood || showFeedback || !!lastRating}
+									onClick={() => {
+										setSelectedRating('good')
+										setShowFeedback(true)
+									}}
+									disabled={showFeedback || isRatedAsGood || isRatedAsBad}
 								/>
 							}
 							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
 						>
-							{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
+							<Icon name="thumbs-up" height={14} width={14} />
 							<span className="sr-only">Thumbs Up</span>
 						</Tooltip>
 						<Tooltip
 							content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
 							render={
-								<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!lastRating} />
+								<button
+									onClick={() => {
+										setSelectedRating('bad')
+										setShowFeedback(true)
+									}}
+									disabled={showFeedback || isRatedAsGood || isRatedAsBad}
+								/>
 							}
 							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
 						>
-							{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
+							<Icon name="thumbs-down" height={14} width={14} />
 							<span className="sr-only">Thumbs Down</span>
 						</Tooltip>
 					</>
@@ -1966,7 +1926,15 @@ const ResponseControls = memo(function ResponseControls({
 				{!readOnly && (
 					<Tooltip
 						content="Provide Feedback"
-						render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
+						render={
+							<button
+								onClick={() => {
+									setSelectedRating(null)
+									setShowFeedback(true)
+								}}
+								disabled={showFeedback || !!submittedRating}
+							/>
+						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 					>
 						<Icon name="message-square-warning" height={14} width={14} />
@@ -1987,7 +1955,13 @@ const ResponseControls = memo(function ResponseControls({
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
-					<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
+					<FeedbackForm
+						messageId={messageId}
+						selectedRating={selectedRating}
+						setSelectedRating={setSelectedRating}
+						setShowFeedback={setShowFeedback}
+						onRatingSubmitted={setSubmittedRating}
+					/>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 			<Ariakit.DialogProvider open={showShareModal} setOpen={setShowShareModal}>
@@ -2012,27 +1986,32 @@ const ResponseControls = memo(function ResponseControls({
 
 const FeedbackForm = ({
 	messageId,
-	initialRating,
-	setShowFeedback
+	selectedRating,
+	setSelectedRating,
+	setShowFeedback,
+	onRatingSubmitted
 }: {
 	messageId?: string
-	initialRating?: 'good' | 'bad' | null
+	selectedRating: 'good' | 'bad' | null
+	setSelectedRating: (rating: 'good' | 'bad' | null) => void
 	setShowFeedback: (show: boolean) => void
+	onRatingSubmitted: (rating: 'good' | 'bad' | null) => void
 }) => {
 	const { authorizedFetch } = useAuthContext()
 	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
-		mutationFn: async (feedback?: string) => {
+		mutationFn: async ({ rating, feedback }: { rating: 'good' | 'bad' | null; feedback?: string }) => {
 			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: initialRating, feedback })
+				body: JSON.stringify({ rating, feedback })
 			})
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
 
 			return res
 		},
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
+			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
 		}
 	})
@@ -2045,12 +2024,43 @@ const FeedbackForm = ({
 			onSubmit={(e) => {
 				e.preventDefault()
 				const form = e.target as HTMLFormElement
-				submitFeedback(form.feedback?.value?.trim())
+				submitFeedback({ rating: selectedRating, feedback: form.feedback?.value?.trim() })
 			}}
 			className="flex flex-col gap-4"
 		>
+			<div className="flex flex-col gap-2">
+				<span className="text-sm font-medium">Rate this response</span>
+				<div className="flex gap-2">
+					<button
+						type="button"
+						onClick={() => setSelectedRating('good')}
+						disabled={isSubmittingFeedback}
+						className={`flex flex-1 items-center justify-center gap-2 rounded border p-3 transition-colors ${
+							selectedRating === 'good'
+								? 'border-(--success) bg-(--success)/12 text-(--success)'
+								: 'border-[#e6e6e6] text-[#666] hover:border-(--success) hover:bg-(--success)/5 dark:border-[#222324] dark:text-[#919296]'
+						}`}
+					>
+						<Icon name="thumbs-up" height={16} width={16} />
+						<span className="text-sm font-medium">Good</span>
+					</button>
+					<button
+						type="button"
+						onClick={() => setSelectedRating('bad')}
+						disabled={isSubmittingFeedback}
+						className={`flex flex-1 items-center justify-center gap-2 rounded border p-3 transition-colors ${
+							selectedRating === 'bad'
+								? 'border-(--error) bg-(--error)/12 text-(--error)'
+								: 'border-[#e6e6e6] text-[#666] hover:border-(--error) hover:bg-(--error)/5 dark:border-[#222324] dark:text-[#919296]'
+						}`}
+					>
+						<Icon name="thumbs-down" height={16} width={16} />
+						<span className="text-sm font-medium">Bad</span>
+					</button>
+				</div>
+			</div>
 			<label className="flex flex-col gap-2">
-				<span className="text-[#666] dark:text-[#919296]">Help us improve! Any additional feedback? (optional)</span>
+				<span className="text-sm text-[#666] dark:text-[#919296]">Additional feedback (optional)</span>
 				<textarea
 					name="feedback"
 					placeholder="Share your thoughts..."
@@ -2068,11 +2078,11 @@ const FeedbackForm = ({
 						disabled={isSubmittingFeedback}
 						className="rounded px-3 py-2 text-xs text-[#666] hover:bg-[#e6e6e6] disabled:opacity-50 dark:text-[#919296] dark:hover:bg-[#222324]"
 					>
-						Skip
+						Cancel
 					</Ariakit.DialogDismiss>
 					<button
 						type="submit"
-						disabled={isSubmittingFeedback}
+						disabled={isSubmittingFeedback || !selectedRating}
 						className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
 					>
 						{isSubmittingFeedback ? 'Submitting...' : 'Submit'}

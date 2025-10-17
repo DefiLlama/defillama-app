@@ -21,12 +21,15 @@ export function PortfolioDialog({ open, setOpen, addPortfolio }) {
 				</DialogDismiss>
 			</div>
 			<form
+				id='newPortfolio'
 				onSubmit={(e) => {
 					e.preventDefault()
-					const formData = new FormData(e.target as HTMLFormElement)
+					const form = e.target as HTMLFormElement
+					const formData = new FormData(form)
 					const name = formData.get('name') as string
 					addPortfolio(name)
 					setOpen(false)
+					form.reset()
 				}}
 			>
 				<label className="flex flex-col gap-1">
@@ -38,7 +41,7 @@ export function PortfolioDialog({ open, setOpen, addPortfolio }) {
 					/>
 				</label>
 			</form>
-			<button className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50">Save</button>
+			<button type='submit' form='newPortfolio' className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50">Save</button>
 		</Dialog>
 	)
 }

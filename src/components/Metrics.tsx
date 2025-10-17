@@ -1,5 +1,6 @@
 import { Fragment, memo, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as React from 'react'
+import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
@@ -44,20 +45,44 @@ export const metricsByCategory = trending.concat(
 
 const TABS = ['All', 'Protocols', 'Chains'] as const
 
-export function Metrics({ canDismiss = false }: { canDismiss?: boolean }) {
+export function Metrics({
+	canDismiss = false,
+	hasScrolledToCategoryRef
+}: {
+	canDismiss?: boolean
+	hasScrolledToCategoryRef?: React.RefObject<string>
+}) {
 	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
+	const router = useRouter()
+
+	const currentCategory = useMemo(() => {
+		return metricsByCategory.find(
+			(category) =>
+				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
+		)?.category
+	}, [router.pathname])
+
 	const metricsInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		if (metricsInputRef.current) {
+		if (currentCategory && canDismiss) {
+			const el = document.querySelector(`[data-category="${currentCategory}"]`)
+			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
+				requestAnimationFrame(() => {
+					console.log('scrolling to', hasScrolledToCategoryRef.current)
+					hasScrolledToCategoryRef.current = `${currentCategory}-true`
+					el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+				})
+			}
+		} else if (metricsInputRef.current) {
 			requestAnimationFrame(() => {
 				metricsInputRef.current?.focus()
 			})
 		}
-	}, [])
+	}, [currentCategory, canDismiss, hasScrolledToCategoryRef])
 
 	const tabPages = useMemo(() => {
 		return metricsByCategory
@@ -287,6 +312,7 @@ const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => 
 
 export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
 	const dialogStore = Ariakit.useDialogStore()
+	const hasScrolledToCategoryRef = useRef('')
 	return (
 		<>
 			<Ariakit.DialogProvider store={dialogStore}>
@@ -361,7 +387,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					unmountOnHide
 					hideOnInteractOutside
 				>
-					<Metrics canDismiss={true} />
+					<Metrics canDismiss={true} hasScrolledToCategoryRef={hasScrolledToCategoryRef} />
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 		</>

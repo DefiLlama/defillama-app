@@ -147,14 +147,6 @@
       "oldName": "Leveraged Lending"
     },
     {
-      "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
-      "category": "Yields",
-      "description": "Find 'long-short' strategies across all our tracked pools",
-      "oldCategory": "Yields",
-      "oldName": "Long/Short Strategies"
-    },
-    {
       "name": "Yields: All Projects",
       "route": "/yields/projects",
       "category": "Yields",
@@ -162,6 +154,14 @@
       "totalTrackedKey": "yields.protocols",
       "oldCategory": "Yields",
       "oldName": "All Projects"
+    },
+    {
+      "name": "Yields: Long/Short Strategies",
+      "route": "/yields/strategyLongShort",
+      "category": "Yields",
+      "description": "Find 'long-short' strategies across all our tracked pools",
+      "oldCategory": "Yields",
+      "oldName": "Long/Short Strategies"
     },
     {
       "name": "Yields: APY Overview",
@@ -300,16 +300,6 @@
       "oldName": "DEXs"
     },
     {
-      "name": "Bridge Aggregator Volume by Protocol",
-      "route": "/bridge-aggregators",
-      "category": "Volume",
-      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
-      "totalTrackedKey": "bridgeAggregators.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Volume",
-      "oldName": "Bridge Aggregators"
-    },
-    {
       "name": "DEX Volume by Chain",
       "route": "/dexs/chains",
       "category": "Volume",
@@ -318,6 +308,16 @@
       "tab": "Chains",
       "oldCategory": "Volume",
       "oldName": "DEXs (Chains)"
+    },
+    {
+      "name": "Bridge Aggregator Volume by Protocol",
+      "route": "/bridge-aggregators",
+      "category": "Volume",
+      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
+      "totalTrackedKey": "bridgeAggregators.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Volume",
+      "oldName": "Bridge Aggregators"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -721,20 +721,20 @@
       "oldName": "Advanced"
     },
     {
-      "name": "Transactions by Bridge",
-      "route": "/bridge-transactions",
-      "category": "Tools",
-      "description": "Download transaction data across different time periods by bridge",
-      "oldCategory": "Bridges",
-      "oldName": "Transactions"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama",
       "tab": "Protocols",
       "oldName": "Directory"
+    },
+    {
+      "name": "Transactions by Bridge",
+      "route": "/bridge-transactions",
+      "category": "Tools",
+      "description": "Download transaction data across different time periods by bridge",
+      "oldCategory": "Bridges",
+      "oldName": "Transactions"
     },
     {
       "name": "Report Error",

@@ -170,15 +170,12 @@ const columns: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		accessorFn: (row) => row.tvl ?? undefined,
 		cell: (info) => {
-			return (
-				<>
-					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
-					) : (
-						formattedNum(info.getValue(), true)
-					)}
-				</>
-			)
+			if (info.row.original.slug == null) {
+				return (
+					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
+				)
+			}
+			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
 		},
 		sortUndefined: 'last',
 		size: 120,
@@ -194,11 +191,12 @@ const columns: ColumnDef<any>[] = [
 		accessorFn: (row) => row.cleanTvl ?? undefined,
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
+			if (info.row.original.slug == null) {
+				return <QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
+			}
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
-					) : (
+					{info.getValue() ? (
 						<>
 							{coinSymbol === undefined ? (
 								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
@@ -209,7 +207,7 @@ const columns: ColumnDef<any>[] = [
 							)}
 							<span>{formattedNum(info.getValue(), true)}</span>
 						</>
-					)}
+					) : null}
 				</span>
 			)
 		},
@@ -225,15 +223,20 @@ const columns: ColumnDef<any>[] = [
 		accessorKey: '24hInflows',
 		accessorFn: (row) => row['24hInflows'] ?? undefined,
 		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
+		cell: (info) =>
+			info.row.original.slug === 'Binance-CEX' ? null : (
+				<span
+					className={`${
+						(info.getValue() as number) < 0
+							? 'text-(--error)'
+							: (info.getValue() as number) > 0
+								? 'text-(--success)'
+								: ''
+					}`}
+				>
+					{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				</span>
+			),
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
