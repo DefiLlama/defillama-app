@@ -21,7 +21,7 @@ export function SubscribeModal({ isOpen, onClose, children }: SubscribeModalProp
 		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
 			<Ariakit.Dialog className="fixed inset-0 z-50 flex items-center justify-center p-4" portal unmountOnHide>
 				<div
-					className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm"
+					className="backdrop fixed inset-0 bg-black/30 backdrop-blur-sm"
 					onClick={onClose}
 					aria-label="Close modal"
 				/>
