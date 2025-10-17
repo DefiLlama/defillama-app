@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { chunk, groupBy, isEqual, omit, sum } from 'lodash'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -81,6 +81,13 @@ function processGroupedChartData(
 
 const DATA_TYPES = ['documented', 'realtime'] as const
 type DataType = (typeof DATA_TYPES)[number]
+
+const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
+
+const unlockedPieChartStackColors = {
+	Unlocked: '#0c5dff',
+	Locked: '#ff4e21'
+}
 
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const { width } = useWindowSize()
@@ -250,14 +257,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		[unlockedPercent]
 	)
 
-	const unlockedPieChartStackColors = useMemo(
-		() => ({
-			Unlocked: '#0c5dff',
-			Locked: '#ff4e21'
-		}),
-		[]
-	)
-
 	const pieChartLegendPosition = useMemo(() => {
 		if (!width) return { left: 'right', orient: 'vertical' as const }
 		if (width < 640) return { left: 'center', top: 'bottom', orient: 'horizontal' as const }
@@ -278,51 +277,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			Object.keys(data.categoriesBreakdown).length > 0
 		)
 	}, [data.categoriesBreakdown])
-
-	const allocationPieChartFormatTooltip = useCallback(
-		({
-			value,
-			data: { name },
-			percent,
-			color
-		}: {
-			value: number
-			data: { name: string; pieChartData: IEmission['pieChartData'] }
-			percent: number
-			color: string
-		}) => {
-			const totalAllocation = data.pieChartData?.[dataType]?.reduce((sum, item) => sum + item.value, 0)
-
-			// return `${name}: ${formattedNum(value, true)} (${percent}%)`
-
-			return `<div style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${color};"></span>
-        <span><strong>${name}</strong>: ${formattedNum(value, true)} (${percent}%)</span>
-      </div>`
-		},
-		[]
-	)
-
-	const unlockedPieChartFormatTooltip = useCallback(
-		({ value, data: { name }, color }: { value: number; data: { name: string }; color: string }) =>
-			`<div style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${color};"></span>
-        <span><strong>${name}</strong>: ${value?.toFixed(2)}%</span>
-      </div>`,
-		[]
-	)
-
-	const unlockedPieChartRadius = useMemo(() => ['50%', '70%'] as [string, string], [])
-
-	const unlockedPieChartCustomLabel = useMemo(
-		() => ({
-			show: true,
-			position: 'center',
-			fontSize: 16,
-			formatter: ({ percent }: { percent: number }) => `${percent.toFixed(0)}%`
-		}),
-		[]
-	)
 
 	if (!data) return null
 
@@ -483,12 +437,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
-									formatTooltip={allocationPieChartFormatTooltip}
 									showLegend
 									title="Allocation"
 									chartData={pieChartDataAllocationMode}
 									stackColors={chartConfig.colors}
-									usdFormat={false}
+									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									legendPosition={pieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
 									toRight={200}
@@ -501,16 +454,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
-									formatTooltip={unlockedPieChartFormatTooltip}
 									showLegend
-									radius={unlockedPieChartRadius}
 									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
 									legendPosition={pieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
+									radius={unlockedPieChartRadius}
 									chartData={unlockedPieChartData}
 									stackColors={unlockedPieChartStackColors}
-									usdFormat={false}
-									customLabel={unlockedPieChartCustomLabel}
+									valueSymbol="%"
 								/>
 							</Suspense>
 						</LazyChart>

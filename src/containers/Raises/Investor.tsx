@@ -203,12 +203,12 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			<div className="grid grid-cols-2 gap-1">
 				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
+						<PieChart chartData={investmentByRounds} title="Investment by Rounds" valueSymbol="" />
 					</React.Suspense>
 				</LazyChart>
 				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
+						<PieChart chartData={raisesByCategory} title="Investments by Category" valueSymbol="" />
 					</React.Suspense>
 				</LazyChart>
 			</div>
