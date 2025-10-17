@@ -13,6 +13,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { firstDayOfQuarter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { cn } from '~/utils/cn'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
 import { ProtocolOverviewLayout } from './Layout'
@@ -2088,7 +2089,20 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 }
 
 const Competitors = (props: IProtocolOverviewPageData) => {
+	const tvl = useMemo(() => {
+		return Object.values(props.currentTvlByChain || {}).reduce(
+			(acc, val) => acc + (typeof val === 'number' ? val : 0),
+			0
+		)
+	}, [props.currentTvlByChain])
+
+	const competitiveSet = useMemo(() => {
+		const combined = [...props.competitors, { name: props.name, tvl }]
+		return combined.sort((a, b) => b.tvl - a.tvl)
+	}, [props.competitors, props.name, tvl])
+
 	if (!props.competitors?.length) return null
+
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="competitors">
@@ -2102,14 +2116,26 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-wrap items-center gap-4">
-				{props.competitors.map((similarProtocol) => (
+				{competitiveSet.map((protocol) => (
 					<a
-						href={`/protocol/${slug(similarProtocol.name)}`}
-						key={`${props.name}-competitors-${similarProtocol.name}`}
+						href={`/protocol/${slug(protocol.name)}`}
+						key={`${props.name}-competitors-${protocol.name}`}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="underline"
-					>{`${similarProtocol.name}${similarProtocol.tvl ? ` (${formattedNum(similarProtocol.tvl, true)})` : ''}`}</a>
+						className={cn(
+							'flex items-center space-x-2.5 rounded-full border border-(--cards-border) bg-(--app-bg) py-2 pr-5 pl-3.5 font-medium hover:bg-(--app-bg)/10',
+							props.name === protocol.name &&
+								'pointer-events-none bg-gradient-to-tr from-[var(--old-blue)]/40 from-17% to-[var(--app-bg)] to-40%'
+						)}
+					>
+						<span>
+							<TokenLogo logo={tokenIconUrl(protocol.name)} size={32} />
+						</span>
+						<div className="text-xs font-semibold">
+							<div>{protocol.name}</div>
+							<div className="text-(--text-label)">{protocol.tvl ? formattedNum(protocol.tvl, true) : ''}</div>
+						</div>
+					</a>
 				))}
 			</div>
 		</div>
