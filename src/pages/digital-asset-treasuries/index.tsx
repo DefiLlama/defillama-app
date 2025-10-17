@@ -217,16 +217,14 @@ export default function TreasuriesByInstitution({ allAssets, institutions }) {
 			canonicalUrl={`/digital-asset-treasuries`}
 			pageName={pageName}
 		>
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
-				<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />
-			</div>
+			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
 			<TableWithSearch
 				data={institutions}
 				columns={columns}
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
+				customFilters={<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />}
 			/>
 		</Layout>
 	)

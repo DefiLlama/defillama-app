@@ -195,10 +195,7 @@ export default function TreasuriesByAsset({
 			canonicalUrl={`/digital-asset-treasuries/${asset}`}
 			pageName={pageName}
 		>
-			<div className="flex flex-wrap items-center justify-between gap-4">
-				<RowLinksWithDropdown links={allAssets} activeLink={name} />
-				<CSVDownloadButton prepareCsv={() => prepareAssetBreakdownCsv(breakdown, name, symbol)} />
-			</div>
+			<RowLinksWithDropdown links={allAssets} activeLink={name} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<Tooltip
@@ -251,6 +248,7 @@ export default function TreasuriesByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
+				customFilters={<CSVDownloadButton prepareCsv={() => prepareAssetBreakdownCsv(breakdown, name, symbol)} />}
 			/>
 		</Layout>
 	)
