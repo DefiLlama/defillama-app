@@ -13,33 +13,38 @@ export const TextCard = memo(function TextCard({ text }: TextCardProps) {
 
 			<ReactMarkdown
 				components={{
-					h1: ({ children }) => <h1 className="text-xl font-bold text-(--text-primary)">{children}</h1>,
-					h2: ({ children }) => <h2 className="text-lg font-semibold text-(--text-primary)">{children}</h2>,
-					h3: ({ children }) => <h3 className="text-base font-medium text-(--text-primary)">{children}</h3>,
-					p: ({ children }) => <p className="leading-relaxed text-(--text-secondary)">{children}</p>,
-					ul: ({ children }) => <ul className="flex list-disc flex-col gap-1 pl-4">{children}</ul>,
-					ol: ({ children }) => <ol className="flex list-decimal flex-col gap-1 pl-4">{children}</ol>,
-					li: ({ children }) => <li className="text-(--text-secondary)">{children}</li>,
+					h1: ({ children }) => <h1 className="m-0! text-xl font-bold text-(--text-primary)">{children}</h1>,
+					h2: ({ children }) => <h2 className="m-0! text-lg font-semibold text-(--text-primary)">{children}</h2>,
+					h3: ({ children }) => <h3 className="m-0! text-base font-medium text-(--text-primary)">{children}</h3>,
+					p: ({ children }) => <p className="m-0! leading-relaxed text-(--text-secondary)">{children}</p>,
+					ul: ({ children }) => <ul className="m-0! flex list-disc flex-col gap-1 pl-4">{children}</ul>,
+					ol: ({ children }) => <ol className="m-0! flex list-decimal flex-col gap-1 pl-4">{children}</ol>,
+					li: ({ children }) => <li className="m-0! text-(--text-secondary)">{children}</li>,
 					code: ({ children }) => (
-						<code className="thin-scrollbar overflow-x-auto rounded-sm bg-(--bg-tertiary) px-1 py-0.5 text-xs">
+						<code className="thin-scrollbar m-0! overflow-x-auto rounded-sm bg-(--bg-tertiary) px-1 py-0.5 text-xs">
 							{children}
 						</code>
 					),
 					pre: ({ children }) => (
-						<pre className="thin-scrollbar overflow-x-auto rounded-sm bg-(--bg-tertiary) p-2">{children}</pre>
+						<pre className="thin-scrollbar m-0! overflow-x-auto rounded-sm bg-(--bg-tertiary) p-2">{children}</pre>
 					),
 					blockquote: ({ children }) => (
-						<blockquote className="thin-scrollbar overflow-x-auto border-l-3 border-(--old-blue) pl-2 text-(--text-label) italic">
+						<blockquote className="thin-scrollbar m-0! overflow-x-auto border-l-3 border-(--old-blue) pl-2 text-(--text-label) italic">
 							{children}
 						</blockquote>
 					),
 					a: ({ children, href }) => (
-						<a href={href} className="text-(--link-text) hover:underline" target="_blank" rel="noopener noreferrer">
+						<a
+							href={href}
+							className="m-0! text-(--link-text) hover:underline"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
 							{children}
 						</a>
 					),
-					strong: ({ children }) => <strong className="font-semibold text-(--text-primary)">{children}</strong>,
-					em: ({ children }) => <em className="text-(--text-secondary) italic">{children}</em>
+					strong: ({ children }) => <strong className="m-0! font-semibold text-(--text-primary)">{children}</strong>,
+					em: ({ children }) => <em className="m-0! text-(--text-secondary) italic">{children}</em>
 				}}
 			>
 				{text.content}
