@@ -38,7 +38,7 @@ function Layout({
 			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}
-				className="isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-[248px]"
+				className="isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-(--nav-width)"
 			>
 				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
