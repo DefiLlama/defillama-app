@@ -11,13 +11,13 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 export const SignIn = ({
 	text,
 	className,
-	onlyUseDialog = false
+	showOnlyAuthDialog = false
 }: {
 	text?: string
 	className?: string
-	onlyUseDialog?: boolean
+	showOnlyAuthDialog?: boolean
 }) => {
-	const dialogState = Ariakit.useDialogStore({ defaultOpen: onlyUseDialog })
+	const dialogState = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
 
@@ -143,11 +143,9 @@ export const SignIn = ({
 		return null
 	}
 
-	console.log('text', text)
-
 	return (
 		<>
-			{onlyUseDialog ? null : (
+			{showOnlyAuthDialog ? null : (
 				<button
 					className={
 						className ??
@@ -169,7 +167,7 @@ export const SignIn = ({
 
 			<Ariakit.Dialog
 				store={dialogState}
-				hideOnInteractOutside={onlyUseDialog ? false : true}
+				hideOnInteractOutside={showOnlyAuthDialog ? false : true}
 				className="dialog animate-fadeIn flex max-w-md flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl backdrop-blur-md"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
@@ -180,7 +178,7 @@ export const SignIn = ({
 						{flow === 'signin' ? 'Sign In' : flow === 'signup' ? 'Create Account' : 'Reset Password'}
 					</Ariakit.DialogHeading>
 
-					{onlyUseDialog ? null : (
+					{showOnlyAuthDialog ? null : (
 						<button
 							onClick={dialogState.hide}
 							className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"

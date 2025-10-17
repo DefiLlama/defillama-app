@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
@@ -51,9 +52,7 @@ function AuthContent() {
 					<div className="w-full max-w-md rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
 						<div className="mb-6">
 							<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
-								<svg className="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-								</svg>
+								<Icon name="check" height={24} width={24} className="text-green-500" />
 							</div>
 							<h2 className="mb-2 text-2xl font-bold text-white">Successfully logged in.</h2>
 							{user?.email && <p className="text-sm text-[#8a8c90]">Signed in as {user.email}</p>}
@@ -70,7 +69,7 @@ function AuthContent() {
 						</div>
 					</div>
 				) : (
-					<SignIn onlyUseDialog={true} />
+					<SignIn showOnlyAuthDialog />
 				)}
 				<Toast />
 			</div>
