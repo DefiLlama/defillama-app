@@ -1349,7 +1349,7 @@
 
 			/**
 			 * Calculate a random gap size.
-			 * - Minimum gap gets wider as speed increses
+			 * - Minimum gap gets wider as speed increases
 			 * @param {number} gapCoefficient
 			 * @param {number} speed
 			 * @return {number} The gap size.
@@ -1951,7 +1951,7 @@
 		},
 
 		/**
-		 * Covert pixel distance to a 'real' distance.
+		 * Convert pixel distance to a 'real' distance.
 		 * @param {number} distance Pixel distance ran.
 		 * @return {number} The 'real' distance ran.
 		 */
