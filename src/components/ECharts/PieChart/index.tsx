@@ -5,8 +5,8 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
-import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
+import { formatTooltipValue } from '../useDefaults'
 
 echarts.use([
 	CanvasRenderer,
@@ -23,10 +23,9 @@ export default function PieChart({
 	stackColors,
 	chartData,
 	title,
-	usdFormat = true,
+	valueSymbol = '$',
 	radius = null,
 	showLegend = false,
-	formatTooltip = null,
 	legendPosition,
 	legendTextStyle,
 	customComponents,
@@ -47,9 +46,6 @@ export default function PieChart({
 					return `${x.name}: (${x.percent}%)`
 				},
 				show: showLegend ? false : true
-			},
-			tooltip: {
-				formatter: formatTooltip
 			},
 			emphasis: {
 				itemStyle: {
@@ -76,7 +72,7 @@ export default function PieChart({
 		}
 
 		return series
-	}, [isDark, showLegend, formatTooltip, chartData, radius, stackColors, isSmall])
+	}, [isDark, showLegend, chartData, radius, stackColors, isSmall])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -105,7 +101,7 @@ export default function PieChart({
 			tooltip: {
 				trigger: 'item',
 				confine: true,
-				valueFormatter: (value) => (usdFormat ? formattedNum(value, true) : formattedNum(value))
+				valueFormatter: (value) => formatTooltipValue(value, valueSymbol)
 			},
 			grid: {
 				left: 0,
@@ -152,7 +148,7 @@ export default function PieChart({
 		series,
 		isDark,
 		title,
-		usdFormat,
+		valueSymbol,
 		showLegend,
 		chartData,
 		legendPosition,

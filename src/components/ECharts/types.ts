@@ -128,7 +128,7 @@ export interface IPieChartProps {
 	stackColors?: {
 		[stack: string]: string
 	}
-	usdFormat?: boolean
+	valueSymbol?: string
 	radius?: [string, string]
 	showLegend?: boolean
 	toRight?: number

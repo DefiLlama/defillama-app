@@ -159,13 +159,8 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			chartData: pieData,
 			height: '300px',
 			stackColors,
-			usdFormat: config.valueSymbol === '$',
-			showLegend: true,
-			formatTooltip: (params: any) => {
-				const value = params.value
-				const formattedValue = formatTooltipValue(value, config.valueSymbol ?? '')
-				return `<strong>${params.name}</strong>: ${formattedValue} (${params.percent}%)`
-			}
+			valueSymbol: config.valueSymbol ?? '',
+			showLegend: true
 		}
 
 		return {

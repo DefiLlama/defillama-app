@@ -119,7 +119,7 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 					<div className="w-full">
 						{chartType !== 'inflows' ? (
 							<React.Suspense fallback={<></>}>
-								<PieChart chartData={pieChartData} usdFormat={false} />
+								<PieChart chartData={pieChartData} valueSymbol="" />
 							</React.Suspense>
 						) : (
 							<React.Suspense fallback={<></>}>

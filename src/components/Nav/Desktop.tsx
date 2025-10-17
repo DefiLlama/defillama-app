@@ -24,14 +24,14 @@ export const DesktopNav = React.memo(function DesktopNav({
 	const { asPath } = useRouter()
 
 	return (
-		<nav className="thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen w-[var(--nav-width)] flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
-			<BasicLink href="/" className="shrink-0">
+		<nav className="thin-scrollbar fixed top-0 bottom-0 left-0 isolate z-10 hidden h-screen w-(--nav-width) flex-col gap-1 overflow-y-auto bg-(--app-bg) p-4 pl-0 *:pl-4 lg:flex">
+			<BasicLink href="/" className="mb-4 w-fit shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
 					src="/icons/defillama.webp"
 					height={53}
 					width={155}
-					className="mr-auto mb-4 hidden object-contain object-left dark:block"
+					className="mr-auto hidden object-contain object-left dark:block"
 					alt=""
 					fetchPriority="high"
 				/>
@@ -39,7 +39,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 					src="/icons/defillama-dark.webp"
 					height={53}
 					width={155}
-					className="mr-auto mb-4 object-contain object-left dark:hidden"
+					className="mr-auto object-contain object-left dark:hidden"
 					alt=""
 					fetchPriority="high"
 				/>

@@ -1,10 +1,11 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -16,6 +17,9 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
+import { useGetEntities } from './hooks/useGetEntities'
+import { convertLlamaLinksToDefillama } from './utils/entityLinks'
+import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
 import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
 
@@ -43,6 +47,7 @@ async function fetchPromptResponse({
 	abortSignal,
 	sessionId,
 	suggestionContext,
+	preResolvedEntities,
 	mode,
 	authorizedFetch
 }: {
@@ -75,6 +80,7 @@ async function fetchPromptResponse({
 	abortSignal?: AbortSignal
 	sessionId?: string | null
 	suggestionContext?: any
+	preResolvedEntities?: Array<{ term: string; slug: string }>
 	mode: 'auto' | 'sql_only'
 	authorizedFetch: any
 }) {
@@ -95,6 +101,10 @@ async function fetchPromptResponse({
 
 		if (suggestionContext) {
 			requestBody.suggestionContext = suggestionContext
+		}
+
+		if (preResolvedEntities) {
+			requestBody.preResolvedEntities = preResolvedEntities
 		}
 
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {
@@ -418,7 +428,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		error,
 		reset: resetPrompt
 	} = useMutation({
-		mutationFn: ({ userQuestion, suggestionContext }: { userQuestion: string; suggestionContext?: any }) => {
+		mutationFn: ({
+			userQuestion,
+			suggestionContext,
+			preResolvedEntities
+		}: {
+			userQuestion: string
+			suggestionContext?: any
+			preResolvedEntities?: Array<{ term: string; slug: string }>
+		}) => {
 			let currentSessionId = sessionId
 
 			if (!currentSessionId && user) {
@@ -454,6 +472,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				userQuestion,
 				sessionId: currentSessionId,
 				suggestionContext,
+				preResolvedEntities,
 				mode: 'auto',
 				authorizedFetch,
 				onProgress: (data) => {
@@ -508,7 +527,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				abortSignal: abortControllerRef.current.signal
 			})
 		},
-		onMutate: ({ userQuestion, suggestionContext }: { userQuestion: string; suggestionContext?: any }) => {},
+		onMutate: ({
+			userQuestion,
+			suggestionContext,
+			preResolvedEntities
+		}: {
+			userQuestion: string
+			suggestionContext?: any
+			preResolvedEntities?: Array<{ term: string; slug: string }>
+		}) => {},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
@@ -684,7 +711,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	])
 
 	const handleSubmit = useCallback(
-		(prompt: string) => {
+		(
+			prompt: string,
+			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+		) => {
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -693,7 +723,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				moveSessionToTop(sessionId)
 			}
 
-			submitPrompt({ userQuestion: finalPrompt })
+			submitPrompt({
+				userQuestion: finalPrompt,
+				preResolvedEntities: preResolved
+			})
 		},
 		[sessionId, moveSessionToTop, submitPrompt]
 	)
@@ -1239,7 +1272,7 @@ const PromptInput = memo(function PromptInput({
 	isStreaming,
 	initialValue
 }: {
-	handleSubmit: (prompt: string) => void
+	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
@@ -1247,22 +1280,189 @@ const PromptInput = memo(function PromptInput({
 	initialValue?: string
 }) {
 	const [value, setValue] = useState('')
+	const highlightRef = useRef<HTMLDivElement>(null)
+	const entitiesRef = useRef<Set<string>>(new Set())
+	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
+	const isProgrammaticUpdateRef = useRef(false)
+	const [caretOffset, setCaretOffset] = useState<number | null>(null)
 
-	const deferredValue = useDeferredValue(value)
+	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
+	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
-	useEffect(() => {
-		if (initialValue && !isStreaming && !isPending) {
-			setValue(initialValue)
+	const { data: matches } = useGetEntities(searchValue)
+
+	const hasMatches = matches && matches.length > 0
+
+	useLayoutEffect(() => {
+		if (caretOffset != null) {
+			promptInputRef.current?.setSelectionRange(caretOffset, caretOffset)
+			// Clear the offset after applying it to prevent unnecessary re-renders
+			setCaretOffset(null)
 		}
-	}, [initialValue, isStreaming, isPending])
+		// promptInputRef is stable (ref object), safe to exclude from deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [caretOffset])
+
+	// Re-calculates the position of the combobox popover in case the changes on
+	// the textarea value have shifted the trigger character.
+	useEffect(() => {
+		combobox.render()
+	}, [combobox, value])
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			combobox.hide()
+		}
+	}, [combobox])
+
+	const getFinalEntities = () => {
+		return Array.from(entitiesRef.current)
+			.map((name) => {
+				const data = entitiesMapRef.current.get(name)
+				if (!data) return null
+				return {
+					term: name,
+					slug: data.id
+				}
+			})
+			.filter((entity) => entity !== null && value.includes(entity.term)) as Array<{
+			term: string
+			slug: string
+		}>
+	}
+
+	const resetInput = () => {
+		setValue('')
+		combobox.setValue('')
+		combobox.hide()
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = ''
+			highlightRef.current.textContent = ''
+		}
+		entitiesRef.current.clear()
+		entitiesMapRef.current.clear()
+	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		if (event.key === 'Backspace' || event.key === 'Delete') {
+			const { selectionStart, selectionEnd, value } = textarea
+
+			if (selectionStart !== selectionEnd) return
+
+			const isBackspace = event.key === 'Backspace'
+			const checkPos = isBackspace ? selectionStart - 1 : selectionStart
+
+			for (const entityName of entitiesRef.current) {
+				const entityIndex = value.indexOf(entityName, Math.max(0, checkPos - entityName.length))
+				if (entityIndex === -1 || entityIndex > checkPos) continue
+
+				const entityEnd = entityIndex + entityName.length
+				if (checkPos >= entityIndex && checkPos < entityEnd) {
+					event.preventDefault()
+					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
+					setValue(newValue)
+					combobox.setValue('')
+
+					entitiesRef.current.delete(entityName)
+					entitiesMapRef.current.delete(entityName)
+
+					if (highlightRef.current) {
+						highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
+					}
+
+					setTimeout(() => {
+						textarea.setSelectionRange(entityIndex, entityIndex)
+					}, 0)
+					return
+				}
+			}
+		}
+
+		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
-			handleSubmit(value)
-			setValue('')
+			const finalEntities = getFinalEntities()
+			const promptValue = promptInputRef.current?.value ?? ''
+			resetInput()
+			handleSubmit(promptValue, finalEntities)
 		}
 	}
+
+	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+		if (promptInputRef.current) {
+			setInputSize(event, promptInputRef)
+		}
+
+		const currentValue = event.target.value
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
+		}
+
+		// Skip trigger logic if this is a programmatic update (e.g., after item selection)
+		if (isProgrammaticUpdateRef.current) {
+			isProgrammaticUpdateRef.current = false
+			setValue(event.target.value)
+			return
+		}
+
+		const trigger = getTrigger(event.target)
+		const searchValue = getSearchValue(event.target)
+		// If there's a trigger character, we'll show the combobox popover. This can
+		// be true both when the trigger character has just been typed and when
+		// content has been deleted (e.g., with backspace) and the character right
+		// before the caret is the trigger.
+		if (trigger) {
+			combobox.show()
+		}
+		// There will be no trigger and no search value if the trigger character has
+		// just been deleted.
+		else if (!searchValue) {
+			combobox.setValue('')
+			combobox.hide()
+		}
+		// Sets our textarea value.
+		setValue(event.target.value)
+		// Sets the combobox value that will be used to search in the list.
+		combobox.setValue(searchValue)
+	}
+
+	const onItemClick = useCallback(
+		({ id, name, type }: { id: string; name: string; type: string }) =>
+			() => {
+				const textarea = promptInputRef.current
+				if (!textarea) return
+
+				const offset = getTriggerOffset(textarea)
+
+				entitiesRef.current.add(name)
+				entitiesMapRef.current.set(name, { id, name, type })
+
+				const getNewValue = replaceValue(offset, searchValue, name)
+
+				// Mark as programmatic update to prevent onChange from reopening combobox
+				isProgrammaticUpdateRef.current = true
+
+				// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
+				combobox.setValue('')
+				combobox.hide()
+
+				setValue(getNewValue)
+				const nextCaretOffset = offset + name.length + 1
+				setCaretOffset(nextCaretOffset)
+
+				if (highlightRef.current) {
+					highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
+				}
+			},
+		// promptInputRef, highlightRef, entitiesRef, entitiesMapRef, isProgrammaticUpdateRef are stable refs
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[combobox, searchValue, value]
+	)
 
 	return (
 		<>
@@ -1270,54 +1470,92 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
-					handleSubmit(value)
-					setValue('')
+					const form = e.target as HTMLFormElement
+					const finalEntities = getFinalEntities()
+					const promptValue = form.prompt.value
+					resetInput()
+					handleSubmit(promptValue, finalEntities)
 				}}
 			>
-				<textarea
-					placeholder="Ask LlamaAI..."
-					value={value}
-					onChange={(e) => {
-						setValue(e.target.value)
-						if (promptInputRef.current) {
-							try {
-								// Calculate rows based on newlines and character length
-								const text = e.target.value
-								const textarea = promptInputRef.current
-								const lineBreaks = (text.match(/\n/g) || []).length
-
-								// Calculate actual characters per line based on container width
-								const style = window.getComputedStyle(textarea)
-								const paddingLeft = parseFloat(style.paddingLeft)
-								const paddingRight = parseFloat(style.paddingRight)
-								const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-								const fontSize = parseFloat(style.fontSize)
-								// Average character width is approximately 0.6 of font size for monospace-like text
-								const avgCharWidth = fontSize * 0.5
-								const charsPerLine = Math.floor(availableWidth / avgCharWidth)
-
-								const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-								const totalRows = Math.max(lineBreaks + 1, estimatedLines)
-
-								// Set rows with minimum 1 and maximum 5
-								promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-							} catch (error) {
-								console.error('Error calculating rows:', error)
-							}
+				<div className="relative w-full">
+					<Ariakit.Combobox
+						store={combobox}
+						autoSelect
+						value={value}
+						// We'll overwrite how the combobox popover is shown, so we disable
+						// the default behaviors.
+						showOnClick={false}
+						showOnChange={false}
+						showOnKeyPress={false}
+						// To the combobox state, we'll only set the value after the trigger
+						// character (the search value), so we disable the default behavior.
+						setValueOnChange={false}
+						render={
+							<textarea
+								ref={promptInputRef}
+								rows={1}
+								maxLength={2000}
+								placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+								// We need to re-calculate the position of the combobox popover
+								// when the textarea contents are scrolled.
+								onScroll={combobox.render}
+								// Hide the combobox popover whenever the selection changes.
+								onPointerDown={combobox.hide}
+								onChange={onChange}
+								onKeyDown={onKeyDown}
+								name="prompt"
+								className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black placeholder:text-[#666] max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+								autoCorrect="off"
+								autoComplete="off"
+								spellCheck="false"
+							/>
 						}
-					}}
-					onKeyDown={onKeyDown}
-					name="prompt"
-					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
-					autoCorrect="off"
-					autoComplete="off"
-					spellCheck="false"
-					disabled={isPending && !isStreaming}
-					autoFocus
-					ref={promptInputRef}
-					maxLength={2000}
-					rows={1}
-				/>
+						disabled={isPending && !isStreaming}
+					/>
+					<div
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 leading-normal break-words whitespace-pre-wrap"
+						ref={highlightRef}
+					/>
+				</div>
+				{hasMatches && (
+					<Ariakit.ComboboxPopover
+						store={combobox}
+						unmountOnHide
+						fitViewport
+						getAnchorRect={() => {
+							const textarea = promptInputRef.current
+							if (!textarea) return null
+							return getAnchorRect(textarea)
+						}}
+						className="relative z-50 flex max-h-(--popover-available-height) max-w-[280px] min-w-[100px] flex-col overflow-auto overscroll-contain rounded-lg border border-[#e6e6e6] bg-(--app-bg) shadow-lg dark:border-[#222324]"
+					>
+						{matches.map(({ id, name, logo, type }) => (
+							<Ariakit.ComboboxItem
+								key={id}
+								value={id}
+								focusOnHover
+								onClick={onItemClick({ id, name, type })}
+								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] data-[active-item]:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+							>
+								<TokenLogo logo={logo} size={20} />
+								<span className="flex items-center gap-1.5">
+									<span className="text-sm font-medium">{name}</span>
+									<span
+										className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+											type === 'Chain'
+												? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+												: type == 'protocol'
+													? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+													: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+										}`}
+									>
+										{type}
+									</span>
+								</span>
+							</Ariakit.ComboboxItem>
+						))}
+					</Ariakit.ComboboxPopover>
+				)}
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
@@ -1331,7 +1569,7 @@ const PromptInput = memo(function PromptInput({
 					<button
 						type="submit"
 						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
-						disabled={isPending || isStreaming || !value.trim()}
+						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 						<span className="sr-only">Submit prompt</span>
@@ -1406,7 +1644,7 @@ const PromptResponse = ({
 						{progressMessage.includes('encountered an issue') ? (
 							<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
 						) : (
-							<FadingLoader />
+							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
@@ -1435,7 +1673,7 @@ const PromptResponse = ({
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-							<FadingLoader />
+							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 							<span>Generating follow-up suggestions...</span>
 						</p>
 					</div>
@@ -1469,117 +1707,6 @@ const PromptResponse = ({
 			)}
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
-	)
-}
-
-const FadingLoader = () => {
-	return (
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
-			<style jsx>{`
-				@keyframes colorPulse {
-					0%,
-					100% {
-						stroke: #1f67d2;
-						opacity: 0.3;
-					}
-					50% {
-						stroke: #1f67d2;
-						opacity: 1;
-					}
-				}
-				.loading-line {
-					animation: colorPulse 1.5s ease-in-out infinite;
-				}
-				.loading-line:nth-child(1) {
-					animation-delay: 0s;
-				}
-				.loading-line:nth-child(2) {
-					animation-delay: 0.2s;
-				}
-				.loading-line:nth-child(3) {
-					animation-delay: 0.4s;
-				}
-				.loading-line:nth-child(4) {
-					animation-delay: 0.6s;
-				}
-				.loading-line:nth-child(5) {
-					animation-delay: 0.8s;
-				}
-				.loading-line:nth-child(6) {
-					animation-delay: 1s;
-				}
-				.loading-line:nth-child(7) {
-					animation-delay: 1.2s;
-				}
-				.loading-line:nth-child(8) {
-					animation-delay: 1.4s;
-				}
-			`}</style>
-			<path
-				d="M12 2V6"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M16.2 7.80002L19.1 4.90002"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M18 12H22"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M16.2 16.2L19.1 19.1"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M12 18V22"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M4.8999 19.1L7.7999 16.2"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M2 12H6"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M4.8999 4.90002L7.7999 7.80002"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-		</svg>
 	)
 }
 
@@ -1723,7 +1850,8 @@ const ResponseControls = memo(function ResponseControls({
 	const handleCopy = async () => {
 		if (!content) return
 		try {
-			await navigator.clipboard.writeText(content)
+			const convertedContent = convertLlamaLinksToDefillama(content)
+			await navigator.clipboard.writeText(convertedContent)
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
@@ -2052,3 +2180,61 @@ const ChatControls = memo(function ChatControls({
 		</div>
 	)
 })
+
+function highlightWord(text: string, words: string[]) {
+	if (!text || typeof text !== 'string') return text
+	if (!Array.isArray(words) || words.length === 0) return text
+
+	// HTML escape the text first
+	const escapeHtml = (str: string) =>
+		str.replace(
+			/[&<>"']/g,
+			(char) =>
+				({
+					'&': '&amp;',
+					'<': '&lt;',
+					'>': '&gt;',
+					'"': '&quot;',
+					"'": '&#39;'
+				})[char] || char
+		)
+
+	const escapedText = escapeHtml(text)
+
+	// Filter out empty strings and escape special regex characters
+	const escapedWords = words
+		.filter((word) => word && word.trim())
+		.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
+	if (escapedWords.length === 0) return escapedText
+
+	const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi')
+	return escapedText.replace(regex, '<span class="highlight">$1</span>')
+}
+
+function setInputSize(event, promptInputRef) {
+	try {
+		// Calculate rows based on newlines and character length
+		const text = event.target.value
+		const textarea = promptInputRef.current
+		const lineBreaks = (text.match(/\n/g) || []).length
+
+		// Calculate actual characters per line based on container width
+		const style = window.getComputedStyle(textarea)
+		const paddingLeft = parseFloat(style.paddingLeft)
+		const paddingRight = parseFloat(style.paddingRight)
+		const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+		const fontSize = parseFloat(style.fontSize)
+		// Average character width is approximately 0.6 of font size for monospace-like text
+		const avgCharWidth = fontSize * 0.5
+		const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+
+		const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+		const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+
+		// Set rows with minimum 1 and maximum 5
+		promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+	} catch (error) {
+		console.error('Error calculating rows:', error)
+	}
+}

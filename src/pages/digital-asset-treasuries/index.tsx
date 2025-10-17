@@ -1,7 +1,8 @@
+import { useCallback } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
-import { BasicLink } from '~/components/Link'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
@@ -174,6 +175,40 @@ const prepareInstitutionsCsv = (institutions) => {
 }
 
 export default function TreasuriesByInstitution({ allAssets, institutions }) {
+	const prepareCsv = useCallback(() => {
+		const headers = [
+			'Institution',
+			'Asset',
+			'Ticker',
+			'Amount',
+			'Cost Basis',
+			'Holdings Value',
+			'Avg Price',
+			'Dominance %'
+		]
+		const rows = []
+
+		institutions.forEach((institute) => {
+			institute.assetBreakdown?.forEach((asset) => {
+				rows.push([
+					`"${institute.name}"`,
+					asset.name || '',
+					asset.ticker || '',
+					asset.amount != null ? asset.amount : '',
+					asset.cost != null ? asset.cost : '',
+					asset.usdValue != null ? asset.usdValue : '',
+					asset.avgPrice != null ? asset.avgPrice : '',
+					asset.dominance != null ? `${asset.dominance.toFixed(2)}%` : ''
+				])
+			})
+		})
+
+		return {
+			filename: 'defillama-digital-asset-treasuries.csv',
+			rows: [headers, ...rows]
+		}
+	}, [institutions])
+
 	return (
 		<Layout
 			title={`Digital Asset Treasuries - DefiLlama`}
