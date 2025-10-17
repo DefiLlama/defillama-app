@@ -5,6 +5,7 @@ import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { SignIn } from '~/containers/Subscribtion/SignIn'
 
 export const PaymentButton = ({
 	paymentMethod,
@@ -20,16 +21,22 @@ export const PaymentButton = ({
 	const icon = isStripe ? 'card' : 'wallet'
 	const text = isStripe ? 'Pay with Card' : 'Pay with Crypto'
 
-	const disabled = loading === paymentMethod || !isAuthenticated || (!user?.verified && !user?.address)
+	const planName = type === 'api' ? 'API' : type === 'llamafeed' ? 'Pro' : type
+
+	if (!isAuthenticated) {
+		return (
+			<SignIn
+				text={text}
+				className="group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
+				pendingActionMessage={`Sign in or create an account to subscribe to the ${planName} plan.`}
+			/>
+		)
+	}
+
+	const disabled = loading === paymentMethod || (!user?.verified && !user?.address)
 	return (
 		<CustomTooltip
-			content={
-				!isAuthenticated
-					? 'Please sign in first to subscribe'
-					: !user?.verified && !user?.address
-						? 'Please verify your email first to subscribe'
-						: null
-			}
+			content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}
 		>
 			<button
 				onClick={() => handleSubscribe(paymentMethod, type)}

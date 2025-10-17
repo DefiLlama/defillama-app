@@ -11,11 +11,13 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 export const SignIn = ({
 	text,
 	className,
-	showOnlyAuthDialog = false
+	showOnlyAuthDialog = false,
+	pendingActionMessage
 }: {
 	text?: string
 	className?: string
 	showOnlyAuthDialog?: boolean
+	pendingActionMessage?: string
 }) => {
 	const dialogState = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
 	const { openConnectModal } = useConnectModal()
@@ -188,6 +190,12 @@ export const SignIn = ({
 						</button>
 					)}
 				</div>
+
+				{pendingActionMessage && (
+					<div className="mb-4 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-3">
+						<p className="text-center text-sm text-[#b4b7bc]">{pendingActionMessage}</p>
+					</div>
+				)}
 
 				<div className="flex w-full flex-col gap-3">
 					<button
