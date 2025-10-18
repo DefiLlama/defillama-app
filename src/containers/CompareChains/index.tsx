@@ -140,11 +140,20 @@ export function CompareChains({ chains }) {
 		)
 	}, [data, router.query, tvlCharts])
 
+	const sortedChains = React.useMemo(() => {
+		const selectedValues = new Set(selectedChains.map((c) => c.value))
+		const isSelected = (chain) => selectedValues.has(chain.value)
+
+		const sorted = [...chains].sort((a, b) => (isSelected(a) === isSelected(b) ? 0 : isSelected(a) ? -1 : 1))
+
+		return sorted
+	}, [selectedChains, chains])
+
 	return (
 		<>
 			<div className="flex items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<MultiSelectCombobox
-					data={chains}
+					data={sortedChains}
 					placeholder="Select Chains..."
 					selectedValues={selectedChains.map((chain) => chain.value)}
 					setSelectedValues={(values) => {
