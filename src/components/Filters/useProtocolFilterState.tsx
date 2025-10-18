@@ -65,21 +65,3 @@ export function useTvlAndFeesFilterState({
 
 	return { selectedValues, setSelectedValues }
 }
-
-export function useChainsChartFilterState(options: { name: string; key: string }[]) {
-	const [toggledKeys] = useLocalStorageSettingsManager('compare_chains')
-
-	const filters = options.map((o) => o.key)
-
-	const selectedValues = filters.filter((key) => toggledKeys[key])
-
-	const setSelectedValues = (values) => {
-		const newValues = {}
-		for (const o of options) {
-			newValues[o.key] = values.includes(o.key) ? true : false
-		}
-		updateAllSettingsInLsAndUrl(newValues)
-	}
-
-	return { selectedValues, setSelectedValues }
-}

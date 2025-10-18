@@ -2,7 +2,6 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useQueries } from '@tanstack/react-query'
-import { useChainsChartFilterState } from '~/components/Filters/useProtocolFilterState'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { Select } from '~/components/Select'
@@ -136,7 +135,7 @@ const updateRoute = (key, val, router: NextRouter) => {
 }
 
 const ChartFilters = () => {
-	const { selectedValues, setSelectedValues } = useChainsChartFilterState(supportedCharts)
+	const { selectedValues, setSelectedValues } = useChainsChartFilterState()
 
 	const selectedChartsNames = React.useMemo(() => {
 		return selectedValues.map((value) => supportedCharts.find((chart) => chart.key === value)?.name ?? '')
@@ -163,7 +162,7 @@ const ChartFilters = () => {
 			}
 			triggerProps={{
 				className:
-					'whitespace-nowrap *:shrink-0 flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto h-full'
+					'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) h-11'
 			}}
 			placement="bottom-end"
 		/>
@@ -172,7 +171,7 @@ const ChartFilters = () => {
 
 export function CompareChains({ chains }) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
-	const { selectedValues: selectedChartFilters } = useChainsChartFilterState(supportedCharts)
+	const { selectedValues: selectedChartFilters } = useChainsChartFilterState()
 
 	const router = useRouter()
 
@@ -226,17 +225,18 @@ export function CompareChains({ chains }) {
 
 			{selectedChains.length > 1 ? (
 				<div className="relative flex flex-col gap-1">
-					<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
-						{isLoading || !router.isReady ? (
-							<div className="flex h-full w-full items-center justify-center">
-								<LocalLoader />
-							</div>
-						) : (
+					{isLoading || !router.isReady ? (
+						<div className="grid min-h-[362px] place-items-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<LocalLoader />
+						</div>
+					) : (
+						<div className="min-h-[362px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<React.Suspense fallback={<></>}>
 								<LineAndBarChart title="" charts={chartData} />
 							</React.Suspense>
-						)}
-					</div>
+						</div>
+					)}
+
 					<div className="grid grow grid-cols-1 gap-1 xl:grid-cols-2">
 						{data?.filter(Boolean)?.map((chainData, i) => {
 							return (
@@ -322,4 +322,30 @@ const formatTvlChart = ({
 	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 	const isGovTokensEnabled = tvlSettings?.govtokens ? true : false
 	return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
+}
+
+export function useChainsChartFilterState() {
+	const router = useRouter()
+
+	const selectedValues = supportedCharts
+		.map((chart) => chart.key)
+		.filter((chart) => (chart === 'tvlChart' ? router.query[chart] !== 'false' : router.query[chart] === 'true'))
+
+	const setSelectedValues = (values) => {
+		router.push(
+			{
+				query: {
+					chains: router.query.chains,
+					...values.reduce((acc, value) => {
+						acc[value] = 'true'
+						return acc
+					}, {})
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	return { selectedValues, setSelectedValues }
 }

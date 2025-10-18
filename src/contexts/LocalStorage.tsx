@@ -83,12 +83,6 @@ const LIQS_CUMULATIVE = 'LIQS_CUMULATIVE'
 export const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS'
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES'
 
-// CHAINS COMPARE
-const TVL = 'tvlChart'
-const DEX_VOLUME = 'dexVolumeChart'
-const CHAIN_FEES = 'chainFeesChart'
-const CHAIN_REVENUE = 'chainRevenueChart'
-
 //custom columns
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
 
@@ -173,8 +167,6 @@ export const LIQS_SETTINGS = { LIQS_USING_USD, LIQS_SHOWING_INSPECTOR, LIQS_CUMU
 
 export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES }
 
-export const COMPARE_CHAINS_SETTINGS = { TVL, DEX_VOLUME, CHAIN_FEES, CHAIN_REVENUE }
-
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS) as Array<string>
 export const FEES_SETTINGS_KEYS = Object.values(FEES_SETTINGS)
@@ -182,7 +174,6 @@ export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = Object.values(BRIDGES_SETTINGS)
-export const COMPARE_CHAINS_SETTINGS_KEYS = Object.values(COMPARE_CHAINS_SETTINGS)
 
 export function subscribeToLocalStorage(callback: () => void) {
 	// Listen for localStorage changes (for other settings)
@@ -301,8 +292,6 @@ function getSettingKeys(type: TSETTINGTYPE) {
 			return LIQS_SETTINGS_KEYS
 		case 'bridges':
 			return BRIDGES_SETTINGS_KEYS
-		case 'compare_chains':
-			return COMPARE_CHAINS_SETTINGS_KEYS
 		default:
 			return []
 	}
