@@ -273,6 +273,7 @@ export type TSETTINGTYPE =
 	| 'liquidations'
 	| 'bridges'
 	| 'dimension_chart_interval'
+	| 'compare_chains'
 
 function getSettingKeys(type: TSETTINGTYPE) {
 	switch (type) {
