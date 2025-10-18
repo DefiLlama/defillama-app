@@ -28,6 +28,7 @@ export function useDashboardAPI() {
 				return []
 			}
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: isAuthenticated
 	})
 
@@ -43,6 +44,8 @@ export function useDashboardAPI() {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
+			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: any) => {

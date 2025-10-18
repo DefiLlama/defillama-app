@@ -28,6 +28,7 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 			}
 			return await dashboardAPI.listDashboardsPaginated({ page, limit }, authorizedFetch)
 		},
+		staleTime: 1000 * 60 * 60,
 		enabled: isAuthenticated && enabled
 	})
 

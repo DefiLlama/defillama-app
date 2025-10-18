@@ -312,6 +312,7 @@ export function ProDashboardAPIProvider({
 			}
 			return dashboard
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: !!initialDashboardId
 	})
 

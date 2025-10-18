@@ -1,5 +1,5 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
-import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
+import { useDashboardAPI, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
@@ -47,6 +47,9 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { dashboards } = useDashboardAPI()
+
+	console.log({ dashboards })
+
 	const { user, isAuthenticated } = useAuthContext()
 	const { hasFeature } = useFeatureFlagsContext()
 
