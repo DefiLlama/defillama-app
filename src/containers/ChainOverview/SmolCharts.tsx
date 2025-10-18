@@ -126,7 +126,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 
 	return (
 		<div className="relative" id="fees-generated-chart">
-			<div id={id} className="my-auto h-[156px]" />
+			<div id={id} className="my-auto h-[140px]" />
 		</div>
 	)
 }
