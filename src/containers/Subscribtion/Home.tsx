@@ -1,10 +1,9 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
-import { EnterpriseCardContent } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
+import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -33,7 +32,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	}
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
-	const router = useRouter()
+
 	const queryClient = useQueryClient()
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)
@@ -257,25 +256,37 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							ref={pricingContainer}
 							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
 						>
-							<FreeCard context="page" />
-							<SubscribePlusCard
-								context="page"
-								active={
-									subscription?.status === 'active' &&
-									subscription?.type === 'llamafeed' &&
-									subscription?.provider !== 'trial'
-								}
-							/>
-							<SubscribeProCard
-								context="page"
-								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
-							/>
+							<div
+								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+							>
+								<FreeCard />
+							</div>
+							<div
+								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+							>
+								<SubscribeProCard
+									context="page"
+									active={
+										subscription?.status === 'active' &&
+										subscription?.type === 'llamafeed' &&
+										subscription?.provider !== 'trial'
+									}
+								/>
+							</div>
+							<div
+								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+							>
+								<SubscribeAPICard
+									context="page"
+									isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
+								/>
+							</div>
 							<div
 								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
 							>
 								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
 									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-									<EnterpriseCardContent />
+									<SubscribeEnterpriseCard />
 								</span>
 							</div>
 						</div>

@@ -1,16 +1,13 @@
 import { useState } from 'react'
-import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { Tooltip } from '~/components/Tooltip'
 import { useIsClient } from '~/hooks'
 import { useDashboardCreation } from '~/hooks/useDashboardCreation'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 export const FullOldViewButton = () => {
-	const router = useRouter()
 	const { createDashboardWithDataset, isAuthenticated, isLoading } = useDashboardCreation()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
@@ -56,11 +53,7 @@ export const FullOldViewButton = () => {
 				)}
 				<span>Open in Dashboard</span>
 			</Tooltip>
-			{isClient && (
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-				</SubscribeModal>
-			)}
+			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 		</>
 	)
 }
