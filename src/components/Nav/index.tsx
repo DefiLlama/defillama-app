@@ -48,8 +48,6 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { dashboards } = useDashboardAPI()
 
-	console.log({ dashboards })
-
 	const { user, isAuthenticated } = useAuthContext()
 	const { hasFeature } = useFeatureFlagsContext()
 
