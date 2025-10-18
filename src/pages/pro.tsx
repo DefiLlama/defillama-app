@@ -11,11 +11,8 @@ import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 
-const SubscribeModal = lazy(() =>
-	import('~/components/Modal/SubscribeModal').then((m) => ({ default: m.SubscribeModal }))
-)
-const SubscribePlusCard = lazy(() =>
-	import('~/components/SubscribeCards/SubscribePlusCard').then((m) => ({ default: m.SubscribePlusCard }))
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 const CreateDashboardModal = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
@@ -273,11 +270,7 @@ function ProContent({
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<Suspense fallback={<></>}>
-						<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-					</Suspense>
-				</SubscribeModal>
+				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
 			</Suspense>
 		</div>
 	)

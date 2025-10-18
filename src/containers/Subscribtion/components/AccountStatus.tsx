@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
 import { resolveUserEmail } from '~/components/Nav/Account'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
@@ -255,32 +255,41 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 					</div>
 				</div>
 			</div>
-			<SubscribeModal isOpen={isModalOpen && !hasWallet} onClose={handleCloseWalletLinkModal}>
-				<div className="max-w-[420px] p-8">
-					<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#5C5CF9]/15 text-[#5C5CF9]">
-						<Icon name="wallet" height={24} width={24} />
+			<Ariakit.DialogProvider open={isModalOpen && !hasWallet} setOpen={() => handleCloseWalletLinkModal()}>
+				<Ariakit.Dialog
+					className="dialog gap-0 border border-[#4a4a50]/10 bg-[#131415] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
+					portal
+					unmountOnHide
+				>
+					<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white">
+						<Icon name="x" className="h-6 w-6" />
+					</Ariakit.DialogDismiss>
+					<div className="mx-auto max-w-[420px] p-8">
+						<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#5C5CF9]/15 text-[#5C5CF9]">
+							<Icon name="wallet" height={24} width={24} />
+						</div>
+						<h2 className="mb-2 text-center text-2xl font-bold text-white">Link your wallet</h2>
+						<p className="mb-6 text-center text-sm text-[#b4b7bc]">
+							Connect your wallet to unlock additional offers and speed up future sign-ins.
+						</p>
+						<div className="flex flex-col gap-3">
+							<button
+								onClick={handleLinkWallet}
+								disabled={loaders.addWallet}
+								className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-60"
+							>
+								{loaders.addWallet ? 'Linking wallet...' : 'Link Wallet'}
+							</button>
+							<button
+								onClick={handleCloseWalletLinkModal}
+								className="w-full rounded-lg bg-[#22242930] px-4 py-3 font-medium text-white transition-colors hover:bg-[#39393E]"
+							>
+								Maybe later
+							</button>
+						</div>
 					</div>
-					<h2 className="mb-2 text-center text-2xl font-bold text-white">Link your wallet</h2>
-					<p className="mb-6 text-center text-sm text-[#b4b7bc]">
-						Connect your wallet to unlock additional offers and speed up future sign-ins.
-					</p>
-					<div className="flex flex-col gap-3">
-						<button
-							onClick={handleLinkWallet}
-							disabled={loaders.addWallet}
-							className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-60"
-						>
-							{loaders.addWallet ? 'Linking wallet...' : 'Link Wallet'}
-						</button>
-						<button
-							onClick={handleCloseWalletLinkModal}
-							className="w-full rounded-lg bg-[#22242930] px-4 py-3 font-medium text-white transition-colors hover:bg-[#39393E]"
-						>
-							Maybe later
-						</button>
-					</div>
-				</div>
-			</SubscribeModal>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
 		</>
 	)
 }

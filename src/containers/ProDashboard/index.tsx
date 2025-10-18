@@ -1,5 +1,4 @@
 import { lazy, Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -15,11 +14,9 @@ import { Dashboard } from './services/DashboardAPI'
 import { DashboardItemConfig } from './types'
 
 const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
-const SubscribeModal = lazy(() =>
-	import('~/components/Modal/SubscribeModal').then((m) => ({ default: m.SubscribeModal }))
-)
-const SubscribePlusCard = lazy(() =>
-	import('~/components/SubscribeCards/SubscribePlusCard').then((m) => ({ default: m.SubscribePlusCard }))
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 const AddChartModal = lazy(() => import('./components/AddChartModal').then((m) => ({ default: m.AddChartModal })))
 const CreateDashboardModal = lazy(() =>
@@ -37,7 +34,6 @@ const AIGenerationHistory = lazy(() =>
 const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: m.Rating })))
 
 function ProDashboardContent() {
-	const router = useRouter()
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
 	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
@@ -383,11 +379,7 @@ function ProDashboardContent() {
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<Suspense fallback={<></>}>
-						<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-					</Suspense>
-				</SubscribeModal>
+				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
 			</Suspense>
 		</div>
 	)
