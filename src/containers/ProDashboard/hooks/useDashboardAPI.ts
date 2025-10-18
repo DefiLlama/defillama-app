@@ -7,6 +7,25 @@ import { TimePeriod } from '../ProDashboardAPIContext'
 import { dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
+export function useGetLiteDashboards() {
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
+
+	return useQuery({
+		queryKey: ['lite-dashboards', user?.id],
+		queryFn: async () => {
+			if (!isAuthenticated) return []
+			try {
+				return await dashboardAPI.listLiteDashboards(authorizedFetch)
+			} catch (error) {
+				console.log('Failed to load lite dashboards:', error)
+				return []
+			}
+		},
+		staleTime: 1000 * 60 * 5,
+		enabled: isAuthenticated && !!user?.id
+	})
+}
+
 export function useDashboardAPI() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
@@ -18,7 +37,7 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards'],
+		queryKey: ['dashboards', isAuthenticated],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {

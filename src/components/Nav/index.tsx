@@ -1,5 +1,5 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
-import { useDashboardAPI, useMyDashboards } from '~/containers/ProDashboard/hooks'
+import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
@@ -46,7 +46,7 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 )
 
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
-	const { dashboards } = useDashboardAPI()
+	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { user, isAuthenticated } = useAuthContext()
 	const { hasFeature } = useFeatureFlagsContext()
@@ -68,8 +68,8 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	}, [showAttentionIcon, hasLlamaAI])
 
 	const userDashboards = useMemo(
-		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
-		[dashboards]
+		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
+		[liteDashboards]
 	)
 	const pinnedMetrics = useSyncExternalStore(
 		subscribeToPinnedMetrics,

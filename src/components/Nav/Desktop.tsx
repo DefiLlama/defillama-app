@@ -169,7 +169,6 @@ const NavDetailsSection = React.memo(function NavDetailsSection({
 	return (
 		<details
 			className={`group ${category === 'More' ? 'mt-auto' : ''}`}
-			open={category === 'More'}
 			onToggle={(e) => {
 				if (e.currentTarget.open) {
 					setTimeout(() => {

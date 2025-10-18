@@ -40,6 +40,11 @@ export interface Dashboard {
 	> | null
 }
 
+interface LiteDashboard {
+	id: string
+	name: string
+}
+
 export interface DashboardError {
 	message: string
 	status: number
@@ -67,6 +72,14 @@ class DashboardAPIService {
 	async listDashboards(authorizedFetch: (url: string, options?: any) => Promise<Response>): Promise<Dashboard[]> {
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards`)
 		const data = await this.handleResponse<{ items: Dashboard[] }>(response)
+		return data.items || []
+	}
+
+	async listLiteDashboards(
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<LiteDashboard[]> {
+		const response = await authorizedFetch(`${AUTH_SERVER}/lite/dashboards`)
+		const data = await this.handleResponse<{ items: LiteDashboard[] }>(response)
 		return data.items || []
 	}
 
