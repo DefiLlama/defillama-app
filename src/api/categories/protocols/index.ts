@@ -668,7 +668,7 @@ export async function getCategoryPerformance() {
 export async function getCoinPerformance(categoryId) {
 	// for coins per category we fetch the full 365 series per coin in a given category
 	// we calculate the different pct change series in here which can all be derived from that single series
-	// using different refernce prices (eg 7d, 30d, ytd, 365d)
+	// using different reference prices (eg 7d, 30d, ytd, 365d)
 	const calculateCumulativePercentageChange = (data, mapping, timeframe) => {
 		// helper func to filter data based on timeframe
 		const filterData = (data, timeframe) => {
