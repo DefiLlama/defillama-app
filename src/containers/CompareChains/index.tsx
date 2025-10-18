@@ -98,13 +98,13 @@ const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 
 	const finalCharts = {}
 
+	let colors = getNDistinctColors(selectedCharts.length * chainsData.length)
+	let colorIndex = 0
 	for (const chart of selectedCharts) {
 		const targetChart = supportedCharts.find((c) => c.key === chart)
 		if (!targetChart) continue
 
 		const dateInMs = chart === 'tvlChart'
-		let colors = getNDistinctColors(chainsData.length)
-		let i = 0
 
 		for (const chainData of chainsData) {
 			const name = `${chainData.chain} - ${targetChart.name}`
@@ -113,9 +113,9 @@ const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 				stack: name,
 				data: chainData[targetChart.key].map((data) => [!dateInMs ? Number(data[0]) * 1e3 : data[0], data[1]]),
 				type: chart === 'tvlChart' ? 'line' : 'bar',
-				color: colors[i]
+				color: colors[colorIndex]
 			}
-			i++
+			colorIndex++
 		}
 	}
 
@@ -138,6 +138,10 @@ const updateRoute = (key, val, router: NextRouter) => {
 const ChartFilters = () => {
 	const { selectedValues, setSelectedValues } = useChainsChartFilterState(supportedCharts)
 
+	const selectedChartsNames = React.useMemo(() => {
+		return selectedValues.map((value) => supportedCharts.find((chart) => chart.key === value)?.name ?? '')
+	}, [selectedValues])
+
 	return (
 		<Select
 			allValues={supportedCharts}
@@ -146,7 +150,17 @@ const ChartFilters = () => {
 			selectOnlyOne={(newOption) => {
 				setSelectedValues([newOption])
 			}}
-			label="Charts to Display"
+			labelType="none"
+			label={
+				<>
+					<span>Charts: </span>
+					<span className="text-(--link-text)">
+						{selectedChartsNames.length > 2
+							? `${selectedChartsNames[0]} + ${selectedChartsNames.length - 1} others`
+							: selectedChartsNames.join(', ')}
+					</span>
+				</>
+			}
 			triggerProps={{
 				className:
 					'whitespace-nowrap *:shrink-0 flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto h-full'
