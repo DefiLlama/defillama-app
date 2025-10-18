@@ -1535,7 +1535,7 @@ const PromptInput = memo(function PromptInput({
 								value={id}
 								focusOnHover
 								onClick={onItemClick({ id, name, type })}
-								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] data-[active-item]:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
 							>
 								<TokenLogo logo={logo} size={20} />
 								<span className="flex items-center gap-1.5">
