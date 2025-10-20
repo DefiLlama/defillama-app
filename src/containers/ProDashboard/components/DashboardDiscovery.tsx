@@ -1,10 +1,10 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
-import { DashboardCardSkeleton } from './DashboardCardSkeleton'
 import { DashboardSearch } from './DashboardSearch'
 
 const viewModes = ['grid', 'list'] as const
@@ -226,15 +226,7 @@ export function DashboardDiscovery() {
 			{isLoading ? (
 				<>
 					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
-					<div
-						className={
-							viewMode === 'grid' ? 'grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4' : 'space-y-4'
-						}
-					>
-						{Array.from({ length: PAGE_LIMIT }).map((_, i) => (
-							<DashboardCardSkeleton key={`dashboard-skeleton-${i}`} viewMode={viewMode} />
-						))}
-					</div>
+					<LoadingSkeleton viewMode={viewMode} items={PAGE_LIMIT} />
 				</>
 			) : dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
