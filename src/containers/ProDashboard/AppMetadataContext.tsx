@@ -133,13 +133,15 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 					const flagKey = PROTOCOL_FLAG_BY_BUILDER_METRIC[metric]
 					if (agg.flags?.[flagKey]) builderMetrics.add(metric)
 				}
-				protocolsBySlug.set(slug, {
+				const record: ProtocolRecord = {
 					slug,
 					displayName: agg.displayName,
 					chains: Array.from(agg.chains),
 					builderMetrics,
 					flags: agg.flags
-				})
+				}
+				protocolsBySlug.set(slug, record)
+				protocolsBySlug.set(slug.toLowerCase(), record)
 			}
 		}
 
@@ -163,12 +165,13 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 	}, [protocolsRaw, chainsRaw])
 
 	const hasProtocolBuilderMetric = (slug: string, metric: BuilderMetric) => {
-		const rec = protocolsBySlug.get(slug)
+		const rec = protocolsBySlug.get(slug) ?? protocolsBySlug.get(slug.toLowerCase())
 		return rec ? rec.builderMetrics.has(metric) : false
 	}
 
 	const availableProtocolChartTypes = (slug: string, opts?: { hasGeckoId?: boolean }) => {
-		const flags = protocolsBySlug.get(slug)?.flags
+		const record = protocolsBySlug.get(slug) ?? protocolsBySlug.get(slug.toLowerCase())
+		const flags = record?.flags
 		if (!flags) return []
 		const types = new Set<string>()
 		if (flags.tvl) types.add('tvl')

@@ -198,6 +198,7 @@ export interface ProtocolsTableConfig {
 		errorMessage?: string
 	}>
 	activeViewId?: string
+	activePresetId?: string
 	datasetType?:
 		| 'stablecoins'
 		| 'cex'

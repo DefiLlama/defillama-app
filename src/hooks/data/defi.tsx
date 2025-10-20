@@ -177,6 +177,19 @@ interface IChainTvl {
 
 type ChainTvlsByDay = [string, IChainTvl]
 
+type DimensionDatasetItem = {
+	name?: string
+	displayName?: string
+	total24h?: number
+	total7d?: number
+	total30d?: number
+	total1y?: number
+	change_1d?: number
+	change_7d?: number
+	change_1m?: number
+	chains?: string[]
+}
+
 export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: IGroupTvlsByDay) {
 	let extraTvls = { ...extraTvlsEnabled }
 
@@ -249,6 +262,10 @@ export const formatProtocolsList = ({
 	feesData,
 	perpsData,
 	openInterestData,
+	earningsData,
+	aggregatorsData,
+	bridgeAggregatorsData,
+	optionsData,
 	noSubrows
 }: {
 	protocols: IFormattedProtocol[]
@@ -258,6 +275,10 @@ export const formatProtocolsList = ({
 	feesData?: IOverviewProps['protocols']
 	perpsData?: IOverviewProps['protocols']
 	openInterestData?: IOverviewProps['protocols']
+	earningsData?: DimensionDatasetItem[]
+	aggregatorsData?: DimensionDatasetItem[]
+	bridgeAggregatorsData?: DimensionDatasetItem[]
+	optionsData?: DimensionDatasetItem[]
 	noSubrows?: boolean
 }): IFormattedProtocol[] => {
 	const checkExtras = {
@@ -351,8 +372,14 @@ export const formatProtocolsList = ({
 			fees_1y: protocol.total1y ?? undefined,
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
+			feesChange_1d: protocol.feesChange_1d ?? allProtocols[protocolName].feesChange_1d ?? undefined,
+			feesChange_7d: protocol.feesChange_7d ?? allProtocols[protocolName].feesChange_7d ?? undefined,
+			feesChange_1m: protocol.feesChange_1m ?? allProtocols[protocolName].feesChange_1m ?? undefined,
 			feesChange_7dover7d: protocol.feesChange_7dover7d ?? undefined,
 			feesChange_30dover30d: protocol.feesChange_30dover30d ?? undefined,
+			revenueChange_1d: protocol.revenueChange_1d ?? allProtocols[protocolName].revenueChange_1d ?? undefined,
+			revenueChange_7d: protocol.revenueChange_7d ?? allProtocols[protocolName].revenueChange_7d ?? undefined,
+			revenueChange_1m: protocol.revenueChange_1m ?? allProtocols[protocolName].revenueChange_1m ?? undefined,
 			revenueChange_7dover7d: protocol.revenueChange_7dover7d ?? undefined,
 			revenueChange_30dover30d: protocol.revenueChange_30dover30d ?? undefined,
 			average_1y: protocol.monthlyAverage1y ?? undefined,
@@ -363,7 +390,9 @@ export const formatProtocolsList = ({
 			treasuryRevenue_24h: protocol.dailyProtocolRevenue || undefined,
 			supplySideRevenue_24h: protocol.dailySupplySideRevenue || undefined,
 			userFees_24h: protocol.dailyUserFees || undefined,
-			cumulativeFees: protocol.totalAllTime || undefined
+			cumulativeFees: protocol.totalAllTime || undefined,
+			pf: protocol.pf ?? allProtocols[protocolName].pf ?? undefined,
+			ps: protocol.ps ?? allProtocols[protocolName].ps ?? undefined
 		}
 	}
 
@@ -375,10 +404,13 @@ export const formatProtocolsList = ({
 		allProtocols[protocolName] = {
 			...allProtocols[protocolName],
 			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
-			volume_24h: protocol.total24h,
-			volume_7d: protocol.total7d,
-			volumeChange_7d: protocol['change_7dover7d'],
-			cumulativeVolume: protocol.totalAllTime
+			volume_24h: protocol.total24h ?? undefined,
+			volume_7d: protocol.total7d ?? undefined,
+			volume_30d: protocol.total30d ?? undefined,
+			volumeChange_1d: protocol.change_1d ?? allProtocols[protocolName].volumeChange_1d,
+			volumeChange_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? allProtocols[protocolName].volumeChange_7d,
+			volumeChange_1m: protocol.change_1m ?? allProtocols[protocolName].volumeChange_1m,
+			cumulativeVolume: protocol.totalAllTime ?? allProtocols[protocolName].cumulativeVolume
 		}
 	}
 
@@ -390,10 +422,13 @@ export const formatProtocolsList = ({
 		allProtocols[protocolName] = {
 			...allProtocols[protocolName],
 			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
-			perps_volume_24h: protocol.total24h,
-			perps_volume_7d: protocol.total7d,
-			perps_volume_30d: protocol.total30d,
-			perps_volume_change_7d: protocol['change_7dover7d']
+			perps_volume_24h: protocol.total24h ?? undefined,
+			perps_volume_7d: protocol.total7d ?? undefined,
+			perps_volume_30d: protocol.total30d ?? undefined,
+			perps_volume_change_1d: protocol.change_1d ?? allProtocols[protocolName].perps_volume_change_1d,
+			perps_volume_change_7d:
+				protocol.change_7d ?? protocol['change_7dover7d'] ?? allProtocols[protocolName].perps_volume_change_7d,
+			perps_volume_change_1m: protocol.change_1m ?? allProtocols[protocolName].perps_volume_change_1m
 		}
 	}
 
@@ -409,10 +444,116 @@ export const formatProtocolsList = ({
 		}
 	}
 
+	for (const protocol of earningsData ?? []) {
+		const protocolName = protocol.name?.toLowerCase()
+		if (!protocolName) continue
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
+		}
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			earnings_24h: protocol.total24h ?? allProtocols[protocolName].earnings_24h,
+			earnings_7d: protocol.total7d ?? allProtocols[protocolName].earnings_7d,
+			earnings_30d: protocol.total30d ?? allProtocols[protocolName].earnings_30d,
+			earnings_1y: (protocol as any)?.total1y ?? allProtocols[protocolName].earnings_1y,
+			earningsChange_1d: protocol.change_1d ?? allProtocols[protocolName].earningsChange_1d,
+			earningsChange_7d: protocol.change_7d ?? allProtocols[protocolName].earningsChange_7d,
+			earningsChange_1m: protocol.change_1m ?? allProtocols[protocolName].earningsChange_1m
+		}
+	}
+
+	const mergeVolumeDataset = (
+		dataset: DimensionDatasetItem[] | undefined,
+		assign: (protocol: IFormattedProtocol, item: DimensionDatasetItem) => IFormattedProtocol
+	) =>
+		(dataset ?? []).forEach((item) => {
+			const protocolName = item.name?.toLowerCase()
+			if (!protocolName) return
+			if (!allProtocols[protocolName]) {
+				allProtocols[protocolName] = { name: item.displayName ?? item.name } as IFormattedProtocol
+			}
+			allProtocols[protocolName] = assign(
+				{
+					...allProtocols[protocolName],
+					chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(item.chains ?? [])]))
+				},
+				item
+			)
+		})
+
+	mergeVolumeDataset(aggregatorsData, (protocol, item) => ({
+		...protocol,
+		aggregators_volume_24h: item.total24h ?? protocol.aggregators_volume_24h,
+		aggregators_volume_7d: item.total7d ?? protocol.aggregators_volume_7d,
+		aggregators_volume_30d: item.total30d ?? protocol.aggregators_volume_30d,
+		aggregators_volume_change_1d: item.change_1d ?? protocol.aggregators_volume_change_1d,
+		aggregators_volume_change_7d: item.change_7d ?? protocol.aggregators_volume_change_7d
+	}))
+
+	mergeVolumeDataset(bridgeAggregatorsData, (protocol, item) => ({
+		...protocol,
+		bridge_aggregators_volume_24h: item.total24h ?? protocol.bridge_aggregators_volume_24h,
+		bridge_aggregators_volume_7d: item.total7d ?? protocol.bridge_aggregators_volume_7d,
+		bridge_aggregators_volume_30d: item.total30d ?? protocol.bridge_aggregators_volume_30d,
+		bridge_aggregators_volume_change_1d: item.change_1d ?? protocol.bridge_aggregators_volume_change_1d,
+		bridge_aggregators_volume_change_7d: item.change_7d ?? protocol.bridge_aggregators_volume_change_7d
+	}))
+
+	mergeVolumeDataset(optionsData, (protocol, item) => ({
+		...protocol,
+		options_volume_24h: item.total24h ?? protocol.options_volume_24h,
+		options_volume_7d: item.total7d ?? protocol.options_volume_7d,
+		options_volume_30d: item.total30d ?? protocol.options_volume_30d,
+		options_volume_change_1d: item.change_1d ?? protocol.options_volume_change_1d,
+		options_volume_change_7d: item.change_7d ?? protocol.options_volume_change_7d
+	}))
+
 	const finalProtocols = Object.values(allProtocols)
 
+	const totalSpot24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_24h ?? 0), 0)
+	const totalSpot7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_7d ?? 0), 0)
+	const totalPerps24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.perps_volume_24h ?? 0), 0)
+	const totalAggregators24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.aggregators_volume_24h ?? 0), 0)
+	const totalAggregators7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.aggregators_volume_7d ?? 0), 0)
+	const totalBridgeAggregators24h = finalProtocols.reduce(
+		(sum, protocol) => sum + (protocol.bridge_aggregators_volume_24h ?? 0),
+		0
+	)
+	const totalOptions24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.options_volume_24h ?? 0), 0)
+
+	const protocolsWithShares = finalProtocols.map((protocol) => ({
+		...protocol,
+		volumeDominance_24h:
+			totalSpot24h > 0 && protocol.volume_24h
+				? (protocol.volume_24h / totalSpot24h) * 100
+				: protocol.volumeDominance_24h,
+		volumeMarketShare7d:
+			totalSpot7d > 0 && protocol.volume_7d ? (protocol.volume_7d / totalSpot7d) * 100 : protocol.volumeMarketShare7d,
+		perps_volume_dominance_24h:
+			totalPerps24h > 0 && protocol.perps_volume_24h
+				? (protocol.perps_volume_24h / totalPerps24h) * 100
+				: protocol.perps_volume_dominance_24h,
+		aggregators_volume_dominance_24h:
+			totalAggregators24h > 0 && protocol.aggregators_volume_24h
+				? (protocol.aggregators_volume_24h / totalAggregators24h) * 100
+				: protocol.aggregators_volume_dominance_24h,
+		aggregators_volume_marketShare7d:
+			totalAggregators7d > 0 && protocol.aggregators_volume_7d
+				? (protocol.aggregators_volume_7d / totalAggregators7d) * 100
+				: protocol.aggregators_volume_marketShare7d,
+		bridge_aggregators_volume_dominance_24h:
+			totalBridgeAggregators24h > 0 && protocol.bridge_aggregators_volume_24h
+				? (protocol.bridge_aggregators_volume_24h / totalBridgeAggregators24h) * 100
+				: protocol.bridge_aggregators_volume_dominance_24h,
+		options_volume_dominance_24h:
+			totalOptions24h > 0 && protocol.options_volume_24h
+				? (protocol.options_volume_24h / totalOptions24h) * 100
+				: protocol.options_volume_dominance_24h
+	}))
+
 	return (
-		parentProtocols ? groupProtocols(finalProtocols, parentProtocols, noSubrows) : finalProtocols
+		parentProtocols ? groupProtocols(protocolsWithShares, parentProtocols, noSubrows) : protocolsWithShares
 	) as Array<IFormattedProtocol>
 }
 

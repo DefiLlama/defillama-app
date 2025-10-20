@@ -255,6 +255,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					columnVisibility={item.columnVisibility}
 					customColumns={item.customColumns}
 					activeViewId={item.activeViewId}
+					activePresetId={item.activePresetId}
 				/>
 			)
 		}
