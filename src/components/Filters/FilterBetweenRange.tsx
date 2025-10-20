@@ -1,8 +1,10 @@
-import { FormEventHandler, ReactNode } from 'react'
+import { FormEventHandler, ReactNode, useState } from 'react'
+import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { NestedMenu } from '~/components/NestedMenu'
 import { cn } from '~/utils/cn'
 import { Icon } from '../Icon'
+import { TagGroup } from '../TagGroup'
 
 interface IFilterBetweenRange {
 	name: string
@@ -15,6 +17,7 @@ interface IFilterBetweenRange {
 	variant?: 'primary' | 'secondary'
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
+	presets?: object
 }
 
 const getVariantClasses = (variant: string) => {
@@ -36,20 +39,21 @@ export function FilterBetweenRange({
 	max,
 	variant = 'primary',
 	triggerClassName,
-	placement = 'bottom-end'
+	placement = 'bottom-end',
+	presets
 }: IFilterBetweenRange) {
 	const popover = Ariakit.usePopoverStore({
 		placement
 	})
+	const router = useRouter()
 
 	if (nestedMenu) {
 		return (
 			<NestedMenu label={name}>
-				<Form onSubmit={onSubmit} onClear={onClear} min={min} max={max} />
+				<Form onSubmit={onSubmit} onClear={onClear} min={min} max={max} presets={presets} />
 			</NestedMenu>
 		)
 	}
-
 	return (
 		<Ariakit.PopoverProvider store={popover}>
 			<Ariakit.PopoverDisclosure data-variant={variant} className={cn(getVariantClasses(variant), triggerClassName)}>
@@ -72,7 +76,7 @@ export function FilterBetweenRange({
 				</Ariakit.PopoverDismiss>
 
 				<div className="mx-auto w-full sm:w-[260px]">
-					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
+					<Form key={router.asPath} min={min} max={max} onSubmit={onSubmit} onClear={onClear} presets={presets} />
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
@@ -83,13 +87,17 @@ function Form({
 	onSubmit,
 	onClear,
 	min,
-	max
+	max,
+	presets
 }: {
 	onSubmit: FormEventHandler<HTMLFormElement>
 	onClear: () => void
 	min: number | string | null
 	max: number | string | null
+	presets?: object
 }) {
+	const [minValue, setMinValue] = useState(min || '')
+	const [maxValue, setMaxValue] = useState(max || '')
 	return (
 		<form onSubmit={onSubmit} onReset={onClear} className="flex flex-col gap-3 p-3">
 			<label className="flex flex-col gap-1">
@@ -98,19 +106,26 @@ function Form({
 					type="number"
 					name="min"
 					className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-					defaultValue={min || ''}
+					value={minValue}
+					onChange={(e) => setMinValue(e.target.value)}
 				/>
 			</label>
+			{presets && (
+				<TagGroup values={Object.keys(presets)} selectedValue="" setValue={(key) => setMinValue(presets[key])} />
+			)}
 			<label className="flex flex-col gap-1">
 				<span>Max</span>
 				<input
 					type="number"
 					name="max"
 					className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-					defaultValue={max || ''}
+					value={maxValue}
+					onChange={(e) => setMaxValue(e.target.value)}
 				/>
 			</label>
-
+			{presets && (
+				<TagGroup values={Object.keys(presets)} selectedValue="" setValue={(key) => setMaxValue(presets[key])} />
+			)}
 			<div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row">
 				<button
 					type="reset"
