@@ -31,11 +31,7 @@ export const Menu = React.memo(function Menu({
 				<Icon name="menu" height={16} width={16} />
 			</Ariakit.DialogDisclosure>
 
-			<Ariakit.Dialog
-				data-active={show}
-				className="fixed top-0 right-0 bottom-0 left-0 hidden bg-black/10 data-[active=true]:block"
-				onClick={() => setShow(false)}
-			>
+			<Ariakit.Dialog unmountOnHide>
 				<nav
 					className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
 					onClick={(event) => event.stopPropagation()}
