@@ -1,4 +1,4 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -1284,7 +1284,6 @@ const PromptInput = memo(function PromptInput({
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
 	const isProgrammaticUpdateRef = useRef(false)
-	const [caretOffset, setCaretOffset] = useState<number | null>(null)
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
@@ -1292,22 +1291,6 @@ const PromptInput = memo(function PromptInput({
 	const { data: matches } = useGetEntities(searchValue)
 
 	const hasMatches = matches && matches.length > 0
-
-	useLayoutEffect(() => {
-		if (caretOffset != null && promptInputRef.current) {
-			// Use requestAnimationFrame to ensure DOM has fully updated before setting selection
-			// This is especially important on mobile devices where text input updates can be delayed
-			requestAnimationFrame(() => {
-				if (promptInputRef.current) {
-					promptInputRef.current.setSelectionRange(caretOffset, caretOffset)
-				}
-			})
-			// Clear the offset after applying it to prevent unnecessary re-renders
-			setCaretOffset(null)
-		}
-		// promptInputRef is stable (ref object), safe to exclude from deps
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [caretOffset])
 
 	// Re-calculates the position of the combobox popover in case the changes on
 	// the textarea value have shifted the trigger character.
@@ -1342,7 +1325,6 @@ const PromptInput = memo(function PromptInput({
 		setValue('')
 		combobox.setValue('')
 		combobox.hide()
-
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = ''
 			highlightRef.current.textContent = ''
@@ -1468,8 +1450,6 @@ const PromptInput = memo(function PromptInput({
 				combobox.hide()
 
 				setValue(newValue)
-				const nextCaretOffset = offset + name.length + 1
-				setCaretOffset(nextCaretOffset)
 
 				if (highlightRef.current) {
 					highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
@@ -1534,7 +1514,7 @@ const PromptInput = memo(function PromptInput({
 						disabled={isPending && !isStreaming}
 					/>
 					<div
-						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 leading-normal break-words whitespace-pre-wrap"
+						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
 						ref={highlightRef}
 					/>
 				</div>
