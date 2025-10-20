@@ -1455,21 +1455,24 @@ const PromptInput = memo(function PromptInput({
 				entitiesMapRef.current.set(name, { id, name, type })
 
 				const getNewValue = replaceValue(offset, searchValue, name)
-
-				// Mark as programmatic update to prevent onChange from reopening combobox
-				isProgrammaticUpdateRef.current = true
+				const newValue = getNewValue(value)
 
 				// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
 				combobox.setValue('')
 				combobox.hide()
 
-				setValue(getNewValue)
+				setValue(newValue)
 				const nextCaretOffset = offset + name.length + 1
 				setCaretOffset(nextCaretOffset)
 
 				if (highlightRef.current) {
-					highlightRef.current.innerHTML = highlightWord(getNewValue(value), Array.from(entitiesRef.current))
+					highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
 				}
+
+				// Ensure textarea remains focused after selection
+				setTimeout(() => {
+					textarea.focus()
+				}, 0)
 			},
 		// promptInputRef, highlightRef, entitiesRef, entitiesMapRef, isProgrammaticUpdateRef are stable refs
 		// eslint-disable-next-line react-hooks/exhaustive-deps
