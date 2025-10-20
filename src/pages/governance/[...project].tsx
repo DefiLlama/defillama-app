@@ -220,7 +220,7 @@ export default function Protocol({ data, governanceType }) {
 							rel="noopener noreferrer"
 							href={`https://github.com/${data.metadata.github}`}
 						>
-							<span>Github</span>
+							<span>GitHub</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
 						</a>
 					)}
