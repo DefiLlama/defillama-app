@@ -1294,8 +1294,14 @@ const PromptInput = memo(function PromptInput({
 	const hasMatches = matches && matches.length > 0
 
 	useLayoutEffect(() => {
-		if (caretOffset != null) {
-			promptInputRef.current?.setSelectionRange(caretOffset, caretOffset)
+		if (caretOffset != null && promptInputRef.current) {
+			// Use requestAnimationFrame to ensure DOM has fully updated before setting selection
+			// This is especially important on mobile devices where text input updates can be delayed
+			requestAnimationFrame(() => {
+				if (promptInputRef.current) {
+					promptInputRef.current.setSelectionRange(caretOffset, caretOffset)
+				}
+			})
 			// Clear the offset after applying it to prevent unnecessary re-renders
 			setCaretOffset(null)
 		}
