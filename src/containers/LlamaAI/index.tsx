@@ -1383,6 +1383,18 @@ const PromptInput = memo(function PromptInput({
 			}
 		}
 
+		if (event.key === 'Tab' && combobox.getState().renderedItems.length > 0) {
+			event.preventDefault()
+			const activeValue = combobox.getState().activeValue
+			if (activeValue && matches && matches.length > 0) {
+				const activeItem = matches.find((item) => item.id === activeValue)
+				if (activeItem) {
+					const { id, name, type } = activeItem
+					onItemClick({ id, name, type })()
+				}
+			}
+		}
+
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
 			const finalEntities = getFinalEntities()
