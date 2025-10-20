@@ -1392,9 +1392,16 @@ const PromptInput = memo(function PromptInput({
 		}
 	}
 
+	const handleScroll = () => {
+		// Sync highlightRef scroll with textarea scroll
+		syncHighlightScroll(promptInputRef, highlightRef)
+		// Re-calculate the position of the combobox popover
+		combobox.render()
+	}
+
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		if (promptInputRef.current) {
-			setInputSize(event, promptInputRef)
+			setInputSize(event, promptInputRef, highlightRef)
 		}
 
 		const currentValue = event.target.value
@@ -1478,45 +1485,47 @@ const PromptInput = memo(function PromptInput({
 					handleSubmit(promptValue, finalEntities)
 				}}
 			>
-				<div className="relative w-full">
-					<Ariakit.Combobox
-						store={combobox}
-						autoSelect
-						value={value}
-						// We'll overwrite how the combobox popover is shown, so we disable
-						// the default behaviors.
-						showOnClick={false}
-						showOnChange={false}
-						showOnKeyPress={false}
-						// To the combobox state, we'll only set the value after the trigger
-						// character (the search value), so we disable the default behavior.
-						setValueOnChange={false}
-						render={
-							<textarea
-								ref={promptInputRef}
-								rows={1}
-								maxLength={2000}
-								placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
-								// We need to re-calculate the position of the combobox popover
-								// when the textarea contents are scrolled.
-								onScroll={combobox.render}
-								// Hide the combobox popover whenever the selection changes.
-								onPointerDown={combobox.hide}
-								onChange={onChange}
-								onKeyDown={onKeyDown}
-								name="prompt"
-								className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black placeholder:text-[#666] max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
-								autoCorrect="off"
-								autoComplete="off"
-								spellCheck="false"
-							/>
-						}
-						disabled={isPending && !isStreaming}
-					/>
-					<div
-						className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] p-4 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
-						ref={highlightRef}
-					/>
+				<div className="overflow-hidden">
+					<div className="relative w-full">
+						<Ariakit.Combobox
+							store={combobox}
+							autoSelect
+							value={value}
+							// We'll overwrite how the combobox popover is shown, so we disable
+							// the default behaviors.
+							showOnClick={false}
+							showOnChange={false}
+							showOnKeyPress={false}
+							// To the combobox state, we'll only set the value after the trigger
+							// character (the search value), so we disable the default behavior.
+							setValueOnChange={false}
+							render={
+								<textarea
+									ref={promptInputRef}
+									rows={1}
+									maxLength={2000}
+									placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+									// We need to re-calculate the position of the combobox popover
+									// when the textarea contents are scrolled, and sync highlightRef scroll.
+									onScroll={handleScroll}
+									// Hide the combobox popover whenever the selection changes.
+									onPointerDown={combobox.hide}
+									onChange={onChange}
+									onKeyDown={onKeyDown}
+									name="prompt"
+									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black placeholder:text-[#666] max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									autoCorrect="off"
+									autoComplete="off"
+									spellCheck="false"
+								/>
+							}
+							disabled={isPending && !isStreaming}
+						/>
+						<div
+							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+							ref={highlightRef}
+						/>
+					</div>
 				</div>
 				{hasMatches && (
 					<Ariakit.ComboboxPopover
@@ -2213,7 +2222,13 @@ function highlightWord(text: string, words: string[]) {
 	return escapedText.replace(regex, '<span class="highlight">$1</span>')
 }
 
-function setInputSize(event, promptInputRef) {
+function syncHighlightScroll(promptInputRef, highlightRef) {
+	if (promptInputRef?.current && highlightRef?.current) {
+		highlightRef.current.scrollTop = promptInputRef.current.scrollTop
+	}
+}
+
+function setInputSize(event, promptInputRef, highlightRef) {
 	try {
 		// Calculate rows based on newlines and character length
 		const text = event.target.value
@@ -2235,6 +2250,19 @@ function setInputSize(event, promptInputRef) {
 
 		// Set rows with minimum 1 and maximum 5
 		promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+
+		// Sync highlightRef height and scroll to match textarea exactly
+		if (highlightRef?.current) {
+			// Use requestAnimationFrame to ensure DOM has updated after rows change
+			requestAnimationFrame(() => {
+				if (textarea && highlightRef.current) {
+					const textareaHeight = textarea.offsetHeight
+					highlightRef.current.style.height = `${textareaHeight}px`
+					// Sync scroll position
+					syncHighlightScroll(promptInputRef, highlightRef)
+				}
+			})
+		}
 	} catch (error) {
 		console.error('Error calculating rows:', error)
 	}
