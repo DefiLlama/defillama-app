@@ -370,8 +370,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 				return authData
 			} catch (error) {
-				console.log('Github sign-in error:', error)
-				throw new Error('Failed to sign in with Github')
+				console.log('GitHub sign-in error:', error)
+				throw new Error('Failed to sign in with GitHub')
 			}
 		},
 		onSuccess: () => {
@@ -380,7 +380,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			setIsAuthenticated(true)
 		},
 		onError: (error) => {
-			const message = error instanceof Error ? error.message : 'Failed to connect with Github'
+			const message = error instanceof Error ? error.message : 'Failed to connect with GitHub'
 			toast.error(message)
 		}
 	})
@@ -393,10 +393,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					queryKey: ['subscription', pb.authStore.record?.id]
 				})
 				onSuccess?.()
-				toast.success('Successfully signed in with Github')
+				toast.success('Successfully signed in with GitHub')
 				return Promise.resolve()
 			} catch (error) {
-				console.log('Github sign-in error:', error)
+				console.log('GitHub sign-in error:', error)
 				return Promise.reject(error)
 			}
 		},
