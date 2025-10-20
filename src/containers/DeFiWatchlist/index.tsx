@@ -99,8 +99,14 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 						setSelectedPortfolio(portfolio)
 						setSelectedChainPortfolio(portfolio)
 					}}
-					addPortfolio={addPortfolio}
-					removePortfolio={removePortfolio}
+					addPortfolio={(name) => {
+						addPortfolio(name)
+						setSelectedChainPortfolio(name)
+					}}
+					removePortfolio={(name) => {
+						removePortfolio(name)
+						setSelectedChainPortfolio(DEFAULT_PORTFOLIO_NAME)
+					}}
 				/>
 				{protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />}
 
