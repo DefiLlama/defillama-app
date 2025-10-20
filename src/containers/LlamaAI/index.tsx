@@ -1014,7 +1014,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-72px)] flex-1 flex-nowrap">
+			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap lg:max-h-[calc(100dvh-72px)]">
 				{!readOnly &&
 					(sidebarVisible ? (
 						<ChatHistorySidebar
@@ -1061,6 +1061,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
 											initialValue={prompt}
+											placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1253,6 +1254,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
+										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
 									/>
 								)}
 							</div>
@@ -1270,7 +1272,8 @@ const PromptInput = memo(function PromptInput({
 	isPending,
 	handleStopRequest,
 	isStreaming,
-	initialValue
+	initialValue,
+	placeholder
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
@@ -1278,6 +1281,7 @@ const PromptInput = memo(function PromptInput({
 	handleStopRequest?: () => void
 	isStreaming?: boolean
 	initialValue?: string
+	placeholder: string
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1504,7 +1508,7 @@ const PromptInput = memo(function PromptInput({
 									ref={promptInputRef}
 									rows={1}
 									maxLength={2000}
-									placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+									placeholder={placeholder}
 									// We need to re-calculate the position of the combobox popover
 									// when the textarea contents are scrolled, and sync highlightRef scroll.
 									onScroll={handleScroll}
