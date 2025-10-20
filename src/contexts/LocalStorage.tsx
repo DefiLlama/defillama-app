@@ -398,7 +398,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			addPortfolio: (name: string) => {
 				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
 				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
-				const newWatchlist = { ...watchlist, [name]: {} }
+				const newWatchlist = { ...watchlist, [name]: { ...(watchlist[name] ?? {}) } }
 				localStorage.setItem(
 					DEFILLAMA,
 					JSON.stringify({
