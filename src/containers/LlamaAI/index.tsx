@@ -1014,19 +1014,25 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap lg:max-h-[calc(100dvh-72px)]">
-				{!readOnly &&
-					(sidebarVisible ? (
-						<ChatHistorySidebar
-							handleSidebarToggle={handleSidebarToggle}
-							currentSessionId={sessionId}
-							onSessionSelect={handleSessionSelect}
-							onNewChat={handleNewChat}
-							shouldAnimate={shouldAnimateSidebar}
-						/>
-					) : (
-						<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-					))}
+			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap max-lg:flex-col lg:max-h-[calc(100dvh-72px)]">
+				{!readOnly && (
+					<>
+						{sidebarVisible ? (
+							<>
+								<ChatHistorySidebar
+									handleSidebarToggle={handleSidebarToggle}
+									currentSessionId={sessionId}
+									onSessionSelect={handleSessionSelect}
+									onNewChat={handleNewChat}
+									shouldAnimate={shouldAnimateSidebar}
+								/>
+								<div className="flex min-h-11 lg:hidden" />
+							</>
+						) : (
+							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+						)}
+					</>
+				)}
 				<div
 					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
@@ -1070,7 +1076,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						)
 					) : (
 						<>
-							<div ref={scrollContainerRef} className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5">
+							<div
+								ref={scrollContainerRef}
+								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && conversationHistory.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
@@ -1174,7 +1183,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												})}
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
+												<div className="flex min-h-[calc(100dvh-106px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
 													<PromptResponse
 														response={
@@ -2174,7 +2183,7 @@ const ChatControls = memo(function ChatControls({
 	handleNewChat: () => void
 }) {
 	return (
-		<div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-2">
+		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
 			<Tooltip
 				content="Open Chat History"
 				render={<button onClick={handleSidebarToggle} />}
