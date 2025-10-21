@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { maxAgeForNext } from '~/api'
@@ -41,6 +41,63 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
+	const RECENTS_KEY = 'recent_protocols'
+	const [recentProtocols, setRecentProtocols] = useState<
+		Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }>
+	>([])
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		try {
+			const raw = window.localStorage.getItem(RECENTS_KEY)
+			if (raw) {
+				const parsed: Array<{ name: string; logo?: string; route: string; count?: number; lastVisited?: number }> =
+					JSON.parse(raw)
+
+				const normalized = parsed.map((protocol) => ({
+					name: protocol.name,
+					logo: protocol.logo,
+					route: protocol.route,
+					count: protocol.count ?? 1,
+					lastVisited: protocol.lastVisited ?? Date.now()
+				}))
+				setRecentProtocols(normalized)
+			}
+		} catch (e) {
+			console.error('failed to read recent protocols', e)
+		}
+	}, [])
+
+	const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
+		try {
+			const existingRaw = typeof window !== 'undefined' ? window.localStorage.getItem(RECENTS_KEY) : null
+			let arr: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> = existingRaw
+				? JSON.parse(existingRaw)
+				: []
+
+			const now = Date.now()
+			const idx = arr.findIndex((x) => x.route === protocol.route)
+			if (idx >= 0) {
+				arr[idx].count = (arr[idx].count || 0) + 1
+				arr[idx].lastVisited = now
+			} else {
+				arr.push({ ...protocol, count: 1, lastVisited: now })
+			}
+
+			arr = arr
+				.sort((a, b) => {
+					if (b.count !== a.count) return b.count - a.count
+					return b.lastVisited - a.lastVisited
+				})
+				.slice(0, 6)
+
+			window.localStorage.setItem(RECENTS_KEY, JSON.stringify(arr))
+			setRecentProtocols(arr)
+		} catch (e) {
+			console.error('failed to save recent protocol', e)
+		}
+	}
+
 	const handleSeeMore = () => {
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
@@ -73,6 +130,33 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 					})
 				}}
 			>
+				{recentProtocols && recentProtocols.length > 0 ? (
+					<div className="mx-auto mt-6 w-full max-w-3xl">
+						<div className="mb-2 text-xs font-medium text-(--text-disabled)">Recently visited</div>
+						<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+							{recentProtocols.map((protocol) => (
+								<button
+									key={protocol.route}
+									onClick={() => {
+										if (typeof document !== 'undefined') {
+											window.open(protocol.route, '_blank')
+										}
+										saveRecent(protocol)
+									}}
+									className="flex items-center gap-2 rounded-sm border bg-(--cards-bg) p-2 text-xs hover:bg-(--bg-secondary) dark:border-(--bg-secondary)"
+								>
+									{protocol.logo ? (
+										<TokenLogo logo={protocol.logo} />
+									) : (
+										<div className="h-6 w-6 rounded bg-(--bg-secondary)" />
+									)}
+									<span className="truncate">{protocol.name}</span>
+								</button>
+							))}
+						</div>
+					</div>
+				) : null}
+
 				<span className="relative mx-auto w-full max-w-3xl">
 					<Ariakit.Combobox
 						placeholder="Search..."
@@ -85,7 +169,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="thin-scrollbar z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
+					className="thin-scrollbar top-1 z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
@@ -97,6 +181,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 										if (typeof document !== 'undefined') {
 											window.open(option.route, '_blank')
 										}
+										saveRecent(option)
 									}}
 									focusOnHover
 									hideOnClick={false}
