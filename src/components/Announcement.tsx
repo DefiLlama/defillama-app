@@ -68,20 +68,20 @@ export function Announcement({
 	}
 
 	return (
-		<p
-			className="relative rounded-md border border-(--link-bg) bg-(--link-bg) p-2 text-center text-sm"
+		<div
+			className="flex items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-2 text-sm"
 			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
 		>
-			{children}
+			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (
 				<button
-					className="absolute top-0 right-0 bottom-0 my-auto flex h-10 w-10 items-center justify-center rounded-md hover:bg-(--bg-input)"
+					className="flex h-8 w-8 flex-shrink-0 items-center justify-center self-start rounded-md hover:bg-(--bg-input)"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />
 					<span className="sr-only">Close</span>
 				</button>
 			) : null}
-		</p>
+		</div>
 	)
 }
