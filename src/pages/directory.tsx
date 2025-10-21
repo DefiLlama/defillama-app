@@ -120,7 +120,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 			canonicalUrl={`/directory`}
 		>
 			<Announcement notCancellable>
-				Search any protocol to go straight into their website, avoiding scam results from google. Bookmark this page for
+				Search any protocol to go straight into their website, avoiding scam results from Google. Bookmark this page for
 				better access and security
 			</Announcement>
 			<Ariakit.ComboboxProvider
