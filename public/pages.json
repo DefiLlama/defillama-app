@@ -300,16 +300,6 @@
       "oldName": "DEXs"
     },
     {
-      "name": "DEX Volume by Chain",
-      "route": "/dexs/chains",
-      "category": "Volume",
-      "description": "Sum of all volume of spot token swaps that go through all DEXs on the chain",
-      "totalTrackedKey": "dexs.chains",
-      "tab": "Chains",
-      "oldCategory": "Volume",
-      "oldName": "DEXs (Chains)"
-    },
-    {
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
@@ -318,6 +308,16 @@
       "tab": "Protocols",
       "oldCategory": "Volume",
       "oldName": "Bridge Aggregators"
+    },
+    {
+      "name": "DEX Volume by Chain",
+      "route": "/dexs/chains",
+      "category": "Volume",
+      "description": "Sum of all volume of spot token swaps that go through all DEXs on the chain",
+      "totalTrackedKey": "dexs.chains",
+      "tab": "Chains",
+      "oldCategory": "Volume",
+      "oldName": "DEXs (Chains)"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -489,6 +489,20 @@
       "oldName": "Investors"
     },
     {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
       "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
@@ -512,20 +526,6 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
-    },
-    {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
-    },
-    {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
     },
     {
       "name": "Hacks: Overview",

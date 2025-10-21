@@ -98,7 +98,9 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 		}
 	}
 
-	const handleSeeMore = () => {
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 

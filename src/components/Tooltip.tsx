@@ -27,7 +27,14 @@ interface ITooltip extends Ariakit.TooltipOptions {
 	portal?: boolean
 }
 
-export function Tooltip({ content, children, placement = 'top-start', className, ...props }: ITooltip) {
+export function Tooltip({
+	content,
+	children,
+	placement = 'top-start',
+	className,
+
+	...props
+}: ITooltip) {
 	const store = Ariakit.useTooltipStore({ placement })
 
 	if (!content || content === '') return <>{children}</>
@@ -38,8 +45,7 @@ export function Tooltip({ content, children, placement = 'top-start', className,
 				store={store}
 				className={`flex shrink-0 items-center overflow-hidden text-ellipsis whitespace-nowrap ${className ?? ''}`}
 				render={<span />}
-				onTouchStart={store.toggle}
-				onMouseLeave={store.hide}
+				{...(props.render ? {} : { onTouchStart: store.toggle, onMouseLeave: store.hide })}
 				{...props}
 			>
 				{children}
