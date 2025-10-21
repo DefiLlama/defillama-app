@@ -1014,7 +1014,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap max-lg:flex-col lg:max-h-[calc(100dvh-72px)]">
+			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap overflow-hidden max-lg:flex-col lg:max-h-[calc(100dvh-72px)]">
 				{!readOnly && (
 					<>
 						{sidebarVisible ? (
@@ -1034,7 +1034,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
@@ -1078,7 +1078,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && conversationHistory.length === 0 ? (
