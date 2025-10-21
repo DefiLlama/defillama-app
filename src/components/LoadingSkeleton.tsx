@@ -23,14 +23,12 @@ export function LoadingSkeleton({ viewMode = 'grid', items = 18 }: LoadingSkelet
 }
 
 const SkeletonCard = ({ viewMode }: { viewMode: 'grid' | 'list' }) => {
-	const baseHeight = viewMode === 'grid' ? 'min-h-[220px]' : 'min-h-[156px]'
 	return (
 		<div
-			className={`relative isolate ${baseHeight} overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)`}
+			className={`relative isolate ${viewMode === 'grid' ? 'min-h-[220px]' : 'min-h-[156px]'} overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)`}
 			aria-hidden
 		>
-			<div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0)),radial-gradient(120%_60%_at_0%_0%,transparent,transparent,rgba(255,255,255,0.02))]" />
-			<div className="pointer-events-none absolute inset-y-0 -right-1/2 -left-1/2 -translate-x-full animate-[shimmer_1.8s_ease-in-out_infinite] bg-[linear-gradient(-70deg,transparent,rgba(255,255,255,0.12),transparent)] opacity-70 blur-[1.5px]" />
+			<div className="animate-shimmer pointer-events-none absolute inset-y-0 -right-1/2 -left-1/2 bg-[linear-gradient(99.97deg,transparent,rgba(0,0,0,0.08),transparent)] dark:bg-[linear-gradient(99.97deg,transparent,rgba(255,255,255,0.08),transparent)]" />
 		</div>
 	)
 }
