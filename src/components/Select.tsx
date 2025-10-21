@@ -41,7 +41,9 @@ export function Select({
 
 	const selectRef = React.useRef<HTMLDivElement>(null)
 
-	const handleSeeMore = () => {
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 
@@ -104,7 +106,11 @@ export function Select({
 							setValueOnClick={false}
 							hideOnClick={false}
 							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-							onClick={() => setViewableMatches((prev) => prev + 20)}
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								setViewableMatches((prev) => prev + 20)
+							}}
 						>
 							See more...
 						</Ariakit.SelectItem>
