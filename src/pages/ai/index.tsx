@@ -4,7 +4,8 @@ import lostLlama from '~/assets/404.png'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,10 +17,10 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 })
 
 export default function LlamaAIPage() {
-	const { hasFeature, loading, userLoading } = useFeatureFlagsContext()
+	const { hasFeature, isSubscriptionLoading } = useSubscribe()
+	const { loaders: { userLoading } } = useAuthContext()
 
-	// Show loading state while feature flags are loading
-	if (loading || userLoading) {
+	if (isSubscriptionLoading || userLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"

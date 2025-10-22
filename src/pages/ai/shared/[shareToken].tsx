@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
 import { LlamaAI } from '~/containers/LlamaAI'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 
 interface SharedSession {
@@ -45,7 +45,7 @@ export const getStaticProps = async () => {
 export default function SharedConversationPage() {
 	const router = useRouter()
 	const { shareToken } = router.query
-	const { hasFeature } = useFeatureFlagsContext()
+	const { hasFeature } = useSubscribe()
 	const [session, setSession] = useState<SharedSession | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)

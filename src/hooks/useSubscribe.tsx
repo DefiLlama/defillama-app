@@ -57,48 +57,36 @@ const defaultInactiveSubscription = {
 	}
 }
 
-const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
-	const { isAuthenticated } = useAuthContext()!
+const useUserStatus = () => {
+	const { isAuthenticated, authorizedFetch } = useAuthContext()!
 
-	const data = useQuery<SubscriptionResponse>({
-		queryKey: ['subscription', pb.authStore.record?.id, type],
+	const data = useQuery({
+		queryKey: ['userStatus', pb.authStore.record?.id],
 		queryFn: async () => {
-			console.log('isAuthenticated', isAuthenticated, type)
 			if (!isAuthenticated) {
-				return defaultInactiveSubscription
+				return { subscriptions: [], featureFlags: {} }
 			}
 
 			try {
-				const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ subscriptionType: type })
-				})
+				const response = await authorizedFetch(`${AUTH_SERVER}/user/status`)
 
-				if (!response.ok) {
-					console.log(`Subscription status error: ${response.status}`)
-					return defaultInactiveSubscription
+				if (!response?.ok) {
+					console.log(`User status error: ${response?.status}`)
+					return { subscriptions: [], featureFlags: {} }
 				}
 
-				const data = await response.json()
-				if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
-					return defaultInactiveSubscription
-				}
-
-				return data
+				return response.json()
 			} catch (error) {
-				console.log('Error fetching subscription:', error)
-				return defaultInactiveSubscription
+				console.log('Error fetching user status:', error)
+				return { subscriptions: [], featureFlags: {} }
 			}
 		},
-		placeholderData: defaultInactiveSubscription,
 		retry: false,
 		refetchOnWindowFocus: false,
 		enabled: isAuthenticated,
-		staleTime: 1000 * 60 * 15
+		placeholderData: (previousData) => previousData,
+		staleTime: 1000 * 60 * 15,
+		gcTime: 60 * 60 * 1000
 	})
 
 	return data
@@ -165,7 +153,7 @@ export const useSubscribe = () => {
 				subscriptionType: type || 'api'
 			}
 
-			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)
+			queryClient.invalidateQueries({ queryKey: ['userStatus', pb.authStore.record?.id] })
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
 
@@ -183,26 +171,24 @@ export const useSubscribe = () => {
 	}
 
 	const {
-		data: apiSubscription,
-		isLoading: isApiSubscriptionLoading,
-		isFetching: isApiSubscriptionFetching,
-		isPending: isApiSubscriptionPending,
-		isError: isApiSubscriptionError
-	} = useSubscription('api')
-	const {
-		data: llamafeedSubscription,
-		isLoading: isLlamafeedSubscriptionLoading,
-		isFetching: isLlamafeedSubscriptionFetching,
-		isPending: isLlamafeedSubscriptionPending,
-		isError: isLlamafeedSubscriptionError
-	} = useSubscription('llamafeed')
-	const {
-		data: legacySubscription,
-		isLoading: isLegacySubscriptionLoading,
-		isFetching: isLegacySubscriptionFetching,
-		isPending: isLegacySubscriptionPending,
-		isError: isLegacySubscriptionError
-	} = useSubscription('legacy')
+		data: userStatus,
+		isLoading: isUserStatusLoading,
+		isFetching: isUserStatusFetching,
+		isPending: isUserStatusPending,
+		isError: isUserStatusError
+	} = useUserStatus()
+
+	const apiSubscription = {
+		subscription: userStatus?.subscriptions?.find((s: any) => s.type === 'api') || defaultInactiveSubscription.subscription
+	}
+	const llamafeedSubscription = {
+		subscription:
+			userStatus?.subscriptions?.find((s: any) => s.type === 'llamafeed' || s.type === 'api') ||
+			defaultInactiveSubscription.subscription
+	}
+	const legacySubscription = {
+		subscription: userStatus?.subscriptions?.find((s: any) => s.type === 'legacy') || defaultInactiveSubscription.subscription
+	}
 
 	useEffect(() => {
 		if (router.pathname !== '/subscription') return
@@ -377,7 +363,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: () => {
 			toast.success('Overage has been enabled successfully')
-			queryClient.invalidateQueries({ queryKey: ['subscription', pb.authStore.record?.id, 'api'] })
+			queryClient.invalidateQueries({ queryKey: ['userStatus', pb.authStore.record?.id] })
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
@@ -411,22 +397,10 @@ export const useSubscribe = () => {
 		subscription: subscriptionData,
 		hasActiveSubscription: subscriptionData?.status === 'active',
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
-		isSubscriptionLoading:
-			isApiSubscriptionLoading ||
-			isLlamafeedSubscriptionLoading ||
-			isLegacySubscriptionLoading ||
-			isApiSubscriptionFetching ||
-			isLlamafeedSubscriptionFetching ||
-			isLegacySubscriptionFetching ||
-			isApiSubscriptionPending ||
-			isLlamafeedSubscriptionPending ||
-			isLegacySubscriptionPending,
-		isSubscriptionFetching:
-			isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching || isLegacySubscriptionFetching),
-		isSubscriptionPending:
-			isAuthenticated && (isApiSubscriptionPending || isLlamafeedSubscriptionPending || isLegacySubscriptionPending),
-		isSubscriptionError:
-			isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError || isLegacySubscriptionError),
+		isSubscriptionLoading: isUserStatusLoading && !userStatus,
+		isSubscriptionFetching: isAuthenticated && isUserStatusFetching,
+		isSubscriptionPending: isAuthenticated && isUserStatusPending,
+		isSubscriptionError: isAuthenticated && isUserStatusError,
 		apiKey,
 		isApiKeyLoading,
 		generateNewKey,
@@ -440,6 +414,8 @@ export const useSubscribe = () => {
 		isContributor: false,
 		apiSubscription: apiSubscription?.subscription,
 		llamafeedSubscription: llamafeedSubscription?.subscription,
-		legacySubscription: legacySubscription?.subscription
+		legacySubscription: legacySubscription?.subscription,
+		featureFlags: userStatus?.featureFlags || {},
+		hasFeature: (feature: string) => Boolean(userStatus?.featureFlags?.[feature])
 	}
 }

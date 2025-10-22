@@ -7,7 +7,6 @@ import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDash
 import { useMyDashboards } from '~/containers/ProDashboard/hooks'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 
@@ -79,7 +78,6 @@ function ProContent({
 				: 'discover'
 
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		createNewDashboard,
 		deleteDashboard,
