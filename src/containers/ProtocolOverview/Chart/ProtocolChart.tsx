@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
+import React, { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -54,6 +54,34 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
+	const chartContainerRef = useRef<HTMLDivElement>(null)
+	const [isFullscreen, setIsFullscreen] = useState(false)
+	const [isLogScale, setIsLogScale] = useState(true)
+
+	useEffect(() => {
+		function handleFullscreenChange() {
+			setIsFullscreen(!!document.fullscreenElement)
+		}
+
+		document.addEventListener('fullscreenchange', handleFullscreenChange)
+		return function cleanup() {
+			document.removeEventListener('fullscreenchange', handleFullscreenChange)
+		}
+	}, [])
+
+	const toggleFullscreen = useCallback(async () => {
+		if (!chartContainerRef.current) return
+
+		try {
+			if (!document.fullscreenElement) {
+				await chartContainerRef.current.requestFullscreen()
+			} else {
+				await document.exitFullscreen()
+			}
+		} catch (error) {
+			console.error('Error toggling fullscreen:', error)
+		}
+	}, [])
 
 	const queryParamsString = useMemo(() => {
 		const { tvl, ...rest } = router.query ?? {}
@@ -161,13 +189,14 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 	})
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+	const chartSettingsPopover = Ariakit.usePopoverStore()
 
 	const prepareCsv = useCallback(() => {
 		return prepareChartCsv(finalCharts, `${props.name}.csv`)
 	}, [finalCharts, props.name])
 
 	return (
-		<div className="flex flex-col gap-3">
+		<div className={`flex flex-col gap-3 ${isFullscreen ? 'h-screen p-2' : ''}`} ref={chartContainerRef}>
 			<div className="flex flex-wrap items-center justify-start gap-2">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
@@ -175,7 +204,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 							<span>Add Metrics</span>
 							<Icon name="plus" className="h-3.5 w-3.5" />
 						</Ariakit.DialogDisclosure>
-						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
+						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide portal={false}>
 							<span className="flex items-center justify-between gap-1">
 								<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 								<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
@@ -362,25 +391,66 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 					) : null}
 					<EmbedChart />
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
+					<button
+						onClick={toggleFullscreen}
+						className="flex items-center justify-center rounded-md border border-(--form-control-border) px-2 py-2 text-sm font-medium text-(--text-form)! hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+					>
+						<Icon name={isFullscreen ? 'minimize' : 'maximize'} height={12} width={12} />
+						<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
+					</button>
+					<Ariakit.PopoverProvider store={chartSettingsPopover}>
+						<Ariakit.PopoverDisclosure className="flex items-center justify-center rounded-md border border-(--form-control-border) px-2 py-2 text-sm font-medium text-(--text-form)! hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+							<Icon name="settings" height={12} width={12} />
+							<span className="sr-only">Chart Settings</span>
+						</Ariakit.PopoverDisclosure>
+						<Ariakit.Popover
+							unmountOnHide
+							hideOnInteractOutside
+							gutter={6}
+							className="z-10 flex flex-col gap-1 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm shadow-lg dark:border-[hsl(204,3%,32%)]"
+						>
+							<button
+								onClick={() => {
+									setIsLogScale(!isLogScale)
+									chartSettingsPopover.hide()
+								}}
+								className="flex items-center gap-2 rounded px-3 py-2 text-left hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							>
+								<span className="flex h-4 w-4 items-center justify-center">
+									{isLogScale ? <Icon name="check" height={14} width={14} /> : null}
+								</span>
+								<span>Log scale</span>
+							</button>
+						</Ariakit.Popover>
+					</Ariakit.PopoverProvider>
 				</div>
 			</div>
-			<div className="flex min-h-[360px] flex-col">
+			<div className={`flex ${isFullscreen ? 'h-full' : 'min-h-[360px]'} flex-col`}>
 				{loadingCharts ? (
-					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
+					<p
+						className={`my-auto flex items-center justify-center gap-1 text-center text-xs ${isFullscreen ? 'h-full' : 'min-h-[360px]'}`}
+					>
 						fetching {loadingCharts}
 						<LoadingDots />
 					</p>
 				) : (
-					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+					<Suspense
+						fallback={
+							<div className={`m-auto flex items-center justify-center ${isFullscreen ? 'h-full' : 'min-h-[360px]'}`} />
+						}
+					>
 						<ProtocolLineBarChart
 							chartData={finalCharts}
 							chartColors={props.chartColors}
 							isThemeDark={isThemeDark}
 							valueSymbol={valueSymbol}
 							groupBy={groupBy}
+							height={isFullscreen ? '100%' : undefined}
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
 							unlockTokenSymbol={props.token.symbol}
+							isLogScale={isLogScale}
 						/>
 					</Suspense>
 				)}
