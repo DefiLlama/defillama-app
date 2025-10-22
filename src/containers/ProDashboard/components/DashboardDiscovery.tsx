@@ -256,97 +256,99 @@ export function DashboardDiscovery() {
 					</div>
 
 					{totalPages > 1 && (
-						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
-							<button
-								onClick={() => {
-									const { page, ...query } = router.query
-									router.push(
-										{
-											pathname: '/pro',
-											query
-										},
-										undefined,
-										{ shallow: true }
+						<div className="flex flex-col items-center gap-4">
+							<p className="text-xs text-(--text-label)">
+								Page {selectedPage} of {totalPages}
+							</p>
+							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
+								<button
+									onClick={() => {
+										const { page, ...query } = router.query
+										router.push(
+											{
+												pathname: '/pro',
+												query
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage < 3}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevrons-left" height={16} width={16} />
+								</button>
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...router.query, page: Math.max(1, selectedPage - 1) }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage === 1}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevron-left" height={16} width={16} />
+								</button>
+								{pagesToShow.map((pageNum) => {
+									const isActive = selectedPage === pageNum
+									return (
+										<button
+											key={`page-to-navigate-to-${pageNum}`}
+											onClick={() => {
+												router.push(
+													{
+														pathname: '/pro',
+														query: { ...router.query, page: pageNum }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}}
+											data-active={isActive}
+											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										>
+											{pageNum}
+										</button>
 									)
-								}}
-								disabled={selectedPage < 3}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevrons-left" height={16} width={16} />
-							</button>
-
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: { ...router.query, page: Math.max(1, selectedPage - 1) }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								disabled={selectedPage === 1}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevron-left" height={16} width={16} />
-							</button>
-
-							{pagesToShow.map((pageNum) => {
-								const isActive = selectedPage === pageNum
-								return (
-									<button
-										key={`page-to-navigate-to-${pageNum}`}
-										onClick={() => {
-											router.push(
-												{
-													pathname: '/pro',
-													query: { ...router.query, page: pageNum }
-												},
-												undefined,
-												{ shallow: true }
-											)
-										}}
-										data-active={isActive}
-										className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									>
-										{pageNum}
-									</button>
-								)
-							})}
-
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: { ...router.query, page: Math.min(totalPages, selectedPage + 1) }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								disabled={selectedPage === totalPages}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevron-right" height={16} width={16} />
-							</button>
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: { ...router.query, page: totalPages }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								disabled={selectedPage > totalPages - 2}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevrons-right" height={16} width={16} />
-							</button>
+								})}
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...router.query, page: Math.min(totalPages, selectedPage + 1) }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage === totalPages}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevron-right" height={16} width={16} />
+								</button>
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...router.query, page: totalPages }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage > totalPages - 2}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+								>
+									<Icon name="chevrons-right" height={16} width={16} />
+								</button>
+							</div>
 						</div>
 					)}
 				</>
