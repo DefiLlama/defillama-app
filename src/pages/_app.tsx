@@ -8,7 +8,7 @@ import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 
@@ -19,15 +19,15 @@ const client = new QueryClient()
 function LlamaAIWelcomeWrapper() {
 	const [dismissed, setDismissed] = useLlamaAIWelcome()
 	const isClient = useIsClient()
-	const { hasFeature, loading } = useFeatureFlagsContext()
+	const { hasFeature, isSubscriptionLoading } = useSubscribe()
 	const [showModal, setShowModal] = useState(false)
 
 	useEffect(() => {
 		if (dismissed) return
-		if (isClient && !loading && hasFeature('llamaai')) {
+		if (isClient && !isSubscriptionLoading && hasFeature('llamaai')) {
 			setShowModal(true)
 		}
-	}, [dismissed, isClient, loading, hasFeature])
+	}, [dismissed, isClient, isSubscriptionLoading, hasFeature])
 
 	const handleClose = () => {
 		setShowModal(false)
@@ -89,10 +89,8 @@ function App({ Component, pageProps }: AppProps) {
 	return (
 		<QueryClientProvider client={client}>
 			<AuthProvider>
-				<FeatureFlagsProvider>
-					<Component {...pageProps} />
-					<LlamaAIWelcomeWrapper />
-				</FeatureFlagsProvider>
+				<Component {...pageProps} />
+				<LlamaAIWelcomeWrapper />
 			</AuthProvider>
 			<ReactQueryDevtools initialIsOpen={false} />
 		</QueryClientProvider>

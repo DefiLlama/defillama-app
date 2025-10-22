@@ -1,7 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
@@ -49,7 +49,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { user, isAuthenticated } = useAuthContext()
-	const { hasFeature } = useFeatureFlagsContext()
+	const { hasFeature } = useSubscribe()
 
 	const hasLlamaAI = hasFeature('llamaai')
 	const hasEthWallet = Boolean(user?.walletAddress)
