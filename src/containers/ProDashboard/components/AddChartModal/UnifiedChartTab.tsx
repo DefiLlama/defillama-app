@@ -30,6 +30,7 @@ interface UnifiedChartTabProps {
 	onChartTypesChange: (types: string[]) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
+	onComposerItemColorChange: (id: string, color: string) => void
 	onAddToComposer: (typesToAdd?: string[]) => void
 	onRemoveFromComposer: (id: string) => void
 }
@@ -44,11 +45,13 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	selectedYieldChains?: string[]
 	selectedYieldProjects?: string[]
 	selectedYieldCategories?: string[]
+	selectedYieldTokens?: string[]
 	minTvl?: number | null
 	maxTvl?: number | null
 	onSelectedYieldChainsChange?: (chains: string[]) => void
 	onSelectedYieldProjectsChange?: (projects: string[]) => void
 	onSelectedYieldCategoriesChange?: (categories: string[]) => void
+	onSelectedYieldTokensChange?: (tokens: string[]) => void
 	onMinTvlChange?: (tvl: number | null) => void
 	onMaxTvlChange?: (tvl: number | null) => void
 }
@@ -72,6 +75,7 @@ export function UnifiedChartTab({
 	onChartTypesChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
+	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
 	selectedChains = [],
@@ -83,11 +87,13 @@ export function UnifiedChartTab({
 	selectedYieldChains = [],
 	selectedYieldProjects = [],
 	selectedYieldCategories = [],
+	selectedYieldTokens = [],
 	minTvl = null,
 	maxTvl = null,
 	onSelectedYieldChainsChange,
 	onSelectedYieldProjectsChange,
 	onSelectedYieldCategoriesChange,
+	onSelectedYieldTokensChange,
 	onMinTvlChange,
 	onMaxTvlChange
 }: UnifiedChartTabPropsExtended) {
@@ -175,11 +181,13 @@ export function UnifiedChartTab({
 				selectedYieldChains={selectedYieldChains}
 				selectedYieldProjects={selectedYieldProjects}
 				selectedYieldCategories={selectedYieldCategories}
+				selectedYieldTokens={selectedYieldTokens}
 				minTvl={minTvl}
 				maxTvl={maxTvl}
 				onSelectedYieldChainsChange={onSelectedYieldChainsChange || (() => {})}
 				onSelectedYieldProjectsChange={onSelectedYieldProjectsChange || (() => {})}
 				onSelectedYieldCategoriesChange={onSelectedYieldCategoriesChange || (() => {})}
+				onSelectedYieldTokensChange={onSelectedYieldTokensChange || (() => {})}
 				onMinTvlChange={onMinTvlChange || (() => {})}
 				onMaxTvlChange={onMaxTvlChange || (() => {})}
 			/>
@@ -333,6 +341,13 @@ export function UnifiedChartTab({
 									<span className="pro-text1">
 										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
 									</span>
+									<input
+										type="color"
+										value={item.color || CHART_TYPES[item.type]?.color || '#3366ff'}
+										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
+										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
+										aria-label="Select chart color"
+									/>
 									<button
 										onClick={() => onRemoveFromComposer(item.id)}
 										className="pro-text3 transition-colors hover:text-red-500"

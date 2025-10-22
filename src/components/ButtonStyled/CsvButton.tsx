@@ -3,8 +3,7 @@ import { useRouter } from 'next/router'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -106,11 +105,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
 			</button>
-			{isClient && (
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-				</SubscribeModal>
-			)}
+			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 		</>
 	)
 })

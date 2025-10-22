@@ -314,6 +314,7 @@ export const descriptions = {
 	'Physical TCG': 'Protocols that allow you to trade physical trading cards',
 	'Mining Pools': 'Protocols that coordinate user resources into shared mining pools',
 	'NFT Automated Strategies': 'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
+	'Luck Games': 'Protocols that allow you to play games of chance, such as dice, or other games of chance',
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))

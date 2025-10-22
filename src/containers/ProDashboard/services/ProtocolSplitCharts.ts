@@ -171,7 +171,10 @@ export default class SProtocolSplitCharts {
 			| 'user-fees'
 			| 'holders-revenue'
 			| 'protocol-revenue'
-			| 'supply-side-revenue',
+			| 'supply-side-revenue'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue',
 		chains?: string[],
 		limit: number = 5,
 		filterMode: 'include' | 'exclude' = 'include',

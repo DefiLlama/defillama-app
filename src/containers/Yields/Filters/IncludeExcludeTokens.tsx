@@ -89,7 +89,9 @@ export function IncludeExcludeTokens({
 	const tokensComboboxRef = useRef<HTMLDivElement>(null)
 	const pairsComboboxRef = useRef<HTMLDivElement>(null)
 
-	const handleTokensSeeMore = () => {
+	const handleTokensSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = tokensViewableMatches
 		setTokensViewableMatches((prev) => prev + 20)
 
@@ -103,7 +105,9 @@ export function IncludeExcludeTokens({
 		}, 0)
 	}
 
-	const handlePairsSeeMore = () => {
+	const handlePairsSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = pairsViewableMatches
 		setPairsViewableMatches((prev) => prev + 20)
 

@@ -33,6 +33,7 @@
 	--animate-slideup: slideup 300ms ease-out;
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
+	--animate-shimmer: shimmer 2s ease-in-out infinite;
 
 	@keyframes loader {
 		0% {
@@ -531,6 +532,9 @@
 		--cards-border: oklch(0.9 0 0);
 		--form-control-border: oklch(0.9 0 0);
 		--old-blue: oklch(0.533 0.18 259);
+
+		/* Dimensions */
+		--nav-width: 244px; /* Navigation sidebar */
 	}
 
 	* {
@@ -707,6 +711,10 @@
 			opacity: 1;
 		}
 	}
+
+	.highlighted-text .highlight {
+		@apply bg-(--link-bg) text-(--link-text);
+	}
 }
 
 @keyframes slideInRight {
@@ -728,5 +736,14 @@
 	to {
 		transform: scaleX(1);
 		transform-origin: right;
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
 	}
 }

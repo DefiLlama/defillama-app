@@ -42,6 +42,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 				isAuthenticated ? authorizedFetch : undefined
 			)
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: !isSearchMode
 	})
 
@@ -51,6 +52,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 			if (!isSearchMode) return null
 			return await dashboardAPI.searchDashboards(params, isAuthenticated ? authorizedFetch : undefined)
 		},
+		staleTime: 1000 * 60 * 2,
 		enabled: isSearchMode
 	})
 
@@ -79,7 +81,8 @@ export function useDashboardDiscovery(params: SearchParams) {
 				'portfolio',
 				'risk'
 			]
-		}
+		},
+		staleTime: 1000 * 60 * 60
 	})
 
 	const likeMutation = useMutation({

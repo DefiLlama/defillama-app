@@ -598,7 +598,7 @@ const columnOptions = [
 		key: 'cumulativeEarnings',
 		category: TABLE_CATEGORIES.REVENUE
 	},
-	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Spot Volume 24h', key: 'dex_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Spot Volume 7d', key: 'dex_volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },

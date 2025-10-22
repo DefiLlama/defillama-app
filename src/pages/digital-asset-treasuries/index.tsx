@@ -1,5 +1,7 @@
+import { useCallback } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -124,7 +126,89 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
+const prepareInstitutionsCsv = (institutions) => {
+	const headers = [
+		'Institution',
+		'Ticker',
+		'Type',
+		'Cost Basis',
+		"Today's Holdings Value",
+		'Stock Price',
+		'24h Price Change (%)',
+		'Realized mNAV',
+		'Realistic mNAV',
+		'Max mNAV',
+		'Asset Breakdown'
+	]
+
+	const rows = institutions.map((institution) => {
+		const assetBreakdownStr = institution.assetBreakdown
+			.map((asset) => {
+				const parts = [`${asset.name} (${asset.ticker})`]
+				if (asset.usdValue != null) parts.push(`Value: $${asset.usdValue.toLocaleString()}`)
+				if (asset.amount != null) parts.push(`Amount: ${asset.amount.toLocaleString()} ${asset.ticker}`)
+				if (asset.dominance != null) parts.push(`${asset.dominance}%`)
+				return parts.join(' - ')
+			})
+			.join(' | ')
+
+		return [
+			institution.name,
+			institution.ticker,
+			institution.type,
+			institution.totalCost ?? '',
+			institution.totalUsdValue ?? '',
+			institution.price ?? '',
+			institution.priceChange24h ?? '',
+			institution.realized_mNAV ?? '',
+			institution.realistic_mNAV ?? '',
+			institution.max_mNAV ?? '',
+			assetBreakdownStr
+		]
+	})
+
+	const date = new Date().toISOString().split('T')[0]
+	return {
+		filename: `digital-asset-treasuries-${date}.csv`,
+		rows: [headers, ...rows]
+	}
+}
+
 export default function TreasuriesByInstitution({ allAssets, institutions }) {
+	const prepareCsv = useCallback(() => {
+		const headers = [
+			'Institution',
+			'Asset',
+			'Ticker',
+			'Amount',
+			'Cost Basis',
+			'Holdings Value',
+			'Avg Price',
+			'Dominance %'
+		]
+		const rows = []
+
+		institutions.forEach((institute) => {
+			institute.assetBreakdown?.forEach((asset) => {
+				rows.push([
+					`"${institute.name}"`,
+					asset.name || '',
+					asset.ticker || '',
+					asset.amount != null ? asset.amount : '',
+					asset.cost != null ? asset.cost : '',
+					asset.usdValue != null ? asset.usdValue : '',
+					asset.avgPrice != null ? asset.avgPrice : '',
+					asset.dominance != null ? `${asset.dominance.toFixed(2)}%` : ''
+				])
+			})
+		})
+
+		return {
+			filename: 'defillama-digital-asset-treasuries.csv',
+			rows: [headers, ...rows]
+		}
+	}, [institutions])
+
 	return (
 		<Layout
 			title={`Digital Asset Treasuries - DefiLlama`}
@@ -140,6 +224,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions }) {
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
+				customFilters={<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />}
 			/>
 		</Layout>
 	)

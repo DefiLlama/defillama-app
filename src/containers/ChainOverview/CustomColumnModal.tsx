@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { formatValue } from '../../utils'
@@ -383,11 +382,7 @@ export function CustomColumnModal({
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-			{isClient && (
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<SubscribePlusCard context="modal" />
-				</SubscribeModal>
-			)}
+			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 		</>
 	)
 }

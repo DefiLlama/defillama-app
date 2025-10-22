@@ -30,7 +30,7 @@ export default function TermsOfUse() {
 				<div className="flex flex-col gap-3">
 					<h2 className="text-xl font-semibold text-white">2. CHANGES TO THE SITE, SERVICES OR TERMS</h2>
 					<p>
-						<strong>DeFiLlama Limited</strong>, a company incorporated in the United Arab Emirates ("Company", "we",{' '}
+						<strong>DefiLlama Limited</strong>, a company incorporated in the United Arab Emirates ("Company", "we",{' '}
 						<strong>"us"</strong>), may update the Site, Services or these Terms at any time. Revised Terms take effect
 						upon posting (see Effective Date above); continued use after posting constitutes acceptance, and you waive
 						any right to individual notice.
@@ -173,7 +173,7 @@ export default function TermsOfUse() {
 					<h2 className="text-xl font-semibold text-white">6. INFORMATIONAL PURPOSE & NO ADVICE</h2>
 					<p>
 						All material on the Site (the <strong>"Content & Data"</strong>) is for general information only and does
-						not constitute legal, financial, investment, tax or other professional advice. DeFiLlama Limited or its
+						not constitute legal, financial, investment, tax or other professional advice. DefiLlama Limited or its
 						affiliates may hold positions in protocols or tokens referenced herein; this disclosure is{' '}
 						<strong>not</strong> a recommendation. Use the information at your own risk. We accept no liability for
 						losses arising from reliance on the Content & Data. Subscribers and Users should obtain appropriate

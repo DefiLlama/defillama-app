@@ -9,7 +9,9 @@ interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
 
-const mapGroupingToGroupBy = (grouping: 'day' | 'week' | 'month' | 'quarter'): 'daily' | 'weekly' | 'monthly' | 'quarterly' => {
+const mapGroupingToGroupBy = (
+	grouping: 'day' | 'week' | 'month' | 'quarter'
+): 'daily' | 'weekly' | 'monthly' | 'quarterly' => {
 	if (grouping === 'week') return 'weekly'
 	if (grouping === 'month') return 'monthly'
 	if (grouping === 'quarter') return 'quarterly'
@@ -73,7 +75,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 						name: `${displayName} ${meta?.title || item.type}`,
 						type: (meta?.chartType === 'bar' ? 'bar' : 'line') as 'bar' | 'line',
 						data: processedData,
-						color: EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length],
+						color: item.color || EXTENDED_COLOR_PALETTE[colorIndex % EXTENDED_COLOR_PALETTE.length],
 						metricType: item.type
 					})
 					colorIndex++

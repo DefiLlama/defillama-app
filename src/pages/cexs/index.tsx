@@ -54,7 +54,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 				return c
 			} else {
 				const res = await Promise.allSettled([
-					fetchJson(`${PROTOCOL_API}/${c.slug}`).catch(() => ({ chainTvls: {} })),
+					fetchJson(`${PROTOCOL_API}/${c.slug}`).catch(() => ({ currentChainTvls: {}, chainTvls: {} })),
 					fetchJson(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`).catch(() => null),
 					fetchJson(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`).catch(() => null),
 					fetchJson(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`).catch(() => null)
@@ -64,17 +64,17 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 					return c
 				}
 
-				const [{ chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res.map((p) => p.value)
+				const [{ currentChainTvls = {}, chainTvls = {} }, inflows24h, inflows7d, inflows1m] = res.map((p) => p.value)
 
 				let cexTvl = 0
 
 				let ownToken = 0
 
-				for (const chain in chainTvls) {
-					if (chainTvls[chain].tvl) {
-						cexTvl += chainTvls[chain].tvl[chainTvls[chain].tvl.length - 1]?.totalLiquidityUSD ?? 0
-					}
+				for (const chain in currentChainTvls) {
+					cexTvl += currentChainTvls[chain] || 0
+				}
 
+				for (const chain in chainTvls) {
 					if (chainTvls[chain].tokensInUsd) {
 						ownToken += chainTvls[chain].tokensInUsd[chainTvls[chain].tokensInUsd.length - 1]?.tokens[c.coin] ?? 0
 					}

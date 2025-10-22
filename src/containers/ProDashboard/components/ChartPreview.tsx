@@ -10,21 +10,18 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart'))
 interface ChartPreviewProps {
 	data: [number, number][] | undefined
 	chartType: string
+	color?: string
 	isLoading?: boolean
 	hasError?: boolean
 	itemName: string
 }
 
-export function ChartPreview({ data, chartType, isLoading, hasError, itemName }: ChartPreviewProps) {
+export function ChartPreview({ data, chartType, color, isLoading, hasError, itemName }: ChartPreviewProps) {
 	const chartTypeDetails = CHART_TYPES[chartType]
 
 	const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 	const percentMetricTypes = ['medianApy']
-	const valueSymbol = userMetricTypes.includes(chartType)
-		? ''
-		: percentMetricTypes.includes(chartType)
-			? '%'
-			: '$'
+	const valueSymbol = userMetricTypes.includes(chartType) ? '' : percentMetricTypes.includes(chartType) ? '%' : '$'
 
 	if (isLoading) {
 		return (
@@ -58,7 +55,7 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 					chartData={data}
 					valueSymbol={valueSymbol}
 					height="400px"
-					color={chartTypeDetails.color}
+					color={color || chartTypeDetails.color}
 					hideDataZoom
 					hideDownloadButton
 					title=""
@@ -72,7 +69,7 @@ export function ChartPreview({ data, chartType, isLoading, hasError, itemName }:
 				<AreaChart
 					chartData={data}
 					valueSymbol={valueSymbol}
-					color={chartTypeDetails.color}
+					color={color || chartTypeDetails.color}
 					height="400px"
 					hideDataZoom
 					hideDownloadButton

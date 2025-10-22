@@ -229,6 +229,13 @@ export function useModalActions(
 		[actions]
 	)
 
+	const handleUpdateComposerItemColor = useCallback(
+		(id: string, color: string) => {
+			actions.setComposerItems((prev) => prev.map((item) => (item.id === id ? { ...item, color } : item)))
+		},
+		[actions]
+	)
+
 	const handleMainTabChange = useCallback(
 		(tab: MainTabType) => {
 			actions.setSelectedMainTab(tab)
@@ -512,9 +519,9 @@ export function useModalActions(
 					} else {
 						state.composerItems.forEach((item) => {
 							if (item.chain) {
-								handleAddChart(item.chain, item.type, 'chain', item.geckoId)
+								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color)
 							} else if (item.protocol) {
-								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId)
+								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color)
 							}
 						})
 					}
@@ -636,6 +643,7 @@ export function useModalActions(
 			handleTokensChange,
 			handleAddToComposer,
 			handleRemoveFromComposer,
+			handleUpdateComposerItemColor,
 			handleMainTabChange,
 			handleChartTabChange,
 			handleSubmit,
@@ -651,6 +659,7 @@ export function useModalActions(
 			handleTokensChange,
 			handleAddToComposer,
 			handleRemoveFromComposer,
+			handleUpdateComposerItemColor,
 			handleMainTabChange,
 			handleChartTabChange,
 			handleSubmit,

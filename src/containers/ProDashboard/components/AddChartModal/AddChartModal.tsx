@@ -6,7 +6,7 @@ import { SubmitButton } from './SubmitButton'
 import { TableTab } from './TableTab'
 import { TabNavigation } from './TabNavigation'
 import { TextTab } from './TextTab'
-import { AddChartModalProps } from './types'
+import { AddChartModalProps, CombinedTableType } from './types'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
 
@@ -25,6 +25,17 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 	const chartTypesLoading = false
 
 	const composerItemsWithData = useComposerItemsData(state.composerItems, computed.timePeriod)
+
+	const primaryTableTypes: CombinedTableType[] = [
+		'protocols',
+		'stablecoins',
+		'cex',
+		'token-usage',
+		'yields',
+		'trending-contracts',
+		'chains'
+	]
+	const legacyTableTypes = primaryTableTypes.includes(state.selectedTableType) ? [] : [state.selectedTableType]
 
 	return (
 		<Ariakit.DialogProvider
@@ -81,15 +92,18 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							selectedYieldChains={state.selectedYieldChains}
 							selectedYieldProjects={state.selectedYieldProjects}
 							selectedYieldCategories={state.selectedYieldCategories}
+							selectedYieldTokens={state.selectedYieldTokens}
 							minTvl={state.minTvl}
 							maxTvl={state.maxTvl}
 							onSelectedYieldChainsChange={actions.setSelectedYieldChains}
 							onSelectedYieldProjectsChange={actions.setSelectedYieldProjects}
 							onSelectedYieldCategoriesChange={actions.setSelectedYieldCategories}
+							onSelectedYieldTokensChange={actions.setSelectedYieldTokens}
 							onMinTvlChange={actions.setMinTvl}
 							onMaxTvlChange={actions.setMaxTvl}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
+							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
 							onAddToComposer={actions.handleAddToComposer}
 							onRemoveFromComposer={actions.handleRemoveFromComposer}
 							chartBuilder={state.chartBuilder}
@@ -137,6 +151,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							onTokensChange={actions.handleTokensChange}
 							includeCex={state.includeCex}
 							onIncludeCexChange={actions.setIncludeCex}
+							legacyTableTypes={legacyTableTypes}
 						/>
 					)}
 

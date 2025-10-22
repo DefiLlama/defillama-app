@@ -10,6 +10,7 @@ import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
+import { PortfolioDialog } from './PortfolioDialog'
 
 export function DefiWatchlistContainer({ protocols, chains }) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -28,7 +29,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	const {
 		savedProtocols: savedChains,
 		addProtocol: addChain,
-		removeProtocol: removeChain
+		removeProtocol: removeChain,
+		setSelectedPortfolio: setSelectedChainPortfolio
 	} = useWatchlistManager('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
@@ -94,9 +96,18 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 				<PortfolioSelection
 					portfolios={portfolios}
 					selectedPortfolio={selectedPortfolio}
-					setSelectedPortfolio={setSelectedPortfolio}
-					addPortfolio={addPortfolio}
-					removePortfolio={removePortfolio}
+					setSelectedPortfolio={(portfolio) => {
+						setSelectedPortfolio(portfolio)
+						setSelectedChainPortfolio(portfolio)
+					}}
+					addPortfolio={(name) => {
+						addPortfolio(name)
+						setSelectedChainPortfolio(name)
+					}}
+					removePortfolio={(name) => {
+						removePortfolio(name)
+						setSelectedChainPortfolio(DEFAULT_PORTFOLIO_NAME)
+					}}
 				/>
 				{protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />}
 
@@ -194,6 +205,7 @@ function PortfolioSelection({
 	addPortfolio,
 	removePortfolio
 }: PortfolioSelectionProps) {
+	const [open, setOpen] = useState(false)
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 			<h1 className="mb-4 text-xl font-semibold">Portfolio</h1>
@@ -206,13 +218,9 @@ function PortfolioSelection({
 					onItemClick={(value) => setSelectedPortfolio(value)}
 					className="relative flex min-w-[120px] cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
+				<PortfolioDialog open={open} setOpen={setOpen} addPortfolio={addPortfolio} />
 				<button
-					onClick={() => {
-						const newPortfolio = prompt('Enter a name for the new portfolio')
-						if (newPortfolio) {
-							addPortfolio(newPortfolio)
-						}
-					}}
+					onClick={() => setOpen(true)}
 					className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					title="Create new portfolio"
 				>
@@ -343,7 +351,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 			{/* Top Movers Cards */}
 			<div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				{(['1d', '7d', '1m'] as const).map((period) => (
-					<div key={period} className="rounded-lg bg-(--bg-secondary) p-4">
+					<div key={period} className="rounded-lg bg-(--bg-glass) p-4">
 						<h3 className="mb-3 text-center font-medium text-(--text-primary)">
 							{period === '1d' ? '24 Hours' : period === '7d' ? '7 Days' : '30 Days'}
 						</h3>
@@ -353,7 +361,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 								{topMovers[period].map((mover, index) => (
 									<div
 										key={mover.name}
-										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors hover:bg-(--primary-hover)"
+										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2">
 											<span className="w-4 shrink-0 text-xs font-medium text-(--text-secondary)">#{index + 1}</span>
@@ -365,7 +373,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 												{parseFloat(mover.change.toFixed(2))}%
 											</span>
 											<Icon
-												name={mover.change >= 0 ? 'chevron-up' : 'chevron-down'}
+												name={mover.change >= 0 ? 'arrow-up' : 'arrow-down'}
 												height={16}
 												width={16}
 												className={`${mover.change >= 0 ? 'text-green-600' : 'text-red-600'} shrink-0`}

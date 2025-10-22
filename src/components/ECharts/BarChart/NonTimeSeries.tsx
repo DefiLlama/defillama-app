@@ -31,21 +31,54 @@ export default function NonTimeSeriesBarChart({
 		valueSymbol,
 		hideLegend: true,
 		tooltipOrderBottomUp,
-		isThemeDark
+		isThemeDark,
+		hideOthersInTooltip: true,
+		tooltipValuesRelative: true
 	})
 
 	const series = useMemo(() => {
-		return [
-			{
-				data: chartData.map((item) => ({
-					value: item,
-					itemStyle: {
-						color: stackColors[item[0]]
-					}
-				})),
-				type: 'bar'
-			}
-		]
+		const series = []
+
+		const allStacks = new Set<string>()
+		chartData.forEach((item) => {
+			Object.keys(item).forEach((key) => {
+				if (key !== 'date') {
+					allStacks.add(key)
+				}
+			})
+		})
+
+		for (const stack of allStacks) {
+			series.push({
+				name: stack,
+				data: chartData.map((item) => [item.date * 1e3, item[stack] ?? null]),
+				type: 'bar',
+				stack: 'chain',
+				symbol: 'none',
+				large: true,
+				emphasis: {
+					focus: 'series',
+					shadowBlur: 10
+				},
+				itemStyle: {
+					color: null
+				},
+				areaStyle: {
+					color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+						{
+							offset: 0,
+							color: null
+						},
+						{
+							offset: 1,
+							color: isThemeDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
+						}
+					])
+				}
+			})
+		}
+
+		return series
 	}, [chartData, stackColors])
 
 	const createInstance = useCallback(() => {
@@ -70,32 +103,22 @@ export default function NonTimeSeriesBarChart({
 			}
 		}
 
-		const { graphic, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
-			graphic: {
-				...graphic
-			},
-			tooltip: {
-				...tooltip
-			},
+			graphic,
+			tooltip,
+			title: titleDefaults,
 			grid: {
 				left: 12,
 				bottom: 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel',
-				...grid
+				outerBoundsContain: 'axisLabel'
 			},
-			xAxis: {
-				...xAxis,
-				type: 'category',
-				boundaryGap: true
-			},
-			yAxis: {
-				...yAxis
-			},
+			xAxis,
+			yAxis,
 			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
@@ -133,7 +156,7 @@ export default function NonTimeSeriesBarChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'h-[360px]} mx-0 my-auto'}
+				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
 				style={height ? { height } : undefined}
 			></div>
 		</div>

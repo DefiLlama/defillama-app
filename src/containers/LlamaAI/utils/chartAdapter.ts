@@ -159,13 +159,8 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			chartData: pieData,
 			height: '300px',
 			stackColors,
-			usdFormat: config.valueSymbol === '$',
-			showLegend: true,
-			formatTooltip: (params: any) => {
-				const value = params.value
-				const formattedValue = formatTooltipValue(value, config.valueSymbol ?? '')
-				return `<strong>${params.name}</strong>: ${formattedValue} (${params.percent}%)`
-			}
+			valueSymbol: config.valueSymbol ?? '',
+			showLegend: true
 		}
 
 		return {
@@ -201,18 +196,47 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		const xField = primarySeries.dataMapping.xField
 		const yField = primarySeries.dataMapping.yField
 
+		const entityField = primarySeries.dataMapping.entityFilter?.field || 'protocol'
+
 		const scatterData = rawData
-			.map((row) => {
+			.map((row, index) => {
 				const xValue = parseStringNumber(row[xField])
 				const yValue = parseStringNumber(row[yField])
-				return [xValue, yValue]
+				const entityName = row[entityField] || 'Unknown'
+				return [xValue, yValue, entityName]
 			})
 			.filter(([x, y]) => !isNaN(x) && !isNaN(y))
+
+		const xAxisLabel = config.axes.x.label || xField
+		const yAxisLabel = config.axes.yAxes[0]?.label || yField
+
+		const scatterProps = {
+			chartData: scatterData,
+			title: config.title,
+			xAxisLabel,
+			yAxisLabel,
+			valueSymbol: config.valueSymbol || '',
+			height: '300px',
+			tooltipFormatter: (params: any) => {
+				if (params.value.length >= 2) {
+					const xValue = params.value[0]
+					const yValue = params.value[1]
+					const entityName = params.value[2] || 'Unknown'
+					const formatValue = (val: number) => {
+						if (config.valueSymbol === '$') return formattedNum(val, true)
+						if (config.valueSymbol === '%') return val.toFixed(2) + '%'
+						return formattedNum(val)
+					}
+					return `<strong>${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue)}<br/>${yAxisLabel}: ${formatValue(yValue)}`
+				}
+				return ''
+			}
+		}
 
 		return {
 			chartType: 'scatter',
 			data: scatterData as any,
-			props: { title: config.title, height: '300px' },
+			props: scatterProps,
 			title: config.title,
 			description: config.description
 		}
@@ -221,7 +245,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		return {
 			chartType: 'scatter',
 			data: [],
-			props: { title: 'Scatter Chart Error', height: '300px' },
+			props: { chartData: [], title: 'Scatter Chart Error', height: '300px' },
 			title: config.title || 'Scatter Chart Error',
 			description: `Failed to render scatter chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -412,7 +436,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				type: chartType,
 				name: seriesConfig.name,
 				color,
-				metricType: (seriesConfig as any).metricType || 'default'
+				metricType: seriesConfig.yAxisId || 'default'
 			})
 		}
 

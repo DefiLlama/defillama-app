@@ -1,8 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { Subscription } from '~/hooks/useSubscribe'
 
@@ -18,6 +18,8 @@ interface SubscriberContentProps {
 	apiSubscription: Subscription
 	llamafeedSubscription: Subscription
 	legacySubscription: Subscription
+	enableOverage: () => void
+	isEnableOverageLoading: boolean
 }
 
 export const SubscriberContent = ({
@@ -31,7 +33,8 @@ export const SubscriberContent = ({
 	isPortalSessionLoading,
 	apiSubscription,
 	llamafeedSubscription,
-	legacySubscription
+	enableOverage,
+	isEnableOverageLoading
 }: SubscriberContentProps) => {
 	const isLlamaFeed = llamafeedSubscription?.status === 'active'
 	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
@@ -52,20 +55,34 @@ export const SubscriberContent = ({
 			<div className="mb-4 flex flex-col items-center">
 				<span className="mb-1 text-xl font-semibold text-white">Change Subscription</span>
 			</div>
-
-			<div className="mb-8 flex flex-col justify-center gap-4">
-				<SubscribePlusCard
-					context="account"
-					active={isLlamaFeed && subscription?.provider !== 'trial'}
-					onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
-				/>
-				<SubscribeProCard
-					context="account"
-					active={isPro || isLegacy}
-					onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
-					isLegacyActive={isLegacy}
-				/>
-				<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
+			<div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+				<div
+					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+				>
+					<SubscribeProCard
+						context="account"
+						active={isLlamaFeed && subscription?.provider !== 'trial'}
+						onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
+					/>
+				</div>
+				<div
+					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+				>
+					<SubscribeAPICard
+						context="account"
+						active={isPro || isLegacy}
+						onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
+						isLegacyActive={isLegacy}
+					/>
+				</div>
+				<div
+					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+				>
+					<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
+					<span className="h-8"></span>
+					<span className="h-7"></span>
+					<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
+				</div>
 			</div>
 
 			{(isPro || isLegacy) && (
@@ -374,6 +391,40 @@ export const SubscriberContent = ({
 									</p>
 								</div>
 							</div>
+
+							{isPro && !apiSubscription?.overage && (
+								<div className="mt-6 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-5">
+									<div className="mb-4 flex items-start gap-3">
+										<div className="rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9]">
+											<Icon name="trending-up" height={20} width={20} />
+										</div>
+										<div className="flex-1">
+											<h4 className="mb-1 font-medium">Enable Overage</h4>
+											<p className="text-sm text-[#8a8c90]">
+												Allow your API calls to continue beyond the 1M monthly limit. Additional usage will be charged
+												at $0.60 per 1,000 calls.
+											</p>
+										</div>
+									</div>
+									<button
+										onClick={enableOverage}
+										disabled={isEnableOverageLoading}
+										className="flex items-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-sm font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										{isEnableOverageLoading ? (
+											<>
+												<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
+												<span>Enabling...</span>
+											</>
+										) : (
+											<>
+												<Icon name="check" height={14} width={14} />
+												<span>Enable Overage</span>
+											</>
+										)}
+									</button>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

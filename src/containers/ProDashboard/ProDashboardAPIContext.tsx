@@ -78,7 +78,13 @@ interface ProDashboardContextType {
 	setDashboardVisibility: (visibility: 'private' | 'public') => void
 	setDashboardTags: (tags: string[]) => void
 	setDashboardDescription: (description: string) => void
-	handleAddChart: (item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => void
+	handleAddChart: (
+		item: string,
+		chartType: string,
+		itemType: 'chain' | 'protocol',
+		geckoId?: string | null,
+		color?: string
+	) => void
 	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddTable: (
 		chains: string[],
@@ -132,6 +138,7 @@ interface ProDashboardContextType {
 			chartType: 'stackedBar' | 'stackedArea' | 'line'
 			displayAs: 'timeSeries' | 'percentage'
 			additionalFilters?: Record<string, any>
+			seriesColors?: Record<string, string>
 		}
 	) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -149,7 +156,8 @@ interface ProDashboardContextType {
 		columnOrder?: string[],
 		columnVisibility?: Record<string, boolean>,
 		customColumns?: any[],
-		activeViewId?: string
+		activeViewId?: string,
+		activePresetId?: string
 	) => void
 	getChainInfo: (chainName: string) => Chain | undefined
 	getProtocolInfo: (protocolId: string) => Protocol | undefined
@@ -305,6 +313,7 @@ export function ProDashboardAPIProvider({
 			}
 			return dashboard
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: !!initialDashboardId
 	})
 
@@ -831,7 +840,7 @@ export function ProDashboardAPIProvider({
 
 	// Handle adding items
 	const handleAddChart = useCallback(
-		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null) => {
+		(item: string, chartType: string, itemType: 'chain' | 'protocol', geckoId?: string | null, color?: string) => {
 			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
 				return
 			}
@@ -842,7 +851,8 @@ export function ProDashboardAPIProvider({
 				id: newChartId,
 				kind: 'chart',
 				type: chartType,
-				colSpan: 1
+				colSpan: 1,
+				color
 			}
 
 			if (chartTypeDetails?.groupable) {
@@ -1030,6 +1040,7 @@ export function ProDashboardAPIProvider({
 				hideOthers?: boolean
 				groupByParent?: boolean
 				additionalFilters?: Record<string, any>
+				seriesColors?: Record<string, string>
 			}
 		) => {
 			if (isReadOnly) {
@@ -1305,7 +1316,8 @@ export function ProDashboardAPIProvider({
 			columnOrder?: string[],
 			columnVisibility?: Record<string, boolean>,
 			customColumns?: any[],
-			activeViewId?: string
+			activeViewId?: string,
+			activePresetId?: string
 		) => {
 			if (isReadOnly) {
 				return
@@ -1318,7 +1330,8 @@ export function ProDashboardAPIProvider({
 							columnOrder,
 							columnVisibility,
 							customColumns,
-							activeViewId
+							activeViewId,
+							activePresetId
 						} as ProtocolsTableConfig
 					}
 					return item
