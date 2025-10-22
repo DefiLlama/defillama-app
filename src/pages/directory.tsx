@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { maxAgeForNext } from '~/api'
@@ -26,6 +26,17 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 	}
 })
 
+const RECENTS_KEY = 'recent_protocols'
+
+export function subscribeToRecentProtocols(callback: () => void) {
+	// Listen for localStorage changes (for other settings)
+	window.addEventListener('recentProtocolsChange', callback)
+
+	return () => {
+		window.removeEventListener('recentProtocolsChange', callback)
+	}
+}
+
 export default function Protocols({ protocols }: { protocols: Array<{ name: string; logo: string; route: string }> }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
@@ -41,32 +52,28 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
-	const RECENTS_KEY = 'recent_protocols'
-	const [recentProtocols, setRecentProtocols] = useState<
-		Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }>
-	>([])
+	const recentProtocolsInStorage = useSyncExternalStore(
+		subscribeToRecentProtocols,
+		() => window.localStorage.getItem(RECENTS_KEY) ?? '[]',
+		() => '[]'
+	)
 
-	useEffect(() => {
-		if (typeof window === 'undefined') return
-		try {
-			const raw = window.localStorage.getItem(RECENTS_KEY)
-			if (raw) {
-				const parsed: Array<{ name: string; logo?: string; route: string; count?: number; lastVisited?: number }> =
-					JSON.parse(raw)
-
-				const normalized = parsed.map((protocol) => ({
+	const recentProtocols: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> =
+		useMemo(() => {
+			return JSON.parse(recentProtocolsInStorage)
+				.map((protocol) => ({
 					name: protocol.name,
 					logo: protocol.logo,
 					route: protocol.route,
 					count: protocol.count ?? 1,
 					lastVisited: protocol.lastVisited ?? Date.now()
 				}))
-				setRecentProtocols(normalized)
-			}
-		} catch (e) {
-			console.error('failed to read recent protocols', e)
-		}
-	}, [])
+				.sort((a, b) => {
+					if (b.count !== a.count) return b.count - a.count
+					return b.lastVisited - a.lastVisited
+				})
+				.slice(0, 6)
+		}, [recentProtocolsInStorage])
 
 	const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
 		try {
@@ -92,7 +99,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				.slice(0, 6)
 
 			window.localStorage.setItem(RECENTS_KEY, JSON.stringify(arr))
-			setRecentProtocols(arr)
+			window.dispatchEvent(new Event('recentProtocolsChange'))
 		} catch (e) {
 			console.error('failed to save recent protocol', e)
 		}
