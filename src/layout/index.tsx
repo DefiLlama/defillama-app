@@ -41,7 +41,7 @@ function Layout({
 				className="isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-[100dvh] lg:p-4 lg:pl-0"
 			>
 				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
-				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
+				<span className="hidden items-center justify-between gap-2 pl-[1px] lg:flex lg:min-h-8">
 					<React.Suspense fallback={<SearchFallback />}>
 						<DesktopSearch />
 					</React.Suspense>

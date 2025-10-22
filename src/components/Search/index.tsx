@@ -100,7 +100,7 @@ const Mobile = () => {
 					<span className="relative isolate flex w-full items-center justify-between gap-2">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
+							className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base focus:ring-(--primary) dark:bg-black"
 						/>
 						<Ariakit.DialogDismiss className="p-2">
 							<Icon name="x" className="h-5 w-5" />
@@ -203,7 +203,7 @@ const Desktop = () => {
 						placeholder="Search..."
 						autoSelect
 						ref={inputField}
-						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-black lg:py-1.25 dark:text-white"
+						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-black focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden focus-visible:outline-hidden lg:py-1.25 dark:text-white"
 					/>
 					<span className="absolute top-0.75 right-0.75 bottom-0.75 m-auto flex items-center justify-center rounded-md bg-(--link-bg) p-1 text-xs text-(--link-text)">
 						⌘K
