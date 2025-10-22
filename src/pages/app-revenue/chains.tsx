@@ -1,4 +1,5 @@
 import { maxAgeForNext } from '~/api'
+import { feesOptions } from '~/components/Filters/options'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
@@ -28,6 +29,8 @@ const HoldersRevenueByChain = (props: IChainsByAdapterPageData) => {
 			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`${type} by chain`}
 			canonicalUrl={`/app-revenue/chains`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in App Revenue"
 			pageName={pageName}
 		>
 			<ChainsByAdapter {...props} type={type} />

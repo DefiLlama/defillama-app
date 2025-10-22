@@ -890,35 +890,29 @@ export const getChainsByFeesAdapterPageData = async ({
 			}
 		}
 
-		const chainsData = await getAdapterChainOverview({
-			adapterType,
-			dataType,
-			chain: 'All',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
-		}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
-
-		const bribesData =
-			adapterType === 'fees'
-				? await getAdapterChainOverview({
-						adapterType,
-						dataType: 'dailyBribesRevenue',
-						chain: 'All',
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
-					}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
-				: []
-
-		const tokensTaxesData =
-			adapterType === 'fees'
-				? await getAdapterChainOverview({
-						adapterType,
-						dataType: 'dailyTokenTaxes',
-						chain: 'All',
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
-					}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
-				: []
+		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
+			getAdapterChainOverview({
+				adapterType,
+				dataType,
+				chain: 'All',
+				excludeTotalDataChart: true,
+				excludeTotalDataChartBreakdown: true
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			getAdapterChainOverview({
+				adapterType,
+				dataType: 'dailyBribesRevenue',
+				chain: 'All',
+				excludeTotalDataChart: false,
+				excludeTotalDataChartBreakdown: true
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			getAdapterChainOverview({
+				adapterType,
+				dataType: 'dailyTokenTaxes',
+				chain: 'All',
+				excludeTotalDataChart: false,
+				excludeTotalDataChartBreakdown: true
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
+		])
 
 		const bribesByChain = {}
 		const tokenTaxesByChain = {}
@@ -930,7 +924,7 @@ export const getChainsByFeesAdapterPageData = async ({
 			}
 		}
 
-		for (const chain of tokensTaxesData) {
+		for (const chain of tokenTaxesData) {
 			tokenTaxesByChain[chain.name] = {
 				total24h: chain.total24h ?? null,
 				total30d: chain.total30d ?? null
@@ -994,7 +988,7 @@ export const getChainsByAdapterPageData = async ({
 						adapterType,
 						dataType,
 						chain,
-						excludeTotalDataChart: false,
+						excludeTotalDataChart: adapterType === 'fees' ? true : false,
 						excludeTotalDataChartBreakdown: true
 					})
 				)
@@ -1003,9 +997,60 @@ export const getChainsByAdapterPageData = async ({
 			.map((e) => (e.status === 'fulfilled' ? e.value : null))
 			.filter((e) => e != null)
 
-		// TODO handle bribes and token taxes
+		const bribesData =
+			adapterType === 'fees'
+				? (
+						await Promise.allSettled(
+							allChains.map(async (chain) =>
+								getAdapterChainOverview({
+									adapterType,
+									dataType: 'dailyBribesRevenue',
+									chain,
+									excludeTotalDataChart: true,
+									excludeTotalDataChartBreakdown: true
+								})
+							)
+						)
+					)
+						.map((e) => (e.status === 'fulfilled' ? e.value : null))
+						.filter((e) => e != null)
+				: []
+
+		const tokenTaxesData =
+			adapterType === 'fees'
+				? (
+						await Promise.allSettled(
+							allChains.map(async (chain) =>
+								getAdapterChainOverview({
+									adapterType,
+									dataType: 'dailyTokenTaxes',
+									chain,
+									excludeTotalDataChart: true,
+									excludeTotalDataChartBreakdown: true
+								})
+							)
+						)
+					)
+						.map((e) => (e.status === 'fulfilled' ? e.value : null))
+						.filter((e) => e != null)
+				: []
+
 		const bribesByChain = {}
 		const tokenTaxesByChain = {}
+
+		for (const chain of bribesData) {
+			bribesByChain[chain.chain] = {
+				total24h: chain.total24h ?? null,
+				total30d: chain.total30d ?? null
+			}
+		}
+
+		for (const chain of tokenTaxesData) {
+			tokenTaxesByChain[chain.chain] = {
+				total24h: chain.total24h ?? null,
+				total30d: chain.total30d ?? null
+			}
+		}
 
 		const chartData = {}
 
