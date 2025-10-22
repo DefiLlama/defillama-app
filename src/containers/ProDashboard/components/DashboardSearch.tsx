@@ -8,7 +8,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 	const id = useRef(null)
 
 	// cleanup timeout on unmount
-	// so if user navigates way, we dont change the url back to discovery page with searchquery params
+	// so if user navigates way, we don't change the url back to discovery page with searchquery params
 	useEffect(() => {
 		return () => {
 			if (id.current) {
@@ -31,10 +31,11 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 							clearTimeout(id.current)
 						}
 						id.current = setTimeout(() => {
+							const { page, ...queryWithoutPage } = router.query
 							router.push(
 								{
 									pathname: '/pro',
-									query: { ...router.query, query: currentValue }
+									query: { ...queryWithoutPage, query: currentValue }
 								},
 								undefined,
 								{ shallow: true }

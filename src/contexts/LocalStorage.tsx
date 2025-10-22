@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars*/
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import toast from 'react-hot-toast'
 import { useIsClient } from '~/hooks'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
@@ -88,6 +89,7 @@ const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
 
 // Pro Dashboard
 export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS'
+export const LLAMA_AI_WELCOME_DISMISSED = 'LLAMA_AI_WELCOME_DISMISSED'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
@@ -272,6 +274,7 @@ export type TSETTINGTYPE =
 	| 'liquidations'
 	| 'bridges'
 	| 'dimension_chart_interval'
+	| 'compare_chains'
 
 function getSettingKeys(type: TSETTINGTYPE) {
 	switch (type) {
@@ -384,33 +387,40 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				: type === 'yields'
 					? YIELDS_SELECTED_PORTFOLIO
 					: CHAINS_SELECTED_PORTFOLIO
-		const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 
+		const parsedStore = JSON.parse(store)
+		const watchlist = parsedStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 		const portfolios = Object.keys(watchlist)
-
-		const selectedPortfolio = JSON.parse(store)?.[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
+		const selectedPortfolio = parsedStore[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
 
 		return {
 			portfolios,
 			selectedPortfolio,
 			savedProtocols: new Set(Object.values(watchlist[selectedPortfolio] ?? {})) as Set<string>,
 			addPortfolio: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
-				const newWatchlist = { ...watchlist, [name]: {} }
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const newWatchlist = { ...watchlist, [name]: { ...(watchlist[name] ?? {}) } }
 				localStorage.setItem(
 					DEFILLAMA,
-					JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist, [selectedPortfolioKey]: name })
+					JSON.stringify({
+						...currentStore,
+						[watchlistKey]: newWatchlist,
+						[selectedPortfolioKey]: name
+					})
 				)
 				window.dispatchEvent(new Event('storage'))
 			},
 			removePortfolio: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
 				const newWatchlist = { ...watchlist }
 				delete newWatchlist[name]
+
 				localStorage.setItem(
 					DEFILLAMA,
 					JSON.stringify({
-						...JSON.parse(store),
+						...currentStore,
 						[watchlistKey]: newWatchlist,
 						[selectedPortfolioKey]: DEFAULT_PORTFOLIO_NAME
 					})
@@ -418,23 +428,54 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				window.dispatchEvent(new Event('storage'))
 			},
 			setSelectedPortfolio: (name: string) => {
-				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [selectedPortfolioKey]: name }))
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				localStorage.setItem(
+					DEFILLAMA,
+					JSON.stringify({
+						...currentStore,
+						[selectedPortfolioKey]: name
+					})
+				)
 				window.dispatchEvent(new Event('storage'))
 			},
 			addProtocol: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentSelectedPortfolio = currentStore[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
+
 				const newWatchlist = {
 					...watchlist,
-					[selectedPortfolio]: { ...watchlist[selectedPortfolio], [slug(name)]: name }
+					[currentSelectedPortfolio]: {
+						...watchlist[currentSelectedPortfolio],
+						[slug(name)]: name
+					}
 				}
-				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist }))
+
+				const updatedStore = {
+					...currentStore,
+					[watchlistKey]: newWatchlist
+				}
+
+				localStorage.setItem(DEFILLAMA, JSON.stringify(updatedStore))
 				window.dispatchEvent(new Event('storage'))
 			},
 			removeProtocol: (name: string) => {
-				const watchlist = JSON.parse(store)?.[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
-				const newWatchlist = { ...watchlist, [selectedPortfolio]: { ...watchlist[selectedPortfolio] } }
-				delete newWatchlist[selectedPortfolio][slug(name)]
-				localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [watchlistKey]: newWatchlist }))
+				const currentStore = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
+				const watchlist = currentStore[watchlistKey] ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+				const currentSelectedPortfolio = currentStore[selectedPortfolioKey] ?? DEFAULT_PORTFOLIO_NAME
+
+				const newWatchlist = {
+					...watchlist,
+					[currentSelectedPortfolio]: { ...watchlist[currentSelectedPortfolio] }
+				}
+				delete newWatchlist[currentSelectedPortfolio][slug(name)]
+
+				const updatedStore = {
+					...currentStore,
+					[watchlistKey]: newWatchlist
+				}
+
+				localStorage.setItem(DEFILLAMA, JSON.stringify(updatedStore))
 				window.dispatchEvent(new Event('storage'))
 			}
 		}
@@ -477,4 +518,21 @@ export function useCustomColumns() {
 		editCustomColumn,
 		deleteCustomColumn
 	}
+}
+
+export function useLlamaAIWelcome(): [boolean, () => void] {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
+
+	const dismissed = useMemo(() => JSON.parse(store)?.[LLAMA_AI_WELCOME_DISMISSED] ?? false, [store])
+
+	const setDismissed = () => {
+		localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [LLAMA_AI_WELCOME_DISMISSED]: true }))
+		window.dispatchEvent(new Event('storage'))
+	}
+
+	return [dismissed, setDismissed]
 }

@@ -90,6 +90,9 @@ export interface ChartBuilderConfig {
 			| 'protocol-revenue'
 			| 'supply-side-revenue'
 			| 'tvl'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue'
 		mode: 'chains' | 'protocol'
 		filterMode?: 'include' | 'exclude'
 		protocol?: string
@@ -102,6 +105,7 @@ export interface ChartBuilderConfig {
 		hideOthers?: boolean
 		groupByParent?: boolean
 		additionalFilters?: Record<string, any>
+		seriesColors?: Record<string, string>
 	}
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	colSpan?: StoredColSpan
@@ -194,6 +198,7 @@ export interface ProtocolsTableConfig {
 		errorMessage?: string
 	}>
 	activeViewId?: string
+	activePresetId?: string
 	datasetType?:
 		| 'stablecoins'
 		| 'cex'

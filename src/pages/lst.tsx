@@ -109,7 +109,7 @@ const PageView = ({
 					{tab === 'breakdown' ? (
 						<div className="grid w-full grid-cols-1 pt-12 *:col-span-1 xl:grid-cols-2 xl:*:*:[&[role='combobox']]:-mt-9!">
 							<React.Suspense fallback={<></>}>
-								<PieChart chartData={pieChartData} stackColors={lsdColors} usdFormat={false} />
+								<PieChart chartData={pieChartData} stackColors={lsdColors} />
 							</React.Suspense>
 							<React.Suspense fallback={<></>}>
 								<AreaChart

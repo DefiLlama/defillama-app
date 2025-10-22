@@ -17,7 +17,8 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	columnOrder,
 	columnVisibility,
 	customColumns,
-	activeViewId
+	activeViewId,
+	activePresetId
 }: {
 	tableId: string
 	chains: string[]
@@ -27,6 +28,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	columnVisibility?: Record<string, boolean>
 	customColumns?: any[]
 	activeViewId?: string
+	activePresetId?: string
 }) {
 	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboard()
 	const [showFilterModal, setShowFilterModal] = useState(false)
@@ -65,8 +67,16 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 		initialColumnVisibility: columnVisibility,
 		initialCustomColumns: customColumns,
 		initialActiveViewId: activeViewId,
-		onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId) => {
-			handleTableColumnsChange(tableId, newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId)
+		initialActivePresetId: activePresetId,
+		onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId, newActivePresetId) => {
+			handleTableColumnsChange(
+				tableId,
+				newColumnOrder,
+				newColumnVisibility,
+				newCustomColumns,
+				newActiveViewId,
+				newActivePresetId
+			)
 		}
 	})
 

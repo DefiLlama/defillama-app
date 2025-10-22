@@ -35,13 +35,15 @@ export function Select({
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
-	const [viewableMatches, setViewableMatches] = React.useState(5)
+	const [viewableMatches, setViewableMatches] = React.useState(6)
 
 	const canSelectOnlyOne = typeof selectedValues === 'string'
 
 	const selectRef = React.useRef<HTMLDivElement>(null)
 
-	const handleSeeMore = () => {
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 
@@ -78,7 +80,7 @@ export function Select({
 							) : null}
 						</span>
 					) : null}
-					{allValues.slice(0, viewableMatches + 1).map((option) => (
+					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
 							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
@@ -104,7 +106,11 @@ export function Select({
 							setValueOnClick={false}
 							hideOnClick={false}
 							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-							onClick={() => setViewableMatches((prev) => prev + 20)}
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								setViewableMatches((prev) => prev + 20)
+							}}
 						>
 							See more...
 						</Ariakit.SelectItem>
@@ -157,7 +163,7 @@ export function Select({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				portal={portal || false}
 				ref={selectRef}
 			>
@@ -182,7 +188,7 @@ export function Select({
 							</span>
 						) : null}
 
-						{allValues.slice(0, viewableMatches + 1).map((option) => (
+						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}

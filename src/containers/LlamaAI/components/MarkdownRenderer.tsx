@@ -3,11 +3,14 @@ import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { getEntityUrl } from '../utils/entityLinks'
 
 interface MarkdownRendererProps {
 	content: string
 	citations?: string[]
+	isStreaming?: boolean
 }
 
 interface EntityLinkProps {
@@ -15,18 +18,6 @@ interface EntityLinkProps {
 	children?: any
 	node?: any
 	[key: string]: any
-}
-
-function getEntityUrl(type: string, slug: string): string {
-	switch (type) {
-		case 'protocol':
-		case 'subprotocol':
-			return `/protocol/${slug}`
-		case 'chain':
-			return `/chain/${slug}`
-		default:
-			return `/${type}/${slug}`
-	}
 }
 
 function getEntityIcon(type: string, slug: string): string {
@@ -41,7 +32,7 @@ function getEntityIcon(type: string, slug: string): string {
 	}
 }
 
-function TableWrapper({ children }: { children: React.ReactNode }) {
+function TableWrapper({ children, isStreaming = false }: { children: React.ReactNode; isStreaming: boolean }) {
 	const tableRef = useRef<HTMLDivElement>(null)
 
 	const prepareCsv = () => {
@@ -62,8 +53,18 @@ function TableWrapper({ children }: { children: React.ReactNode }) {
 
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
-			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2">
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2" id="ai-table-download">
+				{isStreaming ? (
+					<button
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						disabled
+					>
+						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
+						<span>.csv</span>
+					</button>
+				) : (
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
+				)}
 			</div>
 			<div ref={tableRef} className="overflow-x-auto">
 				<table className="m-0! table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
@@ -78,7 +79,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool'].includes(type)) {
 			return <span>{children}</span>
 		}
 
@@ -93,7 +94,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 				rel="noreferrer noopener"
 				{...props}
 			>
-				<TokenLogo logo={iconUrl} size={14} />
+				{type !== 'pool' && <TokenLogo logo={iconUrl} size={14} />}
 				<span className="truncate">{children}</span>
 			</a>
 		)
@@ -105,7 +106,11 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 	)
 }
 
-export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citations }: MarkdownRendererProps) {
+export const MarkdownRenderer = memo(function MarkdownRenderer({
+	content,
+	citations,
+	isStreaming = false
+}: MarkdownRendererProps) {
 	const processedData = useMemo(() => {
 		const linkMap = new Map<string, string>()
 
@@ -118,11 +123,29 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 		let processedContent = content
 
 		if (!citations || citations.length === 0) {
-			processedContent = content.replace(/\[(\d+(?:,\s*\d+)*)\]/g, '')
+			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
 		} else {
-			processedContent = content.replace(/\[(\d+(?:,\s*\d+)*)\]/g, (match, nums) => {
-				const citationNums = nums.split(',').map((n: string) => parseInt(n.trim()))
-				const badges = citationNums
+			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (match, nums) => {
+				const parts = nums.split(',').map((p: string) => p.trim())
+				const expandedNums: number[] = []
+
+				parts.forEach((part: string) => {
+					if (part.includes('-')) {
+						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
+						if (!isNaN(start) && !isNaN(end) && start <= end) {
+							for (let i = start; i <= end; i++) {
+								expandedNums.push(i)
+							}
+						}
+					} else {
+						const num = parseInt(part.trim())
+						if (!isNaN(num)) {
+							expandedNums.push(num)
+						}
+					}
+				})
+
+				const badges = expandedNums
 					.map((num: number) => {
 						const idx = num - 1
 						if (citations[idx]) {
@@ -180,7 +203,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 				rehypePlugins={[rehypeRaw]}
 				components={{
 					a: LinkRenderer,
-					table: ({ children }) => <TableWrapper>{children}</TableWrapper>,
+					table: ({ children }) => <TableWrapper isStreaming={isStreaming}>{children}</TableWrapper>,
 					th: ({ children }) => (
 						<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
 							{children}
@@ -199,7 +222,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({ content, citati
 				{processedData.content}
 			</ReactMarkdown>
 			{citations && citations.length > 0 && (
-				<details className="flex flex-col pt-2.5 text-sm">
+				<details className="flex flex-col text-sm">
 					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"

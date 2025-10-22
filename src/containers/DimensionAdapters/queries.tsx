@@ -775,7 +775,7 @@ export const getAdapterByChainPageData = async ({
 			name: protocol,
 			slug: slug(protocol),
 			logo: tokenIconUrl(protocol),
-			category: parentProtocols[protocol].sort((a, b) => b.total24h - a.total24h)[0].category ?? null,
+			category: parentProtocols[protocol].sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))[0].category ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,
@@ -1083,7 +1083,11 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 					(protocols?.protocols ?? []).reduce((acc, curr) => {
 						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total24h ?? 0) : acc
 					}, 0),
-				total30d: chainFees?.total30d ?? null
+				total30d:
+					(chainFees?.total30d ?? 0) +
+					(protocols?.protocols ?? []).reduce((acc, curr) => {
+						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total30d ?? 0) : acc
+					}, 0)
 			}
 		})
 

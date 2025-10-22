@@ -2,21 +2,6 @@ import { Icon } from '~/components/Icon'
 
 export function SubscribeEnterpriseCard({ active = false }: { active?: boolean }) {
 	return (
-		<div
-			className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
-		>
-			<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-gray-500 to-transparent opacity-20"></div>
-			<div className="absolute top-[-30px] right-[-30px] h-[80px] w-[80px] rounded-full bg-gray-600 opacity-5 blur-2xl"></div>
-			<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-			<span className="h-8"></span>
-			<span className="h-7"></span>
-			<EnterpriseCardContent active={active} />
-		</div>
-	)
-}
-
-export function EnterpriseCardContent({ active = false }: { active?: boolean }) {
-	return (
 		<>
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">

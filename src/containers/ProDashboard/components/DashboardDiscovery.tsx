@@ -1,14 +1,15 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
-import { LoadingSpinner } from './LoadingSpinner'
 
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
+const PAGE_LIMIT = 20 as const
 const sortOptions = [
 	{ key: 'popular', name: 'Most Popular' },
 	{ key: 'recent', name: 'Recently Created' },
@@ -40,7 +41,7 @@ export function DashboardDiscovery() {
 		visibility: 'public',
 		sortBy: selectedSortBy.key,
 		page: selectedPage,
-		limit: 20
+		limit: PAGE_LIMIT
 	})
 
 	const handleTagClick = (tag: string) => {
@@ -49,13 +50,13 @@ export function DashboardDiscovery() {
 		}
 
 		// remove page from query
-		const { page, ...query } = router.query
+		const { page, ...queryWithoutPage } = router.query
 
 		router.push(
 			{
 				pathname: '/pro',
 				query: {
-					...query,
+					...queryWithoutPage,
 					tag: tag
 				}
 			},
@@ -89,10 +90,11 @@ export function DashboardDiscovery() {
 							allValues={sortOptions}
 							selectedValues={selectedSortBy.key}
 							setSelectedValues={(value) => {
+								const { page, ...queryWithoutPage } = router.query
 								router.push(
 									{
 										pathname: '/pro',
-										query: { ...router.query, sortBy: value as SortOption['key'] }
+										query: { ...queryWithoutPage, sortBy: value as SortOption['key'] }
 									},
 									undefined,
 									{ shallow: true }
@@ -223,9 +225,10 @@ export function DashboardDiscovery() {
 			</div>
 
 			{isLoading ? (
-				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
-					<LoadingSpinner />
-				</div>
+				<>
+					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
+					<LoadingSkeleton viewMode={viewMode} items={PAGE_LIMIT} />
+				</>
 			) : dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 					<Icon name="search" height={48} width={48} className="text-(--text-label)" />

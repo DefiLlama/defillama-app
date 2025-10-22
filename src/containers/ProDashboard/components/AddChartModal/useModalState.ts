@@ -38,7 +38,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		limit: 10,
 		chartType: 'stackedArea',
 		displayAs: 'timeSeries',
-		additionalFilters: {}
+		additionalFilters: {},
+		seriesColors: {}
 	})
 
 	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
@@ -58,6 +59,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedYieldChains, setSelectedYieldChains] = useState<string[]>([])
 	const [selectedYieldProjects, setSelectedYieldProjects] = useState<string[]>([])
 	const [selectedYieldCategories, setSelectedYieldCategories] = useState<string[]>([])
+	const [selectedYieldTokens, setSelectedYieldTokens] = useState<string[]>([])
 	const [minTvl, setMinTvl] = useState<number | null>(null)
 	const [maxTvl, setMaxTvl] = useState<number | null>(null)
 
@@ -114,7 +116,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setChartBuilderName(editItem.name || '')
 				setChartBuilder({
 					...editItem.config,
-					mode: editItem.config.mode || 'chains'
+					mode: editItem.config.mode || 'chains',
+					seriesColors: editItem.config.seriesColors || {}
 				})
 			} else if (editItem.kind === 'metric') {
 				setSelectedMainTab('metric')
@@ -169,7 +172,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				limit: 10,
 				chartType: 'stackedArea',
 				displayAs: 'timeSeries',
-				additionalFilters: {}
+				additionalFilters: {},
+				seriesColors: {}
 			})
 			setMetricSubjectType('chain')
 			setMetricChain(null)
@@ -183,6 +187,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldChains([])
 			setSelectedYieldProjects([])
 			setSelectedYieldCategories([])
+			setSelectedYieldTokens([])
 			setMinTvl(null)
 			setMaxTvl(null)
 		}
@@ -210,6 +215,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setChartBuilder({
 			metric: 'tvl',
 			mode: 'chains',
+			filterMode: 'include',
 			chains: [],
 			chainCategories: [],
 			categories: [],
@@ -217,7 +223,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			limit: 10,
 			chartType: 'stackedArea',
 			displayAs: 'timeSeries',
-			additionalFilters: {}
+			additionalFilters: {},
+			seriesColors: {}
 		})
 		setMetricSubjectType('chain')
 		setMetricChain(null)
@@ -231,6 +238,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedYieldChains([])
 		setSelectedYieldProjects([])
 		setSelectedYieldCategories([])
+		setSelectedYieldTokens([])
 		setMinTvl(null)
 		setMaxTvl(null)
 	}
@@ -269,6 +277,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedYieldChains,
 		selectedYieldProjects,
 		selectedYieldCategories,
+		selectedYieldTokens,
 		minTvl,
 		maxTvl
 	}
@@ -308,6 +317,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldChains,
 			setSelectedYieldProjects,
 			setSelectedYieldCategories,
+			setSelectedYieldTokens,
 			setMinTvl,
 			setMaxTvl
 		}),
@@ -344,6 +354,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldChains,
 			setSelectedYieldProjects,
 			setSelectedYieldCategories,
+			setSelectedYieldTokens,
 			setMinTvl,
 			setMaxTvl
 		]

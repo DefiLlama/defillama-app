@@ -22,7 +22,9 @@ export function RaisesSearch({ list }) {
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
-	const handleSeeMore = () => {
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 
@@ -57,14 +59,14 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="max-sm:drawer z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+					className="max-sm:drawer thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.PopoverDismiss>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches + 1).map((option) => (
+							{matches.slice(0, viewableMatches).map((option) => (
 								<Row key={option} name={option} setOpen={setOpen} />
 							))}
 							{matches.length > viewableMatches ? (

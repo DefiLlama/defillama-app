@@ -26,7 +26,9 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 	const [viewableMatches, setViewableMatches] = useState(20)
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
-	const handleSeeMore = () => {
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 
@@ -67,7 +69,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 						<Icon name="x" className="h-5 w-5" />
@@ -81,7 +83,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					</span>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
-							{matches.slice(0, viewableMatches + 1).map((value) => (
+							{matches.slice(0, viewableMatches).map((value) => (
 								<Item label={value.label} to={value.to} key={`other-link-${value.to}`} />
 							))}
 							{matches.length > viewableMatches ? (

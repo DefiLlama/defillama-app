@@ -44,6 +44,9 @@ export interface ChartBuilderConfig {
 		| 'holders-revenue'
 		| 'protocol-revenue'
 		| 'supply-side-revenue'
+		| 'stablecoins'
+		| 'chain-fees'
+		| 'chain-revenue'
 	mode: 'chains' | 'protocol'
 	filterMode?: 'include' | 'exclude'
 	protocol?: string
@@ -57,6 +60,7 @@ export interface ChartBuilderConfig {
 	hideOthers?: boolean
 	groupByParent?: boolean
 	additionalFilters?: Record<string, any>
+	seriesColors?: Record<string, string>
 }
 
 export interface ModalState {
@@ -93,6 +97,7 @@ export interface ModalState {
 	selectedYieldChains: string[]
 	selectedYieldProjects: string[]
 	selectedYieldCategories: string[]
+	selectedYieldTokens: string[]
 	minTvl: number | null
 	maxTvl: number | null
 }
@@ -143,6 +148,7 @@ export interface ModalActions {
 	setSelectedYieldChains: (chains: string[]) => void
 	setSelectedYieldProjects: (projects: string[]) => void
 	setSelectedYieldCategories: (categories: string[]) => void
+	setSelectedYieldTokens: (tokens: string[]) => void
 	setMinTvl: (tvl: number | null) => void
 	setMaxTvl: (tvl: number | null) => void
 }

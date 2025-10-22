@@ -138,6 +138,7 @@ interface ProDashboardContextType {
 			chartType: 'stackedBar' | 'stackedArea' | 'line'
 			displayAs: 'timeSeries' | 'percentage'
 			additionalFilters?: Record<string, any>
+			seriesColors?: Record<string, string>
 		}
 	) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -155,7 +156,8 @@ interface ProDashboardContextType {
 		columnOrder?: string[],
 		columnVisibility?: Record<string, boolean>,
 		customColumns?: any[],
-		activeViewId?: string
+		activeViewId?: string,
+		activePresetId?: string
 	) => void
 	getChainInfo: (chainName: string) => Chain | undefined
 	getProtocolInfo: (protocolId: string) => Protocol | undefined
@@ -311,6 +313,7 @@ export function ProDashboardAPIProvider({
 			}
 			return dashboard
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: !!initialDashboardId
 	})
 
@@ -1037,6 +1040,7 @@ export function ProDashboardAPIProvider({
 				hideOthers?: boolean
 				groupByParent?: boolean
 				additionalFilters?: Record<string, any>
+				seriesColors?: Record<string, string>
 			}
 		) => {
 			if (isReadOnly) {
@@ -1312,7 +1316,8 @@ export function ProDashboardAPIProvider({
 			columnOrder?: string[],
 			columnVisibility?: Record<string, boolean>,
 			customColumns?: any[],
-			activeViewId?: string
+			activeViewId?: string,
+			activePresetId?: string
 		) => {
 			if (isReadOnly) {
 				return
@@ -1325,7 +1330,8 @@ export function ProDashboardAPIProvider({
 							columnOrder,
 							columnVisibility,
 							customColumns,
-							activeViewId
+							activeViewId,
+							activePresetId
 						} as ProtocolsTableConfig
 					}
 					return item

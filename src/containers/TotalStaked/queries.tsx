@@ -83,7 +83,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && totalStaked != null
-					? (getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
+					? Number(getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
 					: null
 		}
 
@@ -114,8 +114,8 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 				totalStaked: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
-					totalPrevMonth != null && totalPrevMonth != null
-						? (getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
+					totalStaked != null && totalPrevMonth != null
+						? Number(getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
 						: null,
 				subRows: finalParentProtocols[parent]
 			})

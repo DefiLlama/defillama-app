@@ -383,7 +383,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			extraTvlCharts.dcAndLsOverlap[+date * 1e3] = Math.trunc(totalLiquidityUSD)
 		}
 
-		// by default we should not include liquidstaking and doublecounted in the tvl chart, but include overlapping tvl so you dont subtract twice
+		// by default we should not include liquidstaking and doublecounted in the tvl chart, but include overlapping tvl so you don't subtract twice
 		const tvlChart = tvl.map(([date, totalLiquidityUSD]) => {
 			let sum = Math.trunc(totalLiquidityUSD)
 			if (extraTvlCharts['liquidstaking']?.[+date * 1e3]) {

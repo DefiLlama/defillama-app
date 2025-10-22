@@ -8,9 +8,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
-import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
-import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -34,15 +32,12 @@ export function BridgesOverviewByChain({
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
-	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging'>('bridges')
+	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
 
 	useEffect(() => {
 		setChartView('netflow')
 	}, [])
-
-	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
-	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/bridges`
@@ -343,24 +338,32 @@ export function BridgesOverviewByChain({
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex items-center justify-between gap-3 p-3">
-					<div className="flex items-center">
+				<div className="flex w-full flex-wrap items-center justify-between gap-3 p-3">
+					<div className="flex items-center overflow-x-auto">
 						<button
-							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'bridges'}
 							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
-							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'messaging'}
 							onClick={() => setActiveTab('messaging')}
 						>
 							Messaging Protocols
 						</button>
+						<button
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+							data-active={activeTab === 'largeTxs'}
+							onClick={() => setActiveTab('largeTxs')}
+						>
+							Large Txs
+						</button>
 					</div>
-					<label className="relative w-full sm:max-w-[280px]">
+
+					<label className="relative w-full max-w-full sm:max-w-[280px]">
 						<span className="sr-only">Search bridges</span>
 						<Icon
 							name="search"
@@ -375,12 +378,9 @@ export function BridgesOverviewByChain({
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
-					<div className="ml-auto">
-						<TxsTableSwitch />
-					</div>
 				</div>
 
-				{isBridgesShowingTxs ? (
+				{activeTab === 'largeTxs' ? (
 					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
 				) : (
 					<BridgesTable

@@ -3,8 +3,10 @@ import {
 	CHAIN_TVL_API,
 	CHAINS_API_V2,
 	CHART_API,
-	DIMENISIONS_OVERVIEW_API,
+	DIMENSIONS_OVERVIEW_API,
 	DIMENSIONS_SUMMARY_API,
+	PEGGEDCHART_API,
+	PEGGEDCHART_DOMINANCE_ALL_API,
 	PROTOCOL_API
 } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
@@ -45,6 +47,19 @@ const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metri
 	'supply-side-revenue': { endpoint: 'fees', dataType: 'dailySupplySideRevenue', metricName: 'supply side revenue' }
 }
 
+const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
+
+const CHAIN_ONLY_METRIC_LABELS: Record<string, string> = {
+	stablecoins: 'Stablecoin Mcap',
+	'chain-fees': 'Chain Fees',
+	'chain-revenue': 'Chain Revenue'
+}
+
+const CHAIN_FEES_CONFIG: Record<'chain-fees' | 'chain-revenue', { dataType?: string }> = {
+	'chain-fees': {},
+	'chain-revenue': { dataType: 'dailyRevenue' }
+}
+
 const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 
 const normalizeChainKey = (chain: string): string => {
@@ -73,6 +88,35 @@ const displayChainName = (slug: string): string => {
 		.split('-')
 		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
 		.join(' ')
+}
+
+const buildChainMatchSet = (values: string[]): Set<string> => {
+	const set = new Set<string>()
+	for (const value of values) {
+		if (!value) continue
+		set.add(value)
+		set.add(value.toLowerCase())
+		const normalized = normalizeChainKey(value)
+		set.add(normalized)
+		set.add(normalized.toLowerCase())
+		const slug = toDimensionsChainSlug(value)
+		if (slug) {
+			set.add(slug)
+			set.add(slug.toLowerCase())
+		}
+	}
+	return set
+}
+
+const sumStablecoinUsd = (value: any): number => {
+	if (typeof value === 'number') return value || 0
+	if (!value || typeof value !== 'object') return 0
+	let total = 0
+	for (const nested of Object.values(value)) {
+		if (typeof nested === 'number') total += nested || 0
+		else if (nested && typeof nested === 'object') total += sumStablecoinUsd(nested)
+	}
+	return total
 }
 
 const normalizeDailyPairs = (pairs: [number, number][]): [number, number][] => {
@@ -522,6 +566,353 @@ async function getAllProtocolsTopChainsTvlData(
 	}
 }
 
+async function getAllProtocolsTopChainsStablecoinsData(
+	topN: number = 5,
+	chains?: string[],
+	filterMode: 'include' | 'exclude' = 'include',
+	chainCategories?: string[]
+): Promise<ProtocolChainData> {
+	try {
+		const dominanceResp = await fetch(PEGGEDCHART_DOMINANCE_ALL_API)
+		if (!dominanceResp.ok) {
+			throw new Error(`Failed to fetch stablecoin dominance data: ${dominanceResp.statusText}`)
+		}
+
+		const dominanceJson = await dominanceResp.json()
+		const chainChartMap: Record<string, any[]> = dominanceJson?.chainChartMap ?? {}
+
+		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
+
+		let allowNamesFromCategories: Set<string> | null = null
+		if (chainCategories && chainCategories.length > 0) {
+			const namesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
+			allowNamesFromCategories = buildChainMatchSet(Array.from(namesFromCategories))
+		}
+
+		const candidates: Array<{ name: string; data: [number, number][]; lastValue: number }> = []
+
+		for (const [chainName, charts] of Object.entries(chainChartMap)) {
+			if (chainName.toLowerCase() === 'all') continue
+			if (!Array.isArray(charts) || charts.length === 0) continue
+
+			const matchValues = [
+				chainName,
+				chainName.toLowerCase(),
+				normalizeChainKey(chainName),
+				normalizeChainKey(chainName).toLowerCase(),
+				toDimensionsChainSlug(chainName)
+			]
+
+			if (includeSet.size > 0) {
+				const matches = matchValues.some((value) => includeSet.has(value))
+				if (filterMode === 'include') {
+					if (!matches) continue
+				} else if (matches) {
+					continue
+				}
+			}
+
+			if (allowNamesFromCategories && allowNamesFromCategories.size > 0) {
+				const matches = matchValues.some((value) => allowNamesFromCategories!.has(value))
+				if (filterMode === 'include') {
+					if (!matches) continue
+				} else if (matches) {
+					continue
+				}
+			}
+
+			const pairs = charts
+				.map((point: any) => {
+					const rawTs = point?.date ?? point?.timestamp
+					if (rawTs == null) return null
+					let ts = Number(rawTs)
+					if (!Number.isFinite(ts)) return null
+					if (ts > 1e12) ts = Math.floor(ts / 1000)
+					const usd = sumStablecoinUsd(point?.totalCirculatingUSD)
+					if (!Number.isFinite(usd)) return null
+					return [ts, usd] as [number, number]
+				})
+				.filter(Boolean) as [number, number][]
+
+			if (pairs.length === 0) continue
+
+			const normalized = filterOutToday(normalizeDailyPairs(pairs))
+			if (normalized.length === 0) continue
+
+			const lastValue = normalized[normalized.length - 1]?.[1] || 0
+			if (lastValue <= 0) continue
+
+			const displayName = displayChainName(toDimensionsChainSlug(chainName))
+
+			candidates.push({
+				name: displayName,
+				data: normalized,
+				lastValue
+			})
+		}
+
+		if (candidates.length === 0) {
+			return {
+				series: [],
+				metadata: {
+					protocol: 'All Protocols',
+					metric: CHAIN_ONLY_METRIC_LABELS['stablecoins'],
+					chains: [],
+					totalChains: 0,
+					topN: 0,
+					othersCount: 0
+				}
+			}
+		}
+
+		const ranked = candidates.sort((a, b) => b.lastValue - a.lastValue)
+		const picked = ranked.slice(0, Math.min(topN, ranked.length))
+
+		const pickedSeries: ChartSeries[] = picked.map((entry, idx) => ({
+			name: entry.name,
+			data: entry.data,
+			color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+		}))
+
+		let totalPairs: [number, number][] = []
+		try {
+			const aggregatedResp = await fetch(`${PEGGEDCHART_API}/all`)
+			if (aggregatedResp.ok) {
+				const aggregatedJson = await aggregatedResp.json()
+				const aggregatedArray: any[] = Array.isArray(aggregatedJson?.aggregated) ? aggregatedJson.aggregated : []
+				totalPairs = filterOutToday(
+					normalizeDailyPairs(
+						aggregatedArray
+							.map((item: any) => {
+								const rawTs = item?.date ?? item?.timestamp
+								if (rawTs == null) return null
+								let ts = Number(rawTs)
+								if (!Number.isFinite(ts)) return null
+								if (ts > 1e12) ts = Math.floor(ts / 1000)
+								const usd = sumStablecoinUsd(item?.totalCirculatingUSD)
+								if (!Number.isFinite(usd)) return null
+								return [ts, usd] as [number, number]
+							})
+							.filter(Boolean) as [number, number][]
+					)
+				)
+			}
+		} catch (err) {
+			console.log('Failed to fetch aggregated stablecoin series for chains builder:', err)
+		}
+
+		const timestampSet = new Set<number>()
+		pickedSeries.forEach((s) => s.data.forEach(([t]) => timestampSet.add(t)))
+		totalPairs.forEach(([t]) => timestampSet.add(t))
+		const allTimestamps = Array.from(timestampSet).sort((a, b) => a - b)
+
+		const alignedTop = pickedSeries.map((s) => ({ ...s, data: alignSeries(allTimestamps, s.data) }))
+
+		let finalSeries: ChartSeries[] = [...alignedTop]
+		const othersCount = Math.max(0, ranked.length - picked.length)
+
+		if (totalPairs.length > 0 && allTimestamps.length > 0) {
+			const alignedTotal = alignSeries(allTimestamps, totalPairs)
+			const topSumPerTs = alignSeries(
+				allTimestamps,
+				Array.from(sumSeriesByTimestamp(alignedTop.map((s) => s.data)).entries()).sort((a, b) => a[0] - b[0]) as [
+					number,
+					number
+				][]
+			)
+			const othersData: [number, number][] = allTimestamps.map((t, idx) => {
+				const total = alignedTotal[idx]?.[1] || 0
+				const top = topSumPerTs[idx]?.[1] || 0
+				return [t, Math.max(0, total - top)]
+			})
+			const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
+			if (hasOthers) {
+				finalSeries.push({
+					name: `Others (${othersCount} chains)`,
+					data: othersData,
+					color: '#999999'
+				})
+			}
+		}
+
+		return {
+			series: finalSeries,
+			metadata: {
+				protocol: 'All Protocols',
+				metric: CHAIN_ONLY_METRIC_LABELS['stablecoins'],
+				chains: picked.map((entry) => entry.name),
+				totalChains: ranked.length,
+				topN: picked.length,
+				othersCount
+			}
+		}
+	} catch (error) {
+		console.log('Error building stablecoin mcap by chain:', error)
+		return {
+			series: [],
+			metadata: {
+				protocol: 'All Protocols',
+				metric: CHAIN_ONLY_METRIC_LABELS['stablecoins'],
+				chains: [],
+				totalChains: 0,
+				topN: 0,
+				othersCount: 0
+			}
+		}
+	}
+}
+
+async function getAllProtocolsTopChainsChainFeesData(
+	metric: 'chain-fees' | 'chain-revenue',
+	topN: number = 5,
+	chains?: string[],
+	filterMode: 'include' | 'exclude' = 'include',
+	chainCategories?: string[]
+): Promise<ProtocolChainData> {
+	try {
+		const config = CHAIN_FEES_CONFIG[metric]
+		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true`
+		if (config?.dataType) overviewUrl += `&dataType=${config.dataType}`
+
+		const overviewResp = await fetch(overviewUrl)
+		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
+		const overview = await overviewResp.json()
+
+		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
+		let allowSlugsFromCategories: Set<string> | null = null
+		if (chainCategories && chainCategories.length > 0) {
+			const slugs = await resolveAllowedChainSlugsFromCategories(chainCategories)
+			allowSlugsFromCategories = slugs
+		}
+
+		const protocols: any[] = Array.isArray(overview?.protocols) ? overview.protocols : []
+		const rankedEntries = protocols
+			.filter((p) => (p?.protocolType || '').toLowerCase() === 'chain')
+			.map((p) => {
+				const slug = typeof p.slug === 'string' && p.slug.length > 0 ? p.slug : toDimensionsChainSlug(p.name || '')
+				const total24h = Number(p.total24h) || 0
+				return {
+					name: displayChainName(slug),
+					slug,
+					total24h
+				}
+			})
+			.filter((entry) => entry.total24h > 0)
+			.filter((entry) => {
+				if (!chains || chains.length === 0) return true
+				const matches =
+					includeSet.has(entry.slug) ||
+					includeSet.has(entry.slug.toLowerCase()) ||
+					includeSet.has(entry.name) ||
+					includeSet.has(entry.name.toLowerCase())
+				if (filterMode === 'include') return matches
+				return !matches
+			})
+			.filter((entry) => {
+				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
+				if (filterMode === 'include') return allowSlugsFromCategories.has(entry.slug)
+				return !allowSlugsFromCategories.has(entry.slug)
+			})
+			.sort((a, b) => b.total24h - a.total24h)
+
+		if (rankedEntries.length === 0) {
+			return {
+				series: [],
+				metadata: {
+					protocol: 'All Protocols',
+					metric: CHAIN_ONLY_METRIC_LABELS[metric],
+					chains: [],
+					totalChains: 0,
+					topN: 0,
+					othersCount: 0
+				}
+			}
+		}
+
+		const picked = rankedEntries.slice(0, Math.min(topN, rankedEntries.length))
+
+		const chainSeriesPromises = picked.map(async (entry, idx) => {
+			let summaryUrl = `${DIMENSIONS_SUMMARY_API}/fees/${entry.slug}`
+			if (config?.dataType) summaryUrl += `?dataType=${config.dataType}`
+			const resp = await fetch(summaryUrl)
+			if (!resp.ok) return null
+			const json = await resp.json()
+			const chart: Array<[number | string, number]> = Array.isArray(json?.totalDataChart) ? json.totalDataChart : []
+			const normalized = filterOutToday(normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)])))
+			return {
+				name: entry.name,
+				data: normalized,
+				color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
+			} as ChartSeries
+		})
+
+		const seriesRaw = (await Promise.all(chainSeriesPromises)).filter(Boolean) as ChartSeries[]
+
+		const totalChart: Array<[number | string, number]> = Array.isArray(overview?.totalDataChart)
+			? overview.totalDataChart
+			: []
+		const totalNormalized = filterOutToday(
+			normalizeDailyPairs(totalChart.map(([ts, value]) => [Number(ts), Number(value)]))
+		)
+
+		const tsSet = new Set<number>()
+		seriesRaw.forEach((s) => s.data.forEach(([t]) => tsSet.add(t)))
+		totalNormalized.forEach(([t]) => tsSet.add(t))
+		const allTs = Array.from(tsSet).sort((a, b) => a - b)
+
+		const alignedTop = seriesRaw.map((s) => ({ ...s, data: alignSeries(allTs, s.data) }))
+		const topSumPerTs = alignSeries(
+			allTs,
+			Array.from(sumSeriesByTimestamp(alignedTop.map((s) => s.data)).entries()).sort((a, b) => a[0] - b[0]) as [
+				number,
+				number
+			][]
+		)
+		const totalAligned = alignSeries(allTs, totalNormalized)
+		const othersData: [number, number][] = allTs.map((t, idx) => {
+			const total = totalAligned[idx]?.[1] || 0
+			const top = topSumPerTs[idx]?.[1] || 0
+			return [t, Math.max(0, total - top)]
+		})
+
+		const othersCount = Math.max(0, rankedEntries.length - picked.length)
+		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
+		const finalSeries = [...alignedTop]
+		if (hasOthers) {
+			finalSeries.push({
+				name: `Others (${othersCount} chains)`,
+				data: othersData,
+				color: '#999999'
+			})
+		}
+
+		return {
+			series: finalSeries,
+			metadata: {
+				protocol: 'All Protocols',
+				metric: CHAIN_ONLY_METRIC_LABELS[metric],
+				chains: picked.map((entry) => entry.name),
+				totalChains: rankedEntries.length,
+				topN: picked.length,
+				othersCount
+			}
+		}
+	} catch (error) {
+		console.log(`Error building ${metric} by chain:`, error)
+		return {
+			series: [],
+			metadata: {
+				protocol: 'All Protocols',
+				metric: CHAIN_ONLY_METRIC_LABELS[metric],
+				chains: [],
+				totalChains: 0,
+				topN: 0,
+				othersCount: 0
+			}
+		}
+	}
+}
+
 async function getAllProtocolsTopChainsDimensionsData(
 	metric: string,
 	topN: number = 5,
@@ -533,7 +924,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	if (!config) throw new Error(`Unsupported metric: ${metric}`)
 
 	try {
-		let overviewUrl = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
+		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) overviewUrl += `&dataType=${config.dataType}`
 		const overviewResp = await fetch(overviewUrl)
 		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
@@ -577,7 +968,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 		const picked = ranked.slice(0, Math.min(topN, ranked.length)).map(([slug]) => slug)
 
 		const chainSeriesPromises = picked.map(async (slug, idx) => {
-			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${slug}?excludeTotalDataChartBreakdown=true`
+			let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${slug}?excludeTotalDataChartBreakdown=true`
 			if (config.dataType) url += `&dataType=${config.dataType}`
 			const r = await fetch(url)
 			if (!r.ok) return null
@@ -660,10 +1051,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const chainCategoriesArray = (chainCategories as string | undefined)?.split(',').filter(Boolean) || []
 		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const topN = Math.min(parseInt(limit as string), 20)
+		const protocolStr = typeof protocol === 'string' ? protocol : undefined
+		const isProtocolAll = !protocolStr || protocolStr.toLowerCase() === 'all'
 
 		let result: ProtocolChainData
 
-		if (!protocol || typeof protocol !== 'string' || protocol.toLowerCase() === 'all') {
+		if (CHAIN_ONLY_METRICS.has(metricStr)) {
+			if (!isProtocolAll) {
+				res.status(400).json({
+					error: `${metricStr} metric is only available when protocol=All`
+				})
+				return
+			}
+
+			if (metricStr === 'stablecoins') {
+				result = await getAllProtocolsTopChainsStablecoinsData(topN, chainsArray, fm, chainCategoriesArray)
+			} else {
+				result = await getAllProtocolsTopChainsChainFeesData(
+					metricStr as 'chain-fees' | 'chain-revenue',
+					topN,
+					chainsArray,
+					fm,
+					chainCategoriesArray
+				)
+			}
+		} else if (isProtocolAll) {
 			if (metricStr === 'tvl') {
 				result = await getAllProtocolsTopChainsTvlData(topN, chainsArray, fm, chainCategoriesArray)
 			} else {
@@ -671,9 +1083,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			}
 		} else {
 			if (metricStr === 'tvl') {
-				result = await getTvlProtocolChainData(protocol, chainsArray, topN, fm, chainCategoriesArray)
+				result = await getTvlProtocolChainData(protocolStr, chainsArray, topN, fm, chainCategoriesArray)
 			} else {
-				result = await getDimensionsProtocolChainData(protocol, metricStr, chainsArray, topN, fm, chainCategoriesArray)
+				result = await getDimensionsProtocolChainData(
+					protocolStr,
+					metricStr,
+					chainsArray,
+					topN,
+					fm,
+					chainCategoriesArray
+				)
 			}
 		}
 

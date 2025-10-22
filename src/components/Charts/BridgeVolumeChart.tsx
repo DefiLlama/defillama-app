@@ -115,7 +115,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 					<h2 className="text-xs font-medium text-(--text-secondary)">View:</h2>
 					<TagGroup
 						selectedValue={viewType}
-						setValue={(period) => setTimePeriod(period as TimePeriod)}
+						setValue={(viewType) => setViewType(viewType as ViewType)}
 						values={VIEW_TYPES}
 						className="w-full *:flex-1"
 					/>
@@ -125,7 +125,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 					<h2 className="text-xs font-medium text-(--text-secondary)">Metric:</h2>
 					<TagGroup
 						selectedValue={metricType}
-						setValue={(period) => setTimePeriod(period as TimePeriod)}
+						setValue={(metricType) => setMetricType(metricType as MetricType)}
 						values={METRIC_TYPES}
 						className="w-full *:flex-1"
 					/>
