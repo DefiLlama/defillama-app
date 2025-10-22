@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
@@ -177,31 +177,37 @@ const computeTokenPnl = async (params: {
 	}
 }
 
+const isValidDate = (dateString: string | string[] | undefined): boolean => {
+	if (!dateString || typeof dateString !== 'string') return false
+	const date = new Date(+dateString * 1000)
+	return !isNaN(date.getTime())
+}
+
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 60
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
 
-	const queryParams = useMemo(() => {
-		const startRaw = router.query?.start
-		const endRaw = router.query?.end
+	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
+		useDateRangeValidation({
+			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
+			initialEndDate: unixToDateString(now)
+		})
 
-		return {
-			start: startRaw ? Number(Array.isArray(startRaw) ? startRaw[0] : startRaw) : null,
-			end: endRaw ? Number(Array.isArray(endRaw) ? endRaw[0] : endRaw) : null
+	useEffect(() => {
+		if (router.isReady) {
+			const startParam = isValidDate(router.query.start) ? unixToDateString(Number(router.query.start)) : null
+			const endParam = isValidDate(router.query.end) ? unixToDateString(Number(router.query.end)) : null
+
+			if (startParam && startParam !== startDate) {
+				handleStartDateChange(startParam)
+			}
+			if (endParam && endParam !== endDate) {
+				handleEndDateChange(endParam)
+			}
 		}
-	}, [router.query?.start, router.query?.end])
-
-	const { start: startQuery, end: endQuery } = queryParams
-
-	const defaultStart = startQuery ? unixToDateString(startQuery) : unixToDateString(now - 7 * DAY_IN_SECONDS)
-	const defaultEnd = endQuery ? unixToDateString(endQuery) : unixToDateString(now)
-
-	const { startDate, endDate, handleStartDateChange, handleEndDateChange, validateDateRange } = useDateRangeValidation({
-		initialStartDate: defaultStart,
-		initialEndDate: defaultEnd
-	})
+	}, [router.isReady, router.query.start, router.query.end])
 
 	const [quantityInput, setQuantityInput] = useState('')
 	const [mode, setMode] = useState<ChangeMode>('percent')
@@ -235,7 +241,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	} = useQuery({
 		queryKey: ['token-pnl', id, start, end],
 		queryFn: fetchData,
-		enabled: Boolean(id && start && end && end > start),
+		enabled: router.isReady && Boolean(id && start && end && end > start) ? true : false,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -262,8 +268,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						endPrice
 					} as ComparisonEntry
 				}),
-			enabled: Boolean(start && end && end > start),
-			staleTime: 60 * 60 * 1000
+			enabled: router.isReady && Boolean(start && end && end > start) ? true : false,
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false
 		}))
 	})
 
@@ -342,7 +349,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	}
 
 	const renderContent = () => {
-		if (isLoading || isFetching) {
+		if (!router.isReady || isLoading || isFetching) {
 			return (
 				<div className="flex h-[360px] items-center justify-center">
 					<LocalLoader />
