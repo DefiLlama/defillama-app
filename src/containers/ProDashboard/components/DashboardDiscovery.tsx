@@ -9,7 +9,12 @@ import { DashboardSearch } from './DashboardSearch'
 
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
-const PAGE_LIMIT = 20 as const
+const DEFAULT_PAGE_LIMIT = 20
+const itemsPerPageOptions = [
+	{ key: '20', name: '20' },
+	{ key: '40', name: '40' },
+	{ key: '100', name: '100' }
+] as const
 const sortOptions = [
 	{ key: 'popular', name: 'Most Popular' },
 	{ key: 'recent', name: 'Recently Created' },
@@ -20,8 +25,8 @@ type SortOption = (typeof sortOptions)[number]
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage } = useMemo(() => {
-		const { view, tag, sortBy, query, page } = router.query
+	const { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage, itemsPerPage } = useMemo(() => {
+		const { view, tag, sortBy, query, page, limit } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
@@ -32,7 +37,15 @@ export function DashboardDiscovery() {
 		const searchQuery = typeof query === 'string' ? query : ''
 		const selectedPage = typeof page === 'string' && !Number.isNaN(Number(page)) ? parseInt(page) : 1
 
-		return { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage }
+		let itemsPerPage = DEFAULT_PAGE_LIMIT
+		if (typeof limit === 'string' && !Number.isNaN(Number(limit))) {
+			const parsed = parseInt(limit, 10)
+			if (itemsPerPageOptions.some((option) => option.key === parsed.toString())) {
+				itemsPerPage = parsed
+			}
+		}
+
+		return { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage, itemsPerPage }
 	}, [router.query])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
@@ -41,7 +54,7 @@ export function DashboardDiscovery() {
 		visibility: 'public',
 		sortBy: selectedSortBy.key,
 		page: selectedPage,
-		limit: PAGE_LIMIT
+		limit: itemsPerPage
 	})
 
 	const handleTagClick = (tag: string) => {
@@ -59,6 +72,19 @@ export function DashboardDiscovery() {
 					...queryWithoutPage,
 					tag: tag
 				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
+	const handleItemsPerPageChange = (value: string) => {
+		const newItemsPerPage = parseInt(value, 10)
+		const { page, ...queryWithoutPage } = router.query
+		router.push(
+			{
+				pathname: '/pro',
+				query: { ...queryWithoutPage, limit: newItemsPerPage }
 			},
 			undefined,
 			{ shallow: true }
@@ -86,6 +112,23 @@ export function DashboardDiscovery() {
 					<DashboardSearch defaultValue={searchQuery} />
 
 					<div className="ml-auto flex flex-wrap items-center gap-4">
+						<Select
+							allValues={itemsPerPageOptions}
+							selectedValues={itemsPerPage.toString()}
+							setSelectedValues={handleItemsPerPageChange}
+							label={
+								<>
+									<span className="text-(--text-label)">Items per page:</span>
+									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{itemsPerPage}</span>
+								</>
+							}
+							labelType="none"
+							triggerProps={{
+								className:
+									'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+							}}
+							aria-label="Items per page"
+						/>
 						<Select
 							allValues={sortOptions}
 							selectedValues={selectedSortBy.key}
@@ -227,7 +270,7 @@ export function DashboardDiscovery() {
 			{isLoading ? (
 				<>
 					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
-					<LoadingSkeleton viewMode={viewMode} items={PAGE_LIMIT} />
+					<LoadingSkeleton viewMode={viewMode} items={DEFAULT_PAGE_LIMIT} />
 				</>
 			) : dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
@@ -257,9 +300,6 @@ export function DashboardDiscovery() {
 
 					{totalPages > 1 && (
 						<div className="flex flex-col items-center gap-4">
-							<p className="text-xs text-(--text-label)">
-								Page {selectedPage} of {totalPages}
-							</p>
 							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => {
@@ -349,6 +389,9 @@ export function DashboardDiscovery() {
 									<Icon name="chevrons-right" height={16} width={16} />
 								</button>
 							</div>
+							<p className="text-xs text-(--text-label)">
+								Page {selectedPage} of {totalPages}
+							</p>
 						</div>
 					)}
 				</>
