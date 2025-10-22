@@ -175,10 +175,10 @@ export const ChainsByAdapterChart = ({
 	const prepareCsv = React.useCallback(() => {
 		const rows: any = [['Timestamp', 'Date', ...allChains]]
 
-		for (const date in chartData) {
+		for (const [date, chainsOnDate] of chartData) {
 			const row: any = [date, toNiceCsvDate(date)]
 			for (const chain of allChains) {
-				row.push(chartData[date][chain] ?? '')
+				row.push(chainsOnDate[chain] ?? '')
 			}
 			rows.push(row)
 		}
@@ -258,34 +258,34 @@ const getChartDataByChainAndInterval = ({
 	chartType,
 	selectedChains
 }: {
-	chartData: Record<string, Record<string, number>>
+	chartData: Array<[number, Record<string, number>]>
 	chartInterval: 'Daily' | 'Weekly' | 'Monthly'
 	chartType?: 'Volume' | 'Dominance'
 	selectedChains: string[]
 }) => {
 	if (chartType === 'Dominance') {
 		const sumByDate = {}
-		for (const date in chartData) {
+		for (const [date, chainsOnDate] of chartData) {
 			const finalDate = +date * 1e3
 
-			for (const chain in chartData[date]) {
+			for (const chain in chainsOnDate) {
 				if (selectedChains.includes(chain)) {
-					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chartData[date][chain] || 0)
+					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chainsOnDate[chain] || 0)
 				}
 			}
 		}
 
 		const dataByChain = {}
 
-		for (const date in chartData) {
+		for (const [date, chainsOnDate] of chartData) {
 			const finalDate = +date * 1e3
 
 			for (const chain of selectedChains) {
 				dataByChain[chain] = dataByChain[chain] || []
 				dataByChain[chain].push([
 					finalDate,
-					sumByDate && chartData[date][chain] != null
-						? (Number(chartData[date][chain] || 0) / sumByDate[finalDate]) * 100
+					sumByDate && chainsOnDate[chain] != null
+						? (Number(chainsOnDate[chain] || 0) / sumByDate[finalDate]) * 100
 						: null
 				])
 			}
@@ -318,12 +318,12 @@ const getChartDataByChainAndInterval = ({
 	// 	const cumulativeByChain = {}
 	// 	const dataByChain = {}
 
-	// 	for (const date in chartData) {
+	// 	for (const [date, chainsOnDate] of chartData) {
 	// 		const finalDate = +date * 1e3
 
-	// 		for (const chain in chartData[date]) {
+	// 		for (const chain in chainsOnDate) {
 	// 			if (selectedChains.includes(chain)) {
-	// 				cumulativeByChain[chain] = (cumulativeByChain[chain] || 0) + (chartData[date][chain] || 0)
+	// 				cumulativeByChain[chain] = (cumulativeByChain[chain] || 0) + (chainsOnDate[chain] || 0)
 	// 				dataByChain[chain] = dataByChain[chain] || []
 	// 				dataByChain[chain].push([finalDate, cumulativeByChain[chain]])
 	// 			}
@@ -345,7 +345,7 @@ const getChartDataByChainAndInterval = ({
 	const topByAllDates = {}
 
 	const uniqTopChains = new Set<string>()
-	for (const date in chartData) {
+	for (const [date, chainsOnDate] of chartData) {
 		const finalDate =
 			chartInterval === 'Weekly'
 				? lastDayOfWeek(+date * 1e3) * 1e3
@@ -356,9 +356,9 @@ const getChartDataByChainAndInterval = ({
 		const topByDate = {}
 		let others = 0
 		const topItems = []
-		for (const chain in chartData[date]) {
+		for (const chain in chainsOnDate) {
 			if (selectedChains.includes(chain)) {
-				topItems.push([chain, chartData[date][chain]])
+				topItems.push([chain, chainsOnDate[chain]])
 			}
 		}
 		topItems

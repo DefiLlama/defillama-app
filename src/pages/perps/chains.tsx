@@ -11,7 +11,7 @@ const dataType = ADAPTER_DATA_TYPES.DAILY_VOLUME
 const type = 'Perp Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'perps' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {
 		props: data,
@@ -22,6 +22,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 const pageName = ['Chains', 'ranked by', type]
 
 const PerpsByChain = (props: IChainsByAdapterPageData) => {
+	console.log(props)
 	return (
 		<Layout
 			title={`${type} by Chain - DefiLlama`}

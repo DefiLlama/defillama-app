@@ -129,7 +129,7 @@ export interface IAdapterByChainPageData {
 export interface IChainsByAdapterPageData {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}` | null
-	chartData: Record<string, Record<string, number>>
+	chartData: Array<[number, Record<string, number>]>
 	chains: Array<{
 		name: string
 		logo: string
