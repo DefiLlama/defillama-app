@@ -90,10 +90,11 @@ export function DashboardDiscovery() {
 							allValues={sortOptions}
 							selectedValues={selectedSortBy.key}
 							setSelectedValues={(value) => {
+								const { page, ...queryWithoutPage } = router.query
 								router.push(
 									{
 										pathname: '/pro',
-										query: { ...router.query, sortBy: value as SortOption['key'] }
+										query: { ...queryWithoutPage, sortBy: value as SortOption['key'] }
 									},
 									undefined,
 									{ shallow: true }
