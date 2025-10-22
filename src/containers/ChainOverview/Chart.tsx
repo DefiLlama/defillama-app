@@ -421,8 +421,8 @@ export default function ChainLineBarChart({
 	return (
 		<div
 			id={id}
-			className="min-h-[360px]"
-			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+			className="h-[360px]"
+			style={height || props.style ? { height: height ?? '360px', ...(props.style ?? {}) } : undefined}
 		/>
 	)
 }
