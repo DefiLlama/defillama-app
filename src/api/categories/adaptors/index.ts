@@ -1,5 +1,5 @@
 import type { IParentProtocol } from '~/api/types'
-import { DIMENISIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
+import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { capitalizeFirstLetter, getBlockExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
@@ -220,7 +220,7 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
-	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
+	const apiUrl = `${DIMENSIONS_OVERVIEW_API}/fees${
 		chain && chain !== 'All' ? '/' + slug(chain) : ''
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
@@ -311,7 +311,7 @@ export const getDexVolumeByChain = async ({
 	excludeTotalDataChartBreakdown: boolean
 }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/dexs${
+		`${DIMENSIONS_OVERVIEW_API}/dexs${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	).catch((err) => {
@@ -332,7 +332,7 @@ export const getPerpsVolumeByChain = async ({
 	excludeTotalDataChartBreakdown: boolean
 }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/derivatives${
+		`${DIMENSIONS_OVERVIEW_API}/derivatives${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	).catch((err) => {
@@ -345,7 +345,7 @@ export const getPerpsVolumeByChain = async ({
 
 export const getOpenInterestByChain = async ({ chain }: { chain?: string }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/open-interest${
+		`${DIMENSIONS_OVERVIEW_API}/open-interest${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
 	).catch((err) => {
