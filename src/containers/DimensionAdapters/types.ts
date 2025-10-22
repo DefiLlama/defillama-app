@@ -137,6 +137,7 @@ export interface IChainsByAdapterPageData {
 		total30d: number | null
 		bribes?: { total24h: number | null; total30d: number | null }
 		tokenTax?: { total24h: number | null; total30d: number | null }
+		openInterest?: number | null
 	}>
 	allChains: Array<string>
 }

@@ -22,7 +22,6 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 const pageName = ['Chains', 'ranked by', type]
 
 const PerpsByChain = (props: IChainsByAdapterPageData) => {
-	console.log(props)
 	return (
 		<Layout
 			title={`${type} by Chain - DefiLlama`}

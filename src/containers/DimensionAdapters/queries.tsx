@@ -981,9 +981,10 @@ export const getChainsByAdapterPageData = async ({
 			}
 		}
 
-		const [chainsData, chartData, bribesData, tokenTaxesData]: [
+		const [chainsData, chartData, bribesData, tokenTaxesData, openInterestData]: [
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
 			Array<[number, Record<string, number>]>,
+			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>
 		] = await Promise.all([
@@ -1009,11 +1010,21 @@ export const getChainsByAdapterPageData = async ({
 					}).catch(() => {
 						return {}
 					})
+				: Promise.resolve({}),
+			adapterType === 'derivatives'
+				? getDimensionAdapterOverviewOfAllChains({
+						adapterType: 'open-interest',
+						dataType: 'openInterestAtEnd'
+					}).catch((err) => {
+						console.log(err)
+						return {}
+					})
 				: Promise.resolve({})
 		])
 
 		const bribesByChain = {}
 		const tokenTaxesByChain = {}
+		const openInterestByChain = {}
 
 		for (const chain in bribesData) {
 			bribesByChain[chain] = {
@@ -1029,6 +1040,12 @@ export const getChainsByAdapterPageData = async ({
 			}
 		}
 
+		console.log({ adapterType, openInterestData })
+
+		for (const chain in openInterestData) {
+			openInterestByChain[chain] = openInterestData[chain]?.['24h'] ?? null
+		}
+
 		const chains = allChains
 			.map((chain) => {
 				return {
@@ -1037,7 +1054,8 @@ export const getChainsByAdapterPageData = async ({
 					total24h: chainsData[chain]?.['24h'] ?? null,
 					total30d: chainsData[chain]?.['30d'] ?? null,
 					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
-					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {})
+					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),
+					...(openInterestByChain[chain] ? { openInterest: openInterestByChain[chain] } : {})
 				}
 			})
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
