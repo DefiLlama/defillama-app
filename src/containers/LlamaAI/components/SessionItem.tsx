@@ -14,9 +14,10 @@ interface SessionItemProps {
 	session: ChatSession
 	isActive: boolean
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
+	handleSidebarToggle: () => void
 }
 
-export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
@@ -24,6 +25,10 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
 		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
+
+		if (document.documentElement.clientWidth < 1024) {
+			handleSidebarToggle()
+		}
 	}
 
 	const [isEditing, setIsEditing] = useState(false)

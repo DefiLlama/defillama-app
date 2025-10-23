@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -35,6 +35,7 @@ export function ChatHistorySidebar({
 }: ChatHistorySidebarProps) {
 	const { user } = useAuthContext()
 	const { sessions, isLoading } = useChatHistory()
+	const sidebarRef = useRef<HTMLDivElement>(null)
 
 	const groupedSessions = useMemo(() => {
 		return Object.entries(
@@ -48,10 +49,27 @@ export function ChatHistorySidebar({
 		>
 	}, [sessions])
 
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			// Check if event.target is a Node and if click is outside the sidebar
+			if (
+				event.target instanceof Node &&
+				sidebarRef.current &&
+				!sidebarRef.current.contains(event.target) &&
+				document.documentElement.clientWidth < 1024
+			) {
+				handleSidebarToggle()
+			}
+		}
+		document.addEventListener('mousedown', handleClickOutside)
+		return () => document.removeEventListener('mousedown', handleClickOutside)
+	}, [handleSidebarToggle])
+
 	if (!user) return null
 
 	return (
 		<div
+			ref={sidebarRef}
 			className={`relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.2s_ease-out]' : ''}`}
 		>
 			<div className="flex flex-col gap-2 p-4">
@@ -93,6 +111,7 @@ export function ChatHistorySidebar({
 										session={session}
 										isActive={session.sessionId === currentSessionId}
 										onSessionSelect={onSessionSelect}
+										handleSidebarToggle={handleSidebarToggle}
 									/>
 								))}
 							</div>

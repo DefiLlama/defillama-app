@@ -1187,7 +1187,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												})}
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-106px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
+												<div className="flex min-h-[calc(100dvh-218px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
 													<PromptResponse
 														response={
@@ -1530,7 +1530,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-lg:resize-none max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
