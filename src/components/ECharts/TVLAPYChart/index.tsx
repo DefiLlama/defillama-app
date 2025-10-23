@@ -25,6 +25,7 @@ export default function AreaChart({
 	hideGradient = false,
 	alwaysShowTooltip = true,
 	hideLegend = true,
+	hideDataZoom = false,
 	onReady,
 	...props
 }: IChartProps) {
@@ -148,7 +149,7 @@ export default function AreaChart({
 					}),
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: hideLegend ? 12 : 32,
 				right: 12,
 				outerBoundsMode: 'same',

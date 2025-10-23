@@ -27,6 +27,7 @@ export default function ProtocolLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	hideDataZoom = false,
 	...props
 }) {
 	const id = useId()
@@ -514,7 +515,7 @@ export default function ProtocolLineBarChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: rangeHallmarks?.length > 0 ? 18 : 12,
 				right: 12,
 				outerBoundsMode: 'same',
