@@ -55,6 +55,8 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 	return (
 		<>
 			<button
+				data-umami-event="csv-download"
+				data-umami-event-page={router.pathname}
 				className={
 					replaceClassName
 						? className
