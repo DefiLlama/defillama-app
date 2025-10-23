@@ -2,6 +2,7 @@ import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
+import { formattedNum } from '~/utils'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
@@ -9,9 +10,6 @@ import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-const NonTimeSeriesBarChart = lazy(
-	() => import('~/components/ECharts/BarChart/NonTimeSeries')
-) as React.FC<IBarChartProps>
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -210,19 +208,53 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		switch (adaptedChart.chartType) {
 			case 'bar':
 				const isTimeSeriesChart = config.axes.x.type === 'time'
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						{isTimeSeriesChart ? (
+				if (isTimeSeriesChart) {
+					chartContent = (
+						<Suspense fallback={<div className="h-[338px]" />}>
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
-						) : (
-							<NonTimeSeriesBarChart
-								key={chartKey}
-								chartData={adaptedChart.data}
-								{...(adaptedChart.props as IBarChartProps)}
-							/>
-						)}
-					</Suspense>
-				)
+						</Suspense>
+					)
+				} else {
+					const seriesData = (adaptedChart.data as Array<[any, number]>).map(([x, y]) => [x, y])
+					const multiSeriesProps: any = {
+						series: [
+							{
+								data: seriesData,
+								type: 'bar',
+								name: config.series[0]?.name || 'Value',
+								color: config.series[0]?.styling?.color || '#1f77b4'
+							}
+						],
+						title: config.title,
+						valueSymbol: config.valueSymbol || '$',
+						height: '300px',
+						hideDataZoom: true,
+						xAxisType: 'category',
+						chartOptions: {
+							grid: {
+								bottom: 12,
+								left: 12,
+								right: 12
+							},
+							tooltip: {
+								formatter: (params: any) => {
+									if (!Array.isArray(params)) return ''
+									const xValue = params[0]?.value?.[0]
+									const yValue = params[0]?.value?.[1]
+									const seriesName = params[0]?.seriesName
+									const valueSymbol = config.valueSymbol || '$'
+									const formattedValue = valueSymbol === '$' ? formattedNum(yValue, true) : `${yValue}${valueSymbol}`
+									return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
+								}
+							}
+						}
+					}
+					chartContent = (
+						<Suspense fallback={<div className="h-[338px]" />}>
+							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
+						</Suspense>
+					)
+				}
 				break
 
 			case 'line':
@@ -408,7 +440,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 						<button
 							key={`toggle-${chart.id}`}
 							onClick={() => setActiveTab(index)}
-							className={`border-b-2 px-4 py-1.5 text-sm transition-colors ${
+							className={`border-b-2 px-2 py-1.5 text-sm transition-colors ${
 								activeTabIndex === index
 									? 'border-(--old-blue) text-(--old-blue)'
 									: 'border-transparent text-[#666] hover:text-black dark:text-[#919296] dark:hover:text-white'
