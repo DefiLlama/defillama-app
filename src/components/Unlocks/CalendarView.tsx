@@ -329,7 +329,7 @@ const chartOptions = {
 	grid: {
 		top: 40,
 		right: 12,
-		bottom: hideDataZoom ? 12 : 68,
+		bottom: 68,
 		left: 12,
 		outerBoundsMode: 'same',
 		outerBoundsContain: 'axisLabel'
