@@ -316,7 +316,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage < 3}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
 								>
 									<Icon name="chevrons-left" height={16} width={16} />
 								</button>
@@ -332,7 +332,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage === 1}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
 								>
 									<Icon name="chevron-left" height={16} width={16} />
 								</button>
@@ -352,7 +352,7 @@ export function DashboardDiscovery() {
 												)
 											}}
 											data-active={isActive}
-											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white hover:bg-(--btn-bg) transition-colors"
 										>
 											{pageNum}
 										</button>
@@ -370,7 +370,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage === totalPages}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
 								>
 									<Icon name="chevron-right" height={16} width={16} />
 								</button>
@@ -386,7 +386,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage > totalPages - 2}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
 								>
 									<Icon name="chevrons-right" height={16} width={16} />
 								</button>
