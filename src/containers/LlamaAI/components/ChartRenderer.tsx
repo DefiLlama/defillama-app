@@ -9,9 +9,6 @@ import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-const NonTimeSeriesBarChart = lazy(
-	() => import('~/components/ECharts/BarChart/NonTimeSeries')
-) as React.FC<IBarChartProps>
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -210,19 +207,35 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		switch (adaptedChart.chartType) {
 			case 'bar':
 				const isTimeSeriesChart = config.axes.x.type === 'time'
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						{isTimeSeriesChart ? (
+				if (isTimeSeriesChart) {
+					chartContent = (
+						<Suspense fallback={<div className="h-[338px]" />}>
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
-						) : (
-							<NonTimeSeriesBarChart
-								key={chartKey}
-								chartData={adaptedChart.data}
-								{...(adaptedChart.props as IBarChartProps)}
-							/>
-						)}
-					</Suspense>
-				)
+						</Suspense>
+					)
+				} else {
+					const seriesData = (adaptedChart.data as Array<[any, number]>).map(([x, y]) => [x, y])
+					const multiSeriesProps: any = {
+						series: [
+							{
+								data: seriesData,
+								type: 'bar',
+								name: config.series[0]?.name || 'Value',
+								color: config.series[0]?.styling?.color || '#1f77b4'
+							}
+						],
+						title: config.title,
+						valueSymbol: config.valueSymbol || '$',
+						height: '300px',
+						hideDataZoom: true,
+						xAxisType: 'category'
+					}
+					chartContent = (
+						<Suspense fallback={<div className="h-[338px]" />}>
+							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
+						</Suspense>
+					)
+				}
 				break
 
 			case 'line':
