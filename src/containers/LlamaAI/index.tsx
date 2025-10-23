@@ -1595,6 +1595,7 @@ const PromptInput = memo(function PromptInput({
 				) : (
 					<button
 						type="submit"
+						data-umami-event="llamaai-prompt-submit"
 						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
