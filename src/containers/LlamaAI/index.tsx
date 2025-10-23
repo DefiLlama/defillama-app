@@ -1014,7 +1014,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap overflow-hidden max-lg:flex-col lg:max-h-[calc(100dvh-72px)]">
+			<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
 				{!readOnly && (
 					<>
 						{sidebarVisible ? (
@@ -1053,23 +1053,27 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 						) : (
-							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5 overflow-y-auto">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 								</div>
 								{!readOnly && (
 									<>
-										<PromptInput
-											handleSubmit={handleSubmit}
-											promptInputRef={promptInputRef}
-											isPending={isPending}
-											handleStopRequest={handleStopRequest}
-											isStreaming={isStreaming}
-											initialValue={prompt}
-											placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
-										/>
-										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										<div className="shrink-0">
+											<PromptInput
+												handleSubmit={handleSubmit}
+												promptInputRef={promptInputRef}
+												isPending={isPending}
+												handleStopRequest={handleStopRequest}
+												isStreaming={isStreaming}
+												initialValue={prompt}
+												placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+											/>
+										</div>
+										<div className="flex min-h-0 flex-1 flex-col">
+											<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										</div>
 									</>
 								)}
 							</div>
