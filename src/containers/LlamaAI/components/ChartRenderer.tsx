@@ -430,15 +430,15 @@ export const ChartRenderer = memo(function ChartRenderer({
 	return (
 		<div ref={containerRef} className="flex flex-col gap-2 rounded-md border border-(--old-blue) pt-2">
 			{hasMultipleCharts && (
-				<div className="flex border-b border-gray-200 px-2 dark:border-gray-700">
+				<div className="-mt-2 flex border-b border-[#e6e6e6] dark:border-[#222324]">
 					{charts.map((chart, index) => (
 						<button
 							key={`toggle-${chart.id}`}
 							onClick={() => setActiveTab(index)}
-							className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+							className={`border-b-2 px-4 py-1.5 text-sm transition-colors ${
 								activeTabIndex === index
-									? 'border-blue-500 text-blue-600 dark:text-blue-400'
-									: 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+									? 'border-(--old-blue) text-(--old-blue)'
+									: 'border-transparent text-[#666] hover:text-black dark:text-[#919296] dark:hover:text-white'
 							}`}
 						>
 							{chart.title}

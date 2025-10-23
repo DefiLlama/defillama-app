@@ -115,7 +115,7 @@ export const RecommendedPrompts = ({
 	}, [])
 
 	return (
-		<div className="flex min-h-0 w-full flex-1 flex-col gap-2.5">
+		<div className="mb-2.5 flex min-h-0 w-full flex-1 flex-col gap-2.5">
 			<Ariakit.TabProvider store={store}>
 				<Ariakit.TabList className="flex w-full shrink-0 flex-wrap items-center justify-center gap-2.5">
 					{promptCategories.map((category) => (

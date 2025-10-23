@@ -9,6 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
@@ -1302,6 +1303,11 @@ const PromptInput = memo(function PromptInput({
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
 	const isProgrammaticUpdateRef = useRef(false)
 
+	// Use different placeholder for mobile devices
+	const isMobile = useMedia('(max-width: 640px)')
+	const mobilePlaceholder = placeholder.replace('Type @ to insert a protocol, chain', '')
+	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
+
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
@@ -1521,7 +1527,7 @@ const PromptInput = memo(function PromptInput({
 									ref={promptInputRef}
 									rows={1}
 									maxLength={2000}
-									placeholder={placeholder}
+									placeholder={finalPlaceholder}
 									// We need to re-calculate the position of the combobox popover
 									// when the textarea contents are scrolled, and sync highlightRef scroll.
 									onScroll={handleScroll}
@@ -1530,7 +1536,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-lg:resize-none max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-lg:resize-none max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1539,7 +1545,7 @@ const PromptInput = memo(function PromptInput({
 							disabled={isPending && !isStreaming}
 						/>
 						<div
-							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
 							ref={highlightRef}
 						/>
 					</div>
@@ -1587,7 +1593,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="Stop"
 						render={<button onClick={handleStopRequest} />}
-						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
+						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1596,7 +1602,7 @@ const PromptInput = memo(function PromptInput({
 					<button
 						type="submit"
 						data-umami-event="llamaai-prompt-submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />

@@ -10,26 +10,39 @@ interface SubscribeProCardProps {
 	active?: boolean
 	returnUrl?: string
 	onCancelSubscription?: () => void
+	billingInterval?: 'year' | 'month'
 }
 
 export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
-	returnUrl
+	returnUrl,
+	billingInterval = 'month'
 }: SubscribeProCardProps) {
 	const isModal = context === 'modal'
+	const monthlyPrice = 49
+	const yearlyPrice = monthlyPrice * 10
+	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
+	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
 
 	return (
 		<>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">Pro</h2>
-			<div className="relative z-10 mt-1 flex items-center justify-center">
-				<span className="bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-center text-2xl font-medium text-transparent">
-					49 USD
-				</span>
-				<span className="ml-1 text-[#8a8c90]">/month</span>
+			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
+				<div className="flex items-center">
+					<span className="bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-center text-2xl font-medium text-transparent">
+						{displayPrice} USD
+					</span>
+					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
+				</div>
+				{billingInterval === 'year' && (
+					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
+				)}
 			</div>
-			<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+			{billingInterval === 'month' && (
+				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+			)}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-col gap-3">
 					<div className="flex flex-nowrap items-start gap-2.5">
@@ -106,16 +119,16 @@ export function SubscribeProCard({
 						{(context === 'page' || context === 'account') && (
 							<>
 								<SignIn text="Already a subscriber? Sign In" />
-								<div className="grid grid-cols-2 gap-3 max-sm:w-full max-sm:grid-cols-1">
+								<div className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}>
 									{context === 'account' ? (
 										<>
-											<PaymentButton paymentMethod="llamapay" type="llamafeed" />
-											<PaymentButton paymentMethod="stripe" type="llamafeed" />
+											{billingInterval === 'month' && <PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />}
+											<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
 										</>
 									) : (
 										<>
-											<PaymentButton paymentMethod="llamapay" type="llamafeed" />
-											<PaymentButton paymentMethod="stripe" type="llamafeed" />
+											{billingInterval === 'month' && <PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />}
+											<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
 										</>
 									)}
 								</div>
