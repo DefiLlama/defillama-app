@@ -746,7 +746,9 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 										value={tchart}
 										checked={true}
 										onChange={() => {
-											updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
+											if (toggledCharts.length > 1) {
+												updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
+											}
 										}}
 										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 									/>
