@@ -364,6 +364,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [lastFailedRequest, setLastFailedRequest] = useState<{
+		userQuestion: string
+		suggestionContext?: any
+		preResolvedEntities?: Array<{ term: string; slug: string }>
+	} | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -536,10 +541,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			userQuestion: string
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
-		}) => {},
+		}) => {
+			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
+		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
+			setLastFailedRequest(null)
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -584,6 +592,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const wasUserStopped = error?.message === 'Request aborted'
+
+			if (wasUserStopped) {
+				setLastFailedRequest(null)
+			}
 
 			if (wasUserStopped && finalContent.trim()) {
 				setConversationHistory((prev) => [
@@ -710,6 +722,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		promptInputRef,
 		authorizedFetch
 	])
+
+	const handleRetry = useCallback(() => {
+		if (lastFailedRequest) {
+			submitPrompt(lastFailedRequest)
+		}
+	}, [lastFailedRequest, submitPrompt])
 
 	const handleSubmit = useCallback(
 		(
@@ -1211,6 +1229,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														progressMessage={progressMessage}
 														progressStage={progressStage}
 														onSuggestionClick={handleSuggestionClick}
+														onRetry={handleRetry}
+														canRetry={!!lastFailedRequest}
 														isGeneratingCharts={isGeneratingCharts}
 														isAnalyzingForCharts={isAnalyzingForCharts}
 														hasChartError={hasChartError}
@@ -1624,6 +1644,8 @@ const PromptResponse = ({
 	progressMessage,
 	progressStage,
 	onSuggestionClick,
+	onRetry,
+	canRetry,
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
@@ -1650,6 +1672,8 @@ const PromptResponse = ({
 	progressMessage?: string
 	progressStage?: string
 	onSuggestionClick?: (suggestion: any) => void
+	onRetry?: () => void
+	canRetry?: boolean
 	isGeneratingCharts?: boolean
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
@@ -1659,6 +1683,21 @@ const PromptResponse = ({
 	showMetadata?: boolean
 	readOnly?: boolean
 }) => {
+	if (error && canRetry) {
+		return (
+			<div className="flex flex-col gap-2">
+				<p className="text-(--error)">{error}</p>
+				<button
+					onClick={onRetry}
+					className="flex items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+				>
+					<Icon name="repeat" height={16} width={16} />
+					Retry
+				</button>
+			</div>
+		)
+	}
+
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
 	}
