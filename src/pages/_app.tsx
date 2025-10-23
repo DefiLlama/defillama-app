@@ -8,9 +8,9 @@ import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
+import { useSubscribe } from '~/hooks/useSubscribe'
 
 NProgress.configure({ showSpinner: false })
 
