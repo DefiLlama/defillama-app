@@ -6,23 +6,37 @@ export function SubscribeAPICard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
-	isLegacyActive = false
+	isLegacyActive = false,
+	billingInterval = 'month'
 }: {
 	context?: 'page' | 'account'
 	active?: boolean
 	onCancelSubscription?: () => void
 	isLegacyActive?: boolean
+	billingInterval?: 'year' | 'month'
 }) {
+	const monthlyPrice = 300
+	const yearlyPrice = monthlyPrice * 10
+	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
+	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
+
 	return (
 		<>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">API</h2>
-			<div className="relative z-10 mt-1 flex items-center justify-center">
-				<span className="bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-center text-2xl font-medium text-transparent">
-					300 USD
-				</span>
-				<span className="ml-1 text-[#8a8c90]">/month</span>
+			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
+				<div className="flex items-center">
+					<span className="bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-center text-2xl font-medium text-transparent">
+						{displayPrice} USD
+					</span>
+					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
+				</div>
+				{billingInterval === 'year' && (
+					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
+				)}
 			</div>
-			<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+			{billingInterval === 'month' && (
+				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+			)}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -72,9 +86,9 @@ export function SubscribeAPICard({
 				) : context === 'account' || isLegacyActive ? (
 					<div className="mt-2 flex flex-col gap-6">
 						<div className="flex flex-col items-center">
-							<div className="grid w-full grid-cols-2 gap-3">
-								<PaymentButton paymentMethod="llamapay" type="api" />
-								<PaymentButton paymentMethod="stripe" type="api" />
+							<div className={`grid w-full gap-3 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+								{billingInterval === 'month' && <PaymentButton paymentMethod="llamapay" type="api" billingInterval={billingInterval} />}
+								<PaymentButton paymentMethod="stripe" type="api" billingInterval={billingInterval} />
 							</div>
 						</div>
 					</div>
@@ -83,9 +97,9 @@ export function SubscribeAPICard({
 						{context === 'page' && (
 							<>
 								<SignIn text="Already a subscriber? Sign In" />
-								<div className="grid grid-cols-2 gap-3 max-sm:w-full max-sm:grid-cols-1">
-									<PaymentButton paymentMethod="llamapay" type="api" />
-									<PaymentButton paymentMethod="stripe" type="api" />
+								<div className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}>
+									{billingInterval === 'month' && <PaymentButton paymentMethod="llamapay" type="api" billingInterval={billingInterval} />}
+									<PaymentButton paymentMethod="stripe" type="api" billingInterval={billingInterval} />
 								</div>
 							</>
 						)}

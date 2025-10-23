@@ -19,6 +19,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
+	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isWalletUser = user?.email?.includes('@defillama.com')
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -252,6 +253,31 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				) : (
 					<div className="relative">
+						<div className="relative z-10 mb-6 flex items-center justify-center">
+							<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
+								<button
+									onClick={() => setBillingInterval('month')}
+									className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+										billingInterval === 'month'
+											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+											: 'text-[#8a8c90] hover:text-white'
+									}`}
+								>
+									Monthly
+								</button>
+								<button
+									onClick={() => setBillingInterval('year')}
+									className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+										billingInterval === 'year'
+											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+											: 'text-[#8a8c90] hover:text-white'
+									}`}
+								>
+									Yearly
+									<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">2 months free</span>
+								</button>
+							</div>
+						</div>
 						<div
 							ref={pricingContainer}
 							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
@@ -271,6 +297,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 										subscription?.type === 'llamafeed' &&
 										subscription?.provider !== 'trial'
 									}
+									billingInterval={billingInterval}
 								/>
 							</div>
 							<div
@@ -279,6 +306,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								<SubscribeAPICard
 									context="page"
 									isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
+									billingInterval={billingInterval}
 								/>
 							</div>
 							<div
