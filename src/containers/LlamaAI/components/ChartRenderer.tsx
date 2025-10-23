@@ -231,6 +231,11 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						hideDataZoom: true,
 						xAxisType: 'category',
 						chartOptions: {
+							grid: {
+								bottom: 12,
+								left: 12,
+								right: 12
+							},
 							tooltip: {
 								formatter: (params: any) => {
 									if (!Array.isArray(params)) return ''
@@ -435,7 +440,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 						<button
 							key={`toggle-${chart.id}`}
 							onClick={() => setActiveTab(index)}
-							className={`border-b-2 px-4 py-1.5 text-sm transition-colors ${
+							className={`border-b-2 px-2 py-1.5 text-sm transition-colors ${
 								activeTabIndex === index
 									? 'border-(--old-blue) text-(--old-blue)'
 									: 'border-transparent text-[#666] hover:text-black dark:text-[#919296] dark:hover:text-white'
