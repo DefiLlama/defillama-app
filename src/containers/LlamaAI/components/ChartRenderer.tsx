@@ -228,7 +228,21 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						valueSymbol: config.valueSymbol || '$',
 						height: '300px',
 						hideDataZoom: true,
-						xAxisType: 'category'
+						xAxisType: 'category',
+						chartOptions: {
+							tooltip: {
+								formatter: (params: any) => {
+									if (!Array.isArray(params)) return ''
+									const xValue = params[0]?.value?.[0]
+									const yValue = params[0]?.value?.[1]
+									const seriesName = params[0]?.seriesName
+									const valueSymbol = config.valueSymbol || '$'
+									const { formattedNum } = require('~/utils')
+									const formattedValue = valueSymbol === '$' ? formattedNum(yValue, true) : `${yValue}${valueSymbol}`
+									return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
+								}
+							}
+						}
 					}
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
