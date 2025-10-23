@@ -92,15 +92,17 @@ export function DashboardDiscovery() {
 	}
 
 	const pagesToShow = useMemo(() => {
+		let pages: number[]
 		if (selectedPage === 1) {
-			return [1, 2, 3]
+			pages = [1, 2, 3]
 		}
-
-		if (selectedPage === totalPages) {
-			return [totalPages - 2, totalPages - 1, totalPages]
+		else if (selectedPage === totalPages) {
+			pages = [totalPages - 2, totalPages - 1, totalPages]
 		}
-
-		return [selectedPage - 1, selectedPage, selectedPage + 1]
+		else {
+			pages = [selectedPage - 1, selectedPage, selectedPage + 1]
+		}
+		return pages.filter(page => page > 0 && page <= totalPages)
 	}, [totalPages, selectedPage])
 
 	return (
