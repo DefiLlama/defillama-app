@@ -4,15 +4,15 @@ import lostLlama from '~/assets/404.png'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import Layout from '~/layout'
 
 export default function SessionPage() {
 	const router = useRouter()
 	const { sessionId } = router.query
-	const { hasFeature, isSubscriptionLoading } = useSubscribe()
+	const { hasFeature, loading, userLoading } = useFeatureFlagsContext()
 
-	if (isSubscriptionLoading) {
+	if (loading || userLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"

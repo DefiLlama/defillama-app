@@ -5,7 +5,7 @@ import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { LoadingDots } from '~/components/Loaders'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { fetchJson } from '~/utils/async'
@@ -153,7 +153,7 @@ const Desktop = () => {
 	const { query, refine } = useSearchBox()
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
-	const { hasFeature } = useSubscribe()
+	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
@@ -255,7 +255,7 @@ const Desktop = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{hasFeature('llamaai') && (
+			{!featureFlagsLoading && hasFeature('llamaai') && (
 				<BasicLink
 					href="/ai"
 					className="mr-auto hidden items-center justify-between gap-[10px] rounded-md bg-[linear-gradient(94deg,#1F67D2_24.73%,#5A9CFF_57.42%,#1F67D2_99.73%)] px-4 py-2 text-xs text-white shadow-[0px_0px_30px_0px_rgba(31,103,210,0.50),_0px_0px_1px_2px_rgba(255,255,255,0.10)] lg:flex"
