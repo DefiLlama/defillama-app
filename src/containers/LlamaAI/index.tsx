@@ -1376,6 +1376,12 @@ const PromptInput = memo(function PromptInput({
 		entitiesMapRef.current.clear()
 	}
 
+	const trackSubmit = () => {
+		if (typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('llamaai-prompt-submit')
+		}
+	}
+
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		const textarea = promptInputRef.current
 		if (!textarea) return
@@ -1428,6 +1434,7 @@ const PromptInput = memo(function PromptInput({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
+			trackSubmit()
 			const finalEntities = getFinalEntities()
 			const promptValue = promptInputRef.current?.value ?? ''
 			resetInput()
@@ -1521,6 +1528,7 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
+					trackSubmit()
 					const form = e.target as HTMLFormElement
 					const finalEntities = getFinalEntities()
 					const promptValue = form.prompt.value
