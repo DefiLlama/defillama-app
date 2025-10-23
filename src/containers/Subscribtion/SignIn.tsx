@@ -248,14 +248,19 @@ export const SignIn = ({
 							<label htmlFor="signin-password" className="text-sm font-medium text-[#b4b7bc]">
 								Password
 							</label>
-							<input
-								id="signin-password"
-								type="password"
-								required
-								className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-							/>
+							<div className="relative">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
+									<Icon name="key" height={16} width={16} />
+								</div>
+								<input
+									id="signin-password"
+									type="password"
+									required
+									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
+							</div>
 						</div>
 
 						<div className="-mt-1 flex justify-end">
@@ -343,26 +348,31 @@ export const SignIn = ({
 							<label htmlFor="signup-password" className="text-sm font-medium text-[#b4b7bc]">
 								Password
 							</label>
-							<input
-								id="signup-password"
-								type="password"
-								required
-								className={`w-full rounded-lg border bg-[#222429] p-3 ${
-									passwordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
-								value={password}
-								onChange={(e) => {
-									setPassword(e.target.value)
-									// Only validate locally on change, don't clear server errors
-									const localValidation = validatePassword(e.target.value)
-									if (localValidation) {
-										setPasswordError('')
-									}
-									if (confirmPassword) {
-										validateConfirmPassword(e.target.value, confirmPassword)
-									}
-								}}
-							/>
+							<div className="relative">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
+									<Icon name="key" height={16} width={16} />
+								</div>
+								<input
+									id="signup-password"
+									type="password"
+									required
+									className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
+										passwordError ? 'border-red-500' : 'border-[#39393E]'
+									} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
+									value={password}
+									onChange={(e) => {
+										setPassword(e.target.value)
+										// Only validate locally on change, don't clear server errors
+										const localValidation = validatePassword(e.target.value)
+										if (localValidation) {
+											setPasswordError('')
+										}
+										if (confirmPassword) {
+											validateConfirmPassword(e.target.value, confirmPassword)
+										}
+									}}
+								/>
+							</div>
 							{passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
 						</div>
 
@@ -370,19 +380,24 @@ export const SignIn = ({
 							<label htmlFor="signup-confirm" className="text-sm font-medium text-[#b4b7bc]">
 								Confirm Password
 							</label>
-							<input
-								id="signup-confirm"
-								type="password"
-								required
-								className={`w-full rounded-lg border bg-[#222429] p-3 ${
-									confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
-								value={confirmPassword}
-								onChange={(e) => {
-									setConfirmPassword(e.target.value)
-									validateConfirmPassword(password, e.target.value)
-								}}
-							/>
+							<div className="relative">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
+									<Icon name="key" height={16} width={16} />
+								</div>
+								<input
+									id="signup-confirm"
+									type="password"
+									required
+									className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
+										confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
+									} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
+									value={confirmPassword}
+									onChange={(e) => {
+										setConfirmPassword(e.target.value)
+										validateConfirmPassword(password, e.target.value)
+									}}
+								/>
+							</div>
 							{confirmPasswordError && <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p>}
 						</div>
 
