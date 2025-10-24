@@ -198,7 +198,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							) : null}
 						</div>
 					) : null} */}
-					{props.datInflows.chart?.length > 0 ? (
+					{props.datInflows?.chart?.length > 0 ? (
 						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 							<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
 								<Tooltip
