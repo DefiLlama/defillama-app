@@ -851,6 +851,11 @@ export const getAdapterByChainPageData = async ({
 		openInterest += openInterestProtocols[protocol] ?? 0
 	}
 
+	const change7dUsd =
+		data.total7d != null && data.change_7dover7d != null && data.change_7dover7d > -100
+			? data.total7d - data.total7d / (1 + data.change_7dover7d / 100)
+			: null
+
 	return {
 		chain,
 		chains: [
@@ -869,6 +874,7 @@ export const getAdapterByChainPageData = async ({
 		change_7d: data.change_7d ?? null,
 		change_1m: data.change_1m ?? null,
 		change_7dover7d: data.change_7dover7d ?? null,
+		change7dUsd,
 		openInterest
 	}
 }

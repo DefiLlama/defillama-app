@@ -416,19 +416,13 @@ export function AdapterByChain(props: IProps) {
 							) : null}
 							{props.change_7dover7d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+									<span className="text-(--text-label)">Change (7d)</span>
 									<Tooltip
-										content="Change of last 7d volume over the previous 7d volume"
-										className="text-(--text-label) underline decoration-dotted"
-									>
-										Weekly Change
-									</Tooltip>
-									<span
-										className={`font-jetbrains ml-auto ${
+										content={`${formattedNum(props.change7dUsd, true)}`}
+										className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 											props.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 										}`}
-									>
-										{`${props.change_7dover7d >= 0 ? '+' : ''}${props.change_7dover7d}%`}
-									</span>
+									>{`${props.change_7dover7d >= 0 ? '+' : ''}${props.change_7dover7d}%`}</Tooltip>
 								</p>
 							) : null}
 						</div>
