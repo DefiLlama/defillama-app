@@ -5,6 +5,7 @@ import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
+import useWindowSize from '~/hooks/useWindowSize'
 
 const customOffsets = {
 	Contributors: 60,
@@ -31,6 +32,8 @@ export default function ProtocolLineBarChart({
 }) {
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
+	const windowSize = useWindowSize()
+	const isMobile = windowSize.width && windowSize.width < 768
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -137,7 +140,7 @@ export default function ProtocolLineBarChart({
 							label: {
 								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 								fontFamily: 'sans-serif',
-								fontSize: 14,
+								fontSize: isMobile ? 10 : 14,
 								fontWeight: 500
 							}
 						},
@@ -162,7 +165,7 @@ export default function ProtocolLineBarChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
+	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks, isMobile])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
