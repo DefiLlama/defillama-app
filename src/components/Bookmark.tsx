@@ -6,41 +6,43 @@ import { useWatchlistManager } from '~/contexts/LocalStorage'
 
 interface IBookmarkProps {
 	readableName: string
+	configID?: string
 	isChain?: boolean
 	[key: string]: any
 }
 
-export function Bookmark({ readableName, isChain, ...props }: IBookmarkProps) {
+export function Bookmark({ readableName, configID, isChain, ...props }: IBookmarkProps) {
 	const router = useRouter()
 
-	const watchlistType = isChain ? 'chains' : router.pathname.includes('/yields') ? 'yields' : 'defi'
+	const isYieldsPage = router.pathname.includes('/yields')
+	const urlPath = isYieldsPage ? '/yields/watchlist' : '/watchlist'
+
+	const watchlistType = isChain ? 'chains' : isYieldsPage ? 'yields' : 'defi'
+	const watchlistNameKey = isYieldsPage ? configID : readableName
 
 	const { savedProtocols, addProtocol, removeProtocol } = useWatchlistManager(watchlistType)
 
-	const isSaved: boolean = savedProtocols.has(readableName)
+	const isSaved: boolean = savedProtocols.has(watchlistNameKey)
+
+	const showToast = (action: 'Added' | 'Removed') => {
+		toast.success(
+			<span>
+				{action} {readableName} {action === 'Added' ? 'to' : 'from'}{' '}
+				<Link href={urlPath} className="font-medium underline">
+					watchlist
+				</Link>
+			</span>
+		)
+	}
 
 	const onClick = isSaved
 		? () => {
-				removeProtocol(readableName)
-				toast.success(
-					<span>
-						Removed {readableName} from{' '}
-						<Link href="/watchlist" className="font-medium underline">
-							watchlist
-						</Link>
-					</span>
-				)
+				removeProtocol(watchlistNameKey)
+				showToast('Removed')
 			}
 		: () => {
-				addProtocol(readableName)
-				toast.success(
-					<span>
-						Added {readableName} to{' '}
-						<Link href="/watchlist" className="font-medium underline">
-							watchlist
-						</Link>
-					</span>
-				)
+				addProtocol(watchlistNameKey)
+				showToast('Added')
 			}
 
 	return (
