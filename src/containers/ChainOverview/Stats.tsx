@@ -352,7 +352,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									) : null}
 									{props.dexs.change_7dover7d != null && (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Weekly Change</span>
+											<span className="text-(--text-label)">Change (7d)</span>
 											<Tooltip
 												content={`${formattedNum(props.dexs.change7dUsd, true)}`}
 												className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
@@ -398,7 +398,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									) : null}
 									{props.perps.change_7dover7d != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Weekly Change</span>
+											<span className="text-(--text-label)">Change (7d)</span>
 											<Tooltip
 												content={`${formattedNum(props.perps.change7dUsd, true)}`}
 												className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
