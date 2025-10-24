@@ -353,13 +353,14 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.dexs.change_7dover7d != null && (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Weekly Change</span>
-											<span
-												className={`font-jetbrains ml-auto ${
+											<Tooltip
+												content={`${formattedNum(props.dexs.change7dUsd, true)}`}
+												className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 													props.dexs.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 												}`}
 											>
 												{`${props.dexs.change_7dover7d >= 0 ? '+' : ''}${props.dexs.change_7dover7d}%`}
-											</span>
+											</Tooltip>
 										</p>
 									)}
 									{props.dexs.dexsDominance != null ? (
@@ -398,13 +399,14 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									{props.perps.change_7dover7d != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
 											<span className="text-(--text-label)">Weekly Change</span>
-											<span
-												className={`font-jetbrains ml-auto ${
+											<Tooltip
+												content={`${formattedNum(props.perps.change7dUsd, true)}`}
+												className={`font-jetbrains ml-auto justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
 													props.perps.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
 												}`}
 											>
 												{`${props.perps.change_7dover7d >= 0 ? '+' : ''}${props.perps.change_7dover7d}%`}
-											</span>
+											</Tooltip>
 										</p>
 									) : null}
 								</div>

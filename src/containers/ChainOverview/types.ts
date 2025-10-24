@@ -76,10 +76,16 @@ export interface IChainOverviewData {
 		total24h: number | null
 		total7d: number | null
 		change_7dover7d: number | null
+		change7dUsd: number | null
 		dexsDominance: number | null
 		chart: Array<[number, number]> | null
 	}
-	perps: { total24h: number | null; total7d: number | null; change_7dover7d: number | null }
+	perps: {
+		total24h: number | null
+		total7d: number | null
+		change_7dover7d: number | null
+		change7dUsd: number | null
+	}
 	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null }
 	inflows: { netInflows: number | null } | null
 	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
