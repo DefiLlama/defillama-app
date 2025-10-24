@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
-import { Subscription } from '~/hooks/useSubscribe'
+import { Subscription, useSubscribe } from '~/hooks/useSubscribe'
 
 interface SubscriberContentProps {
 	apiKey: string | null
@@ -40,6 +40,21 @@ export const SubscriberContent = ({
 	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
 	const isLegacy = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
+	const { handleSubscribe, loading } = useSubscribe()
+
+	const currentSubscription = isLlamaFeed ? llamafeedSubscription : isPro ? apiSubscription : null
+	const currentBillingInterval = currentSubscription?.billingInterval || 'month'
+
+	const monthlyPricePro = 49
+	const yearlyPricePro = monthlyPricePro * 10
+	const monthlyPriceAPI = 300
+	const yearlyPriceAPI = monthlyPriceAPI * 10
+
+	const displayPrice = isLlamaFeed
+		? (currentBillingInterval === 'year' ? `$${yearlyPricePro}.00 USD` : `$${monthlyPricePro}.00 USD`)
+		: isPro
+			? (currentBillingInterval === 'year' ? `$${yearlyPriceAPI}.00 USD` : `$${monthlyPriceAPI}.00 USD`)
+			: ''
 
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
 		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
@@ -47,6 +62,13 @@ export const SubscriberContent = ({
 			await createPortalSession(type)
 		} else {
 			window.open('https://subscriptions.llamapay.io/', '_blank')
+		}
+	}
+
+	async function handleUpgradeToYearly() {
+		const type = isLlamaFeed ? 'llamafeed' : isPro ? 'api' : null
+		if (type) {
+			await handleSubscribe('stripe', type, undefined, 'year')
 		}
 	}
 
@@ -63,6 +85,7 @@ export const SubscriberContent = ({
 						context="account"
 						active={isLlamaFeed && subscription?.provider !== 'trial'}
 						onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
+						currentBillingInterval={llamafeedSubscription?.billingInterval || 'month'}
 					/>
 				</div>
 				<div
@@ -73,6 +96,7 @@ export const SubscriberContent = ({
 						active={isPro || isLegacy}
 						onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
 						isLegacyActive={isLegacy}
+						currentBillingInterval={apiSubscription?.billingInterval || 'month'}
 					/>
 				</div>
 				<div
@@ -364,12 +388,12 @@ export const SubscriberContent = ({
 							<div className="grid grid-cols-2 gap-4 md:grid-cols-3">
 								<div className="rounded-lg bg-[#13141a]/60 p-3">
 									<p className="mb-1 text-xs text-[#8a8c90]">Billing Cycle</p>
-									<p className="font-medium">Monthly</p>
+									<p className="font-medium">{currentBillingInterval === 'year' ? 'Yearly' : 'Monthly'}</p>
 								</div>
 
 								<div className="rounded-lg bg-[#13141a]/60 p-3">
 									<p className="mb-1 text-xs text-[#8a8c90]">Price</p>
-									<p className="font-medium">{isLlamaFeed ? '$49.00 USD' : isPro ? '$300.00 USD' : ''}</p>
+									<p className="font-medium">{displayPrice}</p>
 								</div>
 
 								<div className="rounded-lg bg-[#13141a]/60 p-3">
@@ -391,6 +415,39 @@ export const SubscriberContent = ({
 									</p>
 								</div>
 							</div>
+
+							{currentBillingInterval === 'month' && (
+								<div className="mt-6 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-5">
+									<div className="mb-4 flex items-start gap-3">
+										<div className="rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9]">
+											<Icon name="trending-up" height={20} width={20} />
+										</div>
+										<div className="flex-1">
+											<h4 className="mb-1 font-medium">Upgrade to Yearly</h4>
+											<p className="text-sm text-[#8a8c90]">
+												Switch to annual billing and save 2 months. Get the same great features at a better value.
+											</p>
+										</div>
+									</div>
+									<button
+										onClick={handleUpgradeToYearly}
+										disabled={loading === 'stripe'}
+										className="flex items-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
+									>
+										{loading === 'stripe' ? (
+											<>
+												<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+												<span>Processing...</span>
+											</>
+										) : (
+											<>
+												<Icon name="arrow-up" height={16} width={16} />
+												<span>Upgrade to Yearly (Save 2 Months)</span>
+											</>
+										)}
+									</button>
+								</div>
+							)}
 
 							{isPro && !apiSubscription?.overage && (
 								<div className="mt-6 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-5">

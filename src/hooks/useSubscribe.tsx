@@ -29,6 +29,7 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
+	billingInterval?: 'year' | 'month'
 	overage?: boolean
 	metadata?: {
 		is_trial?: boolean
