@@ -851,7 +851,6 @@ export const getAdapterByChainPageData = async ({
 		openInterest += openInterestProtocols[protocol] ?? 0
 	}
 
-	// Calculate absolute USD change for 7-day period
 	const change7dUsd =
 		data.total7d != null && data.change_7dover7d != null && data.change_7dover7d > -100
 			? data.total7d - data.total7d / (1 + data.change_7dover7d / 100)
