@@ -47,7 +47,7 @@ function AuthContent() {
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 				<meta name="robots" content="noindex, nofollow" />
 			</Head>
-			<div className="col-span-full flex min-h-screen w-full items-center justify-center bg-[#13141a] px-5 py-5 sm:items-center">
+			<div className="col-span-full flex min-h-screen w-full items-center justify-center bg-[#13141a] px-5">
 				{isAuthenticated ? (
 					<div className="w-full max-w-md rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
 						<div className="mb-6">
