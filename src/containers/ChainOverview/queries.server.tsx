@@ -566,7 +566,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				total7d: dexs?.total7d ?? null,
 				change_7dover7d: dexs?.change_7dover7d ?? null,
 				change7dUsd:
-					dexs?.total7d != null && dexs?.change_7dover7d != null && dexs?.change_7dover7d > -100
+					dexs?.total7d != null && dexs?.change_7dover7d != null && dexs.change_7dover7d > -100
 						? dexs.total7d - dexs.total7d / (1 + dexs.change_7dover7d / 100)
 						: null,
 				dexsDominance:
@@ -578,7 +578,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				total7d: perps?.total7d ?? null,
 				change_7dover7d: perps?.change_7dover7d ?? null,
 				change7dUsd:
-					perps?.total7d != null && perps?.change_7dover7d != null && perps?.change_7dover7d > -100
+					perps?.total7d != null && perps?.change_7dover7d != null && perps.change_7dover7d > -100
 						? perps.total7d - perps.total7d / (1 + perps.change_7dover7d / 100)
 						: null
 			},
