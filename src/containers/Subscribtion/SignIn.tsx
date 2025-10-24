@@ -170,7 +170,7 @@ export const SignIn = ({
 			<Ariakit.Dialog
 				store={dialogState}
 				hideOnInteractOutside={showOnlyAuthDialog ? false : true}
-				className="dialog animate-fadeIn flex max-w-md flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl backdrop-blur-md"
+				className="dialog animate-fadeIn flex max-h-[75dvh] max-w-md flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl backdrop-blur-md"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
 				}}
