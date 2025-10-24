@@ -58,7 +58,7 @@ export function NameYieldPool({
 
 	return (
 		<span className="flex items-center gap-2">
-			{bookmark ? <Bookmark readableName={configID} data-lgonly /> : null}
+			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
 			<span className="shrink-0">{index}</span>
 
