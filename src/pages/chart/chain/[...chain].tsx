@@ -132,11 +132,11 @@ export default function ChainChartPage(props) {
 	return (
 		<>
 			{isFetchingChartData || !router.isReady || !isClient ? (
-				<div className="m-auto flex min-h-[360px] items-center justify-center">
+				<div className="col-span-full m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
 			) : (
-				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<Suspense fallback={<div className="col-span-full m-auto flex min-h-[360px] items-center justify-center" />}>
 					<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={isThemeDark} groupBy={groupBy} />
 				</Suspense>
 			)}

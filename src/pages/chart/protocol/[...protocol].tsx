@@ -165,7 +165,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	})
 
 	return (
-		<div className="flex min-h-[360px] flex-col">
+		<div className="col-span-full flex min-h-[360px] flex-col">
 			{loadingCharts ? (
 				<div className="flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
