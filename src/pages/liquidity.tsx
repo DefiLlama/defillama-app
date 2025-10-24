@@ -1,8 +1,5 @@
-export default function Liquidity(props) {
+export default function Liquidity() {
 	return (
-		<iframe
-			style={{ width: '100vw', height: '100vh', border: '0', marginBottom: '-3px' }}
-			src="https://swap.defillama.com/token-liquidity"
-		/>
+		<iframe className="col-span-full -mb-4 h-screen w-full border-0" src="https://swap.defillama.com/token-liquidity" />
 	)
 }
