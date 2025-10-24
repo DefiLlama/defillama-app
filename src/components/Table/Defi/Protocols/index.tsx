@@ -67,8 +67,11 @@ export const protocolsByChainTableColumns = [
 		key: 'average_1y',
 		category: TABLE_CATEGORIES.FEES
 	},
+	{ name: 'Fees Change 1d', key: 'feesChange_1d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Fees Change 7d', key: 'feesChange_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Fees Change 1m', key: 'feesChange_1m', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
 	{
-		name: 'Fees Change 7d',
+		name: 'Fees Change 7d (vs prev 7d)',
 		key: 'feesChange_7dover7d',
 		category: TABLE_CATEGORIES.FEES,
 		period: TABLE_PERIODS.SEVEN_DAYS
@@ -89,7 +92,25 @@ export const protocolsByChainTableColumns = [
 		category: TABLE_CATEGORIES.REVENUE
 	},
 	{
+		name: 'Revenue Change 1d',
+		key: 'revenueChange_1d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
 		name: 'Revenue Change 7d',
+		key: 'revenueChange_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Revenue Change 1m',
+		key: 'revenueChange_1m',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Revenue Change 7d (vs prev 7d)',
 		key: 'revenueChange_7dover7d',
 		category: TABLE_CATEGORIES.REVENUE,
 		period: TABLE_PERIODS.SEVEN_DAYS
@@ -128,15 +149,166 @@ export const protocolsByChainTableColumns = [
 	},
 	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Earnings 24h', key: 'earnings_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
+	{
+		name: 'Earnings Change 1d',
+		key: 'earningsChange_1d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{ name: 'Earnings 7d', key: 'earnings_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
+	{
+		name: 'Earnings Change 7d',
+		key: 'earningsChange_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{ name: 'Earnings 30d', key: 'earnings_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Earnings Change 1m',
+		key: 'earningsChange_1m',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Earnings 1y', key: 'earnings_1y', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Spot Volume 30d', key: 'volume_30d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Spot Volume Change 1d',
+		key: 'volumeChange_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
 	{
 		name: 'Spot Volume Change 7d',
 		key: 'volumeChange_7d',
 		category: TABLE_CATEGORIES.VOLUME,
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
+	{
+		name: 'Spot Volume Change 1m',
+		key: 'volumeChange_1m',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
 	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Spot Volume % Share 24h', key: 'volumeDominance_24h', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Spot Volume % Share 7d', key: 'volumeMarketShare7d', category: TABLE_CATEGORIES.VOLUME },
+	{
+		name: 'DEX Agg Volume 24h',
+		key: 'aggregators_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume Change 1d',
+		key: 'aggregators_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume 7d',
+		key: 'aggregators_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'DEX Agg Volume Change 7d',
+		key: 'aggregators_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'DEX Agg Volume 30d',
+		key: 'aggregators_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'DEX Agg Volume % 24h',
+		key: 'aggregators_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume % 7d',
+		key: 'aggregators_volume_marketShare7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume 24h',
+		key: 'bridge_aggregators_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Bridge Agg Volume Change 1d',
+		key: 'bridge_aggregators_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Bridge Agg Volume 7d',
+		key: 'bridge_aggregators_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume Change 7d',
+		key: 'bridge_aggregators_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume 30d',
+		key: 'bridge_aggregators_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Bridge Agg Volume % 24h',
+		key: 'bridge_aggregators_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume 24h',
+		key: 'options_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume Change 1d',
+		key: 'options_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume 7d',
+		key: 'options_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Options Volume Change 7d',
+		key: 'options_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Options Volume 30d',
+		key: 'options_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Options Volume % 24h',
+		key: 'options_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
 	{
 		name: 'Perp Volume 24h',
 		key: 'perps_volume_24h',
@@ -156,11 +328,24 @@ export const protocolsByChainTableColumns = [
 		period: TABLE_PERIODS.ONE_MONTH
 	},
 	{
+		name: 'Perp Volume Change 1d',
+		key: 'perps_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
 		name: 'Perp Volume Change 7d',
 		key: 'perps_volume_change_7d',
 		category: TABLE_CATEGORIES.VOLUME,
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
+	{
+		name: 'Perp Volume Change 1m',
+		key: 'perps_volume_change_1m',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Perp Volume % Share 24h', key: 'perps_volume_dominance_24h', category: TABLE_CATEGORIES.VOLUME },
 	{ name: 'Open Interest', key: 'openInterest', category: TABLE_CATEGORIES.VOLUME },
 	{
 		name: 'Holders Revenue 30d Change',
@@ -183,6 +368,9 @@ export const defaultColumns = JSON.stringify({
 	mcaptvl: false,
 	fees_24h: true,
 	revenue_24h: true,
+	revenueChange_1d: false,
+	revenueChange_7d: false,
+	revenueChange_1m: false,
 	feesChange_7dover7d: false,
 	feesChange_30dover30d: false,
 	revenueChange_7dover7d: false,
@@ -196,6 +384,9 @@ export const defaultColumns = JSON.stringify({
 	average_1y: false,
 	revenue_1y: false,
 	average_revenue_1y: false,
+	feesChange_1d: false,
+	feesChange_7d: false,
+	feesChange_1m: false,
 	userFees_24h: false,
 	cumulativeFees: false,
 	holderRevenue_24h: false,
@@ -203,14 +394,48 @@ export const defaultColumns = JSON.stringify({
 	supplySideRevenue_24h: false,
 	pf: false,
 	ps: false,
+	earnings_24h: false,
+	earningsChange_1d: false,
+	earnings_7d: false,
+	earningsChange_7d: false,
+	earnings_30d: false,
+	earningsChange_1m: false,
+	earnings_1y: false,
 	volume_24h: true,
 	volume_7d: false,
+	volume_30d: false,
+	volumeChange_1d: false,
 	volumeChange_7d: false,
+	volumeChange_1m: false,
 	cumulativeVolume: false,
+	volumeDominance_24h: false,
+	volumeMarketShare7d: false,
 	perps_volume_24h: false,
 	perps_volume_7d: false,
 	perps_volume_30d: false,
+	perps_volume_change_1d: false,
 	perps_volume_change_7d: false,
+	perps_volume_change_1m: false,
+	perps_volume_dominance_24h: false,
+	aggregators_volume_24h: false,
+	aggregators_volume_change_1d: false,
+	aggregators_volume_7d: false,
+	aggregators_volume_change_7d: false,
+	aggregators_volume_30d: false,
+	aggregators_volume_dominance_24h: false,
+	aggregators_volume_marketShare7d: false,
+	bridge_aggregators_volume_24h: false,
+	bridge_aggregators_volume_change_1d: false,
+	bridge_aggregators_volume_7d: false,
+	bridge_aggregators_volume_change_7d: false,
+	bridge_aggregators_volume_30d: false,
+	bridge_aggregators_volume_dominance_24h: false,
+	options_volume_24h: false,
+	options_volume_change_1d: false,
+	options_volume_7d: false,
+	options_volume_change_7d: false,
+	options_volume_30d: false,
+	options_volume_dominance_24h: false,
 	openInterest: false,
 	holdersRevenueChange_30dover30d: false
 })

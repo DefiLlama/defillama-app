@@ -1,119 +1,80 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { INFLOWS_API } from '~/constants'
-import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { DateFilter } from './DateFilter'
 
 const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
-	if (startTime && endTime) {
-		const cexsApiResults = await Promise.allSettled(
-			cexData.map(async (c) => {
-				if (c.slug === undefined) {
-					return [null, null]
-				} else {
-					const res = await fetchJson(
-						`${INFLOWS_API}/${c.slug}/${startTime}?end=${endTime}&tokensToExclude=${c.coin ?? ''}`
-					)
+	let loadingToastId
+	try {
+		if (startTime && endTime) {
+			loadingToastId = toast.loading('Fetching inflows data...')
 
-					return [c.slug, res]
-				}
-			})
-		)
+			const cexsApiResults = await Promise.allSettled(
+				cexData.map(async (c) => {
+					if (c.slug === undefined) {
+						return [null, null]
+					} else {
+						const res = await fetchJson(
+							`${INFLOWS_API}/${c.slug}/${startTime / 1e3}?end=${endTime / 1e3}&tokensToExclude=${c.coin ?? ''}`
+						)
 
-		const cexs = cexsApiResults
-			.map((result) => {
-				if (result.status === 'fulfilled') {
-					return result.value
-				}
-			})
-			.filter(Boolean)
+						return [c.slug, res]
+					}
+				})
+			)
 
-		return Object.fromEntries(cexs)
+			const cexs = cexsApiResults
+				.map((result) => {
+					if (result.status === 'fulfilled') {
+						return result.value
+					}
+				})
+				.filter(Boolean)
+
+			toast.dismiss(loadingToastId)
+
+			return cexs.length ? Object.fromEntries(cexs) : {}
+		}
+	} catch (error) {
+		toast.dismiss(loadingToastId)
+		toast.error('Failed to fetch inflows data')
+		return {}
 	}
 }
 
-const SECONDS_IN_HOUR = 3600
-
-const dateStringToUnix = (dateString) => {
-	if (!dateString) return 0
-	return Math.floor(new Date(dateString).getTime() / 1000)
-}
-
-const unixToDateString = (unixTimestamp) => {
-	if (!unixTimestamp) return ''
-	const date = new Date(unixTimestamp * 1000)
-	return date.toISOString().split('T')[0]
+const getDateTimestamp = (dateString: string | string[] | undefined): number | null => {
+	if (!dateString || typeof dateString !== 'string') return null
+	return Number.isNaN(Number(dateString)) ? null : Number(dateString)
 }
 
 export const Cexs = ({ cexs }) => {
-	// Initialize with date strings instead of Date objects
-	const initialStartDate = (() => {
-		const date = new Date()
-		date.setMonth(date.getMonth() - 1)
-		return unixToDateString(Math.floor(date.getTime() / 1000))
-	})()
+	const router = useRouter()
 
-	const initialEndDate = (() => {
-		const date = new Date()
-		date.setDate(date.getDate() - 1)
-		return unixToDateString(Math.floor(date.getTime() / 1000))
-	})()
-
-	const [hours, setHours] = useState([12, 12])
-
-	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange } = useDateRangeValidation({
-		initialStartDate,
-		initialEndDate
-	})
-
-	const handleStartChange = (value: string) => {
-		handleStartDateChange(value)
-		if (endDate && value && new Date(value) > new Date(endDate)) {
-			handleEndDateChange(value)
-		}
-	}
-
-	const handleEndChange = (value: string) => {
-		handleEndDateChange(value)
-		if (startDate && value && new Date(startDate) > new Date(value)) {
-			handleStartDateChange(value)
-		}
-	}
-
-	const startTs = (dateStringToUnix(startDate) + Number(hours[0] || 0) * SECONDS_IN_HOUR).toFixed(0)
-	const endTs = (dateStringToUnix(endDate) + Number(hours[1] || 0) * SECONDS_IN_HOUR).toFixed(0)
+	const startDate = getDateTimestamp(router.query.startDate)
+	const endDate = getDateTimestamp(router.query.endDate)
 
 	const { data: customRangeInflows = {} } = useQuery({
-		queryKey: ['cexs', startTs, endTs],
-		queryFn: () => getOutflowsByTimerange(startTs, endTs, cexs),
-		staleTime: 60 * 60 * 1000
+		queryKey: ['cexs', startDate, endDate],
+		queryFn: () => getOutflowsByTimerange(startDate, endDate, cexs),
+		staleTime: 60 * 60 * 1000,
+		enabled: !!startDate && !!endDate,
+		retry: false
 	})
 
-	const cexsWithCustomRange = cexs.map((cex) => ({
-		...cex,
-		customRange: customRangeInflows[cex.slug]?.outflows
-	}))
-
-	const onHourChange = (hours) => {
-		const isValid = hours
-			.map((hour) => (hour === '' ? 0 : hour))
-			.every((hour) => /^([01]?[0-9]|2[0-3])$/.test(hour) || hour === '')
-
-		if (isValid) {
-			const newStartTs = (dateStringToUnix(startDate) + Number(hours[0] || 0) * SECONDS_IN_HOUR).toFixed(0)
-			const newEndTs = (dateStringToUnix(endDate) + Number(hours[1] || 0) * SECONDS_IN_HOUR).toFixed(0)
-
-			if (Number(newStartTs) <= Number(newEndTs)) {
-				setHours(hours)
-			}
-		}
-	}
+	const cexsWithCustomRange = useMemo(() => {
+		return cexs.map((cex) => ({
+			...cex,
+			customRange: customRangeInflows[cex.slug]?.outflows
+		}))
+	}, [cexs, customRangeInflows])
 
 	return (
 		<>
@@ -124,15 +85,7 @@ export const Cexs = ({ cexs }) => {
 				placeholder={'Search exchange...'}
 				header={'CEX Transparency'}
 				customFilters={
-					<DateFilter
-						startDate={startDate}
-						endDate={endDate}
-						onStartChange={handleStartChange}
-						onEndChange={handleEndChange}
-						hours={hours}
-						setHours={onHourChange}
-						dateError={dateError}
-					/>
+					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
 				}
 				sortingState={[{ id: 'cleanTvl', desc: true }]}
 			/>
@@ -170,15 +123,12 @@ const columns: ColumnDef<any>[] = [
 		accessorKey: 'tvl',
 		accessorFn: (row) => row.tvl ?? undefined,
 		cell: (info) => {
-			return (
-				<>
-					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
-					) : (
-						formattedNum(info.getValue(), true)
-					)}
-				</>
-			)
+			if (info.row.original.slug == null) {
+				return (
+					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
+				)
+			}
+			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
 		},
 		sortUndefined: 'last',
 		size: 120,
@@ -194,11 +144,12 @@ const columns: ColumnDef<any>[] = [
 		accessorFn: (row) => row.cleanTvl ?? undefined,
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
+			if (info.row.original.slug == null) {
+				return <QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
+			}
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
-					) : (
+					{info.getValue() ? (
 						<>
 							{coinSymbol === undefined ? (
 								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
@@ -209,7 +160,7 @@ const columns: ColumnDef<any>[] = [
 							)}
 							<span>{formattedNum(info.getValue(), true)}</span>
 						</>
-					)}
+					) : null}
 				</span>
 			)
 		},

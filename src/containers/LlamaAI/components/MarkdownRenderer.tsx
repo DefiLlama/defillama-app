@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { getEntityUrl } from '../utils/entityLinks'
 
 interface MarkdownRendererProps {
 	content: string
@@ -17,18 +18,6 @@ interface EntityLinkProps {
 	children?: any
 	node?: any
 	[key: string]: any
-}
-
-function getEntityUrl(type: string, slug: string): string {
-	switch (type) {
-		case 'protocol':
-		case 'subprotocol':
-			return `/protocol/${slug}`
-		case 'chain':
-			return `/chain/${slug}`
-		default:
-			return `/${type}/${slug}`
-	}
 }
 
 function getEntityIcon(type: string, slug: string): string {
@@ -66,7 +55,10 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
 			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2" id="ai-table-download">
 				{isStreaming ? (
-					<button className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+					<button
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						disabled
+					>
 						<Icon name="download-paper" className="h-3 w-3 shrink-0" />
 						<span>.csv</span>
 					</button>
@@ -87,7 +79,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool'].includes(type)) {
 			return <span>{children}</span>
 		}
 
@@ -102,7 +94,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 				rel="noreferrer noopener"
 				{...props}
 			>
-				<TokenLogo logo={iconUrl} size={14} />
+				{type !== 'pool' && <TokenLogo logo={iconUrl} size={14} />}
 				<span className="truncate">{children}</span>
 			</a>
 		)

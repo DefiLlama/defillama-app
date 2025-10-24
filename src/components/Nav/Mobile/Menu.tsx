@@ -31,10 +31,7 @@ export const Menu = React.memo(function Menu({
 				<Icon name="menu" height={16} width={16} />
 			</Ariakit.DialogDisclosure>
 
-			<Ariakit.Dialog
-				data-active={show}
-				className="fixed top-0 right-0 bottom-0 left-0 hidden bg-black/10 data-[active=true]:block"
-			>
+			<Ariakit.Dialog unmountOnHide>
 				<nav className="animate-slidein fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white">
 					<Ariakit.DialogDismiss className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
@@ -178,7 +175,7 @@ const LinkToPage = React.memo(function LinkToPage({
 			className="-ml-1.5 flex items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 			onClick={() => setShow(false)}
 		>
-			<span className="relative inline-flex items-center gap-1">
+			<span className="relative inline-flex items-center gap-2">
 				{name}
 				{attention ? (
 					<span

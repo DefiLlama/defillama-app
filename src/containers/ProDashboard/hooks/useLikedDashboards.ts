@@ -22,6 +22,7 @@ export function useLikedDashboards() {
 			}
 			return await dashboardAPI.getLikedDashboards({ page, limit }, authorizedFetch)
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: isAuthenticated
 	})
 

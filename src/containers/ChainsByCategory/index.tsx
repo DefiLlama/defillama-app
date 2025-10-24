@@ -219,6 +219,7 @@ export const useGroupAndFormatChains = ({
 			.filter((chain) => (minTvl ? chain.tvl >= minTvl : true) && (maxTvl ? chain.tvl <= maxTvl : true))
 
 		if (!showByGroup) return { showByGroup, chainsTableData: data }
+		const trackedSubChains = new Set<string>()
 
 		const chainsTableData = []
 		for (const chain of data) {
@@ -227,8 +228,14 @@ export const useGroupAndFormatChains = ({
 				if (chain?.['childGroups']?.[group]) {
 					for (const subChain of chain['childGroups'][group]) {
 						subChainsList.add(subChain)
+						trackedSubChains.add(subChain)
 					}
 				}
+			}
+
+			// already counted as subchain of another chain
+			if (trackedSubChains.has(chain.name)) {
+				continue
 			}
 
 			if (subChainsList.size === 0) {

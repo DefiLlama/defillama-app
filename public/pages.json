@@ -147,14 +147,6 @@
       "oldName": "Leveraged Lending"
     },
     {
-      "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
-      "category": "Yields",
-      "description": "Find 'long-short' strategies across all our tracked pools",
-      "oldCategory": "Yields",
-      "oldName": "Long/Short Strategies"
-    },
-    {
       "name": "Yields: All Projects",
       "route": "/yields/projects",
       "category": "Yields",
@@ -162,6 +154,14 @@
       "totalTrackedKey": "yields.protocols",
       "oldCategory": "Yields",
       "oldName": "All Projects"
+    },
+    {
+      "name": "Yields: Long/Short Strategies",
+      "route": "/yields/strategyLongShort",
+      "category": "Yields",
+      "description": "Find 'long-short' strategies across all our tracked pools",
+      "oldCategory": "Yields",
+      "oldName": "Long/Short Strategies"
     },
     {
       "name": "Yields: APY Overview",
@@ -471,6 +471,20 @@
       "oldName": "Chains"
     },
     {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
       "name": "Raises: Overview",
       "route": "/raises",
       "category": "Raises",
@@ -512,20 +526,6 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
-    },
-    {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
-    },
-    {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
     },
     {
       "name": "Hacks: Overview",
@@ -721,20 +721,20 @@
       "oldName": "Advanced"
     },
     {
-      "name": "Transactions by Bridge",
-      "route": "/bridge-transactions",
-      "category": "Tools",
-      "description": "Download transaction data across different time periods by bridge",
-      "oldCategory": "Bridges",
-      "oldName": "Transactions"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama",
       "tab": "Protocols",
       "oldName": "Directory"
+    },
+    {
+      "name": "Transactions by Bridge",
+      "route": "/bridge-transactions",
+      "category": "Tools",
+      "description": "Download transaction data across different time periods by bridge",
+      "oldCategory": "Bridges",
+      "oldName": "Transactions"
     },
     {
       "name": "Report Error",

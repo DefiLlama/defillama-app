@@ -367,6 +367,7 @@ export function useChartData(
 	return useQuery({
 		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod),
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping),
+		staleTime: 1000 * 60 * 5,
 		enabled:
 			!!item &&
 			((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
@@ -387,7 +388,8 @@ export function useChains() {
 				name: chain.name === 'Binance' ? 'BSC' : chain.name
 			}))
 			return transformedData.sort((a, b) => b.tvl - a.tvl)
-		}
+		},
+		staleTime: 1000 * 60 * 60
 	})
 }
 
@@ -450,7 +452,8 @@ export function useProtocolsAndChains() {
 				protocols: mergedProtocols,
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
-		}
+		},
+		staleTime: 1000 * 60 * 60
 	})
 }
 

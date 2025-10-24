@@ -35,8 +35,8 @@ export function ConfirmationModal({
 				portal
 				hideOnInteractOutside
 			>
-				<div className="mb-4 flex items-center justify-between">
-					<h2 className="pro-text1 text-lg font-semibold">{title}</h2>
+				<div className="mb-6 flex items-center justify-between">
+					<h2 className="pro-text1 text-xl font-semibold">{title}</h2>
 					<Ariakit.DialogDismiss
 						className="pro-hover-bg pro-text1 rounded-md p-1 transition-colors"
 						aria-label="Close modal"

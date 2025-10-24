@@ -159,7 +159,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 		if (item.kind === 'multi') {
 			return (
-				<Suspense fallback={<div className="fflex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
+				<Suspense fallback={<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
 					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
@@ -255,6 +255,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 					columnVisibility={item.columnVisibility}
 					customColumns={item.customColumns}
 					activeViewId={item.activeViewId}
+					activePresetId={item.activePresetId}
 				/>
 			)
 		}

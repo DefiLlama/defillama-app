@@ -3,6 +3,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
@@ -127,6 +128,48 @@ export async function getStaticPaths() {
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
+const prepareAssetBreakdownCsv = (breakdown, name: string, symbol: string) => {
+	const headers = [
+		'Institution',
+		'Ticker',
+		'Type',
+		`Holdings (${symbol})`,
+		"Today's Holdings Value",
+		'Stock Price',
+		'24h Price Change (%)',
+		`% of ${symbol} Circulating Supply`,
+		'Realized mNAV',
+		'Realistic mNAV',
+		'Max mNAV',
+		`Average Purchase Price (${symbol})`,
+		'Last Updated'
+	]
+
+	const rows = breakdown.map((institution) => {
+		return [
+			institution.name,
+			institution.ticker,
+			institution.type,
+			institution.totalAssetAmount ?? '',
+			institution.totalUsdValue ?? '',
+			institution.price ?? '',
+			institution.priceChange24h ?? '',
+			institution.supplyPercentage ?? '',
+			institution.realized_mNAV ?? '',
+			institution.realistic_mNAV ?? '',
+			institution.max_mNAV ?? '',
+			institution.avgPrice ?? '',
+			institution.lastAnnouncementDate ? new Date(institution.lastAnnouncementDate).toLocaleDateString() : ''
+		]
+	})
+
+	const date = new Date().toISOString().split('T')[0]
+	return {
+		filename: `${name.toLowerCase().replace(/\s+/g, '-')}-treasury-holdings-${date}.csv`,
+		rows: [headers, ...rows]
+	}
+}
+
 export default function TreasuriesByAsset({
 	name,
 	breakdown,
@@ -205,6 +248,7 @@ export default function TreasuriesByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
+				customFilters={<CSVDownloadButton prepareCsv={() => prepareAssetBreakdownCsv(breakdown, name, symbol)} />}
 			/>
 		</Layout>
 	)

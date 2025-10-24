@@ -1,14 +1,20 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
+import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
-import { LoadingSpinner } from './LoadingSpinner'
 
 const viewModes = ['grid', 'list'] as const
 type ViewMode = (typeof viewModes)[number]
+const DEFAULT_PAGE_LIMIT = 20
+const itemsPerPageOptions = [
+	{ key: '20', name: '20' },
+	{ key: '40', name: '40' },
+	{ key: '100', name: '100' }
+] as const
 const sortOptions = [
 	{ key: 'popular', name: 'Most Popular' },
 	{ key: 'recent', name: 'Recently Created' },
@@ -19,8 +25,8 @@ type SortOption = (typeof sortOptions)[number]
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage } = useMemo(() => {
-		const { view, tag, sortBy, query, page } = router.query
+	const { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage, itemsPerPage } = useMemo(() => {
+		const { view, tag, sortBy, query, page, limit } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
@@ -31,7 +37,15 @@ export function DashboardDiscovery() {
 		const searchQuery = typeof query === 'string' ? query : ''
 		const selectedPage = typeof page === 'string' && !Number.isNaN(Number(page)) ? parseInt(page) : 1
 
-		return { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage }
+		let itemsPerPage = DEFAULT_PAGE_LIMIT
+		if (typeof limit === 'string' && !Number.isNaN(Number(limit))) {
+			const parsed = parseInt(limit, 10)
+			if (itemsPerPageOptions.some((option) => option.key === parsed.toString())) {
+				itemsPerPage = parsed
+			}
+		}
+
+		return { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage, itemsPerPage }
 	}, [router.query])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
@@ -40,7 +54,7 @@ export function DashboardDiscovery() {
 		visibility: 'public',
 		sortBy: selectedSortBy.key,
 		page: selectedPage,
-		limit: 20
+		limit: itemsPerPage
 	})
 
 	const handleTagClick = (tag: string) => {
@@ -49,13 +63,13 @@ export function DashboardDiscovery() {
 		}
 
 		// remove page from query
-		const { page, ...query } = router.query
+		const { page, ...queryWithoutPage } = router.query
 
 		router.push(
 			{
 				pathname: '/pro',
 				query: {
-					...query,
+					...queryWithoutPage,
 					tag: tag
 				}
 			},
@@ -64,16 +78,31 @@ export function DashboardDiscovery() {
 		)
 	}
 
+	const handleItemsPerPageChange = (value: string) => {
+		const newItemsPerPage = parseInt(value, 10)
+		const { page, ...queryWithoutPage } = router.query
+		router.push(
+			{
+				pathname: '/pro',
+				query: { ...queryWithoutPage, limit: newItemsPerPage }
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}
+
 	const pagesToShow = useMemo(() => {
+		let pages: number[]
 		if (selectedPage === 1) {
-			return [1, 2, 3]
+			pages = [1, 2, 3]
 		}
-
-		if (selectedPage === totalPages) {
-			return [totalPages - 2, totalPages - 1, totalPages]
+		else if (selectedPage === totalPages) {
+			pages = [totalPages - 2, totalPages - 1, totalPages]
 		}
-
-		return [selectedPage - 1, selectedPage, selectedPage + 1]
+		else {
+			pages = [selectedPage - 1, selectedPage, selectedPage + 1]
+		}
+		return pages.filter(page => page > 0 && page <= totalPages)
 	}, [totalPages, selectedPage])
 
 	return (
@@ -86,13 +115,31 @@ export function DashboardDiscovery() {
 
 					<div className="ml-auto flex flex-wrap items-center gap-4">
 						<Select
+							allValues={itemsPerPageOptions}
+							selectedValues={itemsPerPage.toString()}
+							setSelectedValues={handleItemsPerPageChange}
+							label={
+								<>
+									<span className="text-(--text-label)">Items per page:</span>
+									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{itemsPerPage}</span>
+								</>
+							}
+							labelType="none"
+							triggerProps={{
+								className:
+									'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+							}}
+							aria-label="Items per page"
+						/>
+						<Select
 							allValues={sortOptions}
 							selectedValues={selectedSortBy.key}
 							setSelectedValues={(value) => {
+								const { page, ...queryWithoutPage } = router.query
 								router.push(
 									{
 										pathname: '/pro',
-										query: { ...router.query, sortBy: value as SortOption['key'] }
+										query: { ...queryWithoutPage, sortBy: value as SortOption['key'] }
 									},
 									undefined,
 									{ shallow: true }
@@ -223,9 +270,10 @@ export function DashboardDiscovery() {
 			</div>
 
 			{isLoading ? (
-				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
-					<LoadingSpinner />
-				</div>
+				<>
+					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
+					<LoadingSkeleton viewMode={viewMode} items={DEFAULT_PAGE_LIMIT} />
+				</>
 			) : dashboards.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 					<Icon name="search" height={48} width={48} className="text-(--text-label)" />
@@ -253,97 +301,99 @@ export function DashboardDiscovery() {
 					</div>
 
 					{totalPages > 1 && (
-						<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
-							<button
-								onClick={() => {
-									const { page, ...query } = router.query
-									router.push(
-										{
-											pathname: '/pro',
-											query
-										},
-										undefined,
-										{ shallow: true }
+						<div className="flex flex-col items-center gap-4">
+							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
+								<button
+									onClick={() => {
+										const { page, ...query } = router.query
+										router.push(
+											{
+												pathname: '/pro',
+												query
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage < 3}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+								>
+									<Icon name="chevrons-left" height={16} width={16} />
+								</button>
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...router.query, page: Math.max(1, selectedPage - 1) }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage === 1}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+								>
+									<Icon name="chevron-left" height={16} width={16} />
+								</button>
+								{pagesToShow.map((pageNum) => {
+									const isActive = selectedPage === pageNum
+									return (
+										<button
+											key={`page-to-navigate-to-${pageNum}`}
+											onClick={() => {
+												router.push(
+													{
+														pathname: '/pro',
+														query: { ...router.query, page: pageNum }
+													},
+													undefined,
+													{ shallow: true }
+												)
+											}}
+											data-active={isActive}
+											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white hover:bg-(--btn-bg) transition-colors"
+										>
+											{pageNum}
+										</button>
 									)
-								}}
-								disabled={selectedPage < 3}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevrons-left" height={16} width={16} />
-							</button>
-
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: { ...router.query, page: Math.max(1, selectedPage - 1) }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								disabled={selectedPage === 1}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevron-left" height={16} width={16} />
-							</button>
-
-							{pagesToShow.map((pageNum) => {
-								const isActive = selectedPage === pageNum
-								return (
-									<button
-										key={`page-to-navigate-to-${pageNum}`}
-										onClick={() => {
-											router.push(
-												{
-													pathname: '/pro',
-													query: { ...router.query, page: pageNum }
-												},
-												undefined,
-												{ shallow: true }
-											)
-										}}
-										data-active={isActive}
-										className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									>
-										{pageNum}
-									</button>
-								)
-							})}
-
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: { ...router.query, page: Math.min(totalPages, selectedPage + 1) }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								disabled={selectedPage === totalPages}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevron-right" height={16} width={16} />
-							</button>
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: { ...router.query, page: totalPages }
-										},
-										undefined,
-										{ shallow: true }
-									)
-								}}
-								disabled={selectedPage > totalPages - 2}
-								className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden"
-							>
-								<Icon name="chevrons-right" height={16} width={16} />
-							</button>
+								})}
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...router.query, page: Math.min(totalPages, selectedPage + 1) }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage === totalPages}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+								>
+									<Icon name="chevron-right" height={16} width={16} />
+								</button>
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...router.query, page: totalPages }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									disabled={selectedPage > totalPages - 2}
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+								>
+									<Icon name="chevrons-right" height={16} width={16} />
+								</button>
+							</div>
+							<p className="text-xs text-(--text-label)">
+								Page {selectedPage} of {totalPages}
+							</p>
 						</div>
 					)}
 				</>

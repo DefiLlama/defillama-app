@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
+import { getItemIconUrl } from '../../utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
 import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
-import { getItemIconUrl } from '../../utils'
+import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
 import { CombinedTableType } from './types'
 
 interface TableTabProps {
@@ -21,9 +21,16 @@ interface TableTabProps {
 	onTokensChange: (tokens: string[]) => void
 	includeCex: boolean
 	onIncludeCexChange: (include: boolean) => void
+	legacyTableTypes?: CombinedTableType[]
 }
 
-const tableTypeOptions = [
+const tableTypeOptions: Array<{
+	value: CombinedTableType
+	label: string
+	description: string
+	icon: string
+	hidden?: boolean
+}> = [
 	{
 		value: 'protocols',
 		label: 'Protocols',
@@ -58,25 +65,29 @@ const tableTypeOptions = [
 		value: 'fees',
 		label: 'Fees',
 		description: 'Protocol fees generated across timeframes',
-		icon: '💸'
+		icon: '💸',
+		hidden: true
 	},
 	{
 		value: 'revenue',
 		label: 'Revenue',
 		description: 'Protocol revenue generation across timeframes',
-		icon: '💰'
+		icon: '💰',
+		hidden: true
 	},
 	{
 		value: 'holders-revenue',
 		label: 'Holders Revenue',
 		description: 'Revenue distributed to token holders',
-		icon: '👥'
+		icon: '👥',
+		hidden: true
 	},
 	{
 		value: 'earnings',
 		label: 'Earnings',
 		description: 'Protocol profitability and earnings data',
-		icon: '📈'
+		icon: '📈',
+		hidden: true
 	},
 
 	{
@@ -89,31 +100,36 @@ const tableTypeOptions = [
 		value: 'aggregators',
 		label: 'DEX Aggregators',
 		description: 'Aggregator trading volume and market dominance',
-		icon: '🔄'
+		icon: '🔄',
+		hidden: true
 	},
 	{
 		value: 'perps',
 		label: 'Perpetuals',
 		description: 'Perpetual futures trading volume and trends',
-		icon: '📉'
+		icon: '📉',
+		hidden: true
 	},
 	{
 		value: 'options',
 		label: 'Options',
 		description: 'Options trading volume across protocols',
-		icon: '⚡'
+		icon: '⚡',
+		hidden: true
 	},
 	{
 		value: 'dexs',
 		label: 'DEXs',
 		description: 'Decentralized exchange volume and market share',
-		icon: '💱'
+		icon: '💱',
+		hidden: true
 	},
 	{
 		value: 'bridge-aggregators',
 		label: 'Bridge Aggregators',
 		description: 'Cross-chain bridge aggregator volume and metrics',
-		icon: '🌉'
+		icon: '🌉',
+		hidden: true
 	},
 	{
 		value: 'trending-contracts',
@@ -137,7 +153,8 @@ export function TableTab({
 	selectedTokens,
 	onTokensChange,
 	includeCex,
-	onIncludeCexChange
+	onIncludeCexChange,
+	legacyTableTypes = []
 }: TableTabProps) {
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
@@ -160,22 +177,20 @@ export function TableTab({
 		return [...additionalOptions, ...baseOptions]
 	}, [tokenSearchInput, tokenOptions, defaultTokens, selectedTokens])
 
-	const datasetSelectOptions = useMemo(
-		() =>
-			tableTypeOptions.map((option) => ({
+	const datasetSelectOptions = useMemo(() => {
+		const legacySet = new Set(legacyTableTypes)
+		return tableTypeOptions
+			.filter((option) => !option.hidden || legacySet.has(option.value))
+			.map((option) => ({
 				value: option.value,
-				label: option.label,
+				label: option.hidden ? `${option.label} (Legacy)` : option.label,
 				icon: option.icon,
 				description: option.description
-			})),
-		[]
-	)
+			}))
+	}, [legacyTableTypes])
 
 	const trendingChainOptions = useMemo(
-		() =>
-			chainOptions.filter((opt) =>
-				['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)
-			),
+		() => chainOptions.filter((opt) => ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)),
 		[chainOptions]
 	)
 
@@ -298,10 +313,7 @@ export function TableTab({
 							{selectedTokens.map((token) => {
 								const option = tokenOptionMap.get(token)
 								return (
-									<div
-										key={token}
-										className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1"
-									>
+									<div key={token} className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1">
 										{option?.logo ? (
 											<img
 												src={option.logo}
@@ -348,7 +360,7 @@ export function TableTab({
 											d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
 											clipRule="evenodd"
 										/>
-										</svg>
+									</svg>
 								)}
 							</div>
 						</div>

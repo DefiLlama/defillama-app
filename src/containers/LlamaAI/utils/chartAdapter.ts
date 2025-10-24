@@ -65,7 +65,7 @@ const formatChartValue = (value: number, valueSymbol?: string): string => {
 	}
 }
 
-const validateChartData = (data: [number, number | null][], chartType: string): [number, number | null][] => {
+const validateChartData = (data: [number | string, number | null][], chartType: string): [number | string, number | null][] => {
 	if (!data || data.length === 0) {
 		return []
 	}
@@ -77,12 +77,21 @@ const validateChartData = (data: [number, number | null][], chartType: string): 
 			return false
 		}
 
-		if (chartType === 'area' || chartType === 'line') {
-			return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
+		// Accept strings for categorical charts
+		if (typeof x === 'string' && x.length > 0) {
+			return typeof y === 'number' && !isNaN(y)
 		}
 
-		return typeof y === 'number' && !isNaN(y)
-	}) as [number, number | null][]
+		// Accept numbers for time-series charts
+		if (typeof x === 'number') {
+			if (chartType === 'area' || chartType === 'line') {
+				return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
+			}
+			return typeof y === 'number' && !isNaN(y)
+		}
+
+		return false
+	})
 
 	return validData
 }
@@ -159,13 +168,8 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			chartData: pieData,
 			height: '300px',
 			stackColors,
-			usdFormat: config.valueSymbol === '$',
-			showLegend: true,
-			formatTooltip: (params: any) => {
-				const value = params.value
-				const formattedValue = formatTooltipValue(value, config.valueSymbol ?? '')
-				return `<strong>${params.name}</strong>: ${formattedValue} (${params.percent}%)`
-			}
+			valueSymbol: config.valueSymbol ?? '',
+			showLegend: true
 		}
 
 		return {

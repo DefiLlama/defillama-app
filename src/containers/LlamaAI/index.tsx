@@ -5,9 +5,11 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
+import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
@@ -16,6 +18,9 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
+import { useGetEntities } from './hooks/useGetEntities'
+import { convertLlamaLinksToDefillama } from './utils/entityLinks'
+import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
 import { parseChartInfo } from './utils/parseChartInfo'
 import { debounce, throttle } from './utils/scrollUtils'
 
@@ -43,6 +48,7 @@ async function fetchPromptResponse({
 	abortSignal,
 	sessionId,
 	suggestionContext,
+	preResolvedEntities,
 	mode,
 	authorizedFetch
 }: {
@@ -75,6 +81,7 @@ async function fetchPromptResponse({
 	abortSignal?: AbortSignal
 	sessionId?: string | null
 	suggestionContext?: any
+	preResolvedEntities?: Array<{ term: string; slug: string }>
 	mode: 'auto' | 'sql_only'
 	authorizedFetch: any
 }) {
@@ -95,6 +102,10 @@ async function fetchPromptResponse({
 
 		if (suggestionContext) {
 			requestBody.suggestionContext = suggestionContext
+		}
+
+		if (preResolvedEntities) {
+			requestBody.preResolvedEntities = preResolvedEntities
 		}
 
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {
@@ -353,6 +364,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [lastFailedRequest, setLastFailedRequest] = useState<{
+		userQuestion: string
+		suggestionContext?: any
+		preResolvedEntities?: Array<{ term: string; slug: string }>
+	} | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -418,7 +434,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		error,
 		reset: resetPrompt
 	} = useMutation({
-		mutationFn: ({ userQuestion, suggestionContext }: { userQuestion: string; suggestionContext?: any }) => {
+		mutationFn: ({
+			userQuestion,
+			suggestionContext,
+			preResolvedEntities
+		}: {
+			userQuestion: string
+			suggestionContext?: any
+			preResolvedEntities?: Array<{ term: string; slug: string }>
+		}) => {
 			let currentSessionId = sessionId
 
 			if (!currentSessionId && user) {
@@ -454,6 +478,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				userQuestion,
 				sessionId: currentSessionId,
 				suggestionContext,
+				preResolvedEntities,
 				mode: 'auto',
 				authorizedFetch,
 				onProgress: (data) => {
@@ -508,10 +533,21 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				abortSignal: abortControllerRef.current.signal
 			})
 		},
-		onMutate: ({ userQuestion, suggestionContext }: { userQuestion: string; suggestionContext?: any }) => {},
+		onMutate: ({
+			userQuestion,
+			suggestionContext,
+			preResolvedEntities
+		}: {
+			userQuestion: string
+			suggestionContext?: any
+			preResolvedEntities?: Array<{ term: string; slug: string }>
+		}) => {
+			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
+		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
+			setLastFailedRequest(null)
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -556,6 +592,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const wasUserStopped = error?.message === 'Request aborted'
+
+			if (wasUserStopped) {
+				setLastFailedRequest(null)
+			}
 
 			if (wasUserStopped && finalContent.trim()) {
 				setConversationHistory((prev) => [
@@ -683,8 +723,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		authorizedFetch
 	])
 
+	const handleRetry = useCallback(() => {
+		if (lastFailedRequest) {
+			submitPrompt(lastFailedRequest)
+		}
+	}, [lastFailedRequest, submitPrompt])
+
 	const handleSubmit = useCallback(
-		(prompt: string) => {
+		(
+			prompt: string,
+			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+		) => {
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -693,7 +742,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				moveSessionToTop(sessionId)
 			}
 
-			submitPrompt({ userQuestion: finalPrompt })
+			submitPrompt({
+				userQuestion: finalPrompt,
+				preResolvedEntities: preResolved
+			})
 		},
 		[sessionId, moveSessionToTop, submitPrompt]
 	)
@@ -981,21 +1033,27 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-72px)] flex-1 flex-nowrap">
-				{!readOnly &&
-					(sidebarVisible ? (
-						<ChatHistorySidebar
-							handleSidebarToggle={handleSidebarToggle}
-							currentSessionId={sessionId}
-							onSessionSelect={handleSessionSelect}
-							onNewChat={handleNewChat}
-							shouldAnimate={shouldAnimateSidebar}
-						/>
-					) : (
-						<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-					))}
+			<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
+				{!readOnly && (
+					<>
+						{sidebarVisible ? (
+							<>
+								<ChatHistorySidebar
+									handleSidebarToggle={handleSidebarToggle}
+									currentSessionId={sessionId}
+									onSessionSelect={handleSessionSelect}
+									onNewChat={handleNewChat}
+									shouldAnimate={shouldAnimateSidebar}
+								/>
+								<div className="flex min-h-11 lg:hidden" />
+							</>
+						) : (
+							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+						)}
+					</>
+				)}
 				<div
-					className={`relative isolate flex flex-1 flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
@@ -1014,29 +1072,37 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 						) : (
-							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
 								</div>
 								{!readOnly && (
 									<>
-										<PromptInput
-											handleSubmit={handleSubmit}
-											promptInputRef={promptInputRef}
-											isPending={isPending}
-											handleStopRequest={handleStopRequest}
-											isStreaming={isStreaming}
-											initialValue={prompt}
-										/>
-										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										<div className="shrink-0">
+											<PromptInput
+												handleSubmit={handleSubmit}
+												promptInputRef={promptInputRef}
+												isPending={isPending}
+												handleStopRequest={handleStopRequest}
+												isStreaming={isStreaming}
+												initialValue={prompt}
+												placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+											/>
+										</div>
+										<div className="flex min-h-0 flex-1 flex-col">
+											<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										</div>
 									</>
 								)}
 							</div>
 						)
 					) : (
 						<>
-							<div ref={scrollContainerRef} className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5">
+							<div
+								ref={scrollContainerRef}
+								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && conversationHistory.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
@@ -1140,7 +1206,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												})}
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-260px)] flex-col gap-2.5">
+												<div className="flex min-h-[calc(100dvh-218px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
 													<PromptResponse
 														response={
@@ -1163,6 +1229,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														progressMessage={progressMessage}
 														progressStage={progressStage}
 														onSuggestionClick={handleSuggestionClick}
+														onRetry={handleRetry}
+														canRetry={!!lastFailedRequest}
 														isGeneratingCharts={isGeneratingCharts}
 														isAnalyzingForCharts={isAnalyzingForCharts}
 														hasChartError={hasChartError}
@@ -1220,6 +1288,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
+										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
 									/>
 								)}
 							</div>
@@ -1237,32 +1306,221 @@ const PromptInput = memo(function PromptInput({
 	isPending,
 	handleStopRequest,
 	isStreaming,
-	initialValue
+	initialValue,
+	placeholder
 }: {
-	handleSubmit: (prompt: string) => void
+	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
 	initialValue?: string
+	placeholder: string
 }) {
 	const [value, setValue] = useState('')
+	const highlightRef = useRef<HTMLDivElement>(null)
+	const entitiesRef = useRef<Set<string>>(new Set())
+	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
+	const isProgrammaticUpdateRef = useRef(false)
 
-	const deferredValue = useDeferredValue(value)
+	// Use different placeholder for mobile devices
+	const isMobile = useMedia('(max-width: 640px)')
+	const mobilePlaceholder = placeholder.replace('Type @ to insert a protocol, chain', '')
+	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
+	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
+	const searchValue = Ariakit.useStoreState(combobox, 'value')
+
+	const { data: matches } = useGetEntities(searchValue)
+
+	const hasMatches = matches && matches.length > 0
+
+	// Re-calculates the position of the combobox popover in case the changes on
+	// the textarea value have shifted the trigger character.
 	useEffect(() => {
-		if (initialValue && !isStreaming && !isPending) {
-			setValue(initialValue)
-		}
-	}, [initialValue, isStreaming, isPending])
+		combobox.render()
+	}, [combobox, value])
 
-	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (event.key === 'Enter' && !event.shiftKey && !isStreaming) {
-			event.preventDefault()
-			handleSubmit(value)
-			setValue('')
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			combobox.hide()
+		}
+	}, [combobox])
+
+	const getFinalEntities = () => {
+		return Array.from(entitiesRef.current)
+			.map((name) => {
+				const data = entitiesMapRef.current.get(name)
+				if (!data) return null
+				return {
+					term: name,
+					slug: data.id
+				}
+			})
+			.filter((entity) => entity !== null && value.includes(entity.term)) as Array<{
+			term: string
+			slug: string
+		}>
+	}
+
+	const resetInput = () => {
+		setValue('')
+		combobox.setValue('')
+		combobox.hide()
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = ''
+			highlightRef.current.textContent = ''
+		}
+		entitiesRef.current.clear()
+		entitiesMapRef.current.clear()
+	}
+
+	const trackSubmit = () => {
+		if (typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('llamaai-prompt-submit')
 		}
 	}
+
+	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		if (event.key === 'Backspace' || event.key === 'Delete') {
+			const { selectionStart, selectionEnd, value } = textarea
+
+			if (selectionStart !== selectionEnd) return
+
+			const isBackspace = event.key === 'Backspace'
+			const checkPos = isBackspace ? selectionStart - 1 : selectionStart
+
+			for (const entityName of entitiesRef.current) {
+				const entityIndex = value.indexOf(entityName, Math.max(0, checkPos - entityName.length))
+				if (entityIndex === -1 || entityIndex > checkPos) continue
+
+				const entityEnd = entityIndex + entityName.length
+				if (checkPos >= entityIndex && checkPos < entityEnd) {
+					event.preventDefault()
+					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
+					setValue(newValue)
+					combobox.setValue('')
+
+					entitiesRef.current.delete(entityName)
+					entitiesMapRef.current.delete(entityName)
+
+					if (highlightRef.current) {
+						highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
+					}
+
+					setTimeout(() => {
+						textarea.setSelectionRange(entityIndex, entityIndex)
+					}, 0)
+					return
+				}
+			}
+		}
+
+		if (event.key === 'Tab' && combobox.getState().renderedItems.length > 0) {
+			event.preventDefault()
+			const activeValue = combobox.getState().activeValue
+			if (activeValue && matches && matches.length > 0) {
+				const activeItem = matches.find((item) => item.id === activeValue)
+				if (activeItem) {
+					const { id, name, type } = activeItem
+					onItemClick({ id, name, type })()
+				}
+			}
+		}
+
+		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
+			event.preventDefault()
+			trackSubmit()
+			const finalEntities = getFinalEntities()
+			const promptValue = promptInputRef.current?.value ?? ''
+			resetInput()
+			handleSubmit(promptValue, finalEntities)
+		}
+	}
+
+	const handleScroll = () => {
+		// Sync highlightRef scroll with textarea scroll
+		syncHighlightScroll(promptInputRef, highlightRef)
+		// Re-calculate the position of the combobox popover
+		combobox.render()
+	}
+
+	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+		if (promptInputRef.current) {
+			setInputSize(event, promptInputRef, highlightRef)
+		}
+
+		const currentValue = event.target.value
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
+		}
+
+		// Skip trigger logic if this is a programmatic update (e.g., after item selection)
+		if (isProgrammaticUpdateRef.current) {
+			isProgrammaticUpdateRef.current = false
+			setValue(event.target.value)
+			return
+		}
+
+		const trigger = getTrigger(event.target)
+		const searchValue = getSearchValue(event.target)
+		// If there's a trigger character, we'll show the combobox popover. This can
+		// be true both when the trigger character has just been typed and when
+		// content has been deleted (e.g., with backspace) and the character right
+		// before the caret is the trigger.
+		if (trigger) {
+			combobox.show()
+		}
+		// There will be no trigger and no search value if the trigger character has
+		// just been deleted.
+		else if (!searchValue) {
+			combobox.setValue('')
+			combobox.hide()
+		}
+		// Sets our textarea value.
+		setValue(event.target.value)
+		// Sets the combobox value that will be used to search in the list.
+		combobox.setValue(searchValue)
+	}
+
+	const onItemClick = useCallback(
+		({ id, name, type }: { id: string; name: string; type: string }) =>
+			() => {
+				const textarea = promptInputRef.current
+				if (!textarea) return
+
+				const offset = getTriggerOffset(textarea)
+
+				entitiesRef.current.add(name)
+				entitiesMapRef.current.set(name, { id, name, type })
+
+				const getNewValue = replaceValue(offset, searchValue, name)
+				const newValue = getNewValue(value)
+
+				// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
+				combobox.setValue('')
+				combobox.hide()
+
+				setValue(newValue)
+
+				if (highlightRef.current) {
+					highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
+				}
+
+				// Ensure textarea remains focused after selection
+				setTimeout(() => {
+					textarea.focus()
+				}, 0)
+			},
+		// promptInputRef, highlightRef, entitiesRef, entitiesMapRef, isProgrammaticUpdateRef are stable refs
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[combobox, searchValue, value]
+	)
 
 	return (
 		<>
@@ -1270,59 +1528,100 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
-					handleSubmit(value)
-					setValue('')
+					trackSubmit()
+					const form = e.target as HTMLFormElement
+					const finalEntities = getFinalEntities()
+					const promptValue = form.prompt.value
+					resetInput()
+					handleSubmit(promptValue, finalEntities)
 				}}
 			>
-				<textarea
-					placeholder="Ask LlamaAI..."
-					value={value}
-					onChange={(e) => {
-						setValue(e.target.value)
-						if (promptInputRef.current) {
-							try {
-								// Calculate rows based on newlines and character length
-								const text = e.target.value
-								const textarea = promptInputRef.current
-								const lineBreaks = (text.match(/\n/g) || []).length
-
-								// Calculate actual characters per line based on container width
-								const style = window.getComputedStyle(textarea)
-								const paddingLeft = parseFloat(style.paddingLeft)
-								const paddingRight = parseFloat(style.paddingRight)
-								const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-								const fontSize = parseFloat(style.fontSize)
-								// Average character width is approximately 0.6 of font size for monospace-like text
-								const avgCharWidth = fontSize * 0.5
-								const charsPerLine = Math.floor(availableWidth / avgCharWidth)
-
-								const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-								const totalRows = Math.max(lineBreaks + 1, estimatedLines)
-
-								// Set rows with minimum 1 and maximum 5
-								promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-							} catch (error) {
-								console.error('Error calculating rows:', error)
+				<div className="overflow-hidden">
+					<div className="relative w-full">
+						<Ariakit.Combobox
+							store={combobox}
+							autoSelect
+							value={value}
+							// We'll overwrite how the combobox popover is shown, so we disable
+							// the default behaviors.
+							showOnClick={false}
+							showOnChange={false}
+							showOnKeyPress={false}
+							// To the combobox state, we'll only set the value after the trigger
+							// character (the search value), so we disable the default behavior.
+							setValueOnChange={false}
+							render={
+								<textarea
+									ref={promptInputRef}
+									rows={1}
+									maxLength={2000}
+									placeholder={finalPlaceholder}
+									// We need to re-calculate the position of the combobox popover
+									// when the textarea contents are scrolled, and sync highlightRef scroll.
+									onScroll={handleScroll}
+									// Hide the combobox popover whenever the selection changes.
+									onPointerDown={combobox.hide}
+									onChange={onChange}
+									onKeyDown={onKeyDown}
+									name="prompt"
+									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-lg:resize-none max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									autoCorrect="off"
+									autoComplete="off"
+									spellCheck="false"
+								/>
 							}
-						}
-					}}
-					onKeyDown={onKeyDown}
-					name="prompt"
-					className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 caret-black max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white"
-					autoCorrect="off"
-					autoComplete="off"
-					spellCheck="false"
-					disabled={isPending && !isStreaming}
-					autoFocus
-					ref={promptInputRef}
-					maxLength={2000}
-					rows={1}
-				/>
+							disabled={isPending && !isStreaming}
+						/>
+						<div
+							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
+							ref={highlightRef}
+						/>
+					</div>
+				</div>
+				{hasMatches && (
+					<Ariakit.ComboboxPopover
+						store={combobox}
+						unmountOnHide
+						fitViewport
+						getAnchorRect={() => {
+							const textarea = promptInputRef.current
+							if (!textarea) return null
+							return getAnchorRect(textarea)
+						}}
+						className="relative z-50 flex max-h-(--popover-available-height) max-w-[280px] min-w-[100px] flex-col overflow-auto overscroll-contain rounded-lg border border-[#e6e6e6] bg-(--app-bg) shadow-lg dark:border-[#222324]"
+					>
+						{matches.map(({ id, name, logo, type }) => (
+							<Ariakit.ComboboxItem
+								key={id}
+								value={id}
+								focusOnHover
+								onClick={onItemClick({ id, name, type })}
+								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+							>
+								<TokenLogo logo={logo} size={20} />
+								<span className="flex items-center gap-1.5">
+									<span className="text-sm font-medium">{name}</span>
+									<span
+										className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+											type === 'Chain'
+												? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+												: type == 'protocol'
+													? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+													: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+										}`}
+									>
+										{type}
+									</span>
+								</span>
+							</Ariakit.ComboboxItem>
+						))}
+					</Ariakit.ComboboxPopover>
+				)}
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
 						render={<button onClick={handleStopRequest} />}
-						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
+						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1330,8 +1629,9 @@ const PromptInput = memo(function PromptInput({
 				) : (
 					<button
 						type="submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
-						disabled={isPending || isStreaming || !value.trim()}
+						data-umami-event="llamaai-prompt-submit"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 						<span className="sr-only">Submit prompt</span>
@@ -1352,6 +1652,8 @@ const PromptResponse = ({
 	progressMessage,
 	progressStage,
 	onSuggestionClick,
+	onRetry,
+	canRetry,
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
@@ -1378,6 +1680,8 @@ const PromptResponse = ({
 	progressMessage?: string
 	progressStage?: string
 	onSuggestionClick?: (suggestion: any) => void
+	onRetry?: () => void
+	canRetry?: boolean
 	isGeneratingCharts?: boolean
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
@@ -1387,6 +1691,21 @@ const PromptResponse = ({
 	showMetadata?: boolean
 	readOnly?: boolean
 }) => {
+	if (error && canRetry) {
+		return (
+			<div className="flex flex-col gap-2">
+				<p className="text-(--error)">{error}</p>
+				<button
+					onClick={onRetry}
+					className="flex items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+				>
+					<Icon name="repeat" height={16} width={16} />
+					Retry
+				</button>
+			</div>
+		)
+	}
+
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
 	}
@@ -1406,7 +1725,7 @@ const PromptResponse = ({
 						{progressMessage.includes('encountered an issue') ? (
 							<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
 						) : (
-							<FadingLoader />
+							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
@@ -1435,7 +1754,7 @@ const PromptResponse = ({
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-							<FadingLoader />
+							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 							<span>Generating follow-up suggestions...</span>
 						</p>
 					</div>
@@ -1469,117 +1788,6 @@ const PromptResponse = ({
 			)}
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
-	)
-}
-
-const FadingLoader = () => {
-	return (
-		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" className="shrink-0">
-			<style jsx>{`
-				@keyframes colorPulse {
-					0%,
-					100% {
-						stroke: #1f67d2;
-						opacity: 0.3;
-					}
-					50% {
-						stroke: #1f67d2;
-						opacity: 1;
-					}
-				}
-				.loading-line {
-					animation: colorPulse 1.5s ease-in-out infinite;
-				}
-				.loading-line:nth-child(1) {
-					animation-delay: 0s;
-				}
-				.loading-line:nth-child(2) {
-					animation-delay: 0.2s;
-				}
-				.loading-line:nth-child(3) {
-					animation-delay: 0.4s;
-				}
-				.loading-line:nth-child(4) {
-					animation-delay: 0.6s;
-				}
-				.loading-line:nth-child(5) {
-					animation-delay: 0.8s;
-				}
-				.loading-line:nth-child(6) {
-					animation-delay: 1s;
-				}
-				.loading-line:nth-child(7) {
-					animation-delay: 1.2s;
-				}
-				.loading-line:nth-child(8) {
-					animation-delay: 1.4s;
-				}
-			`}</style>
-			<path
-				d="M12 2V6"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M16.2 7.80002L19.1 4.90002"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M18 12H22"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M16.2 16.2L19.1 19.1"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M12 18V22"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M4.8999 19.1L7.7999 16.2"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M2 12H6"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-			<path
-				d="M4.8999 4.90002L7.7999 7.80002"
-				stroke="#1f67d2"
-				strokeWidth="2"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-				className="loading-line"
-			/>
-		</svg>
 	)
 }
 
@@ -1715,64 +1923,16 @@ const ResponseControls = memo(function ResponseControls({
 		}
 	})
 
-	const {
-		data: sessionRatingAsGood,
-		mutate: rateAsGood,
-		isPending: isRatingAsGood
-	} = useMutation({
-		mutationFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: 'good' })
-			})
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
-
-			return res
-		},
-		onSuccess: () => {
-			setShowFeedback(true)
-		},
-		onError: (err) => {
-			toast.error('Failed to rate as good')
-			console.log(err)
-		}
-	})
-
-	const {
-		data: sessionRatingAsBad,
-		mutate: rateAsBad,
-		isPending: isRatingAsBad
-	} = useMutation({
-		mutationFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: 'bad' })
-			})
-				.then(handleSimpleFetchResponse)
-				.then((res) => res.json())
-
-			return res
-		},
-		onSuccess: () => {
-			setShowFeedback(true)
-		},
-		onError: (err) => {
-			toast.error('Failed to rate as good')
-			console.log(err)
-		}
-	})
-
-	const isRatedAsGood = initialRating === 'good' || sessionRatingAsGood?.rating === 'good'
-	const isRatedAsBad = initialRating === 'bad' || sessionRatingAsBad?.rating === 'bad'
-	const lastRating = isRatedAsGood ? 'good' : isRatedAsBad ? 'bad' : null
+	const [selectedRating, setSelectedRating] = useState<'good' | 'bad' | null>(initialRating || null)
+	const [submittedRating, setSubmittedRating] = useState<'good' | 'bad' | null>(initialRating || null)
+	const isRatedAsGood = submittedRating === 'good'
+	const isRatedAsBad = submittedRating === 'bad'
 
 	const handleCopy = async () => {
 		if (!content) return
 		try {
-			await navigator.clipboard.writeText(content)
+			const convertedContent = convertLlamaLinksToDefillama(content)
+			await navigator.clipboard.writeText(convertedContent)
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
@@ -1798,26 +1958,42 @@ const ResponseControls = memo(function ResponseControls({
 						)}
 					</Tooltip>
 				)}
-				<Tooltip
-					content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
-					render={
-						<button onClick={() => rateAsGood(undefined)} disabled={isRatingAsGood || showFeedback || !!lastRating} />
-					}
-					className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
-				>
-					{isRatingAsGood ? <LoadingSpinner size={14} /> : <Icon name="thumbs-up" height={14} width={14} />}
-					<span className="sr-only">Thumbs Up</span>
-				</Tooltip>
-				<Tooltip
-					content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
-					render={
-						<button onClick={() => rateAsBad(undefined)} disabled={isRatingAsBad || showFeedback || !!lastRating} />
-					}
-					className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
-				>
-					{isRatingAsBad ? <LoadingSpinner size={14} /> : <Icon name="thumbs-down" height={14} width={14} />}
-					<span className="sr-only">Thumbs Down</span>
-				</Tooltip>
+				{!readOnly && (
+					<>
+						<Tooltip
+							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
+							render={
+								<button
+									onClick={() => {
+										setSelectedRating('good')
+										setShowFeedback(true)
+									}}
+									disabled={showFeedback || isRatedAsGood || isRatedAsBad}
+								/>
+							}
+							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
+						>
+							<Icon name="thumbs-up" height={14} width={14} />
+							<span className="sr-only">Thumbs Up</span>
+						</Tooltip>
+						<Tooltip
+							content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
+							render={
+								<button
+									onClick={() => {
+										setSelectedRating('bad')
+										setShowFeedback(true)
+									}}
+									disabled={showFeedback || isRatedAsGood || isRatedAsBad}
+								/>
+							}
+							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
+						>
+							<Icon name="thumbs-down" height={14} width={14} />
+							<span className="sr-only">Thumbs Down</span>
+						</Tooltip>
+					</>
+				)}
 				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"
@@ -1831,7 +2007,15 @@ const ResponseControls = memo(function ResponseControls({
 				{!readOnly && (
 					<Tooltip
 						content="Provide Feedback"
-						render={<button onClick={() => setShowFeedback(true)} disabled={showFeedback} />}
+						render={
+							<button
+								onClick={() => {
+									setSelectedRating(null)
+									setShowFeedback(true)
+								}}
+								disabled={showFeedback || !!submittedRating}
+							/>
+						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 					>
 						<Icon name="message-square-warning" height={14} width={14} />
@@ -1852,7 +2036,13 @@ const ResponseControls = memo(function ResponseControls({
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
-					<FeedbackForm messageId={messageId} initialRating={lastRating} setShowFeedback={setShowFeedback} />
+					<FeedbackForm
+						messageId={messageId}
+						selectedRating={selectedRating}
+						setSelectedRating={setSelectedRating}
+						setShowFeedback={setShowFeedback}
+						onRatingSubmitted={setSubmittedRating}
+					/>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
 			<Ariakit.DialogProvider open={showShareModal} setOpen={setShowShareModal}>
@@ -1877,27 +2067,32 @@ const ResponseControls = memo(function ResponseControls({
 
 const FeedbackForm = ({
 	messageId,
-	initialRating,
-	setShowFeedback
+	selectedRating,
+	setSelectedRating,
+	setShowFeedback,
+	onRatingSubmitted
 }: {
 	messageId?: string
-	initialRating?: 'good' | 'bad' | null
+	selectedRating: 'good' | 'bad' | null
+	setSelectedRating: (rating: 'good' | 'bad' | null) => void
 	setShowFeedback: (show: boolean) => void
+	onRatingSubmitted: (rating: 'good' | 'bad' | null) => void
 }) => {
 	const { authorizedFetch } = useAuthContext()
 	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
-		mutationFn: async (feedback?: string) => {
+		mutationFn: async ({ rating, feedback }: { rating: 'good' | 'bad' | null; feedback?: string }) => {
 			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: initialRating, feedback })
+				body: JSON.stringify({ rating, feedback })
 			})
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
 
 			return res
 		},
-		onSuccess: () => {
+		onSuccess: (_, variables) => {
+			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
 		}
 	})
@@ -1910,12 +2105,43 @@ const FeedbackForm = ({
 			onSubmit={(e) => {
 				e.preventDefault()
 				const form = e.target as HTMLFormElement
-				submitFeedback(form.feedback?.value?.trim())
+				submitFeedback({ rating: selectedRating, feedback: form.feedback?.value?.trim() })
 			}}
 			className="flex flex-col gap-4"
 		>
+			<div className="flex flex-col gap-2">
+				<span className="text-sm font-medium">Rate this response</span>
+				<div className="flex gap-2">
+					<button
+						type="button"
+						onClick={() => setSelectedRating('good')}
+						disabled={isSubmittingFeedback}
+						className={`flex flex-1 items-center justify-center gap-2 rounded border p-3 transition-colors ${
+							selectedRating === 'good'
+								? 'border-(--success) bg-(--success)/12 text-(--success)'
+								: 'border-[#e6e6e6] text-[#666] hover:border-(--success) hover:bg-(--success)/5 dark:border-[#222324] dark:text-[#919296]'
+						}`}
+					>
+						<Icon name="thumbs-up" height={16} width={16} />
+						<span className="text-sm font-medium">Good</span>
+					</button>
+					<button
+						type="button"
+						onClick={() => setSelectedRating('bad')}
+						disabled={isSubmittingFeedback}
+						className={`flex flex-1 items-center justify-center gap-2 rounded border p-3 transition-colors ${
+							selectedRating === 'bad'
+								? 'border-(--error) bg-(--error)/12 text-(--error)'
+								: 'border-[#e6e6e6] text-[#666] hover:border-(--error) hover:bg-(--error)/5 dark:border-[#222324] dark:text-[#919296]'
+						}`}
+					>
+						<Icon name="thumbs-down" height={16} width={16} />
+						<span className="text-sm font-medium">Bad</span>
+					</button>
+				</div>
+			</div>
 			<label className="flex flex-col gap-2">
-				<span className="text-[#666] dark:text-[#919296]">Help us improve! Any additional feedback? (optional)</span>
+				<span className="text-sm text-[#666] dark:text-[#919296]">Additional feedback (optional)</span>
 				<textarea
 					name="feedback"
 					placeholder="Share your thoughts..."
@@ -1933,11 +2159,11 @@ const FeedbackForm = ({
 						disabled={isSubmittingFeedback}
 						className="rounded px-3 py-2 text-xs text-[#666] hover:bg-[#e6e6e6] disabled:opacity-50 dark:text-[#919296] dark:hover:bg-[#222324]"
 					>
-						Skip
+						Cancel
 					</Ariakit.DialogDismiss>
 					<button
 						type="submit"
-						disabled={isSubmittingFeedback}
+						disabled={isSubmittingFeedback || !selectedRating}
 						className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
 					>
 						{isSubmittingFeedback ? 'Submitting...' : 'Submit'}
@@ -2015,7 +2241,7 @@ const ChatControls = memo(function ChatControls({
 	handleNewChat: () => void
 }) {
 	return (
-		<div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-2">
+		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
 			<Tooltip
 				content="Open Chat History"
 				render={<button onClick={handleSidebarToggle} />}
@@ -2035,3 +2261,80 @@ const ChatControls = memo(function ChatControls({
 		</div>
 	)
 })
+
+function highlightWord(text: string, words: string[]) {
+	if (!text || typeof text !== 'string') return text
+	if (!Array.isArray(words) || words.length === 0) return text
+
+	// HTML escape the text first
+	const escapeHtml = (str: string) =>
+		str.replace(
+			/[&<>"']/g,
+			(char) =>
+				({
+					'&': '&amp;',
+					'<': '&lt;',
+					'>': '&gt;',
+					'"': '&quot;',
+					"'": '&#39;'
+				})[char] || char
+		)
+
+	const escapedText = escapeHtml(text)
+
+	// Filter out empty strings and escape special regex characters
+	const escapedWords = words
+		.filter((word) => word && word.trim())
+		.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+
+	if (escapedWords.length === 0) return escapedText
+
+	const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi')
+	return escapedText.replace(regex, '<span class="highlight">$1</span>')
+}
+
+function syncHighlightScroll(promptInputRef, highlightRef) {
+	if (promptInputRef?.current && highlightRef?.current) {
+		highlightRef.current.scrollTop = promptInputRef.current.scrollTop
+	}
+}
+
+function setInputSize(event, promptInputRef, highlightRef) {
+	try {
+		// Calculate rows based on newlines and character length
+		const text = event.target.value
+		const textarea = promptInputRef.current
+		const lineBreaks = (text.match(/\n/g) || []).length
+
+		// Calculate actual characters per line based on container width
+		const style = window.getComputedStyle(textarea)
+		const paddingLeft = parseFloat(style.paddingLeft)
+		const paddingRight = parseFloat(style.paddingRight)
+		const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
+		const fontSize = parseFloat(style.fontSize)
+		// Average character width is approximately 0.6 of font size for monospace-like text
+		const avgCharWidth = fontSize * 0.5
+		const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+
+		const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
+		const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+
+		// Set rows with minimum 1 and maximum 5
+		promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
+
+		// Sync highlightRef height and scroll to match textarea exactly
+		if (highlightRef?.current) {
+			// Use requestAnimationFrame to ensure DOM has updated after rows change
+			requestAnimationFrame(() => {
+				if (textarea && highlightRef.current) {
+					const textareaHeight = textarea.offsetHeight
+					highlightRef.current.style.height = `${textareaHeight}px`
+					// Sync scroll position
+					syncHighlightScroll(promptInputRef, highlightRef)
+				}
+			})
+		}
+	} catch (error) {
+		console.error('Error calculating rows:', error)
+	}
+}

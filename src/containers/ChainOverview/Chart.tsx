@@ -22,6 +22,7 @@ export default function ChainLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	hideDataZoom = false,
 	...props
 }) {
 	const id = useId()
@@ -394,7 +395,7 @@ export default function ChainLineBarChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -421,8 +422,8 @@ export default function ChainLineBarChart({
 	return (
 		<div
 			id={id}
-			className="min-h-[360px]"
-			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+			className="h-[360px]"
+			style={height || props.style ? { height: height ?? '360px', ...(props.style ?? {}) } : undefined}
 		/>
 	)
 }

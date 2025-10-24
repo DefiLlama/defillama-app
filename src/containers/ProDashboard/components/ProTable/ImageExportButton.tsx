@@ -4,8 +4,7 @@ import * as echarts from 'echarts/core'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
@@ -31,6 +30,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
 	const router = useRouter()
+
 	const [isDark] = useDarkModeManager()
 
 	const loading = loaders.userLoading || isSubscriptionLoading || isLoading
@@ -157,6 +157,8 @@ export const ImageExportButton = memo(function ImageExportButton({
 	return (
 		<>
 			<button
+				data-umami-event="image-export"
+				data-umami-event-page={router.pathname}
 				className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 				onClick={handleImageExport}
 				data-loading={isClient ? loading : true}
@@ -166,11 +168,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
 				<span>{smol ? '.png' : 'Image'}</span>
 			</button>
-			{isClient && (
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-				</SubscribeModal>
-			)}
+			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 		</>
 	)
 })

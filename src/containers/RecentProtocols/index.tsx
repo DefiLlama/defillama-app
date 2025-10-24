@@ -68,7 +68,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				let extraTvl = {}
 
 				p.chains.forEach((chainName) => {
-					// return if chainsToSelect doesnot include chainName
+					// return if chainsToSelect does not include chainName
 					if (!_chainsToSelect.includes(chainName.toLowerCase())) {
 						return
 					}

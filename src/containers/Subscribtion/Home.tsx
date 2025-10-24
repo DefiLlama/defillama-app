@@ -1,10 +1,9 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
-import { EnterpriseCardContent } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
+import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -20,6 +19,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
+	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isWalletUser = user?.email?.includes('@defillama.com')
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -33,7 +33,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	}
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
-	const router = useRouter()
+
 	const queryClient = useQueryClient()
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)
@@ -106,7 +106,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 overflow-x-hidden px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
 					<div
 						style={{
@@ -253,29 +253,68 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				) : (
 					<div className="relative">
+						<div className="relative z-10 mb-6 flex items-center justify-center">
+							<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
+								<button
+									onClick={() => setBillingInterval('month')}
+									className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+										billingInterval === 'month'
+											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+											: 'text-[#8a8c90] hover:text-white'
+									}`}
+								>
+									Monthly
+								</button>
+								<button
+									onClick={() => setBillingInterval('year')}
+									className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+										billingInterval === 'year'
+											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+											: 'text-[#8a8c90] hover:text-white'
+									}`}
+								>
+									Yearly
+									<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">2 months free</span>
+								</button>
+							</div>
+						</div>
 						<div
 							ref={pricingContainer}
 							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
 						>
-							<FreeCard context="page" />
-							<SubscribePlusCard
-								context="page"
-								active={
-									subscription?.status === 'active' &&
-									subscription?.type === 'llamafeed' &&
-									subscription?.provider !== 'trial'
-								}
-							/>
-							<SubscribeProCard
-								context="page"
-								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
-							/>
+							<div
+								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+							>
+								<FreeCard />
+							</div>
+							<div
+								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+							>
+								<SubscribeProCard
+									context="page"
+									active={
+										subscription?.status === 'active' &&
+										subscription?.type === 'llamafeed' &&
+										subscription?.provider !== 'trial'
+									}
+									billingInterval={billingInterval}
+								/>
+							</div>
+							<div
+								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+							>
+								<SubscribeAPICard
+									context="page"
+									isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
+									billingInterval={billingInterval}
+								/>
+							</div>
 							<div
 								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
 							>
 								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
 									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-									<EnterpriseCardContent />
+									<SubscribeEnterpriseCard />
 								</span>
 							</div>
 						</div>

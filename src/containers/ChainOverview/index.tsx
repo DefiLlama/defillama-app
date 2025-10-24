@@ -56,7 +56,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				</>
 			)}
 			{props.metadata.name === 'All' ? (
-				<div className="thin-scrollbar relative isolate flex flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
+				<div className="thin-scrollbar relative isolate flex shrink-0 flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden">
 					{linksToOtherLlamaApps.map((app) => (
 						<a
 							target="_blank"

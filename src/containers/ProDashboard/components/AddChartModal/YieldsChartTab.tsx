@@ -22,11 +22,13 @@ interface YieldsChartTabProps {
 	selectedYieldChains: string[]
 	selectedYieldProjects: string[]
 	selectedYieldCategories: string[]
+	selectedYieldTokens: string[]
 	minTvl: number | null
 	maxTvl: number | null
 	onSelectedYieldChainsChange: (chains: string[]) => void
 	onSelectedYieldProjectsChange: (projects: string[]) => void
 	onSelectedYieldCategoriesChange: (categories: string[]) => void
+	onSelectedYieldTokensChange: (tokens: string[]) => void
 	onMinTvlChange: (tvl: number | null) => void
 	onMaxTvlChange: (tvl: number | null) => void
 }
@@ -41,21 +43,26 @@ export function YieldsChartTab({
 	selectedYieldChains,
 	selectedYieldProjects,
 	selectedYieldCategories,
+	selectedYieldTokens,
 	minTvl,
 	maxTvl,
 	onSelectedYieldChainsChange,
 	onSelectedYieldProjectsChange,
 	onSelectedYieldCategoriesChange,
+	onSelectedYieldTokensChange,
 	onMinTvlChange,
 	onMaxTvlChange
 }: YieldsChartTabProps) {
 	const { data: yieldsData = [], isLoading: yieldsLoading } = useYieldsData()
 	const [chainSearch, setChainSearch] = useState('')
 	const [projectSearch, setProjectSearch] = useState('')
+	const [tokenSearch, setTokenSearch] = useState('')
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const projectListRef = useRef<HTMLDivElement | null>(null)
+	const tokenListRef = useRef<HTMLDivElement | null>(null)
 	const chainPopover = usePopoverStore({ placement: 'bottom-start' })
 	const projectPopover = usePopoverStore({ placement: 'bottom-start' })
+	const tokenPopover = usePopoverStore({ placement: 'bottom-start' })
 
 	const chainOptions = useMemo(() => {
 		const chainTvlMap = new Map<string, number>()
@@ -91,6 +98,38 @@ export function YieldsChartTab({
 		[yieldsData]
 	)
 
+	const tokenOptions = useMemo(() => {
+		const tokenTvlMap = new Map<string, number>()
+		yieldsData.forEach((p: any) => {
+			const symbol = (p.pool || '') as string
+			const baseSymbol = symbol.split('(')[0]
+			baseSymbol
+				.split('-')
+				.map((token: string) => token.trim())
+				.filter(Boolean)
+				.forEach((token: string) => {
+					const normalized = token.toUpperCase()
+					if (!normalized) return
+					const current = tokenTvlMap.get(normalized) || 0
+					tokenTvlMap.set(normalized, current + (p.tvl || 0))
+				})
+		})
+
+		const baseOptions = [
+			{ value: 'ALL_BITCOINS', label: 'All Bitcoins' },
+			{ value: 'ALL_USD_STABLES', label: 'All USD Stablecoins' }
+		]
+
+		const tokenOptionList = Array.from(tokenTvlMap.entries())
+			.sort((a, b) => {
+				if (b[1] !== a[1]) return b[1] - a[1]
+				return a[0].localeCompare(b[0])
+			})
+			.map(([token]) => ({ value: token, label: token }))
+
+		return [...baseOptions, ...tokenOptionList]
+	}, [yieldsData])
+
 	const filteredChainOptions = useMemo(() => {
 		if (!chainSearch) return chainOptions
 		return matchSorter(chainOptions, chainSearch, { keys: ['label'] })
@@ -101,8 +140,14 @@ export function YieldsChartTab({
 		return matchSorter(projectOptions, projectSearch, { keys: ['label'] })
 	}, [projectOptions, projectSearch])
 
+	const filteredTokenOptions = useMemo(() => {
+		if (!tokenSearch) return tokenOptions
+		return matchSorter(tokenOptions, tokenSearch, { keys: ['label'] })
+	}, [tokenOptions, tokenSearch])
+
 	const chainOpen = chainPopover.useState('open')
 	const projectOpen = projectPopover.useState('open')
+	const tokenOpen = tokenPopover.useState('open')
 
 	const chainVirtualizer = useVirtualizer({
 		count: filteredChainOptions.length,
@@ -118,6 +163,13 @@ export function YieldsChartTab({
 		overscan: 8
 	})
 
+	const tokenVirtualizer = useVirtualizer({
+		count: filteredTokenOptions.length,
+		getScrollElement: () => tokenListRef.current,
+		estimateSize: () => 44,
+		overscan: 8
+	})
+
 	useEffect(() => {
 		if (chainOpen) {
 			setTimeout(() => chainVirtualizer.measure(), 0)
@@ -129,6 +181,12 @@ export function YieldsChartTab({
 			setTimeout(() => projectVirtualizer.measure(), 0)
 		}
 	}, [projectOpen, projectVirtualizer])
+
+	useEffect(() => {
+		if (tokenOpen) {
+			setTimeout(() => tokenVirtualizer.measure(), 0)
+		}
+	}, [tokenOpen, tokenVirtualizer])
 
 	const toggleChain = (value: string) => {
 		if (selectedYieldChains.includes(value)) {
@@ -146,6 +204,19 @@ export function YieldsChartTab({
 		}
 	}
 
+	const toggleToken = (value: string) => {
+		if (selectedYieldTokens.includes(value)) {
+			onSelectedYieldTokensChange(selectedYieldTokens.filter((v) => v !== value))
+		} else {
+			onSelectedYieldTokensChange([...selectedYieldTokens, value])
+		}
+	}
+
+	const normalizedSelectedTokens = useMemo(
+		() => selectedYieldTokens.map((token) => token.toLowerCase()),
+		[selectedYieldTokens]
+	)
+
 	const filteredPools = useMemo(() => {
 		return yieldsData.filter((pool: any) => {
 			if (selectedYieldChains.length > 0 && !selectedYieldChains.includes(pool.chains[0])) {
@@ -160,6 +231,48 @@ export function YieldsChartTab({
 				return false
 			}
 
+			if (normalizedSelectedTokens.length > 0) {
+				const tokensInPool = (pool.pool || '')
+					.split('(')[0]
+					.split('-')
+					.map((token: string) =>
+						token
+							.toLowerCase()
+							.trim()
+							.replace('₮0', 't')
+							.replace('₮', 't')
+					)
+					.filter(Boolean)
+
+				const matchesToken = normalizedSelectedTokens.some((token) => {
+					if (token === 'all_bitcoins') {
+						return tokensInPool.some((t) => t.includes('btc'))
+					}
+					if (token === 'all_usd_stables') {
+						if (pool.stablecoin) return true
+						return tokensInPool.some(
+							(t) =>
+								t.includes('usd') ||
+								t.includes('usdt') ||
+								t.includes('usdc') ||
+								t.includes('usdp') ||
+								t.includes('busd') ||
+								t.includes('dai') ||
+								t.includes('cust') ||
+								t.includes('usds')
+						)
+					}
+					if (token === 'eth') {
+						return tokensInPool.some((t) => t === 'eth' || t.includes('weth'))
+					}
+					return tokensInPool.some((t) => t.includes(token))
+				})
+
+				if (!matchesToken) {
+					return false
+				}
+			}
+
 			if (minTvl !== null && pool.tvl < minTvl) {
 				return false
 			}
@@ -169,7 +282,15 @@ export function YieldsChartTab({
 
 			return true
 		})
-	}, [yieldsData, selectedYieldChains, selectedYieldProjects, selectedYieldCategories, minTvl, maxTvl])
+	}, [
+		yieldsData,
+		selectedYieldChains,
+		selectedYieldProjects,
+		selectedYieldCategories,
+		normalizedSelectedTokens,
+		minTvl,
+		maxTvl
+	])
 
 	const poolOptions = useMemo(() => {
 		return filteredPools
@@ -466,6 +587,111 @@ export function YieldsChartTab({
 													<button
 														type="button"
 														onClick={() => onSelectedYieldProjectsChange([])}
+														className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
+													>
+														Clear
+													</button>
+												</div>
+											)}
+										</div>
+									</Popover>
+								</div>
+
+								<div className="flex flex-col">
+									<label className="pro-text2 mb-1 block text-[11px] font-medium">Tokens</label>
+									<PopoverDisclosure
+										store={tokenPopover}
+										className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+									>
+										<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
+											{selectedYieldTokens.length > 0
+												? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
+												: 'All tokens'}
+										</span>
+										<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+									</PopoverDisclosure>
+									<Popover
+										store={tokenPopover}
+										modal={false}
+										portal={true}
+										gutter={4}
+										flip={false}
+										className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
+										style={{ width: 'var(--popover-anchor-width)' }}
+									>
+										<div className="p-2.5">
+											<div className="relative mb-2.5">
+												<Icon
+													name="search"
+													width={12}
+													height={12}
+													className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
+												/>
+												<input
+													autoFocus
+													value={tokenSearch}
+													onChange={(e) => setTokenSearch(e.target.value)}
+													placeholder="Search tokens..."
+													className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+												/>
+											</div>
+											<div
+												className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+												ref={tokenListRef}
+											>
+												<div
+													className="p-1"
+													style={{
+														height: tokenVirtualizer.getTotalSize(),
+														position: 'relative'
+													}}
+												>
+													{tokenVirtualizer.getVirtualItems().map((row) => {
+														const option = filteredTokenOptions[row.index]
+														if (!option) return null
+														const isActive = selectedYieldTokens.includes(option.value)
+														return (
+															<button
+																key={option.value}
+																onClick={() => toggleToken(option.value)}
+																className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
+																	isActive
+																		? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
+																		: 'text-(--text-secondary) hover:text-(--text-primary)'
+																}`}
+																style={{
+																	position: 'absolute',
+																	top: 0,
+																	left: 0,
+																	width: '100%',
+																	transform: `translateY(${row.start}px)`
+																}}
+															>
+																<span className="truncate">{option.label}</span>
+																{isActive && (
+																	<Icon
+																		name="check"
+																		width={14}
+																		height={14}
+																		className="ml-2 flex-shrink-0 text-(--primary)"
+																	/>
+																)}
+															</button>
+														)
+													})}
+												</div>
+											</div>
+											{selectedYieldTokens.length > 0 && (
+												<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
+													<span className="text-[11px] font-medium text-(--text-secondary)">
+														{selectedYieldTokens.length} selected
+													</span>
+													<button
+														type="button"
+														onClick={() => {
+															onSelectedYieldTokensChange([])
+															setTokenSearch('')
+														}}
 														className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
 													>
 														Clear

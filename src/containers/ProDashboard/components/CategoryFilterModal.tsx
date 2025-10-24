@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { reactSelectStyles } from '../../../utils/reactSelectStyles'
+import { reactSelectStyles } from '../utils/reactSelectStyles'
 
 interface CategoryFilterModalProps {
 	isOpen: boolean

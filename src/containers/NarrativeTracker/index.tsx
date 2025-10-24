@@ -101,10 +101,10 @@ export const CategoryPerformanceContainer = ({
 			: pctChangesDenom
 
 		const sorted = [...pctChangesDenom].sort((a, b) => b[field] - a[field]).map((i) => ({ ...i, change: i[field] }))
-		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
+
 		const treemapChart = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		let lineChart =
+		let chart =
 			cumulativeWindow === '7D'
 				? performanceTimeSeries['7']
 				: cumulativeWindow === '30D'
@@ -113,9 +113,9 @@ export const CategoryPerformanceContainer = ({
 						? performanceTimeSeries['ytd']
 						: performanceTimeSeries['365']
 
-		lineChart = denomCoin === '$' ? lineChart : calculateDenominatedChange(lineChart, denomCoin)
+		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
 
-		return { sortedPctChanges: sorted, barChart, treemapChart, lineChart }
+		return { sortedPctChanges: sorted, barChart: chart, treemapChart, lineChart: chart }
 	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
 
 	return (

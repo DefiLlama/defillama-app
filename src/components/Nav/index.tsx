@@ -1,5 +1,5 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
-import { useDashboardAPI } from '~/containers/ProDashboard/hooks'
+import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
@@ -11,7 +11,7 @@ import { TNavLinks, TOldNavLink } from './types'
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {
 	return (
-		<nav className="flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
+		<nav className="col-span-full flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
 			<BasicLink href="/" className="mr-auto shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img
@@ -46,7 +46,8 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 )
 
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
-	const { dashboards } = useDashboardAPI()
+	const { data: liteDashboards } = useGetLiteDashboards()
+
 	const { user, isAuthenticated } = useAuthContext()
 	const { hasFeature } = useFeatureFlagsContext()
 
@@ -59,7 +60,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
-			{ name: 'Subscription', route: '/subscription', icon: 'user', attention: showAttentionIcon },
+			{ name: 'Pricing', route: '/subscription', icon: 'user', attention: showAttentionIcon },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			...(hasLlamaAI ? [{ name: 'LlamaAI', route: '/ai', icon: '' }] : [])
 		]
@@ -67,8 +68,8 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	}, [showAttentionIcon, hasLlamaAI])
 
 	const userDashboards = useMemo(
-		() => dashboards?.map(({ id, data }) => ({ name: data.dashboardName, route: `/pro/${id}` })) ?? [],
-		[dashboards]
+		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
+		[liteDashboards]
 	)
 	const pinnedMetrics = useSyncExternalStore(
 		subscribeToPinnedMetrics,

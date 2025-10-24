@@ -11,11 +11,13 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 export const SignIn = ({
 	text,
 	className,
-	showOnlyAuthDialog = false
+	showOnlyAuthDialog = false,
+	pendingActionMessage
 }: {
 	text?: string
 	className?: string
 	showOnlyAuthDialog?: boolean
+	pendingActionMessage?: string
 }) => {
 	const dialogState = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
 	const { openConnectModal } = useConnectModal()
@@ -189,6 +191,12 @@ export const SignIn = ({
 					)}
 				</div>
 
+				{pendingActionMessage && (
+					<div className="mb-4 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-3">
+						<p className="text-center text-sm text-[#b4b7bc]">{pendingActionMessage}</p>
+					</div>
+				)}
+
 				<div className="flex w-full flex-col gap-3">
 					<button
 						className="relative flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
@@ -240,14 +248,19 @@ export const SignIn = ({
 							<label htmlFor="signin-password" className="text-sm font-medium text-[#b4b7bc]">
 								Password
 							</label>
-							<input
-								id="signin-password"
-								type="password"
-								required
-								className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-							/>
+							<div className="relative">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
+									<Icon name="key" height={16} width={16} />
+								</div>
+								<input
+									id="signin-password"
+									type="password"
+									required
+									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+								/>
+							</div>
 						</div>
 
 						<div className="-mt-1 flex justify-end">
@@ -335,26 +348,31 @@ export const SignIn = ({
 							<label htmlFor="signup-password" className="text-sm font-medium text-[#b4b7bc]">
 								Password
 							</label>
-							<input
-								id="signup-password"
-								type="password"
-								required
-								className={`w-full rounded-lg border bg-[#222429] p-3 ${
-									passwordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
-								value={password}
-								onChange={(e) => {
-									setPassword(e.target.value)
-									// Only validate locally on change, don't clear server errors
-									const localValidation = validatePassword(e.target.value)
-									if (localValidation) {
-										setPasswordError('')
-									}
-									if (confirmPassword) {
-										validateConfirmPassword(e.target.value, confirmPassword)
-									}
-								}}
-							/>
+							<div className="relative">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
+									<Icon name="key" height={16} width={16} />
+								</div>
+								<input
+									id="signup-password"
+									type="password"
+									required
+									className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
+										passwordError ? 'border-red-500' : 'border-[#39393E]'
+									} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
+									value={password}
+									onChange={(e) => {
+										setPassword(e.target.value)
+										// Only validate locally on change, don't clear server errors
+										const localValidation = validatePassword(e.target.value)
+										if (localValidation) {
+											setPasswordError('')
+										}
+										if (confirmPassword) {
+											validateConfirmPassword(e.target.value, confirmPassword)
+										}
+									}}
+								/>
+							</div>
 							{passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
 						</div>
 
@@ -362,19 +380,24 @@ export const SignIn = ({
 							<label htmlFor="signup-confirm" className="text-sm font-medium text-[#b4b7bc]">
 								Confirm Password
 							</label>
-							<input
-								id="signup-confirm"
-								type="password"
-								required
-								className={`w-full rounded-lg border bg-[#222429] p-3 ${
-									confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
-								} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
-								value={confirmPassword}
-								onChange={(e) => {
-									setConfirmPassword(e.target.value)
-									validateConfirmPassword(password, e.target.value)
-								}}
-							/>
+							<div className="relative">
+								<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#8a8c90]">
+									<Icon name="key" height={16} width={16} />
+								</div>
+								<input
+									id="signup-confirm"
+									type="password"
+									required
+									className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
+										confirmPasswordError ? 'border-red-500' : 'border-[#39393E]'
+									} text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden`}
+									value={confirmPassword}
+									onChange={(e) => {
+										setConfirmPassword(e.target.value)
+										validateConfirmPassword(password, e.target.value)
+									}}
+								/>
+							</div>
 							{confirmPasswordError && <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p>}
 						</div>
 

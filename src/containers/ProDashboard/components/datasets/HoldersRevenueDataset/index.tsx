@@ -21,7 +21,7 @@ import { TableFilters } from '../../../types'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
-import { CategoryFilterModal } from './CategoryFilterModal'
+import { CategoryFilterModal } from '../../CategoryFilterModal'
 import { holdersRevenueDatasetColumns } from './columns'
 import { useHoldersRevenueData } from './useHoldersRevenueData'
 

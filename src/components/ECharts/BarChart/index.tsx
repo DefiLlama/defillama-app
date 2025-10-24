@@ -162,7 +162,7 @@ export default function BarChart({
 			},
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',

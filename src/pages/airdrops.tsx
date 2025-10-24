@@ -176,7 +176,7 @@ const pageName = ['Tokenless protocols']
 export default function Protocols(props) {
 	return (
 		<Layout
-			title="Tokenless protocols that may airdrop 🧑‍🌾 - Defi Llama"
+			title="Tokenless protocols that may airdrop 🧑‍🌾 - DefiLlama"
 			description={`Tokenless protocols that may airdrop. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`tokenless protocols, DeFi airdrops, potential airdrops, crypto airdrops, DefiLlama airdrops`}
 			canonicalUrl={`/airdrops`}

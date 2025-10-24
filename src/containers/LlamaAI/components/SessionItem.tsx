@@ -14,9 +14,10 @@ interface SessionItemProps {
 	session: ChatSession
 	isActive: boolean
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
+	handleSidebarToggle: () => void
 }
 
-export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
@@ -24,6 +25,10 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
 		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
+
+		if (document.documentElement.clientWidth < 1024) {
+			handleSidebarToggle()
+		}
 	}
 
 	const [isEditing, setIsEditing] = useState(false)
@@ -131,13 +136,21 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 			data-active={isActive}
 			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#f7f7f7] hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#222324] dark:hover:bg-[#222324]"
 		>
-			<button
-				onClick={() => handleSessionClick(session.sessionId)}
-				disabled={isEditing || isDeletingSession || isRestoringSession}
-				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap"
+			<a
+				href={`/ai/${session.sessionId}`}
+				onClick={(e) => {
+					// Allow cmd/ctrl+click to open in new tab
+					if (e.metaKey || e.ctrlKey) {
+						return
+					}
+					e.preventDefault()
+					handleSessionClick(session.sessionId)
+				}}
+				aria-disabled={isEditing || isDeletingSession || isRestoringSession}
+				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.title}
-			</button>
+			</a>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
 					content="Edit Session Title"

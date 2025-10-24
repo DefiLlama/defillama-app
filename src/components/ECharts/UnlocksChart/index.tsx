@@ -23,6 +23,7 @@ export default function AreaChart({
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
+	hideDataZoom = false,
 	customYAxis = [],
 	...props
 }: IChartProps) {
@@ -241,7 +242,7 @@ export default function AreaChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',

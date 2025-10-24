@@ -63,7 +63,9 @@ export function SelectWithCombobox({
 
 	const comboboxRef = React.useRef<HTMLDivElement>(null)
 
-	const handleSeeMore = () => {
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
 
@@ -140,7 +142,11 @@ export function SelectWithCombobox({
 									setValueOnClick={false}
 									hideOnClick={false}
 									className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
+									onClick={(e) => {
+										e.preventDefault()
+										e.stopPropagation()
+										setViewableMatches((prev) => prev + 20)
+									}}
 								>
 									See more...
 								</Ariakit.SelectItem>
@@ -200,7 +206,7 @@ export function SelectWithCombobox({
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					portal={portal || false}
 				>
 					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">

@@ -95,7 +95,6 @@ export const ChartControls = memo(function ChartControls({
 					setSelectedValues={(value) => {
 						const isStacked = value === 'Stacked'
 						onStackedChange(isStacked)
-						onPercentageChange(isStacked)
 					}}
 					label={stacked ? 'Stacked' : 'Separate'}
 					labelType="none"
