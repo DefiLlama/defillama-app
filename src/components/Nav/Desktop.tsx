@@ -210,11 +210,14 @@ const LinkToPage = React.memo(function LinkToPage({
 	asPath: string
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
+	const isExternal = route.startsWith('http')
 
 	return (
 		<BasicLink
 			href={route}
 			data-linkactive={isActive}
+			target={isExternal ? '_blank' : undefined}
+			rel={isExternal ? 'noopener noreferrer' : undefined}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 		>
 			{icon ? (
