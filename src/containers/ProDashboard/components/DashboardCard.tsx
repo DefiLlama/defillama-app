@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { Dashboard } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
+
+dayjs.extend(relativeTime)
 
 interface DashboardCardProps {
 	dashboard: Dashboard
@@ -68,6 +72,8 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 		return summary
 	}, [dashboard.data.items])
 
+	console.log({ dashboard })
+
 	return (
 		<div
 			className={`hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5`}
@@ -103,10 +109,8 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 				) : null}
 			</div>
 
-			{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
-
 			{dashboard.description ? (
-				<p className="line-clamp-2 text-sm text-(--text-label)">{dashboard.description}</p>
+				<p className="line-clamp-3 text-sm text-(--text-label)">{dashboard.description}</p>
 			) : null}
 
 			{dashboard.data.items?.length ? (
@@ -119,34 +123,36 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 				</div>
 			) : null}
 
-			<div
-				className={`mt-auto flex items-center justify-between gap-2 text-(--text-label) ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}
-			>
-				<div className="flex items-center gap-2">
-					<p className="flex items-center gap-1" title="Views">
-						<Icon name="eye" height={16} width={16} />
-						<span className="sr-only">Views</span>
-						<span>{dashboard.viewCount || 0}</span>
-					</p>
-					<p className="flex items-center gap-1" title="Likes">
-						<Icon
-							name="star"
-							height={16}
-							width={16}
-							className={dashboard.liked ? 'fill-current text-yellow-400' : 'fill-none'}
-						/>
-						<span className="sr-only">Favorites</span>
-						<span>{dashboard.likeCount || 0}</span>
+			<div className={`mt-auto ${viewMode === 'grid' ? 'pt-5' : 'pt-2'}`}>
+				{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+
+				<div className={`flex items-center justify-between gap-2 text-(--text-label) ${viewMode === 'grid' && 'mt-3'}`}>
+					<div className="flex items-center gap-2">
+						<p className="flex items-center gap-1" title="Views">
+							<Icon name="eye" height={16} width={16} />
+							<span className="sr-only">Views</span>
+							<span>{dashboard.viewCount || 0}</span>
+						</p>
+						<p className="flex items-center gap-1" title="Likes">
+							<Icon
+								name="star"
+								height={16}
+								width={16}
+								className={dashboard.liked ? 'fill-current text-yellow-400' : 'fill-none'}
+							/>
+							<span className="sr-only">Favorites</span>
+							<span>{dashboard.likeCount || 0}</span>
+						</p>
+					</div>
+
+					<p
+						className="flex items-center gap-1 text-xs text-(--text-form)"
+						title={new Date(dashboard.updated).toLocaleString()}
+					>
+						<Icon name="clock" height={12} width={12} />
+						<span>Updated {dayjs(dashboard.updated).fromNow()}</span>
 					</p>
 				</div>
-
-				<p
-					className="flex items-center gap-1 text-xs text-(--text-form)"
-					title={new Date(dashboard.updated).toLocaleString()}
-				>
-					<Icon name="clock" height={12} width={12} />
-					<span>Updated {new Date(dashboard.updated).toLocaleDateString()}</span>
-				</p>
 			</div>
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
@@ -171,7 +177,9 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 					{tag}
 				</button>
 			))}
-			{dashboard.tags.length > 2 && <span className="text-xs">+{dashboard.tags.length - 2}</span>}
+			{dashboard.tags.length > 2 && (
+				<span className="text-xs text-(--text-form)">+{dashboard.tags.length - 2} more</span>
+			)}
 		</div>
 	)
 }
