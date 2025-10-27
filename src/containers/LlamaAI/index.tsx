@@ -772,7 +772,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			router.push('/ai', undefined, { shallow: true })
+			router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -1912,7 +1912,7 @@ const ResponseControls = memo(function ResponseControls({
 		},
 		onSuccess: (data) => {
 			if (data.shareToken) {
-				const shareLink = `${window.location.origin}/ai/shared/${data.shareToken}`
+				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
 				navigator.clipboard.writeText(shareLink)
 				setShowShareModal(true)
 			}
@@ -2177,7 +2177,7 @@ const FeedbackForm = ({
 
 const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
 	const [copied, setCopied] = useState(false)
-	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
+	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
 	const handleCopy = async () => {
 		if (!shareLink) return

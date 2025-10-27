@@ -1,8 +1,8 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -49,9 +49,9 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { user, isAuthenticated } = useAuthContext()
-	const { hasFeature } = useFeatureFlagsContext()
+	const { subscription } = useSubscribe()
+	const hasActiveSubscription = subscription?.status === 'active'
 
-	const hasLlamaAI = hasFeature('llamaai')
 	const hasEthWallet = Boolean(user?.walletAddress)
 	const hasSeenWalletPrompt =
 		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
@@ -62,10 +62,12 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		const otherMainPages = [
 			{ name: 'Pricing', route: '/subscription', icon: 'user', attention: showAttentionIcon },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
-			...(hasLlamaAI ? [{ name: 'LlamaAI', route: '/ai', icon: '' }] : [])
+			...(hasActiveSubscription
+				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
+				: [{ name: 'LlamaAI', route: '/ai', icon: '' }])
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
-	}, [showAttentionIcon, hasLlamaAI])
+	}, [showAttentionIcon, hasActiveSubscription])
 
 	const userDashboards = useMemo(
 		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
