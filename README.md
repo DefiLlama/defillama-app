@@ -2,7 +2,7 @@
 
 [DefiLlama](https://defillama.com) is the leading DeFi analytics and insights platform, providing comprehensive data on total value locked (TVL), yields, stablecoins, and more across all blockchain ecosystems.
 
-Check it out live at https://defillama.com
+Check it out live at: https://defillama.com
 
 ## Features
 
@@ -16,20 +16,25 @@ Check it out live at https://defillama.com
 ## Local Setup
 
 #### 1. Clone the repository:
+
 ```bash
-git clone https://github.com/DefiLlama/DefiLlama.git
-cd DefiLlama
+git clone https://github.com/DefiLlama/defillama-app.git
+cd defillama-app
 ```
 
 #### 2. Install dependencies:
+
 ```bash
 yarn
 ```
 
 #### 3. Start the development server:
+
 ```bash
 yarn dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Contributing
 
@@ -58,3 +63,7 @@ Join the conversation and stay up to date:
 - [X/Twitter](https://twitter.com/DefiLlama)
 - [Discord](https://discord.defillama.com/)
 - [Documentation](https://docs.llama.fi/)
+
+## License
+
+[GPL-3.0](./LICENSE)
