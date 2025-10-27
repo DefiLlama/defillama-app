@@ -2094,6 +2094,7 @@ const FeedbackForm = ({
 		onSuccess: (_, variables) => {
 			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
+			toast.success('Thank you for you feedback!')
 		}
 	})
 
