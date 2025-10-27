@@ -2,8 +2,8 @@ import {
 	CACHE_SERVER,
 	CHAINS_ASSETS_CHART,
 	CHART_API,
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
+	DIMENSIONS_OVERVIEW_API,
+	DIMENSIONS_SUMMARY_API,
 	PEGGEDCHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
@@ -98,8 +98,8 @@ export default class ChainCharts {
 	private static async dimensionsData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
 		const url = dataType
-			? `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${chain}?dataType=${dataType}`
-			: `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${chain}`
+			? `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${chain}?dataType=${dataType}`
+			: `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${chain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
@@ -156,8 +156,8 @@ export default class ChainCharts {
 	private static async protocolData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
 		const url = dataType
-			? `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}?dataType=${dataType}`
-			: `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}`
+			? `${DIMENSIONS_SUMMARY_API}/${endpoint}/${chain}?dataType=${dataType}`
+			: `${DIMENSIONS_SUMMARY_API}/${endpoint}/${chain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])

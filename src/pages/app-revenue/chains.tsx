@@ -12,7 +12,7 @@ const dataType = ADAPTER_DATA_TYPES.DAILY_APP_REVENUE
 const type = 'App Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'app-revenue' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {
 		props: data,

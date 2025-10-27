@@ -11,7 +11,7 @@ const dataType = ADAPTER_DATA_TYPES.DAILY_BRIDGE_VOLUME
 const type = 'Bridge Aggregator Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'bridge-aggregators' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {
 		props: data,

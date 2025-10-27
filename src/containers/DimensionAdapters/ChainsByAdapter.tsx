@@ -447,6 +447,20 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 					'Notional volume of all trades on all perp exchanges on the chain, including leverage in the last 30 days'
 			},
 			size: 160
+		},
+		{
+			header: 'Open Interest',
+			id: 'open_interest',
+			accessorFn: (protocol) => protocol.openInterest,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText:
+					'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+			},
+			size: 160
 		}
 	],
 	'Perp Aggregator Volume': [
