@@ -20,8 +20,8 @@ export default function LlamaAIGetStarted() {
 				keywords="LlamaAI, DefiLlama AI, DeFi AI"
 				canonicalUrl="https://defillama.com/ai"
 			/>
-			<div className="col-span-full flex h-full flex-col gap-15 bg-[#F7F7F7] px-1 dark:bg-[#17181c]">
-				<div className="px-4 py-3">
+			<div className="col-span-full flex h-full flex-col gap-15 bg-[#F7F7F7] px-2 dark:bg-[#17181c]">
+				<div className="p-3">
 					<BasicLink href="/" className="mb-4 w-fit shrink-0">
 						<span className="sr-only">Navigate to Home Page</span>
 						<img
@@ -86,6 +86,43 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
 						<video src="/assets/llamaai.mp4" className="z-10 h-full w-full rounded-lg object-cover" controls />
+					</div>
+				</div>
+				<div className="mx-auto mb-15 flex w-full max-w-5xl flex-col gap-4">
+					<h2 className="text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
+						Everything you need
+					</h2>
+					<div className="flex flex-col rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] lg:flex-row lg:pt-8 dark:border-[#39393E] dark:bg-[#222429]">
+						<div className="flex flex-1 flex-col gap-4 px-4 lg:px-8">
+							<div className="flex flex-col gap-2 border-l-2 border-[#FDE0A9] pl-4 text-[#666] dark:text-[#919296]">
+								<h3 className="text-lg font-semibold text-black dark:text-white">Lorem ipsum dolor sit amet.</h3>
+								<p className="text-base">
+									Veniam nulla ex ut ad esse. Consectetur est do quis. Proident ipsum aute occaecat ut nisi ex
+									reprehenderit laborum ipsum.
+								</p>
+							</div>
+							<div className="flex flex-col gap-2 text-[#666] dark:text-[#919296]">
+								<h3 className="text-lg font-semibold">Lorem ipsum dolor sit amet.</h3>
+								<p className="text-base">
+									Veniam nulla ex ut ad esse. Consectetur est do quis. Proident ipsum aute occaecat ut nisi ex
+									reprehenderit laborum ipsum.
+								</p>
+							</div>
+							<div className="flex flex-col gap-2 text-[#666] dark:text-[#919296]">
+								<h3 className="text-lg font-semibold">Lorem ipsum dolor sit amet.</h3>
+								<p className="text-base">
+									Veniam nulla ex ut ad esse. Consectetur est do quis. Proident ipsum aute occaecat ut nisi ex
+									reprehenderit laborum ipsum.
+								</p>
+							</div>
+						</div>
+						<div className="h-full w-full max-w-[562px] overflow-hidden rounded-br-2xl rounded-bl-2xl border-t border-[#E6E6E6] max-lg:overflow-hidden lg:rounded-tl-lg lg:rounded-bl-none lg:border-l dark:border-[#39393E]">
+							<img
+								src="/assets/llamaai-4.png"
+								alt=""
+								className="aspect-[562/445] h-full w-full translate-x-[-13.5%] translate-y-[10%] scale-[1.85] object-contain max-lg:aspect-[501/397] max-lg:translate-x-[-11%] max-lg:translate-y-[13.5%] max-lg:scale-[1.5] max-lg:object-cover"
+							/>
+						</div>
 					</div>
 				</div>
 				<div className="mx-auto mb-15 w-full max-w-5xl">
