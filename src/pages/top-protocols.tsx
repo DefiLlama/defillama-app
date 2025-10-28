@@ -70,7 +70,7 @@ const optionsKey = 'top-protocols-table-columns'
 
 export default function TopProtocols({ data, uniqueCategories }) {
 	const columnHelper = React.useMemo(() => createColumnHelper<any>(), [])
-	const chainOptions = React.useMemo(() => Array.from(new Set(data.map((row) => row.chain))), [data])
+	const chainOptions: string[] = React.useMemo(() => Array.from(new Set(data.map((row) => row.chain))), [data])
 
 	const columnOptions = React.useMemo(
 		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
@@ -331,7 +331,7 @@ export default function TopProtocols({ data, uniqueCategories }) {
 
 					<div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
 						<SelectWithCombobox
-							allValues={chainOptions as string[]}
+							allValues={chainOptions}
 							selectedValues={selectedChains}
 							setSelectedValues={setSelectedChains}
 							selectOnlyOne={selectOnlyOneChain}
@@ -347,7 +347,7 @@ export default function TopProtocols({ data, uniqueCategories }) {
 						/>
 
 						<SelectWithCombobox
-							allValues={columnOptions as string[]}
+							allValues={columnOptions}
 							selectedValues={selectedColumns}
 							setSelectedValues={addColumn}
 							selectOnlyOne={addOnlyOneColumn}
@@ -364,7 +364,11 @@ export default function TopProtocols({ data, uniqueCategories }) {
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 				</div>
-				<VirtualTable instance={table} />
+				{table.getFilteredRowModel().rows.length > 0 ? (
+					<VirtualTable instance={table} />
+				) : (
+					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
+				)}
 			</div>
 		</Layout>
 	)
