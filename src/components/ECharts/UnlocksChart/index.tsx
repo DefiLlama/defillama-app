@@ -5,6 +5,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
+import useWindowSize from '~/hooks/useWindowSize'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
@@ -34,6 +35,8 @@ export default function AreaChart({
 	const chartsStack = stacks || customLegendOptions
 
 	const [isThemeDark] = useDarkModeManager()
+	const windowSize = useWindowSize()
+	const isMobile = windowSize.width && windowSize.width < 768
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -92,7 +95,7 @@ export default function AreaChart({
 								label: {
 									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 									fontFamily: 'sans-serif',
-									fontSize: 14,
+									fontSize: isMobile ? 10 : 14,
 									fontWeight: 500
 								}
 							},
@@ -161,7 +164,7 @@ export default function AreaChart({
 									label: {
 										color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 										fontFamily: 'sans-serif',
-										fontSize: 14,
+										fontSize: isMobile ? 10 : 14,
 										fontWeight: 500
 									}
 								},
@@ -214,7 +217,8 @@ export default function AreaChart({
 		hideGradient,
 		customLegendName,
 		legendOptions,
-		expandTo100Percent
+		expandTo100Percent,
+		isMobile
 	])
 
 	const createInstance = useCallback(() => {
