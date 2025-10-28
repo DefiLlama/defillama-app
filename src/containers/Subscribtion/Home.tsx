@@ -227,6 +227,16 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				)}
 
+				{isAuthenticated && !user?.verified && !isWalletUser && user?.email && (
+					<div className="mx-auto w-full max-w-3xl">
+						<EmailVerificationWarning
+							email={user.email}
+							onResendVerification={handleResendVerification}
+							isLoading={loaders.resendVerification}
+						/>
+					</div>
+				)}
+
 				{isAuthenticated && isSubscribed ? null : (
 					<div
 						className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
@@ -327,15 +337,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									subscription={subscription}
 									onEmailChange={() => setShowEmailForm(true)}
 								/>
-								{!user?.verified && !isWalletUser && user?.email && (
-									<div className="mt-4">
-										<EmailVerificationWarning
-											email={user.email}
-											onResendVerification={handleResendVerification}
-											isLoading={loaders.resendVerification}
-										/>
-									</div>
-								)}
 							</div>
 						)}
 					</div>
