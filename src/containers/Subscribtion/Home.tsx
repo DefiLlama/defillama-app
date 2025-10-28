@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
@@ -47,44 +48,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	const [hasShownModal, setHasShownModal] = useState(false)
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
-	const [activePriceCard, setActivePriceCard] = useState(0)
-
-	useEffect(() => {
-		const ref = pricingContainer.current
-		if (!ref) return
-
-		const calculateActiveCard = () => {
-			if (ref.children.length === 0) return
-			const cardWidth = (ref.children[0] as HTMLElement).offsetWidth
-			const gapWidth = 16
-			const scrollLeft = ref.scrollLeft
-			let closestIndex = 0
-			let minDistance = Infinity
-			const containerVisibleWidth = ref.offsetWidth
-			const containerCenter = scrollLeft + containerVisibleWidth / 2
-
-			for (let i = 0; i < ref.children.length; i++) {
-				const cardElement = ref.children[i] as HTMLElement
-				const cardCenter = cardElement.offsetLeft + cardWidth / 2
-				const distance = Math.abs(containerCenter - cardCenter)
-
-				if (distance < minDistance) {
-					minDistance = distance
-					closestIndex = i
-				}
-			}
-			setActivePriceCard(closestIndex)
-		}
-
-		ref.addEventListener('scroll', calculateActiveCard, { passive: true })
-		calculateActiveCard()
-		window.addEventListener('resize', calculateActiveCard)
-
-		return () => {
-			ref.removeEventListener('scroll', calculateActiveCard)
-			window.removeEventListener('resize', calculateActiveCard)
-		}
-	}, [isClient])
 
 	useEffect(() => {
 		setIsClient(true)
@@ -142,10 +105,29 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					/>
 				</div>
 				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
-				{isSubscribed ? null : (
-					<p className="text-center text-[#919296]">
-						Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.
-					</p>
+				{!isSubscribed && (
+					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
+						<p className="text-center text-[#919296]">
+							Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.
+						</p>
+						{isAuthenticated && (
+							<div className="mx-auto w-full max-w-[400px]">
+								<button
+									onClick={() => {
+										const proCardElement = document.querySelector('[data-plan="pro"]')
+										if (proCardElement) {
+											proCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+										}
+									}}
+									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"
+								>
+									Get Pro for ${billingInterval === 'year' ? '490' : '49'}
+									{billingInterval === 'year' ? '/year' : '/month'}
+								</button>
+								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+							</div>
+						)}
+					</div>
 				)}
 
 				{!isAuthenticated && isTrial && (
@@ -245,24 +227,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					/>
 				)}
 
-				{isAuthenticated && !isSubscribed && (
-					<>
-						<AccountStatus
-							user={user}
-							isVerified={user?.verified}
-							isSubscribed={isSubscribed}
-							subscription={subscription}
-							onEmailChange={() => setShowEmailForm(true)}
-						/>
-					{!user?.verified && !isWalletUser && user?.email && (
-						<EmailVerificationWarning
-							email={user.email}
-							onResendVerification={handleResendVerification}
-							isLoading={loaders.resendVerification}
-						/>
-					)}
-					</>
-				)}
 				<EmailChangeModal
 					isOpen={showEmailForm}
 					onClose={() => setShowEmailForm(false)}
@@ -299,21 +263,16 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									}`}
 								>
 									Yearly
-									<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">2 months free</span>
+									<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">
+										2 months free
+									</span>
 								</button>
 							</div>
 						</div>
-						<div
-							ref={pricingContainer}
-							className="relative z-10 grid grid-cols-1 gap-4 *:*:max-w-[408px]! *:max-w-full! *:items-center lg:grid-cols-3"
-						>
+						<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
 							<div
-								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
-							>
-								<FreeCard />
-							</div>
-							<div
-								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+								data-plan="pro"
+								className={`relative flex flex-col overflow-hidden rounded-xl border-2 border-[#5C5CF9]/50 bg-[#22242930] px-4 py-6 shadow-lg shadow-[#5C5CF9]/20 backdrop-blur-md transition-all duration-300 lg:order-2 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-1' : 'order-2'}`}
 							>
 								<SubscribeProCard
 									context="page"
@@ -326,23 +285,49 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								/>
 							</div>
 							<div
-								className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
+								className={`relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:order-1 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-2' : 'order-1'}`}
 							>
+								<FreeCard />
+							</div>
+							<div className="relative order-3 flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:py-8 lg:hover:scale-[1.02]">
 								<SubscribeAPICard
 									context="page"
 									isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
 									billingInterval={billingInterval}
 								/>
 							</div>
-							<div
-								className={`col-span-full rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:transform md:px-5 md:hover:scale-[1.02]`}
-							>
-								<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
-									<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-									<SubscribeEnterpriseCard />
-								</span>
-							</div>
 						</div>
+						<div className="relative z-10 mt-4 rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
+							<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
+								<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
+								<SubscribeEnterpriseCard />
+							</span>
+						</div>
+
+						{isAuthenticated && !isSubscribed && (
+							<div className="relative z-10 mt-8 w-full">
+								<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+									<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
+									Manage Account
+								</h3>
+								<AccountStatus
+									user={user}
+									isVerified={user?.verified}
+									isSubscribed={isSubscribed}
+									subscription={subscription}
+									onEmailChange={() => setShowEmailForm(true)}
+								/>
+								{!user?.verified && !isWalletUser && user?.email && (
+									<div className="mt-4">
+										<EmailVerificationWarning
+											email={user.email}
+											onResendVerification={handleResendVerification}
+											isLoading={loaders.resendVerification}
+										/>
+									</div>
+								)}
+							</div>
+						)}
 					</div>
 				)}
 			</div>

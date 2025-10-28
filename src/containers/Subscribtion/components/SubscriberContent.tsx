@@ -80,14 +80,14 @@ export const SubscriberContent = ({
 
 	return (
 		<>
-			<div className="mb-4 flex flex-col items-center">
-				<span className="mb-1 text-xl font-semibold text-white">Change Subscription</span>
+			<div className="mb-3 flex flex-col items-center sm:mb-4">
+				<span className="mb-1 text-lg font-semibold text-white sm:text-xl">Change Subscription</span>
 			</div>
-			<div className="relative z-10 mb-6 flex items-center justify-center">
-				<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
+			<div className="relative z-10 mb-4 flex items-center justify-center sm:mb-6">
+				<div className="relative inline-flex items-center rounded-lg bg-[#22242930] p-1 backdrop-blur-sm sm:rounded-xl">
 					<button
 						onClick={() => setBillingInterval('month')}
-						className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+						className={`relative z-10 rounded-md px-4 py-1.5 text-sm font-medium transition-all duration-200 sm:rounded-lg sm:px-6 sm:py-2 ${
 							billingInterval === 'month'
 								? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
 								: 'text-[#8a8c90] hover:text-white'
@@ -97,21 +97,21 @@ export const SubscriberContent = ({
 					</button>
 					<button
 						onClick={() => setBillingInterval('year')}
-						className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+						className={`relative z-10 flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-all duration-200 sm:gap-2 sm:rounded-lg sm:px-6 sm:py-2 ${
 							billingInterval === 'year'
 								? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
 								: 'text-[#8a8c90] hover:text-white'
 						}`}
 					>
 						Yearly
-						<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">2 months free</span>
+						<span className="rounded-md bg-[#7B7BFF] px-1.5 py-0.5 text-xs font-semibold text-white sm:px-2">
+							2 months free
+						</span>
 					</button>
 				</div>
 			</div>
-			<div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-				<div
-					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
-				>
+			<div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 md:grid-cols-3">
+				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
 					<SubscribeProCard
 						context="account"
 						active={isLlamaFeed && subscription?.provider !== 'trial'}
@@ -119,9 +119,7 @@ export const SubscriberContent = ({
 						currentBillingInterval={llamafeedSubscription?.billingInterval || 'month'}
 					/>
 				</div>
-				<div
-					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
-				>
+				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
 					<SubscribeAPICard
 						context="account"
 						active={isPro || isLegacy}
@@ -131,12 +129,10 @@ export const SubscriberContent = ({
 						billingInterval={billingInterval}
 					/>
 				</div>
-				<div
-					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
-				>
-					<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-					<span className="h-8"></span>
-					<span className="h-7"></span>
+				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
+					<h2 className="text-center text-xl font-extrabold whitespace-nowrap sm:text-[2rem]">Enterprise</h2>
+					<span className="h-6 sm:h-8"></span>
+					<span className="h-5 sm:h-7"></span>
 					<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
 				</div>
 			</div>
@@ -145,35 +141,35 @@ export const SubscriberContent = ({
 				<div className="relative overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-xl">
 					<div className="absolute -inset-1 -z-10 bg-linear-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 blur-[100px]"></div>
 
-					<div className="border-b border-[#39393E]/40 p-6">
-						<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-							<div className="flex items-center gap-3">
+					<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
+						<div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
+							<div className="flex items-center gap-2.5 sm:gap-3">
 								<div className="relative">
-									<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2.5 text-[#5C5CF9]">
-										<Icon name="file-plus" height={20} width={20} />
+									<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9] sm:p-2.5">
+										<Icon name="file-plus" height={18} width={18} className="sm:h-5 sm:w-5" />
 									</div>
 								</div>
 								<div>
-									<h3 className="text-xl font-bold">API Access</h3>
-									<p className="text-sm text-[#b4b7bc]">Manage your Pro API integration</p>
+									<h3 className="text-lg font-bold sm:text-xl">API Access</h3>
+									<p className="text-xs text-[#b4b7bc] sm:text-sm">Manage your Pro API integration</p>
 								</div>
 							</div>
 							<a
 								href="https://api-docs.defillama.com/"
 								target="_blank"
 								rel="noreferrer noopener"
-								className="flex items-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-sm font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20"
+								className="flex items-center justify-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-3 py-2 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:px-4 sm:text-sm"
 								aria-label="View API documentation"
 							>
-								<Icon name="file-text" height={14} width={14} />
+								<Icon name="file-text" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
 								<span>API Documentation</span>
 							</a>
 						</div>
 					</div>
 
-					<div className="p-6">
+					<div className="p-4 sm:p-6">
 						{isApiKeyLoading ? (
-							<div className="flex flex-col items-center justify-center py-12">
+							<div className="flex flex-col items-center justify-center py-8 sm:py-12">
 								<div className="relative mb-4 h-14 w-14">
 									<div className="absolute inset-0 h-full w-full rounded-full border-4 border-[#5C5CF9]/30"></div>
 									<div className="absolute inset-0 h-full w-full animate-spin rounded-full border-4 border-transparent border-t-[#5C5CF9]"></div>
@@ -361,16 +357,16 @@ export const SubscriberContent = ({
 			)}
 
 			<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
-				<div className="border-b border-[#39393E]/40 p-6">
-					<div className="flex items-center gap-3">
+				<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
+					<div className="flex items-center gap-2.5 sm:gap-3">
 						<div className="relative">
-							<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2.5 text-[#5C5CF9]">
-								<Icon name="card" height={20} width={20} />
+							<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9] sm:p-2.5">
+								<Icon name="card" height={18} width={18} className="sm:h-5 sm:w-5" />
 							</div>
 						</div>
 						<div>
-							<h3 className="text-xl font-bold">Subscription</h3>
-							<p className="text-sm text-[#b4b7bc]">
+							<h3 className="text-lg font-bold sm:text-xl">Subscription</h3>
+							<p className="text-xs text-[#b4b7bc] sm:text-sm">
 								Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
 								details
 							</p>
@@ -378,18 +374,18 @@ export const SubscriberContent = ({
 					</div>
 				</div>
 
-				<div className="p-6">
-					<div className="space-y-6">
-						<div className="rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-5">
-							<div className="mb-4 flex items-center justify-between">
-								<h4 className="flex items-center gap-2 font-medium">
-									<Icon name="bookmark" height={16} width={16} className="text-[#5C5CF9]" />
+				<div className="p-4 sm:p-6">
+					<div className="space-y-4 sm:space-y-6">
+						<div className="rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:p-5">
+							<div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
+								<h4 className="flex items-center gap-2 text-sm font-medium sm:text-base">
+									<Icon name="bookmark" height={14} width={14} className="text-[#5C5CF9] sm:h-4 sm:w-4" />
 									<span>{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''} Plan</span>
 								</h4>
-								<div className="flex items-center gap-4">
+								<div className="flex items-center gap-3 sm:gap-4">
 									<div className="flex items-center gap-2">
 										<span className="h-2 w-2 rounded-full bg-green-400"></span>
-										<span className="text-sm font-medium text-white">Active</span>
+										<span className="text-xs font-medium text-white sm:text-sm">Active</span>
 									</div>
 									<button
 										onClick={
@@ -400,7 +396,7 @@ export const SubscriberContent = ({
 													: undefined
 										}
 										disabled={isPortalSessionLoading}
-										className="flex items-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-sm font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20"
+										className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
 									>
 										{isPortalSessionLoading ? (
 											<>
@@ -409,28 +405,29 @@ export const SubscriberContent = ({
 											</>
 										) : (
 											<>
-												<Icon name="settings" height={14} width={14} />
+												<Icon name="settings" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
 												<span className="hidden sm:inline">Manage Subscription</span>
+												<span className="sm:hidden">Manage</span>
 											</>
 										)}
 									</button>
 								</div>
 							</div>
 
-							<div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-								<div className="rounded-lg bg-[#13141a]/60 p-3">
+							<div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4">
+								<div className="rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3">
 									<p className="mb-1 text-xs text-[#8a8c90]">Billing Cycle</p>
-									<p className="font-medium">{currentBillingInterval === 'year' ? 'Yearly' : 'Monthly'}</p>
+									<p className="text-sm font-medium sm:text-base">{currentBillingInterval === 'year' ? 'Yearly' : 'Monthly'}</p>
 								</div>
 
-								<div className="rounded-lg bg-[#13141a]/60 p-3">
+								<div className="rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3">
 									<p className="mb-1 text-xs text-[#8a8c90]">Price</p>
-									<p className="font-medium">{displayPrice}</p>
+									<p className="text-sm font-medium sm:text-base">{displayPrice}</p>
 								</div>
 
-								<div className="rounded-lg bg-[#13141a]/60 p-3">
+								<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
 									<p className="mb-1 text-xs text-[#8a8c90]">Next billing date</p>
-									<p className="font-medium">
+									<p className="text-sm font-medium sm:text-base">
 										{isLlamaFeed && llamafeedSubscription?.expires_at
 											? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
 													month: 'short',
@@ -449,22 +446,22 @@ export const SubscriberContent = ({
 							</div>
 
 							{currentBillingInterval === 'month' && (
-								<div className="mt-6 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-5">
-									<div className="mb-4 flex items-start gap-3">
-										<div className="rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9]">
-											<Icon name="trending-up" height={20} width={20} />
+								<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+									<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+										<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+											<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
 										</div>
 										<div className="flex-1">
-											<h4 className="mb-1 font-medium">Upgrade to Yearly</h4>
-											<p className="text-sm text-[#8a8c90]">
-												Switch to annual billing and save 2 months. Get the same great features at a better value.
+											<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade to Yearly</h4>
+											<p className="text-xs text-[#8a8c90] sm:text-sm">
+												Switch to annual billing and save 2 months.
 											</p>
 										</div>
 									</div>
 									<button
 										onClick={handleUpgradeToYearly}
 										disabled={loading === 'stripe'}
-										className="flex items-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
+										className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
 									>
 										{loading === 'stripe' ? (
 											<>
@@ -473,8 +470,9 @@ export const SubscriberContent = ({
 											</>
 										) : (
 											<>
-												<Icon name="arrow-up" height={16} width={16} />
-												<span>Upgrade to Yearly (Save 2 Months)</span>
+												<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+												<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+												<span className="sm:hidden">Upgrade to Yearly</span>
 											</>
 										)}
 									</button>
@@ -482,23 +480,22 @@ export const SubscriberContent = ({
 							)}
 
 							{isPro && !apiSubscription?.overage && (
-								<div className="mt-6 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-5">
-									<div className="mb-4 flex items-start gap-3">
-										<div className="rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9]">
-											<Icon name="trending-up" height={20} width={20} />
+								<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+									<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+										<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+											<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
 										</div>
 										<div className="flex-1">
-											<h4 className="mb-1 font-medium">Enable Overage</h4>
-											<p className="text-sm text-[#8a8c90]">
-												Allow your API calls to continue beyond the 1M monthly limit. Additional usage will be charged
-												at $0.60 per 1,000 calls.
+											<h4 className="mb-1 text-sm font-medium sm:text-base">Enable Overage</h4>
+											<p className="text-xs text-[#8a8c90] sm:text-sm">
+												Continue API calls beyond 1M/month at $0.60 per 1,000 calls.
 											</p>
 										</div>
 									</div>
 									<button
 										onClick={enableOverage}
 										disabled={isEnableOverageLoading}
-										className="flex items-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-sm font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
+										className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
 									>
 										{isEnableOverageLoading ? (
 											<>
@@ -507,7 +504,7 @@ export const SubscriberContent = ({
 											</>
 										) : (
 											<>
-												<Icon name="check" height={14} width={14} />
+												<Icon name="check" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
 												<span>Enable Overage</span>
 											</>
 										)}
