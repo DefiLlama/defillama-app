@@ -92,10 +92,20 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	useEffect(() => {
 		if (isAuthenticated && returnUrl && !hasShownModal && !loaders.userLoading) {
-			setShowReturnModal(true)
-			setHasShownModal(true)
+			const justSignedUp = sessionStorage.getItem('just_signed_up') === 'true'
+			const accountAge = user?.created ? Date.now() - new Date(user.created).getTime() : Infinity
+			const isRecentAccount = accountAge < 10000
+
+			if (justSignedUp) {
+				sessionStorage.removeItem('just_signed_up')
+			}
+
+			if (!justSignedUp && !isRecentAccount) {
+				setShowReturnModal(true)
+				setHasShownModal(true)
+			}
 		}
-	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading])
+	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading, user?.created])
 
 	useEffect(() => {
 		setHasShownModal(false)
