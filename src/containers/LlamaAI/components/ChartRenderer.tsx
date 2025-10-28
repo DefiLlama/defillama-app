@@ -36,6 +36,7 @@ type ChartState = {
 	percentage: boolean
 	cumulative: boolean
 	grouping: 'day' | 'week' | 'month' | 'quarter'
+	showHallmarks: boolean
 }
 
 type ChartAction =
@@ -43,6 +44,7 @@ type ChartAction =
 	| { type: 'SET_PERCENTAGE'; payload: boolean }
 	| { type: 'SET_CUMULATIVE'; payload: boolean }
 	| { type: 'SET_GROUPING'; payload: 'day' | 'week' | 'month' | 'quarter' }
+	| { type: 'SET_HALLMARKS'; payload: boolean }
 
 const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	switch (action.type) {
@@ -54,6 +56,8 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 			return { ...state, cumulative: action.payload }
 		case 'SET_GROUPING':
 			return { ...state, grouping: action.payload }
+		case 'SET_HALLMARKS':
+			return { ...state, showHallmarks: action.payload }
 		default:
 			return state
 	}
@@ -64,7 +68,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
 		cumulative: false,
-		grouping: 'day' as const
+		grouping: 'day' as const,
+		showHallmarks: true
 	})
 
 	if (!isActive) return null
@@ -123,6 +128,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			props: {
 				...(adaptedChart.props as any),
 				valueSymbol,
+				...(!chartState.showHallmarks && { hallmarks: undefined }),
 				...(chartState.percentage && {
 					chartOptions: {
 						yAxis: {
@@ -201,7 +207,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			)
 		}
 
-		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}`
+		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}-${chartState.showHallmarks}`
 
 		let chartContent: React.ReactNode
 
@@ -332,10 +338,13 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						cumulative={chartState.cumulative}
 						grouping={chartState.grouping}
 						dataLength={dataLength}
+						showHallmarks={chartState.showHallmarks}
+						hasHallmarks={!!config.hallmarks?.length}
 						onStackedChange={(stacked) => dispatch({ type: 'SET_STACKED', payload: stacked })}
 						onPercentageChange={(percentage) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })}
 						onCumulativeChange={(cumulative) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })}
 						onGroupingChange={(grouping) => dispatch({ type: 'SET_GROUPING', payload: grouping })}
+						onHallmarksChange={(showHallmarks) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })}
 					/>
 				)}
 				{chartContent}
