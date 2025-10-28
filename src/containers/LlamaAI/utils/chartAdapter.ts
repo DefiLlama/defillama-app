@@ -5,6 +5,15 @@ import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from '../types'
 
+const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
+	if (!hallmarks?.length) return []
+	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
+	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
+		return hallmarks.map((h) => [h[0], ''])
+	}
+	return hallmarks.map((h) => [h[0], h[1] || ''])
+}
+
 interface AdaptedChartData {
 	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
@@ -65,7 +74,10 @@ const formatChartValue = (value: number, valueSymbol?: string): string => {
 	}
 }
 
-const validateChartData = (data: [number | string, number | null][], chartType: string): [number | string, number | null][] => {
+const validateChartData = (
+	data: [number | string, number | null][],
+	chartType: string
+): [number | string, number | null][] => {
 	if (!data || data.length === 0) {
 		return []
 	}
@@ -325,6 +337,10 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			hideDefaultLegend: true,
 			stackColors,
 
+			...(config.hallmarks?.length && {
+				hallmarks: normalizeHallmarks(config.hallmarks)
+			}),
+
 			chartOptions: {
 				grid: {
 					top: 12,
@@ -459,6 +475,10 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
 			xAxisType: config.axes.x.type,
+
+			...(config.hallmarks?.length && {
+				hallmarks: normalizeHallmarks(config.hallmarks)
+			}),
 
 			chartOptions: {
 				grid: {

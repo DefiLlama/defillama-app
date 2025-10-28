@@ -43,6 +43,8 @@ export interface ChartConfiguration {
 		metrics: string[]
 	}
 
+	hallmarks?: Array<[number] | [number, string]>
+
 	displayOptions?: {
 		canStack: boolean
 		canShowPercentage: boolean
