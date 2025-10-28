@@ -26,17 +26,29 @@ function AuthContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 
 	useEffect(() => {
-		if (isAuthenticated && redirectUrl && !isSubscriptionLoading) {
-			router.push({
-				pathname: redirectUrl as string,
-				query: {
-					...router.query,
-					subscription_id: subscription?.id || '',
-					subscription_status: subscription?.status || '',
-					expires_at: subscription?.expires_at || '',
-					provider: subscription?.provider || ''
-				}
-			})
+		if (isAuthenticated && !isSubscriptionLoading) {
+			if (redirectUrl) {
+				router.push({
+					pathname: redirectUrl as string,
+					query: {
+						...router.query,
+						subscription_id: subscription?.id || '',
+						subscription_status: subscription?.status || '',
+						expires_at: subscription?.expires_at || '',
+						provider: subscription?.provider || ''
+					}
+				})
+			} else if (window.opener) {
+				window.opener.postMessage(
+					{
+						subscription_id: subscription?.id || '',
+						subscription_status: subscription?.status || '',
+						expires_at: subscription?.expires_at || '',
+						provider: subscription?.provider || ''
+					},
+					'*'
+				)
+			}
 		}
 	}, [isAuthenticated, redirectUrl, router, user, isSubscriptionLoading, subscription])
 
