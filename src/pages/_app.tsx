@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
+import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
 import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
@@ -89,6 +90,7 @@ function App({ Component, pageProps }: AppProps) {
 	return (
 		<QueryClientProvider client={client}>
 			<AuthProvider>
+				<UserSettingsSync />
 				<FeatureFlagsProvider>
 					<Component {...pageProps} />
 					<LlamaAIWelcomeWrapper />

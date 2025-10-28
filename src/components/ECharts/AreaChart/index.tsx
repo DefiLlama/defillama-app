@@ -236,8 +236,6 @@ export default function AreaChart({
 			onReady(chartInstance)
 		}
 
-		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
 				if (Array.isArray(chartOptions[option])) {
@@ -256,6 +254,8 @@ export default function AreaChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic,

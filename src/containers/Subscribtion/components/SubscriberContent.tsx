@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -44,6 +45,7 @@ export const SubscriberContent = ({
 
 	const currentSubscription = isLlamaFeed ? llamafeedSubscription : isPro ? apiSubscription : null
 	const currentBillingInterval = currentSubscription?.billingInterval || 'month'
+	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval)
 
 	const monthlyPricePro = 49
 	const yearlyPricePro = monthlyPricePro * 10
@@ -51,9 +53,13 @@ export const SubscriberContent = ({
 	const yearlyPriceAPI = monthlyPriceAPI * 10
 
 	const displayPrice = isLlamaFeed
-		? (currentBillingInterval === 'year' ? `$${yearlyPricePro}.00 USD` : `$${monthlyPricePro}.00 USD`)
+		? currentBillingInterval === 'year'
+			? `$${yearlyPricePro}.00 USD`
+			: `$${monthlyPricePro}.00 USD`
 		: isPro
-			? (currentBillingInterval === 'year' ? `$${yearlyPriceAPI}.00 USD` : `$${monthlyPriceAPI}.00 USD`)
+			? currentBillingInterval === 'year'
+				? `$${yearlyPriceAPI}.00 USD`
+				: `$${monthlyPriceAPI}.00 USD`
 			: ''
 
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
@@ -77,6 +83,31 @@ export const SubscriberContent = ({
 			<div className="mb-4 flex flex-col items-center">
 				<span className="mb-1 text-xl font-semibold text-white">Change Subscription</span>
 			</div>
+			<div className="relative z-10 mb-6 flex items-center justify-center">
+				<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
+					<button
+						onClick={() => setBillingInterval('month')}
+						className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+							billingInterval === 'month'
+								? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+								: 'text-[#8a8c90] hover:text-white'
+						}`}
+					>
+						Monthly
+					</button>
+					<button
+						onClick={() => setBillingInterval('year')}
+						className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+							billingInterval === 'year'
+								? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+								: 'text-[#8a8c90] hover:text-white'
+						}`}
+					>
+						Yearly
+						<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">2 months free</span>
+					</button>
+				</div>
+			</div>
 			<div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div
 					className={`relative flex w-full shrink-0 snap-center flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-8 shadow-md backdrop-blur-md transition-all duration-300 not-first:hover:transform md:w-auto md:max-w-[400px] md:flex-1 md:shrink md:snap-none md:px-5 md:hover:scale-[1.02]`}
@@ -97,6 +128,7 @@ export const SubscriberContent = ({
 						onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
 						isLegacyActive={isLegacy}
 						currentBillingInterval={apiSubscription?.billingInterval || 'month'}
+						billingInterval={billingInterval}
 					/>
 				</div>
 				<div

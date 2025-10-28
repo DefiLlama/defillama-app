@@ -115,9 +115,9 @@ export const RecommendedPrompts = ({
 	}, [])
 
 	return (
-		<div className="mb-2.5 flex min-h-0 w-full flex-1 flex-col gap-2.5">
+		<>
 			<Ariakit.TabProvider store={store}>
-				<Ariakit.TabList className="flex w-full shrink-0 flex-wrap items-center justify-center gap-2.5">
+				<Ariakit.TabList className="flex w-full flex-wrap items-center justify-center gap-2.5">
 					{promptCategories.map((category) => (
 						<Ariakit.Tab
 							key={`prompt-category-${category.name}`}
@@ -134,9 +134,9 @@ export const RecommendedPrompts = ({
 					<Ariakit.TabPanel
 						key={`prompt-category-content-${category.name}`}
 						tabId={`tab-${category.name}`}
-						className="isolate flex min-h-0 w-full flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--app-bg) text-black md:mx-auto md:max-w-[80dvh] dark:border-[#222324] dark:text-white"
+						className="isolate mb-2.5 flex w-full flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--app-bg) text-black md:mx-auto md:max-w-[80dvh] dark:border-[#222324] dark:text-white"
 					>
-						<div className="sticky top-0 z-10 flex shrink-0 items-center gap-2.5 bg-(--app-bg) p-2.5 text-[#666] dark:text-[#919296]">
+						<div className="sticky top-0 z-10 flex items-center gap-2.5 bg-(--app-bg) p-2.5 text-[#666] dark:text-[#919296]">
 							<Icon name={category.icon} height={16} width={16} />
 							<h1 className="mr-auto">{category.name}</h1>
 							<button
@@ -178,6 +178,6 @@ export const RecommendedPrompts = ({
 					</Ariakit.TabPanel>
 				))}
 			</Ariakit.TabProvider>
-		</div>
+		</>
 	)
 }

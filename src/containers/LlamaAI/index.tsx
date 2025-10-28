@@ -1053,7 +1053,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
@@ -1073,26 +1073,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							</div>
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+									<h1 className="text-center text-2xl font-semibold">What can I help you with ?</h1>
 								</div>
 								{!readOnly && (
 									<>
-										<div className="shrink-0">
-											<PromptInput
-												handleSubmit={handleSubmit}
-												promptInputRef={promptInputRef}
-												isPending={isPending}
-												handleStopRequest={handleStopRequest}
-												isStreaming={isStreaming}
-												initialValue={prompt}
-												placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
-											/>
-										</div>
-										<div className="flex min-h-0 flex-1 flex-col">
-											<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
-										</div>
+										<PromptInput
+											handleSubmit={handleSubmit}
+											promptInputRef={promptInputRef}
+											isPending={isPending}
+											handleStopRequest={handleStopRequest}
+											isStreaming={isStreaming}
+											initialValue={prompt}
+											placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+										/>
+										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
 								)}
 							</div>
@@ -1101,7 +1097,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && conversationHistory.length === 0 ? (
@@ -1246,7 +1242,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
 											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-											<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+											<h1 className="text-center text-2xl font-semibold">What can I help you with ?</h1>
 										</div>
 									)}
 								</div>

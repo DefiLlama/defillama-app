@@ -10,12 +10,13 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { AccountInfo } from './AccountInfo'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailChangeModal } from './components/EmailChangeModal'
+import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
 import { TrialActivation } from './components/TrialActivation'
 import { SignIn } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
-	const { isAuthenticated, loaders, user, changeEmail, addEmail } = useAuthContext()
+	const { isAuthenticated, loaders, user, changeEmail, addEmail, resendVerification } = useAuthContext()
 	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
@@ -31,6 +32,13 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		setNewEmail('')
 		setShowEmailForm(false)
 	}
+
+	const handleResendVerification = () => {
+		if (user?.email) {
+			resendVerification(user.email)
+		}
+	}
+
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 
@@ -84,10 +92,20 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	useEffect(() => {
 		if (isAuthenticated && returnUrl && !hasShownModal && !loaders.userLoading) {
-			setShowReturnModal(true)
-			setHasShownModal(true)
+			const justSignedUp = sessionStorage.getItem('just_signed_up') === 'true'
+			const accountAge = user?.created ? Date.now() - new Date(user.created).getTime() : Infinity
+			const isRecentAccount = accountAge < 10000
+
+			if (justSignedUp) {
+				sessionStorage.removeItem('just_signed_up')
+			}
+
+			if (!justSignedUp && !isRecentAccount) {
+				setShowReturnModal(true)
+				setHasShownModal(true)
+			}
 		}
-	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading])
+	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading, user?.created])
 
 	useEffect(() => {
 		setHasShownModal(false)
@@ -236,6 +254,13 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							subscription={subscription}
 							onEmailChange={() => setShowEmailForm(true)}
 						/>
+					{!user?.verified && !isWalletUser && user?.email && (
+						<EmailVerificationWarning
+							email={user.email}
+							onResendVerification={handleResendVerification}
+							isLoading={loaders.resendVerification}
+						/>
+					)}
 					</>
 				)}
 				<EmailChangeModal
