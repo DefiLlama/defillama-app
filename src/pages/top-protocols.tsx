@@ -308,7 +308,6 @@ export default function TopProtocols({ data, uniqueCategories }) {
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
 				<h1 className="mr-auto text-xl font-semibold">Protocols with highest TVL by chain on each category</h1>
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 			<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
@@ -362,6 +361,7 @@ export default function TopProtocols({ data, uniqueCategories }) {
 									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 				</div>
 				<VirtualTable instance={table} />
