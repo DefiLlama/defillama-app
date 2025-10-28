@@ -1053,7 +1053,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
