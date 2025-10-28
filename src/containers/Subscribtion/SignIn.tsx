@@ -12,18 +12,20 @@ export const SignIn = ({
 	text,
 	className,
 	showOnlyAuthDialog = false,
-	pendingActionMessage
+	pendingActionMessage,
+	defaultFlow = 'signin'
 }: {
 	text?: string
 	className?: string
 	showOnlyAuthDialog?: boolean
 	pendingActionMessage?: string
+	defaultFlow?: 'signin' | 'signup' | 'forgot'
 }) => {
 	const dialogState = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
 
-	const [flow, setFlow] = useState<'signin' | 'signup' | 'forgot'>('signin')
+	const [flow, setFlow] = useState<'signin' | 'signup' | 'forgot'>(defaultFlow)
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
@@ -170,13 +172,13 @@ export const SignIn = ({
 			<Ariakit.Dialog
 				store={dialogState}
 				hideOnInteractOutside={showOnlyAuthDialog ? false : true}
-				className="dialog animate-fadeIn flex max-h-[75dvh] max-w-md flex-col rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl backdrop-blur-md"
+				className="dialog animate-fadeIn flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 shadow-2xl backdrop-blur-md sm:p-6"
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
 				}}
 			>
-				<div className="mb-5 flex items-center justify-between">
-					<Ariakit.DialogHeading className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-2xl font-bold text-transparent">
+				<div className="mb-3 flex items-center justify-between sm:mb-5">
+					<Ariakit.DialogHeading className="bg-linear-to-r from-[#5C5CF9] to-[#8A8AFF] bg-clip-text text-xl font-bold text-transparent sm:text-2xl">
 						{flow === 'signin' ? 'Sign In' : flow === 'signup' ? 'Create Account' : 'Reset Password'}
 					</Ariakit.DialogHeading>
 
@@ -192,41 +194,44 @@ export const SignIn = ({
 				</div>
 
 				{pendingActionMessage && (
-					<div className="mb-4 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-3">
-						<p className="text-center text-sm text-[#b4b7bc]">{pendingActionMessage}</p>
+					<div className="mb-3 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-2.5 sm:mb-4 sm:p-3">
+						<p className="text-center text-xs text-[#b4b7bc] sm:text-sm">{pendingActionMessage}</p>
 					</div>
 				)}
 
-				<div className="flex w-full flex-col gap-3">
+				<div className="flex w-full flex-col gap-2 sm:gap-3">
 					<button
-						className="relative flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
+						className="relative flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
 						onClick={handleWalletSignIn}
 						disabled={loaders.signInWithEthereum}
 					>
-						<Icon name="wallet" height={18} width={18} />
+						<Icon name="wallet" height={16} width={16} />
 						{loaders.signInWithEthereum ? 'Connecting...' : 'Sign in with Wallet'}
 					</button>
 
 					<button
-						className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-3 font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50"
+						className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
 						onClick={() => signInWithGithub(() => dialogState.hide())}
 						disabled={loaders.signInWithGithub}
 					>
-						<Icon name="github" height={18} width={18} />
+						<Icon name="github" height={16} width={16} />
 						{loaders.signInWithGithub ? 'Connecting...' : 'Sign in with GitHub'}
 					</button>
 				</div>
 
-				<div className="relative my-2 flex items-center">
+				<div className="relative my-2 flex items-center sm:my-3">
 					<div className="grow border-t border-[#39393E]"></div>
-					<span className="mx-4 shrink text-sm text-[#9a9da1]">or continue with email</span>
+					<span className="mx-3 shrink text-xs text-[#9a9da1] sm:mx-4 sm:text-sm">or continue with email</span>
 					<div className="grow border-t border-[#39393E]"></div>
 				</div>
 
 				{flow === 'signin' ? (
-					<form className="flex flex-col gap-4" onSubmit={handleEmailSignIn}>
-						<div className="space-y-1.5">
-							<label htmlFor={`${text || 'default'}-signin-email`} className="text-sm font-medium text-[#b4b7bc]">
+					<form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleEmailSignIn}>
+						<div className="space-y-1">
+							<label
+								htmlFor={`${text || 'default'}-signin-email`}
+								className="text-xs font-medium text-[#b4b7bc] sm:text-sm"
+							>
 								Email
 							</label>
 							<div className="relative">
@@ -237,15 +242,15 @@ export const SignIn = ({
 									id={`${text || 'default'}-signin-email`}
 									type="email"
 									required
-									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
+									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-2.5 pl-10 text-sm text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden sm:p-3"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
 							</div>
 						</div>
 
-						<div className="space-y-1.5">
-							<label htmlFor="signin-password" className="text-sm font-medium text-[#b4b7bc]">
+						<div className="space-y-1">
+							<label htmlFor="signin-password" className="text-xs font-medium text-[#b4b7bc] sm:text-sm">
 								Password
 							</label>
 							<div className="relative">
@@ -256,7 +261,7 @@ export const SignIn = ({
 									id="signin-password"
 									type="password"
 									required
-									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
+									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-2.5 pl-10 text-sm text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden sm:p-3"
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 								/>
