@@ -227,8 +227,6 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
@@ -236,6 +234,8 @@ export default function AreaChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic,
