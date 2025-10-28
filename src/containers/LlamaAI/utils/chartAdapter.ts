@@ -5,6 +5,15 @@ import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from '../types'
 
+const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
+	if (!hallmarks?.length) return []
+	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
+	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
+		return hallmarks.map((h) => [h[0], ''])
+	}
+	return hallmarks.map((h) => [h[0], h[1] || ''])
+}
+
 interface AdaptedChartData {
 	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
@@ -328,10 +337,9 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			hideDefaultLegend: true,
 			stackColors,
 
-			...(config.hallmarks &&
-				config.hallmarks.length > 0 && {
-					hallmarks: config.hallmarks
-				}),
+			...(config.hallmarks?.length && {
+				hallmarks: normalizeHallmarks(config.hallmarks)
+			}),
 
 			chartOptions: {
 				grid: {
@@ -468,10 +476,9 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			valueSymbol: config.valueSymbol ?? '',
 			xAxisType: config.axes.x.type,
 
-			...(config.hallmarks &&
-				config.hallmarks.length > 0 && {
-					hallmarks: config.hallmarks
-				}),
+			...(config.hallmarks?.length && {
+				hallmarks: normalizeHallmarks(config.hallmarks)
+			}),
 
 			chartOptions: {
 				grid: {

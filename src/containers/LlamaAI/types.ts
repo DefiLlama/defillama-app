@@ -43,7 +43,7 @@ export interface ChartConfiguration {
 		metrics: string[]
 	}
 
-	hallmarks?: [number, string][]
+	hallmarks?: Array<[number] | [number, string]>
 
 	displayOptions?: {
 		canStack: boolean
