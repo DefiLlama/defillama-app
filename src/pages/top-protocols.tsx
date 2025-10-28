@@ -14,8 +14,8 @@ import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
+import { usePersistentColumnVisibility } from '~/hooks/usePersistentColumnVisibility'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { descriptions } from './categories'
@@ -77,10 +77,19 @@ export default function TopProtocols({ data, uniqueCategories }) {
 		[uniqueCategories]
 	)
 
-	const defaultColumns = React.useMemo(
-		() => JSON.stringify(Object.fromEntries(columnOptions.map((col) => [col.key, true]))),
-		[columnOptions]
-	)
+	const columnKeys = React.useMemo(() => columnOptions.map((col) => col.key), [columnOptions])
+
+	const {
+		columnVisibility,
+		clearAllColumns: clearAllPersistedColumns,
+		selectAllColumns: selectAllPersistedColumns,
+		selectedColumns,
+		setVisibleColumns,
+		setOnlyColumnVisible
+	} = usePersistentColumnVisibility({
+		storageKey: optionsKey,
+		columnKeys
+	})
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [
@@ -140,55 +149,6 @@ export default function TopProtocols({ data, uniqueCategories }) {
 		return [...baseColumns, ...categoryColumns]
 	}, [columnHelper, uniqueCategories])
 
-	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => (typeof window !== 'undefined' ? (localStorage.getItem(optionsKey) ?? defaultColumns) : defaultColumns),
-		() => defaultColumns
-	)
-
-	const defaultColumnVisibility = React.useMemo(() => {
-		try {
-			return JSON.parse(defaultColumns) as Record<string, boolean>
-		} catch {
-			return {}
-		}
-	}, [defaultColumns])
-
-	const columnVisibility = React.useMemo(() => {
-		try {
-			const stored = JSON.parse(columnsInStorage) as Record<string, boolean>
-			return { ...defaultColumnVisibility, ...stored, chain: true }
-		} catch {
-			return { ...defaultColumnVisibility, chain: true }
-		}
-	}, [columnsInStorage, defaultColumnVisibility])
-
-	React.useEffect(() => {
-		if (typeof window === 'undefined') return
-
-		try {
-			const stored = window.localStorage.getItem(optionsKey)
-			if (stored === null) {
-				window.localStorage.setItem(optionsKey, defaultColumns)
-				window.dispatchEvent(new Event('storage'))
-				return
-			}
-
-			const storedObj = JSON.parse(stored) as Record<string, boolean>
-			const merged = { ...defaultColumnVisibility, ...storedObj }
-			const sanitized = Object.fromEntries(Object.entries(merged).filter(([key]) => key !== 'chain'))
-			const sanitizedString = JSON.stringify(sanitized)
-
-			if (sanitizedString !== stored) {
-				window.localStorage.setItem(optionsKey, sanitizedString)
-				window.dispatchEvent(new Event('storage'))
-			}
-		} catch {
-			window.localStorage.setItem(optionsKey, defaultColumns)
-			window.dispatchEvent(new Event('storage'))
-		}
-	}, [defaultColumns, defaultColumnVisibility])
-
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [searchValue, setSearchValue] = React.useState('')
 	const [debouncedSearch, setDebouncedSearch] = React.useState('')
@@ -228,11 +188,6 @@ export default function TopProtocols({ data, uniqueCategories }) {
 		column.setFilterValue({ search: debouncedSearch, selected: selectedChains })
 	}, [debouncedSearch, selectedChains, table])
 
-	const selectedColumns = React.useMemo(
-		() => columnOptions.filter((col) => columnVisibility[col.key] !== false).map((col) => col.key),
-		[columnOptions, columnVisibility]
-	)
-
 	const clearChainSelection = React.useCallback(() => {
 		setSelectedChains([])
 	}, [])
@@ -245,38 +200,26 @@ export default function TopProtocols({ data, uniqueCategories }) {
 		setSelectedChains([chain])
 	}, [])
 
-	const persistColumnSelection = React.useCallback((visibilityMap: Record<string, boolean>) => {
-		if (typeof window === 'undefined') return
-		window.localStorage.setItem(optionsKey, JSON.stringify(visibilityMap))
-		window.dispatchEvent(new Event('storage'))
-	}, [])
-
 	const clearAllColumns = React.useCallback(() => {
-		const visibility = Object.fromEntries(columnOptions.map((option) => [option.key, false]))
-		persistColumnSelection(visibility)
-	}, [columnOptions, persistColumnSelection])
+		clearAllPersistedColumns()
+	}, [clearAllPersistedColumns])
 
 	const toggleAllColumns = React.useCallback(() => {
-		const visibility = Object.fromEntries(columnOptions.map((option) => [option.key, true]))
-		persistColumnSelection(visibility)
-	}, [columnOptions, persistColumnSelection])
+		selectAllPersistedColumns()
+	}, [selectAllPersistedColumns])
 
 	const addColumn = React.useCallback(
 		(newOptions: Array<string>) => {
-			const visibility = Object.fromEntries(
-				columnOptions.map((option) => [option.key, newOptions.includes(option.key)])
-			)
-			persistColumnSelection(visibility)
+			setVisibleColumns(newOptions)
 		},
-		[columnOptions, persistColumnSelection]
+		[setVisibleColumns]
 	)
 
 	const addOnlyOneColumn = React.useCallback(
 		(newOption: string) => {
-			const visibility = Object.fromEntries(columnOptions.map((option) => [option.key, option.key === newOption]))
-			persistColumnSelection(visibility)
+			setOnlyColumnVisible(newOption)
 		},
-		[columnOptions, persistColumnSelection]
+		[setOnlyColumnVisible]
 	)
 
 	const prepareCsv = React.useCallback(() => {
