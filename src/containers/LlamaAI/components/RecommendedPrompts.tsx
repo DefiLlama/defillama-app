@@ -134,7 +134,8 @@ export const RecommendedPrompts = ({
 					<Ariakit.TabPanel
 						key={`prompt-category-content-${category.name}`}
 						tabId={`tab-${category.name}`}
-						className="isolate mb-2.5 flex w-full flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--app-bg) text-black md:mx-auto md:max-w-[80dvh] dark:border-[#222324] dark:text-white"
+						unmountOnHide
+						className="max-sm:drawer max-sm:dialog isolate mb-2.5 flex w-full flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--app-bg) text-black max-sm:gap-0 max-sm:p-0 md:mx-auto md:max-w-[80dvh] dark:border-[#222324] dark:text-white"
 					>
 						<div className="sticky top-0 z-10 flex items-center gap-2.5 bg-(--app-bg) p-2.5 text-[#666] dark:text-[#919296]">
 							<Icon name={category.icon} height={16} width={16} />
