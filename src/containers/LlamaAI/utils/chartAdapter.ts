@@ -65,7 +65,10 @@ const formatChartValue = (value: number, valueSymbol?: string): string => {
 	}
 }
 
-const validateChartData = (data: [number | string, number | null][], chartType: string): [number | string, number | null][] => {
+const validateChartData = (
+	data: [number | string, number | null][],
+	chartType: string
+): [number | string, number | null][] => {
 	if (!data || data.length === 0) {
 		return []
 	}
@@ -325,6 +328,11 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			hideDefaultLegend: true,
 			stackColors,
 
+			...(config.hallmarks &&
+				config.hallmarks.length > 0 && {
+					hallmarks: config.hallmarks
+				}),
+
 			chartOptions: {
 				grid: {
 					top: 12,
@@ -459,6 +467,11 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
 			xAxisType: config.axes.x.type,
+
+			...(config.hallmarks &&
+				config.hallmarks.length > 0 && {
+					hallmarks: config.hallmarks
+				}),
 
 			chartOptions: {
 				grid: {
