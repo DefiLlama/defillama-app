@@ -80,7 +80,7 @@ export const AccountInfo = () => {
 						className="text-[#5C5CF9] transition-colors group-hover:text-[#6A6AFA]"
 					/>
 				</div>
-				<h2 className="mb-4 bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-xl font-bold text-transparent">
+				<h2 className="mb-4 bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-center text-xl font-bold text-transparent">
 					Account Access Required
 				</h2>
 				<p className="mx-auto mb-6 max-w-md text-[#b4b7bc]">
