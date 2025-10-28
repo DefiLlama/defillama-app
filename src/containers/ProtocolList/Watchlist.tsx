@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import type { IFormattedProtocol } from '~/api/types'
@@ -13,6 +13,8 @@ import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistMan
 import { useIsClient } from '~/hooks'
 import { formatDataWithExtraTvls, formatProtocolsList } from '~/hooks/data/defi'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { useNotifications, type NotificationSettings } from '~/hooks/useNotifications'
+import { mapUIMetricToAPI, mapAPIMetricToUI, getUserTimezone, formatTimeToHHMM } from '~/utils/notificationMetrics'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { chainMetrics, protocolMetrics } from './constants'
 
@@ -209,10 +211,6 @@ export function DefiWatchlistContainer({
 	)
 }
 
-const handleFormSubmit = (state) => {
-	console.log(state.values)
-}
-
 function PortfolioNotifications({
 	selectedPortfolio,
 	filteredProtocols = [],
@@ -223,17 +221,65 @@ function PortfolioNotifications({
 	filteredChains?: any[]
 }) {
 	const dialogStore = Ariakit.useDialogStore()
-	const formStore = Ariakit.useFormStore({
-		defaultValues: {
-			frequency: 'weekly',
-			protocolMetrics: [] as string[],
-			chainMetrics: [] as string[]
-		}
-	})
 	const isClient = useIsClient()
 	const router = useRouter()
 	const { subscription } = useSubscribe()
+	const { preferences, isLoading, savePreferences, isSaving } = useNotifications()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const [sendTime, setSendTime] = useState({ hour: 9, minute: 0 })
+
+	// Load existing preferences into form when available
+	const formStore = Ariakit.useFormStore({
+		defaultValues: {
+			frequency: (preferences?.frequency || 'weekly') as 'daily' | 'weekly',
+			protocolMetrics: [] as string[],
+			chainMetrics: [] as string[],
+			sendHour: preferences?.sendTime ? parseInt(preferences.sendTime.split(':')[0]) : 9,
+			sendMinute: preferences?.sendTime ? parseInt(preferences.sendTime.split(':')[1]) : 0
+		}
+	})
+
+	// Update form values when preferences load
+	useEffect(() => {
+		if (preferences) {
+			formStore.setValue('frequency', preferences.frequency)
+
+			// Extract protocol metrics from preferences
+			const protocolMetrics: string[] = []
+			if (preferences.settings.protocols) {
+				// Get all unique metrics from all protocols
+				const allMetrics = new Set<string>()
+				Object.values(preferences.settings.protocols).forEach((metrics) => {
+					metrics.forEach((metric) => {
+						allMetrics.add(mapAPIMetricToUI(metric))
+					})
+				})
+				protocolMetrics.push(...Array.from(allMetrics))
+			}
+			formStore.setValue('protocolMetrics', protocolMetrics)
+
+			// Extract chain metrics from preferences
+			const chainMetrics: string[] = []
+			if (preferences.settings.chains) {
+				const allMetrics = new Set<string>()
+				Object.values(preferences.settings.chains).forEach((metrics) => {
+					metrics.forEach((metric) => {
+						allMetrics.add(mapAPIMetricToUI(metric))
+					})
+				})
+				chainMetrics.push(...Array.from(allMetrics))
+			}
+			formStore.setValue('chainMetrics', chainMetrics)
+
+			// Set send time
+			if (preferences.sendTime) {
+				const [hour, minute] = preferences.sendTime.split(':').map(Number)
+				setSendTime({ hour, minute })
+				formStore.setValue('sendHour', hour)
+				formStore.setValue('sendMinute', minute)
+			}
+		}
+	}, [preferences])
 
 	const handleNotificationsButtonClick = () => {
 		if (!isClient) return
@@ -244,8 +290,52 @@ function PortfolioNotifications({
 		}
 	}
 
-	const handleFormSubmit = (state: any) => {
-		console.log('values', state.values)
+	const handleFormSubmit = async (state: any) => {
+		try {
+			const { frequency, protocolMetrics, chainMetrics, sendHour, sendMinute } = state.values
+
+			// Build notification settings based on selected watchlist items
+			const settings: NotificationSettings = {}
+
+			// Add protocols to settings if metrics are selected
+			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
+				settings.protocols = {}
+				filteredProtocols.forEach((protocol) => {
+					// Use defillamaId as the slug, or fallback to converting name to slug
+					const slug = typeof protocol.defillamaId === 'string'
+						? protocol.defillamaId
+						: protocol.name.toLowerCase().replace(/\s+/g, '-')
+					settings.protocols![slug] = protocolMetrics.map(mapUIMetricToAPI)
+				})
+			}
+
+			// Add chains to settings if metrics are selected
+			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
+				settings.chains = {}
+				filteredChains.forEach((chain) => {
+					settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
+				})
+			}
+
+			// Validate that at least one entity has metrics
+			if (!settings.protocols && !settings.chains) {
+				alert('Please select at least one metric for protocols or chains')
+				return
+			}
+
+			// Save preferences
+			await savePreferences({
+				settings,
+				frequency: frequency as 'daily' | 'weekly',
+				sendTime: formatTimeToHHMM(sendHour ?? 9, sendMinute ?? 0),
+				timezone: getUserTimezone()
+			})
+
+			// Close dialog on success
+			dialogStore.hide()
+		} catch (error) {
+			console.error('Error saving notification preferences:', error)
+		}
 	}
 
 	formStore.useSubmit(handleFormSubmit)
@@ -258,13 +348,22 @@ function PortfolioNotifications({
 					Set up notifications for the "{selectedPortfolio}" portfolio
 				</p>
 
-				<button
-					onClick={handleNotificationsButtonClick}
-					className="flex items-center gap-2 py-2 px-3 text-sm rounded-md hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) transition-colors border border-(--form-control-border) text-(--text-primary)"
-				>
-					<Icon name="eye" height={16} width={16} />
-					<span>Set up notifications</span>
-				</button>
+				<div className="flex items-center gap-3">
+					<button
+						onClick={handleNotificationsButtonClick}
+						disabled={isLoading}
+						className="flex items-center gap-2 py-2 px-3 text-sm rounded-md hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) transition-colors border border-(--form-control-border) text-(--text-primary) disabled:opacity-50 disabled:cursor-not-allowed"
+					>
+						<Icon name="bell" height={16} width={16} />
+						<span>{preferences ? 'Update notifications' : 'Set up notifications'}</span>
+					</button>
+					{preferences && preferences.active && (
+						<span className="flex items-center gap-1 text-xs text-green-600">
+							<Icon name="check-circle" height={14} width={14} />
+							<span>Active</span>
+						</span>
+					)}
+				</div>
 			</div>
 			{isClient && (
 				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
@@ -296,7 +395,7 @@ function PortfolioNotifications({
 					>
 						<div className="p-6 border-b border-(--cards-border)">
 							<h3 className="text-lg font-medium text-(--text-primary) mb-3">Notification Frequency</h3>
-							<div className="flex gap-4">
+							<div className="flex gap-4 mb-4">
 								<label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-(--form-control-border) hover:bg-(--primary-hover) transition-colors">
 									<Ariakit.FormRadio
 										name="frequency"
@@ -319,6 +418,37 @@ function PortfolioNotifications({
 										<div className="text-xs text-(--text-secondary)">Receive updates every week</div>
 									</div>
 								</label>
+							</div>
+
+							<div className="mt-4">
+								<h4 className="text-sm font-medium text-(--text-primary) mb-2">Send Time</h4>
+								<div className="flex items-center gap-3">
+									<div className="flex items-center gap-2">
+										<label className="text-sm text-(--text-secondary)">Hour:</label>
+										<Ariakit.FormInput
+											name="sendHour"
+											type="number"
+											min="0"
+											max="23"
+											className="w-20 px-3 py-2 text-sm rounded-md border border-(--form-control-border) bg-(--bg-main) text-(--text-primary)"
+											onChange={(e) => setSendTime({ ...sendTime, hour: parseInt(e.target.value) || 0 })}
+										/>
+									</div>
+									<div className="flex items-center gap-2">
+										<label className="text-sm text-(--text-secondary)">Minute:</label>
+										<Ariakit.FormInput
+											name="sendMinute"
+											type="number"
+											min="0"
+											max="59"
+											className="w-20 px-3 py-2 text-sm rounded-md border border-(--form-control-border) bg-(--bg-main) text-(--text-primary)"
+											onChange={(e) => setSendTime({ ...sendTime, minute: parseInt(e.target.value) || 0 })}
+										/>
+									</div>
+									<span className="text-xs text-(--text-secondary)">
+										({formatTimeToHHMM(sendTime.hour, sendTime.minute)} in your timezone)
+									</span>
+								</div>
 							</div>
 						</div>
 
@@ -397,8 +527,11 @@ function PortfolioNotifications({
 								<Ariakit.DialogDismiss className="px-4 py-2 text-sm rounded-md border border-(--form-control-border) text-(--text-secondary) hover:bg-(--primary-hover) transition-colors">
 									Cancel
 								</Ariakit.DialogDismiss>
-								<Ariakit.FormSubmit className="px-4 py-2 text-sm rounded-md bg-(--primary-bg) text-(--primary-text) hover:bg-(--primary-hover) transition-colors font-medium">
-									Save Settings
+								<Ariakit.FormSubmit
+									disabled={isSaving}
+									className="px-4 py-2 text-sm rounded-md bg-(--primary-bg) text-(--primary-text) hover:bg-(--primary-hover) transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									{isSaving ? 'Saving...' : 'Save Settings'}
 								</Ariakit.FormSubmit>
 							</div>
 						</div>
