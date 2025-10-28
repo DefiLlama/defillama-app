@@ -1086,7 +1086,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
 											initialValue={prompt}
-											placeholder="Ask LlamaAI... Type @ to insert a protocol or chain"
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1284,7 +1284,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to insert a protocol or chain"
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
 									/>
 								)}
 							</div>
@@ -1321,7 +1321,7 @@ const PromptInput = memo(function PromptInput({
 
 	// Use different placeholder for mobile devices
 	const isMobile = useMedia('(max-width: 640px)')
-	const mobilePlaceholder = placeholder.replace('Type @ to insert a protocol or chain', '')
+	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
