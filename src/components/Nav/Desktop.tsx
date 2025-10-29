@@ -172,25 +172,23 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 	)
 
 	return (
-		<div className="flex flex-col gap-1">
+		<div className="group/pinned flex flex-col">
 			<div
-				className="group flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
+				className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
 				data-reordering={isReordering}
 			>
 				<span>Pinned Pages</span>
 				{pinnedPages.length > 1 ? (
 					<button
 						type="button"
-						className="hidden rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase group-hover:block group-data-[reordering=true]:block hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+						className="invisible rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase group-hover/pinned:visible group-data-[reordering=true]/pinned:visible hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 						onClick={() => setIsReordering((value) => !value)}
 					>
 						{isReordering ? 'Done' : 'Reorder'}
 					</button>
 				) : null}
 			</div>
-			{isReordering ? (
-				<p className="pl-0.5 text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p>
-			) : null}
+			{isReordering ? <p className="text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p> : null}
 			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
 				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
 					<div className="flex flex-col gap-1">

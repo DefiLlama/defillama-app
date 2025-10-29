@@ -189,14 +189,19 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 	)
 
 	return (
-		<div className="group mb-3 flex flex-col first:mb-auto">
+		<div className="group/pinned mb-3 flex flex-col first:mb-auto">
 			<div className="mb-1 flex items-center justify-between gap-2 text-xs opacity-65">
 				<span>Pinned Pages</span>
 				{pinnedPages.length > 1 ? (
 					<button
 						type="button"
 						className="rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-						onClick={() => setIsReordering((value) => !value)}
+						onClick={() =>
+							setIsReordering((value) => {
+								const next = !value
+								return next
+							})
+						}
 					>
 						{isReordering ? 'Done' : 'Reorder'}
 					</button>
