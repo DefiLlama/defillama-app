@@ -1,12 +1,19 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '../Tooltip'
+import { mutatePinnedMetrics } from './pinnedUtils'
 import { ThemeSwitch } from './ThemeSwitch'
 import { TNavLink, TNavLinks, TOldNavLink } from './types'
 
 const Account = React.lazy(() => import('./Account').then((mod) => ({ default: mod.Account })))
+
+const NAV_ITEM_CLASS =
+	'-ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10'
 
 export const DesktopNav = React.memo(function DesktopNav({
 	mainLinks,
@@ -95,39 +102,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 						</div>
 					</details>
 
-					{pinnedPages.length > 0 ? (
-						<div>
-							<p className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65">
-								Pinned Pages
-							</p>
-
-							{pinnedPages.map(({ name, route }) => (
-								<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
-									<LinkToPage route={route} name={name} asPath={asPath} />
-									<Tooltip
-										content="Unpin from navigation"
-										render={
-											<button
-												onClick={(e) => {
-													const currentPinnedPages = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-													window.localStorage.setItem(
-														'pinned-metrics',
-														JSON.stringify(currentPinnedPages.filter((page: string) => page !== route))
-													)
-													window.dispatchEvent(new Event('pinnedMetricsChange'))
-													e.preventDefault()
-													e.stopPropagation()
-												}}
-											/>
-										}
-										className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
-									>
-										<Icon name="x" className="h-4 w-4" />
-									</Tooltip>
-								</span>
-							))}
-						</div>
-					) : null}
+					{pinnedPages.length > 0 ? <PinnedPagesSection pinnedPages={pinnedPages} asPath={asPath} /> : null}
 
 					{userDashboards.length > 0 ? (
 						<div className="group">
@@ -158,6 +133,144 @@ export const DesktopNav = React.memo(function DesktopNav({
 		</span>
 	)
 })
+
+const PinnedPagesSection = React.memo(function PinnedPagesSection({
+	pinnedPages,
+	asPath
+}: {
+	pinnedPages: Array<TNavLink>
+	asPath: string
+}) {
+	const [isReordering, setIsReordering] = React.useState(false)
+
+	React.useEffect(() => {
+		if (pinnedPages.length <= 1 && isReordering) {
+			setIsReordering(false)
+		}
+	}, [isReordering, pinnedPages.length])
+
+	const sensors = useSensors(
+		useSensor(PointerSensor, {
+			activationConstraint: { distance: 6 }
+		})
+	)
+
+	const handleDragEnd = React.useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event
+			if (!over || active.id === over.id) return
+
+			const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
+			const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
+
+			if (oldIndex === -1 || newIndex === -1) return
+
+			const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
+			mutatePinnedMetrics(() => reordered.map(({ route }) => route))
+		},
+		[pinnedPages]
+	)
+
+	return (
+		<div className="flex flex-col gap-1">
+			<div
+				className="group flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
+				data-reordering={isReordering}
+			>
+				<span>Pinned Pages</span>
+				{pinnedPages.length > 1 ? (
+					<button
+						type="button"
+						className="hidden rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase group-hover:block group-data-[reordering=true]:block hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+						onClick={() => setIsReordering((value) => !value)}
+					>
+						{isReordering ? 'Done' : 'Reorder'}
+					</button>
+				) : null}
+			</div>
+			{isReordering ? (
+				<p className="pl-0.5 text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p>
+			) : null}
+			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
+					<div className="flex flex-col gap-1">
+						{pinnedPages.map((page) => (
+							<PinnedPageRow
+								key={`pinned-page-${page.name}-${page.route}`}
+								page={page}
+								asPath={asPath}
+								isReordering={isReordering}
+							/>
+						))}
+					</div>
+				</SortableContext>
+			</DndContext>
+		</div>
+	)
+})
+
+const PinnedPageRow = ({ page, asPath, isReordering }: { page: TNavLink; asPath: string; isReordering: boolean }) => {
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+		id: page.route,
+		disabled: !isReordering
+	})
+
+	const style: React.CSSProperties = {
+		transform: CSS.Translate.toString(transform),
+		transition
+	}
+
+	const handleUnpin = React.useCallback(() => {
+		mutatePinnedMetrics((routes) => routes.filter((route) => route !== page.route))
+	}, [page.route])
+
+	return (
+		<span
+			ref={setNodeRef}
+			style={style}
+			className="group relative flex flex-wrap items-center gap-1"
+			data-reordering={isReordering}
+			data-dragging={isDragging}
+		>
+			{isReordering ? (
+				<div
+					className={`group/link ${NAV_ITEM_CLASS} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
+					data-dragging={isDragging}
+				>
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+							aria-label={`Drag ${page.name}`}
+							{...attributes}
+							{...listeners}
+						>
+							<Icon name="menu" className="h-4 w-4" />
+						</button>
+						<NavItemContent name={page.name} icon={page.icon} attention={page.attention} />
+					</div>
+				</div>
+			) : (
+				<LinkToPage route={page.route} name={page.name} icon={page.icon} attention={page.attention} asPath={asPath} />
+			)}
+			<Tooltip
+				content="Unpin from navigation"
+				render={
+					<button
+						onClick={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							handleUnpin()
+						}}
+					/>
+				}
+				className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) px-1 py-1 text-white group-hover:block group-data-[reordering=true]:block"
+			>
+				<Icon name="x" className="h-4 w-4" />
+			</Tooltip>
+		</span>
+	)
+}
 
 const NavDetailsSection = React.memo(function NavDetailsSection({
 	category,
@@ -212,11 +325,23 @@ const LinkToPage = React.memo(function LinkToPage({
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 
 	return (
-		<BasicLink
-			href={route}
-			data-linkactive={isActive}
-			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-		>
+		<BasicLink href={route} data-linkactive={isActive} className={`group/link ${NAV_ITEM_CLASS}`}>
+			<NavItemContent name={name} icon={icon} attention={attention} />
+		</BasicLink>
+	)
+})
+
+const NavItemContent = React.memo(function NavItemContent({
+	name,
+	icon,
+	attention
+}: {
+	name: string
+	icon?: string
+	attention?: boolean
+}) {
+	return (
+		<>
 			{icon ? (
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
 			) : name === 'LlamaAI' ? (
@@ -235,6 +360,6 @@ const LinkToPage = React.memo(function LinkToPage({
 					/>
 				) : null}
 			</span>
-		</BasicLink>
+		</>
 	)
 })
