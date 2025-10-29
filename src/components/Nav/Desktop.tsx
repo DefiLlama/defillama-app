@@ -174,14 +174,16 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 	return (
 		<div className="group/pinned flex flex-col">
 			<div
-				className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
+				className="group flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
 				data-reordering={isReordering}
 			>
 				<span>Pinned Pages</span>
 				{pinnedPages.length > 1 ? (
 					<button
 						type="button"
-						className="invisible rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase group-hover/pinned:visible group-data-[reordering=true]/pinned:visible hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+						className={`inline-flex rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${
+							isReordering ? '' : 'invisible group-focus-within/pinned:visible group-hover/pinned:visible'
+						}`}
 						onClick={() => setIsReordering((value) => !value)}
 					>
 						{isReordering ? 'Done' : 'Reorder'}
