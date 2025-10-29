@@ -24,7 +24,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
-		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
+		router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 
 		if (document.documentElement.clientWidth < 1024) {
 			handleSidebarToggle()
@@ -137,7 +137,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#f7f7f7] hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#222324] dark:hover:bg-[#222324]"
 		>
 			<a
-				href={`/ai/${session.sessionId}`}
+				href={`/ai/chat/${session.sessionId}`}
 				onClick={(e) => {
 					// Allow cmd/ctrl+click to open in new tab
 					if (e.metaKey || e.ctrlKey) {
@@ -185,7 +185,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 							onClick={() => {
 								try {
 									if (session.isPublic && session.shareToken) {
-										navigator.clipboard.writeText(`${window.location.origin}/ai/shared/${session.shareToken}`)
+										navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
 									}
 								} catch (error) {
 									console.log(error)
