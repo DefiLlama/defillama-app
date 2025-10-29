@@ -190,7 +190,7 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			{isReordering ? <p className="text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p> : null}
 			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
 				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
-					<div className="flex flex-col gap-1">
+					<div className="flex flex-col">
 						{pinnedPages.map((page) => (
 							<PinnedPageRow
 								key={`pinned-page-${page.name}-${page.route}`}
