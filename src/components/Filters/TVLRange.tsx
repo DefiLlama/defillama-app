@@ -54,6 +54,7 @@ export function TVLRange({
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null
 	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl) : null
+	const presets = { '100m': 100000000, '500m': 500000000, '1B': 1000000000, '5B': 5000000000, '10B': 10000000000 }
 
 	return (
 		<FilterBetweenRange
@@ -84,6 +85,7 @@ export function TVLRange({
 			max={max}
 			triggerClassName={triggerClassName}
 			placement={placement}
+			presets={presets}
 		/>
 	)
 }
