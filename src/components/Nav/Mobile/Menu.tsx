@@ -320,7 +320,7 @@ const LinkToPage = React.memo(function LinkToPage({
 		<BasicLink
 			href={route}
 			data-linkactive={isActive}
-			className={`group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10`}
+			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 			onClick={() => setShow(false)}
 		>
 			<NavItemContent name={name} icon={icon} attention={attention} />
