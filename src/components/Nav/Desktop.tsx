@@ -12,9 +12,6 @@ import { TNavLink, TNavLinks, TOldNavLink } from './types'
 
 const Account = React.lazy(() => import('./Account').then((mod) => ({ default: mod.Account })))
 
-const NAV_ITEM_CLASS =
-	'-ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10'
-
 export const DesktopNav = React.memo(function DesktopNav({
 	mainLinks,
 	pinnedPages,
@@ -234,7 +231,7 @@ const PinnedPageRow = ({ page, asPath, isReordering }: { page: TNavLink; asPath:
 		>
 			{isReordering ? (
 				<div
-					className={`group/link ${NAV_ITEM_CLASS} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
+					className={`group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
 					data-dragging={isDragging}
 				>
 					<div className="flex items-center gap-2">
@@ -325,7 +322,11 @@ const LinkToPage = React.memo(function LinkToPage({
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 
 	return (
-		<BasicLink href={route} data-linkactive={isActive} className={`group/link ${NAV_ITEM_CLASS}`}>
+		<BasicLink
+			href={route}
+			data-linkactive={isActive}
+			className={`group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10`}
+		>
 			<NavItemContent name={name} icon={icon} attention={attention} />
 		</BasicLink>
 	)

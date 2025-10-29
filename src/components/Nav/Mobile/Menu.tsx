@@ -1,18 +1,15 @@
 import * as React from 'react'
 import { Suspense, useState } from 'react'
+import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useRouter } from 'next/router'
-import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
-import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { mutatePinnedMetrics } from '../pinnedUtils'
-
-const NAV_ITEM_CLASS =
-	'-ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10'
+import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 export const Menu = React.memo(function Menu({
 	mainLinks,
@@ -195,7 +192,7 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 				{pinnedPages.length > 1 ? (
 					<button
 						type="button"
-						className="rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+						className="rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 						onClick={() =>
 							setIsReordering((value) => {
 								const next = !value
@@ -256,10 +253,16 @@ const PinnedPageRow = ({
 	}, [page.route])
 
 	return (
-		<div ref={setNodeRef} style={style} className="group relative" data-reordering={isReordering} data-dragging={isDragging}>
+		<div
+			ref={setNodeRef}
+			style={style}
+			className="group relative"
+			data-reordering={isReordering}
+			data-dragging={isDragging}
+		>
 			{isReordering ? (
 				<div
-					className={`group/link ${NAV_ITEM_CLASS} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
+					className={`group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
 					data-dragging={isDragging}
 				>
 					<div className="flex w-full items-center gap-2">
@@ -317,7 +320,7 @@ const LinkToPage = React.memo(function LinkToPage({
 		<BasicLink
 			href={route}
 			data-linkactive={isActive}
-			className={`group/link ${NAV_ITEM_CLASS}`}
+			className={`group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10`}
 			onClick={() => setShow(false)}
 		>
 			<NavItemContent name={name} icon={icon} attention={attention} />
