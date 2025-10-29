@@ -231,6 +231,16 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField
 
+		const xAxisSymbol = config.axes.x.valueSymbol ?? config.valueSymbol ?? ''
+		const yAxisSymbol = config.axes.yAxes[0]?.valueSymbol ?? config.valueSymbol ?? ''
+
+		const formatValue = (val: number, symbol: string) => {
+			if (symbol === '$') return formattedNum(val, true)
+			if (symbol === '%') return val.toFixed(2) + '%'
+			if (symbol === '') return formattedNum(val)
+			return `${formattedNum(val)} ${symbol}`
+		}
+
 		const scatterProps = {
 			chartData: scatterData,
 			title: config.title,
@@ -243,12 +253,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 					const xValue = params.value[0]
 					const yValue = params.value[1]
 					const entityName = params.value[2] || 'Unknown'
-					const formatValue = (val: number) => {
-						if (config.valueSymbol === '$') return formattedNum(val, true)
-						if (config.valueSymbol === '%') return val.toFixed(2) + '%'
-						return formattedNum(val)
-					}
-					return `<strong>${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue)}<br/>${yAxisLabel}: ${formatValue(yValue)}`
+					return `<strong>${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue, xAxisSymbol)}<br/>${yAxisLabel}: ${formatValue(yValue, yAxisSymbol)}`
 				}
 				return ''
 			}
@@ -474,7 +479,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			hideDataZoom: true,
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
-			xAxisType: config.axes.x.type,
+			xAxisType: config.axes.x.type === 'value' ? 'category' : config.axes.x.type,
 
 			...(config.hallmarks?.length && {
 				hallmarks: normalizeHallmarks(config.hallmarks)
