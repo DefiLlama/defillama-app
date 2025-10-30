@@ -262,7 +262,6 @@ export interface IProtocolOverviewPageData {
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 	seoDescription: string
 	seoKeywords: string
-	borrowedBreakdown?: { chains: Array<[string, number]>; tokens: Array<[string, number]> }
 }
 
 interface ICredit {
