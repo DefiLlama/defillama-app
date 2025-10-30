@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { AUTH_SERVER } from '~/constants'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SubscribeLayout } from '~/containers/Subscribtion/Layout'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { AUTH_SERVER } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export default function Account() {
 	const router = useRouter()
@@ -45,12 +45,6 @@ export default function Account() {
 
 				await queryClient.invalidateQueries({ queryKey: ['subscription'] })
 				setPaymentStatus('success')
-
-				// Remove session_id from URL after successful verification
-				setTimeout(() => {
-					router.replace('/account', undefined, { shallow: true })
-					setShowPaymentModal(false)
-				}, 3000)
 			} catch (err) {
 				console.error('Error verifying session:', err)
 				setError(err instanceof Error ? err.message : 'Failed to verify payment')
