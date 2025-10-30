@@ -3,6 +3,25 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { cn } from '~/utils/cn'
+
+const FEATURE_SECTIONS = [
+	{
+		title: 'Which protocols show strong 30-day growth but falling prices?',
+		description:
+			'Combines TVL, fee, and price data to uncover projects where fundamentals are surging while sentiment lags — highlighting potential mispriced opportunities across DeFi.'
+	},
+	{
+		title: 'Which weekday is statistically best to buy Bitcoin?',
+		description:
+			'Calculates average daily BTC returns by weekday, ranks buy windows, and auto-builds a bar chart + table — surfacing midweek rallies, Friday dips, and weekend volatility.'
+	},
+	{
+		title: 'Who’s winning the perpetuals war between Hyperliquid, Lighter & Aster?',
+		description:
+			'Compares trading volume, open interest, and protocol revenue growth across top perp platforms — revealing which one’s gaining real traction versus speculative hype.'
+	}
+]
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -10,6 +29,7 @@ const SubscribeProModal = lazy(() =>
 
 export default function LlamaAIGetStarted() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const [activeFeature, setActiveFeature] = useState(0)
 	const { subscription } = useSubscribe()
 
 	return (
@@ -51,11 +71,11 @@ export default function LlamaAIGetStarted() {
 						<img src="/icons/llama-ai.svg" alt="LlamaAI" className="z-10 object-contain" width={83} height={99} />
 					</span>
 					<h1 className="-mt-1 -mb-2 text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
-						LlamaAI: Your AI Assistant for DeFi Data
+						<span>LlamaAI</span>
+						<span className="mt-1 block text-lg font-semibold text-white">Insight, accelerated</span>
 					</h1>
 					<p className="text-center text-lg leading-6 text-[#666] dark:text-[#919296]">
-						Ask questions, generate charts, and explore any DeFi metric instantly. LlamaAI brings the power of
-						DefiLlama's comprehensive data to your fingertips through natural conversation.
+						Richer metrics than the UI and automatic charts in a conversation-driven flow, all in one place.
 					</p>
 					{subscription?.status === 'active' ? (
 						<BasicLink
@@ -90,31 +110,45 @@ export default function LlamaAIGetStarted() {
 				</div>
 				<div className="mx-auto mb-15 flex w-full max-w-5xl flex-col gap-4">
 					<h2 className="text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
-						Everything you need
+						See what’s possible with LlamaAI
 					</h2>
 					<div className="flex flex-col rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] lg:flex-row lg:pt-8 dark:border-[#39393E] dark:bg-[#222429]">
-						<div className="flex flex-1 flex-col gap-4 px-4 lg:px-8">
-							<div className="flex flex-col gap-2 border-l-2 border-[#FDE0A9] pl-4 text-[#666] dark:text-[#919296]">
-								<h3 className="text-lg font-semibold text-black dark:text-white">Lorem ipsum dolor sit amet.</h3>
-								<p className="text-base">
-									Veniam nulla ex ut ad esse. Consectetur est do quis. Proident ipsum aute occaecat ut nisi ex
-									reprehenderit laborum ipsum.
-								</p>
-							</div>
-							<div className="flex flex-col gap-2 text-[#666] dark:text-[#919296]">
-								<h3 className="text-lg font-semibold">Lorem ipsum dolor sit amet.</h3>
-								<p className="text-base">
-									Veniam nulla ex ut ad esse. Consectetur est do quis. Proident ipsum aute occaecat ut nisi ex
-									reprehenderit laborum ipsum.
-								</p>
-							</div>
-							<div className="flex flex-col gap-2 text-[#666] dark:text-[#919296]">
-								<h3 className="text-lg font-semibold">Lorem ipsum dolor sit amet.</h3>
-								<p className="text-base">
-									Veniam nulla ex ut ad esse. Consectetur est do quis. Proident ipsum aute occaecat ut nisi ex
-									reprehenderit laborum ipsum.
-								</p>
-							</div>
+						<div className="flex flex-1 flex-col gap-2 px-4 py-4 lg:px-8 lg:py-0">
+							{FEATURE_SECTIONS.map((section, index) => {
+								const isActive = index === activeFeature
+
+								return (
+									<button
+										key={section.title}
+										type="button"
+										onClick={() => setActiveFeature(index)}
+										className={cn(
+											'group flex w-full cursor-pointer flex-col gap-2 rounded-xl px-4 py-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FDE0A9] focus-visible:outline-none',
+											isActive
+												? 'border-l-2 border-[#FDE0A9] pl-[14px] text-black dark:text-white'
+												: 'pl-[18px] text-[#666] opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100 dark:text-[#6F7074]'
+										)}
+										aria-pressed={isActive}
+									>
+										<span
+											className={cn(
+												'text-lg font-semibold transition-colors duration-200',
+												isActive ? 'text-black dark:text-white' : 'text-[#666] dark:text-[#919296]'
+											)}
+										>
+											{section.title}
+										</span>
+										<span
+											className={cn(
+												'text-base leading-6 transition-colors duration-200',
+												isActive ? 'text-[#666] dark:text-[#919296]' : 'text-[#666] dark:text-[#6F7074]'
+											)}
+										>
+											{section.description}
+										</span>
+									</button>
+								)
+							})}
 						</div>
 						<div className="h-full w-full max-w-[562px] overflow-hidden rounded-br-2xl rounded-bl-2xl border-t border-[#E6E6E6] max-lg:overflow-hidden lg:rounded-tl-lg lg:rounded-bl-none lg:border-l dark:border-[#39393E]">
 							<img
