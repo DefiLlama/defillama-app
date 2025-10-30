@@ -72,11 +72,11 @@ export default function LlamaAIGetStarted() {
 					</span>
 					<h1 className="-mt-1 -mb-2 text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
 						<span>LlamaAI</span>
-						<span className="mt-1 block text-lg font-semibold text-white">Insight, accelerated</span>
+						<span className="mt-1 block text-lg font-semibold text-black dark:text-white">Insight, accelerated</span>
 					</h1>
 					<p className="text-center text-lg leading-6 text-[#666] dark:text-[#919296]">
-						Go beyond dashboards - LlamaAI brings DefiLlama’s data to your fingertips, turning conversation into deep,
-						flexible analysis.
+						Go beyond dashboards with DefiLlama’s data at your fingertips, turning conversation into deep, flexible
+						analysis.
 					</p>
 					{subscription?.status === 'active' ? (
 						<BasicLink
@@ -126,8 +126,8 @@ export default function LlamaAIGetStarted() {
 										className={cn(
 											'group flex w-full cursor-pointer flex-col gap-2 rounded-xl px-4 py-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FDE0A9] focus-visible:outline-none',
 											isActive
-												? 'border-l-2 border-[#FDE0A9] pl-[14px] text-black dark:text-white'
-												: 'pl-[18px] text-[#666] opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100 dark:text-[#6F7074]'
+												? 'rounded-l-none border-l-[3px] border-[#FDE0A9] pl-[15px] text-black dark:text-white'
+												: 'pl-[18px] text-[#666] opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 dark:text-[#6F7074]'
 										)}
 										aria-pressed={isActive}
 									>
@@ -142,7 +142,7 @@ export default function LlamaAIGetStarted() {
 										<span
 											className={cn(
 												'text-base leading-6 transition-colors duration-200',
-												isActive ? 'text-[#666] dark:text-[#919296]' : 'text-[#666] dark:text-[#6F7074]'
+												isActive ? 'text-[#666] dark:text-[#919296]' : 'text-[#666]/80 dark:text-[#6F7074]'
 											)}
 										>
 											{section.description}
