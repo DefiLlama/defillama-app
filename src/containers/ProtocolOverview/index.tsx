@@ -311,18 +311,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 						)}
 					</p>
 				) : null}
-				{props.currentTvlByChain?.borrowed != null ? (
-					<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
-						<span className="text-(--text-label)">Borrowed</span>
-						<Flag
-							protocol={props.name}
-							dataType="Borrowed"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-						<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.borrowed)}</span>
-					</p>
-				) : null}
+				<BorrowedBreakdown {...props} />
 				<TokenLiquidity {...props} />
 				<Treasury {...props} />
 				<Raises {...props} />
@@ -330,6 +319,78 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 			</div>
 			<Flag protocol={props.name} isLending={props.category === 'Lending'} />
 		</div>
+	)
+}
+
+const BorrowedBreakdown = (props: IKeyMetricsProps) => {
+	if (props.currentTvlByChain?.borrowed == null) return null
+
+	if (props.borrowedBreakdown?.chains.length === 0 && props.borrowedBreakdown?.tokens.length === 0) {
+		return (
+			<p className="group flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
+				<span className="text-(--text-label)">Borrowed</span>
+				<Flag
+					protocol={props.name}
+					dataType="Borrowed"
+					isLending={props.category === 'Lending'}
+					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.borrowed)}</span>
+			</p>
+		)
+	}
+
+	return (
+		<details className="group">
+			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
+				<span className="text-(--text-label)">Borrowed</span>
+				<Icon
+					name="chevron-down"
+					height={16}
+					width={16}
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
+				/>
+				<Flag
+					protocol={props.name}
+					dataType="Borrowed"
+					isLending={props.category === 'Lending'}
+					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+				/>
+				<span className="font-jetbrains ml-auto">{props.formatPrice(props.currentTvlByChain.borrowed)}</span>
+			</summary>
+			<div className="mb-3 flex flex-col">
+				{props.borrowedBreakdown?.chains.length > 0 ? (
+					<details className="group/1">
+						<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last/1:border-none group-open/1:border-none group-open/1:font-semibold">
+							<span className="text-(--text-label)">Borrowed by Chain</span>
+							<Icon
+								name="chevron-down"
+								height={16}
+								width={16}
+								className="relative top-0.5 -ml-3 transition-transform duration-100 group-open/1:rotate-180"
+							/>
+							<Flag
+								protocol={props.name}
+								dataType="Borrowed by Chain"
+								isLending={props.category === 'Lending'}
+								className="mr-auto opacity-0 group-hover/1:opacity-100 group-focus-visible/1:opacity-100"
+							/>
+						</summary>
+						<div className="mb-3 flex flex-col">
+							{props.borrowedBreakdown?.chains.map(([chain, tvl]) => (
+								<p
+									key={`${chain}-${tvl}-${props.name}`}
+									className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] py-1 group-last:border-none dark:border-[#222224]"
+								>
+									<span className="text-(--text-label)">{chain}</span>
+									<span className="font-jetbrains">{props.formatPrice(tvl)}</span>
+								</p>
+							))}
+						</div>
+					</details>
+				) : null}
+			</div>
+		</details>
 	)
 }
 
