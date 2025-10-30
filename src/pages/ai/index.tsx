@@ -124,10 +124,10 @@ export default function LlamaAIGetStarted() {
 										type="button"
 										onClick={() => setActiveFeature(index)}
 										className={cn(
-											'group flex w-full cursor-pointer flex-col gap-2 rounded-xl px-4 py-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FDE0A9] focus-visible:outline-none',
+											'group flex w-full cursor-pointer flex-col gap-2 px-4 py-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FDE0A9] focus-visible:outline-none',
 											isActive
-												? 'rounded-l-none border-l-[3px] border-[#FDE0A9] pl-[15px] text-black dark:text-white'
-												: 'rounded-l-none border-l-[3px] border-transparent pl-[15px] text-[#666] opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 dark:text-[#6F7074]'
+												? 'border-l-[3px] border-[#FDE0A9] pl-[15px] text-black dark:text-white'
+												: 'border-l-[3px] border-transparent pl-[15px] text-[#666] opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 dark:text-[#6F7074]'
 										)}
 										aria-pressed={isActive}
 									>
