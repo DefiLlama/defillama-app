@@ -75,7 +75,8 @@ export default function LlamaAIGetStarted() {
 						<span className="mt-1 block text-lg font-semibold text-white">Insight, accelerated</span>
 					</h1>
 					<p className="text-center text-lg leading-6 text-[#666] dark:text-[#919296]">
-						Richer metrics than the UI and automatic charts in a conversation-driven flow, all in one place.
+						Go beyond dashboards - LlamaAI brings DefiLlama’s data to your fingertips, turning conversation into deep,
+						flexible analysis.
 					</p>
 					{subscription?.status === 'active' ? (
 						<BasicLink
