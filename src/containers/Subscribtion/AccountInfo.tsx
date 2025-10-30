@@ -87,7 +87,7 @@ export const AccountInfo = () => {
 					Please sign in to view and manage your account information and subscription details.
 				</p>
 				<button
-					onClick={() => (window.location.href = '/subscribe')}
+					onClick={() => (window.location.href = '/subscription')}
 					className="group relative mx-auto flex items-center gap-2 overflow-hidden rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#4335A8] px-5 py-2.5 text-sm text-white shadow-[0_4px_20px_rgba(92,92,249,0.25)] transition-all duration-300 hover:from-[#4A4AF0] hover:to-[#3925A0] sm:px-6 sm:py-3"
 				>
 					<div className="animate-shimmer absolute inset-0 h-full w-full bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-size-[250%_250%] opacity-0 transition-opacity group-hover:opacity-100"></div>
