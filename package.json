@@ -24,6 +24,8 @@
 		"@marsidev/react-turnstile": "1.1.0",
 		"@meilisearch/instant-meilisearch": "0.27.0",
 		"@rainbow-me/rainbowkit": "2.2.1",
+		"@stripe/react-stripe-js": "^5.3.0",
+		"@stripe/stripe-js": "^8.2.0",
 		"@tailwindcss/typography": "^0.5.16",
 		"@tanstack/react-query": "5.85.0",
 		"@tanstack/react-query-devtools": "5.61.3",
