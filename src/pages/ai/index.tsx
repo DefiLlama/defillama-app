@@ -114,7 +114,7 @@ export default function LlamaAIGetStarted() {
 						See what’s possible with LlamaAI
 					</h2>
 					<div className="flex flex-col rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] lg:flex-row lg:pt-8 dark:border-[#39393E] dark:bg-[#222429]">
-						<div className="flex flex-1 flex-col gap-2 px-4 py-4 lg:px-8 lg:py-0">
+						<div className="flex flex-1 flex-col gap-2 px-4 py-4 lg:px-8 lg:pt-0 lg:pb-8">
 							{FEATURE_SECTIONS.map((section, index) => {
 								const isActive = index === activeFeature
 
@@ -153,9 +153,9 @@ export default function LlamaAIGetStarted() {
 						</div>
 						<div className="h-full w-full max-w-[562px] overflow-hidden rounded-br-2xl rounded-bl-2xl border-t border-[#E6E6E6] max-lg:overflow-hidden lg:rounded-tl-lg lg:rounded-bl-none lg:border-l dark:border-[#39393E]">
 							<img
-								src="/assets/llamaai-4.png"
+								src={`/assets/llamaai-${activeFeature > 2 ? 1 : activeFeature + 1}.png`}
 								alt=""
-								className="aspect-[562/445] h-full w-full translate-x-[-13.5%] translate-y-[10%] scale-[1.85] object-contain max-lg:aspect-[501/397] max-lg:translate-x-[-11%] max-lg:translate-y-[13.5%] max-lg:scale-[1.5] max-lg:object-cover"
+								className="h-full w-full bg-[#131516] object-contain object-top"
 							/>
 						</div>
 					</div>
