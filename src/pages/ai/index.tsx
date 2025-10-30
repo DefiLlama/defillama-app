@@ -155,7 +155,12 @@ export default function LlamaAIGetStarted() {
 							<img
 								src={`/assets/llamaai-${activeFeature > 2 ? 1 : activeFeature + 1}.png`}
 								alt=""
-								className="h-full w-full bg-[#131516] object-contain object-top"
+								className="hidden h-full w-full bg-[#131516] object-contain object-top dark:block"
+							/>
+							<img
+								src={`/assets/llamaai-${activeFeature > 2 ? 1 : activeFeature + 1}-light.png`}
+								alt=""
+								className="block h-full w-full bg-[#fffff] object-contain object-top dark:hidden"
 							/>
 						</div>
 					</div>
