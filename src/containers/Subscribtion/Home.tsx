@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
+import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
@@ -212,6 +212,16 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				)}
 
+				{isAuthenticated && !user?.verified && !isWalletUser && user?.email && (
+					<div className="mx-auto w-full max-w-3xl">
+						<EmailVerificationWarning
+							email={user.email}
+							onResendVerification={handleResendVerification}
+							isLoading={loaders.resendVerification}
+						/>
+					</div>
+				)}
+
 				{isAuthenticated && isSubscribed ? null : (
 					<div
 						className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
@@ -302,18 +312,19 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							</span>
 						</div>
 
-						{isAuthenticated && (
-							<div className="relative z-10 mt-6 flex flex-col items-center gap-3 rounded-xl border border-[#39393E] bg-[#1a1b1f]/50 p-6 backdrop-blur-sm">
-								<Icon name="user" height={24} width={24} className="text-[#5C5CF9]" />
-								<p className="text-center text-[#b4b7bc]">
-									Already a subscriber or need to manage your account?
-								</p>
-								<button
-									onClick={() => router.push('/account')}
-									className="rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 px-6 py-2.5 font-medium text-[#5C5CF9] transition-all hover:border-[#5C5CF9]/50 hover:bg-[#5C5CF9]/20"
-								>
-									Go to Account
-								</button>
+						{isAuthenticated && !isSubscribed && (
+							<div className="relative z-10 mt-8 w-full">
+								<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+									<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
+									Manage Account
+								</h3>
+								<AccountStatus
+									user={user}
+									isVerified={user?.verified}
+									isSubscribed={isSubscribed}
+									subscription={subscription}
+									onEmailChange={() => setShowEmailForm(true)}
+								/>
 							</div>
 						)}
 					</div>

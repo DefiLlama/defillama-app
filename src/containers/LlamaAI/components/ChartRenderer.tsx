@@ -1,8 +1,8 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
+import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
-import { formattedNum } from '~/utils'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
@@ -249,7 +249,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 									const yValue = params[0]?.value?.[1]
 									const seriesName = params[0]?.seriesName
 									const valueSymbol = config.valueSymbol || '$'
-									const formattedValue = valueSymbol === '$' ? formattedNum(yValue, true) : `${yValue}${valueSymbol}`
+									const formattedValue = formatTooltipValue(yValue, valueSymbol)
 									return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
 								}
 							}
