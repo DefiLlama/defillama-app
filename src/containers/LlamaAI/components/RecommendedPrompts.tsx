@@ -123,7 +123,7 @@ export const RecommendedPrompts = ({
 							key={`prompt-category-${category.name}`}
 							id={`tab-${category.name}`}
 							tabbable
-							className="flex items-center justify-center gap-2.5 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] hover:bg-[#f7f7f7] hover:text-black focus-visible:bg-[#f7f7f7] focus-visible:text-black dark:border-[#222324] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white dark:focus-visible:bg-[#222324] dark:focus-visible:text-white"
+							className="flex items-center justify-center gap-2.5 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] hover:bg-[#f7f7f7] hover:text-black focus-visible:bg-[#f7f7f7] focus-visible:text-black data-[active-item]:bg-[#f7f7f7] data-[active-item]:text-black dark:border-[#222324] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white dark:focus-visible:bg-[#222324] dark:focus-visible:text-white dark:data-[active-item]:bg-[#222324] dark:data-[active-item]:text-white"
 						>
 							<Icon name={category.icon} height={16} width={16} />
 							<span>{category.name}</span>
