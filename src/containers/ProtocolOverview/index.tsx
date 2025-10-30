@@ -1877,10 +1877,11 @@ const MethodologyByAdapter = ({
 
 	return (
 		<>
-			{adapter?.methodology ? (
+			{adapter?.methodology || adapter?.methodologyURL ? (
 				adapter?.methodologyURL ? (
 					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
-						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
+						<span className="font-medium">{title}:</span>{' '}
+						{adapter.methodology ? <span>{adapter.methodology}</span> : null}
 						{adapter.methodologyURL ? (
 							<span className="relative top-0.5 left-1 inline-block">
 								<Icon name="external-link" className="h-3.5 w-3.5" />
