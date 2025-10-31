@@ -141,7 +141,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						grid: {
 							top: 24,
 							right: 12,
-							bottom: 12,
+							bottom: 68,
 							left: 12
 						},
 						tooltip: {
@@ -233,11 +233,11 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						],
 						title: config.title,
 						valueSymbol: config.valueSymbol || '$',
-						height: '300px',
+						height: '360px',
 						xAxisType: 'category',
 						chartOptions: {
 							grid: {
-								bottom: 12,
+								bottom: 68,
 								left: 12,
 								right: 12
 							},
