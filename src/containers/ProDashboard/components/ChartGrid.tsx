@@ -33,6 +33,7 @@ const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
 const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
 const MetricCard = lazy(() => import('./MetricCard').then((mod) => ({ default: mod.MetricCard })))
+const UnifiedTable = lazy(() => import('./UnifiedTable').then((mod) => ({ default: mod.UnifiedTable })))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -187,6 +188,14 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 		if (item.kind === 'text') {
 			return <TextCard text={item} />
+		}
+
+		if (item.kind === 'unified-table') {
+			return (
+				<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1 md:min-h-[380px]" />}>
+					<UnifiedTable config={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'table') {

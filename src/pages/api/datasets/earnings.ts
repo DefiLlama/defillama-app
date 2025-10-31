@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		} else {
 			// Fetch data for specific chains and aggregate
-			const allProtocolsMap = new Map()
+			const allProtocolsMap = new Map<string, any>()
 
 			for (const chainName of chainList) {
 				const chainSlug = slug(chainName)
@@ -59,17 +59,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				// Aggregate protocols across chains
 				data.protocols.forEach((protocol: any) => {
 					const key = protocol.defillamaId || protocol.name
+					const normalizedChainKey = chainName.trim().toLowerCase()
+
 					if (allProtocolsMap.has(key)) {
 						const existing = allProtocolsMap.get(key)
 						existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 						existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 						existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
 						existing.total1y = (existing.total1y || 0) + (protocol.total1y || 0)
-						existing.chains = [...new Set([...existing.chains, chainName])]
+						existing.chains = Array.from(new Set([...(existing.chains || []), chainName]))
+						existing.chainBreakdown = existing.chainBreakdown || {}
+						existing.chainBreakdown[normalizedChainKey] = {
+							...protocol,
+							chain: chainName
+						}
 					} else {
 						allProtocolsMap.set(key, {
 							...protocol,
 							chains: [chainName],
+							chainBreakdown: {
+								[normalizedChainKey]: {
+									...protocol,
+									chain: chainName
+								}
+							},
 							logo: protocol.logo,
 							slug: protocol.slug
 						})
