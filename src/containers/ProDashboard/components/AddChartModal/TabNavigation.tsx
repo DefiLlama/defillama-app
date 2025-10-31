@@ -12,11 +12,12 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },
 		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
+		{ id: 'unified-table' as const, label: 'Unified Table', mobileLabel: 'Unified' },
 		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (
-		<div className="grid grid-cols-4 gap-0">
+		<div className="grid grid-cols-5 gap-0">
 			{tabs.map((tab, index) => (
 				<button
 					key={tab.id}

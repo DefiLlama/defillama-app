@@ -6,6 +6,7 @@ import { SubmitButton } from './SubmitButton'
 import { TableTab } from './TableTab'
 import { TabNavigation } from './TabNavigation'
 import { TextTab } from './TextTab'
+import { UnifiedTableQuickTab } from './UnifiedTableQuickTab'
 import { AddChartModalProps, CombinedTableType } from './types'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
@@ -135,9 +136,9 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 						/>
 					)}
 
-					{state.selectedMainTab === 'table' && (
-						<TableTab
-							selectedChains={state.selectedChains}
+			{state.selectedMainTab === 'table' && (
+				<TableTab
+					selectedChains={state.selectedChains}
 							chainOptions={computed.chainOptions}
 							protocolsLoading={computed.protocolsLoading}
 							onChainsChange={actions.handleChainsChange}
@@ -152,11 +153,13 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 							includeCex={state.includeCex}
 							onIncludeCexChange={actions.setIncludeCex}
 							legacyTableTypes={legacyTableTypes}
-						/>
-					)}
+				/>
+			)}
 
-					{state.selectedMainTab === 'text' && (
-						<TextTab
+			{state.selectedMainTab === 'unified-table' && <UnifiedTableQuickTab onClose={onClose} />}
+
+			{state.selectedMainTab === 'text' && (
+				<TextTab
 							textTitle={state.textTitle}
 							textContent={state.textContent}
 							onTextTitleChange={actions.setTextTitle}
@@ -165,32 +168,34 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 					)}
 				</div>
 
-				<div className="flex-shrink-0">
-					<SubmitButton
-						editItem={editItem}
-						selectedMainTab={state.selectedMainTab}
-						selectedChartTab={state.selectedChartTab}
-						selectedChain={state.selectedChain}
-						selectedChains={state.selectedChains}
-						selectedProtocol={state.selectedProtocol}
-						selectedChartTypes={state.selectedChartTypes}
-						selectedYieldPool={state.selectedYieldPool}
-						composerItems={state.composerItems}
-						textContent={state.textContent}
-						chartTypesLoading={chartTypesLoading}
-						selectedTableType={state.selectedTableType}
-						selectedDatasetChain={state.selectedDatasetChain}
-						selectedTokens={state.selectedTokens}
-						chartBuilder={state.chartBuilder}
-						chartCreationMode={state.chartCreationMode}
-						chartMode={state.chartMode}
-						metricSubjectType={state.metricSubjectType}
-						metricChain={state.metricChain}
-						metricProtocol={state.metricProtocol}
-						metricType={state.metricType}
-						onSubmit={actions.handleSubmit}
-					/>
-				</div>
+				{state.selectedMainTab !== 'unified-table' && (
+					<div className="flex-shrink-0">
+						<SubmitButton
+							editItem={editItem}
+							selectedMainTab={state.selectedMainTab}
+							selectedChartTab={state.selectedChartTab}
+							selectedChain={state.selectedChain}
+							selectedChains={state.selectedChains}
+							selectedProtocol={state.selectedProtocol}
+							selectedChartTypes={state.selectedChartTypes}
+							selectedYieldPool={state.selectedYieldPool}
+							composerItems={state.composerItems}
+							textContent={state.textContent}
+							chartTypesLoading={chartTypesLoading}
+							selectedTableType={state.selectedTableType}
+							selectedDatasetChain={state.selectedDatasetChain}
+							selectedTokens={state.selectedTokens}
+							chartBuilder={state.chartBuilder}
+							chartCreationMode={state.chartCreationMode}
+							chartMode={state.chartMode}
+							metricSubjectType={state.metricSubjectType}
+							metricChain={state.metricChain}
+							metricProtocol={state.metricProtocol}
+							metricType={state.metricType}
+							onSubmit={actions.handleSubmit}
+						/>
+					</div>
+				)}
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

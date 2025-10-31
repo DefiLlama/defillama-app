@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 			res.status(200).json(sortedProtocols)
 		} else {
-			const allProtocolsMap = new Map()
+			const allProtocolsMap = new Map<string, any>()
 
 			for (const chainName of chainList) {
 				const chainSlug = slug(chainName)
@@ -52,15 +52,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 				data.protocols.forEach((protocol: any) => {
 					const key = protocol.defillamaId || protocol.name
+					const normalizedChainKey = chainName.trim().toLowerCase()
+
 					if (allProtocolsMap.has(key)) {
 						const existing = allProtocolsMap.get(key)
 						existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 						existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 						existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+						existing.chains = Array.from(new Set([...(existing.chains || []), chainName]))
+						existing.chainBreakdown = existing.chainBreakdown || {}
+						existing.chainBreakdown[normalizedChainKey] = {
+							...protocol,
+							chain: chainName
+						}
 					} else {
 						allProtocolsMap.set(key, {
 							...protocol,
 							chains: [chainName],
+							chainBreakdown: {
+								[normalizedChainKey]: {
+									...protocol,
+									chain: chainName
+								}
+							},
 							logo: protocol.logo,
 							slug: protocol.slug
 						})

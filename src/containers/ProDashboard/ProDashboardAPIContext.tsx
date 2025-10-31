@@ -19,9 +19,15 @@ import {
 	StoredColSpan,
 	TableFilters,
 	TextConfig,
+	UnifiedTableConfig,
 	YieldsChartConfig
 } from './types'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
+import {
+	DEFAULT_CHAINS_ROW_HEADERS,
+	DEFAULT_PROTOCOLS_ROW_HEADERS,
+	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY
+} from './components/UnifiedTable/constants'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 
@@ -113,6 +119,7 @@ interface ProDashboardContextType {
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleAddMetric: (config: MetricConfig) => void
+	handleAddUnifiedTable: (config?: Partial<UnifiedTableConfig>) => void
 	handleAddChartBuilder: (
 		name: string | undefined,
 		config: {
@@ -957,10 +964,55 @@ export function ProDashboardAPIProvider({
 			setItems((prev) => {
 				const newItems = [...prev, newTable]
 				autoSave(newItems)
+			return newItems
+		})
+	},
+		[isReadOnly, autoSave]
+	)
+
+	const handleAddUnifiedTable = useCallback(
+		(configOverrides?: Partial<UnifiedTableConfig>) => {
+			if (isReadOnly) {
+				return
+			}
+
+			const strategyType = configOverrides?.strategyType ?? 'protocols'
+			const defaultColumnOrder =
+				DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY[strategyType] ??
+				DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY.protocols
+			const defaultRowHeaders =
+				strategyType === 'chains'
+					? DEFAULT_CHAINS_ROW_HEADERS
+					: DEFAULT_PROTOCOLS_ROW_HEADERS
+
+			const newUnifiedTable: UnifiedTableConfig = {
+				id: generateItemId('unified-table', strategyType),
+				kind: 'unified-table',
+				strategyType,
+				rowHeaders: configOverrides?.rowHeaders ?? [...defaultRowHeaders],
+				params:
+					configOverrides?.params ??
+					(strategyType === 'protocols'
+						? {
+								chains: ['All']
+							}
+						: {
+								category: null
+							}),
+				filters: configOverrides?.filters,
+				columnOrder: configOverrides?.columnOrder ?? [...defaultColumnOrder],
+				columnVisibility: configOverrides?.columnVisibility ?? {},
+				activePresetId: configOverrides?.activePresetId,
+				colSpan: configOverrides?.colSpan ?? 2
+			}
+
+			setItems((prev) => {
+				const newItems = [...prev, newUnifiedTable]
+				autoSave(newItems)
 				return newItems
 			})
 		},
-		[isReadOnly, autoSave]
+		[autoSave, isReadOnly]
 	)
 
 	const handleAddMultiChart = useCallback(
@@ -1405,6 +1457,7 @@ export function ProDashboardAPIProvider({
 			handleAddMultiChart,
 			handleAddText,
 			handleAddMetric,
+			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleEditItem,
 			handleRemoveItem,
@@ -1470,6 +1523,7 @@ export function ProDashboardAPIProvider({
 			handleAddMultiChart,
 			handleAddText,
 			handleAddMetric,
+			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleEditItem,
 			handleRemoveItem,
