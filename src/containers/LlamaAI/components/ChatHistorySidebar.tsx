@@ -160,17 +160,14 @@ export function ChatHistorySidebar({
 							}
 
 							return (
-								<div
+								<SessionItem
 									key={`session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`}
+									session={item.session}
+									isActive={item.session.sessionId === currentSessionId}
+									onSessionSelect={onSessionSelect}
+									handleSidebarToggle={handleSidebarToggle}
 									style={style}
-								>
-									<SessionItem
-										session={item.session}
-										isActive={item.session.sessionId === currentSessionId}
-										onSessionSelect={onSessionSelect}
-										handleSidebarToggle={handleSidebarToggle}
-									/>
-								</div>
+								/>
 							)
 						})}
 					</div>
