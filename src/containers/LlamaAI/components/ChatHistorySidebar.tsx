@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -26,6 +27,10 @@ function getGroupName(lastActivity: string) {
 					: 'Older'
 }
 
+type VirtualItem =
+	| { type: 'header'; groupName: string; isFirst: boolean }
+	| { type: 'session'; session: ChatSession; groupName: string }
+
 export function ChatHistorySidebar({
 	handleSidebarToggle,
 	currentSessionId,
@@ -36,6 +41,7 @@ export function ChatHistorySidebar({
 	const { user } = useAuthContext()
 	const { sessions, isLoading } = useChatHistory()
 	const sidebarRef = useRef<HTMLDivElement>(null)
+	const scrollContainerRef = useRef<HTMLDivElement>(null)
 
 	const groupedSessions = useMemo(() => {
 		return Object.entries(
@@ -48,6 +54,30 @@ export function ChatHistorySidebar({
 			[string, Array<ChatSession>]
 		>
 	}, [sessions])
+
+	const virtualItems = useMemo(() => {
+		const items: VirtualItem[] = []
+		groupedSessions.forEach(([groupName, groupSessions], groupIndex) => {
+			items.push({ type: 'header', groupName, isFirst: groupIndex === 0 })
+			groupSessions.forEach((session) => {
+				items.push({ type: 'session', session, groupName })
+			})
+		})
+		return items
+	}, [groupedSessions])
+
+	const virtualizer = useVirtualizer({
+		count: virtualItems.length,
+		getScrollElement: () => scrollContainerRef.current,
+		estimateSize: (index) => {
+			const item = virtualItems[index]
+			if (item.type === 'header') {
+				return item.isFirst ? 20 : 32 // First header has less padding
+			}
+			return 32 // Session item height
+		},
+		overscan: 5
+	})
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -91,32 +121,59 @@ export function ChatHistorySidebar({
 				</button>
 			</div>
 
-			<div className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
+			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
 				{isLoading ? (
 					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						<LoadingSpinner size={12} />
 					</div>
 				) : sessions.length === 0 ? (
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
-						You don’t have any chats yet
+						You don't have any chats yet
 					</p>
 				) : (
-					<>
-						{groupedSessions.map(([groupName, sessions]) => (
-							<div key={groupName} className="group/parent flex flex-col gap-0.5">
-								<h2 className="pt-2.5 text-xs text-[#666] group-first/parent:pt-0 dark:text-[#919296]">{groupName}</h2>
-								{sessions.map((session) => (
+					<div
+						style={{
+							height: `${virtualizer.getTotalSize()}px`,
+							width: '100%',
+							position: 'relative'
+						}}
+					>
+						{virtualizer.getVirtualItems().map((virtualItem) => {
+							const item = virtualItems[virtualItem.index]
+							const style = {
+								position: 'absolute' as const,
+								top: 0,
+								left: 0,
+								width: '100%',
+								height: `${virtualItem.size}px`,
+								transform: `translateY(${virtualItem.start}px)`
+							}
+
+							if (item.type === 'header') {
+								return (
+									<div key={`header-${item.groupName}`} style={style}>
+										<h2 className={`text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}>
+											{item.groupName}
+										</h2>
+									</div>
+								)
+							}
+
+							return (
+								<div
+									key={`session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`}
+									style={style}
+								>
 									<SessionItem
-										key={`${session.sessionId}-${session.isPublic}-${session.lastActivity}`}
-										session={session}
-										isActive={session.sessionId === currentSessionId}
+										session={item.session}
+										isActive={item.session.sessionId === currentSessionId}
 										onSessionSelect={onSessionSelect}
 										handleSidebarToggle={handleSidebarToggle}
 									/>
-								))}
-							</div>
-						))}
-					</>
+								</div>
+							)
+						})}
+					</div>
 				)}
 			</div>
 		</div>
