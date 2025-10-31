@@ -333,7 +333,6 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			valueSymbol: config.valueSymbol ?? '',
 			color,
 			height: '300px',
-			hideDataZoom: true,
 			hideDownloadButton: false,
 			tooltipSort: true,
 
@@ -350,7 +349,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 				grid: {
 					top: 12,
 					right: 12,
-					bottom: 12,
+					bottom: 68,
 					left: 12
 				},
 				tooltip: {
@@ -476,7 +475,6 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			series: validSeries,
 			title: config.title,
 			height: '300px',
-			hideDataZoom: true,
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
 			xAxisType: config.axes.x.type === 'value' ? 'category' : config.axes.x.type,
@@ -489,7 +487,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				grid: {
 					top: 24,
 					right: 12,
-					bottom: 12,
+					bottom: 68,
 					left: 12
 				},
 				tooltip: {

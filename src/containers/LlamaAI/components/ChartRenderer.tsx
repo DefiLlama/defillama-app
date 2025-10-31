@@ -234,7 +234,6 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						title: config.title,
 						valueSymbol: config.valueSymbol || '$',
 						height: '300px',
-						hideDataZoom: true,
 						xAxisType: 'category',
 						chartOptions: {
 							grid: {
