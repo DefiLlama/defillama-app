@@ -21,6 +21,8 @@ export const basicPropertiesToKeep: BasicPropsToKeep = [
 	'name',
 	'symbol',
 	'chains',
+	'chainTvls',
+	'logo',
 	'tvlPrevDay',
 	'tvlPrevWeek',
 	'tvlPrevMonth',

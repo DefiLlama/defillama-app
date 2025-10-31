@@ -1,5 +1,5 @@
 import { IOverviewProps } from '~/api/categories/adaptors'
-import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
+import { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { IChainAsset, IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
 import { formatNum, getDominancePercent, getPercentChange } from '~/utils'
@@ -188,6 +188,7 @@ type DimensionDatasetItem = {
 	change_7d?: number
 	change_1m?: number
 	chains?: string[]
+	chainBreakdown?: Record<string, any>
 }
 
 export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: IGroupTvlsByDay) {
@@ -286,6 +287,29 @@ export const formatProtocolsList = ({
 		doublecounted: !extraTvlsEnabled.doublecounted
 	}
 
+	const mergeChainBreakdown = (
+		existing: Record<string, ChainMetricSnapshot> | undefined,
+		incoming?: Record<string, any>
+	): Record<string, ChainMetricSnapshot> | undefined => {
+		if (!incoming) return existing
+		const next: Record<string, ChainMetricSnapshot> = { ...(existing ?? {}) }
+		Object.entries(incoming).forEach(([key, rawValue]) => {
+			if (!rawValue) return
+			const value = rawValue as ChainMetricSnapshot & { chain?: string }
+			const chainLabel =
+				typeof value.chain === 'string' && value.chain.trim().length ? value.chain : key
+			const normalizedKey =
+				typeof chainLabel === 'string' && chainLabel.trim().length
+					? chainLabel.trim().toLowerCase()
+					: key.trim().toLowerCase()
+			next[normalizedKey] = {
+				...value,
+				chain: chainLabel
+			}
+		})
+		return next
+	}
+
 	const allProtocols: Record<string, IFormattedProtocol> = {}
 
 	const shouldModifyTvl = Object.values(checkExtras).some((t) => t)
@@ -358,12 +382,17 @@ export const formatProtocolsList = ({
 
 	for (const protocol of feesData ?? []) {
 		const protocolName = protocol.name?.toLowerCase()
+		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
-			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
 		}
+
+		const previous = allProtocols[protocolName]
+		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
+
 		allProtocols[protocolName] = {
-			...allProtocols[protocolName],
-			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			...previous,
+			chains: mergedChains,
 			fees_24h: protocol.total24h ?? undefined,
 			revenue_24h: protocol.revenue24h ?? undefined,
 			fees_7d: protocol.total7d ?? undefined,
@@ -372,14 +401,14 @@ export const formatProtocolsList = ({
 			fees_1y: protocol.total1y ?? undefined,
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
-			feesChange_1d: protocol.feesChange_1d ?? allProtocols[protocolName].feesChange_1d ?? undefined,
-			feesChange_7d: protocol.feesChange_7d ?? allProtocols[protocolName].feesChange_7d ?? undefined,
-			feesChange_1m: protocol.feesChange_1m ?? allProtocols[protocolName].feesChange_1m ?? undefined,
+			feesChange_1d: protocol.feesChange_1d ?? previous.feesChange_1d ?? undefined,
+			feesChange_7d: protocol.feesChange_7d ?? previous.feesChange_7d ?? undefined,
+			feesChange_1m: protocol.feesChange_1m ?? previous.feesChange_1m ?? undefined,
 			feesChange_7dover7d: protocol.feesChange_7dover7d ?? undefined,
 			feesChange_30dover30d: protocol.feesChange_30dover30d ?? undefined,
-			revenueChange_1d: protocol.revenueChange_1d ?? allProtocols[protocolName].revenueChange_1d ?? undefined,
-			revenueChange_7d: protocol.revenueChange_7d ?? allProtocols[protocolName].revenueChange_7d ?? undefined,
-			revenueChange_1m: protocol.revenueChange_1m ?? allProtocols[protocolName].revenueChange_1m ?? undefined,
+			revenueChange_1d: protocol.revenueChange_1d ?? previous.revenueChange_1d ?? undefined,
+			revenueChange_7d: protocol.revenueChange_7d ?? previous.revenueChange_7d ?? undefined,
+			revenueChange_1m: protocol.revenueChange_1m ?? previous.revenueChange_1m ?? undefined,
 			revenueChange_7dover7d: protocol.revenueChange_7dover7d ?? undefined,
 			revenueChange_30dover30d: protocol.revenueChange_30dover30d ?? undefined,
 			average_1y: protocol.monthlyAverage1y ?? undefined,
@@ -391,56 +420,73 @@ export const formatProtocolsList = ({
 			supplySideRevenue_24h: protocol.dailySupplySideRevenue || undefined,
 			userFees_24h: protocol.dailyUserFees || undefined,
 			cumulativeFees: protocol.totalAllTime || undefined,
-			pf: protocol.pf ?? allProtocols[protocolName].pf ?? undefined,
-			ps: protocol.ps ?? allProtocols[protocolName].ps ?? undefined
+			pf: protocol.pf ?? previous.pf ?? undefined,
+			ps: protocol.ps ?? previous.ps ?? undefined,
+			feesByChain: mergeChainBreakdown(previous.feesByChain, protocol.chainBreakdown),
+			revenueByChain: mergeChainBreakdown(previous.revenueByChain, protocol.chainBreakdown)
 		}
 	}
 
 	for (const protocol of volumeData ?? []) {
 		const protocolName = protocol.name?.toLowerCase()
+		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
 			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
+		const previous = allProtocols[protocolName]
+		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
+
 		allProtocols[protocolName] = {
-			...allProtocols[protocolName],
-			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			...previous,
+			chains: mergedChains,
 			volume_24h: protocol.total24h ?? undefined,
 			volume_7d: protocol.total7d ?? undefined,
 			volume_30d: protocol.total30d ?? undefined,
-			volumeChange_1d: protocol.change_1d ?? allProtocols[protocolName].volumeChange_1d,
-			volumeChange_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? allProtocols[protocolName].volumeChange_7d,
-			volumeChange_1m: protocol.change_1m ?? allProtocols[protocolName].volumeChange_1m,
-			cumulativeVolume: protocol.totalAllTime ?? allProtocols[protocolName].cumulativeVolume
+			volumeChange_1d: protocol.change_1d ?? previous.volumeChange_1d,
+			volumeChange_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.volumeChange_7d,
+			volumeChange_1m: protocol.change_1m ?? previous.volumeChange_1m,
+			cumulativeVolume: protocol.totalAllTime ?? previous.cumulativeVolume,
+			volumeByChain: mergeChainBreakdown(previous.volumeByChain, protocol.chainBreakdown)
 		}
 	}
 
 	for (const protocol of perpsData ?? []) {
 		const protocolName = protocol.name?.toLowerCase()
+		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
 			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
+		const previous = allProtocols[protocolName]
+		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
+
 		allProtocols[protocolName] = {
-			...allProtocols[protocolName],
-			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			...previous,
+			chains: mergedChains,
 			perps_volume_24h: protocol.total24h ?? undefined,
 			perps_volume_7d: protocol.total7d ?? undefined,
 			perps_volume_30d: protocol.total30d ?? undefined,
-			perps_volume_change_1d: protocol.change_1d ?? allProtocols[protocolName].perps_volume_change_1d,
+			perps_volume_change_1d: protocol.change_1d ?? previous.perps_volume_change_1d,
 			perps_volume_change_7d:
-				protocol.change_7d ?? protocol['change_7dover7d'] ?? allProtocols[protocolName].perps_volume_change_7d,
-			perps_volume_change_1m: protocol.change_1m ?? allProtocols[protocolName].perps_volume_change_1m
+				protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.perps_volume_change_7d,
+			perps_volume_change_1m: protocol.change_1m ?? previous.perps_volume_change_1m,
+			perpsVolumeByChain: mergeChainBreakdown(previous.perpsVolumeByChain, protocol.chainBreakdown)
 		}
 	}
 
 	for (const protocol of openInterestData ?? []) {
 		const protocolName = protocol.name?.toLowerCase()
+		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
 			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
 		}
+		const previous = allProtocols[protocolName]
+		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
+
 		allProtocols[protocolName] = {
-			...allProtocols[protocolName],
-			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
-			openInterest: protocol.total24h
+			...previous,
+			chains: mergedChains,
+			openInterest: protocol.total24h,
+			openInterestByChain: mergeChainBreakdown(previous.openInterestByChain, protocol.chainBreakdown)
 		}
 	}
 
@@ -450,16 +496,20 @@ export const formatProtocolsList = ({
 		if (!allProtocols[protocolName]) {
 			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
 		}
+		const previous = allProtocols[protocolName]
+		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
+
 		allProtocols[protocolName] = {
-			...allProtocols[protocolName],
-			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
-			earnings_24h: protocol.total24h ?? allProtocols[protocolName].earnings_24h,
-			earnings_7d: protocol.total7d ?? allProtocols[protocolName].earnings_7d,
-			earnings_30d: protocol.total30d ?? allProtocols[protocolName].earnings_30d,
-			earnings_1y: (protocol as any)?.total1y ?? allProtocols[protocolName].earnings_1y,
-			earningsChange_1d: protocol.change_1d ?? allProtocols[protocolName].earningsChange_1d,
-			earningsChange_7d: protocol.change_7d ?? allProtocols[protocolName].earningsChange_7d,
-			earningsChange_1m: protocol.change_1m ?? allProtocols[protocolName].earningsChange_1m
+			...previous,
+			chains: mergedChains,
+			earnings_24h: protocol.total24h ?? previous.earnings_24h,
+			earnings_7d: protocol.total7d ?? previous.earnings_7d,
+			earnings_30d: protocol.total30d ?? previous.earnings_30d,
+			earnings_1y: (protocol as any)?.total1y ?? previous.earnings_1y,
+			earningsChange_1d: protocol.change_1d ?? previous.earningsChange_1d,
+			earningsChange_7d: protocol.change_7d ?? previous.earningsChange_7d,
+			earningsChange_1m: protocol.change_1m ?? previous.earningsChange_1m,
+			earningsByChain: mergeChainBreakdown(previous.earningsByChain, protocol.chainBreakdown)
 		}
 	}
 
@@ -488,7 +538,8 @@ export const formatProtocolsList = ({
 		aggregators_volume_7d: item.total7d ?? protocol.aggregators_volume_7d,
 		aggregators_volume_30d: item.total30d ?? protocol.aggregators_volume_30d,
 		aggregators_volume_change_1d: item.change_1d ?? protocol.aggregators_volume_change_1d,
-		aggregators_volume_change_7d: item.change_7d ?? protocol.aggregators_volume_change_7d
+		aggregators_volume_change_7d: item.change_7d ?? protocol.aggregators_volume_change_7d,
+		aggregatorsVolumeByChain: mergeChainBreakdown(protocol.aggregatorsVolumeByChain, item.chainBreakdown)
 	}))
 
 	mergeVolumeDataset(bridgeAggregatorsData, (protocol, item) => ({
@@ -497,7 +548,8 @@ export const formatProtocolsList = ({
 		bridge_aggregators_volume_7d: item.total7d ?? protocol.bridge_aggregators_volume_7d,
 		bridge_aggregators_volume_30d: item.total30d ?? protocol.bridge_aggregators_volume_30d,
 		bridge_aggregators_volume_change_1d: item.change_1d ?? protocol.bridge_aggregators_volume_change_1d,
-		bridge_aggregators_volume_change_7d: item.change_7d ?? protocol.bridge_aggregators_volume_change_7d
+		bridge_aggregators_volume_change_7d: item.change_7d ?? protocol.bridge_aggregators_volume_change_7d,
+		bridgeAggregatorsVolumeByChain: mergeChainBreakdown(protocol.bridgeAggregatorsVolumeByChain, item.chainBreakdown)
 	}))
 
 	mergeVolumeDataset(optionsData, (protocol, item) => ({
@@ -506,7 +558,8 @@ export const formatProtocolsList = ({
 		options_volume_7d: item.total7d ?? protocol.options_volume_7d,
 		options_volume_30d: item.total30d ?? protocol.options_volume_30d,
 		options_volume_change_1d: item.change_1d ?? protocol.options_volume_change_1d,
-		options_volume_change_7d: item.change_7d ?? protocol.options_volume_change_7d
+		options_volume_change_7d: item.change_7d ?? protocol.options_volume_change_7d,
+		optionsVolumeByChain: mergeChainBreakdown(protocol.optionsVolumeByChain, item.chainBreakdown)
 	}))
 
 	const finalProtocols = Object.values(allProtocols)

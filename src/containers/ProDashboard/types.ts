@@ -123,6 +123,8 @@ export interface YieldsChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
+
 export type DashboardItemConfig =
 	| ChartConfig
 	| ProtocolsTableConfig
@@ -131,6 +133,7 @@ export type DashboardItemConfig =
 	| MetricConfig
 	| ChartBuilderConfig
 	| YieldsChartConfig
+	| UnifiedTableConfig
 
 export interface ChartConfig {
 	id: string
@@ -221,6 +224,23 @@ export interface ProtocolsTableConfig {
 	tokenSymbols?: string[]
 	includeCex?: boolean
 	datasetTimeframe?: string
+}
+
+export interface UnifiedTableConfig {
+	id: string
+	kind: 'unified-table'
+	strategyType: 'protocols' | 'chains'
+	rowHeaders: UnifiedRowHeaderType[]
+	params?: {
+		chains?: string[]
+		category?: string | null
+		[key: string]: any
+	} | null
+	filters?: TableFilters
+	columnOrder?: string[]
+	columnVisibility?: Record<string, boolean>
+	activePresetId?: string
+	colSpan?: StoredColSpan
 }
 
 export interface Protocol {
