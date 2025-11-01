@@ -42,7 +42,7 @@ export const Account = memo(function Account() {
 						<div className="flex flex-col gap-1.5">
 							{user && (
 								<BasicLink
-									href="/subscription"
+									href="/account"
 									className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline"
 								>
 									<Icon name="users" className="h-4 w-4 shrink-0" />

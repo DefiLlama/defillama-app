@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -8,38 +9,15 @@ import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEn
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { AccountInfo } from './AccountInfo'
-import { AccountStatus } from './components/AccountStatus'
-import { EmailChangeModal } from './components/EmailChangeModal'
-import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
 import { TrialActivation } from './components/TrialActivation'
 import { SignIn } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
-	const { isAuthenticated, loaders, user, changeEmail, addEmail, resendVerification } = useAuthContext()
+	const router = useRouter()
+	const { isAuthenticated, loaders, user } = useAuthContext()
 	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
-	const [showEmailForm, setShowEmailForm] = useState(false)
-	const [newEmail, setNewEmail] = useState('')
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
-	const isWalletUser = user?.email?.includes('@defillama.com')
-	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		if (isWalletUser) {
-			await addEmail(newEmail)
-		} else {
-			changeEmail(newEmail)
-		}
-		setNewEmail('')
-		setShowEmailForm(false)
-	}
-
-	const handleResendVerification = () => {
-		if (user?.email) {
-			resendVerification(user.email)
-		}
-	}
-
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 
@@ -125,6 +103,13 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									{billingInterval === 'year' ? '/year' : '/month'}
 								</button>
 								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+								<button
+									onClick={() => router.push('/account')}
+									className="mt-3 flex w-full items-center justify-center gap-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
+								>
+									<Icon name="settings" height={14} width={14} />
+									Manage Account
+								</button>
 							</div>
 						) : (
 							<div className="mx-auto w-full max-w-[400px] lg:hidden">
@@ -247,18 +232,21 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					/>
 				)}
 
-				<EmailChangeModal
-					isOpen={showEmailForm}
-					onClose={() => setShowEmailForm(false)}
-					onSubmit={handleEmailChange}
-					email={newEmail}
-					onEmailChange={setNewEmail}
-					isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}
-					isWalletUser={isWalletUser}
-				/>
 				{isAuthenticated && isSubscribed ? (
-					<div className="mx-auto mt-6 w-full max-w-[1200px]">
-						<AccountInfo />
+					<div className="mx-auto mt-6 flex w-full max-w-[600px] flex-col items-center gap-4">
+						<div className="flex flex-col items-center gap-4 rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
+							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+								<Icon name="check" height={32} width={32} className="text-green-400" />
+							</div>
+							<h2 className="text-2xl font-bold text-white">You're subscribed!</h2>
+							<p className="text-[#8a8c90]">Manage your subscription and view your account details.</p>
+							<button
+								onClick={() => router.push('/account')}
+								className="rounded-lg bg-[#5C5CF9] px-8 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+							>
+								Go to Account
+							</button>
+						</div>
 					</div>
 				) : (
 					<div className="relative">
