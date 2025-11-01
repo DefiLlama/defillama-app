@@ -121,7 +121,7 @@ export function ChatHistorySidebar({
 				</button>
 			</div>
 
-			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto p-4 pt-0">
+			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto p-4 pt-0 pr-1">
 				{isLoading ? (
 					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						<LoadingSpinner size={12} />
