@@ -8,6 +8,7 @@ import { useYieldsTable } from './useYieldsTable'
 import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
 import { YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { YieldsTableHeader } from './YieldsTableHeader'
+import { TablePagination } from '../../ProTable/TablePagination'
 
 interface YieldsDatasetProps {
 	chains?: string[]
@@ -172,21 +173,7 @@ export function YieldsDataset({
 
 			<TableBody table={table} />
 
-			<div className="mt-2 flex w-full items-center justify-between">
-				<TagGroup
-					selectedValue={null}
-					setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
-					values={['Previous', 'Next']}
-				/>
-				<div className="flex items-center">
-					<div className="mr-2 text-xs">Per page</div>
-					<TagGroup
-						selectedValue={String(pagination.pageSize)}
-						values={['10', '30', '50']}
-						setValue={(val) => setPagination((prev) => ({ ...prev, pageSize: Number(val), pageIndex: 0 }))}
-					/>
-				</div>
-			</div>
+			<TablePagination table={table} />
 		</div>
 	)
 }
