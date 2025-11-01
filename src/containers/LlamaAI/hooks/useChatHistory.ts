@@ -1,7 +1,8 @@
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useState, useSyncExternalStore } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
 export interface ChatSession {
@@ -258,17 +259,24 @@ export function useChatHistory() {
 		() => 'true'
 	)
 
+	const [sidebarHiddenMobile, setSidebarHiddenMobile] = useState('true')
+	const isMobile = useMedia('(max-width: 640px)')
+
+	const toggleSidebarMobile = useCallback(() => {
+		setSidebarHiddenMobile((prev) => (prev === 'true' ? 'false' : 'true'))
+	}, [])
+
 	return {
 		sessions,
 		isLoading,
-		sidebarVisible: sidebarHidden !== 'true',
+		sidebarVisible: isMobile ? sidebarHiddenMobile !== 'true' : sidebarHidden !== 'true',
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
 		deleteSession: deleteSessionMutation.mutateAsync,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		moveSessionToTop,
-		toggleSidebar,
+		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebar,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
