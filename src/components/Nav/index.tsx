@@ -11,7 +11,7 @@ import { TNavLinks, TOldNavLink } from './types'
 const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
 const MobileFallback = () => {
 	return (
-		<nav className="flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
+		<nav className="col-span-full flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
 			<BasicLink href="/" className="mr-auto shrink-0">
 				<span className="sr-only">Navigate to Home Page</span>
 				<img

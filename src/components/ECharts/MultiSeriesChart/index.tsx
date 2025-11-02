@@ -194,7 +194,7 @@ export default function MultiSeriesChart({
 					: tooltip,
 			grid: {
 				left: gridLeftPadding,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',

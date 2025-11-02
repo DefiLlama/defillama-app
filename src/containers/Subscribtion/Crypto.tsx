@@ -4,15 +4,17 @@ import { Icon } from '~/components/Icon'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { useSubscribe } from '~/hooks/useSubscribe'
 
 export const PaymentButton = ({
 	paymentMethod,
-	type = 'api'
+	type = 'api',
+	billingInterval = 'month'
 }: {
 	paymentMethod: 'stripe' | 'llamapay'
 	type?: 'api' | 'contributor' | 'llamafeed'
+	billingInterval?: 'year' | 'month'
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()
 	const { isAuthenticated, user } = useAuthContext()
@@ -35,16 +37,14 @@ export const PaymentButton = ({
 
 	const disabled = loading === paymentMethod || (!user?.verified && !user?.address)
 	return (
-		<CustomTooltip
-			content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}
-		>
+		<CustomTooltip content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}>
 			<button
-				onClick={() => handleSubscribe(paymentMethod, type)}
+				onClick={() => handleSubscribe(paymentMethod, type, undefined, billingInterval)}
 				disabled={disabled}
-				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
+				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
 				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
 			>
-				{icon && <Icon name={icon} height={16} width={16} />}
+				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
 				<span className="break-words">{text}</span>
 			</button>
 		</CustomTooltip>

@@ -1,4 +1,4 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { maxAgeForNext } from '~/api'
@@ -26,6 +26,17 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 	}
 })
 
+const RECENTS_KEY = 'recent_protocols'
+
+export function subscribeToRecentProtocols(callback: () => void) {
+	// Listen for localStorage changes (for other settings)
+	window.addEventListener('recentProtocolsChange', callback)
+
+	return () => {
+		window.removeEventListener('recentProtocolsChange', callback)
+	}
+}
+
 export default function Protocols({ protocols }: { protocols: Array<{ name: string; logo: string; route: string }> }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
@@ -40,6 +51,59 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 	const [viewableMatches, setViewableMatches] = useState(20)
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const recentProtocolsInStorage = useSyncExternalStore(
+		subscribeToRecentProtocols,
+		() => window.localStorage.getItem(RECENTS_KEY) ?? '[]',
+		() => '[]'
+	)
+
+	const recentProtocols: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> =
+		useMemo(() => {
+			return JSON.parse(recentProtocolsInStorage)
+				.map((protocol) => ({
+					name: protocol.name,
+					logo: protocol.logo,
+					route: protocol.route,
+					count: protocol.count ?? 1,
+					lastVisited: protocol.lastVisited ?? Date.now()
+				}))
+				.sort((a, b) => {
+					if (b.count !== a.count) return b.count - a.count
+					return b.lastVisited - a.lastVisited
+				})
+				.slice(0, 6)
+		}, [recentProtocolsInStorage])
+
+	const saveRecent = (protocol: { name: string; logo?: string; route: string }) => {
+		try {
+			const existingRaw = typeof window !== 'undefined' ? window.localStorage.getItem(RECENTS_KEY) : null
+			let arr: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> = existingRaw
+				? JSON.parse(existingRaw)
+				: []
+
+			const now = Date.now()
+			const idx = arr.findIndex((x) => x.route === protocol.route)
+			if (idx >= 0) {
+				arr[idx].count = (arr[idx].count || 0) + 1
+				arr[idx].lastVisited = now
+			} else {
+				arr.push({ ...protocol, count: 1, lastVisited: now })
+			}
+
+			arr = arr
+				.sort((a, b) => {
+					if (b.count !== a.count) return b.count - a.count
+					return b.lastVisited - a.lastVisited
+				})
+				.slice(0, 6)
+
+			window.localStorage.setItem(RECENTS_KEY, JSON.stringify(arr))
+			window.dispatchEvent(new Event('recentProtocolsChange'))
+		} catch (e) {
+			console.error('failed to save recent protocol', e)
+		}
+	}
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -65,7 +129,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 			canonicalUrl={`/directory`}
 		>
 			<Announcement notCancellable>
-				Search any protocol to go straight into their website, avoiding scam results from google. Bookmark this page for
+				Search any protocol to go straight into their website, avoiding scam results from Google. Bookmark this page for
 				better access and security
 			</Announcement>
 			<Ariakit.ComboboxProvider
@@ -75,6 +139,33 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 					})
 				}}
 			>
+				{recentProtocols && recentProtocols.length > 0 ? (
+					<div className="mx-auto mt-6 w-full max-w-3xl">
+						<div className="mb-2 text-xs font-medium text-(--text-disabled)">Recently visited</div>
+						<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+							{recentProtocols.map((protocol) => (
+								<button
+									key={protocol.route}
+									onClick={() => {
+										if (typeof document !== 'undefined') {
+											window.open(protocol.route, '_blank')
+										}
+										saveRecent(protocol)
+									}}
+									className="flex items-center gap-2 rounded-sm border bg-(--cards-bg) p-2 text-xs hover:bg-(--bg-secondary) dark:border-(--bg-secondary)"
+								>
+									{protocol.logo ? (
+										<TokenLogo logo={protocol.logo} />
+									) : (
+										<div className="h-6 w-6 rounded bg-(--bg-secondary)" />
+									)}
+									<span className="truncate">{protocol.name}</span>
+								</button>
+							))}
+						</div>
+					</div>
+				) : null}
+
 				<span className="relative mx-auto w-full max-w-3xl">
 					<Ariakit.Combobox
 						placeholder="Search..."
@@ -87,7 +178,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 				<Ariakit.ComboboxPopover
 					sameWidth
 					open={true}
-					className="thin-scrollbar z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
+					className="thin-scrollbar top-1 z-10 h-full max-h-[320px] overflow-y-auto rounded-b-md border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-sm dark:border-[hsl(204,3%,32%)]"
 				>
 					{matches.length ? (
 						<Ariakit.ComboboxList ref={comboboxRef}>
@@ -99,6 +190,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 										if (typeof document !== 'undefined') {
 											window.open(option.route, '_blank')
 										}
+										saveRecent(option)
 									}}
 									focusOnHover
 									hideOnClick={false}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
+import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -10,7 +11,6 @@ import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
-import { PortfolioDialog } from './PortfolioDialog'
 
 export function DefiWatchlistContainer({ protocols, chains }) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -218,7 +218,13 @@ function PortfolioSelection({
 					onItemClick={(value) => setSelectedPortfolio(value)}
 					className="relative flex min-w-[120px] cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-primary) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				/>
-				<PortfolioDialog open={open} setOpen={setOpen} addPortfolio={addPortfolio} />
+				<DialogForm
+					title="New Portfolio"
+					description="Enter the name of your new portfolio"
+					open={open}
+					setOpen={setOpen}
+					onSubmit={addPortfolio}
+				/>
 				<button
 					onClick={() => setOpen(true)}
 					className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"

@@ -11,6 +11,7 @@ export interface SubscriptionRequest {
 	cancelUrl: string
 	provider: string
 	subscriptionType: string
+	billingInterval?: 'year' | 'month'
 }
 
 export interface SubscriptionCreateResponse {
@@ -28,6 +29,7 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
+	billingInterval?: 'year' | 'month'
 	overage?: boolean
 	metadata?: {
 		is_trial?: boolean
@@ -144,7 +146,8 @@ export const useSubscribe = () => {
 	const handleSubscribe = async (
 		paymentMethod: 'stripe' | 'llamapay',
 		type: 'api' | 'contributor' | 'llamafeed',
-		onSuccess?: (checkoutUrl: string) => void
+		onSuccess?: (checkoutUrl: string) => void,
+		billingInterval: 'year' | 'month' = 'month'
 	) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to subscribe')
@@ -162,7 +165,8 @@ export const useSubscribe = () => {
 				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
 				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 				provider: paymentMethod,
-				subscriptionType: type || 'api'
+				subscriptionType: type || 'api',
+				billingInterval
 			}
 
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)

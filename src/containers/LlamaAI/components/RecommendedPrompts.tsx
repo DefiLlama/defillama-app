@@ -1,17 +1,10 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 
-const defaultPrompts = ['Top 5 protocols by tvl', 'Recent hacks', 'Total amount raised by category']
-
 const promptCategories = [
-	// {
-	// 	name: 'Trending',
-	// 	icon: 'trending-up',
-	// 	prompts: ['What are the top 5 protocols by TVL?', 'What are the top 5 gainers in the last 7 days?']
-	// },
 	{
 		name: 'Analytics',
 		icon: 'bar-chart-2',
@@ -75,53 +68,100 @@ export const RecommendedPrompts = ({
 	submitPrompt: (prompt: { userQuestion: string }) => void
 	isPending: boolean
 }) => {
-	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['recommended-prompts'],
 		queryFn: getRecommendedPrompts
 	})
+
+	const store = Ariakit.useTabStore({ defaultSelectedId: 'none' })
+
+	useEffect(() => {
+		const hideTabPanel = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				store.setSelectedId('none')
+			}
+		}
+
+		window.addEventListener('keydown', hideTabPanel)
+
+		return () => {
+			window.removeEventListener('keydown', hideTabPanel)
+		}
+	}, [])
+
+	useEffect(() => {
+		const hideTabPanelOnClickOutside = (event: MouseEvent) => {
+			const target = event.target as HTMLElement
+
+			// Check if the clicked element or any of its ancestors has role="tab" or role="tabpanel"
+			let element: HTMLElement | null = target
+			while (element) {
+				const role = element.getAttribute('role')
+				if (role === 'tab' || role === 'tabpanel') {
+					return
+				}
+				element = element.parentElement
+			}
+
+			// If we get here, the click was not on a tab or tabpanel, so close
+			store.setSelectedId('none')
+		}
+
+		window.addEventListener('click', hideTabPanelOnClickOutside)
+
+		return () => {
+			window.removeEventListener('click', hideTabPanelOnClickOutside)
+		}
+	}, [])
+
 	return (
-		<div className="flex w-full flex-col gap-2.5">
-			<div className="flex w-full flex-wrap items-center justify-center gap-2.5">
-				{promptCategories.map((category) => (
-					<Ariakit.DisclosureProvider
-						key={`prompt-category-${category.name}`}
-						open={selectedCategory === category.name}
-						setOpen={(open) => setSelectedCategory(open ? category.name : null)}
-					>
-						<Ariakit.Disclosure
-							disabled={isPending}
+		<>
+			<Ariakit.TabProvider store={store}>
+				<Ariakit.TabList className="flex w-full flex-wrap items-center justify-center gap-2.5">
+					{promptCategories.map((category) => (
+						<Ariakit.Tab
+							key={`prompt-category-${category.name}`}
+							id={`tab-${category.name}`}
+							tabbable
 							className="flex items-center justify-center gap-2.5 rounded-lg border border-[#e6e6e6] px-4 py-1 text-[#666] hover:bg-[#f7f7f7] hover:text-black focus-visible:bg-[#f7f7f7] focus-visible:text-black dark:border-[#222324] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white dark:focus-visible:bg-[#222324] dark:focus-visible:text-white"
 						>
 							<Icon name={category.icon} height={16} width={16} />
 							<span>{category.name}</span>
-						</Ariakit.Disclosure>
-					</Ariakit.DisclosureProvider>
-				))}
-			</div>
-			{promptCategories.map((category) => (
-				<Ariakit.DisclosureProvider
-					key={`prompt-category-content-${category.name}`}
-					open={selectedCategory === category.name}
-					setOpen={(open) => setSelectedCategory(open ? category.name : null)}
-				>
-					<Ariakit.DisclosureContent className="w-full">
-						<div className="flex w-full flex-col rounded-lg border border-[#e6e6e6] bg-(--app-bg) text-black md:mx-auto md:max-w-[80dvh] dark:border-[#222324] dark:text-white">
-							<div className="flex items-center gap-2.5 p-2.5 text-[#666] dark:text-[#919296]">
-								<Icon name={category.icon} height={16} width={16} />
-								<h1 className="mr-auto">{category.name}</h1>
+						</Ariakit.Tab>
+					))}
+				</Ariakit.TabList>
+				{promptCategories.map((category) => (
+					<Ariakit.TabPanel
+						key={`prompt-category-content-${category.name}`}
+						tabId={`tab-${category.name}`}
+						unmountOnHide
+						className="max-sm:drawer max-sm:dialog isolate mb-2.5 flex w-full flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--app-bg) text-black max-sm:gap-0 max-sm:p-0 md:mx-auto md:max-w-[80dvh] dark:border-[#222324] dark:text-white"
+					>
+						<div className="sticky top-0 z-10 flex items-center gap-2.5 bg-(--app-bg) p-2.5 text-[#666] dark:text-[#919296]">
+							<Icon name={category.icon} height={16} width={16} />
+							<h1 className="mr-auto">{category.name}</h1>
+							<button
+								onClick={() => {
+									store.setSelectedId('none')
+								}}
+								className="-m-2 rounded-md p-2 hover:bg-(--divider) focus-visible:bg-(--divider)"
+							>
+								<Icon name="x" height={16} width={16} />
+								<span className="sr-only">Close</span>
+							</button>
+						</div>
+						{isLoading ? (
+							<div className="my-[40px] flex items-center justify-center p-2.5">
+								<LoadingSpinner size={16} />
 							</div>
-							{isLoading ? (
-								<div className="my-[40px] flex items-center justify-center p-2.5">
-									<LoadingSpinner size={16} />
-								</div>
-							) : error || !data?.[category.name] ? (
-								<div className="my-[40px] flex items-center justify-center gap-1 p-2.5 text-xs text-(--error)">
-									<Icon name="alert-triangle" height={14} width={14} />
-									<span>{error?.message ?? 'Failed to fetch recommended prompts'}</span>
-								</div>
-							) : (
-								data?.[category.name]?.map((prompt) => (
+						) : error || !data?.[category.name] ? (
+							<div className="my-[40px] flex items-center justify-center gap-1 p-2.5 text-xs text-(--error)">
+								<Icon name="alert-triangle" height={14} width={14} />
+								<span>{error?.message ?? 'Failed to fetch recommended prompts'}</span>
+							</div>
+						) : (
+							<>
+								{data?.[category.name]?.map((prompt) => (
 									<button
 										key={`${category.name}-${prompt}`}
 										onClick={() => {
@@ -133,12 +173,12 @@ export const RecommendedPrompts = ({
 									>
 										{prompt}
 									</button>
-								))
-							)}
-						</div>
-					</Ariakit.DisclosureContent>
-				</Ariakit.DisclosureProvider>
-			))}
-		</div>
+								))}
+							</>
+						)}
+					</Ariakit.TabPanel>
+				))}
+			</Ariakit.TabProvider>
+		</>
 	)
 }

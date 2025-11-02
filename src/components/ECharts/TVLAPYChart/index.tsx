@@ -25,6 +25,7 @@ export default function AreaChart({
 	hideGradient = false,
 	alwaysShowTooltip = true,
 	hideLegend = true,
+	hideDataZoom = false,
 	onReady,
 	...props
 }: IChartProps) {
@@ -107,8 +108,6 @@ export default function AreaChart({
 
 		onReady?.(chartInstance)
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
@@ -116,6 +115,8 @@ export default function AreaChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic: { ...graphic },
@@ -148,7 +149,7 @@ export default function AreaChart({
 					}),
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: hideLegend ? 12 : 32,
 				right: 12,
 				outerBoundsMode: 'same',

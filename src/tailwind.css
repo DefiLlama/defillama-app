@@ -532,9 +532,6 @@
 		--cards-border: oklch(0.9 0 0);
 		--form-control-border: oklch(0.9 0 0);
 		--old-blue: oklch(0.533 0.18 259);
-
-		/* Dimensions */
-		--nav-width: 244px; /* Navigation sidebar */
 	}
 
 	* {
@@ -609,7 +606,7 @@
 
 	#__next,
 	#__next > [data-rk] {
-		@apply relative isolate flex min-h-full w-full flex-col lg:flex-row;
+		@apply relative isolate col-span-full grid min-h-full grid-cols-[228px_1fr] lg:gap-4;
 	}
 
 	h1,

@@ -1,4 +1,5 @@
 import { memo, useState } from 'react'
+import { useRouter } from 'next/router'
 import * as echarts from 'echarts/core'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -28,6 +29,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 	const { loaders } = useAuthContext()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const isClient = useIsClient()
+	const router = useRouter()
 
 	const [isDark] = useDarkModeManager()
 
@@ -155,6 +157,8 @@ export const ImageExportButton = memo(function ImageExportButton({
 	return (
 		<>
 			<button
+				data-umami-event="image-export"
+				data-umami-event-page={router.pathname}
 				className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 				onClick={handleImageExport}
 				data-loading={isClient ? loading : true}
