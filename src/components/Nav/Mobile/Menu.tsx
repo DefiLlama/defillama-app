@@ -5,6 +5,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
+import { ThemeSwitch } from '../ThemeSwitch'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 export const Menu = React.memo(function Menu({
@@ -148,6 +149,8 @@ export const Menu = React.memo(function Menu({
 					<Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
 						<Account />
 					</Suspense>
+
+					<ThemeSwitch />
 				</nav>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
