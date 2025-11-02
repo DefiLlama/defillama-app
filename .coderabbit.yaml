@@ -1,0 +1,29 @@
+language: en-US
+tone_instructions: 'Be concise and focus on critical issues only'
+reviews:
+  profile: assertive # this can also be chill for more relaxed reviews
+  high_level_summary: true
+  path_filters:
+    - '!node_modules/**'
+    - '!dist/**'
+    - '!.next/**'
+    - 'src/**'
+    - 'scripts/**'
+  tools:
+    eslint:
+      enabled: true
+    gitleaks:
+      enabled: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+    ignore_title_keywords:
+      - 'wip'
+      - 'draft'
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - '**/.cursorrules'
+      - '**/CODING_STANDARDS.md' # example of what we could put in here
