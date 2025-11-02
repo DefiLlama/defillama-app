@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 
