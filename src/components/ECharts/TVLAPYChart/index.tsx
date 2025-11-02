@@ -108,8 +108,6 @@ export default function AreaChart({
 
 		onReady?.(chartInstance)
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
@@ -117,6 +115,8 @@ export default function AreaChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic: { ...graphic },

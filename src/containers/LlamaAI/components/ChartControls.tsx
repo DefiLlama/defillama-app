@@ -11,10 +11,13 @@ interface ChartControlsProps {
 	cumulative: boolean
 	grouping: 'day' | 'week' | 'month' | 'quarter'
 	dataLength: number
+	showHallmarks: boolean
+	hasHallmarks: boolean
 	onStackedChange: (stacked: boolean) => void
 	onPercentageChange: (percentage: boolean) => void
 	onCumulativeChange: (cumulative: boolean) => void
 	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter') => void
+	onHallmarksChange: (showHallmarks: boolean) => void
 }
 
 export const ChartControls = memo(function ChartControls({
@@ -24,10 +27,13 @@ export const ChartControls = memo(function ChartControls({
 	cumulative,
 	grouping,
 	dataLength,
+	showHallmarks,
+	hasHallmarks,
 	onStackedChange,
 	onPercentageChange,
 	onCumulativeChange,
-	onGroupingChange
+	onGroupingChange,
+	onHallmarksChange
 }: ChartControlsProps) {
 	if (!displayOptions) return null
 
@@ -42,7 +48,7 @@ export const ChartControls = memo(function ChartControls({
 
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
 
-	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage) return null
+	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks) return null
 
 	return (
 		<div className="mb-2 flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 p-2 pt-0 dark:border-gray-700">
@@ -116,6 +122,25 @@ export const ChartControls = memo(function ChartControls({
 						onPercentageChange(value === '% Percentage')
 					}}
 					label={percentage ? '% Percentage' : '$ Absolute'}
+					labelType="none"
+					triggerProps={{
+						className:
+							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+					}}
+				/>
+			)}
+
+			{hasHallmarks && (
+				<Select
+					allValues={[
+						{ name: 'Show hallmarks', key: 'Show Hallmarks' },
+						{ name: 'Hide hallmarks', key: 'Hide Hallmarks' }
+					]}
+					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
+					setSelectedValues={(value) => {
+						onHallmarksChange(value === 'Show Hallmarks')
+					}}
+					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
 					labelType="none"
 					triggerProps={{
 						className:

@@ -171,7 +171,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 					<LocalLoader />
 				</div>
 			) : (
-				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
 					<ProtocolLineBarChart
 						chartData={finalCharts}
 						chartColors={props.chartColors}
