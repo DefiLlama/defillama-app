@@ -178,7 +178,7 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 		const pieProps: Partial<IPieChartProps> = {
 			title: config.title,
 			chartData: pieData,
-			height: '300px',
+			height: '360px',
 			stackColors,
 			valueSymbol: config.valueSymbol ?? '',
 			showLegend: true
@@ -196,7 +196,7 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 		return {
 			chartType: 'pie',
 			data: [],
-			props: { title: 'Pie Chart Error', height: '300px' },
+			props: { title: 'Pie Chart Error', height: '360px' },
 			title: config.title || 'Pie Chart Error',
 			description: `Failed to render pie chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -247,7 +247,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 			xAxisLabel,
 			yAxisLabel,
 			valueSymbol: config.valueSymbol || '',
-			height: '300px',
+			height: '360px',
 			tooltipFormatter: (params: any) => {
 				if (params.value.length >= 2) {
 					const xValue = params.value[0]
@@ -271,7 +271,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		return {
 			chartType: 'scatter',
 			data: [],
-			props: { chartData: [], title: 'Scatter Chart Error', height: '300px' },
+			props: { chartData: [], title: 'Scatter Chart Error', height: '360px' },
 			title: config.title || 'Scatter Chart Error',
 			description: `Failed to render scatter chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -332,8 +332,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			title: config.title,
 			valueSymbol: config.valueSymbol ?? '',
 			color,
-			height: '300px',
-			hideDataZoom: true,
+			height: '360px',
 			hideDownloadButton: false,
 			tooltipSort: true,
 
@@ -350,7 +349,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 				grid: {
 					top: 12,
 					right: 12,
-					bottom: 12,
+					bottom: 68,
 					left: 12
 				},
 				tooltip: {
@@ -401,7 +400,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 		return {
 			chartType: 'area',
 			data: [],
-			props: { title: 'Chart Error', height: '300px' },
+			props: { title: 'Chart Error', height: '360px' },
 			title: config.title || 'Chart Error',
 			description: `Failed to render chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -475,8 +474,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 		const multiSeriesProps: Partial<IMultiSeriesChartProps> = {
 			series: validSeries,
 			title: config.title,
-			height: '300px',
-			hideDataZoom: true,
+			height: '360px',
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
 			xAxisType: config.axes.x.type === 'value' ? 'category' : config.axes.x.type,
@@ -489,7 +487,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				grid: {
 					top: 24,
 					right: 12,
-					bottom: 12,
+					bottom: 68,
 					left: 12
 				},
 				tooltip: {
@@ -533,7 +531,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			props: {
 				series: [],
 				title: 'Chart Error',
-				height: '300px'
+				height: '360px'
 			},
 			title: config.title || 'Chart Error',
 			description: `Failed to render multi-series chart: ${error instanceof Error ? error.message : 'Unknown error'}`

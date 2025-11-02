@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
@@ -274,16 +275,29 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 
 export const buildProtocolAddlChartsData = ({
 	protocolData,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	isBorrowed
 }: {
 	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
 	extraTvlsEnabled: Record<string, boolean>
+	isBorrowed?: boolean
 }) => {
+	let chainTvls = protocolData.chainTvls ?? {}
+	if (isBorrowed) {
+		chainTvls = {}
+		for (const chain in protocolData.chainTvls ?? {}) {
+			if (chain.endsWith('-borrowed')) {
+				const chainName = chain.split('-')[0]
+				chainTvls[chainName] = protocolData.chainTvls[chain]
+			}
+		}
+	}
+
 	if (protocolData) {
 		let tokensInUsdExsists = false
 		let tokensExists = false
 
-		Object.values(protocolData.chainTvls ?? {}).forEach((chain) => {
+		Object.values(chainTvls).forEach((chain) => {
 			if (!tokensInUsdExsists && chain.tokensInUsd && chain.tokensInUsd.length > 0) {
 				tokensInUsdExsists = true
 			}
@@ -294,16 +308,16 @@ export const buildProtocolAddlChartsData = ({
 		})
 
 		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
+			const tokensUnique = getUniqueTokens({ chainTvls: chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
-				chainTvls: protocolData.chainTvls ?? {},
+				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique
 			})
 
 			const { usdInflows, tokenInflows } = buildInflows({
-				chainTvls: protocolData.chainTvls ?? {},
+				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique,
 				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : []
@@ -356,7 +370,7 @@ export const formatRaisedAmount = (n: number) => {
 	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
-export const useFetchProtocolAddlChartsData = (protocolName) => {
+export const useFetchProtocolAddlChartsData = (protocolName, isBorrowed = false) => {
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -365,14 +379,33 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 			'protocols-addl-chart-data',
 			protocolName,
 			addlProtocolData ? true : false,
-			JSON.stringify(extraTvlsEnabled)
+			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled)
 		],
-		queryFn: () => buildProtocolAddlChartsData({ protocolData: addlProtocolData as any, extraTvlsEnabled }),
+		queryFn: () =>
+			buildProtocolAddlChartsData({
+				protocolData: addlProtocolData as any,
+				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
+				isBorrowed
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000
 	})
 
-	return { ...data, historicalChainTvls: addlProtocolData?.chainTvls ?? null, isLoading: data.isLoading || isLoading }
+	const historicalChainTvls = useMemo(() => {
+		if (isBorrowed) {
+			const chainTvls = {}
+			for (const chain in addlProtocolData?.chainTvls ?? {}) {
+				if (chain.endsWith('-borrowed')) {
+					const chainName = chain.split('-')[0]
+					chainTvls[chainName] = addlProtocolData?.chainTvls[chain]
+				}
+			}
+			return chainTvls
+		}
+		return addlProtocolData?.chainTvls ?? null
+	}, [addlProtocolData, isBorrowed])
+
+	return { ...data, historicalChainTvls, isLoading: data.isLoading || isLoading }
 }
 
 export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
