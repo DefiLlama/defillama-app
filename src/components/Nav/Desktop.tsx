@@ -352,7 +352,7 @@ const NavItemContent = React.memo(function NavItemContent({
 				<img
 					src="/icons/ask-llamaai.svg"
 					alt="LlamaAI"
-					className="h-4 w-4 brightness-0 group-data-[linkactive=true]/link:invert dark:invert"
+					className="h-4 w-4 shrink-0 brightness-0 group-data-[linkactive=true]/link:invert dark:invert"
 				/>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
