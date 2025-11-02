@@ -6,7 +6,7 @@ export function ThemeSwitch() {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
 	return (
-		<button onClick={toggleDarkMode} className="hidden gap-2 items-center mt-2 lg:flex w-fit">
+		<div className="mt-5 flex items-center gap-2">
 			<Icon
 				name="sun"
 				height={20}
@@ -14,7 +14,21 @@ export function ThemeSwitch() {
 				data-active={!darkMode}
 				className="opacity-40 hover:opacity-100 data-[active=true]:opacity-80"
 			/>
-			<span>{' / '}</span>
+			<button
+				role="switch"
+				aria-checked={darkMode}
+				aria-label="Toggle dark mode"
+				onClick={toggleDarkMode}
+				className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+					darkMode ? 'bg-(--switch-bg)' : 'bg-(--bg-input)'
+				} `}
+			>
+				<span
+					className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform duration-200 ${
+						darkMode ? 'translate-x-5' : 'translate-x-0.5'
+					}`}
+				/>
+			</button>
 			<Icon
 				name="moon"
 				height={20}
@@ -22,6 +36,6 @@ export function ThemeSwitch() {
 				data-active={darkMode}
 				className="opacity-40 hover:opacity-100 data-[active=true]:opacity-80"
 			/>
-		</button>
+		</div>
 	)
 }
