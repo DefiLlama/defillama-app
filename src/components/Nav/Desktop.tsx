@@ -225,16 +225,16 @@ const PinnedPageRow = ({ page, asPath, isReordering }: { page: TNavLink; asPath:
 		<span
 			ref={setNodeRef}
 			style={style}
-			className="group relative flex flex-wrap items-center gap-1"
+			className="group relative flex w-full items-start gap-1"
 			data-reordering={isReordering}
 			data-dragging={isDragging}
 		>
 			{isReordering ? (
 				<div
-					className={`group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
+					className={`group/link -ml-1.5 flex w-full flex-1 items-start gap-3 rounded-md p-1.5 pr-10 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
 					data-dragging={isDragging}
 				>
-					<div className="flex items-center gap-2">
+					<div className="flex min-w-0 flex-1 items-center gap-2">
 						<button
 							type="button"
 							className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
@@ -344,16 +344,16 @@ const NavItemContent = React.memo(function NavItemContent({
 	return (
 		<>
 			{icon ? (
-				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
+				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
 			) : name === 'LlamaAI' ? (
 				<img
 					src="/icons/ask-llama-ai.svg"
 					alt="LlamaAI"
-					className="h-4 w-4 brightness-0 group-data-[linkactive=true]/link:brightness-100 dark:brightness-100 dark:group-data-[linkactive=true]/link:brightness-100"
+					className="h-4 w-4 shrink-0 brightness-0 group-data-[linkactive=true]/link:brightness-100 dark:brightness-100 dark:group-data-[linkactive=true]/link:brightness-100"
 				/>
 			) : null}
-			<span className="relative inline-flex items-center gap-2">
-				{name}
+			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
+				<span className="min-w-0 break-words">{name}</span>
 				{attention ? (
 					<span
 						aria-hidden
