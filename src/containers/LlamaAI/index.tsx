@@ -1086,7 +1086,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
 											initialValue={prompt}
-											placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1284,7 +1284,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
 									/>
 								)}
 							</div>
@@ -1321,7 +1321,7 @@ const PromptInput = memo(function PromptInput({
 
 	// Use different placeholder for mobile devices
 	const isMobile = useMedia('(max-width: 640px)')
-	const mobilePlaceholder = placeholder.replace('Type @ to insert a protocol, chain', '')
+	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
@@ -1693,7 +1693,7 @@ const PromptResponse = ({
 				<p className="text-(--error)">{error}</p>
 				<button
 					onClick={onRetry}
-					className="flex items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+					className="flex w-fit items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
 				>
 					<Icon name="repeat" height={16} width={16} />
 					Retry
