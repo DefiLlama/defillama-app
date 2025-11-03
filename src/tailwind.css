@@ -687,28 +687,6 @@
 		clip-path: inset(0% round 50%);
 	}
 
-	.llama-app-background {
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		height: 3rem;
-		width: 3rem;
-		overflow: hidden;
-		background-color: #5c5cf9;
-		opacity: 0.6;
-		transform: translate3d(0px, 0px, 0px);
-	}
-
-	/* Modern browsers with blur support */
-	@supports (filter: blur(1px)) {
-		.llama-app-background {
-			filter: blur(32px);
-			-webkit-filter: blur(32px);
-			opacity: 1;
-		}
-	}
-
 	.highlighted-text .highlight {
 		@apply bg-(--link-bg) text-(--link-text);
 	}
@@ -742,5 +720,106 @@
 	}
 	100% {
 		transform: translateX(100%);
+	}
+}
+
+.llamaai-glow {
+	background: linear-gradient(93.94deg, #fde0a9 24.73%, #fbedcb 57.42%, #fde0a9 99.73%);
+	box-shadow:
+		0px 0px 60px rgba(253, 224, 169, 0.5),
+		0px 0px 2px 4px rgba(255, 255, 255, 0.1);
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+.llamaai-glow::before {
+	content: '';
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+	transform: rotate(45deg);
+	animation: ai-shimmer 3s infinite;
+}
+
+.llamaai-glow:hover {
+	transform: translateY(-2px);
+	box-shadow:
+		0px 0px 80px rgba(253, 224, 169, 0.7),
+		0px 0px 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.llamaai-glow:hover .ai-star-1,
+.llamaai-glow:hover .ai-star-2 {
+	animation: ai-spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.llamaai-glow:active {
+	transform: translateY(0px);
+}
+
+.llamaai-glow .ai-icon {
+	width: 32px;
+	height: 32px;
+	position: relative;
+	z-index: 1;
+}
+
+.llamaai-glow .ai-body {
+	animation: ai-bounce 2s ease-in-out infinite;
+	transform-origin: center;
+}
+
+.llamaai-glow .ai-star-1 {
+	animation: ai-blink 2s ease-in-out infinite;
+	transform-origin: 12.5px 2px;
+}
+
+.llamaai-glow .ai-star-2 {
+	animation: ai-blink 2s ease-in-out 0.7s infinite;
+	transform-origin: 14.8px 5.1px;
+}
+
+@keyframes ai-shimmer {
+	0% {
+		transform: translateX(-100%) translateY(-100%) rotate(45deg);
+	}
+	100% {
+		transform: translateX(100%) translateY(100%) rotate(45deg);
+	}
+}
+
+@keyframes ai-bounce {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-1px);
+	}
+}
+
+@keyframes ai-blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.4;
+	}
+}
+
+@keyframes ai-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(360deg);
+	}
+	100% {
+		transform: rotate(0deg);
 	}
 }

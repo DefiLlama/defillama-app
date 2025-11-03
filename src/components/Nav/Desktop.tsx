@@ -218,13 +218,13 @@ const LinkToPage = React.memo(function LinkToPage({
 			data-linkactive={isActive}
 			target={isExternal ? '_blank' : undefined}
 			rel={isExternal ? 'noopener noreferrer' : undefined}
-			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+			className="group/link relative -ml-1.5 flex flex-1 items-center gap-3 overflow-hidden rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 		>
 			{icon ? (
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
 			) : name === 'LlamaAI' ? (
 				<svg className="h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-1.svg" />
+					<use href="/icons/ask-llamaai-2.svg" />
 				</svg>
 			) : null}
 			<span className="relative inline-flex items-center gap-2">
