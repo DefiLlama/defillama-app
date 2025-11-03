@@ -108,7 +108,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				{!isSubscribed && (
 					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
 						<p className="text-center text-[#919296]">
-							Upgrade now for access to LlamaFeed, Custom Dashboards, CSV data downloads and more.
+							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and more.
 						</p>
 						{isAuthenticated ? (
 							<div className="mx-auto w-full max-w-[400px]">
