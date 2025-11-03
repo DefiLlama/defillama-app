@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { StripeCheckoutModal } from '../StripeCheckoutModal'
 
 export function SubscribeAPICard({
 	context = 'page',
@@ -22,10 +24,11 @@ export function SubscribeAPICard({
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
-	const { handleSubscribe, loading } = useSubscribe()
+	const { loading } = useSubscribe()
+	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
-	const handleUpgradeToYearly = async () => {
-		await handleSubscribe('stripe', 'api', undefined, 'year')
+	const handleUpgradeToYearly = () => {
+		setIsUpgradeModalOpen(true)
 	}
 
 	return (
@@ -132,6 +135,16 @@ export function SubscribeAPICard({
 					</>
 				)}
 			</div>
+
+			{isUpgradeModalOpen && (
+				<StripeCheckoutModal
+					isOpen={isUpgradeModalOpen}
+					onClose={() => setIsUpgradeModalOpen(false)}
+					paymentMethod="stripe"
+					type="api"
+					billingInterval="year"
+				/>
+			)}
 		</>
 	)
 }

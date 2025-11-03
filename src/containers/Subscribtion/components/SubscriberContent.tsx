@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
+import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { Subscription, useSubscribe } from '~/hooks/useSubscribe'
 
 interface SubscriberContentProps {
@@ -41,11 +42,13 @@ export const SubscriberContent = ({
 	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
 	const isLegacy = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
-	const { handleSubscribe, loading } = useSubscribe()
+	const { loading } = useSubscribe()
 
 	const currentSubscription = isLlamaFeed ? llamafeedSubscription : isPro ? apiSubscription : null
-	const currentBillingInterval = currentSubscription?.billingInterval || 'month'
-	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval)
+	const currentBillingInterval = currentSubscription?.billingInterval
+	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval || 'month')
+	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+	const [upgradeType, setUpgradeType] = useState<'api' | 'llamafeed' | null>(null)
 
 	const monthlyPricePro = 49
 	const yearlyPricePro = monthlyPricePro * 10
@@ -71,10 +74,11 @@ export const SubscriberContent = ({
 		}
 	}
 
-	async function handleUpgradeToYearly() {
+	function handleUpgradeToYearly() {
 		const type = isLlamaFeed ? 'llamafeed' : isPro ? 'api' : null
 		if (type) {
-			await handleSubscribe('stripe', type, undefined, 'year')
+			setUpgradeType(type)
+			setIsUpgradeModalOpen(true)
 		}
 	}
 
@@ -116,7 +120,9 @@ export const SubscriberContent = ({
 						context="account"
 						active={isLlamaFeed && subscription?.provider !== 'trial'}
 						onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
-						currentBillingInterval={llamafeedSubscription?.billingInterval || 'month'}
+						currentBillingInterval={llamafeedSubscription?.billingInterval}
+						billingInterval={billingInterval}
+						hasApiSubscription={isPro || isLegacy}
 					/>
 				</div>
 				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
@@ -125,7 +131,7 @@ export const SubscriberContent = ({
 						active={isPro || isLegacy}
 						onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
 						isLegacyActive={isLegacy}
-						currentBillingInterval={apiSubscription?.billingInterval || 'month'}
+						currentBillingInterval={apiSubscription?.billingInterval}
 						billingInterval={billingInterval}
 					/>
 				</div>
@@ -356,23 +362,24 @@ export const SubscriberContent = ({
 				</div>
 			)}
 
-			<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
-				<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
-					<div className="flex items-center gap-2.5 sm:gap-3">
-						<div className="relative">
-							<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9] sm:p-2.5">
-								<Icon name="card" height={18} width={18} className="sm:h-5 sm:w-5" />
+			{(isPro || isLlamaFeed) && (
+				<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
+					<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
+						<div className="flex items-center gap-2.5 sm:gap-3">
+							<div className="relative">
+								<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9] sm:p-2.5">
+									<Icon name="card" height={18} width={18} className="sm:h-5 sm:w-5" />
+								</div>
+							</div>
+							<div>
+								<h3 className="text-lg font-bold sm:text-xl">Subscription</h3>
+								<p className="text-xs text-[#b4b7bc] sm:text-sm">
+									Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
+									details
+								</p>
 							</div>
 						</div>
-						<div>
-							<h3 className="text-lg font-bold sm:text-xl">Subscription</h3>
-							<p className="text-xs text-[#b4b7bc] sm:text-sm">
-								Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
-								details
-							</p>
-						</div>
 					</div>
-				</div>
 
 				<div className="p-4 sm:p-6">
 					<div className="space-y-4 sm:space-y-6">
@@ -514,7 +521,21 @@ export const SubscriberContent = ({
 						</div>
 					</div>
 				</div>
-			</div>
+				</div>
+			)}
+
+			{isUpgradeModalOpen && upgradeType && (
+				<StripeCheckoutModal
+					isOpen={isUpgradeModalOpen}
+					onClose={() => {
+						setIsUpgradeModalOpen(false)
+						setUpgradeType(null)
+					}}
+					paymentMethod="stripe"
+					type={upgradeType}
+					billingInterval="year"
+				/>
+			)}
 		</>
 	)
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
@@ -5,6 +6,7 @@ import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { BasicLink } from '../Link'
+import { StripeCheckoutModal } from '../StripeCheckoutModal'
 
 interface SubscribeProCardProps {
 	context?: 'modal' | 'page' | 'account'
@@ -28,10 +30,11 @@ export function SubscribeProCard({
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
-	const { handleSubscribe, loading } = useSubscribe()
+	const { loading } = useSubscribe()
+	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
-	const handleUpgradeToYearly = async () => {
-		await handleSubscribe('stripe', 'llamafeed', undefined, 'year')
+	const handleUpgradeToYearly = () => {
+		setIsUpgradeModalOpen(true)
 	}
 
 	return (
@@ -171,6 +174,16 @@ export function SubscribeProCard({
 					</>
 				)}
 			</div>
+
+			{isUpgradeModalOpen && (
+				<StripeCheckoutModal
+					isOpen={isUpgradeModalOpen}
+					onClose={() => setIsUpgradeModalOpen(false)}
+					paymentMethod="stripe"
+					type="llamafeed"
+					billingInterval="year"
+				/>
+			)}
 		</>
 	)
 }
