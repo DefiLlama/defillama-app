@@ -27,29 +27,22 @@ export interface NotificationPreference {
 	userId: string
 	settings: NotificationSettings
 	frequency: 'daily' | 'weekly'
-	sendTime: string // HH:mm format
-	timezone: string // IANA timezone
 	active: boolean
 	created: string
 	updated: string
 }
 
 export interface SaveNotificationPreferencesRequest {
+	portfolioName: string
 	settings: NotificationSettings
 	frequency: 'daily' | 'weekly'
-	sendTime: string
-	timezone: string
 }
 
-/**
- * Hook to manage notification preferences for watchlist items
- */
-export const useNotifications = () => {
+export const useEmailNotifications = () => {
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
 	const isAuthenticated = !!pb.authStore.token
 
-	// Fetch notification preferences
 	const {
 		data: preferences,
 		isLoading,
@@ -63,7 +56,7 @@ export const useNotifications = () => {
 			}
 
 			try {
-				const response = await authorizedFetch(`${AUTH_SERVER}/notifications/preferences`, {
+				const response = await authorizedFetch(`${AUTH_SERVER}/watchlist/preferences`, {
 					method: 'GET'
 				})
 
@@ -75,7 +68,13 @@ export const useNotifications = () => {
 				}
 
 				const data = await response.json()
-				return data.preferences || null
+
+				console.log('API response:', data)
+				// The API returns preferences as an array, get the first item
+				if (data.preferences && Array.isArray(data.preferences) && data.preferences.length > 0) {
+					return data.preferences[0]
+				}
+				return null
 			} catch (error) {
 				console.error('Error fetching notification preferences:', error)
 				return null
@@ -86,7 +85,6 @@ export const useNotifications = () => {
 		retry: false
 	})
 
-	// Save notification preferences
 	const savePreferences = useMutation<NotificationPreference, Error, SaveNotificationPreferencesRequest>({
 		mutationFn: async (preferencesData) => {
 			if (!isAuthenticated) {
@@ -94,7 +92,7 @@ export const useNotifications = () => {
 			}
 
 			const response = await authorizedFetch(
-				`${AUTH_SERVER}/notifications/preferences`,
+				`${AUTH_SERVER}/watchlist/preferences`,
 				{
 					method: 'POST',
 					headers: {
@@ -111,6 +109,10 @@ export const useNotifications = () => {
 			}
 
 			const data = await response.json()
+			// The API returns preferences as an array, get the first item
+			if (data.preferences && Array.isArray(data.preferences) && data.preferences.length > 0) {
+				return data.preferences[0]
+			}
 			return data.preferences
 		},
 		onSuccess: (data) => {
@@ -123,7 +125,6 @@ export const useNotifications = () => {
 		}
 	})
 
-	// Delete notification preferences
 	const deletePreferences = useMutation<void, Error>({
 		mutationFn: async () => {
 			if (!isAuthenticated) {
@@ -131,7 +132,7 @@ export const useNotifications = () => {
 			}
 
 			const response = await authorizedFetch(
-				`${AUTH_SERVER}/notifications/preferences`,
+				`${AUTH_SERVER}/watchlist/preferences`,
 				{
 					method: 'DELETE'
 				},

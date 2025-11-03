@@ -6,8 +6,9 @@ import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { Switch } from '~/components/Switch'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
-import { DEFAULT_PORTFOLIO_NAME, useWatchlistManager } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
+import { useBookmarks } from '~/hooks/useBookmarks'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -29,7 +30,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
 
 	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
-		useWatchlistManager('yields')
+		useBookmarks('yields')
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {

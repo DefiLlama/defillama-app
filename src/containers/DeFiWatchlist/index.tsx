@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
+import { IFormattedProtocol } from '~/api/types'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SubscribeProModal as SubscribeModal, SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
-import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager, useWatchlistManager } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { formatDataWithExtraTvls, formatProtocolsList, formatProtocolsList2 } from '~/hooks/data/defi'
-import { useNotifications, type NotificationSettings } from '~/hooks/useNotifications'
+import { useBookmarks } from '~/hooks/useBookmarks'
+import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { formatTimeToHHMM, getUserTimezone, mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
+import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
@@ -28,15 +32,16 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		removePortfolio,
 		setSelectedPortfolio,
 		addProtocol,
-		removeProtocol
-	} = useWatchlistManager('defi')
+		removeProtocol,
+		isLoadingWatchlist
+	} = useBookmarks('defi')
 
 	const {
 		savedProtocols: savedChains,
 		addProtocol: addChain,
 		removeProtocol: removeChain,
 		setSelectedPortfolio: setSelectedChainPortfolio
-	} = useWatchlistManager('chains')
+	} = useBookmarks('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
 		return {
@@ -94,6 +99,21 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		toRemove.forEach((name) => removeChain(name))
 	}
 
+	// Show loading state while watchlist is syncing from server
+	if (isLoadingWatchlist) {
+		return (
+			<>
+				<WatchListTabs />
+				<div className="flex items-center justify-center p-8">
+					<div className="text-center">
+						<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-t-2 border-b-2 border-(--text-primary)"></div>
+						<p className="text-sm text-(--text-secondary)">Loading watchlist...</p>
+					</div>
+				</div>
+			</>
+		)
+	}
+
 	return (
 		<>
 			<WatchListTabs />
@@ -116,12 +136,12 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 				/>
 				<PortfolioNotifications
 					selectedPortfolio={selectedPortfolio}
-					filteredProtocols={protocolsTableData}
+					filteredProtocols={protocolsTableData as any}
 					filteredChains={chainsTableData}
 				/>
 				{protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />}
 				<ProtocolSelection
-					protocolOptions={protocolsTableData.map((p) => ({ key: p.name, name: p.name }))}
+					protocolOptions={protocolOptions}
 					selectedProtocolNames={selectedProtocolNames}
 					handleProtocolSelection={handleProtocolSelection}
 					selectedPortfolio={selectedPortfolio}
@@ -207,62 +227,15 @@ function PortfolioNotifications({
 	const isClient = useIsClient()
 	const router = useRouter()
 	const { subscription } = useSubscribe()
-	const { preferences, isLoading, savePreferences, isSaving } = useNotifications()
+	const { preferences, isLoading, savePreferences, isSaving, deletePreferences, isDeleting } = useEmailNotifications()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
-	const [sendTime, setSendTime] = useState({ hour: 9, minute: 0 })
 
-	// Load existing preferences into form when available
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
-			frequency: (preferences?.frequency || 'weekly') as 'daily' | 'weekly',
 			protocolMetrics: [] as string[],
-			chainMetrics: [] as string[],
-			sendHour: preferences?.sendTime ? parseInt(preferences.sendTime.split(':')[0]) : 9,
-			sendMinute: preferences?.sendTime ? parseInt(preferences.sendTime.split(':')[1]) : 0
+			chainMetrics: [] as string[]
 		}
 	})
-
-	// Update form values when preferences load
-	useEffect(() => {
-		if (preferences) {
-			formStore.setValue('frequency', preferences.frequency)
-
-			// Extract protocol metrics from preferences
-			const protocolMetrics: string[] = []
-			if (preferences.settings.protocols) {
-				// Get all unique metrics from all protocols
-				const allMetrics = new Set<string>()
-				Object.values(preferences.settings.protocols).forEach((metrics) => {
-					metrics.forEach((metric) => {
-						allMetrics.add(mapAPIMetricToUI(metric))
-					})
-				})
-				protocolMetrics.push(...Array.from(allMetrics))
-			}
-			formStore.setValue('protocolMetrics', protocolMetrics)
-
-			// Extract chain metrics from preferences
-			const chainMetrics: string[] = []
-			if (preferences.settings.chains) {
-				const allMetrics = new Set<string>()
-				Object.values(preferences.settings.chains).forEach((metrics) => {
-					metrics.forEach((metric) => {
-						allMetrics.add(mapAPIMetricToUI(metric))
-					})
-				})
-				chainMetrics.push(...Array.from(allMetrics))
-			}
-			formStore.setValue('chainMetrics', chainMetrics)
-
-			// Set send time
-			if (preferences.sendTime) {
-				const [hour, minute] = preferences.sendTime.split(':').map(Number)
-				setSendTime({ hour, minute })
-				formStore.setValue('sendHour', hour)
-				formStore.setValue('sendMinute', minute)
-			}
-		}
-	}, [preferences])
 
 	const handleNotificationsButtonClick = () => {
 		if (!isClient) return
@@ -270,30 +243,63 @@ function PortfolioNotifications({
 			setShowSubscribeModal(true)
 		} else {
 			dialogStore.toggle()
+
+			setTimeout(() => {
+				if (preferences?.settings) {
+					// Load protocol metrics
+					if (preferences.settings.protocols) {
+						const allProtocolEntries = Object.entries(preferences.settings.protocols)
+						if (allProtocolEntries.length > 0) {
+							const [protocolId, firstMetrics] = allProtocolEntries[0]
+
+							if (Array.isArray(firstMetrics)) {
+								const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
+								formStore.setValue('protocolMetrics', uiMetrics)
+							}
+						}
+					} else {
+						formStore.setValue('protocolMetrics', [])
+					}
+
+					// Load chain metrics
+					if (preferences.settings.chains) {
+						const allChainEntries = Object.entries(preferences.settings.chains)
+						if (allChainEntries.length > 0) {
+							const [chainName, firstMetrics] = allChainEntries[0]
+
+							if (Array.isArray(firstMetrics)) {
+								const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
+								formStore.setValue('chainMetrics', uiMetrics)
+							}
+						}
+					} else {
+						formStore.setValue('chainMetrics', [])
+					}
+				} else {
+					formStore.setValue('protocolMetrics', [])
+					formStore.setValue('chainMetrics', [])
+				}
+			}, 100)
 		}
 	}
 
-	const handleFormSubmit = async (state: any) => {
+	const handleFormSubmit = async () => {
 		try {
-			const { frequency, protocolMetrics, chainMetrics, sendHour, sendMinute } = state.values
+			// Get form values directly from formStore
+			const values = formStore.getState().values
+			const { protocolMetrics, chainMetrics } = values
 
-			// Build notification settings based on selected watchlist items
 			const settings: NotificationSettings = {}
 
-			// Add protocols to settings if metrics are selected
 			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
 				settings.protocols = {}
 				filteredProtocols.forEach((protocol) => {
-					// Use defillamaId as the slug, or fallback to converting name to slug
-					const slug =
-						typeof protocol.defillamaId === 'string'
-							? protocol.defillamaId
-							: protocol.name.toLowerCase().replace(/\s+/g, '-')
-					settings.protocols![slug] = protocolMetrics.map(mapUIMetricToAPI)
+					// Use defillamaId if available, otherwise use the protocol name
+					const identifier = protocol.defillamaId || protocol.name
+					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
 				})
 			}
 
-			// Add chains to settings if metrics are selected
 			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
 				settings.chains = {}
 				filteredChains.forEach((chain) => {
@@ -301,59 +307,106 @@ function PortfolioNotifications({
 				})
 			}
 
-			// Validate that at least one entity has metrics
 			if (!settings.protocols && !settings.chains) {
 				alert('Please select at least one metric for protocols or chains')
 				return
 			}
 
-			// Save preferences
 			await savePreferences({
+				portfolioName: selectedPortfolio,
 				settings,
-				frequency: frequency as 'daily' | 'weekly',
-				sendTime: formatTimeToHHMM(sendHour ?? 9, sendMinute ?? 0),
-				timezone: getUserTimezone()
+				frequency: 'weekly'
 			})
 
-			// Close dialog on success
 			dialogStore.hide()
 		} catch (error) {
 			console.error('Error saving notification preferences:', error)
 		}
 	}
 
-	formStore.useSubmit(handleFormSubmit)
+	const handleDisableNotifications = async () => {
+		try {
+			if (window.confirm('Are you sure you want to disable email notifications?')) {
+				await deletePreferences()
+				dialogStore.hide()
+			}
+		} catch (error) {
+			console.error('Error disabling notifications:', error)
+		}
+	}
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-				<h2 className="mb-1 text-lg font-medium">Notifications</h2>
-				<p className="mb-3 text-sm text-(--text-secondary)">
-					Set up notifications for the "{selectedPortfolio}" portfolio
-				</p>
+				<div className="mb-3">
+					<h2 className="mb-1 text-lg font-medium">Email Notifications</h2>
+					<p className="text-sm text-(--text-secondary)">
+						{preferences && preferences.active ? (
+							<span className="flex items-center gap-2">
+								<Icon name="check-circle" height={16} width={16} className="text-green-600" />
+								<span>
+									Weekly email notifications are <strong className="text-green-600">active</strong> for "
+									{selectedPortfolio}" portfolio
+								</span>
+							</span>
+						) : (
+							<span>Set up weekly email notifications for the "{selectedPortfolio}" portfolio</span>
+						)}
+					</p>
+				</div>
 
-				<div className="flex items-center gap-3">
+				{preferences?.settings && (
+					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
+						<div className="space-y-1 text-xs text-(--text-secondary)">
+							{preferences.settings.protocols && Object.keys(preferences.settings.protocols).length > 0 && (
+								<div>
+									<span className="font-medium">
+										Tracking {Object.keys(preferences.settings.protocols).length} protocol(s)
+									</span>
+									{' - '}
+									<span>{Object.values(preferences.settings.protocols)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+								</div>
+							)}
+							{preferences.settings.chains && Object.keys(preferences.settings.chains).length > 0 && (
+								<div>
+									<span className="font-medium">
+										Tracking {Object.keys(preferences.settings.chains).length} chain(s)
+									</span>
+									{' - '}
+									<span>{Object.values(preferences.settings.chains)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+								</div>
+							)}
+							<div className="mt-1 text-xs opacity-75">
+								<Icon name="calendar" height={12} width={12} className="mr-1 inline" />
+								Delivered weekly to your email
+							</div>
+						</div>
+					</div>
+				)}
+
+				<div className="flex items-center gap-2">
 					<button
 						onClick={handleNotificationsButtonClick}
 						disabled={isLoading}
 						className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 					>
-						<Icon name="bell" height={16} width={16} />
-						<span>{preferences ? 'Update notifications' : 'Set up notifications'}</span>
+						<Icon name="mail" height={16} width={16} />
+						<span>{preferences ? 'Update settings' : 'Set up notifications'}</span>
 					</button>
+
 					{preferences && preferences.active && (
-						<span className="flex items-center gap-1 text-xs text-green-600">
-							<Icon name="check-circle" height={14} width={14} />
-							<span>Active</span>
-						</span>
+						<button
+							onClick={handleDisableNotifications}
+							disabled={isDeleting}
+							className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+						>
+							<Icon name="x" height={16} width={16} />
+							<span>{isDeleting ? 'Disabling...' : 'Disable'}</span>
+						</button>
 					)}
 				</div>
 			</div>
-			{isClient && (
-				<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-					<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-				</SubscribeModal>
-			)}
+			{isClient && <SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 
 			<Ariakit.Dialog
 				store={dialogStore}
@@ -362,9 +415,17 @@ function PortfolioNotifications({
 				<div className="max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-lg border border-(--cards-border) bg-(--bg-main) shadow-lg">
 					<div className="flex items-center justify-between border-b border-(--cards-border) p-6">
 						<div>
-							<h2 className="text-xl font-semibold text-(--text-primary)">Notification Settings</h2>
+							<h2 className="text-xl font-semibold text-(--text-primary)">
+								Email Notification Settings
+								{preferences && preferences.active && (
+									<span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-normal text-green-700 dark:bg-green-900/30 dark:text-green-400">
+										<Icon name="check" height={12} width={12} />
+										Active
+									</span>
+								)}
+							</h2>
 							<p className="mt-1 text-sm text-(--text-secondary)">
-								Configure your alerts for "{selectedPortfolio}" portfolio
+								Configure weekly email alerts for "{selectedPortfolio}" portfolio
 							</p>
 						</div>
 						<Ariakit.DialogDismiss className="rounded-md p-2 transition-colors hover:bg-(--primary-hover)">
@@ -374,68 +435,12 @@ function PortfolioNotifications({
 
 					<Ariakit.Form
 						store={formStore}
-						onSubmit={handleFormSubmit}
+						onSubmit={(e) => {
+							e.preventDefault()
+							handleFormSubmit()
+						}}
 						className="max-h-[calc(80vh-180px)] overflow-y-auto"
 					>
-						<div className="border-b border-(--cards-border) p-6">
-							<h3 className="mb-3 text-lg font-medium text-(--text-primary)">Notification Frequency</h3>
-							<div className="mb-4 flex gap-4">
-								<label className="flex cursor-pointer items-center gap-3 rounded-lg border border-(--form-control-border) p-3 transition-colors hover:bg-(--primary-hover)">
-									<Ariakit.FormRadio
-										name="frequency"
-										value="daily"
-										className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-									/>
-									<div>
-										<div className="text-sm font-medium text-(--text-primary)">Daily</div>
-										<div className="text-xs text-(--text-secondary)">Receive updates every day</div>
-									</div>
-								</label>
-								<label className="flex cursor-pointer items-center gap-3 rounded-lg border border-(--form-control-border) p-3 transition-colors hover:bg-(--primary-hover)">
-									<Ariakit.FormRadio
-										name="frequency"
-										value="weekly"
-										className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-									/>
-									<div>
-										<div className="text-sm font-medium text-(--text-primary)">Weekly</div>
-										<div className="text-xs text-(--text-secondary)">Receive updates every week</div>
-									</div>
-								</label>
-							</div>
-
-							<div className="mt-4">
-								<h4 className="mb-2 text-sm font-medium text-(--text-primary)">Send Time</h4>
-								<div className="flex items-center gap-3">
-									<div className="flex items-center gap-2">
-										<label className="text-sm text-(--text-secondary)">Hour:</label>
-										<Ariakit.FormInput
-											name="sendHour"
-											type="number"
-											min="0"
-											max="23"
-											className="w-20 rounded-md border border-(--form-control-border) bg-(--bg-main) px-3 py-2 text-sm text-(--text-primary)"
-											onChange={(e) => setSendTime({ ...sendTime, hour: parseInt(e.target.value) || 0 })}
-										/>
-									</div>
-									<div className="flex items-center gap-2">
-										<label className="text-sm text-(--text-secondary)">Minute:</label>
-										<Ariakit.FormInput
-											name="sendMinute"
-											type="number"
-											min="0"
-											max="59"
-											className="w-20 rounded-md border border-(--form-control-border) bg-(--bg-main) px-3 py-2 text-sm text-(--text-primary)"
-											onChange={(e) => setSendTime({ ...sendTime, minute: parseInt(e.target.value) || 0 })}
-										/>
-									</div>
-									<span className="text-xs text-(--text-secondary)">
-										({formatTimeToHHMM(sendTime.hour, sendTime.minute)} in your timezone)
-									</span>
-								</div>
-							</div>
-						</div>
-
 						<div className="border-b border-(--cards-border) p-6">
 							<h3 className="mb-3 text-lg font-medium text-(--text-primary)">Protocol Metrics</h3>
 							{filteredProtocols.length > 0 ? (
@@ -506,7 +511,23 @@ function PortfolioNotifications({
 						</div>
 
 						<div className="flex items-center justify-between border-t border-(--cards-border) bg-(--bg-secondary) p-6">
-							<div className="text-sm text-(--text-secondary)">Configure notification settings for your portfolio</div>
+							<div className="flex items-center gap-3">
+								{preferences && preferences.active ? (
+									<button
+										type="button"
+										onClick={handleDisableNotifications}
+										disabled={isDeleting}
+										className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+									>
+										<Icon name="trash-2" height={14} width={14} />
+										<span>{isDeleting ? 'Disabling...' : 'Disable Notifications'}</span>
+									</button>
+								) : (
+									<div className="text-sm text-(--text-secondary)">
+										Configure notification settings for your portfolio
+									</div>
+								)}
+							</div>
 							<div className="flex gap-3">
 								<Ariakit.DialogDismiss className="rounded-md border border-(--form-control-border) px-4 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-(--primary-hover)">
 									Cancel
@@ -515,7 +536,7 @@ function PortfolioNotifications({
 									disabled={isSaving}
 									className="rounded-md bg-(--primary-bg) px-4 py-2 text-sm font-medium text-(--primary-text) transition-colors hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
 								>
-									{isSaving ? 'Saving...' : 'Save Settings'}
+									{isSaving ? 'Saving...' : preferences ? 'Update Settings' : 'Enable Notifications'}
 								</Ariakit.FormSubmit>
 							</div>
 						</div>
@@ -738,6 +759,38 @@ function TopMovers({ protocols }: TopMoversProps) {
 					</div>
 				))}
 			</div>
+		</div>
+	)
+}
+
+function ProtocolSelection({
+	protocolOptions,
+	selectedProtocolNames,
+	handleProtocolSelection,
+	selectedPortfolio
+}: {
+	protocolOptions: Array<{ key: string; name: string }>
+	selectedProtocolNames: string[]
+	handleProtocolSelection: (selectedValues: string[]) => void
+	selectedPortfolio: string
+}) {
+	return (
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<div className="mb-4">
+				<h2 className="mb-1 text-lg font-medium">Protocol Selection</h2>
+				<p className="text-sm text-(--text-secondary)">Select protocols to add to "{selectedPortfolio}" portfolio</p>
+			</div>
+			<SelectWithCombobox
+				allValues={protocolOptions}
+				selectedValues={selectedProtocolNames}
+				setSelectedValues={handleProtocolSelection}
+				label={
+					selectedProtocolNames.length > 0
+						? `${selectedProtocolNames.length} protocol${selectedProtocolNames.length === 1 ? '' : 's'} selected`
+						: 'Search and select protocols...'
+				}
+				labelType="regular"
+			/>
 		</div>
 	)
 }
