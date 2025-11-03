@@ -1,5 +1,4 @@
 import type { NextWebVitalsMetric } from 'next/app'
-import Router from 'next/router'
 
 type WebVitalRating = 'good' | 'needs-improvement' | 'poor' | 'unknown'
 
@@ -77,9 +76,6 @@ const getBucket = (metric: NextWebVitalsMetric) => {
 }
 
 const getPath = () => {
-	if (!isBrowser) {
-		return Router.asPath || 'unknown'
-	}
 	const { pathname, search } = window.location
 	return `${pathname}${search}`
 }
@@ -106,7 +102,11 @@ const sendWithRetry = (payload: Record<string, unknown>, attempt = 0) => {
 
 	const tracker = window.umami?.track
 	if (typeof tracker === 'function') {
-		tracker(VITAL_EVENT_NAME, payload)
+		try {
+			tracker(VITAL_EVENT_NAME, payload)
+		} catch (error) {
+			// silently fail
+		}
 		return
 	}
 
