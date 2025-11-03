@@ -223,11 +223,9 @@ const LinkToPage = React.memo(function LinkToPage({
 			{icon ? (
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
 			) : name === 'LlamaAI' ? (
-				<img
-					src="/icons/ask-llamaai.svg"
-					alt="LlamaAI"
-					className="h-4 w-4 brightness-0 group-data-[linkactive=true]/link:invert dark:invert"
-				/>
+				<svg className="h-4 w-4 shrink-0">
+					<use href="/icons/ask-llamaai-1.svg" />
+				</svg>
 			) : null}
 			<span className="relative inline-flex items-center gap-2">
 				{name}
