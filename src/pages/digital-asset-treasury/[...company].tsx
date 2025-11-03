@@ -71,7 +71,7 @@ interface IDigitalAssetTreasuryCompany {
 	max_mNAV?: number | null
 	price?: number | null
 	priceChange24h?: number | null
-	mnav: {
+	mnav?: {
 		history: Array<{
 			date: string
 			stockPrice: number
@@ -87,7 +87,7 @@ interface IDigitalAssetTreasuryCompany {
 			mNAV_max: number
 		}>
 	}
-	ohlcv: {
+	ohlcv?: {
 		history: Array<{
 			date: string
 			open: number
@@ -194,7 +194,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		for (const item of data.mnav.history) {
+		for (const item of data.mnav?.history ?? []) {
 			const date = new Date(item.date).getTime()
 			mNAVChart['Realized mNAV'].data.push([date, item.mNAV_realized])
 			mNAVChart['Realistic mNAV'].data.push([date, item.mNAV_realistic])
@@ -243,7 +243,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		for (const item of data.ohlcv.history) {
+		for (const item of data.ohlcv?.history ?? []) {
 			const date = new Date(item.date).getTime()
 			ohlcvChart.Open.data.push([date, item.open])
 			ohlcvChart.High.data.push([date, item.high])
@@ -267,8 +267,8 @@ export const getStaticProps = withPerformanceLogging(
 					})
 				),
 				chartByAsset,
-				...(data.mnav.history.length > 0 ? { mNAVChart, fdChart } : {}),
-				...(data.ohlcv.history.length > 0 ? { ohlcvChart } : {})
+				...(data.mnav?.history?.length > 0 ? { mNAVChart, fdChart } : {}),
+				...(data.ohlcv?.history?.length > 0 ? { ohlcvChart } : {})
 			},
 			revalidate: maxAgeForNext([22])
 		}
