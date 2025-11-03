@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
@@ -163,6 +164,7 @@ export function SubscribeProCard({
 						{isModal && (
 							<BasicLink
 								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+								data-umami-event="subscribe-modal-goto-page"
 								className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 							>
 								Go to Subscription Page
@@ -182,6 +184,13 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
+
+	useEffect(() => {
+		if (isOpen && typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('subscribe-modal-open')
+		}
+	}, [isOpen])
+
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
 			<Ariakit.Dialog
@@ -190,7 +199,10 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 				unmountOnHide
 			>
 				<span className="mx-auto flex w-full max-w-[440px] flex-col">
-					<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white">
+					<Ariakit.DialogDismiss
+						data-umami-event="subscribe-modal-dismiss"
+						className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+					>
 						<Icon name="x" className="h-6 w-6" />
 					</Ariakit.DialogDismiss>
 					<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />

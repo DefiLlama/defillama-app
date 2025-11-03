@@ -81,6 +81,7 @@ export default function LlamaAIGetStarted() {
 					{subscription?.status === 'active' ? (
 						<BasicLink
 							href="/ai/chat"
+							data-umami-event="llamaai-landing-cta-subscribed"
 							className="mx-auto flex items-center justify-between gap-[10px] rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						>
 							<svg className="h-4 w-4 shrink-0">
@@ -91,6 +92,7 @@ export default function LlamaAIGetStarted() {
 					) : (
 						<button
 							onClick={() => setShowSubscribeModal(true)}
+							data-umami-event="llamaai-landing-cta-unsubscribed"
 							className="mx-auto flex items-center justify-between gap-[10px] rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						>
 							<svg className="h-4 w-4 shrink-0">

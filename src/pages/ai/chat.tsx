@@ -1,10 +1,10 @@
-import Image from 'next/image'
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
-import lostLlama from '~/assets/404.png'
-import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,10 +16,18 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 })
 
 export default function LlamaAIPage() {
-	const { hasFeature, loading, userLoading } = useFeatureFlagsContext()
+	const { hasFeature } = useFeatureFlagsContext()
+	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const router = useRouter()
 
-	// Show loading state while feature flags are loading
-	if (loading || userLoading) {
+	useEffect(() => {
+		if (isSubscriptionLoading) return
+		if (subscription?.status !== 'active') {
+			router.push('/ai')
+		}
+	}, [subscription, isSubscriptionLoading, router])
+
+	if (isSubscriptionLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"
@@ -35,29 +43,9 @@ export default function LlamaAIPage() {
 		)
 	}
 
-	// Show 404 page if llamaai feature flag is disabled
-	if (!hasFeature('llamaai')) {
-		return (
-			<Layout
-				title="Page not found - DefiLlama"
-				description={`DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-				keywords=""
-				canonicalUrl={`/404`}
-			>
-				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<Image src={lostLlama} width={350} height={350} alt="Want a ride?" />
-					<p className="text-center text-base text-(--text-label)">
-						This page doesn&apos;t exist. Check out{' '}
-						<BasicLink href="/metrics" className="underline">
-							other dashboards
-						</BasicLink>
-						.
-					</p>
-				</div>
-			</Layout>
-		)
+	if (subscription?.status !== 'active') {
+		return null
 	}
 
-	// Show LlamaAI if feature flag is enabled
 	return <LlamaAI showDebug={hasFeature('llama-ai-debug')} />
 }
