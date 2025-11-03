@@ -2120,6 +2120,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
 
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const { monthDates, feesByMonth, revenueByMonth, holdersRevenueByMonth, incentivesByMonth } = useMemo(() => {
 		if (groupBy === 'Quarterly') {
@@ -2132,9 +2133,15 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				const dateKey = +firstDayOfQuarter(date) * 1e3
 				quarterlyDates.add(dateKey)
 				quarterlyFeesByMonth[dateKey] =
-					(quarterlyFeesByMonth[dateKey] ?? 0) + (props.incomeStatement.feesByMonth[date] ?? 0)
+					(quarterlyFeesByMonth[dateKey] ?? 0) +
+					(props.incomeStatement.feesByMonth[date] ?? 0) +
+					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
+					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
 				quarterlyRevenueByMonth[dateKey] =
-					(quarterlyRevenueByMonth[dateKey] ?? 0) + (props.incomeStatement.revenueByMonth[date] ?? 0)
+					(quarterlyRevenueByMonth[dateKey] ?? 0) +
+					(props.incomeStatement.revenueByMonth[date] ?? 0) +
+					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
+					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
 				quarterlyHoldersRevenueByMonth[dateKey] =
 					(quarterlyHoldersRevenueByMonth[dateKey] ?? 0) + (props.incomeStatement.holdersRevenueByMonth?.[date] ?? 0)
 				quarterlyIncentivesByMonth[dateKey] =
@@ -2165,9 +2172,16 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				const dateObj = new Date(date)
 				const yearKey = dateObj.getUTCFullYear()
 				yearlyDates.add(yearKey)
-				yearlyFeesByMonth[yearKey] = (yearlyFeesByMonth[yearKey] ?? 0) + (props.incomeStatement.feesByMonth[date] ?? 0)
+				yearlyFeesByMonth[yearKey] =
+					(yearlyFeesByMonth[yearKey] ?? 0) +
+					(props.incomeStatement.feesByMonth[date] ?? 0) +
+					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
+					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
 				yearlyRevenueByMonth[yearKey] =
-					(yearlyRevenueByMonth[yearKey] ?? 0) + (props.incomeStatement.revenueByMonth[date] ?? 0)
+					(yearlyRevenueByMonth[yearKey] ?? 0) +
+					(props.incomeStatement.revenueByMonth[date] ?? 0) +
+					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
+					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
 				yearlyHoldersRevenueByMonth[yearKey] =
 					(yearlyHoldersRevenueByMonth[yearKey] ?? 0) + (props.incomeStatement.holdersRevenueByMonth?.[date] ?? 0)
 				yearlyIncentivesByMonth[yearKey] =
@@ -2185,8 +2199,48 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				incentivesByMonth: props.incomeStatement.incentivesByMonth ? yearlyIncentivesByMonth : null
 			}
 		}
+
+		if (
+			(props.incomeStatement?.bribesByMonth || props.incomeStatement?.tokenTaxesByMonth) &&
+			(feesSettings.bribes || feesSettings.tokentax)
+		) {
+			const monthlyDates = new Set<number>()
+			const monthlyFeesByMonth = {}
+			const monthlyRevenueByMonth = {}
+			const monthlyHoldersRevenueByMonth = {}
+			const monthlyIncentivesByMonth = {}
+			for (const [date] of props.incomeStatement.monthDates) {
+				monthlyDates.add(date)
+				monthlyFeesByMonth[date] =
+					(monthlyFeesByMonth[date] ?? 0) +
+					(props.incomeStatement.feesByMonth[date] ?? 0) +
+					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
+					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
+				monthlyRevenueByMonth[date] =
+					(monthlyRevenueByMonth[date] ?? 0) +
+					(props.incomeStatement.revenueByMonth[date] ?? 0) +
+					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
+					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
+				monthlyHoldersRevenueByMonth[date] =
+					(monthlyHoldersRevenueByMonth[date] ?? 0) + (props.incomeStatement.holdersRevenueByMonth?.[date] ?? 0)
+				monthlyIncentivesByMonth[date] =
+					(monthlyIncentivesByMonth[date] ?? 0) + (props.incomeStatement.incentivesByMonth?.[date] ?? 0)
+			}
+			return {
+				monthDates: Array.from(monthlyDates)
+					.sort((a, b) => b - a)
+					.map((date) => {
+						return [date, dayjs.utc(date).format('MMM YYYY')]
+					}),
+				feesByMonth: monthlyFeesByMonth,
+				revenueByMonth: monthlyRevenueByMonth,
+				holdersRevenueByMonth: props.incomeStatement.holdersRevenueByMonth ? monthlyHoldersRevenueByMonth : null,
+				incentivesByMonth: props.incomeStatement.incentivesByMonth ? monthlyIncentivesByMonth : null
+			}
+		}
+
 		return props.incomeStatement
-	}, [groupBy, props.incomeStatement])
+	}, [groupBy, props.incomeStatement, feesSettings])
 
 	return (
 		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
