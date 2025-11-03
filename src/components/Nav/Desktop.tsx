@@ -349,11 +349,9 @@ const NavItemContent = React.memo(function NavItemContent({
 			{icon ? (
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
 			) : name === 'LlamaAI' ? (
-				<img
-					src="/icons/ask-llamaai.svg"
-					alt="LlamaAI"
-					className="h-4 w-4 shrink-0 brightness-0 group-data-[linkactive=true]/link:invert dark:invert"
-				/>
+				<svg className="h-4 w-4 shrink-0">
+					<use href="/icons/ask-llamaai-1.svg" />
+				</svg>
 			) : null}
 			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
 				<span className="min-w-0 break-words">{name}</span>
