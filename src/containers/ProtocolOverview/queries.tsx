@@ -150,7 +150,8 @@ export const getProtocolMetrics = ({
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist,
 		liquidity: metadata.liquidity ? true : false,
-		activeUsers: metadata.activeUsers ? true : false
+		activeUsers: metadata.activeUsers ? true : false,
+		borrowed: metadata.borrowed ? true : false
 	}
 }
 

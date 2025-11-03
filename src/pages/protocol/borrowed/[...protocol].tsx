@@ -21,7 +21,7 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 export const getStaticProps = withPerformanceLogging(
-	'protocol/tvl/[...protocol]',
+	'protocol/borrowed/[...protocol]',
 	async ({
 		params: {
 			protocol: [protocol]
@@ -38,7 +38,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].tvl) {
+		if (!metadata || !metadata[1].borrowed) {
 			return { notFound: true, props: null }
 		}
 

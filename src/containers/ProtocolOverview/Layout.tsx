@@ -87,6 +87,9 @@ export function ProtocolOverviewLayout({
 
 	const protocolTabs = useMemo(() => {
 		const final = []
+		if (metrics.borrowed) {
+			final.push(tabs.borrowed)
+		}
 		if (metrics.stablecoins) {
 			final.push(tabs.stablecoins)
 		}
@@ -266,7 +269,7 @@ export function ProtocolOverviewLayout({
 							</BasicLink>
 						)
 					) : null}
-					{metrics.tvlTab && category === 'Lending' ? (
+					{metrics.borrowed ? (
 						<BasicLink
 							href={`/protocol/borrowed/${slug(name)}`}
 							data-active={tab === 'borrowed'}
