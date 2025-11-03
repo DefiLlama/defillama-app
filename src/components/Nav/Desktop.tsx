@@ -219,6 +219,7 @@ const LinkToPage = React.memo(function LinkToPage({
 			target={isExternal ? '_blank' : undefined}
 			rel={isExternal ? 'noopener noreferrer' : undefined}
 			className="group/link relative -ml-1.5 flex flex-1 items-center gap-3 overflow-hidden rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+			data-umami-event="llamaai-nav-link"
 		>
 			{icon ? (
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
