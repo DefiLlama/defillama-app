@@ -77,6 +77,7 @@ export interface ILineAndBarChartProps {
 			name: string
 			stack: string
 			color?: string
+			yAxisIndex?: number
 		}
 	}
 	chartOptions?: {
@@ -94,6 +95,7 @@ export interface ILineAndBarChartProps {
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
+	hideDefaultLegend?: boolean
 }
 
 export interface IMultiSeriesChartProps {
