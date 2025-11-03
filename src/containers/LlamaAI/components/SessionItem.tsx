@@ -15,9 +15,10 @@ interface SessionItemProps {
 	isActive: boolean
 	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
 	handleSidebarToggle: () => void
+	style: React.CSSProperties
 }
 
-export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
@@ -95,6 +96,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 				ref={formRef}
 				onSubmit={handleSave}
 				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#222324]"
+				style={style}
 			>
 				<input
 					type="text"
@@ -135,6 +137,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 		<div
 			data-active={isActive}
 			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#f7f7f7] hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#222324] dark:hover:bg-[#222324]"
+			style={style}
 		>
 			<a
 				href={`/ai/chat/${session.sessionId}`}

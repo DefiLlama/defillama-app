@@ -17,19 +17,28 @@ const eslintConfig = [
 	},
 	{
 		rules: {
-			'no-undef': 1,
-			'no-unused-vars': 1,
 			'react/no-unescaped-entities': 0,
 			'@next/next/no-img-element': 0,
 			'@typescript-eslint/no-explicit-any': 0,
-			'@typescript-eslint/no-unused-vars': 1,
 			'prefer-const': 0
+		}
+	},
+	{
+		files: ['**/*.js', '**/*.jsx'],
+		rules: {
+			'no-undef': 1,
+			'no-unused-vars': 1
 		}
 	},
 	{
 		files: ['**/*.ts', '**/*.tsx'],
 		languageOptions: {
 			parser: typescriptParser
+		},
+		rules: {
+			'no-undef': 0, // TypeScript handles this
+			'no-unused-vars': 0, // Disable base rule for TypeScript files
+			'@typescript-eslint/no-unused-vars': 1 // Use TypeScript-specific rule instead
 		}
 	}
 ]

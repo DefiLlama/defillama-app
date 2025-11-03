@@ -1053,7 +1053,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
@@ -1073,26 +1073,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							</div>
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
 									<>
-										<div className="shrink-0">
-											<PromptInput
-												handleSubmit={handleSubmit}
-												promptInputRef={promptInputRef}
-												isPending={isPending}
-												handleStopRequest={handleStopRequest}
-												isStreaming={isStreaming}
-												initialValue={prompt}
-												placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
-											/>
-										</div>
-										<div className="flex min-h-0 flex-1 flex-col">
-											<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
-										</div>
+										<PromptInput
+											handleSubmit={handleSubmit}
+											promptInputRef={promptInputRef}
+											isPending={isPending}
+											handleStopRequest={handleStopRequest}
+											isStreaming={isStreaming}
+											initialValue={prompt}
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
+										/>
+										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
 								)}
 							</div>
@@ -1101,7 +1097,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && conversationHistory.length === 0 ? (
@@ -1246,7 +1242,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
 											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-											<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
 								</div>
@@ -1288,7 +1284,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
 									/>
 								)}
 							</div>
@@ -1325,7 +1321,7 @@ const PromptInput = memo(function PromptInput({
 
 	// Use different placeholder for mobile devices
 	const isMobile = useMedia('(max-width: 640px)')
-	const mobilePlaceholder = placeholder.replace('Type @ to insert a protocol, chain', '')
+	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
@@ -1564,7 +1560,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-lg:resize-none max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1697,7 +1693,7 @@ const PromptResponse = ({
 				<p className="text-(--error)">{error}</p>
 				<button
 					onClick={onRetry}
-					className="flex items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+					className="flex w-fit items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
 				>
 					<Icon name="repeat" height={16} width={16} />
 					Retry
@@ -1811,10 +1807,10 @@ const SuggestedActions = memo(function SuggestedActions({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
+						className={`group flex touch-pan-y items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
-								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
+								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 active:border-(--old-blue) active:bg-(--old-blue)/12'
 						}`}
 					>
 						<span className="flex flex-1 flex-col items-start gap-1">
