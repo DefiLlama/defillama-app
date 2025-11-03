@@ -13,6 +13,7 @@ const tabs: Record<string, { id: string; name: string; route: string }> = {
 	information: { id: 'information', name: 'Information', route: '/protocol' },
 	assets: { id: 'assets', name: 'Assets', route: '/protocol/assets' },
 	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },
+	borrowed: { id: 'borrowed', name: 'Borrowed', route: '/protocol/borrowed' },
 	stablecoins: { id: 'stablecoins', name: 'Stablecoin Info', route: '/protocol/stablecoins' },
 	bridges: { id: 'bridges', name: 'Bridge Info', route: '/protocol/bridges' },
 	treasury: { id: 'treasury', name: 'Treasury', route: '/protocol/treasury' },
@@ -264,6 +265,15 @@ export function ProtocolOverviewLayout({
 								TVL
 							</BasicLink>
 						)
+					) : null}
+					{metrics.tvlTab && category === 'Lending' ? (
+						<BasicLink
+							href={`/protocol/borrowed/${slug(name)}`}
+							data-active={tab === 'borrowed'}
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+						>
+							Borrowed
+						</BasicLink>
 					) : null}
 					{metrics.stablecoins && isCEX ? (
 						<BasicLink

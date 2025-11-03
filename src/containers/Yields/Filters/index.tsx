@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
 import { useYieldFilters } from '~/contexts/LocalStorage'
@@ -16,13 +17,7 @@ import type { IYieldFiltersProps } from './types'
 function SavedFilters({ currentFilters }) {
 	const { savedFilters, saveFilter, deleteFilter } = useYieldFilters()
 	const router = useRouter()
-
-	const handleSave = () => {
-		const name = window.prompt('Enter a name for this filter configuration')
-		if (name) {
-			saveFilter(name, currentFilters)
-		}
-	}
+	const [dialogOpen, setDialogOpen] = React.useState(false)
 
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
@@ -47,11 +42,18 @@ function SavedFilters({ currentFilters }) {
 	return (
 		<div className="ml-auto flex items-center gap-2">
 			<button
-				onClick={handleSave}
+				onClick={() => setDialogOpen(true)}
 				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Save Current Filters
 			</button>
+			<DialogForm
+				title="Saving filters"
+				description="Enter a name for this filter configuration"
+				open={dialogOpen}
+				setOpen={setDialogOpen}
+				onSubmit={(name) => saveFilter(name, currentFilters)}
+			/>
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
 					Saved Filters

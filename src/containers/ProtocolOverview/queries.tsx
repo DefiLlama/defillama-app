@@ -835,14 +835,6 @@ export const getProtocolOverviewPageData = async ({
 	seoDescription += ' and their methodologies'
 	seoKeywords += `, ${name.toLowerCase()} methodologies`
 
-	const borrowedBreakdown = { chains: [], tokens: [] }
-
-	for (const chain in protocolData.currentChainTvls ?? {}) {
-		if (chain.endsWith('-borrowed')) {
-			borrowedBreakdown.chains.push([chain.split('-')[0], protocolData.currentChainTvls[chain]])
-		}
-	}
-
 	return {
 		id: String(protocolData.id),
 		name: name,
@@ -962,11 +954,7 @@ export const getProtocolOverviewPageData = async ({
 			optionsNotionalVolumeData?.defaultChartView ??
 			'daily',
 		seoDescription,
-		seoKeywords,
-		borrowedBreakdown: {
-			chains: borrowedBreakdown.chains.sort((a, b) => b[1] - a[1]),
-			tokens: borrowedBreakdown.tokens.sort((a, b) => b[1] - a[1])
-		}
+		seoKeywords
 	}
 }
 
