@@ -746,7 +746,13 @@
 	height: 200%;
 	background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 	transform: rotate(45deg);
-	animation: shimmer 3s infinite;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.llamaai-glow:hover::before {
+	opacity: 1;
+	animation: shimmer 3s;
 }
 
 .llamaai-glow:hover {

@@ -34,25 +34,22 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						</span>
 					</div>
 
-					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-black dark:text-white">
-						LlamaAI
-					</h2>
-					<p className="mb-6 text-center text-lg font-semibold text-black dark:text-white">
-						Insight, accelerated
-					</p>
+					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-black dark:text-white">LlamaAI</h2>
+					<p className="mb-6 text-center text-lg font-semibold text-black dark:text-white">Insight, accelerated</p>
 
 					<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
-						Go beyond dashboards with DefiLlama's data at your fingertips, turning conversation into deep, flexible analysis.
+						Go beyond dashboards with DefiLlama's data at your fingertips, turning conversation into deep, flexible
+						analysis.
 					</p>
 
 					<BasicLink
 						href="/ai/chat"
 						data-umami-event="llamaai-welcome-goto-chat"
-						className="mx-auto flex items-center justify-center gap-[10px] rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-center text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all hover:scale-[1.02]"
+						className="llamaai-glow relative mx-auto flex items-center justify-center gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-center text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						onClick={onClose}
 					>
 						<svg className="h-4 w-4 shrink-0">
-							<use href="/icons/ask-llamaai-1.svg" />
+							<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 						</svg>
 						<span className="whitespace-nowrap">Try LlamaAI</span>
 					</BasicLink>

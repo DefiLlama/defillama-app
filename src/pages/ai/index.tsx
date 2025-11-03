@@ -85,7 +85,7 @@ export default function LlamaAIGetStarted() {
 							className="llamaai-glow relative mx-auto flex items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						>
 							<svg className="h-4 w-4 shrink-0">
-								<use href="/icons/ask-llamaai-2.svg#ai-icon" />
+								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 							</svg>
 							<span className="whitespace-nowrap">Try LlamaAI</span>
 						</BasicLink>
@@ -96,7 +96,7 @@ export default function LlamaAIGetStarted() {
 							className="llamaai-glow relative mx-auto flex items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						>
 							<svg className="h-4 w-4 shrink-0">
-								<use href="/icons/ask-llamaai-2.svg#ai-icon" />
+								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 							</svg>
 							<span className="whitespace-nowrap">Try LlamaAI</span>
 						</button>

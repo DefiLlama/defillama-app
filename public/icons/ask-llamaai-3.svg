@@ -17,17 +17,17 @@
 		100% { transform: rotate(0deg); }
 	}
 	.ai-icon-body {
-		animation: llama-bounce 2s ease-in-out infinite;
+		animation: llama-bounce 2s ease-in-out;
 		animation-play-state: var(--animate-enabled, paused);
 		transform-origin: center;
 	}
 	.ai-icon-star-1 {
-		animation: var(--star-1-animation, star-blink 2s ease-in-out infinite);
+		animation: var(--star-1-animation, star-blink 2s ease-in-out);
 		animation-play-state: var(--animate-enabled, paused);
 		transform-origin: 12.5px 2px;
 	}
 	.ai-icon-star-2 {
-		animation: var(--star-2-animation, star-blink 2s ease-in-out 0.7s infinite);
+		animation: var(--star-2-animation, star-blink 2s ease-in-out 0.7s);
 		animation-play-state: var(--animate-enabled, paused);
 		transform-origin: 14.8px 5.1px;
 	}
