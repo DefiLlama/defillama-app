@@ -716,10 +716,10 @@
 
 @keyframes shimmer {
 	0% {
-		transform: translateX(-100%);
+		transform: translateX(-100%) translateY(-100%) rotate(45deg);
 	}
 	100% {
-		transform: translateX(100%);
+		transform: translateX(100%) translateY(100%) rotate(45deg);
 	}
 }
 
@@ -733,6 +733,10 @@
 		box-shadow 0.2s ease;
 }
 
+.llamaai-glow svg {
+	--animate-enabled: running;
+}
+
 .llamaai-glow::before {
 	content: '';
 	position: absolute;
@@ -742,7 +746,7 @@
 	height: 200%;
 	background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 	transform: rotate(45deg);
-	animation: ai-shimmer 3s infinite;
+	animation: shimmer 3s infinite;
 }
 
 .llamaai-glow:hover {
@@ -752,9 +756,9 @@
 		0px 0px 2px 4px rgba(255, 255, 255, 0.2);
 }
 
-.llamaai-glow:hover .ai-star-1,
-.llamaai-glow:hover .ai-star-2 {
-	animation: ai-spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+.llamaai-glow:hover svg {
+	--star-1-animation: star-spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+	--star-2-animation: star-spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .llamaai-glow:active {
@@ -766,60 +770,4 @@
 	height: 32px;
 	position: relative;
 	z-index: 1;
-}
-
-.llamaai-glow .ai-body {
-	animation: ai-bounce 2s ease-in-out infinite;
-	transform-origin: center;
-}
-
-.llamaai-glow .ai-star-1 {
-	animation: ai-blink 2s ease-in-out infinite;
-	transform-origin: 12.5px 2px;
-}
-
-.llamaai-glow .ai-star-2 {
-	animation: ai-blink 2s ease-in-out 0.7s infinite;
-	transform-origin: 14.8px 5.1px;
-}
-
-@keyframes ai-shimmer {
-	0% {
-		transform: translateX(-100%) translateY(-100%) rotate(45deg);
-	}
-	100% {
-		transform: translateX(100%) translateY(100%) rotate(45deg);
-	}
-}
-
-@keyframes ai-bounce {
-	0%,
-	100% {
-		transform: translateY(0);
-	}
-	50% {
-		transform: translateY(-1px);
-	}
-}
-
-@keyframes ai-blink {
-	0%,
-	100% {
-		opacity: 1;
-	}
-	50% {
-		opacity: 0.4;
-	}
-}
-
-@keyframes ai-spin {
-	0% {
-		transform: rotate(0deg);
-	}
-	50% {
-		transform: rotate(360deg);
-	}
-	100% {
-		transform: rotate(0deg);
-	}
 }
