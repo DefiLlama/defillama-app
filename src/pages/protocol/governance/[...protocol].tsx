@@ -68,7 +68,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide, protocolData, ...props }) {
+export default function Protocols(props) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -76,12 +76,9 @@ export default function Protocols({ clientSide, protocolData, ...props }) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="governance"
-			toggleOptions={[]}
 			warningBanners={props.warningBanners}
 		>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<GovernanceData apis={props.governanceApis} />
-			</div>
+			<GovernanceData apis={props.governanceApis} />
 		</ProtocolOverviewLayout>
 	)
 }

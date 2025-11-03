@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { Icon } from '~/components/Icon'
 import type { ISearchItem } from '~/components/Search/types'
 
 interface IProps {
@@ -13,8 +14,8 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
+		if (!deferredSearchValue) return options
 		return matchSorter(options, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
@@ -22,7 +23,24 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 
-	// return <SelectWithCombobox allValues={options} selectedValues={currentChain} setSelectedValues={handleClick} />
+	const comboboxRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
+
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
@@ -38,7 +56,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					handleClick(values)
 				}}
 			>
-				<Ariakit.Select className="relative z-10 flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+				<Ariakit.Select className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 					{currentChain}
 					<Ariakit.SelectArrow className="ml-auto" />
 				</Ariakit.Select>
@@ -49,8 +67,12 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				>
+					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+						<Icon name="x" className="h-5 w-5" />
+					</Ariakit.PopoverDismiss>
+
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus
@@ -59,8 +81,8 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 					{matches.length > 0 ? (
 						<>
-							<Ariakit.ComboboxList>
-								{matches.slice(0, viewableMatches + 1).map((option) => (
+							<Ariakit.ComboboxList ref={comboboxRef}>
+								{matches.slice(0, viewableMatches).map((option) => (
 									<Ariakit.SelectItem
 										key={`bridge-chain-${option.name}`}
 										value={option.name}
@@ -70,15 +92,18 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 										<span>{option.name}</span>
 									</Ariakit.SelectItem>
 								))}
+								{matches.length > viewableMatches ? (
+									<Ariakit.ComboboxItem
+										value="__see_more__"
+										setValueOnClick={false}
+										hideOnClick={false}
+										className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+										onClick={handleSeeMore}
+									>
+										See more...
+									</Ariakit.ComboboxItem>
+								) : null}
 							</Ariakit.ComboboxList>
-							{matches.length > viewableMatches ? (
-								<button
-									className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
-								>
-									See more...
-								</button>
-							) : null}
 						</>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>

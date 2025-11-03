@@ -4,13 +4,10 @@ import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { capitalize } from 'lodash'
 import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import { formattedNum } from '~/utils'
+import { capitalizeFirstLetter, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
@@ -44,7 +41,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 			.slice(-15)
 			.sort((a, b) => a.value - b.value)
 			.map((item) => ({
-				chain: capitalize(item.chain),
+				chain: capitalizeFirstLetter(item.chain),
 				value: item.value
 			}))
 
@@ -88,7 +85,8 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 				bottom: 12,
 				left: 42,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis: {
 				type: 'value',
@@ -166,7 +164,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					left: 'center',
 					top: 'center',
 					style: {
-						image: isThemeDark ? logoLight.src : logoDark.src,
+						image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 						height: 40,
 						opacity: 0.3
 					},

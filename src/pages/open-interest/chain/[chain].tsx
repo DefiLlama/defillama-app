@@ -1,18 +1,18 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { TMetric } from '~/components/Metrics'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const adapterType = ADAPTER_TYPES.PERPS
-const dataType = ADAPTER_DATA_TYPES.OPEN_INTEREST
-const type: TMetric = 'Open Interest'
+const adapterType = ADAPTER_TYPES.OPEN_INTEREST
+const dataType = ADAPTER_DATA_TYPES.OPEN_INTEREST_AT_END
+const type = 'Open Interest'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		if (!metadataCache.chainMetadata[chain]?.perps) {
+		if (!metadataCache.chainMetadata[chain]?.openInterest) {
 			return { notFound: true }
 		}
 
@@ -64,9 +64,17 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const OpenInterestOnChain = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const OpenInterestOnChain = (props: IAdapterByChainPageData) => {
 	return (
-		<Layout title={`${props.chain} - ${type} - DefiLlama`} defaultSEO>
+		<Layout
+			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
+			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			canonicalUrl={`/open-interest/chain/${props.chain}`}
+			pageName={pageName}
+		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)

@@ -19,6 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
+import { alphanumericFalsyLast } from '../../utils'
 import {
 	columnOrders,
 	columnSizes,
@@ -49,6 +50,7 @@ export enum TABLE_PERIODS {
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
+	{ name: 'Oracles', key: 'oracles' },
 	{ name: 'Chains', key: 'chains' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
 	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
@@ -59,10 +61,26 @@ export const protocolsByChainTableColumns = [
 	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Fees 1y', key: 'fees_1y', category: TABLE_CATEGORIES.FEES },
 	{
 		name: 'Monthly Avg 1Y Fees',
-		key: 'fees_1y',
+		key: 'average_1y',
 		category: TABLE_CATEGORIES.FEES
+	},
+	{ name: 'Fees Change 1d', key: 'feesChange_1d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Fees Change 7d', key: 'feesChange_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Fees Change 1m', key: 'feesChange_1m', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Fees Change 7d (vs prev 7d)',
+		key: 'feesChange_7dover7d',
+		category: TABLE_CATEGORIES.FEES,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Fees Change 30d',
+		key: 'feesChange_30dover30d',
+		category: TABLE_CATEGORIES.FEES,
+		period: TABLE_PERIODS.ONE_MONTH
 	},
 	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
@@ -72,6 +90,36 @@ export const protocolsByChainTableColumns = [
 		name: 'Monthly Avg 1Y Rev',
 		key: 'average_revenue_1y',
 		category: TABLE_CATEGORIES.REVENUE
+	},
+	{
+		name: 'Revenue Change 1d',
+		key: 'revenueChange_1d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Revenue Change 7d',
+		key: 'revenueChange_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Revenue Change 1m',
+		key: 'revenueChange_1m',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Revenue Change 7d (vs prev 7d)',
+		key: 'revenueChange_7dover7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Revenue Change 30d',
+		key: 'revenueChange_30dover30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
 	},
 	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
@@ -99,22 +147,218 @@ export const protocolsByChainTableColumns = [
 		category: TABLE_CATEGORIES.REVENUE,
 		period: TABLE_PERIODS.ONE_DAY
 	},
-	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Earnings 24h', key: 'earnings_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
+	{
+		name: 'Earnings Change 1d',
+		key: 'earningsChange_1d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{ name: 'Earnings 7d', key: 'earnings_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
+	{
+		name: 'Earnings Change 7d',
+		key: 'earningsChange_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{ name: 'Earnings 30d', key: 'earnings_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Earnings Change 1m',
+		key: 'earningsChange_1m',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Earnings 1y', key: 'earnings_1y', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Spot Volume 30d', key: 'volume_30d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Spot Volume Change 1d',
+		key: 'volumeChange_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
 	{
 		name: 'Spot Volume Change 7d',
 		key: 'volumeChange_7d',
 		category: TABLE_CATEGORIES.VOLUME,
 		period: TABLE_PERIODS.SEVEN_DAYS
 	},
-	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME }
+	{
+		name: 'Spot Volume Change 1m',
+		key: 'volumeChange_1m',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Spot Volume % Share 24h', key: 'volumeDominance_24h', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Spot Volume % Share 7d', key: 'volumeMarketShare7d', category: TABLE_CATEGORIES.VOLUME },
+	{
+		name: 'DEX Agg Volume 24h',
+		key: 'aggregators_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume Change 1d',
+		key: 'aggregators_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume 7d',
+		key: 'aggregators_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'DEX Agg Volume Change 7d',
+		key: 'aggregators_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'DEX Agg Volume 30d',
+		key: 'aggregators_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'DEX Agg Volume % 24h',
+		key: 'aggregators_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume % 7d',
+		key: 'aggregators_volume_marketShare7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume 24h',
+		key: 'bridge_aggregators_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Bridge Agg Volume Change 1d',
+		key: 'bridge_aggregators_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Bridge Agg Volume 7d',
+		key: 'bridge_aggregators_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume Change 7d',
+		key: 'bridge_aggregators_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume 30d',
+		key: 'bridge_aggregators_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Bridge Agg Volume % 24h',
+		key: 'bridge_aggregators_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume 24h',
+		key: 'options_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume Change 1d',
+		key: 'options_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume 7d',
+		key: 'options_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Options Volume Change 7d',
+		key: 'options_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Options Volume 30d',
+		key: 'options_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Options Volume % 24h',
+		key: 'options_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume 24h',
+		key: 'perps_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume 7d',
+		key: 'perps_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Perp Volume 30d',
+		key: 'perps_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Perp Volume Change 1d',
+		key: 'perps_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume Change 7d',
+		key: 'perps_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Perp Volume Change 1m',
+		key: 'perps_volume_change_1m',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Perp Volume % Share 24h', key: 'perps_volume_dominance_24h', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Open Interest', key: 'openInterest', category: TABLE_CATEGORIES.VOLUME },
+	{
+		name: 'Holders Revenue 30d Change',
+		key: 'holdersRevenueChange_30dover30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	}
 ]
 
 export const defaultColumns = JSON.stringify({
 	name: true,
 	category: true,
+	oracles: false,
 	chains: false,
 	tvl: true,
 	change_1d: true,
@@ -124,14 +368,25 @@ export const defaultColumns = JSON.stringify({
 	mcaptvl: false,
 	fees_24h: true,
 	revenue_24h: true,
+	revenueChange_1d: false,
+	revenueChange_7d: false,
+	revenueChange_1m: false,
+	feesChange_7dover7d: false,
+	feesChange_30dover30d: false,
+	revenueChange_7dover7d: false,
+	revenueChange_30dover30d: false,
 	fees_7d: false,
 	revenue_7d: false,
 	fees_30d: false,
 	revenue_30d: false,
 	holdersRevenue30d: false,
 	fees_1y: false,
+	average_1y: false,
 	revenue_1y: false,
 	average_revenue_1y: false,
+	feesChange_1d: false,
+	feesChange_7d: false,
+	feesChange_1m: false,
 	userFees_24h: false,
 	cumulativeFees: false,
 	holderRevenue_24h: false,
@@ -139,10 +394,50 @@ export const defaultColumns = JSON.stringify({
 	supplySideRevenue_24h: false,
 	pf: false,
 	ps: false,
+	earnings_24h: false,
+	earningsChange_1d: false,
+	earnings_7d: false,
+	earningsChange_7d: false,
+	earnings_30d: false,
+	earningsChange_1m: false,
+	earnings_1y: false,
 	volume_24h: true,
 	volume_7d: false,
+	volume_30d: false,
+	volumeChange_1d: false,
 	volumeChange_7d: false,
-	cumulativeVolume: false
+	volumeChange_1m: false,
+	cumulativeVolume: false,
+	volumeDominance_24h: false,
+	volumeMarketShare7d: false,
+	perps_volume_24h: false,
+	perps_volume_7d: false,
+	perps_volume_30d: false,
+	perps_volume_change_1d: false,
+	perps_volume_change_7d: false,
+	perps_volume_change_1m: false,
+	perps_volume_dominance_24h: false,
+	aggregators_volume_24h: false,
+	aggregators_volume_change_1d: false,
+	aggregators_volume_7d: false,
+	aggregators_volume_change_7d: false,
+	aggregators_volume_30d: false,
+	aggregators_volume_dominance_24h: false,
+	aggregators_volume_marketShare7d: false,
+	bridge_aggregators_volume_24h: false,
+	bridge_aggregators_volume_change_1d: false,
+	bridge_aggregators_volume_7d: false,
+	bridge_aggregators_volume_change_7d: false,
+	bridge_aggregators_volume_30d: false,
+	bridge_aggregators_volume_dominance_24h: false,
+	options_volume_24h: false,
+	options_volume_change_1d: false,
+	options_volume_7d: false,
+	options_volume_change_7d: false,
+	options_volume_30d: false,
+	options_volume_dominance_24h: false,
+	openInterest: false,
+	holdersRevenueChange_30dover30d: false
 })
 
 const optionsKey = 'protocolsTableColumns'
@@ -170,30 +465,7 @@ const ProtocolsTable = ({
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				/**
-				 * These first 3 conditions keep our null values at the bottom.
-				 */
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				// at this point, you have non-null values and you should do whatever is required to sort those values correctly
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -319,10 +591,10 @@ export function ProtocolsByChainTable({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 					}}
 				/>
-				<TVLRange variant="third" />
+				<TVLRange />
 			</div>
 			<ProtocolsTable data={data} columnsInStorage={columnsInStorage} useStickyHeader={useStickyHeader} />
 		</div>
@@ -428,7 +700,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>
@@ -437,8 +709,8 @@ export function ProtocolsTableWithSearch({
 	)
 }
 
-export function TopGainersAndLosers({ data }: { data: Array<IProtocolRow> }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+export function TopGainersAndLosers({ data, sortingState }: { data: Array<IProtocolRow>; sortingState: SortingState }) {
+	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
 
 	const instance = useReactTable({
 		data,

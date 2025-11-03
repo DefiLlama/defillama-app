@@ -4,7 +4,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 // AreaChart where tooltip is always shown
 export default function AreaChart({
@@ -23,6 +23,10 @@ export default function AreaChart({
 	expandTo100Percent = false,
 	isStackedChart,
 	hideGradient = false,
+	alwaysShowTooltip = true,
+	hideLegend = true,
+	hideDataZoom = false,
+	onReady,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -36,7 +40,7 @@ export default function AreaChart({
 		title,
 		valueSymbol,
 		tooltipSort,
-		hideLegend: true,
+		hideLegend,
 		isStackedChart,
 		isThemeDark
 	})
@@ -102,38 +106,54 @@ export default function AreaChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		onReady?.(chartInstance)
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
 
+		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+
 		chartInstance.setOption({
 			graphic: { ...graphic },
-			tooltip: {
-				...tooltip,
-				position: [60, 0],
-				backgroundColor: 'none',
-				borderWidth: '0',
-				padding: 12,
-				boxShadow: 'none',
-				textStyle: {
-					color: isThemeDark ? 'white' : 'black'
-				}
-			},
+			tooltip: alwaysShowTooltip
+				? {
+						...tooltip,
+						position: [60, 0],
+						backgroundColor: 'none',
+						borderWidth: '0',
+						padding: 8,
+						boxShadow: 'none',
+						textStyle: {
+							color: isThemeDark ? 'white' : 'black'
+						}
+					}
+				: tooltip,
 			title: {
 				...titleDefaults
 			},
+			...(hideLegend
+				? {}
+				: {
+						legend: {
+							top: 0,
+							left: 'center',
+							textStyle: {
+								color: isThemeDark ? '#ffffff' : '#000000'
+							}
+						}
+					}),
 			grid: {
 				left: 12,
-				bottom: 68,
-				top: 12,
+				bottom: hideDataZoom ? 12 : 68,
+				top: hideLegend ? 12 : 32,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis: {
 				...xAxis
@@ -171,18 +191,7 @@ export default function AreaChart({
 			series
 		})
 
-		chartInstance.dispatchAction({
-			type: 'showTip',
-			// index of series, which is optional when trigger of tooltip is axis
-			seriesIndex: 0,
-			// data index; could assign by name attribute when not defined
-			dataIndex: series[0].data.length - 1,
-			// Position of tooltip. Only works in this action.
-			// Use tooltip.position in option by default.
-			position: [60, 0]
-		})
-
-		chartInstance.on('globalout', () => {
+		if (alwaysShowTooltip && series && series.length > 0 && series[0]?.data?.length > 0) {
 			chartInstance.dispatchAction({
 				type: 'showTip',
 				// index of series, which is optional when trigger of tooltip is axis
@@ -193,7 +202,20 @@ export default function AreaChart({
 				// Use tooltip.position in option by default.
 				position: [60, 0]
 			})
-		})
+
+			chartInstance.on('globalout', () => {
+				chartInstance.dispatchAction({
+					type: 'showTip',
+					// index of series, which is optional when trigger of tooltip is axis
+					seriesIndex: 0,
+					// data index; could assign by name attribute when not defined
+					dataIndex: series[0].data.length - 1,
+					// Position of tooltip. Only works in this action.
+					// Use tooltip.position in option by default.
+					position: [60, 0]
+				})
+			})
+		}
 
 		function resize() {
 			chartInstance.resize()
@@ -205,11 +227,22 @@ export default function AreaChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, stackColors, isThemeDark, stacks.length])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		stackColors,
+		isThemeDark,
+		stacks.length,
+		alwaysShowTooltip,
+		hideLegend,
+		onReady
+	])
 
 	return (
 		<div className="relative" {...props}>
-			<div id={id} className="min-h-[360px]" style={height ? { height } : undefined} />
+			<div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 		</div>
 	)
 }

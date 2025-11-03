@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -13,42 +12,47 @@ interface SearchParams {
 	limit?: number
 }
 
-export function useDashboardDiscovery() {
+export function useDashboardDiscovery(params: SearchParams) {
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const [searchParams, setSearchParams] = useState<SearchParams>({})
-	const [isSearchMode, setIsSearchMode] = useState(false)
+
+	const isSearchMode = params.query || params.tags?.length > 0 ? true : false
 
 	const discoverQuery = useQuery({
-		queryKey: ['dashboard-discover', searchParams.page, searchParams.limit, searchParams.sortBy],
+		queryKey: ['dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy],
 		queryFn: async () => {
-			if (searchParams.sortBy) {
+			if (isSearchMode) return null
+
+			if (params.sortBy) {
 				return await dashboardAPI.searchDashboards(
 					{
 						visibility: 'public',
-						sortBy: searchParams.sortBy,
-						page: searchParams.page || 1,
-						limit: searchParams.limit || 20
+						sortBy: params.sortBy,
+						page: params.page || 1,
+						limit: params.limit || 20
 					},
 					isAuthenticated ? authorizedFetch : undefined
 				)
 			}
 			return await dashboardAPI.discoverDashboards(
 				{
-					page: searchParams.page || 1,
-					limit: searchParams.limit || 20
+					page: params.page || 1,
+					limit: params.limit || 20
 				},
 				isAuthenticated ? authorizedFetch : undefined
 			)
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: !isSearchMode
 	})
 
 	const searchQuery = useQuery({
-		queryKey: ['dashboard-search', searchParams],
+		queryKey: ['dashboard-search', isSearchMode, params],
 		queryFn: async () => {
-			return await dashboardAPI.searchDashboards(searchParams, isAuthenticated ? authorizedFetch : undefined)
+			if (!isSearchMode) return null
+			return await dashboardAPI.searchDashboards(params, isAuthenticated ? authorizedFetch : undefined)
 		},
+		staleTime: 1000 * 60 * 2,
 		enabled: isSearchMode
 	})
 
@@ -77,7 +81,8 @@ export function useDashboardDiscovery() {
 				'portfolio',
 				'risk'
 			]
-		}
+		},
+		staleTime: 1000 * 60 * 60
 	})
 
 	const likeMutation = useMutation({
@@ -109,19 +114,6 @@ export function useDashboardDiscovery() {
 		}
 	})
 
-	const discoverDashboards = useCallback(
-		(params: { page?: number; limit?: number; sortBy?: 'popular' | 'recent' | 'likes' }) => {
-			setSearchParams(params)
-			setIsSearchMode(false)
-		},
-		[]
-	)
-
-	const searchDashboards = useCallback((params: SearchParams) => {
-		setSearchParams(params)
-		setIsSearchMode(true)
-	}, [])
-
 	const activeQuery = isSearchMode ? searchQuery : discoverQuery
 	const data = activeQuery.data
 
@@ -134,8 +126,6 @@ export function useDashboardDiscovery() {
 		currentPage: data?.page || 1,
 		popularTags,
 		likeDashboard: likeMutation.mutate,
-		isLiking: likeMutation.isPending,
-		discoverDashboards,
-		searchDashboards
+		isLiking: likeMutation.isPending
 	}
 }

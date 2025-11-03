@@ -1,13 +1,14 @@
 import * as React from 'react'
-import { sortingFns } from '@tanstack/react-table'
+import { ColumnDef, sortingFns } from '@tanstack/react-table'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'
 import { formattedNum, toNiceDateYear } from '~/utils'
 import data from './final.json'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<any>
 
-const banksTableColumns = [
+const banksTableColumns: ColumnDef<any>[] = [
 	{
 		header: 'Name',
 		accessorKey: '1',
@@ -29,7 +30,7 @@ const banksTableColumns = [
 		header: 'Assets',
 		accessorKey: '6',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedNum(getValue() * 1e6, true) : ''}</>
+			return <>{getValue() ? formattedNum((getValue() as number) * 1e6, true) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -39,7 +40,7 @@ const banksTableColumns = [
 		header: 'Assets (inflation adjusted)',
 		accessorKey: '7',
 		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedNum(getValue() * 1e6, true) : ''}</>
+			return <>{getValue() ? formattedNum((getValue() as number) * 1e6, true) : ''}</>
 		},
 		meta: {
 			align: 'end'
@@ -54,13 +55,14 @@ const tableData = data.banks.map((b: any) => {
 
 const Banks = () => {
 	return (
-		<Layout title="Bank Failures">
-			<div className="relative col-span-2 min-h-[384px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+		<Layout title="Bank Failures - DefiLlama">
+			<div className="relative col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 				<React.Suspense fallback={<></>}>
 					<BarChart
 						chartData={Object.entries(data.years).map((t) => [new Date(t[0]).getTime() / 1e3, t[1] * 1e6])}
 						title="Assets of failed banks (inflation adjusted)"
 						valueSymbol="$"
+						color={CHART_COLORS[0]}
 					/>
 				</React.Suspense>
 			</div>
@@ -69,6 +71,7 @@ const Banks = () => {
 				columns={banksTableColumns}
 				placeholder="Search banks..."
 				columnToSearch={'1'}
+				sortingState={[{ id: 'date', desc: true }]}
 			/>
 		</Layout>
 	)

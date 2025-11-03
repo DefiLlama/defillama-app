@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { MultiItemSelect } from '../../MultiItemSelect'
+import { AriakitVirtualizedMultiSelect } from '../../AriakitVirtualizedMultiSelect'
 
 export interface YieldsFilters {
 	apyMin?: number
@@ -9,6 +9,7 @@ export interface YieldsFilters {
 	baseApyMin?: number
 	baseApyMax?: number
 	chains?: string[]
+	protocols?: string[]
 	tokens?: string[]
 	hasRewards?: boolean
 	stablesOnly?: boolean
@@ -22,6 +23,7 @@ interface YieldsFiltersPanelProps {
 	filters: YieldsFilters
 	setFilters: (filters: YieldsFilters) => void
 	availableChains: string[]
+	availableProtocols: Array<{ value: string; label: string; logo?: string }>
 	availableTokens: string[]
 	onApplyFilters: (filters?: YieldsFilters) => void
 	onResetFilters: () => void
@@ -34,6 +36,7 @@ export function YieldsFiltersPanel({
 	filters,
 	setFilters,
 	availableChains,
+	availableProtocols,
 	availableTokens,
 	onApplyFilters,
 	onResetFilters,
@@ -79,14 +82,14 @@ export function YieldsFiltersPanel({
 	if (!showFiltersPanel) return null
 
 	return (
-		<div className="pro-divider pro-bg3 relative mb-4 border p-4" style={{ zIndex: 50, pointerEvents: 'auto' }}>
+		<div className="relative mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4" style={{ zIndex: 50, pointerEvents: 'auto' }}>
 			<div className="mb-3 flex items-center justify-between">
 				<h4 className="pro-text1 text-sm font-medium">Filter Yields</h4>
 				<div className="flex items-center gap-2">
 					{activeFilterCount > 0 && (
 						<button
 							onClick={handleReset}
-							className="pro-divider pro-hover-bg pro-text2 pro-bg2 border px-2 py-1 text-xs transition-colors"
+								className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 						>
 							Clear All ({activeFilterCount})
 						</button>
@@ -107,7 +110,7 @@ export function YieldsFiltersPanel({
 									placeholder="Min %"
 									value={localFilters.apyMin || ''}
 									onChange={(e) => updateFilter('apyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -115,7 +118,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.apyMax || ''}
 									onChange={(e) => updateFilter('apyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -128,7 +131,7 @@ export function YieldsFiltersPanel({
 									placeholder="Min %"
 									value={localFilters.baseApyMin || ''}
 									onChange={(e) => updateFilter('baseApyMin', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -136,7 +139,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max %"
 									value={localFilters.baseApyMax || ''}
 									onChange={(e) => updateFilter('baseApyMax', e.target.value ? Number(e.target.value) : undefined)}
-									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -150,7 +153,7 @@ export function YieldsFiltersPanel({
 									className="sr-only"
 								/>
 								<div
-									className={`h-4 w-4 border-2 transition-all duration-150 ${
+									className={`h-4 w-4 rounded-sm border-2 transition-all duration-150 ${
 										localFilters.hasRewards
 											? 'border-(--primary) bg-(--primary)'
 											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
@@ -184,7 +187,7 @@ export function YieldsFiltersPanel({
 									placeholder="Min"
 									value={formatNumberWithCommas(localFilters.tvlMin)}
 									onChange={(e) => updateFilter('tvlMin', parseFormattedNumber(e.target.value))}
-									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 								<span className="pro-text3">-</span>
 								<input
@@ -192,7 +195,7 @@ export function YieldsFiltersPanel({
 									placeholder="Max"
 									value={formatNumberWithCommas(localFilters.tvlMax)}
 									onChange={(e) => updateFilter('tvlMax', parseFormattedNumber(e.target.value))}
-									className="pro-divider pro-text1 placeholder:pro-text3 pro-bg2 flex-1 border px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
+									className="pro-border pro-text1 placeholder:pro-text3 flex-1 rounded-md border bg-(--bg-glass) px-2 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 								/>
 							</div>
 						</div>
@@ -253,7 +256,7 @@ export function YieldsFiltersPanel({
 												className="sr-only"
 											/>
 											<div
-												className={`h-4 w-4 border-2 transition-all duration-150 ${
+												className={`h-4 w-4 rounded-sm border-2 transition-all duration-150 ${
 													localFilters.poolTypes?.includes(type)
 														? 'border-(--primary) bg-(--primary)'
 														: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
@@ -278,27 +281,28 @@ export function YieldsFiltersPanel({
 					</div>
 				</div>
 
-				<div>
-					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Token Filters</h5>
+		<div>
+			<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Protocol & Token Filters</h5>
 
-					<div className="space-y-3">
-						<MultiItemSelect
-							label="Pool Tokens"
-							options={availableTokens.map((token) => ({ value: token, label: token }))}
-							selectedValues={localFilters.tokens || []}
-							onChange={(selectedOptions) => {
-								updateFilter('tokens', selectedOptions?.map((opt) => opt.value) || undefined)
-							}}
-							isLoading={false}
-							placeholder="Select tokens..."
-							itemType="token"
-							noIcon={true}
-							customProps={{
-								menuPosition: 'absolute'
-							}}
-						/>
-					</div>
-				</div>
+			<div className="space-y-3">
+				<AriakitVirtualizedMultiSelect
+					label="Protocols"
+					options={availableProtocols}
+					selectedValues={localFilters.protocols || []}
+					onChange={(values) => updateFilter('protocols', values.length > 0 ? values : undefined)}
+					placeholder="Select protocols..."
+					renderIcon={(option) => option.logo || null}
+				/>
+
+				<AriakitVirtualizedMultiSelect
+					label="Pool Tokens"
+					options={availableTokens.map((token) => ({ value: token, label: token }))}
+					selectedValues={localFilters.tokens || []}
+					onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
+					placeholder="Select tokens..."
+				/>
+			</div>
+		</div>
 			</div>
 
 			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3">
@@ -307,7 +311,7 @@ export function YieldsFiltersPanel({
 				</button>
 				<button
 					onClick={handleApply}
-					className="border border-(--primary) bg-(--primary) px-3 py-1 text-xs text-white transition-colors hover:bg-(--primary-hover)"
+					className="rounded-md border border-(--primary) bg-(--primary) px-3 py-1 text-xs text-white transition-colors hover:bg-(--primary-hover)"
 				>
 					Apply Filters
 				</button>

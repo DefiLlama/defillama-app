@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
-import { ColumnDef } from '@tanstack/react-table'
+import { ColumnDef, SortingState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics, TMetric } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -42,7 +41,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 			selectedCategories,
 			protocols
 		}
-	}, [router.query, props])
+	}, [router.query, props, category])
 
 	const addCategory = (newCategory) => {
 		router.push(
@@ -94,11 +93,10 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 		)
 	}
 
-	const { metricName, columns } = getMetricNameAndColumns(props.type)
+	const { columns, sortingState } = getMetricNameAndColumns(props.type)
 
 	return (
 		<>
-			<Metrics currentMetric={metricName} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<TableWithSearch
 				data={protocols}
@@ -122,12 +120,13 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								labelType="smol"
 								triggerProps={{
 									className:
-										'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 								}}
 							/>
 						)}
 					</>
 				}
+				sortingState={sortingState}
 			/>
 		</>
 	)
@@ -205,7 +204,7 @@ const defaultColumns = (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 						{row.subRows?.length > 0 ? (
 							<button
-								className="absolute -left-[18px]"
+								className="absolute -left-4.5"
 								{...{
 									onClick: row.getToggleExpandedHandler()
 								}}
@@ -345,19 +344,19 @@ const outstandingFdvColumns: ColumnDef<IProtocolsWithTokensByChainPageData['prot
 ]
 
 function getMetricNameAndColumns(type: IProtocolsWithTokensByChainPageData['type']): {
-	metricName: TMetric
 	columns: ColumnDef<IProtocolsWithTokensByChainPageData['protocols'][0]>[]
+	sortingState: SortingState
 } {
 	switch (type) {
 		case 'mcap':
-			return { metricName: 'Market Cap', columns: mcapColumns }
+			return { columns: mcapColumns, sortingState: [{ id: 'mcap', desc: true }] }
 		case 'price':
-			return { metricName: 'Token Price', columns: priceColumns }
+			return { columns: priceColumns, sortingState: [{ id: 'price', desc: true }] }
 		case 'fdv':
-			return { metricName: 'FDV', columns: fdvColumns }
+			return { columns: fdvColumns, sortingState: [{ id: 'fdv', desc: true }] }
 		case 'outstanding-fdv':
-			return { metricName: 'Outstanding FDV', columns: outstandingFdvColumns }
+			return { columns: outstandingFdvColumns, sortingState: [{ id: 'outstanding-fdv', desc: true }] }
 		default:
-			return { metricName: 'TVL', columns: [] }
+			return { columns: [], sortingState: [] }
 	}
 }

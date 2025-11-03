@@ -12,7 +12,6 @@ type Name =
 	| 'clock'
 	| 'folder-plus'
 	| 'trash-2'
-	| 'crosshair'
 	| 'github'
 	| 'copy'
 	| 'search'
@@ -42,26 +41,16 @@ type Name =
 	| 'code'
 	| 'align-left'
 	| 'bar-chart'
-	| 'book-open'
-	| 'book'
-	| 'sign'
-	| 'droplet'
 	| 'eye'
 	| 'file-plus'
 	| 'file-text'
-	| 'image'
 	| 'layers'
 	| 'pie-chart'
-	| 'shield-off'
-	| 'shuffle'
-	| 'trending-up'
-	| 'unlock'
 	| 'dollar-sign'
 	| 'check'
 	| 'card'
 	| 'circle-help'
 	| 'wallet'
-	| 'database'
 	| 'plug'
 	| 'credit-card'
 	| 'star'
@@ -78,6 +67,31 @@ type Name =
 	| 'earth'
 	| 'twitter'
 	| 'file-text'
+	| 'flame'
+	| 'house'
+	| 'pencil-ruler'
+	| 'blocks'
+	| 'banknote'
+	| 'pin'
+	| 'chevrons-left'
+	| 'chevrons-right'
+	| 'tag'
+	| 'file-lock-2'
+	| 'message-square-plus'
+	| 'arrow-up'
+	| 'arrow-right-to-line'
+	| 'ellipsis'
+	| 'thumbs-up'
+	| 'thumbs-down'
+	| 'chain'
+	| 'protocol'
+	| 'clipboard'
+	| 'message-square-warning'
+	| 'minus'
+	| 'package'
+	| 'layout-grid'
+	| 'arrow-down'
+	| 'share'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -85,7 +99,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v5.svg#${name}`} />
+			<use href={`/icons/v25.svg#${name}`} />
 		</svg>
 	)
 })

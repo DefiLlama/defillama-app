@@ -30,9 +30,17 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
+const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
+
 export default function ProtocolsFdvByChain(props) {
 	return (
-		<Layout title="Fully Diluted Valuations - DefiLlama">
+		<Layout
+			title={`${props.chain} Protocol Fully Diluted Valuations - DefiLlama`}
+			description={`${props.chain} protocols Fully Diluted Valuations. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.chain} protocols fully diluted valuations`}
+			canonicalUrl={`/fdv/chain/${props.chain}`}
+			pageName={pageName}
+		>
 			<ProtocolsWithTokens {...props} />
 		</Layout>
 	)

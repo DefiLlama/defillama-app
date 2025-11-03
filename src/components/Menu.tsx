@@ -1,44 +1,28 @@
 import { useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { transparentize } from 'polished'
+import { Icon } from './Icon'
 import { BasicLink } from './Link'
 
 interface IMenuProps {
 	options: string[] | string
 	name: string
-	color?: string
 	isExternal?: boolean
 	onItemClick?: (value: any) => void
-	variant?: 'primary' | 'secondary'
 	className?: string
 	portal?: boolean
 }
 
-export function Menu({
-	options,
-	name,
-	color,
-	isExternal,
-	onItemClick,
-	variant = 'primary',
-	className,
-	portal,
-	...props
-}: IMenuProps) {
-	const { _options, style } = useMemo(() => {
+export function Menu({ options, name, isExternal, onItemClick, className, portal, ...props }: IMenuProps) {
+	const { _options } = useMemo(() => {
 		return {
-			_options: typeof options === 'string' ? [options] : options,
-			style: color
-				? ({ '--btn2-bg': transparentize(0.9, color), '--btn2-hover-bg': transparentize(0.8, color) } as any)
-				: {}
+			_options: typeof options === 'string' ? [options] : options
 		}
-	}, [options, color])
+	}, [options])
 
 	return (
 		<Ariakit.MenuProvider>
 			<Ariakit.MenuButton
 				{...props}
-				style={style}
 				className={
 					className ??
 					'relative flex max-w-fit cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn2-bg) px-3 py-2 text-(--text-primary) hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)'
@@ -49,13 +33,18 @@ export function Menu({
 			</Ariakit.MenuButton>
 			<Ariakit.Menu
 				unmountOnHide
+				hideOnInteractOutside
 				gutter={8}
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				portal={portal || false}
 			>
+				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.PopoverDismiss>
+
 				{_options.map((value, i) => {
 					return onItemClick ? (
 						<Ariakit.MenuItem

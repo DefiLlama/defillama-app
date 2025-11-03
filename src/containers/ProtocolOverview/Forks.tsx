@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { LocalLoader } from '~/components/Loaders'
 import { ForksByProtocol } from '~/containers/Forks'
 import { getForkPageData } from '~/containers/Forks/queries'
 
@@ -21,15 +22,19 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 	})
 
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
+		)
 	}
 
-	if (error) {
-		return <p className="my-[180px] text-center">{error.message}</p>
-	}
-
-	if (!data) {
-		return <p className="my-[180px] text-center">Failed to fetch</p>
+	if (error || !data) {
+		return (
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			</div>
+		)
 	}
 
 	return (

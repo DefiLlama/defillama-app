@@ -1,4 +1,4 @@
-import { primaryColor } from '~/constants/colors'
+import { oldBlue } from '~/constants/colors'
 
 export interface Chain {
 	gecko_id: string
@@ -8,15 +8,18 @@ export interface Chain {
 	chainId?: string
 }
 
+export type StoredColSpan = 0.5 | 1 | 1.5 | 2
+
 export interface MultiChartConfig {
 	id: string
 	kind: 'multi'
 	name?: string
 	items: ChartConfig[]
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
-	colSpan?: 1 | 2
+	colSpan?: StoredColSpan
 	showCumulative?: boolean
 	showPercentage?: boolean
+	showStacked?: boolean
 }
 
 export interface TextConfig {
@@ -24,7 +27,46 @@ export interface TextConfig {
 	kind: 'text'
 	title?: string
 	content: string
-	colSpan?: 1 | 2
+	colSpan?: StoredColSpan
+}
+
+export type MetricAggregator =
+	| 'latest'
+	| 'avg'
+	| 'max'
+	| 'min'
+	| 'sum'
+	| 'median'
+	| 'stddev'
+	| 'first'
+	| 'growth'
+	| 'movingavg'
+export type MetricWindow = '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
+
+export interface MetricConfig {
+	id: string
+	kind: 'metric'
+	subject: {
+		itemType: 'chain' | 'protocol'
+		chain?: string
+		protocol?: string
+		geckoId?: string | null
+	}
+	type: string
+	aggregator: MetricAggregator
+	window: MetricWindow
+	compare?: {
+		mode: 'previous_window' | 'previous_value' | 'none'
+		format?: 'percent' | 'absolute'
+	}
+	showSparkline?: boolean
+	label?: string
+	format?: {
+		value?: 'currency' | 'number' | 'percent' | 'auto'
+		decimals?: number
+		compact?: boolean
+	}
+	colSpan?: StoredColSpan
 }
 
 export interface ChartBuilderConfig {
@@ -37,6 +79,7 @@ export interface ChartBuilderConfig {
 			| 'revenue'
 			| 'volume'
 			| 'perps'
+			| 'open-interest'
 			| 'options-notional'
 			| 'options-premium'
 			| 'bridge-aggregators'
@@ -46,16 +89,36 @@ export interface ChartBuilderConfig {
 			| 'holders-revenue'
 			| 'protocol-revenue'
 			| 'supply-side-revenue'
+			| 'tvl'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue'
+		mode: 'chains' | 'protocol'
+		filterMode?: 'include' | 'exclude'
+		protocol?: string
 		chains: string[]
 		categories: string[]
 		groupBy: 'protocol'
 		limit: number
 		chartType: 'stackedBar' | 'stackedArea' | 'line'
 		displayAs: 'timeSeries' | 'percentage'
+		hideOthers?: boolean
+		groupByParent?: boolean
 		additionalFilters?: Record<string, any>
+		seriesColors?: Record<string, string>
 	}
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
-	colSpan?: 1 | 2
+	colSpan?: StoredColSpan
+}
+
+export interface YieldsChartConfig {
+	id: string
+	kind: 'yields'
+	poolConfigId: string
+	poolName: string
+	project: string
+	chain: string
+	colSpan?: StoredColSpan
 }
 
 export type DashboardItemConfig =
@@ -63,7 +126,9 @@ export type DashboardItemConfig =
 	| ProtocolsTableConfig
 	| MultiChartConfig
 	| TextConfig
+	| MetricConfig
 	| ChartBuilderConfig
+	| YieldsChartConfig
 
 export interface ChartConfig {
 	id: string
@@ -71,19 +136,22 @@ export interface ChartConfig {
 	chain: string
 	protocol?: string
 	type: string
+	color?: string
 	data?: [string, number][]
 	isLoading?: boolean
 	hasError?: boolean
 	refetch?: () => void
 	grouping?: 'day' | 'week' | 'month' | 'quarter'
 	geckoId?: string | null
-	colSpan?: 1 | 2
+	colSpan?: StoredColSpan
 	showCumulative?: boolean
 }
 
 export interface TableFilters {
 	protocols?: string[]
 	categories?: string[]
+	excludedCategories?: string[]
+	oracles?: string[]
 	apyMin?: number
 	apyMax?: number
 	tvlMin?: number
@@ -118,7 +186,7 @@ export interface ProtocolsTableConfig {
 	kind: 'table'
 	tableType: 'protocols' | 'dataset'
 	chains: string[]
-	colSpan?: 1 | 2
+	colSpan?: StoredColSpan
 	filters?: TableFilters
 	columnOrder?: string[]
 	columnVisibility?: Record<string, boolean>
@@ -130,6 +198,7 @@ export interface ProtocolsTableConfig {
 		errorMessage?: string
 	}>
 	activeViewId?: string
+	activePresetId?: string
 	datasetType?:
 		| 'stablecoins'
 		| 'cex'
@@ -159,34 +228,66 @@ export interface Protocol {
 	slug: string
 	tvl: number
 	geckoId?: string | null
+	parentProtocol?: string | null
 }
 
 export const CHART_TYPES = {
-	tvl: { id: 'tvl', title: 'TVL', chartType: 'area', color: primaryColor },
+	tvl: { id: 'tvl', title: 'TVL', chartType: 'area', color: oldBlue },
 	volume: { id: 'volume', title: 'Volume', chartType: 'bar', color: '#5CCA93', groupable: true },
 	fees: { id: 'fees', title: 'Fees', chartType: 'bar', color: '#F2994A', groupable: true },
 	users: { id: 'users', title: 'Users', chartType: 'bar', color: '#8A2BE2', groupable: true },
 	txs: { id: 'txs', title: 'Transactions', chartType: 'bar', color: '#FF6347', groupable: true },
 	options: { id: 'options', title: 'Options', chartType: 'bar', color: '#F472B6', groupable: true },
 	revenue: { id: 'revenue', title: 'Revenue', chartType: 'bar', color: '#E59421', groupable: true },
-	aggregators: { id: 'aggregators', title: 'DEX Aggregators', chartType: 'bar', color: '#FF9500', groupable: true },
-	perps: { id: 'perps', title: 'Perps', chartType: 'bar', color: '#B91C1C', groupable: true },
+	incentives: { id: 'incentives', title: 'Incentives', chartType: 'bar', color: '#10B981', groupable: true },
+	liquidity: { id: 'liquidity', title: 'Liquidity', chartType: 'area', color: '#0EA5E9' },
+	treasury: { id: 'treasury', title: 'Treasury', chartType: 'area', color: '#64748B' },
+	aggregators: {
+		id: 'aggregators',
+		title: 'DEX Aggregators Volume',
+		chartType: 'bar',
+		color: '#FF9500',
+		groupable: true
+	},
+	perps: { id: 'perps', title: 'Perps Volume', chartType: 'bar', color: '#B91C1C', groupable: true },
 	bridgeAggregators: {
 		id: 'bridgeAggregators',
-		title: 'Bridge Aggregators',
+		title: 'Bridge Aggregators Volume',
 		chartType: 'bar',
 		color: '#7C2D92',
 		groupable: true
 	},
 	perpsAggregators: {
 		id: 'perpsAggregators',
-		title: 'Perps Aggregators',
+		title: 'Perps Aggregators Volume',
 		chartType: 'bar',
 		color: '#DC2626',
 		groupable: true
 	},
 	bribes: { id: 'bribes', title: 'Bribes Revenue', chartType: 'bar', color: '#059669', groupable: true },
 	tokenTax: { id: 'tokenTax', title: 'Token Tax', chartType: 'bar', color: '#7C3AED', groupable: true },
+	holdersRevenue: {
+		id: 'holdersRevenue',
+		title: 'Holders Revenue',
+		chartType: 'bar',
+		color: '#9CA3AF',
+		groupable: true
+	},
+	openInterest: { id: 'openInterest', title: 'Open Interest', chartType: 'area', color: '#0EA5E9' },
+	optionsPremium: {
+		id: 'optionsPremium',
+		title: 'Options Premium Volume',
+		chartType: 'bar',
+		color: '#F472B6',
+		groupable: true
+	},
+	optionsNotional: {
+		id: 'optionsNotional',
+		title: 'Options Notional Volume',
+		chartType: 'bar',
+		color: '#FB7185',
+		groupable: true
+	},
 	tokenPrice: { id: 'tokenPrice', title: 'Token Price', chartType: 'area', color: '#16A34A' },
 	tokenMcap: { id: 'tokenMcap', title: 'Token Market Cap', chartType: 'area', color: '#2563EB' },
 	tokenVolume: { id: 'tokenVolume', title: 'Token Volume', chartType: 'bar', color: '#F59E0B', groupable: true },
@@ -211,7 +312,29 @@ export const CHART_TYPES = {
 
 // Helper functions to extract chart types from CHART_TYPES
 export const getProtocolChartTypes = (): string[] => {
-	return ['tvl', 'volume', 'fees', 'revenue', 'tokenMcap', 'tokenPrice', 'tokenVolume', 'medianApy']
+	return [
+		'tvl',
+		'volume',
+		'fees',
+		'revenue',
+		'incentives',
+		'liquidity',
+		'treasury',
+		'holdersRevenue',
+		'bribes',
+		'tokenTax',
+		'perps',
+		'openInterest',
+		'aggregators',
+		'perpsAggregators',
+		'bridgeAggregators',
+		'optionsPremium',
+		'optionsNotional',
+		'tokenMcap',
+		'tokenPrice',
+		'tokenVolume',
+		'medianApy'
+	]
 }
 
 export const getChainChartTypes = (): string[] => {
@@ -278,3 +401,4 @@ export interface AggregatorItem extends BaseDatasetItem {}
 
 export const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'
 export const isText = (x: DashboardItemConfig): x is TextConfig => x.kind === 'text'
+export const isMetric = (x: DashboardItemConfig): x is MetricConfig => x.kind === 'metric'

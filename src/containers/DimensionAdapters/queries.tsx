@@ -1,8 +1,14 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API, PROTOCOLS_API, REV_PROTOCOLS } from '~/constants'
+import {
+	DIMENISIONS_OVERVIEW_API,
+	DIMENISIONS_SUMMARY_BASE_API,
+	PROTOCOLS_API,
+	REV_PROTOCOLS,
+	ZERO_FEE_PERPS
+} from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
+import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
 export interface IAdapterOverview {
@@ -35,6 +41,7 @@ export interface IAdapterOverview {
 		total1y: number
 		totalAllTime: number
 		average1y: number
+		monthlyAverage1y: number
 		change_1d: number
 		change_7d: number
 		change_1m: number
@@ -59,6 +66,7 @@ export interface IAdapterOverview {
 		slug: string
 		linkedProtocols: Array<string>
 		id: string
+		doublecounted?: boolean
 	}>
 }
 
@@ -107,6 +115,7 @@ export interface IAdapterSummary {
 		methodology: Record<string, string>
 	}>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	doublecounted?: boolean
 }
 
 //breakdown is using chain internal name so we need to map it
@@ -494,13 +503,14 @@ export const getAdapterByChainPageData = async ({
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	route: string
-}) => {
-	const [data, protocolsData, bribesData, tokenTaxesData]: [
+}): Promise<IAdapterByChainPageData | null> => {
+	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData]: [
 		IAdapterOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
 			parentProtocols: Array<{ name: string; mcap: number | null }>
 		},
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null
 	] = await Promise.all([
@@ -529,17 +539,17 @@ export const getAdapterByChainPageData = async ({
 					excludeTotalDataChart: false,
 					excludeTotalDataChartBreakdown: true
 				})
+			: Promise.resolve(null),
+		adapterType === 'derivatives'
+			? getAdapterChainOverview({
+					adapterType: 'open-interest',
+					chain,
+					dataType: 'openInterestAtEnd',
+					excludeTotalDataChart: false,
+					excludeTotalDataChartBreakdown: true
+				})
 			: Promise.resolve(null)
 	])
-
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
-	const chains = data.protocols
-		.filter((e) => e.protocolType === 'chain')
-		.map((e) => [e.name, metadataCache.chainMetadata[slug(e.name)]?.gecko_id ?? null])
-		.filter((e) => (e[1] ? true : false)) as Array<[string, string | null]>
-
-	// const chainsMcap = await fetchChainMcaps(chains)
 
 	const protocolsMcap = {}
 	for (const protocol of protocolsData.protocols) {
@@ -553,6 +563,7 @@ export const getAdapterByChainPageData = async ({
 
 	let bribesProtocols = {}
 	let tokenTaxesProtocols = {}
+	let openInterestProtocols = {}
 
 	if (dataType === 'dailyEarnings') {
 		if (bribesData) {
@@ -616,9 +627,17 @@ export const getAdapterByChainPageData = async ({
 			}, {}) ?? {}
 	}
 
+	if (openInterestData) {
+		openInterestProtocols = openInterestData.protocols.reduce((acc, p) => {
+			acc[p.name] = p.total24h ?? null
+			return acc
+		}, {})
+	}
+
 	const protocols = {}
 	const parentProtocols = {}
-	const categories = new Set()
+	const categories = new Set<string>()
+
 	for (const protocol of allProtocols) {
 		const methodology =
 			adapterType === 'fees'
@@ -661,7 +680,10 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology ? { methodology } : {})
+			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
+			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
+			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
+			...(openInterestProtocols[protocol.name] ? { openInterest: openInterestProtocols[protocol.name] } : {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -699,7 +721,8 @@ export const getAdapterByChainPageData = async ({
 		const totalAllTime = parentProtocols[protocol].some((p) => p.totalAllTime != null)
 			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
 			: null
-
+		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
+		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
 		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
 			? parentProtocols[protocol].reduce(
 					(acc, p) => {
@@ -739,9 +762,13 @@ export const getAdapterByChainPageData = async ({
 				)
 			: null
 
-		const methodology = Array.from(
+		const openInterest = parentProtocols[protocol].some((p) => p.openInterest != null)
+			? parentProtocols[protocol].reduce((acc, p) => acc + (p.openInterest ?? 0), 0)
+			: null
+
+		const methodology: Array<string> = Array.from(
 			new Set(parentProtocols[protocol].filter((p) => p.methodology).map((p) => p.methodology))
-		).join(', ')
+		)
 
 		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
@@ -750,7 +777,7 @@ export const getAdapterByChainPageData = async ({
 			name: protocol,
 			slug: slug(protocol),
 			logo: tokenIconUrl(protocol),
-			category: parentProtocols[protocol].sort((a, b) => b.total24h - a.total24h)[0].category ?? null,
+			category: parentProtocols[protocol].sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))[0].category ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,
@@ -763,11 +790,22 @@ export const getAdapterByChainPageData = async ({
 			...(tokenTax ? { tokenTax } : {}),
 			...(pf ? { pf } : {}),
 			...(ps ? { ps } : {}),
-			...(methodology
+			...(methodology.length > 0
 				? {
-						methodology
+						methodology:
+							methodology.length > 1
+								? methodology
+										.map((m) => {
+											const children = parentProtocols[protocol].filter((p) => p.methodology === m)
+											return `${children.map((c) => (c.name.startsWith(protocol) ? c.name.replace(protocol, '').trim() : c.name)).join(', ')}: ${m}`
+										})
+										.join('. ')
+								: methodology[0]
 					}
-				: {})
+				: {}),
+			...(doublecounted ? { doublecounted } : {}),
+			...(zeroFeePerp ? { zeroFeePerp } : {}),
+			...(openInterest ? { openInterest } : {})
 		}
 	}
 
@@ -807,6 +845,12 @@ export const getAdapterByChainPageData = async ({
 		)
 	}
 
+	let openInterest = 0
+
+	for (const protocol in openInterestProtocols) {
+		openInterest += openInterestProtocols[protocol] ?? 0
+	}
+
 	return {
 		chain,
 		chains: [
@@ -824,7 +868,94 @@ export const getAdapterByChainPageData = async ({
 		change_1d: data.change_1d ?? null,
 		change_7d: data.change_7d ?? null,
 		change_1m: data.change_1m ?? null,
-		change_7dover7d: data.change_7dover7d ?? null
+		change_7dover7d: data.change_7dover7d ?? null,
+		openInterest
+	}
+}
+
+export const getChainsByFeesAdapterPageData = async ({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+}): Promise<IChainsByAdapterPageData> => {
+	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const allChains: Array<string> = []
+
+		for (const chain in metadataCache.chainMetadata) {
+			const chainMetadata = metadataCache.chainMetadata[chain]
+			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
+			if (sType && chainMetadata[sType]) {
+				allChains.push(chainMetadata.name)
+			}
+		}
+
+		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
+			getAdapterChainOverview({
+				adapterType,
+				dataType,
+				chain: 'All',
+				excludeTotalDataChart: true,
+				excludeTotalDataChartBreakdown: true
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			getAdapterChainOverview({
+				adapterType,
+				dataType: 'dailyBribesRevenue',
+				chain: 'All',
+				excludeTotalDataChart: false,
+				excludeTotalDataChartBreakdown: true
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			getAdapterChainOverview({
+				adapterType,
+				dataType: 'dailyTokenTaxes',
+				chain: 'All',
+				excludeTotalDataChart: false,
+				excludeTotalDataChartBreakdown: true
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
+		])
+
+		const bribesByChain = {}
+		const tokenTaxesByChain = {}
+
+		for (const chain of bribesData) {
+			bribesByChain[chain.name] = {
+				total24h: chain.total24h ?? null,
+				total30d: chain.total30d ?? null
+			}
+		}
+
+		for (const chain of tokenTaxesData) {
+			tokenTaxesByChain[chain.name] = {
+				total24h: chain.total24h ?? null,
+				total30d: chain.total30d ?? null
+			}
+		}
+
+		const chains = chainsData
+			.map((c) => {
+				return {
+					name: c.name,
+					logo: chainIconUrl(c.name),
+					total24h: c.total24h ?? null,
+					total30d: c.total30d ?? null,
+					...(bribesByChain[c.name] ? { bribes: bribesByChain[c.name] } : {}),
+					...(tokenTaxesByChain[c.name] ? { tokenTax: tokenTaxesByChain[c.name] } : {})
+				}
+			})
+			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+
+		return {
+			adapterType,
+			dataType: dataType ?? null,
+			chartData: null,
+			chains,
+			allChains: chains.map((c) => c.name)
+		}
+	} catch (error) {
+		postRuntimeLogs(error)
+		throw error
 	}
 }
 
@@ -834,18 +965,21 @@ export const getChainsByAdapterPageData = async ({
 	route
 }: {
 	adapterType: `${ADAPTER_TYPES}`
-	dataType?: `${ADAPTER_DATA_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
 	route: string
 }): Promise<IChainsByAdapterPageData> => {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains = []
+
 		for (const chain in metadataCache.chainMetadata) {
-			if (
-				ADAPTER_TYPES_TO_METADATA_TYPE[adapterType] &&
-				metadataCache.chainMetadata[chain][ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
-			) {
-				allChains.push(chain)
+			const chainMetadata = metadataCache.chainMetadata[chain]
+			const sType =
+				adapterType === 'fees' && dataType === 'dailyRevenue'
+					? 'chainRevenue'
+					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
+			if (sType && chainMetadata[sType]) {
+				allChains.push(chainMetadata.name)
 			}
 		}
 
@@ -856,7 +990,7 @@ export const getChainsByAdapterPageData = async ({
 						adapterType,
 						dataType,
 						chain,
-						excludeTotalDataChart: false,
+						excludeTotalDataChart: adapterType === 'fees' ? true : false,
 						excludeTotalDataChartBreakdown: true
 					})
 				)
@@ -865,54 +999,58 @@ export const getChainsByAdapterPageData = async ({
 			.map((e) => (e.status === 'fulfilled' ? e.value : null))
 			.filter((e) => e != null)
 
+		const bribesData =
+			adapterType === 'fees'
+				? (
+						await Promise.allSettled(
+							allChains.map(async (chain) =>
+								getAdapterChainOverview({
+									adapterType,
+									dataType: 'dailyBribesRevenue',
+									chain,
+									excludeTotalDataChart: true,
+									excludeTotalDataChartBreakdown: true
+								})
+							)
+						)
+					)
+						.map((e) => (e.status === 'fulfilled' ? e.value : null))
+						.filter((e) => e != null)
+				: []
+
+		const tokenTaxesData =
+			adapterType === 'fees'
+				? (
+						await Promise.allSettled(
+							allChains.map(async (chain) =>
+								getAdapterChainOverview({
+									adapterType,
+									dataType: 'dailyTokenTaxes',
+									chain,
+									excludeTotalDataChart: true,
+									excludeTotalDataChartBreakdown: true
+								})
+							)
+						)
+					)
+						.map((e) => (e.status === 'fulfilled' ? e.value : null))
+						.filter((e) => e != null)
+				: []
+
 		const bribesByChain = {}
 		const tokenTaxesByChain = {}
 
-		if (adapterType === 'fees') {
-			const bribesData = (
-				await Promise.allSettled(
-					allChains.map(async (chain) =>
-						getAdapterChainOverview({
-							adapterType,
-							dataType: 'dailyBribesRevenue',
-							chain,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
-					)
-				)
-			)
-				.map((e) => (e.status === 'fulfilled' ? e.value : null))
-				.filter((e) => e != null)
-
-			for (const chain of bribesData) {
-				bribesByChain[chain.chain] = {
-					total24h: chain.total24h ?? null,
-					total30d: chain.total30d ?? null
-				}
+		for (const chain of bribesData) {
+			bribesByChain[chain.chain] = {
+				total24h: chain.total24h ?? null,
+				total30d: chain.total30d ?? null
 			}
+		}
 
-			const tokensTaxesData = (
-				await Promise.allSettled(
-					allChains.map(async (chain) =>
-						getAdapterChainOverview({
-							adapterType,
-							dataType: 'dailyBribesRevenue',
-							chain,
-							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true
-						})
-					)
-				)
-			)
-				.map((e) => (e.status === 'fulfilled' ? e.value : null))
-				.filter((e) => e != null)
-
-			for (const chain of tokensTaxesData) {
-				tokenTaxesByChain[chain.chain] = {
-					total24h: chain.total24h ?? null,
-					total30d: chain.total30d ?? null
-				}
+		for (const chain of tokenTaxesData) {
+			tokenTaxesByChain[chain.chain] = {
+				total24h: chain.total24h ?? null,
+				total30d: chain.total30d ?? null
 			}
 		}
 
@@ -926,14 +1064,16 @@ export const getChainsByAdapterPageData = async ({
 		}
 
 		const chains = chainsData
-			.map((c) => ({
-				name: c.chain,
-				logo: chainIconUrl(c.chain),
-				total24h: c.total24h ?? null,
-				total30d: c.total30d ?? null,
-				...(bribesByChain[c.chain] ? { bribes: bribesByChain[c.chain] } : {}),
-				...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
-			}))
+			.map((c) => {
+				return {
+					name: c.chain,
+					logo: chainIconUrl(c.chain),
+					total24h: c.total24h ?? null,
+					total30d: c.total30d ?? null,
+					...(bribesByChain[c.chain] ? { bribes: bribesByChain[c.chain] } : {}),
+					...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
+				}
+			})
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
 
 		return {
@@ -990,11 +1130,43 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 					(protocols?.protocols ?? []).reduce((acc, curr) => {
 						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total24h ?? 0) : acc
 					}, 0),
-				total30d: chainFees?.total30d ?? null
+				total30d:
+					(chainFees?.total30d ?? 0) +
+					(protocols?.protocols ?? []).reduce((acc, curr) => {
+						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total30d ?? 0) : acc
+					}, 0)
 			}
 		})
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
+	} catch (error) {
+		postRuntimeLogs(error)
+		throw error
+	}
+}
+
+export async function getDimensionAdapterOverviewOfAllChains({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType: `${ADAPTER_DATA_TYPES}`
+}) {
+	try {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+		const chains: Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }> = {}
+		for (const chain in metadataCache.chainMetadata) {
+			const chainMetadata = metadataCache.chainMetadata[chain]
+			const adapterMetadata = chainMetadata?.[ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
+			if (!adapterMetadata) continue
+			const dataKey = ADAPTER_DATA_TYPE_KEYS[dataType] ?? null
+			const value = chainMetadata.dimAgg?.[adapterType]?.[dataKey]
+			if (!value) continue
+			chains[chainMetadata.name] = value
+		}
+
+		return chains
 	} catch (error) {
 		postRuntimeLogs(error)
 		throw error

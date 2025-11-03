@@ -15,7 +15,6 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { emissionsColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import { slug } from '~/utils'
 
 const optionsKey = 'unlockTable'
 const filterStatekey = 'unlockTableFilterState'
@@ -195,7 +194,7 @@ export const UnlocksTable = ({
 		return columnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
 	}, [columnsInStorage])
 
-	const [sorting, setSorting] = useState<SortingState>([])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
@@ -321,11 +320,11 @@ export const UnlocksTable = ({
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<h1 className="mr-auto text-xl font-semibold">Token Unlocks</h1>
+				<h1 className="mr-auto text-lg font-semibold">Token Unlocks</h1>
 
 				<button
 					onClick={() => setShowOnlyWatchlist(!showOnlyWatchlist)}
-					className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
+					className="flex items-center justify-center gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 				>
 					<Icon
 						name="bookmark"
@@ -343,7 +342,6 @@ export const UnlocksTable = ({
 					onClear={handleUnlockValueClear}
 					min={min ?? ''}
 					max={max ?? ''}
-					variant="third"
 					placement="bottom-start"
 				/>
 
@@ -354,7 +352,6 @@ export const UnlocksTable = ({
 					onClear={handleUnlockPercClear}
 					min={minPerc ?? ''}
 					max={maxPerc ?? ''}
-					variant="third"
 					placement="bottom-start"
 				/>
 
@@ -370,7 +367,7 @@ export const UnlocksTable = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 					}}
 				/>
 
@@ -386,7 +383,7 @@ export const UnlocksTable = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 					}}
 				/>
 
@@ -405,7 +402,7 @@ export const UnlocksTable = ({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
@@ -425,7 +422,7 @@ const columnOptions = [
 	{ name: 'Next Event', key: 'upcomingEvent' }
 ]
 
-// these are mising in emissionsColumns
+// these are missing in emissionsColumns
 // { name: 'Token Symbol', key: 'symbol' },
 // { name: 'Next Unlock Date', key: 'nextUnlockDate' },
 // { name: 'Token Amount', key: 'unlockAmount' },

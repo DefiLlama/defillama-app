@@ -1,8 +1,6 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
-import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
-import { ButtonLight } from '~/components/ButtonStyled'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -10,27 +8,9 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
-import {
-	capitalizeFirstLetter,
-	formattedNum,
-	formattedPercent,
-	slug,
-	tokenIconUrl,
-	toNiceDayMonthAndYear,
-	toNiceDayMonthYear,
-	toNiceHour
-} from '~/utils'
+import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthAndYear, toNiceDayMonthYear } from '~/utils'
 import { formatColumnOrder } from '../utils'
-import type {
-	AirdropRow,
-	CategoryPerformanceRow,
-	CoinPerformanceRow,
-	IEmission,
-	IETFRow,
-	IForksRow,
-	IGovernance,
-	ILSDRow
-} from './types'
+import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
 
 const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
@@ -163,15 +143,15 @@ export const raisesColumns: ColumnDef<IRaiseRow>[] = [
 		size: 60,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<ButtonLight
-				className="flex items-center justify-center gap-4 p-[6px]!"
-				as="a"
+			<a
 				href={getValue() as string}
 				target="_blank"
 				rel="noopener noreferrer"
+				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
-			</ButtonLight>
+				<span className="sr-only">open in new tab</span>
+			</a>
 		)
 	},
 	{
@@ -206,23 +186,21 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
+		cell: ({ getValue }) => {
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-[2px]" />
+					<Bookmark readableName={getValue() as string} data-bookmark className="absolute -left-0.5" />
 					<TokenLogo logo={tokenIconUrl(getValue())} />
 					<BasicLink
 						href={`/unlocks/${slug(getValue() as string)}`}
-						className="overflow-hidden text-sm font-bold text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{getValue() as string}
 					</BasicLink>
 				</span>
 			)
 		},
-		size: 140
+		size: 160
 	},
 	{
 		header: 'Price',
@@ -260,7 +238,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			const percetage = (100 - (row.original.totalLocked / row.original.maxSupply) * 100).toPrecision(2)
 
 			return (
-				<div className="flex flex-col gap-2 px-2">
+				<div className="flex flex-col items-end gap-2 px-2">
 					<span className="flex items-center justify-between gap-2">
 						<span className="text-[#3255d7]">{formattedNum(percetage)}%</span>
 					</span>
@@ -284,7 +262,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		sortUndefined: 'last',
 		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
 
-		cell: ({ getValue, row }) => {
+		cell: ({ row }) => {
 			return (
 				<div className="relative">
 					<Suspense fallback={<></>}>
@@ -326,7 +304,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 		},
 		cell: ({ getValue }) => {
-			return <span className="text-lg font-medium">{getValue() ? formattedPercent(getValue()) : ''}</span>
+			return <span>{getValue() ? formattedPercent(getValue()) : ''}</span>
 		},
 		meta: {
 			align: 'end',
@@ -340,8 +318,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 		sortUndefined: 'last',
 		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
 		cell: ({ getValue, row }) => {
-			const symbol = row.original.tSymbol
-
 			if (!row.original.unlocksPerDay) return '-'
 
 			return (
@@ -390,48 +366,6 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 	}
 ]
 
-export const calendarColumns: ColumnDef<any>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-					{row.original.type === 'Unlock' ? (
-						<BasicLink
-							href={`/unlocks/${slug(row.original.link)}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						(getValue() as string)
-					)}
-				</span>
-			)
-		},
-		size: 220
-	},
-	{
-		header: 'Type',
-		accessorKey: 'type',
-		size: 100
-	},
-	{
-		header: 'Date',
-		id: 'timestamp',
-		accessorKey: 'timestamp',
-		cell: ({ getValue, row }) => {
-			return <SimpleUpcomingEvent timestamp={(getValue() as number) / 1e3} name={row.original.name} />
-		},
-		size: 800
-	}
-]
-
 export const governanceColumns: ColumnDef<IGovernance>[] = [
 	{
 		header: 'Name',
@@ -447,7 +381,7 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 				>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -504,93 +438,6 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 	}
 ]
 
-export const activeInvestorsColumns: ColumnDef<{
-	name: string
-	deals: number
-	projects: string
-}>[] = [
-	{
-		header: 'Investor',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue }) => {
-			return (
-				<BasicLink
-					href={`/raises/${slug(getValue() as string)}`}
-					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-				>
-					{getValue() as string}
-				</BasicLink>
-			)
-		},
-		size: 200
-	},
-	{
-		header: 'Deals',
-		accessorKey: 'deals',
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-
-	{
-		header: 'Median Amount',
-		accessorKey: 'medianAmount',
-		cell: ({ getValue }) => {
-			return <>${getValue() as string}m</>
-		},
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-
-	{
-		header: 'Top Project Category',
-		accessorKey: 'category',
-		enableSorting: false,
-		size: 180
-	},
-	{
-		header: 'Top Round Type',
-		accessorKey: 'roundType',
-		enableSorting: false,
-		size: 140
-	},
-	{
-		header: 'Projects',
-		accessorKey: 'projects',
-		enableSorting: false,
-		cell: ({ getValue }) => {
-			return (
-				<Tooltip content={getValue() as string}>
-					<span className="line-clamp-1 min-w-0 overflow-x-hidden text-ellipsis whitespace-normal">
-						{getValue() as string}
-					</span>
-				</Tooltip>
-			)
-		},
-		size: 240
-	}
-]
-
-interface IHacksRow {
-	name: string
-	date: string
-	amount: number
-	chains: string[]
-}
-
 export const bridgedChainColumns: ColumnDef<any>[] = [
 	{
 		header: 'Token',
@@ -606,267 +453,6 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 		},
 		sortUndefined: 'last'
 	}
-]
-
-export const cexColumn: ColumnDef<any>[] = [
-	{
-		header: 'Name',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-					{row.original.slug === undefined ? (
-						(getValue() as string | null)
-					) : (
-						<BasicLink
-							href={`/cex/${slug(row.original.slug)}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{getValue() as string | null}
-						</BasicLink>
-					)}
-				</span>
-			)
-		}
-	},
-	{
-		header: 'Assets',
-		accessorKey: 'tvl',
-		accessorFn: (row) => row.tvl ?? undefined,
-		cell: (info) => {
-			return (
-				<>
-					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
-					) : (
-						formattedNum(info.getValue(), true)
-					)}
-				</>
-			)
-		},
-		sortUndefined: 'last',
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText:
-				'This excludes IOU assets issued by the CEX that are already counted on another chain, such as Binance-pegged BTC in BSC, which is already counted in Bitcoin chain'
-		}
-	},
-	{
-		header: 'Clean Assets',
-		accessorKey: 'cleanTvl',
-		accessorFn: (row) => row.cleanTvl ?? undefined,
-		cell: (info) => {
-			const coinSymbol = info.row.original.coinSymbol
-			return (
-				<span className="flex items-center justify-end gap-1">
-					{info.getValue() === undefined ? (
-						<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
-					) : (
-						<>
-							{coinSymbol === undefined ? (
-								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
-							) : (
-								<QuestionHelper
-									text={`This excludes all TVL from ${info.row.original.coinSymbol}, which is a token issued by this CEX`}
-								/>
-							)}
-							<span>{formattedNum(info.getValue(), true)}</span>
-						</>
-					)}
-				</span>
-			)
-		},
-		sortUndefined: 'last',
-		size: 145,
-		meta: {
-			align: 'end',
-			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'
-		}
-	},
-	{
-		header: '24h Inflows',
-		accessorKey: '24hInflows',
-		accessorFn: (row) => row['24hInflows'] ?? undefined,
-		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Inflows',
-		accessorKey: '7dInflows',
-		accessorFn: (row) => row['7dInflows'] ?? undefined,
-		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Inflows',
-		accessorKey: '1mInflows',
-		accessorFn: (row) => row['1mInflows'] ?? undefined,
-		size: 120,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Spot Volume',
-		accessorKey: 'spotVolume',
-		accessorFn: (row) => row.spotVolume ?? undefined,
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
-		size: 125,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '24h Open Interest',
-		accessorKey: 'oi',
-		accessorFn: (row) => row.oi ?? undefined,
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
-		sortUndefined: 'last',
-		size: 160,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Avg Leverage',
-		accessorKey: 'leverage',
-		accessorFn: (row) => row.leverage ?? undefined,
-		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
-		sortUndefined: 'last',
-		size: 130,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Custom range Inflows',
-		accessorKey: 'customRange',
-		accessorFn: (row) => row.customRange ?? undefined,
-		size: 200,
-		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
-		sortUndefined: 'last',
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Auditor',
-		accessorKey: 'auditor',
-		cell: ({ getValue }) => <>{(getValue() ?? null) as string | null}</>,
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Last audit date',
-		accessorKey: 'lastAuditDate',
-		cell: ({ getValue }) => <>{getValue() === undefined ? null : toNiceDayMonthAndYear(getValue())}</>,
-		size: 130,
-		meta: {
-			align: 'end'
-		}
-	}
-	/*
-	{
-		header: 'Audit link',
-		accessorKey: 'auditLink',
-		size: 80,
-		enableSorting: false,
-		cell: ({ getValue }) => (
-			<>
-				{getValue() === undefined ? null : (
-					<ButtonLight
-						className="flex items-center justify-center gap-4 p-[6px]!"
-						as="a"
-						href={getValue() as string}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonLight>
-				)}
-			</>
-		),
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Link to Wallets',
-		accessorKey: 'walletsLink',
-		size: 120,
-		enableSorting: false,
-		cell: ({ getValue }) => (
-			<>
-				{getValue() === undefined ? (
-					<QuestionHelper text="This CEX has no published their wallet addresses" />
-				) : (
-					<ButtonLight
-						className="flex items-center justify-center gap-4 p-[6px]!"
-						as="a"
-						href={getValue() as string}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="arrow-up-right" height={14} width={14} />
-					</ButtonLight>
-				)}
-			</>
-		),
-		meta: {
-			align: 'end'
-		}
-	}
-	*/
 ]
 
 export const LSDColumn: ColumnDef<ILSDRow>[] = [
@@ -1029,88 +615,6 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	}
 ]
 
-export const ETFColumn: ColumnDef<IETFRow>[] = [
-	{
-		header: 'Ticker',
-		accessorKey: 'ticker',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-					<BasicLink
-						href={row.original.url}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>
-						{getValue() as string | null}
-					</BasicLink>
-				</span>
-			)
-		},
-		size: 100
-	},
-	{
-		header: 'Issuer',
-		accessorKey: 'issuer',
-		meta: {
-			align: 'end'
-		},
-		size: 160
-	},
-	{
-		header: 'Coin',
-		accessorKey: 'chain',
-		enableSorting: true,
-		cell: ({ getValue }) => (
-			<IconsRow links={getValue() as Array<string>} url="" iconType="chain" disableLinks={true} />
-		),
-		meta: {
-			align: 'end'
-		},
-		size: 160
-	},
-	{
-		header: 'Flows',
-		accessorKey: 'flows',
-		cell: ({ getValue }) => {
-			const value = getValue() as number | null
-			const formattedValue = value !== null ? formattedNum(value, true) : null
-
-			return (
-				<span
-					className={`font-bold ${value && value > 0 ? 'text-green-500' : value && value < 0 ? 'text-red-500' : ''}`}
-				>
-					{formattedValue}
-				</span>
-			)
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'AUM',
-		accessorKey: 'aum',
-		cell: ({ getValue }) => <>{getValue() !== null ? formattedNum(getValue(), true) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: 'Volume',
-		accessorKey: 'volume',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	}
-]
-
 export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	{
 		header: 'Name',
@@ -1125,15 +629,15 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonLight
-					className="flex items-center justify-center gap-4 p-[6px]!"
-					as="a"
+				<a
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
+					<span className="sr-only">open in new tab</span>
+				</a>
 			) : null
 	},
 	{
@@ -1143,15 +647,15 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
-				<ButtonLight
-					className="flex items-center justify-center gap-4 p-[6px]!"
-					as="a"
+				<a
 					href={getValue() as string}
 					target="_blank"
 					rel="noopener noreferrer"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} />
-				</ButtonLight>
+					<span className="sr-only">open in new tab</span>
+				</a>
 			) : null
 	},
 	{
@@ -1191,128 +695,6 @@ export const AirdropColumn: ColumnDef<AirdropRow>[] = [
 	}
 ]
 
-export const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
-	{
-		header: 'Category',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
-			return (
-				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
-						<BasicLink
-							href={`https://www.coingecko.com/en/coins/${row.original.id}`}
-							target="_blank"
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{getValue() as string | null}
-						</BasicLink>
-					) : (
-						<BasicLink
-							href={`/narrative-tracker/${row.original.id}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{getValue() as string | null}
-						</BasicLink>
-					)}
-				</span>
-			)
-		},
-		size: 240
-	},
-	{
-		header: 'Δ%',
-		accessorKey: 'change',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
-		},
-		size: 120
-	},
-	{
-		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '24h Volume',
-		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 120
-	},
-	{
-		header: '# of Coins',
-		accessorKey: 'nbCoins',
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	}
-]
-
-export const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
-	{
-		header: 'Coin',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			return (
-				<span className="relative flex items-center gap-2">
-					<span>{index + 1}.</span>
-					<BasicLink
-						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
-						target="_blank"
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>
-						{getValue() as string | null}
-					</BasicLink>
-				</span>
-			)
-		},
-		size: 240
-	},
-	{
-		header: 'Δ%',
-		accessorKey: 'change',
-		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
-		meta: {
-			align: 'end',
-			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
-		},
-		size: 120
-	},
-	{
-		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	},
-	{
-		header: '24h Volume',
-		accessorKey: 'volume1D',
-		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
-		meta: {
-			align: 'end'
-		},
-		size: 110
-	}
-]
-
 export const raisesColumnOrders = formatColumnOrder({
 	0: [
 		'name',
@@ -1341,37 +723,3 @@ export const raisesColumnOrders = formatColumnOrder({
 		'otherInvestors'
 	]
 })
-
-const SimpleUpcomingEvent = ({ timestamp, name }) => {
-	const timeLeft = timestamp - Date.now() / 1e3
-	const days = Math.floor(timeLeft / 86400)
-	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
-	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
-	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
-
-	const [_, rerender] = useState(1)
-
-	useEffect(() => {
-		const id = setInterval(() => rerender((value) => value + 1), 1000)
-
-		return () => clearInterval(id)
-	}, [])
-
-	return (
-		<span className="flex items-center gap-2">
-			<span>{name}</span>
-			<span className="h-10 w-px bg-(--bg-border)" />
-			<span className="flex items-center gap-1">
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{days}D</span>
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{hours}H</span>
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{minutes}M</span>
-				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{seconds}S</span>
-			</span>
-			<span className="h-10 w-px bg-(--bg-border)" />
-			<span className="flex items-center justify-between gap-2">
-				<span>{toNiceDayMonthYear(timestamp)}</span>
-				<span>{toNiceHour(timestamp)}</span>
-			</span>
-		</span>
-	)
-}

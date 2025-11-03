@@ -1,46 +1,23 @@
-import { useEffect, useMemo, useState } from 'react'
-import {
-	ColumnDef,
-	ColumnFiltersState,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
-	SortingState,
-	useReactTable
-} from '@tanstack/react-table'
+import { useCallback, useMemo } from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { download, formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+
+const pageName = ['Projects', 'ranked by', 'Treasury']
+const entityPageName = ['Entities', 'ranked by', 'Treasury']
 
 export function Treasuries({ data, entity }) {
-	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([])
 	const tableColumns = useMemo(
-		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns),
+		() => (entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl', 'mcap'].includes(c.accessorKey)) : columns),
 		[entity]
 	)
-	const instance = useReactTable({
-		data,
-		columns: entity ? columns.filter((c: any) => !['ownTokens', 'coreTvl'].includes(c.accessorKey)) : columns,
-		state: {
-			columnFilters,
-			sorting
-		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel()
-	})
 
-	const [projectName, setProjectName] = useState('')
-
-	const downloadCSV = () => {
+	const prepareCsv = useCallback(() => {
 		const headers = [
 			'Name',
 			'Category',
@@ -71,35 +48,28 @@ export function Treasuries({ data, entity }) {
 				'Change 1m': row.change_1m
 			}
 		})
-		const csv = [headers.join(',')]
-			.concat(dataToDownload.map((row) => headers.map((header) => row[header]).join(',')))
-			.join('\n')
-		download('treasuries.csv', csv)
-	}
-
-	useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(projectName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [projectName, instance])
+		const rows = [headers].concat(dataToDownload.map((row) => headers.map((header) => row[header])))
+		return { filename: 'treasuries.csv', rows: rows as (string | number | boolean)[][] }
+	}, [data])
 
 	return (
-		<Layout title={`${entity ? 'Entities' : 'Treasuries'} - DefiLlama`} defaultSEO>
-			{!entity && <Metrics currentMetric="Treasury" />}
+		<Layout
+			title={`Treasuries - DefiLlama`}
+			description={`Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries`}
+			canonicalUrl={entity ? `/entities` : `/treasuries`}
+			pageName={entity ? entityPageName : pageName}
+		>
 			<TableWithSearch
 				data={data}
 				columns={tableColumns}
 				columnToSearch={'name'}
 				placeholder={'Search projects...'}
 				header={'Treasuries'}
+				sortingState={entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]}
 				customFilters={
 					<>
-						<CSVDownloadButton
-							onClick={downloadCSV}
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
+						<CSVDownloadButton prepareCsv={prepareCsv} />
 					</>
 				}
 			/>
@@ -161,21 +131,23 @@ export const columns: ColumnDef<any>[] = [
 			}
 
 			return (
-				<Tooltip content={<TooltipContent dominance={dominance} protocolName={info.row.original.name} />}>
-					<span className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white">
-						{dominance.map((dom) => {
-							const color = breakdownColor(dom[0])
-							const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+				<Tooltip
+					content={<BreakdownTooltipContent dominance={dominance} protocolName={info.row.original.name} />}
+					render={<button />}
+					className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white"
+				>
+					{dominance.map((dom) => {
+						const color = breakdownColor(dom[0])
+						const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
 
-							return (
-								<div
-									key={dom[0] + dom[1] + info.row.original.name}
-									style={{ width: `${dom[1]}%`, background: color }}
-									className="h-5"
-								/>
-							)
-						})}
-					</span>
+						return (
+							<div
+								key={dom[0] + dom[1] + info.row.original.name}
+								style={{ width: `${dom[1]}%`, background: color }}
+								className="h-5"
+							/>
+						)
+					})}
 				</Tooltip>
 			)
 		},
@@ -246,7 +218,7 @@ export const columns: ColumnDef<any>[] = [
 	{
 		header: 'Total Treasury',
 		accessorKey: 'tvl',
-		id: 'total-treasury',
+		id: 'tvl',
 		cell: (info) => {
 			return <>{formattedNum(info.getValue(), true)}</>
 		},
@@ -321,7 +293,7 @@ const Breakdown = ({ data }) => {
 	)
 }
 
-const TooltipContent = ({ dominance, protocolName }) => {
+const BreakdownTooltipContent = ({ dominance, protocolName }) => {
 	return (
 		<span className="flex flex-col gap-1">
 			{dominance.map((dom) => (

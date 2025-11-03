@@ -1,6 +1,8 @@
-import { removedCategoriesFromChainTvl } from '~/constants'
+import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { IProtocolMetadata } from '../ProtocolOverview/types'
 import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
+
+const excludedCategoriesSet = new Set(['Canonical Bridge'])
 
 export const toFilterProtocol = ({
 	protocolMetadata,
@@ -11,20 +13,18 @@ export const toFilterProtocol = ({
 	protocolData: ILiteProtocol
 	chainDisplayName: string | null
 }): boolean => {
+	const combinedChainsSet = new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])
+
 	return protocolMetadata.displayName &&
 		protocolMetadata.chains &&
-		(chainDisplayName !== 'All'
-			? Array.from(new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])).includes(
-					chainDisplayName
-				)
-			: true) &&
-		!['Bridge', 'Canonical Bridge'].includes(protocolData.category)
+		(chainDisplayName !== 'All' ? combinedChainsSet.has(chainDisplayName) : true) &&
+		!excludedCategoriesSet.has(protocolData.category)
 		? true
 		: false
 }
 
 export const toStrikeTvl = (protocol, toggledSettings) => {
-	if (removedCategoriesFromChainTvl.includes(protocol.category)) return true
+	if (removedCategoriesFromChainTvlSet.has(protocol.category)) return true
 
 	if (toggledSettings['liquidstaking'] || toggledSettings['doublecounted']) return true
 

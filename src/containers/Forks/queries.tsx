@@ -1,6 +1,6 @@
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { FORK_API, PROTOCOLS_API } from '~/constants'
-import { getColorFromNumber } from '~/utils'
+import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export async function getForkPageData(fork = null) {
@@ -59,12 +59,11 @@ export async function getForkPageData(fork = null) {
 
 		const filteredProtocols = formatProtocolsData({ fork, protocols })
 
+		const allColors = getNDistinctColors(forksUnique.length)
 		const colors = {}
-
-		forksUnique.forEach((chain, index) => {
-			colors[chain] = getColorFromNumber(index, 6)
-		})
-
+		for (let i = 0; i < forksUnique.length; i++) {
+			colors[forksUnique[i]] = allColors[i]
+		}
 		colors['Others'] = '#AAAAAA'
 
 		return {

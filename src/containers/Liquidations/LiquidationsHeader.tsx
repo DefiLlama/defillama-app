@@ -2,15 +2,10 @@ import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { FormattedName } from '~/components/FormattedName'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import type { ISearchItem } from '~/components/Search/types'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ChartData } from '~/containers/Liquidations/utils'
-
-export const LiquidationsHeader = (props: { data: ChartData; options: ISearchItem[] }) => {
-	const { data, options } = props
-	return <AssetSelector symbol={data.symbol} options={options} />
-}
 
 interface IProps {
 	options: ISearchItem[]
@@ -26,8 +21,8 @@ export function AssetSelector({ options, symbol }: IProps) {
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
+		if (!deferredSearchValue) return options
 		return matchSorter(options, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			keys: ['name', 'symbol'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
@@ -56,8 +51,11 @@ export function AssetSelector({ options, symbol }: IProps) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60dvh] lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				>
+					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+						<Icon name="x" className="h-5 w-5" />
+					</Ariakit.PopoverDismiss>
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoFocus

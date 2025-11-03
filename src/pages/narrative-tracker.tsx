@@ -16,9 +16,16 @@ export const getStaticProps = withPerformanceLogging('narrative-tracker', async 
 	}
 })
 
+const pageName = ['Narrative Tracker']
 export default function CategoryPerformance(props) {
 	return (
-		<Layout title={`Narrative Tracker - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Narrative Tracker - DefiLlama`}
+			description={`Narrative tracker on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`narrative tracker, defi narrative tracker`}
+			canonicalUrl={`/narrative-tracker`}
+			pageName={pageName}
+		>
 			<CategoryPerformanceContainer {...props} />
 		</Layout>
 	)

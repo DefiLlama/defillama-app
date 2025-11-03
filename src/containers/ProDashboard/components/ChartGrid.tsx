@@ -2,11 +2,10 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { DashboardItemConfig } from '../types'
-import { ChartBuilderCard } from './ChartBuilderCard'
-import { ChartCard } from './ChartCard'
+import { DashboardItemConfig, StoredColSpan } from '../types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -26,9 +25,53 @@ import {
 	YieldsDataset
 } from './datasets'
 import { ProtocolsByChainTable } from './ProTable'
+import { Rating } from './Rating'
 import { TextCard } from './TextCard'
+import { YieldsChartCard } from './YieldsChartCard'
 
+const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
+const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
+const MetricCard = lazy(() => import('./MetricCard').then((mod) => ({ default: mod.MetricCard })))
+
+const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
+const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
+const COL_SPAN_CLASS_MAP: Record<1 | 2 | 3 | 4, string> = {
+	1: 'lg:col-span-1',
+	2: 'lg:col-span-2',
+	3: 'lg:col-span-3',
+	4: 'lg:col-span-4'
+}
+
+const normalizeStoredColSpan = (span: StoredColSpan | undefined, fallback: StoredColSpan = 1): StoredColSpan =>
+	(span ?? fallback) as StoredColSpan
+
+const getEffectiveColSpan = (span?: StoredColSpan) => {
+	const stored = normalizeStoredColSpan(span)
+	return Math.round(stored * 2) as 1 | 2 | 3 | 4
+}
+
+const getPreviousStoredColSpan = (
+	span: StoredColSpan,
+	options: readonly StoredColSpan[] = STORED_COL_SPANS
+): StoredColSpan => {
+	const index = options.indexOf(span)
+	if (index <= 0) {
+		return options[0]
+	}
+	return options[index - 1]
+}
+
+const getNextStoredColSpan = (
+	span: StoredColSpan,
+	options: readonly StoredColSpan[] = STORED_COL_SPANS
+): StoredColSpan => {
+	const index = options.indexOf(span)
+	if (index === -1 || index >= options.length - 1) {
+		return options[options.length - 1]
+	}
+	return options[index + 1]
+}
 
 interface ChartGridProps {
 	onAddChartClick: () => void
@@ -36,10 +79,28 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
-	const { chartsWithData, handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem, isReadOnly } =
-		useProDashboard()
+	const {
+		chartsWithData,
+		handleChartsReordered,
+		handleRemoveItem,
+		handleColSpanChange,
+		handleEditItem,
+		isReadOnly,
+		getCurrentRatingSession,
+		autoSkipOlderSessionsForRating,
+		submitRating,
+		skipRating
+	} = useProDashboard()
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
 	const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+	const currentRatingSession = getCurrentRatingSession()
+
+	useEffect(() => {
+		if (currentRatingSession) {
+			autoSkipOlderSessionsForRating()
+		}
+	}, [currentRatingSession?.sessionId, autoSkipOlderSessionsForRating])
 
 	useEffect(() => {
 		const checkScreenSize = () => {
@@ -87,25 +148,41 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		setDeleteConfirmItem(null)
 	}
 
-	const getColSpanClass = (colSpan?: 1 | 2) => {
-		return colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
-	}
-
 	const renderItemContent = (item: DashboardItemConfig) => {
 		if (item.kind === 'chart') {
-			return <ChartCard chart={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<ChartCard chart={item} />
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'multi') {
 			return (
-				<Suspense fallback={<></>}>
+				<Suspense fallback={<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
 					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
 				</Suspense>
 			)
 		}
 
+		if (item.kind === 'metric') {
+			return (
+				<Suspense fallback={<div className="flex min-h-[140px] flex-col p-1" />}>
+					<MetricCard metric={item as any} />
+				</Suspense>
+			)
+		}
+
 		if (item.kind === 'builder') {
-			return <ChartBuilderCard builder={item} />
+			return (
+				<Suspense fallback={<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]" />}>
+					<ChartBuilderCard builder={item} />
+				</Suspense>
+			)
+		}
+
+		if (item.kind === 'yields') {
+			return <YieldsChartCard config={item} />
 		}
 
 		if (item.kind === 'text') {
@@ -115,9 +192,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		if (item.kind === 'table') {
 			if (item.tableType === 'dataset') {
 				if (item.datasetType === 'cex') return <CexDataset />
-				if (item.datasetType === 'revenue') return <RevenueDataset chains={item.chains} />
-				if (item.datasetType === 'holders-revenue') return <HoldersRevenueDataset chains={item.chains} />
-				if (item.datasetType === 'earnings') return <EarningsDataset chains={item.chains} />
+				if (item.datasetType === 'revenue')
+					return <RevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+				if (item.datasetType === 'holders-revenue')
+					return <HoldersRevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+				if (item.datasetType === 'earnings')
+					return <EarningsDataset chains={item.chains} tableId={item.id} filters={item.filters} />
 				if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
 				if (item.datasetType === 'token-usage')
 					return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
@@ -164,16 +244,18 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 			}
 
+			const tableColSpan = (item.colSpan ?? 2) >= 2 ? 2 : 1
 			return (
 				<ProtocolsByChainTable
 					tableId={item.id}
 					chains={item.chains}
-					colSpan={item.colSpan}
+					colSpan={tableColSpan}
 					filters={item.filters}
 					columnOrder={item.columnOrder}
 					columnVisibility={item.columnVisibility}
 					customColumns={item.customColumns}
 					activeViewId={item.activeViewId}
+					activePresetId={item.activePresetId}
 				/>
 			)
 		}
@@ -183,78 +265,121 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 	if (isReadOnly) {
 		return (
-			<div className="mt-2">
-				<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
-					{chartsWithData.map((item) => (
+			<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-4">
+				{chartsWithData.map((item) => {
+					const spanOptions = item.kind === 'metric' ? METRIC_COL_SPANS : STORED_COL_SPANS
+					const fallbackSpan: StoredColSpan = item.kind === 'metric' ? spanOptions[0] : 1
+					const storedColSpan = normalizeStoredColSpan(item.colSpan, fallbackSpan)
+					const effectiveColSpan = getEffectiveColSpan(storedColSpan)
+					const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
+
+					return (
 						<div
-							key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-							className={`${getColSpanClass(item.colSpan)}`}
+							key={`${item.id}-${item.colSpan}${
+								item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
+							}`}
+							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
 						>
-							<div className={`pro-glass relative h-full ${item.kind === 'table' ? 'overflow-visible' : ''}`}>
-								<div className={item.kind === 'table' ? 'pr-12' : ''}>{renderItemContent(item)}</div>
-							</div>
+							{renderItemContent(item)}
 						</div>
-					))}
-				</div>
+					)
+				})}
 			</div>
 		)
 	}
 
 	return (
-		<div className="mt-2">
+		<>
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
 				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
-					<div className="grid grid-cols-1 gap-2 md:grid-cols-2" style={{ gridAutoFlow: 'dense' }}>
-						{chartsWithData.map((item) => (
-							<div
-								key={`${item.id}-${item.colSpan}${item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''}`}
-								className={`${getColSpanClass(item.colSpan)}`}
-							>
-								<SortableItem id={item.id} isTable={item.kind === 'table'} className="h-full">
-									<div
-										className={`pro-glass relative h-full ${item.kind === 'table' ? 'pt-6' : ''} ${
-											item.kind === 'table' ? 'overflow-visible' : 'overflow-hidden'
-										}`}
-									>
-										<div className="absolute top-1 right-1 z-20 flex gap-1">
-											<button
-												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => handleColSpanChange(item.id, item.colSpan === 2 ? 1 : 2)}
-												aria-label={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-												title={item.colSpan === 2 ? 'Make smaller' : 'Make wider'}
-											>
-												{item.colSpan === 1 ? (
-													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(45deg)' }} />
-												) : (
-													<Icon name="chevrons-up" height={14} width={14} style={{ transform: 'rotate(-135deg)' }} />
-												)}
-											</button>
+					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-4">
+						{chartsWithData.map((item) => {
+							const spanOptions = item.kind === 'metric' ? METRIC_COL_SPANS : STORED_COL_SPANS
+							const fallbackSpan: StoredColSpan = item.kind === 'metric' ? spanOptions[0] : 1
+							const storedColSpan = normalizeStoredColSpan(item.colSpan, fallbackSpan)
+							const effectiveColSpan = getEffectiveColSpan(storedColSpan)
+							const shrinkTarget = getPreviousStoredColSpan(storedColSpan, spanOptions)
+							const expandTarget = getNextStoredColSpan(storedColSpan, spanOptions)
+							const disableShrink = shrinkTarget === storedColSpan
+							const disableExpand = expandTarget === storedColSpan
+							const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
+
+							return (
+								<div
+									key={`${item.id}-${item.colSpan}${
+										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
+									}`}
+									className={`col-span-1 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+								>
+									<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan}>
+										<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
+											<>
+												<Tooltip
+													content="Shrink width"
+													render={
+														<button
+															onClick={() => handleColSpanChange(item.id, shrinkTarget)}
+															disabled={disableShrink}
+														/>
+													}
+													className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+												>
+													<Icon name="minus" height={14} width={14} />
+													<span className="sr-only">Shrink width</span>
+												</Tooltip>
+												<Tooltip
+													content="Expand width"
+													render={
+														<button
+															onClick={() => handleColSpanChange(item.id, expandTarget)}
+															disabled={disableExpand}
+														/>
+													}
+													className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+												>
+													<Icon name="plus" height={14} width={14} />
+													<span className="sr-only">Expand width</span>
+												</Tooltip>
+											</>
 											{onEditItem && (
-												<button
-													className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-													onClick={() => onEditItem(item)}
-													aria-label="Edit item"
-													title="Edit item"
+												<Tooltip
+													content="Edit item"
+													render={<button onClick={() => onEditItem(item)} />}
+													className="hover:pro-btn-blue px-3 py-2"
 												>
 													<Icon name="pencil" height={14} width={14} />
-												</button>
+													<span className="sr-only">Edit item</span>
+												</Tooltip>
 											)}
-											<button
-												className="pro-hover-bg pro-text1 pro-bg1 p-1.5 text-sm transition-colors dark:bg-[#070e0f]"
-												onClick={() => handleDeleteClick(item.id)}
-												aria-label="Remove item"
+											<Tooltip
+												content="Remove item"
+												render={<button onClick={() => handleDeleteClick(item.id)} />}
+												className="rounded-tr-md px-3 py-2 hover:bg-red-500/10 hover:text-(--error)"
 											>
 												<Icon name="x" height={14} width={14} />
-											</button>
+												<span className="sr-only">Remove item</span>
+											</Tooltip>
 										</div>
 										<div>{renderItemContent(item)}</div>
-									</div>
-								</SortableItem>
+									</SortableItem>
+								</div>
+							)
+						})}
+						{currentRatingSession && !isReadOnly && (
+							<div className="animate-ai-glow col-span-full flex flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+								<Rating
+									sessionId={currentRatingSession.sessionId}
+									mode={currentRatingSession.mode}
+									variant="inline"
+									prompt={currentRatingSession.prompt}
+									onRate={submitRating}
+									onSkip={skipRating}
+								/>
 							</div>
-						))}
-						<div
+						)}
+						<button
 							onClick={onAddChartClick}
-							className="pro-border pro-bg7 hover:pro-bg2 flex min-h-[340px] cursor-pointer flex-col items-center justify-center border border-dashed transition-colors"
+							className="hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10 relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text)"
 						>
 							<svg
 								width="40"
@@ -265,13 +390,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								strokeWidth="2"
 								strokeLinecap="round"
 								strokeLinejoin="round"
-								className="mb-2 text-(--primary)"
 							>
 								<line x1="12" y1="5" x2="12" y2="19"></line>
 								<line x1="5" y1="12" x2="19" y2="12"></line>
 							</svg>
-							<span className="text-lg font-medium text-(--primary)">Add Item</span>
-						</div>
+							<span className="text-lg font-medium">Add Item</span>
+						</button>
 					</div>
 				</SortableContext>
 			</DndContext>
@@ -285,6 +409,6 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 				confirmText="Remove"
 				cancelText="Cancel"
 			/>
-		</div>
+		</>
 	)
 }

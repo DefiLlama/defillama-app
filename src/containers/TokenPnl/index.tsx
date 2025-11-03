@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { COINS_CHART_API } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
@@ -27,7 +27,7 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 			<span>{label}:</span>
 			<input
 				type="date"
-				className={`rounded-md bg-white p-[6px] text-base text-black outline-0 dark:bg-black dark:text-white ${
+				className={`rounded-md bg-white p-1.5 text-base text-black outline-0 dark:bg-black dark:text-white ${
 					hasError ? 'border-2 border-red-500' : 'border border-(--form-control-border)'
 				}`}
 				value={value}
@@ -39,7 +39,13 @@ const DateInput = ({ label, value, onChange, min, max, hasError = false }) => {
 	)
 }
 
-export default function TokenPnl({ coinsData }) {
+const isValidDate = (dateString: string | string[] | undefined): boolean => {
+	if (!dateString || typeof dateString !== 'string') return false
+	const date = new Date(+dateString * 1000)
+	return !isNaN(date.getTime())
+}
+
+export function TokenPnl({ coinsData }) {
 	const router = useRouter()
 	const now = Math.floor(Date.now() / 1000) - 1000
 
@@ -50,6 +56,20 @@ export default function TokenPnl({ coinsData }) {
 			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
 			initialEndDate: unixToDateString(now)
 		})
+
+	useEffect(() => {
+		if (router.isReady) {
+			const startParam = isValidDate(router.query.start) ? unixToDateString(Number(router.query.start)) : null
+			const endParam = isValidDate(router.query.end) ? unixToDateString(Number(router.query.end)) : null
+
+			if (startParam && startParam !== startDate) {
+				handleStartDateChange(startParam)
+			}
+			if (endParam && endParam !== endDate) {
+				handleEndDateChange(endParam)
+			}
+		}
+	}, [router.isReady, router.query.start, router.query.end])
 
 	const { selectedCoins, coins } = useMemo(() => {
 		const queryCoins = router.query?.coin || (['bitcoin'] as Array<string>)
@@ -136,7 +156,6 @@ export default function TokenPnl({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-			refetch()
 		}
 	}
 
@@ -144,7 +163,7 @@ export default function TokenPnl({ coinsData }) {
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<div className="mx-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[132px]">
 				<h1 className="text-center text-xl font-semibold">Token Holder Profit and Loss</h1>
 				<div className="flex w-full flex-col gap-3">
 					<DateInput
@@ -175,7 +194,7 @@ export default function TokenPnl({ coinsData }) {
 									setModalOpen(1)
 									dialogStore.toggle()
 								}}
-								className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+								className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 							>
 								<img
 									src={selectedCoins[0].image}
@@ -193,7 +212,7 @@ export default function TokenPnl({ coinsData }) {
 										setModalOpen(1)
 										dialogStore.toggle()
 									}}
-									className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black/60 dark:bg-black dark:text-white/60"
+									className="flex items-center gap-1 rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black/60 dark:bg-black dark:text-white/60"
 								>
 									<Icon name="search" height={16} width={16} />
 									<span>Search coins...</span>
@@ -215,7 +234,7 @@ export default function TokenPnl({ coinsData }) {
 										<p>{error instanceof Error ? error.message : 'An error occurred'}</p>
 										<button
 											onClick={() => refetch()}
-											className="rounded-md bg-(--link-active-bg) px-4 py-[6px] text-white"
+											className="rounded-md bg-(--link-active-bg) px-4 py-1.5 text-white"
 										>
 											Retry
 										</button>
@@ -298,7 +317,6 @@ export default function TokenPnl({ coinsData }) {
 								undefined,
 								{ shallow: true }
 							)
-							refetch()
 							setModalOpen(0)
 							dialogStore.toggle()
 						}}

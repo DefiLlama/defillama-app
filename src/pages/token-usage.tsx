@@ -1,4 +1,4 @@
-import { startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, Suspense, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -9,13 +9,13 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import Layout from '~/layout'
-import { download, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -38,16 +38,14 @@ export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
 	}
 })
 
+const pageName = ['Token', 'usage in', 'Protocols']
+
 export default function Tokens({ searchData }) {
 	const router = useRouter()
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
-	const includeCentraliseExchanges = includecex
-		? typeof includecex === 'string' && includecex === 'true'
-			? true
-			: false
-		: false
+	const includeCentraliseExchanges = includecex === 'true' ? true : false
 
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
@@ -63,7 +61,7 @@ export default function Tokens({ searchData }) {
 		)
 	}, [protocols, includeCentraliseExchanges])
 
-	const downloadCSV = () => {
+	const prepareCsv = () => {
 		const data = filteredProtocols.map((p) => {
 			return {
 				Protocol: p.name,
@@ -72,23 +70,32 @@ export default function Tokens({ searchData }) {
 			}
 		})
 		const headers = ['Protocol', 'Category', 'Amount (USD)']
-		const csv = [headers.join(',')].concat(data.map((row) => headers.map((header) => row[header]).join(','))).join('\n')
-		download(`protocols-by-token-${tokenSymbol}.csv`, csv)
+		const rows = [headers, ...data.map((row) => headers.map((header) => row[header]))]
+
+		return { filename: `protocols-by-token-${tokenSymbol}.csv`, rows: rows as (string | number | boolean)[][] }
 	}
 
 	return (
-		<Layout title="Token Usage - DefiLlama" defaultSEO>
+		<Layout
+			title="Token Usage - DefiLlama"
+			description={`Token usage in protocols. Checkout how a token is used in protocols on chain as well as CEXs. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`token usage, defi token usage, token usage in protocols, token usage in protocols on chain, token usage on cexes`}
+			canonicalUrl={`/token-usage`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
 			<Search searchData={searchData} />
 
 			<div className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				{isLoading ? (
-					<div className="mx-auto my-32 flex w-full items-center justify-center">
+					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
 						<LocalLoader />
 					</div>
 				) : !tokenSymbol || !protocols || protocols.length === 0 ? (
-					<></>
+					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
+						<p className="text-center text-sm">{!tokenSymbol ? 'No token selected' : 'No protocols found'}</p>
+					</div>
 				) : (
 					<>
 						<div className="flex flex-wrap items-center justify-between gap-2 p-3">
@@ -110,7 +117,7 @@ export default function Tokens({ searchData }) {
 										)
 									}
 								/>
-								<CSVDownloadButton onClick={downloadCSV} />
+								<CSVDownloadButton prepareCsv={prepareCsv} />
 							</div>
 						</div>
 
@@ -213,8 +220,8 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
+		if (!deferredSearchValue) return searchData || []
 		return matchSorter(searchData || [], deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			threshold: matchSorter.rankings.CONTAINS,
 			keys: ['name', 'symbol']
 		})
@@ -223,6 +230,24 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 	const [viewableMatches, setViewableMatches] = useState(20)
 
 	const [open, setOpen] = useState(false)
+
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -236,16 +261,16 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 			setOpen={setOpen}
 		>
 			<span className="relative isolate w-full lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={16} width={16} />
+							<Icon name="x" height={18} width={18} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={14} width={14} />
+							<Icon name="search" height={16} width={16} />
 						</>
 					)}
 				</button>
@@ -253,7 +278,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				<Ariakit.Combobox
 					placeholder="Search tokens..."
 					autoSelect
-					className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-8 text-sm text-black dark:text-white"
+					className="min-h-8 w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-black dark:text-white"
 				/>
 			</span>
 
@@ -262,11 +287,11 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				hideOnInteractOutside
 				gutter={6}
 				sameWidth
-				className="z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+				className="thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 			>
 				{matches.length ? (
-					<>
-						{matches.slice(0, viewableMatches + 1).map((data) => (
+					<Ariakit.ComboboxList ref={comboboxRef}>
+						{matches.slice(0, viewableMatches).map((data) => (
 							<Ariakit.ComboboxItem
 								key={`token-usage-${data.name}`}
 								value={data.name}
@@ -278,7 +303,7 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								focusOnHover
 								hideOnClick={false}
 								setValueOnClick={true}
-								className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
+								className="flex cursor-pointer items-center gap-4 p-3 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
 								{data?.logo || data?.fallbackLogo ? (
 									<TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />
@@ -286,16 +311,18 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 								<span>{data.name}</span>
 							</Ariakit.ComboboxItem>
 						))}
-
 						{matches.length > viewableMatches ? (
-							<button
-								className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-								onClick={() => setViewableMatches((prev) => prev + 20)}
+							<Ariakit.ComboboxItem
+								value="__see_more__"
+								setValueOnClick={false}
+								hideOnClick={false}
+								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+								onClick={handleSeeMore}
 							>
 								See more...
-							</button>
+							</Ariakit.ComboboxItem>
 						) : null}
-					</>
+					</Ariakit.ComboboxList>
 				) : (
 					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				)}

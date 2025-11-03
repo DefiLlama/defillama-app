@@ -10,6 +10,7 @@ import {
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
+import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat } from '../utils'
 
 const CHART_METADATA = {
@@ -45,6 +46,55 @@ const CHART_METADATA = {
 }
 
 export default class ChainCharts {
+	private static readonly CHAIN_MIGRATIONS: Record<string, string> = {
+		optimism: 'OP Mainnet'
+	}
+
+	private static async fetchAndMergeChains(
+		chains: string[],
+		fetchUrl: (chainName: string) => string,
+		extractData: (data: any) => [number, number][]
+	): Promise<[number, number][]> {
+		if (chains.length === 0) return []
+
+		try {
+			const responses = await Promise.all(
+				chains.map((chain) => fetch(fetchUrl(chain.includes(' ') ? encodeURIComponent(chain) : chain)))
+			)
+
+			const mergedMap = new Map<number, number>()
+
+			for (const response of responses) {
+				if (response.ok) {
+					const data = await response.json()
+					const extracted = extractData(data)
+					extracted.forEach(([timestamp, value]) => {
+						mergedMap.set(timestamp, value)
+					})
+				}
+			}
+
+			if (mergedMap.size > 0) {
+				return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
+			}
+		} catch (error) {
+			console.log('Error merging chain data:', error)
+		}
+
+		return []
+	}
+
+	private static getChainNames(chain: string): string[] {
+		const lowerChain = chain.toLowerCase()
+		const newName = this.CHAIN_MIGRATIONS[lowerChain]
+
+		if (newName) {
+			return [chain, newName]
+		}
+
+		return [chain]
+	}
+
 	private static async dimensionsData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
 		const url = dataType
@@ -64,10 +114,24 @@ export default class ChainCharts {
 
 	private static async tvlData(chain: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const response = await fetch(`${CHART_API}/${chain}`)
-		const data = await response.json()
-		const res = convertToNumberFormat(data.tvl ?? [])
-		return res
+
+		const chainNames = this.getChainNames(chain)
+
+		if (chainNames.length === 1) {
+			const response = await fetch(`${CHART_API}/${chain}`)
+			const data = await response.json()
+			const adjustedTvl = processAdjustedTvl(data)
+			return convertToNumberFormat(adjustedTvl)
+		}
+
+		return this.fetchAndMergeChains(
+			chainNames,
+			(chainName) => `${CHART_API}/${chainName}`,
+			(data) => {
+				const adjustedTvl = processAdjustedTvl(data)
+				return convertToNumberFormat(adjustedTvl)
+			}
+		)
 	}
 
 	private static async stablecoinsData(chain: string, dataType?: string): Promise<[number, number][]> {
@@ -119,17 +183,24 @@ export default class ChainCharts {
 
 	private static async chainAssetsData(chain: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const response = await fetch(`${CHAINS_ASSETS_CHART}/${chain}`)
-		const data = await response.json()
 
-		if (!Array.isArray(data)) return []
+		const chainNames = this.getChainNames(chain)
 
-		const formattedData: [number, number][] = data.map((item: any) => [
-			parseInt(item.timestamp, 10),
-			parseFloat(item.data.total) || 0
-		])
+		if (chainNames.length === 1) {
+			const response = await fetch(`${CHAINS_ASSETS_CHART}/${chain}`)
+			const data = await response.json()
+			if (!Array.isArray(data)) return []
+			return data.map((item: any) => [parseInt(item.timestamp, 10), parseFloat(item.data?.total) || 0])
+		}
 
-		return formattedData
+		return this.fetchAndMergeChains(
+			chainNames,
+			(chainName) => `${CHAINS_ASSETS_CHART}/${chainName}`,
+			(data) => {
+				if (!Array.isArray(data)) return []
+				return data.map((item: any) => [parseInt(item.timestamp, 10), parseFloat(item.data?.total) || 0])
+			}
+		)
 	}
 
 	private static async getTokenData(geckoId: string) {
@@ -158,7 +229,7 @@ export default class ChainCharts {
 		const metadata = CHART_METADATA[chartType]
 
 		if (!metadata) {
-			console.error(`Unknown chart type: ${chartType}`)
+			console.log(`Unknown chart type: ${chartType}`)
 			return []
 		}
 
@@ -183,7 +254,7 @@ export default class ChainCharts {
 				}
 				return []
 			default:
-				console.error(`Unknown metadata type: ${metadata.type}`)
+				console.log(`Unknown metadata type: ${metadata.type}`)
 				return []
 		}
 	}

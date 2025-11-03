@@ -1,19 +1,19 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
-import { TMetric } from '~/components/Metrics'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
-const type: TMetric = 'Holders Revenue'
+const dataType = ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+const type = 'Holders Revenue'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -66,13 +66,18 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const HoldersRevenueOnChain = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const HoldersRevenueOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} - ${type} - DefiLlama`}
-			defaultSEO
-			includeInMetricsOptions={feesOptions}
-			includeInMetricsOptionslabel="Include in Revenue"
+			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
+			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			canonicalUrl={`/holders-revenue/chain/${props.chain}`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Revenue"
+			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>

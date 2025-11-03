@@ -1,7 +1,6 @@
 import { maxAgeForNext } from '~/api'
 import { getNFTData } from '~/api/categories/nfts'
 import { NftsCollectionTable } from '~/components/Table/Nfts/Collections'
-import { useScrollToTop } from '~/hooks'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,10 +15,17 @@ export const getStaticProps = withPerformanceLogging('nfts', async () => {
 	}
 })
 
+const pageName = ['NFTs Collections']
+
 export default function NFTHomePage(props) {
-	useScrollToTop()
 	return (
-		<Layout title="NFTs - DefiLlama" defaultSEO>
+		<Layout
+			title="NFTs Collections - DefiLlama"
+			description={`Track NFTs collections floor price, 24h volume and total supply. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`nfts collections, nfts on blockchain`}
+			canonicalUrl={`/nfts`}
+			pageName={pageName}
+		>
 			<NftsCollectionTable data={props.collections || []} />
 		</Layout>
 	)

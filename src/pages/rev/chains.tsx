@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
@@ -22,10 +21,17 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 	}
 })
 
+const pageName = ['Chains', 'ranked by', 'REV']
+
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
-		<Layout title="REV by chain - DefiLlama">
-			<Metrics currentMetric="REV" isChains />
+		<Layout
+			title="REV by chain - DefiLlama"
+			description={`REV by chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`rev by chain, defi rev by chain`}
+			canonicalUrl={`/rev/chains`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.chains}
 				columns={columns}
@@ -34,6 +40,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
+				sortingState={[{ id: 'total24h', desc: true }]}
 			/>
 		</Layout>
 	)

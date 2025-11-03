@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import { Icon } from './Icon'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface NestedMenuItemProps extends Ariakit.MenuItemProps {}
@@ -35,28 +36,33 @@ export const NestedMenu = React.forwardRef<HTMLDivElement, NestedMenuProps>(func
 			</Ariakit.MenuButton>
 			<Ariakit.Menu
 				unmountOnHide
+				hideOnInteractOutside
 				gutter={8}
 				shift={menu.parent ? -9 : 0}
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className={`z-10 flex h-[70vh] flex-col gap-2 overflow-x-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)] ${
+				className={`thin-scrollbar z-10 flex h-[calc(100dvh-80px)] flex-col overflow-x-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 max-sm:rounded-b-none sm:max-h-[60dvh] dark:border-[hsl(204,3%,32%)] ${
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>
+				<Ariakit.MenuDismiss className="ml-auto px-3 py-1">
+					<Icon name="x" height={16} width={16} />
+					<span className="sr-only">Close dialog</span>
+				</Ariakit.MenuDismiss>
 				{menu.parent ? (
 					<>
 						<div className="grid grid-cols-[1fr_auto_1fr] items-end">
 							<button
-								className="flex items-center justify-between gap-3 px-3 py-2"
+								className="-ml-1.5 flex items-center justify-between gap-3 px-3 py-2"
 								onClick={() => {
 									menu.hide()
 								}}
 								aria-label="Back to parent menu"
 							>
-								<Ariakit.MenuButtonArrow placement="left" />
+								<Icon name="chevron-left" height={20} width={20} />
 							</button>
-							<h1 className="px-3 py-[6px] font-medium">{label}</h1>
+							<h1 className="px-3 py-1.5 text-base font-medium">{label}</h1>
 						</div>
 					</>
 				) : null}

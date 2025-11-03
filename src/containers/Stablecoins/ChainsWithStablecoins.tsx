@@ -1,51 +1,46 @@
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { IChartProps, ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { Metrics } from '~/components/Metrics'
-import { GroupStablecoins } from '~/components/MultiSelect/Stablecoins'
 import { Tooltip } from '~/components/Tooltip'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import {
-	buildStablecoinChartData,
-	getPrevStablecoinTotalFromChart,
-	getStablecoinDominance
-} from '~/containers/Stablecoins/utils'
+import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { download, formattedNum, getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
+
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-function PeggedChainsOverview({
+export function ChainsWithStablecoins({
 	chainCirculatings,
-	chartData,
-	peggedChartDataByChain,
 	chainList,
-	chainsGroupbyParent
+	chainsGroupbyParent,
+	change1d,
+	change7d,
+	change30d,
+	totalMcapCurrent,
+	change1d_nol,
+	change7d_nol,
+	change30d_nol,
+	peggedAreaChartData,
+	peggedAreaTotalData,
+	stackedDataset
 }) {
 	const [chartType, setChartType] = React.useState('Pie')
 	const chartTypeList = ['Total Market Cap', 'Chain Market Caps', 'Pie', 'Dominance']
-
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset } = React.useMemo(
-		() =>
-			buildStablecoinChartData({
-				chartDataByAssetOrChain: peggedChartDataByChain,
-				assetsOrChainsList: chainList,
-				filteredIndexes: [...Array(chainList.length).keys()],
-				issuanceType: 'mcap'
-			}),
-		[peggedChartDataByChain, chainList]
-	)
 
 	const filteredPeggedAssets = chainCirculatings
 	const chainTotals = useCalcCirculating(filteredPeggedAssets)
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
-	const downloadCsv = () => {
+	const prepareeCsv = React.useCallback(() => {
 		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
@@ -59,52 +54,8 @@ function PeggedChainsOverview({
 					}, 0)
 				])
 			})
-		download('stablecoinsChainTotals.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
-
-	const { change1d, change7d, change30d, totalMcapCurrent, change1d_nol, change7d_nol, change30d_nol } =
-		React.useMemo(() => {
-			const totalMcapCurrent = getPrevStablecoinTotalFromChart(chartData, 0, 'totalCirculatingUSD')
-			const totalMcapPrevDay = getPrevStablecoinTotalFromChart(chartData, 1, 'totalCirculatingUSD')
-			const totalMcapPrevWeek = getPrevStablecoinTotalFromChart(chartData, 7, 'totalCirculatingUSD')
-			const totalMcapPrevMonth = getPrevStablecoinTotalFromChart(chartData, 30, 'totalCirculatingUSD')
-			const change1d = getPercentChange(totalMcapCurrent, totalMcapPrevDay)?.toFixed(2) ?? '0'
-			const change7d = getPercentChange(totalMcapCurrent, totalMcapPrevWeek)?.toFixed(2) ?? '0'
-			const change30d = getPercentChange(totalMcapCurrent, totalMcapPrevMonth)?.toFixed(2) ?? '0'
-			const change1d_nol = formattedNum(
-				String(
-					totalMcapCurrent && totalMcapPrevDay
-						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevDay as string)
-						: 0
-				),
-				true
-			)
-			const change7d_nol = formattedNum(
-				String(
-					totalMcapCurrent && totalMcapPrevDay
-						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevWeek as string)
-						: 0
-				),
-				true
-			)
-			const change30d_nol = formattedNum(
-				String(
-					totalMcapCurrent && totalMcapPrevDay
-						? parseFloat(totalMcapCurrent as string) - parseFloat(totalMcapPrevMonth as string)
-						: 0
-				),
-				true
-			)
-			return {
-				change1d: change1d.startsWith('-') ? change1d : `+${change1d}`,
-				change7d: change7d.startsWith('-') ? change7d : `+${change7d}`,
-				change30d: change30d.startsWith('-') ? change30d : `+${change30d}`,
-				totalMcapCurrent,
-				change1d_nol: change1d_nol.startsWith('-') ? change1d_nol : `+${change1d_nol}`,
-				change7d_nol: change7d_nol.startsWith('-') ? change7d_nol : `+${change7d_nol}`,
-				change30d_nol: change30d_nol.startsWith('-') ? change30d_nol : `+${change30d_nol}`
-			}
-		}, [chartData])
+		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
+	}, [stackedData, chainList])
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
@@ -117,8 +68,6 @@ function PeggedChainsOverview({
 
 	const dominance = getStablecoinDominance(topChain, totalMcapCurrent)
 
-	const totalMcapLabel = ['Mcap', 'TVL']
-
 	const groupedChains = useGroupChainsPegged(chainTotals, chainsGroupbyParent)
 
 	const chainsCirculatingValues = React.useMemo(() => {
@@ -127,10 +76,8 @@ function PeggedChainsOverview({
 
 	return (
 		<>
-			<Metrics currentMetric="Stablecoin Supply" isChains={true} />
-
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
-				<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Stablecoins Market Cap</span>
 						<span className="font-jetbrains text-2xl font-semibold">{mcapToDisplay}</span>
@@ -187,21 +134,15 @@ function PeggedChainsOverview({
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareeCsv} smol className="mt-auto mr-auto" />
 				</div>
-				<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
-							<AreaChart
-								title=""
-								chartData={peggedAreaTotalData}
-								stacks={totalMcapLabel}
-								color={'lightcoral'}
-								hideDefaultLegend={true}
-								valueSymbol="$"
-								hideGradient={true}
-							/>
+							<div className="px-2">
+								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+							</div>
+							<LineAndBarChart charts={peggedAreaTotalData} valueSymbol="$" />
 						</React.Suspense>
 					)}
 					{chartType === 'Chain Market Caps' && (
@@ -213,6 +154,10 @@ function PeggedChainsOverview({
 								valueSymbol="$"
 								hideDefaultLegend={true}
 								hideGradient={true}
+								chartOptions={chartOptions}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
 							/>
 						</React.Suspense>
 					)}
@@ -226,20 +171,24 @@ function PeggedChainsOverview({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								expandTo100Percent={true}
+								chartOptions={chartOptions}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Pie' && (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={chainsCirculatingValues} />
+							<PieChart
+								chartData={chainsCirculatingValues}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+							/>
 						</React.Suspense>
 					)}
 				</div>
-			</div>
-
-			<div className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<h2 className="text-sm font-semibold">Filters</h2>
-				<GroupStablecoins label="Filters" />
 			</div>
 
 			<PeggedChainsTable data={groupedChains} />
@@ -247,4 +196,13 @@ function PeggedChainsOverview({
 	)
 }
 
-export default PeggedChainsOverview
+const chartOptions = {
+	grid: {
+		left: 12,
+		bottom: 68,
+		top: 12,
+		right: 12,
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
+	}
+}

@@ -1,14 +1,14 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { download } from '~/utils'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
+const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols }) => {
 	const { query, pathname, push } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 	const [loading, setLoading] = React.useState(true)
@@ -67,7 +67,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				maxTvl,
 				minApy,
 				maxApy,
-				pairTokens: pair_tokens
+				pairTokens: pair_tokens,
+				usdPeggedSymbols
 			})
 
 			if (toFilter) {
@@ -127,7 +128,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		pathname,
 		pairTokens
 	])
-	const downloadCSV = React.useCallback(() => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = [
 			'Pool',
 			'Project',
@@ -190,8 +191,11 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				'Pool Meta': row.poolMeta
 			}
 		})
-		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
-		download('yields.csv', csv)
+
+		return {
+			filename: 'yields.csv',
+			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
+		}
 	}, [poolsData])
 
 	return (
@@ -251,7 +255,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				showTotalBorrowed={true}
 				showAvailable={true}
 				showLTV={true}
-				onCSVDownload={downloadCSV}
+				prepareCsv={prepareCsv}
 			/>
 
 			{loading ? (

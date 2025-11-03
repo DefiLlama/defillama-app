@@ -12,8 +12,10 @@ export interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
+	openInterest?: boolean
 	dexAggregators?: boolean
-	options?: boolean
+	optionsPremiumVolume?: boolean
+	optionsNotionalVolume?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
 	displayName?: string
@@ -25,10 +27,12 @@ export interface IProtocolMetadata {
 	treasury?: boolean
 	nfts?: boolean
 	emissions?: boolean
+	incentives?: boolean
 	bribeRevenue?: boolean
 	tokenTax?: boolean
-	bridges?: boolean
+	bridge?: boolean
 	stablecoins?: boolean
+	safeHarbor?: boolean
 }
 
 export interface IProtocolPageMetrics {
@@ -36,7 +40,9 @@ export interface IProtocolPageMetrics {
 	tvlTab: boolean
 	dexs: boolean
 	perps: boolean
-	options: boolean
+	openInterest: boolean
+	optionsPremiumVolume: boolean
+	optionsNotionalVolume: boolean
 	dexAggregators: boolean
 	perpsAggregators: boolean
 	bridgeAggregators: boolean
@@ -44,6 +50,7 @@ export interface IProtocolPageMetrics {
 	bridge: boolean
 	treasury: boolean
 	unlocks: boolean
+	incentives: boolean
 	yields: boolean
 	fees: boolean
 	revenue: boolean
@@ -143,6 +150,7 @@ export interface IProtocolOverviewPageData {
 	description?: string
 	website?: string | null
 	twitter?: string | null
+	safeHarbor?: boolean
 	methodology?: string | null
 	methodologyURL?: string | null
 	github?: Array<string> | null
@@ -155,6 +163,7 @@ export interface IProtocolOverviewPageData {
 	dexVolume: IAdapterOverview | null
 	dexAggregatorVolume: IAdapterOverview | null
 	perpVolume: IAdapterOverview | null
+	openInterest: IAdapterOverview | null
 	perpAggregatorVolume: IAdapterOverview | null
 	bridgeAggregatorVolume: IAdapterOverview | null
 	optionsPremiumVolume: IAdapterOverview | null
@@ -165,7 +174,7 @@ export interface IProtocolOverviewPageData {
 		emissions7d: number
 		emissions30d: number
 		emissionsAllTime: number
-		average1y: number
+		emissionsMonthlyAverage1y: number
 		methodology?: string
 	} | null
 	treasury: {
@@ -251,6 +260,8 @@ export interface IProtocolOverviewPageData {
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	seoDescription: string
+	seoKeywords: string
 }
 
 interface ICredit {

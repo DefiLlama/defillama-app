@@ -6,7 +6,19 @@ import { useGetPrice } from './queries'
 import { YieldsOptimizerTable } from './Tables/Optimizer'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
-const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lendingProtocols, searchData }) => {
+export const BorrowAggregatorAdvanced = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	lendingProtocols,
+	searchData,
+	unboundedDebtCeilingProjects = []
+}) => {
+	const unlimitedDebtProjects = React.useMemo(
+		() => new Set(unboundedDebtCeilingProjects),
+		[unboundedDebtCeilingProjects]
+	)
 	const { pathname, query } = useRouter()
 	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
@@ -54,8 +66,21 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 					return false
 				}
 
+				const poolProject = pool.project
+				const borrowProject = pool.borrow?.project
+				const hasUnboundedDebtCeiling =
+					(poolProject && unlimitedDebtProjects.has(poolProject)) ||
+					(borrowProject && unlimitedDebtProjects.has(borrowProject))
+				const poolForFilter =
+					hasUnboundedDebtCeiling && pool.borrow && pool.borrow.totalAvailableUsd == null
+						? {
+								...pool,
+								borrow: { ...pool.borrow, totalAvailableUsd: Number.POSITIVE_INFINITY }
+						  }
+						: pool
+
 				return filterPool({
-					pool,
+					pool: poolForFilter,
 					selectedChains,
 					selectedAttributes,
 					minAvailable,
@@ -79,7 +104,8 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 		maxAvailable,
 		selectedLendingProtocols,
 		customLTV,
-		pathname
+		pathname,
+		unboundedDebtCeilingProjects
 	])
 
 	const tokens = React.useMemo(() => {
@@ -204,5 +230,3 @@ const YieldsOptimizerPage = ({ pools, projectList, chainList, categoryList, lend
 		</>
 	)
 }
-
-export default YieldsOptimizerPage

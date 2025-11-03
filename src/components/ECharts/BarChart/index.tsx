@@ -1,12 +1,12 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { download, slug, toNiceCsvDate } from '~/utils'
+import { slug, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 export default function BarChart({
 	chartData,
@@ -24,7 +24,9 @@ export default function BarChart({
 	groupBy,
 	hideDataZoom = false,
 	hideDownloadButton = false,
-	containerClassName
+	containerClassName,
+	customComponents,
+	onReady
 }: IBarChartProps) {
 	const id = useId()
 
@@ -128,17 +130,22 @@ export default function BarChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
+
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
@@ -155,10 +162,12 @@ export default function BarChart({
 			},
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
+				...grid
 			},
 			xAxis: {
 				...xAxis
@@ -200,16 +209,39 @@ export default function BarChart({
 			if (chartRef.current) {
 				chartRef.current = null
 			}
+			if (onReady) {
+				onReady(null)
+			}
 		}
 	}, [id])
 
 	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+
+	const prepareCsv = useCallback(() => {
+		let rows = []
+		if (!stackKeys || stackKeys.length === 0) {
+			rows = [['Timestamp', 'Date', 'Value']]
+			for (const [date, value] of chartData ?? []) {
+				rows.push([date, toNiceCsvDate(date), value])
+			}
+		} else {
+			rows = [['Timestamp', 'Date', ...selectedStacks]]
+			for (const item of chartData ?? []) {
+				const { date, ...rest } = item
+				rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
+			}
+		}
+		const Mytitle = title ? slug(title) : 'data'
+		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
+	}, [chartData, stackKeys, selectedStacks, title])
 
 	return (
 		<div className="relative">
 			{title || showLegend || !hideDownloadButton ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
 					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{customComponents ?? null}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
 							allValues={customLegendOptions}
@@ -224,44 +256,17 @@ export default function BarChart({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 							portal
 						/>
 					)}
-					{hideDownloadButton ? null : (
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									let rows = []
-									if (!stackKeys || stackKeys.length === 0) {
-										rows = [['Timestamp', 'Date', 'Value']]
-										for (const [date, value] of chartData ?? []) {
-											rows.push([date, toNiceCsvDate(date), value])
-										}
-									} else {
-										rows = [['Timestamp', 'Date', ...selectedStacks]]
-										for (const item of chartData ?? []) {
-											const { date, ...rest } = item
-											rows.push([date, toNiceCsvDate(date), ...selectedStacks.map((stack) => rest[stack] ?? '')])
-										}
-									}
-									const Mytitle = title ? slug(title) : 'data'
-									const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-									download(filename, rows.map((r) => r.join(',')).join('\n'))
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
-					)}
+					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
 				</div>
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'my-auto min-h-[360px]'}
+				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
 				style={height ? { height } : undefined}
 			></div>
 		</div>

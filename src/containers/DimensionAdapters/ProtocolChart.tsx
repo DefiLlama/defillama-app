@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
-import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { CHART_COLORS } from '~/constants/colors'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
@@ -40,7 +41,11 @@ export const DimensionProtocolChartByType = ({
 	})
 
 	if (isLoading) {
-		return <p className="p-3 text-center text-sm">Loading...</p>
+		return (
+			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
+		)
 	}
 
 	if (error) {
@@ -163,7 +168,7 @@ const ChartByType = ({
 				.concat(finalChartData[chartType].slice(zeroIndex))
 		}
 
-		const allColors = getNDistinctColors(allTypes.length + 1, oldBlue)
+		const allColors = getNDistinctColors(allTypes.length + 1)
 		const stackColors = Object.fromEntries(allTypes.map((_, i) => [_, allColors[i]]))
 		stackColors['Others'] = allColors[allColors.length - 1]
 
@@ -179,6 +184,47 @@ const ChartByType = ({
 		}
 		return { charts }
 	}, [allTypes, chartInterval, chartType, selectedTypes, totalDataChartBreakdown])
+
+	const prepareCsv = React.useCallback(() => {
+		try {
+			let rows = []
+			const dataToExport = mainChartData.charts
+			const chartKeys = Object.keys(dataToExport)
+
+			if (chartKeys.length > 0) {
+				rows = [['Timestamp', 'Date', ...selectedTypes]]
+				const dateMap = new Map()
+
+				selectedTypes.forEach((type) => {
+					if (dataToExport[type]) {
+						dataToExport[type].data.forEach(([timestamp, value]) => {
+							if (!dateMap.has(timestamp)) {
+								dateMap.set(timestamp, {})
+							}
+							dateMap.get(timestamp)[type] = value
+						})
+					}
+				})
+
+				const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
+
+				sortedDates.forEach((timestamp) => {
+					const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
+					selectedTypes.forEach((type) => {
+						row.push(dateMap.get(timestamp)?.[type] ?? '')
+					})
+					rows.push(row)
+				})
+			}
+
+			const csvTitle = title ? slug(title) : chartType
+			const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
+
+			return { filename, rows }
+		} catch (error) {
+			console.log('Error generating CSV:', error)
+		}
+	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType])
 
 	return (
 		<>
@@ -211,55 +257,11 @@ const ChartByType = ({
 					labelType="smol"
 					triggerProps={{
 						className:
-							'h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 					}}
 					portal
 				/>
-				<CSVDownloadButton
-					onClick={() => {
-						try {
-							let rows = []
-							const dataToExport = mainChartData.charts
-							const chartKeys = Object.keys(dataToExport)
-
-							if (chartKeys.length > 0) {
-								rows = [['Timestamp', 'Date', ...selectedTypes]]
-								const dateMap = new Map()
-
-								selectedTypes.forEach((type) => {
-									if (dataToExport[type]) {
-										dataToExport[type].data.forEach(([timestamp, value]) => {
-											if (!dateMap.has(timestamp)) {
-												dateMap.set(timestamp, {})
-											}
-											dateMap.get(timestamp)[type] = value
-										})
-									}
-								})
-
-								const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
-
-								sortedDates.forEach((timestamp) => {
-									const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
-									selectedTypes.forEach((type) => {
-										row.push(dateMap.get(timestamp)?.[type] ?? '')
-									})
-									rows.push(row)
-								})
-							}
-
-							const csvTitle = title ? slug(title) : chartType
-							const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${
-								new Date().toISOString().split('T')[0]
-							}.csv`
-							download(filename, rows.map((r) => r.join(',')).join('\n'))
-						} catch (error) {
-							console.error('Error generating CSV:', error)
-						}
-					}}
-					smol
-					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-				/>
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 			<React.Suspense fallback={<></>}>
 				<LineAndBarChart

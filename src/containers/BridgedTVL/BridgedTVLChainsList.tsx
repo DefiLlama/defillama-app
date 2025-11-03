@@ -2,11 +2,10 @@ import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)
@@ -23,7 +22,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 		.filter((row) => row?.total)
 		.sort((a, b) => b.total.total - a.total.total)
 
-	const onCSVDownload = () => {
+	const prepareCsv = React.useCallback(() => {
 		const csvData = data.map((row) => {
 			return {
 				Chain: row.name,
@@ -36,30 +35,25 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 			}
 		})
 		const headers = Object.keys(csvData[0])
-		const csv = [headers.join(',')]
-			.concat(csvData.map((row) => headers.map((header) => row[header]).join(',')))
-			.join('\n')
+		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 
-		download('bridged-chains.csv', csv)
-	}
+		return { filename: 'bridged-chains.csv', rows }
+	}, [data])
 
 	return (
 		<>
-			<Metrics currentMetric="Bridged TVL" isChains={true} />
 			<RowLinksWithDropdown links={chains} activeLink="All" />
 			<TableWithSearch
 				data={data}
 				columns={bridgedColumns}
 				placeholder={'Search chains...'}
-				columnToSearch={['name']}
+				columnToSearch={'name'}
 				customFilters={
 					<>
-						<CSVDownloadButton
-							onClick={onCSVDownload}
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
+				sortingState={[{ id: 'total', desc: true }]}
 			/>
 		</>
 	)

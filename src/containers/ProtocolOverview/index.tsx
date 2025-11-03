@@ -3,13 +3,12 @@ import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { Bookmark } from '~/components/Bookmark'
-import { feesOptions, tvlOptions } from '~/components/Filters/options'
+import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
-import { DLNewsLogo } from '~/components/News/Logo'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -29,7 +28,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 		for (const chain in props.currentTvlByChain ?? {}) {
 			if (chain.toLowerCase() in extraTvlsEnabled || chain == 'offers') {
-				const option = tvlOptions.find((e) => e.key === chain)
+				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
 				}
@@ -52,11 +51,17 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 		}
 
 		if (props.bribeRevenue?.totalAllTime != null) {
-			toggleOptions.push(feesOptions.find((f) => f.key === FEES_SETTINGS.BRIBES))
+			const option = feesOptionsMap.get(FEES_SETTINGS.BRIBES)
+			if (option) {
+				toggleOptions.push(option)
+			}
 		}
 
 		if (props.tokenTax?.totalAllTime != null) {
-			toggleOptions.push(feesOptions.find((f) => f.key === FEES_SETTINGS.TOKENTAX))
+			const option = feesOptionsMap.get(FEES_SETTINGS.TOKENTAX)
+			if (option) {
+				toggleOptions.push(option)
+			}
 		}
 
 		return {
@@ -97,8 +102,10 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			metrics={props.metrics}
 			warningBanners={props.warningBanners}
 			tab="information"
+			seoDescription={props.seoDescription}
+			seoKeywords={props.seoKeywords}
 		>
-			<SEO
+			<LinkPreviewCard
 				cardName={props.name}
 				token={props.name}
 				logo={tokenIconUrl(props.name)}
@@ -228,11 +235,11 @@ const ProtocolTVL = ({
 						name="chevron-down"
 						height={16}
 						width={16}
-						className="relative top-[2px] transition-transform duration-100 group-open:rotate-180"
+						className="relative top-0.5 transition-transform duration-100 group-open:rotate-180"
 					/>
 				</span>
 			</summary>
-			<div className="my-3 flex max-h-[50vh] flex-col overflow-auto">
+			<div className="my-3 flex max-h-[50dvh] flex-col overflow-auto">
 				<h2 className="font-semibold">{isCEX ? 'Total Assets by Chain' : 'TVL by Chain'}</h2>
 				{tvlByChain.map(([chain, tvl]) => (
 					<p
@@ -264,7 +271,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					href="#key-metrics"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				<Fees formatPrice={props.formatPrice} {...props} />
@@ -275,6 +282,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<DexVolume formatPrice={props.formatPrice} {...props} />
 				<DexAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<PerpVolume formatPrice={props.formatPrice} {...props} />
+				<OpenInterest formatPrice={props.formatPrice} {...props} />
 				<PerpAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeAggregatorVolume formatPrice={props.formatPrice} {...props} />
 				<BridgeVolume formatPrice={props.formatPrice} {...props} />
@@ -339,10 +347,12 @@ const Articles = (props: IProtocolOverviewPageData) => {
 						href="#dl-news"
 						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 					/>
-					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<a href="https://www.dlnews.com">
-					<DLNewsLogo width={72} height={18} />
+					<svg width={72} height={18}>
+						<use href={`/icons/dlnews.svg#dlnews-logo`} />
+					</svg>
 				</a>
 			</div>
 
@@ -861,6 +871,30 @@ function PerpVolume(props: IKeyMetricsProps) {
 	)
 }
 
+function OpenInterest(props: IKeyMetricsProps) {
+	if (!props.openInterest) return null
+
+	const metrics = []
+
+	if (props.openInterest.total24h != null) {
+		metrics.push({
+			name: 'Open Interest',
+			tooltipContent: 'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC',
+			value: props.openInterest.total24h
+		})
+	}
+
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+		/>
+	)
+}
+
 function PerpAggregatorVolume(props: IKeyMetricsProps) {
 	if (!props.perpAggregatorVolume) return null
 
@@ -1125,7 +1159,7 @@ const Expenses = (props: IKeyMetricsProps) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1199,7 +1233,7 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1251,7 +1285,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 								name="chevron-down"
 								height={16}
 								width={16}
-								className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+								className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 							/>
 							<Flag
 								protocol={props.name}
@@ -1325,7 +1359,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							name="chevron-down"
 							height={16}
 							width={16}
-							className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+							className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 						/>
 						<Flag
 							protocol={props.name}
@@ -1415,7 +1449,7 @@ const SmolStats = ({
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={protocolName}
@@ -1500,7 +1534,7 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1554,7 +1588,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					name="chevron-down"
 					height={16}
 					width={16}
-					className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+					className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 				/>
 				<Flag
 					protocol={props.name}
@@ -1655,7 +1689,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					href="#protocol-information"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.description ? <p>{props.description}</p> : null}
 			{props.category ? (
@@ -1727,6 +1761,16 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 						<span>Twitter</span>
 					</a>
 				) : null}
+				{props.safeHarbor ? (
+					<a
+						href={`https://safeharbor.securityalliance.org/database/${slug(props.name)}`}
+						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Safe Harbor Agreement
+					</a>
+				) : null}
 			</div>
 		</div>
 	)
@@ -1742,15 +1786,15 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					href="#methodology"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			{props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
 					<span>{props.methodology ?? ''}</span>
 					{props.methodologyURL ? (
-						<span className="relative top-[2px] left-1 inline-block">
-							<Icon name="external-link" className="h-[14px] w-[14px]" />
+						<span className="relative top-0.5 left-1 inline-block">
+							<Icon name="external-link" className="h-3.5 w-3.5" />
 							<span className="sr-only">View code on GitHub</span>
 						</span>
 					) : null}
@@ -1814,8 +1858,8 @@ const MethodologyByAdapter = ({
 							>
 								<span>{child[0]}:</span> <span>{child[1]}</span>
 								{child[2] ? (
-									<span className="relative top-[2px] left-1 inline-block">
-										<Icon name="external-link" className="h-[14px] w-[14px]" />
+									<span className="relative top-0.5 left-1 inline-block">
+										<Icon name="external-link" className="h-3.5 w-3.5" />
 										<span className="sr-only">View code on GitHub</span>
 									</span>
 								) : null}
@@ -1833,13 +1877,14 @@ const MethodologyByAdapter = ({
 
 	return (
 		<>
-			{adapter?.methodology ? (
+			{adapter?.methodology || adapter?.methodologyURL ? (
 				adapter?.methodologyURL ? (
 					<a href={adapter.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
-						<span className="font-medium">{title}:</span> <span>{adapter.methodology}</span>
+						<span className="font-medium">{title}:</span>{' '}
+						{adapter.methodology ? <span>{adapter.methodology}</span> : null}
 						{adapter.methodologyURL ? (
-							<span className="relative top-[2px] left-1 inline-block">
-								<Icon name="external-link" className="h-[14px] w-[14px]" />
+							<span className="relative top-0.5 left-1 inline-block">
+								<Icon name="external-link" className="h-3.5 w-3.5" />
 								<span className="sr-only">View code on GitHub</span>
 							</span>
 						) : null}
@@ -1867,7 +1912,7 @@ function Unlocks(props: IProtocolOverviewPageData) {
 					href="#unlocks"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{unlocks.recent ? (
@@ -1910,7 +1955,7 @@ function Governance(props: IProtocolOverviewPageData) {
 					href="#governance"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col gap-1">
 				<h3 className="border-b border-(--cards-border) py-1">Last proposal</h3>
@@ -1942,7 +1987,7 @@ function Yields(props: IProtocolOverviewPageData) {
 					href="#yields"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div>
 				<p className="flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0">
@@ -1977,7 +2022,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 					href="#hacks"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
 				{props.hacks.map((hack) => (
@@ -2033,7 +2078,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 								className="flex items-center gap-1 underline"
 							>
 								<span>Source</span>
-								<Icon name="external-link" className="h-[14px] w-[14px]" />
+								<Icon name="external-link" className="h-3.5 w-3.5" />
 							</a>
 						) : null}
 					</div>
@@ -2055,7 +2100,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 					href="#competitors"
 					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 				/>
-				<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-wrap items-center gap-4">
 				{props.competitors.map((similarProtocol) => (
@@ -2141,7 +2186,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			}
 		}
 		return props.incomeStatement
-	}, [groupBy, props.incomeStatement.monthDates])
+	}, [groupBy, props.incomeStatement])
 
 	return (
 		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
@@ -2154,13 +2199,13 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						href="#income-statement"
 						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
 					/>
-					<Icon name="link" className="invisible h-[14px] w-[14px] group-hover:visible group-focus-visible:visible" />
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{incomeStatementGroupByOptions.map((groupOption) => (
 						<button
 							key={`income-statement-${groupOption}`}
-							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
+							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 							data-active={groupOption === groupBy}
 							onClick={() => {
 								setGroupBy(groupOption)

@@ -1,11 +1,5 @@
 import * as React from 'react'
-import {
-	createColumnHelper,
-	getCoreRowModel,
-	getSortedRowModel,
-	SortingState,
-	useReactTable
-} from '@tanstack/react-table'
+import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -13,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
-import { chainIconUrl, download, slug } from '~/utils'
+import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { descriptions } from './categories'
 
@@ -62,15 +56,16 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 	}
 })
 
-export default function Chains({ data, uniqueCategories }) {
-	const [sorting, setSorting] = React.useState<SortingState>([])
+const pageName = ['Top Protocols']
 
-	const columnHelper = createColumnHelper<any>()
-
+export default function TopProtocols({ data, uniqueCategories }) {
 	const columns = React.useMemo(() => {
+		const columnHelper = createColumnHelper<any>()
+
 		const baseColumns = [
 			columnHelper.accessor('chain', {
 				header: 'Chain',
+				enableSorting: false,
 				cell: (info) => {
 					const chain = info.getValue()
 					const rowIndex = info.row.index
@@ -94,6 +89,7 @@ export default function Chains({ data, uniqueCategories }) {
 		const categoryColumns = uniqueCategories.map((cat) =>
 			columnHelper.accessor(cat, {
 				header: cat,
+				enableSorting: false,
 				cell: (info) => {
 					const protocolName = info.getValue()
 					return protocolName ? (
@@ -115,15 +111,11 @@ export default function Chains({ data, uniqueCategories }) {
 	const table = useReactTable({
 		data,
 		columns,
-		state: {
-			sorting
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
+
+		getCoreRowModel: getCoreRowModel()
 	})
 
-	const downloadCSV = React.useCallback(() => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = ['Chain', ...uniqueCategories]
 		const csvData = data.map((row) => {
 			return {
@@ -132,17 +124,22 @@ export default function Chains({ data, uniqueCategories }) {
 			}
 		})
 
-		const csv = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
-			.map((row) => row.join(','))
-			.join('\n')
-		download('top-protocols.csv', csv)
+		const rows = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
+
+		return { filename: 'top-protocols.csv', rows: rows as (string | number | boolean)[][] }
 	}, [data, uniqueCategories])
 
 	return (
-		<Layout title="Top Protocols by chain on each category - DefiLlama" defaultSEO>
+		<Layout
+			title="Top Protocols by chain on each category - DefiLlama"
+			description={`Top Protocols by chain on each category. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`top protocols, defi top protocols, top protocols by chain, top protocols by category`}
+			canonicalUrl={`/top-protocols`}
+			pageName={pageName}
+		>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-bg) bg-(--cards-bg) p-3">
-				<h1 className="mr-auto text-xl font-semibold">Top Protocols by chain on each category</h1>
-				<CSVDownloadButton onClick={downloadCSV} />
+				<h1 className="mr-auto text-xl font-semibold">Protocols with highest TVL by chain on each category</h1>
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 			<VirtualTable instance={table} />
 		</Layout>

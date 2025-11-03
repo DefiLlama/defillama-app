@@ -54,9 +54,17 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 	}
 })
 
+const pageName = ['Yields: All Projects']
+
 export default function Protocols({ projects }) {
 	return (
-		<Layout title={`Projects - DefiLlama Yield`} defaultSEO>
+		<Layout
+			title={`Projects - DefiLlama Yield`}
+			description={`Projects by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`projects by apy values, defi projects with yields, defi projects by apy`}
+			canonicalUrl={`/yields/projects`}
+			pageName={pageName}
+		>
 			<Announcement>{disclaimer}</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

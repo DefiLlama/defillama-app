@@ -19,12 +19,13 @@ import {
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
-import { allColors, ProtocolChartsLabels } from './Chart/constants'
+import { ProtocolChartsLabels } from './Chart/constants'
 import {
 	IArticle,
 	IArticlesResponse,
@@ -41,7 +42,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 	try {
 		const name = slug(protocolName)
 		const data: IUpdatedProtocol = await fetchJson(`${PROTOCOL_API}/${name}`, {
-			timeout: name.includes('uniswap') ? 2 * 60 * 1000 : 30_000
+			timeout: ['uniswap', 'portal', 'curve', 'aave', 'raydium'].some((p) => name.includes(p)) ? 3 * 60 * 1000 : 60_000
 		})
 
 		let isNewlyListedProtocol = true
@@ -56,7 +57,7 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 		// 	isNewlyListedProtocol = false
 		// }
 
-		if (isNewlyListedProtocol && !data.isParentProtocol) {
+		if (isNewlyListedProtocol && !data.isParentProtocol && data.module !== 'dummy.js') {
 			try {
 				const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
 
@@ -127,14 +128,17 @@ export const getProtocolMetrics = ({
 		tvlTab: tvlTab ? true : false,
 		dexs: metadata.dexs ? true : false,
 		perps: metadata.perps ? true : false,
-		options: metadata.options ? true : false,
+		openInterest: metadata.openInterest ? true : false,
+		optionsPremiumVolume: metadata.optionsPremiumVolume ? true : false,
+		optionsNotionalVolume: metadata.optionsNotionalVolume ? true : false,
 		dexAggregators: metadata.dexAggregators ? true : false,
 		perpsAggregators: metadata.perpsAggregators ? true : false,
 		bridgeAggregators: metadata.bridgeAggregators ? true : false,
 		stablecoins: metadata.stablecoins ? true : false,
-		bridge: metadata.bridges ? true : false,
+		bridge: metadata.bridge ? true : false,
 		treasury: metadata.treasury ? true : false,
 		unlocks: metadata.emissions ? true : false,
+		incentives: metadata.incentives ? true : false,
 		yields: metadata.yields ? true : false,
 		fees: metadata.fees ? true : false,
 		revenue: metadata.revenue ? true : false,
@@ -169,6 +173,7 @@ export const getProtocolOverviewPageData = async ({
 		dexVolumeData,
 		dexAggregatorVolumeData,
 		perpVolumeData,
+		openInterestData,
 		perpAggregatorVolumeData,
 		bridgeAggregatorVolumeData,
 		optionsPremiumVolumeData,
@@ -224,6 +229,7 @@ export const getProtocolOverviewPageData = async ({
 		IProtocolOverviewPageData['dexVolume'],
 		IProtocolOverviewPageData['dexAggregatorVolume'],
 		IProtocolOverviewPageData['perpVolume'],
+		IProtocolOverviewPageData['openInterest'],
 		IProtocolOverviewPageData['perpAggregatorVolume'],
 		IProtocolOverviewPageData['bridgeAggregatorVolume'],
 		IProtocolOverviewPageData['optionsPremiumVolume'],
@@ -349,6 +355,17 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
 					.catch(() => null)
 			: Promise.resolve(null),
+		metadata.openInterest
+			? getAdapterProtocolSummary({
+					adapterType: 'open-interest',
+					protocol: metadata.displayName,
+					excludeTotalDataChart: true,
+					excludeTotalDataChartBreakdown: true,
+					dataType: 'openInterestAtEnd'
+				})
+					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
+					.catch(() => null)
+			: Promise.resolve(null),
 		metadata.perpsAggregators
 			? getAdapterProtocolSummary({
 					adapterType: 'aggregator-derivatives',
@@ -369,7 +386,7 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 					.catch(() => null)
 			: Promise.resolve(null),
-		metadata.options
+		metadata.optionsPremiumVolume
 			? getAdapterProtocolSummary({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
@@ -380,7 +397,7 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 					.catch(() => null)
 			: Promise.resolve(null),
-		metadata.options
+		metadata.optionsNotionalVolume
 			? getAdapterProtocolSummary({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
@@ -425,7 +442,7 @@ export const getProtocolOverviewPageData = async ({
 			)
 			return []
 		}),
-		metadata?.emissions && protocolId
+		metadata?.incentives && protocolId
 			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
 					.then((data) => {
 						const protocolEmissionsData = data.protocols.find((item) =>
@@ -439,7 +456,7 @@ export const getProtocolOverviewPageData = async ({
 							emissions7d: protocolEmissionsData.emission7d,
 							emissions30d: protocolEmissionsData.emission30d,
 							emissionsAllTime: protocolEmissionsData.emissionsAllTime,
-							average1y: protocolEmissionsData.emissionsAverage1y,
+							emissionsMonthlyAverage1y: protocolEmissionsData.emissionsMonthlyAverage1y,
 							methodology:
 								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
 						}
@@ -485,7 +502,7 @@ export const getProtocolOverviewPageData = async ({
 			: [],
 		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
 		fetchJson(HACKS_API).catch(() => ({ hacks: [] })),
-		metadata.bridges
+		metadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(metadata.displayName)}`)
 					.then((data) => data.dailyVolumes || null)
 					.catch(() => null)
@@ -704,6 +721,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Perp Volume')
 	}
 
+	if (openInterestData) {
+		availableCharts.push('Open Interest')
+	}
+
 	if (optionsPremiumVolumeData) {
 		availableCharts.push('Options Premium Volume')
 	}
@@ -745,22 +766,24 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	let inflowsExist = false
-	for (const chain in protocolData.chainTvls) {
-		if (protocolData.chainTvls[chain].tokensInUsd?.length) {
-			inflowsExist = true
-			break
+	if (!protocolData.misrepresentedTokens) {
+		for (const chain in protocolData.chainTvls) {
+			if (protocolData.chainTvls[chain].tokensInUsd?.length && protocolData.chainTvls[chain].tokens?.length) {
+				inflowsExist = true
+				break
+			}
 		}
-	}
 
-	if (inflowsExist) {
-		availableCharts.push('USD Inflows')
+		if (inflowsExist) {
+			availableCharts.push('USD Inflows')
+		}
 	}
 
 	if (treasury) {
 		availableCharts.push('Treasury')
 	}
 
-	if (yields) {
+	if (yields && !protocolData.isParentProtocol) {
 		availableCharts.push('Median APY')
 	}
 
@@ -776,7 +799,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const chartColors = {}
 	availableCharts.forEach((chart, index) => {
-		chartColors[chart] = allColors[index]
+		chartColors[chart] = CHART_COLORS[index]
 	})
 
 	const hallmarks = {}
@@ -794,9 +817,27 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	const name = protocolData.name ?? metadata.displayName ?? ''
+	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successfull Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
+	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
+	if (expenses) {
+		seoDescription += `, Expenses`
+		seoKeywords += `, ${name.toLowerCase()} expenses`
+	}
+	if (revenueData && incentives) {
+		seoDescription += `, Earnings`
+		seoKeywords += `, ${name.toLowerCase()} earnings`
+	}
+	if (incomeStatement) {
+		seoDescription += `, Income Statement`
+		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
+	}
+	seoDescription += ' and their methodologies'
+	seoKeywords += `, ${name.toLowerCase()} methodologies`
+
 	return {
 		id: String(protocolData.id),
-		name: protocolData.name ?? metadata.displayName ?? null,
+		name: name,
 		category: protocolData.category ?? null,
 		tags: protocolData.tags ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
@@ -806,6 +847,7 @@ export const getProtocolOverviewPageData = async ({
 		description: protocolData.description ?? '',
 		website: protocolData.referralUrl ?? protocolData.url ?? null,
 		twitter: protocolData.twitter ?? null,
+		safeHarbor: metadata.safeHarbor ?? false,
 		github: protocolData.github
 			? typeof protocolData.github === 'string'
 				? [protocolData.github]
@@ -838,6 +880,7 @@ export const getProtocolOverviewPageData = async ({
 		dexVolume: dexVolumeData,
 		dexAggregatorVolume: dexAggregatorVolumeData,
 		perpVolume: perpVolumeData,
+		openInterest: openInterestData,
 		perpAggregatorVolume: perpAggregatorVolumeData,
 		bridgeAggregatorVolume: bridgeAggregatorVolumeData,
 		optionsPremiumVolume: optionsPremiumVolumeData,
@@ -909,7 +952,9 @@ export const getProtocolOverviewPageData = async ({
 			bridgeAggregatorVolumeData?.defaultChartView ??
 			optionsPremiumVolumeData?.defaultChartView ??
 			optionsNotionalVolumeData?.defaultChartView ??
-			'daily'
+			'daily',
+		seoDescription,
+		seoKeywords
 	}
 }
 

@@ -1,6 +1,6 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { BorrowedByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
+import { BorrowedProtocolsTVLByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
 import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -30,10 +30,18 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
+const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
+
 export default function TotalBorrowedByChain(props) {
 	return (
-		<Layout title="Total Borrowed - DefiLlama">
-			<BorrowedByChain {...props} />
+		<Layout
+			title="Total Borrowed - DefiLlama"
+			description={`Total Borrowed by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`total value borrowed by protocol on ${props.chain}`}
+			canonicalUrl={`/total-borrowed/chain/${props.chain}`}
+			pageName={pageName}
+		>
+			<BorrowedProtocolsTVLByChain {...props} />
 		</Layout>
 	)
 }

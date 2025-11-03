@@ -14,6 +14,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import useWindowSize from '~/hooks/useWindowSize'
+import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
@@ -103,9 +104,9 @@ export function ChainsDataset({
 				},
 				cell: ({ getValue }) => {
 					const value = getValue() as number | null
-					if (value === null || value === undefined) return <span className="pro-text2 font-mono">-</span>
+					if (value === null || value === undefined) return <span className="pro-text2">-</span>
 
-					return <span className="pro-text2 font-mono">{value.toFixed(2)}%</span>
+					return <span className="pro-text2">{value.toFixed(2)}%</span>
 				},
 				sortingFn: (rowA, rowB, columnId) => {
 					const a = rowA.getValue(columnId) as number | null
@@ -149,8 +150,31 @@ export function ChainsDataset({
 	const columnPresets = React.useMemo(
 		() => ({
 			essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
-			defi: ['name', 'protocols', 'tvl', 'change_1d', 'change_7d', 'change_1m', 'bridgedTvl', 'stablesMcap', 'mcaptvl'],
-			volume: ['name', 'tvl', 'totalVolume24h', 'totalFees24h', 'totalAppRevenue24h', 'users', 'nftVolume'],
+			defi: [
+				'name',
+				'protocols',
+				'tvl',
+				'change_1d',
+				'change_7d',
+				'change_1m',
+				'bridgedTvl',
+				'stablesMcap',
+				'mcaptvl',
+				'mcap'
+			],
+			volume: [
+				'name',
+				'tvl',
+				'totalVolume24h',
+				'totalVolume30d',
+				'totalFees24h',
+				'totalFees30d',
+				'totalAppRevenue24h',
+				'totalAppRevenue30d',
+				'totalRevenue30d',
+				'users',
+				'nftVolume'
+			],
 			advanced: [
 				'name',
 				'protocols',
@@ -162,9 +186,14 @@ export function ChainsDataset({
 				'bridgedTvl',
 				'stablesMcap',
 				'totalVolume24h',
+				'totalVolume30d',
 				'totalFees24h',
+				'totalFees30d',
 				'totalAppRevenue24h',
+				'totalAppRevenue30d',
+				'totalRevenue30d',
 				'mcaptvl',
+				'mcap',
 				'nftVolume'
 			],
 			shares: [
@@ -259,9 +288,14 @@ export function ChainsDataset({
 			bridgedTvl: 120,
 			stablesMcap: 120,
 			totalVolume24h: 150,
+			totalVolume30d: 150,
 			totalFees24h: 130,
+			totalFees30d: 130,
 			totalAppRevenue24h: 120,
+			totalAppRevenue30d: 140,
+			totalRevenue30d: 140,
 			mcaptvl: 120,
+			mcap: 140,
 			nftVolume: 120
 		}
 
@@ -312,20 +346,7 @@ export function ChainsDataset({
 				})
 		})
 
-		const csvContent = [
-			headers.join(','),
-			...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-		].join('\n')
-
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-		link.setAttribute('href', url)
-		link.setAttribute('download', `chains-data-${new Date().toISOString().split('T')[0]}.csv`)
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-		URL.revokeObjectURL(url)
+		downloadCSV('chains-data.csv', [headers, ...rows], { addTimestamp: true })
 	}, [instance])
 
 	const columnOptions = React.useMemo(
@@ -432,23 +453,23 @@ export function ChainsDataset({
 				moveColumnDown={moveColumnDown}
 			/>
 
-			<div className="flex-1 overflow-auto">
+			<div className="min-h-0 flex-1">
 				<TableBody table={instance} />
 			</div>
 
-			<div className="pro-border mt-3 flex w-full items-center justify-between border-t pt-3">
+			<div className="mt-3 flex w-full flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2">
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => instance.previousPage()}
 						disabled={!instance.getCanPreviousPage()}
-						className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Previous
 					</button>
 					<button
 						onClick={() => instance.nextPage()}
 						disabled={!instance.getCanNextPage()}
-						className="pro-border pro-bg1 pro-text1 hover:pro-bg2 border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Next
 					</button>
@@ -459,7 +480,7 @@ export function ChainsDataset({
 					<select
 						value={pagination.pageSize}
 						onChange={(e) => setPagination((prev) => ({ ...prev, pageSize: Number(e.target.value), pageIndex: 0 }))}
-						className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 					>
 						<option value="10">10</option>
 						<option value="30">30</option>

@@ -1,8 +1,8 @@
 import { IOverviewProps } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol, TCompressedChain } from '~/api/types'
-import { removedCategoriesFromChainTvl } from '~/constants'
-import { IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
-import { formattedNum, getDominancePercent, getPercentChange } from '~/utils'
+import { removedCategoriesFromChainTvlSet } from '~/constants'
+import { IChainAsset, IChainAssets, IProtocol } from '~/containers/ChainOverview/types'
+import { getDominancePercent, getPercentChange } from '~/utils'
 import { groupProtocols } from './utils'
 
 interface IData {
@@ -27,7 +27,7 @@ interface IFormattedDataWithExtraTvlProps {
 }
 
 export interface IFormattedDataWithExtraTvl {
-	chainAssets?: IChainAssets | null
+	chainAssets?: IChainAsset | null
 	tvl: number
 	tvlPrevDay: number
 	tvlPrevWeek: number
@@ -39,7 +39,7 @@ export interface IFormattedDataWithExtraTvl {
 	mcaptvl: number | null
 	name: string
 	subRows?: Array<{
-		chainAssets?: IChainAssets | null
+		chainAssets?: IChainAsset | null
 		tvl: number
 		tvlPrevDay: number
 		tvlPrevWeek: number
@@ -119,7 +119,7 @@ export function formatDataWithExtraTvls({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? +formattedNum(mcap / finalTvl) : null
+		const mcaptvl = mcap && finalTvl ? +(+(mcap / finalTvl).toFixed(2)) : null
 
 		let assets = null
 
@@ -176,6 +176,19 @@ interface IChainTvl {
 }
 
 type ChainTvlsByDay = [string, IChainTvl]
+
+type DimensionDatasetItem = {
+	name?: string
+	displayName?: string
+	total24h?: number
+	total7d?: number
+	total30d?: number
+	total1y?: number
+	change_1d?: number
+	change_7d?: number
+	change_1m?: number
+	chains?: string[]
+}
 
 export function groupDataWithTvlsByDay({ chains, tvlTypes, extraTvlsEnabled }: IGroupTvlsByDay) {
 	let extraTvls = { ...extraTvlsEnabled }
@@ -247,6 +260,12 @@ export const formatProtocolsList = ({
 	extraTvlsEnabled,
 	volumeData,
 	feesData,
+	perpsData,
+	openInterestData,
+	earningsData,
+	aggregatorsData,
+	bridgeAggregatorsData,
+	optionsData,
 	noSubrows
 }: {
 	protocols: IFormattedProtocol[]
@@ -254,6 +273,12 @@ export const formatProtocolsList = ({
 	extraTvlsEnabled: Record<string, boolean>
 	volumeData?: IOverviewProps['protocols']
 	feesData?: IOverviewProps['protocols']
+	perpsData?: IOverviewProps['protocols']
+	openInterestData?: IOverviewProps['protocols']
+	earningsData?: DimensionDatasetItem[]
+	aggregatorsData?: DimensionDatasetItem[]
+	bridgeAggregatorsData?: DimensionDatasetItem[]
+	optionsData?: DimensionDatasetItem[]
 	noSubrows?: boolean
 }): IFormattedProtocol[] => {
 	const checkExtras = {
@@ -279,7 +304,7 @@ export const formatProtocolsList = ({
 				strikeTvl = true
 			}
 
-			if (removedCategoriesFromChainTvl.includes(props.category)) {
+			if (removedCategoriesFromChainTvlSet.has(props.category)) {
 				strikeTvl = true
 			}
 
@@ -312,7 +337,7 @@ export const formatProtocolsList = ({
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
 		let change1m: number | null = getPercentChange(finalTvl, finalTvlPrevMonth)
 
-		const mcaptvl = mcap && finalTvl ? +formattedNum(mcap / finalTvl) : null
+		const mcaptvl = mcap && finalTvl ? +(+(mcap / finalTvl).toFixed(2)) : null
 
 		allProtocols[name?.toLowerCase()] = {
 			...props,
@@ -347,14 +372,27 @@ export const formatProtocolsList = ({
 			fees_1y: protocol.total1y ?? undefined,
 			revenue_30d: protocol.revenue30d ?? undefined,
 			revenue_1y: protocol.revenue1y ?? undefined,
-			average_1y: protocol.average1y ?? undefined,
+			feesChange_1d: protocol.feesChange_1d ?? allProtocols[protocolName].feesChange_1d ?? undefined,
+			feesChange_7d: protocol.feesChange_7d ?? allProtocols[protocolName].feesChange_7d ?? undefined,
+			feesChange_1m: protocol.feesChange_1m ?? allProtocols[protocolName].feesChange_1m ?? undefined,
+			feesChange_7dover7d: protocol.feesChange_7dover7d ?? undefined,
+			feesChange_30dover30d: protocol.feesChange_30dover30d ?? undefined,
+			revenueChange_1d: protocol.revenueChange_1d ?? allProtocols[protocolName].revenueChange_1d ?? undefined,
+			revenueChange_7d: protocol.revenueChange_7d ?? allProtocols[protocolName].revenueChange_7d ?? undefined,
+			revenueChange_1m: protocol.revenueChange_1m ?? allProtocols[protocolName].revenueChange_1m ?? undefined,
+			revenueChange_7dover7d: protocol.revenueChange_7dover7d ?? undefined,
+			revenueChange_30dover30d: protocol.revenueChange_30dover30d ?? undefined,
+			average_1y: protocol.monthlyAverage1y ?? undefined,
 			average_revenue_1y: protocol.averageRevenue1y || undefined,
 			holdersRevenue30d: protocol.holdersRevenue30d || undefined,
 			holderRevenue_24h: protocol.holdersRevenue24h || undefined,
+			holdersRevenueChange_30dover30d: protocol.holdersRevenueChange_30dover30d || undefined,
 			treasuryRevenue_24h: protocol.dailyProtocolRevenue || undefined,
 			supplySideRevenue_24h: protocol.dailySupplySideRevenue || undefined,
 			userFees_24h: protocol.dailyUserFees || undefined,
-			cumulativeFees: protocol.totalAllTime || undefined
+			cumulativeFees: protocol.totalAllTime || undefined,
+			pf: protocol.pf ?? allProtocols[protocolName].pf ?? undefined,
+			ps: protocol.ps ?? allProtocols[protocolName].ps ?? undefined
 		}
 	}
 
@@ -366,17 +404,156 @@ export const formatProtocolsList = ({
 		allProtocols[protocolName] = {
 			...allProtocols[protocolName],
 			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
-			volume_24h: protocol.total24h,
-			volume_7d: protocol.total7d,
-			volumeChange_7d: protocol['change_7dover7d'],
-			cumulativeVolume: protocol.totalAllTime
+			volume_24h: protocol.total24h ?? undefined,
+			volume_7d: protocol.total7d ?? undefined,
+			volume_30d: protocol.total30d ?? undefined,
+			volumeChange_1d: protocol.change_1d ?? allProtocols[protocolName].volumeChange_1d,
+			volumeChange_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? allProtocols[protocolName].volumeChange_7d,
+			volumeChange_1m: protocol.change_1m ?? allProtocols[protocolName].volumeChange_1m,
+			cumulativeVolume: protocol.totalAllTime ?? allProtocols[protocolName].cumulativeVolume
 		}
 	}
 
+	for (const protocol of perpsData ?? []) {
+		const protocolName = protocol.name?.toLowerCase()
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+		}
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			perps_volume_24h: protocol.total24h ?? undefined,
+			perps_volume_7d: protocol.total7d ?? undefined,
+			perps_volume_30d: protocol.total30d ?? undefined,
+			perps_volume_change_1d: protocol.change_1d ?? allProtocols[protocolName].perps_volume_change_1d,
+			perps_volume_change_7d:
+				protocol.change_7d ?? protocol['change_7dover7d'] ?? allProtocols[protocolName].perps_volume_change_7d,
+			perps_volume_change_1m: protocol.change_1m ?? allProtocols[protocolName].perps_volume_change_1m
+		}
+	}
+
+	for (const protocol of openInterestData ?? []) {
+		const protocolName = protocol.name?.toLowerCase()
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+		}
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			openInterest: protocol.total24h
+		}
+	}
+
+	for (const protocol of earningsData ?? []) {
+		const protocolName = protocol.name?.toLowerCase()
+		if (!protocolName) continue
+		if (!allProtocols[protocolName]) {
+			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
+		}
+		allProtocols[protocolName] = {
+			...allProtocols[protocolName],
+			chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(protocol.chains ?? [])])),
+			earnings_24h: protocol.total24h ?? allProtocols[protocolName].earnings_24h,
+			earnings_7d: protocol.total7d ?? allProtocols[protocolName].earnings_7d,
+			earnings_30d: protocol.total30d ?? allProtocols[protocolName].earnings_30d,
+			earnings_1y: (protocol as any)?.total1y ?? allProtocols[protocolName].earnings_1y,
+			earningsChange_1d: protocol.change_1d ?? allProtocols[protocolName].earningsChange_1d,
+			earningsChange_7d: protocol.change_7d ?? allProtocols[protocolName].earningsChange_7d,
+			earningsChange_1m: protocol.change_1m ?? allProtocols[protocolName].earningsChange_1m
+		}
+	}
+
+	const mergeVolumeDataset = (
+		dataset: DimensionDatasetItem[] | undefined,
+		assign: (protocol: IFormattedProtocol, item: DimensionDatasetItem) => IFormattedProtocol
+	) =>
+		(dataset ?? []).forEach((item) => {
+			const protocolName = item.name?.toLowerCase()
+			if (!protocolName) return
+			if (!allProtocols[protocolName]) {
+				allProtocols[protocolName] = { name: item.displayName ?? item.name } as IFormattedProtocol
+			}
+			allProtocols[protocolName] = assign(
+				{
+					...allProtocols[protocolName],
+					chains: Array.from(new Set([...(allProtocols[protocolName].chains ?? []), ...(item.chains ?? [])]))
+				},
+				item
+			)
+		})
+
+	mergeVolumeDataset(aggregatorsData, (protocol, item) => ({
+		...protocol,
+		aggregators_volume_24h: item.total24h ?? protocol.aggregators_volume_24h,
+		aggregators_volume_7d: item.total7d ?? protocol.aggregators_volume_7d,
+		aggregators_volume_30d: item.total30d ?? protocol.aggregators_volume_30d,
+		aggregators_volume_change_1d: item.change_1d ?? protocol.aggregators_volume_change_1d,
+		aggregators_volume_change_7d: item.change_7d ?? protocol.aggregators_volume_change_7d
+	}))
+
+	mergeVolumeDataset(bridgeAggregatorsData, (protocol, item) => ({
+		...protocol,
+		bridge_aggregators_volume_24h: item.total24h ?? protocol.bridge_aggregators_volume_24h,
+		bridge_aggregators_volume_7d: item.total7d ?? protocol.bridge_aggregators_volume_7d,
+		bridge_aggregators_volume_30d: item.total30d ?? protocol.bridge_aggregators_volume_30d,
+		bridge_aggregators_volume_change_1d: item.change_1d ?? protocol.bridge_aggregators_volume_change_1d,
+		bridge_aggregators_volume_change_7d: item.change_7d ?? protocol.bridge_aggregators_volume_change_7d
+	}))
+
+	mergeVolumeDataset(optionsData, (protocol, item) => ({
+		...protocol,
+		options_volume_24h: item.total24h ?? protocol.options_volume_24h,
+		options_volume_7d: item.total7d ?? protocol.options_volume_7d,
+		options_volume_30d: item.total30d ?? protocol.options_volume_30d,
+		options_volume_change_1d: item.change_1d ?? protocol.options_volume_change_1d,
+		options_volume_change_7d: item.change_7d ?? protocol.options_volume_change_7d
+	}))
+
 	const finalProtocols = Object.values(allProtocols)
 
+	const totalSpot24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_24h ?? 0), 0)
+	const totalSpot7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_7d ?? 0), 0)
+	const totalPerps24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.perps_volume_24h ?? 0), 0)
+	const totalAggregators24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.aggregators_volume_24h ?? 0), 0)
+	const totalAggregators7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.aggregators_volume_7d ?? 0), 0)
+	const totalBridgeAggregators24h = finalProtocols.reduce(
+		(sum, protocol) => sum + (protocol.bridge_aggregators_volume_24h ?? 0),
+		0
+	)
+	const totalOptions24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.options_volume_24h ?? 0), 0)
+
+	const protocolsWithShares = finalProtocols.map((protocol) => ({
+		...protocol,
+		volumeDominance_24h:
+			totalSpot24h > 0 && protocol.volume_24h
+				? (protocol.volume_24h / totalSpot24h) * 100
+				: protocol.volumeDominance_24h,
+		volumeMarketShare7d:
+			totalSpot7d > 0 && protocol.volume_7d ? (protocol.volume_7d / totalSpot7d) * 100 : protocol.volumeMarketShare7d,
+		perps_volume_dominance_24h:
+			totalPerps24h > 0 && protocol.perps_volume_24h
+				? (protocol.perps_volume_24h / totalPerps24h) * 100
+				: protocol.perps_volume_dominance_24h,
+		aggregators_volume_dominance_24h:
+			totalAggregators24h > 0 && protocol.aggregators_volume_24h
+				? (protocol.aggregators_volume_24h / totalAggregators24h) * 100
+				: protocol.aggregators_volume_dominance_24h,
+		aggregators_volume_marketShare7d:
+			totalAggregators7d > 0 && protocol.aggregators_volume_7d
+				? (protocol.aggregators_volume_7d / totalAggregators7d) * 100
+				: protocol.aggregators_volume_marketShare7d,
+		bridge_aggregators_volume_dominance_24h:
+			totalBridgeAggregators24h > 0 && protocol.bridge_aggregators_volume_24h
+				? (protocol.bridge_aggregators_volume_24h / totalBridgeAggregators24h) * 100
+				: protocol.bridge_aggregators_volume_dominance_24h,
+		options_volume_dominance_24h:
+			totalOptions24h > 0 && protocol.options_volume_24h
+				? (protocol.options_volume_24h / totalOptions24h) * 100
+				: protocol.options_volume_dominance_24h
+	}))
+
 	return (
-		parentProtocols ? groupProtocols(finalProtocols, parentProtocols, noSubrows) : finalProtocols
+		parentProtocols ? groupProtocols(protocolsWithShares, parentProtocols, noSubrows) : protocolsWithShares
 	) as Array<IFormattedProtocol>
 }
 
@@ -425,7 +602,8 @@ export const formatProtocolsList2 = ({
 				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 			}
 
-			const mcaptvl = protocol.mcap != null ? +formattedNum(protocol.mcap / defaultTvl.tvl) : null
+			const mcaptvl =
+				protocol.mcap && defaultTvl.tvl ? +(+(+protocol.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)).toFixed(2)) : null
 
 			if (protocol.childProtocols) {
 				const childProtocols = []
@@ -452,7 +630,7 @@ export const formatProtocolsList2 = ({
 						change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 					}
 
-					const mcaptvl = child.mcap != null ? +formattedNum(child.mcap / defaultTvl.tvl) : null
+					const mcaptvl = child.mcap && defaultTvl.tvl ? +(+(child.mcap / defaultTvl.tvl).toFixed(2)) : null
 
 					if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
 						childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })

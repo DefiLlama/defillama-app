@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
 import { useYieldFilters } from '~/contexts/LocalStorage'
@@ -16,13 +17,7 @@ import type { IYieldFiltersProps } from './types'
 function SavedFilters({ currentFilters }) {
 	const { savedFilters, saveFilter, deleteFilter } = useYieldFilters()
 	const router = useRouter()
-
-	const handleSave = () => {
-		const name = window.prompt('Enter a name for this filter configuration')
-		if (name) {
-			saveFilter(name, currentFilters)
-		}
-	}
+	const [dialogOpen, setDialogOpen] = React.useState(false)
 
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
@@ -47,11 +42,18 @@ function SavedFilters({ currentFilters }) {
 	return (
 		<div className="ml-auto flex items-center gap-2">
 			<button
-				onClick={handleSave}
+				onClick={() => setDialogOpen(true)}
 				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Save Current Filters
 			</button>
+			<DialogForm
+				title="Saving filters"
+				description="Enter a name for this filter configuration"
+				open={dialogOpen}
+				setOpen={setDialogOpen}
+				onSubmit={(name) => saveFilter(name, currentFilters)}
+			/>
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
 					Saved Filters
@@ -59,12 +61,17 @@ function SavedFilters({ currentFilters }) {
 				</Ariakit.MenuButton>
 				<Ariakit.Menu
 					unmountOnHide
+					hideOnInteractOutside
 					gutter={8}
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 					}}
-					className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-w-md dark:border-[hsl(204,3%,32%)]"
 				>
+					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+						<Icon name="x" className="h-5 w-5" />
+					</Ariakit.PopoverDismiss>
+
 					{Object.entries(savedFilters).map(([name], i) => (
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}-${i}`}
@@ -127,7 +134,7 @@ export function YieldFiltersV2({
 				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
-			<div className="flex flex-col gap-4 rounded-b-md p-3">
+			<div className="flex flex-col gap-2 rounded-b-md p-3">
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
@@ -155,33 +162,15 @@ export function YieldFiltersV2({
 	)
 }
 
-function useFormatTokensSearchList({ searchData }) {
+const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
 	const data = React.useMemo(() => {
 		const stablecoinsSearch = {
 			name: `All USD Stablecoins`,
-			symbol: 'USD_Stables',
-			logo: 'https://icons.llamao.fi/icons/pegged/usd_native?h=48&w=48'
+			symbol: 'USD_Stables'
 		}
 
-		const yieldsList =
-			searchData.map((el) => [
-				`${el.name}`,
-				{
-					name: `${el.name}`,
-					symbol: el.symbol.toUpperCase(),
-					logo: el.image2 || null,
-					fallbackLogo: el.image || null
-				}
-			]) ?? []
-
-		return Object.fromEntries([[stablecoinsSearch.name, stablecoinsSearch]].concat(yieldsList))
+		return [stablecoinsSearch].concat(searchData) as Array<{ name: string; symbol: string }>
 	}, [searchData])
-
-	return { data }
-}
-
-const StrategySearch = ({ lend, borrow, searchData, ltvPlaceholder }) => {
-	const { data } = useFormatTokensSearchList({ searchData })
 
 	return (
 		<div className="flex flex-col flex-wrap gap-2 *:flex-1 md:flex-row md:items-center">

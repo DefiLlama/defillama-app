@@ -9,6 +9,11 @@ export interface Dashboard {
 		items: DashboardItemConfig[]
 		dashboardName: string
 		timePeriod?: TimePeriod
+		aiUndoState?: {
+			items: DashboardItemConfig[]
+			timestamp: string
+			sessionId: string
+		}
 	}
 	visibility?: 'private' | 'public'
 	tags?: string[]
@@ -16,11 +21,28 @@ export interface Dashboard {
 	viewCount?: number
 	likeCount?: number
 	liked?: boolean
-	likedBy?: string[]
 	created: string
 	updated: string
 	collectionId?: string
 	collectionName?: string
+	aiGenerated?: Record<
+		string,
+		{
+			mode: 'create' | 'iterate'
+			prompt: string
+			rated: boolean
+			rating?: number
+			feedback?: string
+			skipped?: boolean
+			timestamp: string
+			userId: string
+		}
+	> | null
+}
+
+interface LiteDashboard {
+	id: string
+	name: string
 }
 
 export interface DashboardError {
@@ -53,11 +75,32 @@ class DashboardAPIService {
 		return data.items || []
 	}
 
+	async listLiteDashboards(
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<LiteDashboard[]> {
+		const response = await authorizedFetch(`${AUTH_SERVER}/lite/dashboards`)
+		const data = await this.handleResponse<{ items: LiteDashboard[] }>(response)
+		return data.items || []
+	}
+
+	async listDashboardsPaginated(
+		params: { page?: number; limit?: number },
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<{ items: Dashboard[]; page: number; perPage: number; totalItems: number; totalPages: number }> {
+		const searchParams = new URLSearchParams()
+		if (params.page) searchParams.append('page', params.page.toString())
+		if (params.limit) searchParams.append('limit', params.limit.toString())
+
+		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards?${searchParams.toString()}`)
+		return this.handleResponse(response)
+	}
+
 	async getDashboard(
 		id: string,
-		authorizedFetch: (url: string, options?: any) => Promise<Response>
+		authorizedFetch?: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}`)
+		const url = `${AUTH_SERVER}/dashboards/${id}`
+		const response = authorizedFetch ? await authorizedFetch(url) : await fetch(url)
 		return this.handleResponse<Dashboard>(response)
 	}
 
@@ -69,10 +112,11 @@ class DashboardAPIService {
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
+			aiGenerated?: Record<string, any> | null
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const { visibility, tags, description, ...dashboardData } = data
+		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards`, {
 			method: 'POST',
 			headers: {
@@ -82,7 +126,8 @@ class DashboardAPIService {
 				data: dashboardData,
 				visibility: visibility || 'private',
 				tags: tags || [],
-				description: description || ''
+				description: description || '',
+				aiGenerated: aiGenerated || null
 			})
 		})
 
@@ -98,10 +143,11 @@ class DashboardAPIService {
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
+			aiGenerated?: Record<string, any> | null
 		},
 		authorizedFetch: (url: string, options?: any) => Promise<Response>
 	): Promise<Dashboard> {
-		const { visibility, tags, description, ...dashboardData } = data
+		const { visibility, tags, description, aiGenerated, ...dashboardData } = data
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}`, {
 			method: 'POST',
 			headers: {
@@ -111,7 +157,8 @@ class DashboardAPIService {
 				data: dashboardData,
 				visibility: visibility || 'private',
 				tags: tags || [],
-				description: description || ''
+				description: description || '',
+				aiGenerated: aiGenerated || null
 			})
 		})
 
@@ -189,6 +236,27 @@ class DashboardAPIService {
 		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/${id}/like`, {
 			method: 'POST'
 		})
+		return this.handleResponse(response)
+	}
+
+	async getLikedDashboards(
+		params: {
+			page?: number
+			limit?: number
+		},
+		authorizedFetch: (url: string, options?: any) => Promise<Response>
+	): Promise<{
+		items: Dashboard[]
+		page: number
+		perPage: number
+		totalItems: number
+		totalPages: number
+	}> {
+		const searchParams = new URLSearchParams()
+		if (params.page) searchParams.append('page', params.page.toString())
+		if (params.limit) searchParams.append('limit', params.limit.toString())
+
+		const response = await authorizedFetch(`${AUTH_SERVER}/dashboards/liked?${searchParams}`)
 		return this.handleResponse(response)
 	}
 }

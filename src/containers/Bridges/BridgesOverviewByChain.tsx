@@ -3,14 +3,13 @@ import { useEffect } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { BridgesTable } from '~/components/Table/Bridges'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { LargeTxsTable } from '~/containers/Bridges/LargeTxsTable'
-import { TxsTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
-import { BRIDGES_SHOWING_TXS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
+import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -22,7 +21,7 @@ export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = [],
 	filteredBridges,
-	messagingProtocols,
+	messagingProtocols = [],
 	bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
@@ -33,14 +32,12 @@ export function BridgesOverviewByChain({
 	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
-	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging'>('bridges')
+	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
+	const [searchValue, setSearchValue] = React.useState('')
 
 	useEffect(() => {
 		setChartView('netflow')
 	}, [])
-
-	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
-	const isBridgesShowingTxs = bridgesSettings[BRIDGES_SHOWING_TXS]
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/bridges`
@@ -98,7 +95,7 @@ export function BridgesOverviewByChain({
 		})
 	}, [chainVolumeData])
 
-	const downloadCsv = () => {
+	const prepareCsv = React.useCallback(() => {
 		const allBridges = [...(filteredBridges || []), ...(messagingProtocols || [])]
 		const allBridgeNames = allBridges.map((bridge) => bridge.displayName)
 
@@ -135,10 +132,11 @@ export function BridgesOverviewByChain({
 					}, 0)
 				])
 			})
-		download(fileName, rows.map((r) => r.join(',')).join('\n'))
-	}
 
-	const downloadChartCsv = () => {
+		return { filename: fileName, rows }
+	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
+
+	const prepareChartCsv = React.useCallback(() => {
 		let rows = []
 		let fileName = 'bridge-chart-data.csv'
 
@@ -181,12 +179,17 @@ export function BridgesOverviewByChain({
 			})
 		}
 
-		if (rows.length === 0) {
-			alert('Not supported for this chart type')
-		} else {
-			download(fileName, rows.map((r) => r.join(',')).join('\n'))
-		}
-	}
+		return { filename: fileName, rows }
+	}, [
+		selectedChain,
+		chartView,
+		chartType,
+		chainVolumeData,
+		chainNetFlowData,
+		chainPercentageNet,
+		tokenDeposits,
+		tokenWithdrawals
+	])
 
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
@@ -223,18 +226,18 @@ export function BridgesOverviewByChain({
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex flex-col">
 						<span className="text-(--text-label)">Total volume (24h)</span>
-						<span className="font-jetbrains text-3xl font-semibold">{formattedNum(dayTotalVolume, true)}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(dayTotalVolume, true)}</span>
 					</h1>
 					<p className="hidden flex-col md:flex">
 						<span className="text-(--text-label)">Total volume (7d)</span>
-						<span className="font-jetbrains text-3xl font-semibold">{formattedNum(weekTotalVolume, true)}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(weekTotalVolume, true)}</span>
 					</p>
 					<p className="hidden flex-col md:flex">
 						<span className="text-(--text-label)">Total volume (1mo)</span>
-						<span className="font-jetbrains text-3xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
+						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(monthTotalVolume, true)}</span>
 					</p>
 
-					<CSVDownloadButton onClick={downloadCsv} className="mt-auto mr-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
@@ -329,38 +332,62 @@ export function BridgesOverviewByChain({
 						</>
 					)}
 					<div className="flex items-center justify-end p-3">
-						<CSVDownloadButton onClick={downloadChartCsv} customText="Download chart .csv" />
+						<CSVDownloadButton prepareCsv={prepareChartCsv} smol />
 					</div>
 				</div>
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex items-center justify-between p-3">
-					<div className="flex items-center">
+				<div className="flex w-full flex-wrap items-center justify-between gap-3 p-3">
+					<div className="flex items-center overflow-x-auto">
 						<button
-							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'bridges'}
 							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
-							className="border-b-2 border-transparent px-4 py-2 text-sm font-medium hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'messaging'}
 							onClick={() => setActiveTab('messaging')}
 						>
 							Messaging Protocols
 						</button>
+						<button
+							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+							data-active={activeTab === 'largeTxs'}
+							onClick={() => setActiveTab('largeTxs')}
+						>
+							Large Txs
+						</button>
 					</div>
-					<div className="ml-auto">
-						<TxsTableSwitch />
-					</div>
+
+					<label className="relative w-full max-w-full sm:max-w-[280px]">
+						<span className="sr-only">Search bridges</span>
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+						/>
+						<input
+							value={searchValue}
+							onChange={(e) => setSearchValue(e.target.value)}
+							placeholder="Search..."
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						/>
+					</label>
 				</div>
 
-				{isBridgesShowingTxs ? (
+				{activeTab === 'largeTxs' ? (
 					<LargeTxsTable data={largeTxsData} chain={selectedChain} />
 				) : (
-					<BridgesTable data={activeTab === 'bridges' ? filteredBridges : messagingProtocols} />
+					<BridgesTable
+						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
+						searchValue={searchValue}
+						onSearchChange={setSearchValue}
+					/>
 				)}
 			</div>
 		</>

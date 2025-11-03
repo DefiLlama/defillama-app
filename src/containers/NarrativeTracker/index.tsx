@@ -1,9 +1,11 @@
 import * as React from 'react'
+import { ColumnDef } from '@tanstack/react-table'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
-import { CategoryPerformanceColumn, CoinPerformanceColumn } from '~/components/Table/Defi/columns'
+import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { useScrollToTop } from '~/hooks'
+import { TagGroup } from '~/components/TagGroup'
+import { formattedNum, formattedPercent } from '~/utils'
 
 interface IChartProps {
 	chartData: any[]
@@ -57,6 +59,9 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 	return denominatedReturns
 }
 
+const PERIODS = ['7D', '30D', 'YTD', '365D'] as const
+const DENOMS = ['$', 'BTC', 'ETH', 'SOL'] as const
+
 export const CategoryPerformanceContainer = ({
 	pctChanges,
 	performanceTimeSeries,
@@ -64,11 +69,9 @@ export const CategoryPerformanceContainer = ({
 	isCoinPage,
 	categoryName
 }) => {
-	useScrollToTop()
-
 	const [tab, setTab] = React.useState('linechart')
-	const [groupBy, setGroupBy] = React.useState<'7D' | '30D' | 'YTD' | '365D'>('30D')
-	const [groupByDenom, setGroupByDenom] = React.useState<'$' | 'BTC' | 'ETH' | 'SOL'>('$')
+	const [groupBy, setGroupBy] = React.useState<(typeof PERIODS)[number]>('30D')
+	const [groupByDenom, setGroupByDenom] = React.useState<(typeof DENOMS)[number]>('$')
 
 	const { sortedPctChanges, barChart, treemapChart, lineChart } = React.useMemo(() => {
 		const field = {
@@ -98,10 +101,10 @@ export const CategoryPerformanceContainer = ({
 			: pctChangesDenom
 
 		const sorted = [...pctChangesDenom].sort((a, b) => b[field] - a[field]).map((i) => ({ ...i, change: i[field] }))
-		const barChart = sorted.map((i) => [i.name, i[field]?.toFixed(2)])
+
 		const treemapChart = sorted.map((i) => ({ ...i, returnField: i[field] }))
 
-		let lineChart =
+		let chart =
 			cumulativeWindow === '7D'
 				? performanceTimeSeries['7']
 				: cumulativeWindow === '30D'
@@ -110,28 +113,22 @@ export const CategoryPerformanceContainer = ({
 						? performanceTimeSeries['ytd']
 						: performanceTimeSeries['365']
 
-		lineChart = denomCoin === '$' ? lineChart : calculateDenominatedChange(lineChart, denomCoin)
+		chart = denomCoin === '$' ? chart : calculateDenominatedChange(chart, denomCoin)
 
-		return { sortedPctChanges: sorted, barChart, treemapChart, lineChart }
+		return { sortedPctChanges: sorted, barChart: chart, treemapChart, lineChart: chart }
 	}, [pctChanges, groupBy, performanceTimeSeries, groupByDenom, isCoinPage])
 
 	return (
 		<>
-			{isCoinPage ? (
-				<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
-					{isCoinPage ? `Category: ${categoryName ?? ''}` : 'Narrative Tracker: Change in market cap by category'}
-				</h1>
-			) : (
-				<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h1 className="text-xl font-semibold">Narrative Tracker</h1>
-					<p className="text-sm text-(--text-secondary)">
-						MCap-Weighted Category Performance: Shows how a category of coins has performed over your chosen time period
-						and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each
-						individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3.
-						averaging these weighted changes to get the overall category performance.
-					</p>
-				</div>
-			)}
+			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				{isCoinPage && categoryName ? <h1 className="text-xl font-semibold">Category: {categoryName ?? ''}</h1> : null}
+				<p className="text-sm text-(--text-secondary)">
+					MCap-Weighted Category Performance: Shows how a category of coins has performed over your chosen time period
+					and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each
+					individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3.
+					averaging these weighted changes to get the overall category performance.
+				</p>
+			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
@@ -158,32 +155,14 @@ export const CategoryPerformanceContainer = ({
 					</button>
 				</div>
 
-				<div className="flex items-center justify-end gap-3 p-3">
-					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						{(['7D', '30D', 'YTD', '365D'] as const).map((period) => (
-							<button
-								key={period}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={groupBy === period}
-								onClick={() => setGroupBy(period)}
-							>
-								{period}
-							</button>
-						))}
-					</div>
-					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						<p className="pr-1 pl-3">Show as:</p>
-						{(['$', 'BTC', 'ETH', 'SOL'] as const).map((denom) => (
-							<button
-								key={denom}
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={groupByDenom === denom}
-								onClick={() => setGroupByDenom(denom)}
-							>
-								{denom}
-							</button>
-						))}
-					</div>
+				<div className="flex items-center justify-end gap-3 p-2">
+					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val: typeof groupBy) => setGroupBy(val)} />
+					<TagGroup
+						values={DENOMS}
+						selectedValue={groupByDenom}
+						setValue={(val: typeof groupByDenom) => setGroupByDenom(val)}
+						label="Show as:"
+					/>
 				</div>
 
 				<div className="min-h-[360px]">
@@ -221,6 +200,8 @@ export const CategoryPerformanceContainer = ({
 				columns={isCoinPage ? CoinPerformanceColumn : CategoryPerformanceColumn}
 				columnToSearch={'name'}
 				placeholder={'Search...'}
+				header="Categories"
+				sortingState={[{ id: 'change', desc: true }]}
 			/>
 		</>
 	)
@@ -231,3 +212,143 @@ const areaChartoptions = {
 		position: 'right'
 	}
 }
+
+interface CategoryPerformanceRow {
+	id: string
+	name: string
+	mcap: number
+	change1W: number
+	change1M: number
+	change1Y: number
+	nbCoins: number
+}
+
+interface CoinPerformanceRow {
+	id: string
+	mcap: number
+	change1W: number
+	change1M: number
+	change1Y: number
+}
+
+const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
+	{
+		header: 'Coin',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return (
+				<span className="relative flex items-center gap-2">
+					<span>{index + 1}.</span>
+					<BasicLink
+						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
+						target="_blank"
+						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{getValue() as string | null}
+					</BasicLink>
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
+		},
+		size: 120
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]
+
+const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
+	{
+		header: 'Category',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="shrink-0">{index + 1}</span>
+					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
+						<BasicLink
+							href={`https://www.coingecko.com/en/coins/${row.original.id}`}
+							target="_blank"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{getValue() as string | null}
+						</BasicLink>
+					) : (
+						<BasicLink
+							href={`/narrative-tracker/${row.original.id}`}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{getValue() as string | null}
+						</BasicLink>
+					)}
+				</span>
+			)
+		},
+		size: 240
+	},
+	{
+		header: 'Δ%',
+		accessorKey: 'change',
+		cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+		meta: {
+			align: 'end',
+			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
+		},
+		size: 120
+	},
+	{
+		header: 'Market Cap',
+		accessorKey: 'mcap',
+		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	},
+	{
+		header: '24h Volume',
+		accessorKey: 'volume1D',
+		cell: ({ getValue }) => <>{getValue() ? formattedNum(getValue(), true) : null}</>,
+		meta: {
+			align: 'end'
+		},
+		size: 120
+	},
+	{
+		header: '# of Coins',
+		accessorKey: 'nbCoins',
+		meta: {
+			align: 'end'
+		},
+		size: 110
+	}
+]

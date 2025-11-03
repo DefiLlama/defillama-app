@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useDefaults } from '../useDefaults'
+import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{
@@ -26,20 +27,23 @@ interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	xAxisType?: 'time' | 'category'
 	showAggregateInTooltip?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export default function MultiSeriesChart({
 	series,
 	valueSymbol = '',
-	title,
 	height,
 	chartOptions,
 	groupBy,
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	alwaysShowTooltip,
-	showAggregateInTooltip = false
+	xAxisType = 'time',
+	showAggregateInTooltip = false,
+	onReady
 }: IMultiSeriesChartProps) {
 	const id = useId()
 
@@ -47,6 +51,7 @@ export default function MultiSeriesChart({
 
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
+		xAxisType,
 		groupBy:
 			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
 				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
@@ -70,7 +75,7 @@ export default function MultiSeriesChart({
 					itemStyle: {
 						color: serie.color
 					},
-					data: serie.data?.map(([timestamp, value]: [number, number]) => [+timestamp * 1e3, value]) || [],
+					data: serie.data?.map(([x, y]: [any, number]) => (xAxisType === 'time' ? [+x * 1e3, y] : [x, y])) || [],
 					metricType: serie.metricType,
 					...(serie.logo && {
 						legendIcon: 'image://' + serie.logo
@@ -109,16 +114,21 @@ export default function MultiSeriesChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
 
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
+
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
@@ -130,7 +140,7 @@ export default function MultiSeriesChart({
 			}
 		}
 
-		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
 
 		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
 		const uniqueMetricTypes = Array.from(metricTypes)
@@ -143,8 +153,9 @@ export default function MultiSeriesChart({
 		if (needMultipleAxes) {
 			finalYAxis = uniqueMetricTypes.slice(0, 3).map((_, index) => ({
 				...yAxis,
+				axisLabel: { ...(yAxis as any).axisLabel, margin: 4 },
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
-				offset: index === 2 ? 60 : 0
+				offset: index === 2 ? 40 : 0
 			}))
 
 			seriesWithHallmarks = seriesWithHallmarks.map((s: any) => {
@@ -157,7 +168,7 @@ export default function MultiSeriesChart({
 		}
 
 		const legendRightPadding = needMultipleAxes ? 40 : legend.right
-		const gridLeftPadding = uniqueMetricTypes.length > 2 ? 72 : 12
+		const gridLeftPadding = 12
 
 		chartInstance.setOption({
 			graphic,
@@ -181,13 +192,14 @@ export default function MultiSeriesChart({
 							}
 						}
 					: tooltip,
-			title: titleDefaults,
 			grid: {
 				left: gridLeftPadding,
-				bottom: 68,
-				top: 40,
+				bottom: hideDataZoom ? 12 : 68,
+				top: 12,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
+				...grid
 			},
 			xAxis,
 			yAxis: finalYAxis,
@@ -236,6 +248,9 @@ export default function MultiSeriesChart({
 				const chartInstance = echarts.getInstanceByDom(chartDom)
 				if (chartInstance) {
 					chartInstance.dispose()
+					if (onReady) {
+						onReady(null)
+					}
 				}
 			}
 			if (chartRef.current) {
@@ -246,7 +261,7 @@ export default function MultiSeriesChart({
 
 	return (
 		<div className="relative">
-			<div id={id} className="my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

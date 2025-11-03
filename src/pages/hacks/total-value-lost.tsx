@@ -3,7 +3,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { Select } from '~/components/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -12,7 +11,7 @@ import {
 	IProtocolTotalValueLostInHacksByProtocol
 } from '~/containers/Hacks/queries'
 import Layout from '~/layout'
-import { download, formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols/total-value-lost-in-hacks', async () => {
@@ -22,6 +21,8 @@ export const getStaticProps = withPerformanceLogging('protocols/total-value-lost
 		revalidate: maxAgeForNext([22])
 	}
 })
+
+const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
 
 export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
 	const [selectedColumns, setSelectedColumns] = React.useState<Array<string>>([
@@ -35,9 +36,27 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 		return columns.filter((c) => selectedColumns.includes(c.id))
 	}, [selectedColumns])
 
+	const prepareCsv = React.useCallback(() => {
+		const rows: Array<Array<string | number>> = [['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']]
+		for (const protocol of protocols) {
+			rows.push([
+				protocol.name,
+				protocol.totalHacked,
+				protocol.returnedFunds,
+				protocol.totalHacked - protocol.returnedFunds
+			])
+		}
+		return { filename: 'total-value-lost-in-hacks.csv', rows: rows as (string | number | boolean)[][] }
+	}, [protocols])
+
 	return (
-		<Layout title="Total Value Lost in Hacks - DefiLlama">
-			<Metrics currentMetric="Total Value Lost in Hacks" />
+		<Layout
+			title="Total Value Lost in Hacks - DefiLlama"
+			description={`Total Value Lost in Hacks by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`total value lost in hacks, defi total value lost in hacks, net user loss`}
+			canonicalUrl={`/hacks/total-value-lost`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={protocols}
 				columns={filteredColumns}
@@ -57,29 +76,13 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
-						<CSVDownloadButton
-							onClick={() => {
-								const rows: Array<Array<string | number>> = [
-									['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']
-								]
-								for (const protocol of protocols) {
-									rows.push([
-										protocol.name,
-										protocol.totalHacked,
-										protocol.returnedFunds,
-										protocol.totalHacked - protocol.returnedFunds
-									])
-								}
-								download('total-value-lost-in-hacks.csv', rows.map((r) => r.join(',')).join('\n'))
-							}}
-							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
+				sortingState={[{ id: 'Net User Loss', desc: true }]}
 			/>
 		</Layout>
 	)

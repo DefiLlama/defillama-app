@@ -2,12 +2,9 @@ import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import { ButtonLight } from '~/components/ButtonStyled'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import Layout from '~/layout'
-import { download, getPercentChange } from '~/utils'
+import { getPercentChange } from '~/utils'
 import { airdropsEligibilityCheck } from './airdrops'
 import { RecentlyListedProtocolsTable } from './Table'
 
@@ -22,23 +19,13 @@ function getSelectedChainFilters(chainQueryParam, allChains) {
 }
 
 interface IRecentProtocolProps {
-	title: string
-	name: string
-	header: string
 	protocols: any
 	chainList: string[]
 	forkedList?: { [name: string]: boolean }
 	claimableAirdrops?: Array<{ name: string; page: string; title?: string }>
 }
 
-export function RecentProtocols({
-	title,
-	header,
-	protocols,
-	chainList,
-	forkedList,
-	claimableAirdrops
-}: IRecentProtocolProps) {
+export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
 	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
 
@@ -81,7 +68,7 @@ export function RecentProtocols({
 				let extraTvl = {}
 
 				p.chains.forEach((chainName) => {
-					// return if chainsToSelect doesnot include chainName
+					// return if chainsToSelect does not include chainName
 					if (!_chainsToSelect.includes(chainName.toLowerCase())) {
 						return
 					}
@@ -142,24 +129,6 @@ export function RecentProtocols({
 	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
-	const downloadCSV = () => {
-		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
-		const csvData = protocolsData.map((row) => {
-			return {
-				Name: row.name,
-				Chains: row.chains.join(', '),
-				TVL: row.tvl,
-				'Change 1d': row.change_1d,
-				'Change 7d': row.change_7d,
-				'Change 1m': row.change_1m,
-				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
-			}
-		})
-		download(
-			'protocols.csv',
-			[headers, ...csvData.map((row) => headers.map((header) => row[header]).join(','))].join('\n')
-		)
-	}
 
 	const {
 		data: eligibleAirdrops,
@@ -172,7 +141,7 @@ export function RecentProtocols({
 	const airdropCheckerDialog = Ariakit.useDialogStore()
 
 	return (
-		<Layout title={title} defaultSEO>
+		<>
 			{claimableAirdrops ? (
 				<span className="flex flex-wrap items-center gap-2">
 					{claimableAirdrops.map((protocol) => (
@@ -182,7 +151,7 @@ export function RecentProtocols({
 							rel="noreferrer noopener"
 							key={`claim-${protocol.name}`}
 							color="#008000"
-							className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-[10px] py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
+							className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-2.5 py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
 						>
 							<span>{protocol.name}</span>
 							<Icon name="arrow-up-right" height={14} width={14} />
@@ -193,9 +162,9 @@ export function RecentProtocols({
 							resetEligibilityCheck()
 							airdropCheckerDialog.toggle()
 						}}
-						className="flex items-center gap-1 rounded-md bg-[#e4efe2] px-[10px] py-1 text-sm font-medium whitespace-nowrap text-[#007c00] dark:bg-[#18221d] dark:text-[#00ab00]"
+						className="flex items-center gap-1 rounded-md bg-(--link-button) px-2.5 py-1 text-sm font-medium whitespace-nowrap dark:bg-(--link-hover-bg)"
 					>
-						Check airdrops for address
+						🪂 Check airdrops for address
 					</button>
 
 					<Ariakit.Dialog store={airdropCheckerDialog} className="dialog">
@@ -254,19 +223,16 @@ export function RecentProtocols({
 																	<span className="flex items-center justify-center gap-2">
 																		<span>{`${airdrop.claimableAmount} ${airdrop.tokenSymbol ?? ''}`}</span>
 																		{airdrop.page ? (
-																			<ButtonLight
-																				as="a"
+																			<a
 																				href={airdrop.page}
 																				target="_blank"
-																				rel="noreferrer noopener"
+																				rel="noopener noreferrer"
 																				key={`can-claim-${airdrop.name}`}
-																				className="flex items-center justify-center"
-																				color="#008000"
-																				style={{ padding: '2px 6px', fontSize: '12px', '--btn2-text': '#00ab00' }}
+																				className="shrink-0 rounded-md bg-(--link-button) px-1.5 py-0.5 hover:bg-(--link-button-hover)"
 																			>
-																				<span>Claim</span>
 																				<Icon name="arrow-up-right" height={14} width={14} />
-																			</ButtonLight>
+																				<span className="sr-only">open in new tab</span>
+																			</a>
 																		) : null}
 																	</span>
 																) : (
@@ -312,7 +278,7 @@ export function RecentProtocols({
 								<button
 									name="submit-btn"
 									disabled={fetchingEligibleAirdrops}
-									className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+									className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
 								>
 									{fetchingEligibleAirdrops ? 'Checking...' : 'Check'}
 								</button>
@@ -327,11 +293,6 @@ export function RecentProtocols({
 				</span>
 			) : null}
 
-			<div className="flex items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<h1 className="mr-auto text-xl font-semibold">{header}</h1>
-				<CSVDownloadButton onClick={downloadCSV} />
-			</div>
-
 			<RecentlyListedProtocolsTable
 				data={protocolsData}
 				queries={queries}
@@ -339,6 +300,6 @@ export function RecentProtocols({
 				chainList={chainList}
 				forkedList={forkedList}
 			/>
-		</Layout>
+		</>
 	)
 }

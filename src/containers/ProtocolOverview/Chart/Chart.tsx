@@ -2,12 +2,13 @@ import { useCallback, useEffect, useId, useMemo } from 'react'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
+import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
 const customOffsets = {
-	Contributers: 60,
-	'Contributers Commits': 80,
+	Contributors: 60,
+	'Contributors Commits': 80,
 	'Devs Commits': 70,
 	'NFT Volume': 65
 }
@@ -26,6 +27,7 @@ export default function ProtocolLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	hideDataZoom = false,
 	...props
 }) {
 	const id = useId()
@@ -161,7 +163,7 @@ export default function ProtocolLineBarChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative])
+	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -173,19 +175,21 @@ export default function ProtocolLineBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
 
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+
 		const finalYAxis = []
 
 		const noOffset = allYAxis.length < 3
+
+		const chartsInSeries = new Set(series.map((s) => s.name))
 
 		allYAxis.forEach(([type, index]) => {
 			const options = {
@@ -209,6 +213,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Token Price']
 						}
 					}
@@ -221,6 +227,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Token Volume']
 						}
 					}
@@ -233,6 +241,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Token Liquidity']
 						}
 					}
@@ -245,6 +255,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Bridge Deposits']
 						}
 					}
@@ -257,13 +269,15 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: chartData['Fees']
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('Fees')
 								? chartColors['Fees']
-								: chartData['Revenue']
+								: chartsInSeries.has('Revenue')
 									? chartColors['Revenue']
-									: chartData['Holders Revenue']
+									: chartsInSeries.has('Holders Revenue')
 										? chartColors['Holders Revenue']
-										: chartData['Incentives']
+										: chartsInSeries.has('Incentives')
 											? chartColors['Incentives']
 											: chartColors['Fees']
 						}
@@ -277,21 +291,37 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: chartData['DEX Volume']
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('DEX Volume')
 								? chartColors['DEX Volume']
-								: chartData['Perp Volume']
+								: chartsInSeries.has('Perp Volume')
 									? chartColors['Perp Volume']
-									: chartData['Options Premium Volume']
+									: chartsInSeries.has('Options Premium Volume')
 										? chartColors['Options Premium Volume']
-										: chartData['Options Notional Volume']
+										: chartsInSeries.has('Options Notional Volume')
 											? chartColors['Options Notional Volume']
-											: chartData['Perp Aggregator Volume']
+											: chartsInSeries.has('Perp Aggregator Volume')
 												? chartColors['Perp Aggregator Volume']
-												: chartData['Bridge Aggregator Volume']
+												: chartsInSeries.has('Bridge Aggregator Volume')
 													? chartColors['Bridge Aggregator Volume']
-													: chartData['DEX Aggregator Volume']
+													: chartsInSeries.has('DEX Aggregator Volume')
 														? chartColors['DEX Aggregator Volume']
 														: chartColors['DEX Volume']
+						}
+					}
+				})
+			}
+
+			if (type === 'Open Interest') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartColors['Open Interest']
 						}
 					}
 				})
@@ -306,6 +336,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Unlocks']
 						}
 					}
@@ -321,9 +353,11 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
-							color: chartData['Active Addresses']
+							type: [5, 10],
+							dashOffset: 5,
+							color: chartsInSeries.has('Active Addresses')
 								? chartColors['Active Addresses']
-								: chartData['New Addresses']
+								: chartsInSeries.has('New Addresses')
 									? chartColors['New Addresses']
 									: chartColors['Active Addresses']
 						}
@@ -340,6 +374,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Transactions']
 						}
 					}
@@ -352,6 +388,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Gas Used']
 						}
 					}
@@ -366,6 +404,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Median APY']
 						}
 					}
@@ -378,6 +418,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['USD Inflows']
 						}
 					}
@@ -393,6 +435,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Total Proposals']
 						}
 					}
@@ -408,6 +452,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Max Votes']
 						}
 					}
@@ -420,6 +466,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Treasury']
 						}
 					}
@@ -435,6 +483,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['Tweets']
 						}
 					}
@@ -447,6 +497,8 @@ export default function ProtocolLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartColors['NFT Volume']
 						}
 					}
@@ -463,10 +515,11 @@ export default function ProtocolLineBarChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: rangeHallmarks?.length > 0 ? 18 : 12,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
 			yAxis: finalYAxis,
@@ -484,13 +537,22 @@ export default function ProtocolLineBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, chartColors, allYAxis])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		unlockTokenSymbol,
+		chartColors,
+		allYAxis,
+		rangeHallmarks
+	])
 
 	return (
 		<div
 			id={id}
-			className="min-h-[360px]"
-			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+			className="h-[360px]"
+			style={height || props.style ? { height: height ?? '360px', ...(props.style ?? {}) } : undefined}
 		/>
 	)
 }

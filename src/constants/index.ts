@@ -165,6 +165,9 @@ export const AUTH_SERVER = 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
+export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
+
+export const TRADFI_API = 'https://tradfi.llama.team'
 
 export const removedCategoriesFromChainTvl = [
 	'Chain',
@@ -190,6 +193,8 @@ export const removedCategoriesFromChainTvl = [
 	'RWA'
 ]
 
+export const removedCategoriesFromChainTvlSet = new Set(removedCategoriesFromChainTvl)
+
 export const REV_PROTOCOLS = {
 	ethereum: ['flashbots', 'eden-relay'],
 	solana: ['jito-mev-tips', 'bloxroute'],
@@ -197,3 +202,7 @@ export const REV_PROTOCOLS = {
 	polygon: ['fastlane'],
 	bsc: ['bloxroute']
 }
+
+export const MCP_SERVER = 'https://mcp.llama.fi'
+
+export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])

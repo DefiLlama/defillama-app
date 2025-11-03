@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="0" height="0">
+<defs>
+<symbol id="dlresearch-logo" viewBox="0 0 94 94" fill="none" xmlns="http://www.w3.org/2000/svg">
+ 	<g clip-path="url(#a)">
+    <path
+      d="M0 4.848C0 .542 5.162-1.619 8.189 1.421l83.653 84c3.033 3.045.893 8.266-3.388 8.266H4.8C2.149 93.687 0 91.52 0 88.849v-84Z"
+      fill="currentColor"
+    ></path>
+    <path
+      d="M90.104 59.35c0 4.304-5.158 6.465-8.186 3.43L31.515 12.261c-3.037-3.044-.898-8.269 3.385-8.269h50.403c2.651 0 4.8 2.166 4.8 4.839V59.35Z"
+      fill="#237BFF"
+    ></path>
+  </g>
+  <defs>
+    <clipPath id="a">
+      <path fill="#fff" d="M0 0h580v93.687H0z"></path>
+    </clipPath>
+  </defs>
+</symbol>
+</defs>
+</svg>

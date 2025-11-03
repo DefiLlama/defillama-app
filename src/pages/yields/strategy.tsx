@@ -45,9 +45,17 @@ export const getStaticProps = withPerformanceLogging('yields/strategy', async ()
 	}
 })
 
+const pageName = ['Yields: Delta Neutral Strategies']
+
 export default function YieldStrategies(data) {
 	return (
-		<Layout title={`Yield Strategies - DefiLlama Yield`} defaultSEO>
+		<Layout
+			title={`Yield Delta Neutral Strategies - DefiLlama Yield`}
+			description={`Find strategies to neutralize delta exposure and maximize yield. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`yield delta neutral strategies, defi yield delta neutral strategies, delta neutral strategies, defi delta neutral strategies`}
+			canonicalUrl={`/yields/strategy`}
+			pageName={pageName}
+		>
 			<Announcement>{disclaimer}</Announcement>
 			<YieldsStrategyPage {...data} />
 		</Layout>

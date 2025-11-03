@@ -523,11 +523,6 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
-				source: '/protocol/lighter',
-				destination: '/protocol/lighter-v2',
-				permanent: true
-			},
-			{
 				source: '/subscribe',
 				destination: '/subscription',
 				permanent: true
@@ -556,6 +551,16 @@ const nextConfig: NextConfig = {
 				source: '/treasury',
 				destination: '/treasuries',
 				permanent: true
+			},
+			{
+				source: '/bridged-tvl',
+				destination: '/bridged',
+				permanent: true
+			},
+			{
+				source: '/digital-asset-treasury',
+				destination: '/digital-asset-treasuries',
+				permanent: true
 			}
 		]
 	},
@@ -574,7 +579,24 @@ const nextConfig: NextConfig = {
 		]
 	},
 	images: {
-		domains: ['icons.llama.fi', 'assets.coingecko.com', 'yield-charts.llama.fi', 'icons.llamao.fi']
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'icons.llama.fi'
+			},
+			{
+				protocol: 'https',
+				hostname: 'assets.coingecko.com'
+			},
+			{
+				protocol: 'https',
+				hostname: 'yield-charts.llama.fi'
+			},
+			{
+				protocol: 'https',
+				hostname: 'icons.llamao.fi'
+			}
+		]
 	}
 }
 

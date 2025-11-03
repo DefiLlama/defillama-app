@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_TREASURY } from '~/constants'
@@ -42,16 +41,24 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
+
 const NetProjectTreasuries = (props) => {
 	return (
-		<Layout title={`Net Project Treasury - DefiLlama`} defaultSEO>
-			<Metrics currentMetric="Net Project Treasury" />
+		<Layout
+			title={`Net Project Treasury - DefiLlama`}
+			description={`Net Project Treasury by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`net project treasury, defi net project treasury`}
+			canonicalUrl={`/net-project-treasury`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.protocols}
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'netTreasury', desc: true }]}
 			/>
 		</Layout>
 	)

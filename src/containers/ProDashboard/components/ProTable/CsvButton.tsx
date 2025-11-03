@@ -1,30 +1,26 @@
-import { ReactNode } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
 export const ProTableCSVButton = ({
 	onClick,
-	customText = '',
 	smol,
 	isLoading,
-	customClassName
+	className
 }: {
 	onClick: () => void
-	customText?: ReactNode
 	smol?: boolean
 	isLoading?: boolean
-	customClassName?: string
+	className?: string
 }) => {
-	const tableButtonStyles =
-		customClassName ||
-		'flex items-center gap-2 px-3 py-1.5 text-sm border pro-border hover:bg-(--bg-tertiary) text-(--text-primary) transition-colors bg-(--bg-main) dark:bg-[#070e0f] disabled:opacity-50 disabled:cursor-not-allowed'
-
-	return (
-		<CSVDownloadButton
-			onClick={onClick}
-			customText={customText}
-			customClassName={tableButtonStyles}
-			smol={smol}
-			isLoading={isLoading}
-		/>
-	)
+    return (
+        <CSVDownloadButton
+            onClick={onClick}
+            className={
+                className ||
+                'pro-border pro-bg1 pro-hover-bg pro-text1 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+            }
+            replaceClassName={true}
+            smol={smol}
+            isLoading={isLoading}
+        />
+    )
 }

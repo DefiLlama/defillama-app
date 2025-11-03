@@ -75,6 +75,7 @@ export type ProtocolAdaptorSummary = {
 	total30d: number
 	total1y: number
 	average1y: number
+	monthlyAverage1y?: number
 	revenue24h?: number
 	revenue7d?: number
 	revenue30d?: number
@@ -137,4 +138,16 @@ type ExtraTypes = {
 	dailyPremiumVolume?: number | null
 	dailyBribesRevenue?: number | null
 	dailyTokenTaxes?: number | null
+	feesChange_1d?: number | null
+	feesChange_7d?: number | null
+	feesChange_1m?: number | null
+	feesChange_7dover7d?: number | null
+	feesChange_30dover30d?: number | null
+	revenueChange_1d?: number | null
+	revenueChange_7d?: number | null
+	revenueChange_1m?: number | null
+	revenueChange_7dover7d?: number | null
+	revenueChange_30dover30d?: number | null
+	holdersRevenueChange_7dover7d?: number | null
+	holdersRevenueChange_30dover30d?: number | null
 }

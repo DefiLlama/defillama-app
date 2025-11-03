@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchCoinPrices } from '~/api'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
@@ -132,7 +132,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/placeholder.png'
+									e.currentTarget.src = '/icons/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -151,7 +151,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white px-2 py-[6px] pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -257,7 +257,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/placeholder.png'
+									e.currentTarget.src = '/icons/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -276,7 +276,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-[6px] pl-7 text-base text-black dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</div>
 				</div>
@@ -287,9 +287,14 @@ export default function CompareFdv({ coinsData, protocols }) {
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
 						unmountOnHide
+						hideOnInteractOutside
 						sameWidth
-						className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+						className="max-sm:drawer thin-scrollbar z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 					>
+						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+							<Icon name="x" className="h-5 w-5" />
+						</Ariakit.PopoverDismiss>
+
 						{compareTypes.map((item) => {
 							return (
 								<Ariakit.MenuItem
@@ -331,7 +336,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/placeholder.png'
+											e.currentTarget.src = '/icons/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -346,7 +351,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/placeholder.png'
+											e.currentTarget.src = '/icons/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>

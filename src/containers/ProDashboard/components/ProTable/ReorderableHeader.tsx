@@ -40,7 +40,7 @@ export function ReorderableHeader({
 								e.stopPropagation()
 								onMoveUp()
 							}}
-							className="rounded-sm p-0.5 transition-colors hover:bg-(--bg-tertiary)"
+							className="rounded-md p-0.5 transition-colors hover:bg-(--bg-tertiary)"
 							title="Swap with left column"
 						>
 							<Icon name="chevron-left" height={10} width={10} />
@@ -67,7 +67,7 @@ export function ReorderableHeader({
 								e.stopPropagation()
 								onMoveDown()
 							}}
-							className="rounded-sm p-0.5 transition-colors hover:bg-(--bg-tertiary)"
+							className="rounded-md p-0.5 transition-colors hover:bg-(--bg-tertiary)"
 							title="Swap with right column"
 						>
 							<Icon name="chevron-right" height={10} width={10} />

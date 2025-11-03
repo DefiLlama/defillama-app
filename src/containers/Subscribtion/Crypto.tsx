@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { StyledButton } from '~/components/ButtonStyled/StyledButton'
 import { Icon } from '~/components/Icon'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 export const PaymentButton = ({
 	paymentMethod,
-	type = 'api'
+	type = 'api',
+	billingInterval = 'month'
 }: {
 	paymentMethod: 'stripe' | 'llamapay'
 	type?: 'api' | 'contributor' | 'llamafeed'
+	billingInterval?: 'year' | 'month'
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()
 	const { isAuthenticated, user } = useAuthContext()
@@ -20,27 +22,31 @@ export const PaymentButton = ({
 	const isStripe = paymentMethod === 'stripe'
 	const icon = isStripe ? 'card' : 'wallet'
 	const text = isStripe ? 'Pay with Card' : 'Pay with Crypto'
-	const shadowClass = type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''
 
-	const disabled = loading === paymentMethod || !isAuthenticated || (!user?.verified && !user?.address)
+	const planName = type === 'api' ? 'API' : type === 'llamafeed' ? 'Pro' : type
+
+	if (!isAuthenticated) {
+		return (
+			<SignIn
+				text={text}
+				className="group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
+				pendingActionMessage={`Sign in or create an account to subscribe to the ${planName} plan.`}
+			/>
+		)
+	}
+
+	const disabled = loading === paymentMethod || (!user?.verified && !user?.address)
 	return (
-		<CustomTooltip
-			content={
-				!isAuthenticated
-					? 'Please sign in first to subscribe'
-					: !user?.verified && !user?.address
-						? 'Please verify your email first to subscribe'
-						: null
-			}
-		>
-			<StyledButton
-				onClick={() => handleSubscribe(paymentMethod, type)}
+		<CustomTooltip content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}>
+			<button
+				onClick={() => handleSubscribe(paymentMethod, type, undefined, billingInterval)}
 				disabled={disabled}
-				className={shadowClass}
-				iconName={icon}
+				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
+				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
 			>
-				{text}
-			</StyledButton>
+				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
+				<span className="break-words">{text}</span>
+			</button>
 		</CustomTooltip>
 	)
 }
@@ -65,7 +71,7 @@ export const ProApiKey = () => {
 						setApiKey(data.result?.key || null)
 					}
 				} catch (error) {
-					console.error('Error fetching API key:', error)
+					console.log('Error fetching API key:', error)
 				} finally {
 					setIsLoading(false)
 				}
@@ -89,7 +95,7 @@ export const ProApiKey = () => {
 				setApiKey(data.result?.key || null)
 			}
 		} catch (error) {
-			console.error('Error generating API key:', error)
+			console.log('Error generating API key:', error)
 		} finally {
 			setIsLoading(false)
 		}

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
+import { LocalLoader } from '~/components/Loaders'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
@@ -25,7 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 		const cexs = metadataCache.cexs
 
 		// if cex is not string, return 404
-		const exchangeData = cexs.find((cex) => cex.slug.toLowerCase() === exchangeName.toLowerCase())
+		const exchangeData = cexs.find((cex) => cex.slug && cex.slug.toLowerCase() === exchangeName.toLowerCase())
 		if (typeof exchangeName !== 'string' || !exchangeData) {
 			return {
 				notFound: true
@@ -44,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 				parentProtocol: protocolData.parentProtocol ?? null,
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
-				metrics: { tvlTab: true }
+				metrics: { tvlTab: true, stablecoins: true }
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -79,7 +80,9 @@ export default function Protocols(props) {
 		>
 			<div className="grid grid-cols-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 				{isLoading ? (
-					<p className="col-span-full flex h-[400px] items-center justify-center text-center">Loading...</p>
+					<div className="col-span-full flex min-h-[400px] items-center justify-center">
+						<LocalLoader />
+					</div>
 				) : (
 					<>
 						{chainsSplit && chainsUnique?.length > 1 && (

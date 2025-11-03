@@ -12,15 +12,16 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
-import { columnSizes, listedAtColumn, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
+import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
-import { formattedNum } from '~/utils'
+import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
 	data,
@@ -142,10 +143,28 @@ export function RecentlyListedProtocolsTable({
 		)
 	}
 
+	const prepareCsv = React.useCallback(() => {
+		const headers = ['Name', 'TVL', 'Change 1d', 'Change 7d', 'Change 1m', 'Listed At', 'Chains']
+		const csvData = data.map((row) => {
+			return {
+				Name: row.name,
+				Chains: row.chains.join(', '),
+				TVL: row.tvl,
+				'Change 1d': row.change_1d,
+				'Change 7d': row.change_7d,
+				'Change 1m': row.change_1m,
+				'Listed At': new Date(row.listedAt * 1000).toLocaleDateString()
+			}
+		})
+		const rows = [headers, ...csvData.map((row) => headers.map((header) => row[header]))]
+		return { filename: 'protocols.csv', rows: rows as (string | number | boolean)[][] }
+	}, [data])
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<div className="relative mr-auto w-full sm:max-w-[280px]">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
+					<span className="sr-only">Search protocols</span>
 					<Icon
 						name="search"
 						height={16}
@@ -158,9 +177,9 @@ export function RecentlyListedProtocolsTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
-				</div>
+				</label>
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
@@ -175,18 +194,31 @@ export function RecentlyListedProtocolsTable({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
-						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+						<TVLRange triggerClassName="w-full sm:w-auto" />
 					</div>
 
 					{forkedList ? <HideForkedProtocols /> : null}
+
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
 	)
+}
+
+const listedAtColumn: ColumnDef<IProtocolRow> = {
+	header: 'Listed At',
+	accessorKey: 'listedAt',
+	cell: ({ getValue }) => toNiceDaysAgo(getValue()),
+	sortUndefined: 'last' as const,
+	size: 140,
+	meta: {
+		align: 'end' as const
+	}
 }
 
 const recentlyListedProtocolsColumns: ColumnDef<IProtocolRow>[] = [

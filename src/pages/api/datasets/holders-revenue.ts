@@ -4,7 +4,7 @@ import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
+const dataType = ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		}
 	} catch (error) {
-		console.error('Error fetching holders revenue data:', error)
+		console.log('Error fetching holders revenue data:', error)
 		res.status(500).json({ error: 'Failed to fetch holders revenue data' })
 	}
 }

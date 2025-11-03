@@ -13,7 +13,7 @@ interface ITableProps {
 	skipVirtualization?: boolean
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
-	renderSubComponent?: ({ row }: { row: any }) => JSX.Element
+	renderSubComponent?: ({ row }: { row: any }) => React.ReactNode
 	stripedBg?: boolean
 	style?: React.CSSProperties
 	compact?: boolean
@@ -50,6 +50,8 @@ export function VirtualTable({
 	})
 	const virtualItems = rowVirtualizer.getVirtualItems()
 	const tableHeaderRef = useRef<HTMLDivElement>(null)
+	const stickyScrollbarRef = useRef<HTMLDivElement>(null)
+	const stickyScrollbarContentRef = useRef<HTMLDivElement>(null)
 	const firstColumn = instance.getVisibleLeafColumns()[0]
 	const firstColumnId = firstColumn?.id
 	//const firstColumnWidth = firstColumn?.getSize() || 240
@@ -90,59 +92,139 @@ export function VirtualTable({
 			tableWrapperEl.getBoundingClientRect().top <= 20 &&
 			tableHeaderDuplicate
 		) {
+			// Batch DOM writes
+			const scrollLeft = tableWrapperEl.scrollLeft
+			const offsetWidth = tableWrapperEl.offsetWidth
+			const headerHeight = instance.getHeaderGroups().length * 45
+
 			tableHeaderRef.current.style.position = 'fixed'
 			tableHeaderRef.current.style.top = '0px'
-			tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+			tableHeaderRef.current.style.width = `${offsetWidth}px`
 			tableHeaderRef.current.style['overflow-x'] = 'overlay'
-			tableHeaderDuplicate.style.height = `${instance.getHeaderGroups().length * 45}px`
-			tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
+			tableHeaderDuplicate.style.height = `${headerHeight}px`
+			tableHeaderRef.current.scrollLeft = scrollLeft
 		} else if (tableHeaderRef.current) {
+			const offsetWidth = tableWrapperEl?.offsetWidth || 0
 			tableHeaderRef.current.style.position = 'relative'
-			tableHeaderRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+			tableHeaderRef.current.style.width = `${offsetWidth}px`
 			tableHeaderRef.current.style['overflow-x'] = 'initial'
 			tableHeaderDuplicate.style.height = '0px'
 		}
 	}, [instance, skipVirtualization, useStickyHeader])
 
+	// Consolidated scroll/resize handlers with RAF optimization
 	useEffect(() => {
-		let resizeTimeout: NodeJS.Timeout
+		const tableWrapperEl = document.getElementById('table-wrapper')
+		if (!tableWrapperEl) return
 
+		const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window
+		const stickyScrollbar = stickyScrollbarRef.current // Capture ref value for cleanup
+		let scrollRaf: number | null = null
+		let resizeTimeout: ReturnType<typeof setTimeout>
+		let windowScrollRaf: number | null = null
+
+		// Handle table wrapper scroll (horizontal sync)
+		const handleTableScroll = () => {
+			if (scrollRaf) return // Already scheduled
+
+			scrollRaf = requestAnimationFrame(() => {
+				scrollRaf = null
+				const scrollLeft = tableWrapperEl.scrollLeft
+
+				// Sync header horizontal scroll
+				if (tableHeaderRef.current) {
+					if (!skipVirtualization) {
+						tableHeaderRef.current.scrollLeft = scrollLeft
+					} else {
+						tableHeaderRef.current.scrollLeft = 0
+					}
+				}
+
+				// Sync sticky scrollbar (desktop only)
+				if (!isMobile && stickyScrollbarRef.current) {
+					stickyScrollbarRef.current.scrollLeft = scrollLeft
+				}
+			})
+		}
+
+		// Handle window scroll (sticky header + sticky scrollbar visibility)
+		const handleWindowScroll = () => {
+			if (windowScrollRaf) return // Already scheduled
+
+			windowScrollRaf = requestAnimationFrame(() => {
+				windowScrollRaf = null
+
+				// Update sticky header
+				onScrollOrResize()
+
+				// Update sticky scrollbar visibility (desktop only)
+				if (!isMobile && stickyScrollbarRef.current && stickyScrollbarContentRef.current) {
+					const tableRect = tableWrapperEl.getBoundingClientRect()
+					const hasHorizontalScroll = tableWrapperEl.scrollWidth > tableWrapperEl.clientWidth
+					const isTableAboveViewport = tableRect.bottom > window.innerHeight
+					const isTableBelowViewport = tableRect.top > window.innerHeight
+
+					if (hasHorizontalScroll && isTableAboveViewport && !isTableBelowViewport) {
+						// Batch all DOM writes together
+						stickyScrollbarRef.current.style.display = 'block'
+						stickyScrollbarRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
+						stickyScrollbarRef.current.style.left = `${tableRect.left}px`
+						stickyScrollbarContentRef.current.style.width = `${tableWrapperEl.scrollWidth}px`
+					} else {
+						stickyScrollbarRef.current.style.display = 'none'
+					}
+				}
+			})
+		}
+
+		// Handle resize with debounce
 		const handleResize = () => {
 			clearTimeout(resizeTimeout)
 			resizeTimeout = setTimeout(() => {
 				onScrollOrResize()
-			}, 50) // 50ms debounce
+				handleWindowScroll() // Update sticky scrollbar on resize
+			}, 100) // Increased to 100ms for better performance
 		}
 
-		window.addEventListener('scroll', onScrollOrResize)
-		window.addEventListener('resize', handleResize)
-		return () => {
-			clearTimeout(resizeTimeout)
-			window.removeEventListener('scroll', onScrollOrResize)
-			window.removeEventListener('resize', handleResize)
-		}
-	}, [onScrollOrResize])
-
-	useEffect(() => {
-		const tableWrapperEl = document.getElementById('table-wrapper')
-		if (!tableWrapperEl) return
-		const onScroll = () => {
-			if (!skipVirtualization && tableHeaderRef.current && tableWrapperEl) {
-				tableHeaderRef.current.scrollLeft = tableWrapperEl.scrollLeft
-			} else if (tableHeaderRef.current) {
-				tableHeaderRef.current.scrollLeft = 0
+		// Handle sticky scrollbar scroll (desktop only)
+		const handleStickyScroll = () => {
+			if (!isMobile && stickyScrollbarRef.current) {
+				tableWrapperEl.scrollLeft = stickyScrollbarRef.current.scrollLeft
 			}
 		}
-		tableWrapperEl.addEventListener('scroll', onScroll)
-		return () => tableWrapperEl.removeEventListener('scroll', onScroll)
-	}, [skipVirtualization])
+
+		// Add event listeners with passive flag for better performance
+		tableWrapperEl.addEventListener('scroll', handleTableScroll, { passive: true })
+		window.addEventListener('scroll', handleWindowScroll, { passive: true })
+		window.addEventListener('resize', handleResize, { passive: true })
+
+		if (!isMobile && stickyScrollbar) {
+			stickyScrollbar.addEventListener('scroll', handleStickyScroll, { passive: true })
+			// Initial update for sticky scrollbar
+			handleWindowScroll()
+		}
+
+		return () => {
+			if (scrollRaf) cancelAnimationFrame(scrollRaf)
+			if (windowScrollRaf) cancelAnimationFrame(windowScrollRaf)
+			clearTimeout(resizeTimeout)
+
+			tableWrapperEl.removeEventListener('scroll', handleTableScroll)
+			window.removeEventListener('scroll', handleWindowScroll)
+			window.removeEventListener('resize', handleResize)
+
+			if (!isMobile && stickyScrollbar) {
+				stickyScrollbar.removeEventListener('scroll', handleStickyScroll)
+			}
+		}
+	}, [skipVirtualization, onScrollOrResize, totalTableWidth, rows.length])
 
 	return (
 		<div
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="relative isolate w-full overflow-auto bg-(--cards-bg)"
+			className="relative isolate w-full overflow-auto rounded-md bg-(--cards-bg)"
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -265,6 +347,23 @@ export function VirtualTable({
 						</React.Fragment>
 					)
 				})}
+			</div>
+
+			{/* Sticky horizontal scrollbar */}
+			<div
+				ref={stickyScrollbarRef}
+				style={{
+					position: 'fixed',
+					bottom: 0,
+					height: '17px',
+					overflowX: 'auto',
+					overflowY: 'hidden',
+					zIndex: 999,
+					display: 'none',
+					backgroundColor: 'var(--cards-bg)'
+				}}
+			>
+				<div ref={stickyScrollbarContentRef} style={{ height: '1px' }} />
 			</div>
 		</div>
 	)

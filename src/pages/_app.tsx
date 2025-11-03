@@ -1,21 +1,46 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
-import { useAnalytics } from '~/hooks/useAnalytics'
 import '~/tailwind.css'
 import '~/nprogress.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
+import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
+import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscribtion/auth'
+import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
+import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks'
 
 NProgress.configure({ showSpinner: false })
 
 const client = new QueryClient()
 
-function App({ Component, pageProps }: AppProps) {
-	useAnalytics()
+function LlamaAIWelcomeWrapper() {
+	const [dismissed, setDismissed] = useLlamaAIWelcome()
+	const isClient = useIsClient()
+	const { hasFeature, loading } = useFeatureFlagsContext()
+	const [showModal, setShowModal] = useState(false)
 
+	useEffect(() => {
+		if (dismissed) return
+		if (isClient && !loading && hasFeature('llamaai')) {
+			setShowModal(true)
+		}
+	}, [dismissed, isClient, loading, hasFeature])
+
+	const handleClose = () => {
+		setShowModal(false)
+		setDismissed()
+	}
+
+	if (dismissed) return null
+
+	return <LlamaAIWelcomeModal isOpen={showModal} onClose={handleClose} />
+}
+
+function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
 
 	useEffect(() => {
@@ -46,10 +71,30 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
+	// Scroll restoration for complete route changes (not shallow)
+	useEffect(() => {
+		const handleRouteChange = (url: string, { shallow }: { shallow: boolean }) => {
+			// Only restore scroll for complete route changes, not shallow ones
+			if (!shallow && typeof window !== 'undefined') {
+				window.scrollTo({ top: 0, behavior: 'smooth' })
+			}
+		}
+
+		router.events.on('routeChangeComplete', handleRouteChange)
+
+		return () => {
+			router.events.off('routeChangeComplete', handleRouteChange)
+		}
+	}, [router])
+
 	return (
 		<QueryClientProvider client={client}>
 			<AuthProvider>
-				<Component {...pageProps} />
+				<UserSettingsSync />
+				<FeatureFlagsProvider>
+					<Component {...pageProps} />
+					<LlamaAIWelcomeWrapper />
+				</FeatureFlagsProvider>
 			</AuthProvider>
 			<ReactQueryDevtools initialIsOpen={false} />
 		</QueryClientProvider>

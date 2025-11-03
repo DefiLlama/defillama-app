@@ -1,6 +1,8 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { LazyChart } from '~/components/LazyChart'
+import { LoadingDots } from '~/components/Loaders'
+import { CHART_COLORS } from '~/constants/colors'
 import {
 	useConfigPool,
 	useYieldChartData,
@@ -217,7 +219,7 @@ const PageView = () => {
 				</div>
 				<div className="col-span-2 min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
-						<AreaChart title="Strategy APY" chartData={finalChart} color={backgroundColor} valueSymbol={'%'} />
+						<AreaChart title="Strategy APY" chartData={finalChart} color={CHART_COLORS[0]} valueSymbol={'%'} />
 					</Suspense>
 				</div>
 			</div>
@@ -279,8 +281,9 @@ const PageView = () => {
 
 			<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 				{fetchingLendData ? (
-					<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
-						Loading...
+					<p className="col-span-full flex h-[408px] items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
+						Loading
+						<LoadingDots />
 					</p>
 				) : (
 					lendHistory?.data?.length && (
@@ -334,11 +337,9 @@ const PageView = () => {
 	)
 }
 
-const backgroundColor = '#4f8fea'
-
 const barChartColors = {
-	Base: backgroundColor,
-	Reward: '#E59421'
+	Base: CHART_COLORS[0],
+	Reward: CHART_COLORS[1]
 }
 
 const barChartStacks = {
@@ -348,7 +349,7 @@ const barChartStacks = {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yields - DefiLlama`} defaultSEO>
+		<Layout title={`Yields - DefiLlama`}>
 			<PageView {...props} />
 		</Layout>
 	)

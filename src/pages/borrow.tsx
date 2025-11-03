@@ -1,9 +1,11 @@
 import * as React from 'react'
+import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
+import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
@@ -18,7 +20,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	} = await getLendBorrowData()
 
 	let cgList = await getAllCGTokensList()
-	const cgTokens = cgList.filter((x) => x.symbol)
+	// const cgTokens = cgList.filter((x) => x.symbol)
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = {
 		['USD_STABLES']: {
@@ -32,7 +34,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		.forEach((sRaw) => {
 			const s = sRaw.replaceAll(/\(.*\)/g, '').trim()
 
-			const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
+			// const cgToken = cgTokens.find((x) => x.symbol === sRaw.toLowerCase() || x.symbol === s.toLowerCase())
 
 			searchData[s] = {
 				name: s,
@@ -56,6 +58,8 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	}
 })
 
+const pageName = ['Borrow Aggregator: Simple']
+
 export default function YieldBorrow(data) {
 	const router = useRouter()
 
@@ -65,6 +69,19 @@ export default function YieldBorrow(data) {
 
 	const collateralToken = getQueryValue(router.query, 'collateral')
 
+	const handleSwap = React.useCallback(() => {
+		const newBorrow = collateralToken ?? ''
+		const newCollateral = borrowToken ?? ''
+
+		const nextQuery: Record<string, any> = { ...router.query }
+		if (newBorrow) nextQuery['borrow'] = newBorrow
+		else delete nextQuery['borrow']
+		if (newCollateral) nextQuery['collateral'] = newCollateral
+		else delete nextQuery['collateral']
+
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [borrowToken, collateralToken, router])
+
 	const filteredPools = findOptimizerPools({
 		pools: data.pools,
 		tokenToLend: collateralToken,
@@ -73,16 +90,33 @@ export default function YieldBorrow(data) {
 	})
 
 	return (
-		<Layout title={`Borrow Aggregator - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Borrow Aggregator - DefiLlama`}
+			description={`Simple view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`borrow aggregator, lending routes, optimal lending routes, borrow assets on blockchain`}
+			canonicalUrl={`/borrow`}
+			pageName={pageName}
+		>
 			<Announcement>{disclaimer}</Announcement>
-			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 lg:top-4 lg:left-[-110px] xl:top-11">
-				<div className="flex w-full flex-col gap-5 overflow-y-auto p-3">
+			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
+				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
 					<TokensSelect
 						label="Borrow"
 						searchData={data.searchData}
 						queryParam={'borrow'}
 						placeholder="Select token to borrow"
 					/>
+
+					<div className="mt-2 flex items-center justify-center">
+						<button
+							aria-label="Swap borrow and collateral"
+							onClick={handleSwap}
+							className="inline-flex items-center justify-center rounded-full border border-(--form-control-border) bg-(--btn-bg) p-2 text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+							title="Swap borrow and collateral"
+						>
+							<Icon name="repeat" className="h-4 w-4" />
+						</button>
+					</div>
 
 					<TokensSelect
 						label="Collateral"
@@ -91,7 +125,7 @@ export default function YieldBorrow(data) {
 						placeholder="Select token for collateral"
 					/>
 					{borrowToken && !collateralToken ? (
-						<small className="mt-[2px] text-center text-orange-500">
+						<small className="mt-0.5 text-center text-orange-500">
 							Select your collateral token to see real borrow cost!
 						</small>
 					) : null}
@@ -140,18 +174,39 @@ const TokensSelect = ({
 
 	const tokenInSearchData = selectedValue !== '' ? searchData[selectedValue.toUpperCase()] : null
 
+	const searchDataArray = useMemo(() => {
+		return Object.values(searchData)
+	}, [searchData])
+
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
-		const data = Object.values(searchData)
-		return matchSorter(data, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
+		if (!deferredSearchValue) return searchDataArray
+		return matchSorter(searchDataArray, deferredSearchValue, {
 			keys: ['name', 'symbol'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [searchData, deferredSearchValue])
+	}, [searchDataArray, deferredSearchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
+
+	const comboboxRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	return (
 		<div className="flex w-full flex-col gap-1">
@@ -185,8 +240,12 @@ const TokensSelect = ({
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+						className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
+						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+							<Icon name="x" className="h-5 w-5" />
+						</Ariakit.PopoverDismiss>
+
 						<Ariakit.Combobox
 							placeholder="Search..."
 							autoFocus
@@ -195,8 +254,8 @@ const TokensSelect = ({
 
 						{matches.length > 0 ? (
 							<>
-								<Ariakit.ComboboxList>
-									{matches.slice(0, viewableMatches + 1).map((option) => (
+								<Ariakit.ComboboxList ref={comboboxRef}>
+									{matches.slice(0, viewableMatches).map((option) => (
 										<Ariakit.SelectItem
 											key={`${queryParam}-${option.symbol}`}
 											value={option.symbol}
@@ -206,15 +265,18 @@ const TokensSelect = ({
 											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
 										</Ariakit.SelectItem>
 									))}
+									{matches.length > viewableMatches ? (
+										<Ariakit.ComboboxItem
+											value="__see_more__"
+											setValueOnClick={false}
+											hideOnClick={false}
+											className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+											onClick={handleSeeMore}
+										>
+											See more...
+										</Ariakit.ComboboxItem>
+									) : null}
 								</Ariakit.ComboboxList>
-								{matches.length > viewableMatches ? (
-									<button
-										className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-										onClick={() => setViewableMatches((prev) => prev + 20)}
-									>
-										See more...
-									</button>
-								) : null}
 							</>
 						) : (
 							<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
@@ -238,7 +300,7 @@ const safeProjects = [
 	'Compound V1',
 	'Compound V2',
 	'Compound V3'
-]
+].map((x) => x.toLowerCase())
 
 interface IPool {
 	projectName: string
@@ -286,8 +348,9 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 	const filteredPools = pools
 		.filter(
 			(pool) =>
-				(tab === 'safe' ? safeProjects.includes(pool.projectName) : !safeProjects.includes(pool.projectName)) &&
-				pool.borrow.totalAvailableUsd
+				(tab === 'safe'
+					? safeProjects.includes(pool.projectName.toLowerCase())
+					: !safeProjects.includes(pool.projectName.toLowerCase())) && pool.borrow.totalAvailableUsd
 		)
 		.sort((a, b) => b.tvlUsd - a.tvlUsd)
 

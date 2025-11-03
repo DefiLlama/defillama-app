@@ -15,7 +15,7 @@ export function TextTab({ textTitle, textContent, onTextTitleChange, onTextConte
 					value={textTitle}
 					onChange={(e) => onTextTitleChange(e.target.value)}
 					placeholder="Enter text title..."
-					className="pro-border pro-bg2 pro-text1 placeholder:pro-text3 w-full border px-3 py-2 text-sm focus:border-(--primary) focus:outline-hidden md:text-base"
+					className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden md:text-base"
 				/>
 			</div>
 			<div>
@@ -25,7 +25,7 @@ export function TextTab({ textTitle, textContent, onTextTitleChange, onTextConte
 					onChange={(e) => onTextContentChange(e.target.value)}
 					placeholder="Enter markdown content..."
 					rows={8}
-					className="pro-border pro-bg2 pro-text1 placeholder:pro-text3 md:rows-12 w-full resize-none border px-3 py-2 font-mono text-xs focus:border-(--primary) focus:outline-hidden md:text-sm"
+					className="md:rows-12 pro-text1 placeholder:pro-text3 w-full resize-none rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden md:text-sm"
 				/>
 				<div className="pro-text3 mt-1.5 text-xs md:mt-2">
 					Supports markdown: **bold**, *italic*, # headers, - lists, `code`, [links](url)

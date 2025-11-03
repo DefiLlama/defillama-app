@@ -5,7 +5,7 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 import { getAdapterChainOverview } from './queries'
@@ -94,10 +94,10 @@ export const AdapterByChainChart = ({
 				charts: {
 					[chartName]: {
 						data: finalData,
-						type: (chartInterval === 'Cumulative' ? 'line' : 'bar') as 'bar' | 'line',
+						type: (chartInterval === 'Cumulative' || chartName === 'Open Interest' ? 'line' : 'bar') as 'bar' | 'line',
 						name: chartName,
 						stack: chartName,
-						color: oldBlue
+						color: CHART_COLORS[0]
 					}
 				}
 			}
@@ -107,10 +107,10 @@ export const AdapterByChainChart = ({
 			charts: {
 				[chartName]: {
 					data: chartData,
-					type: 'bar' as const,
+					type: (chartName === 'Open Interest' ? 'line' : 'bar') as 'bar' | 'line',
 					name: chartName,
 					stack: chartName,
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			}
 		}
@@ -124,18 +124,20 @@ export const AdapterByChainChart = ({
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2">
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-						<Tooltip
-							content={dataInterval}
-							render={<button />}
-							className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-							onClick={() => setChartInterval(dataInterval)}
-							data-active={dataInterval === chartInterval}
-							key={`${dataInterval}-${chartName}-${chain}`}
-						>
-							{dataInterval.slice(0, 1).toUpperCase()}
-						</Tooltip>
-					))}
+					{chartName === 'Open Interest'
+						? null
+						: INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
+								<Tooltip
+									content={dataInterval}
+									render={<button />}
+									className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+									onClick={() => setChartInterval(dataInterval)}
+									data-active={dataInterval === chartInterval}
+									key={`${dataInterval}-${chartName}-${chain}`}
+								>
+									{dataInterval.slice(0, 1).toUpperCase()}
+								</Tooltip>
+							))}
 				</div>
 				<CSVDownloadButton
 					onClick={() => {
@@ -147,7 +149,6 @@ export const AdapterByChainChart = ({
 					}}
 					isLoading={isDownloadingBreakdownChart}
 					smol
-					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
 				/>
 			</div>
 			<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
@@ -171,6 +172,20 @@ export const ChainsByAdapterChart = ({
 		return getChartDataByChainAndInterval({ chartData, chartInterval, chartType, selectedChains })
 	}, [chartData, chartInterval, selectedChains, chartType])
 
+	const prepareCsv = React.useCallback(() => {
+		const rows: any = [['Timestamp', 'Date', ...allChains]]
+
+		for (const date in chartData) {
+			const row: any = [date, toNiceCsvDate(date)]
+			for (const chain of allChains) {
+				row.push(chartData[date][chain] ?? '')
+			}
+			rows.push(row)
+		}
+
+		return { filename: `${type}-chains-${new Date().toISOString().split('T')[0]}.csv`, rows }
+	}, [chartData, allChains, type])
+
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<>
@@ -181,7 +196,7 @@ export const ChainsByAdapterChart = ({
 								key={`${dataInterval}-${type}`}
 								onClick={() => setChartInterval(dataInterval)}
 								data-active={dataInterval === chartInterval}
-								className="shrink-0 cursor-pointer px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 cursor-pointer px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 							>
 								{dataInterval}
 							</a>
@@ -190,7 +205,7 @@ export const ChainsByAdapterChart = ({
 					<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 						{CHART_TYPES.map((dataType) => (
 							<button
-								className="shrink-0 px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataType === chartType}
 								key={`${dataType}-${type}`}
 								onClick={() => setChartType(dataType)}
@@ -212,30 +227,11 @@ export const ChainsByAdapterChart = ({
 						labelType="smol"
 						triggerProps={{
 							className:
-								'h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+								'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 						}}
 						portal
 					/>
-					<CSVDownloadButton
-						onClick={() => {
-							const rows: any = [['Timestamp', 'Date', ...allChains]]
-
-							for (const date in chartData) {
-								const row: any = [date, toNiceCsvDate(date)]
-								for (const chain of allChains) {
-									row.push(chartData[date][chain] ?? '')
-								}
-								rows.push(row)
-							}
-
-							download(
-								`${type}-chains-${new Date().toISOString().split('T')[0]}.csv`,
-								rows.map((r) => r.join(',')).join('\n')
-							)
-						}}
-						smol
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				</div>
 			</>
 
@@ -295,9 +291,9 @@ const getChartDataByChainAndInterval = ({
 			}
 		}
 
-		const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+		const allColors = getNDistinctColors(selectedChains.length + 1).slice(1)
 		const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-		stackColors['Bitcoin'] = oldBlue
+		stackColors['Bitcoin'] = CHART_COLORS[0]
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const charts = {}
@@ -334,9 +330,9 @@ const getChartDataByChainAndInterval = ({
 	// 		}
 	// 	}
 
-	// 	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+	// 	const allColors = getNDistinctColors(selectedChains.length + 1, CHART_COLORS[0])
 	// 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-	// 	stackColors[selectedChains[0]] = oldBlue
+	// 	stackColors[selectedChains[0]] = CHART_COLORS[0]
 	// 	stackColors['Others'] = allColors[allColors.length - 1]
 
 	// 	return {
@@ -411,9 +407,8 @@ const getChartDataByChainAndInterval = ({
 		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
 	}
 
-	const allColors = getNDistinctColors(selectedChains.length + 1, oldBlue)
+	const allColors = getNDistinctColors(selectedChains.length + 1)
 	const stackColors = Object.fromEntries(selectedChains.map((_, i) => [_, allColors[i]]))
-	stackColors[selectedChains[0]] = oldBlue
 	stackColors['Others'] = allColors[allColors.length - 1]
 
 	const charts = {}

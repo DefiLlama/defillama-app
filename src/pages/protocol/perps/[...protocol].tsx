@@ -1,10 +1,10 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
+import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
@@ -118,10 +118,18 @@ export default function Protocols(props) {
 					denominationPriceHistory: null,
 					dateInMs: true
 				}),
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		}
 	}, [props.chart, groupBy])
+
+	const prepareCsv = useCallback(() => {
+		const dataByChartType = {}
+		for (const chartType in finalCharts) {
+			dataByChartType[chartType] = finalCharts[chartType].data
+		}
+		return prepareChartCsv(dataByChartType, `${props.name}-total-perp-volume.csv`)
+	}, [finalCharts, props.name])
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -160,21 +168,7 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									const dataByChartType = {}
-									for (const chartType in finalCharts) {
-										dataByChartType[chartType] = finalCharts[chartType].data
-									}
-									downloadChart(dataByChartType, `${props.name}-total-perp-volume.csv`)
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<LineAndBarChart charts={finalCharts} valueSymbol="$" />

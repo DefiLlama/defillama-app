@@ -7,10 +7,14 @@ export interface IChainMetadata {
 	name: string
 	activeUsers?: boolean
 	fees?: boolean
+	revenue?: boolean
 	chainFees?: boolean
+	chainRevenue?: boolean
 	perps?: boolean
+	openInterest?: boolean
 	dexAggregators?: boolean
-	options?: boolean
+	optionsPremiumVolume?: boolean
+	optionsNotionalVolume?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
 	inflows?: boolean
@@ -20,6 +24,8 @@ export interface IChainMetadata {
 	github?: boolean
 	id: string
 	protocolCount?: number
+	incentives?: boolean
+	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
 }
 
 export interface IChainOverviewData {
@@ -95,6 +101,13 @@ export interface IChainOverviewData {
 	} | null
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
 	charts: ChainChartLabels[]
+	description: string
+	keywords: string
+	isDataAvailable: boolean
+	datInflows: {
+		chart: Array<[number, number]>
+		total30d: number
+	} | null
 }
 
 export interface ILiteChart {
@@ -177,7 +190,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		pf: number | null
 	}
@@ -186,7 +199,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 		ps: number | null
 	}
@@ -195,7 +208,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 	}
 	dexs?: {
@@ -209,7 +222,7 @@ export interface IChildProtocol {
 		total7d: number | null
 		total30d: number | null
 		total1y: number | null
-		average1y: number | null
+		monthlyAverage1y: number | null
 		totalAllTime: number | null
 	}
 	deprecated?: boolean

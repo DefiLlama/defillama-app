@@ -1,11 +1,17 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { chunk, groupBy, isEqual, omit, sum } from 'lodash'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import chunk from 'lodash/chunk'
+import groupBy from 'lodash/groupBy'
+import isEqual from 'lodash/isEqual'
+import omit from 'lodash/omit'
+import sum from 'lodash/sum'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
+import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
+import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -37,7 +43,7 @@ const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC
 
 export function Emissions({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) {
 	return (
-		<div className="col-span-full flex flex-col gap-1 xl:col-span-1">
+		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer data={data} isEmissionsPage={isEmissionsPage} />
 		</div>
@@ -77,9 +83,19 @@ function processGroupedChartData(
 	})
 }
 
+const DATA_TYPES = ['documented', 'realtime'] as const
+type DataType = (typeof DATA_TYPES)[number]
+
+const unlockedPieChartRadius = ['50%', '70%'] as [string, string]
+
+const unlockedPieChartStackColors = {
+	Unlocked: '#0c5dff',
+	Locked: '#ff4e21'
+}
+
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const { width } = useWindowSize()
-	const [dataType, setDataType] = useState<'documented' | 'realtime'>('documented')
+	const [dataType, setDataType] = useState<DataType>('documented')
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
@@ -245,14 +261,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		[unlockedPercent]
 	)
 
-	const unlockedPieChartStackColors = useMemo(
-		() => ({
-			Unlocked: '#0c5dff',
-			Locked: '#ff4e21'
-		}),
-		[]
-	)
-
 	const pieChartLegendPosition = useMemo(() => {
 		if (!width) return { left: 'right', orient: 'vertical' as const }
 		if (width < 640) return { left: 'center', top: 'bottom', orient: 'horizontal' as const }
@@ -273,23 +281,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			Object.keys(data.categoriesBreakdown).length > 0
 		)
 	}, [data.categoriesBreakdown])
-
-	const unlockedPieChartFormatTooltip = useCallback(
-		({ value, data: { name } }: { value: number; data: { name: string } }) => `${name}: ${value?.toFixed(2)}%`,
-		[]
-	)
-
-	const unlockedPieChartRadius = useMemo(() => ['50%', '70%'] as [string, string], [])
-
-	const unlockedPieChartCustomLabel = useMemo(
-		() => ({
-			show: true,
-			position: 'center',
-			fontSize: 16,
-			formatter: ({ percent }: { percent: number }) => `${percent.toFixed(0)}%`
-		}),
-		[]
-	)
 
 	if (!data) return null
 
@@ -330,7 +321,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<div className="grid w-full grid-cols-1 place-content-center gap-4 text-center md:grid-cols-2 lg:grid-cols-3">
 						{data?.tokenPrice?.price ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Price</span>
+								<span className="text-(--text-label)">Price</span>
 								<div className="flex items-center gap-2">
 									<span className="text-lg font-medium">${formattedNum(data.tokenPrice.price)}</span>
 									{percentChange !== null && (
@@ -350,7 +341,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenCircSupply ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Circulating Supply</span>
+								<span className="text-(--text-label)">Circulating Supply</span>
 								<span className="text-lg font-medium">
 									{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
 								</span>
@@ -359,7 +350,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenMaxSupply ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Max Supply</span>
+								<span className="text-(--text-label)">Max Supply</span>
 								<span className="text-lg font-medium">
 									{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
 								</span>
@@ -368,14 +359,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 						{tokenMcap ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Market Cap</span>
+								<span className="text-(--text-label)">Market Cap</span>
 								<span className="text-lg font-medium">${formattedNum(tokenMcap)}</span>
 							</div>
 						) : null}
 
 						{tokenVolume ? (
 							<div className="flex flex-col items-center">
-								<span className="text-(--text-tertiary)">Volume (24h)</span>
+								<span className="text-(--text-label)">Volume (24h)</span>
 								<span className="text-lg font-medium">${formattedNum(tokenVolume)}</span>
 							</div>
 						) : null}
@@ -383,29 +374,20 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				</div>
 			) : null}
 
-			{data.chartData?.realtime?.length > 0 && (
-				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) p-3 text-xs font-medium text-(--text-form)">
-					<button
-						data-active={dataType === 'documented'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setDataType('documented')}
-					>
-						Documented
-					</button>
-					<button
-						data-active={dataType === 'realtime'}
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setDataType('realtime')}
-					>
-						Realtime
-					</button>
-				</div>
-			)}
+			{data.chartData?.realtime?.length > 0 ? (
+				<TagGroup
+					selectedValue={dataType}
+					setValue={(period) => setDataType(period as DataType)}
+					values={DATA_TYPES}
+					className="ml-auto"
+				/>
+			) : null}
 
 			<div className="flex flex-col gap-2">
 				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
-					<LazyChart className="relative min-h-[406px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-						<div className="absolute right-2 z-10">
+					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<div className="m-2 flex items-center justify-end gap-2">
+							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
@@ -437,14 +419,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 								labelType="smol"
 								triggerProps={{
 									className:
-										'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 								}}
 							/>
 						</div>
 						<Suspense fallback={<></>}>
 							<AreaChart
 								customYAxis={chartConfig.customYAxis}
-								title="Schedule"
 								stacks={chartConfig.stacks}
 								chartData={displayData}
 								hallmarks={hallmarks}
@@ -464,7 +445,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 									title="Allocation"
 									chartData={pieChartDataAllocationMode}
 									stackColors={chartConfig.colors}
-									usdFormat={false}
+									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									legendPosition={pieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
 									toRight={200}
@@ -477,16 +458,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						<LazyChart className="relative col-span-full flex min-h-[398px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<></>}>
 								<PieChart
-									formatTooltip={unlockedPieChartFormatTooltip}
 									showLegend
-									radius={unlockedPieChartRadius}
 									title={`Unlocked ${unlockedPercent.toFixed(2)}%`}
 									legendPosition={pieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
+									radius={unlockedPieChartRadius}
 									chartData={unlockedPieChartData}
 									stackColors={unlockedPieChartStackColors}
-									usdFormat={false}
-									customLabel={unlockedPieChartCustomLabel}
+									valueSymbol="%"
 								/>
 							</Suspense>
 						</LazyChart>
@@ -501,29 +480,23 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex w-full flex-col gap-2 text-base">
-							<h4 style={{ fontSize: '16px' }}>Current</h4>
+							<h4 className="text-base text-(--text-form)">Current</h4>
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p
-											className="text-base text-(--text-tertiary)"
-											key={cat}
-										>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
+										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>
 							<hr className="border-(--form-control-border)" />
 
-							<h4 style={{ fontSize: '16px' }}>Final</h4>
+							<h4 className="text-base text-(--text-form)">Final</h4>
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
 									currentChunk.map(([cat, perc], i) => (
-										<p
-											className="text-base text-(--text-tertiary)"
-											key={cat}
-										>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
+										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
 							</div>
@@ -607,14 +580,22 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 }
 
 export const UnlocksCharts = ({ protocolName }: { protocolName: string }) => {
-	const { data = null, isLoading } = useGetProtocolEmissions(slug(protocolName))
+	const { data = null, isLoading, error } = useGetProtocolEmissions(slug(protocolName))
 
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<LocalLoader />
+			</div>
+		)
 	}
 
 	if (!data) {
-		return <p className="my-[180px] text-center"></p>
+		return (
+			<div className="flex min-h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p>{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+			</div>
+		)
 	}
 
 	return <ChartContainer data={data as any} />

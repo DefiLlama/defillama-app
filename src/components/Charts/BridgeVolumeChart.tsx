@@ -1,8 +1,9 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import type { IBarChartProps } from '~/components/ECharts/types'
+import { LocalLoader } from '~/components/Loaders'
+import { TagGroup } from '~/components/TagGroup'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
-import { LocalLoader } from '../LocalLoader'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -13,8 +14,10 @@ interface BridgeVolumeChartProps {
 
 const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
 type TimePeriod = (typeof TIME_PERIODS)[number]
-type MetricType = 'Volume' | 'Transactions'
-type ViewType = 'Split' | 'Combined'
+const VIEW_TYPES = ['Split', 'Combined'] as const
+type ViewType = (typeof VIEW_TYPES)[number]
+const METRIC_TYPES = ['Volume', 'Transactions'] as const
+type MetricType = (typeof METRIC_TYPES)[number]
 
 export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
@@ -97,61 +100,35 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-2xl flex-wrap justify-end gap-4 overflow-x-auto p-3">
-				<div className="ml-auto flex flex-1 flex-col gap-1">
-					<h2 className="text-sm font-medium text-(--text-secondary)">Time Period:</h2>
-					<div className="flex w-full flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						{TIME_PERIODS.map((period) => (
-							<button
-								key={period}
-								onClick={() => setTimePeriod(period)}
-								data-active={timePeriod === period}
-								className="flex-1 shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							>
-								{period}
-							</button>
-						))}
-					</div>
+			<div className="mx-auto flex w-full max-w-2xl flex-col gap-2 overflow-x-auto p-3 sm:flex-row sm:flex-wrap sm:justify-center md:gap-4">
+				<div className="flex flex-1 flex-col gap-1">
+					<h2 className="text-xs font-medium text-(--text-secondary)">Time Period:</h2>
+					<TagGroup
+						selectedValue={timePeriod}
+						setValue={(period) => setTimePeriod(period as TimePeriod)}
+						values={TIME_PERIODS}
+						className="w-full *:flex-1"
+					/>
 				</div>
 
 				<div className="flex flex-1 flex-col gap-1">
-					<h2 className="text-sm font-medium text-(--text-secondary)">View:</h2>
-					<div className="flex w-full flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						<button
-							onClick={() => setViewType('Split')}
-							data-active={viewType === 'Split'}
-							className="flex-1 shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						>
-							Split
-						</button>
-						<button
-							onClick={() => setViewType('Combined')}
-							data-active={viewType === 'Combined'}
-							className="flex-1 shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						>
-							Combined
-						</button>
-					</div>
+					<h2 className="text-xs font-medium text-(--text-secondary)">View:</h2>
+					<TagGroup
+						selectedValue={viewType}
+						setValue={(viewType) => setViewType(viewType as ViewType)}
+						values={VIEW_TYPES}
+						className="w-full *:flex-1"
+					/>
 				</div>
 
 				<div className="flex flex-1 flex-col gap-1">
-					<h2 className="text-sm font-medium text-(--text-secondary)">Metric:</h2>
-					<div className="flex w-full flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-						<button
-							onClick={() => setMetricType('Volume')}
-							data-active={metricType === 'Volume'}
-							className="flex-1 shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						>
-							Volume
-						</button>
-						<button
-							onClick={() => setMetricType('Transactions')}
-							data-active={metricType === 'Transactions'}
-							className="flex-1 shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						>
-							Transactions
-						</button>
-					</div>
+					<h2 className="text-xs font-medium text-(--text-secondary)">Metric:</h2>
+					<TagGroup
+						selectedValue={metricType}
+						setValue={(metricType) => setMetricType(metricType as MetricType)}
+						values={METRIC_TYPES}
+						className="w-full *:flex-1"
+					/>
 				</div>
 			</div>
 

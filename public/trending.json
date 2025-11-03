@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Overview",
+    "route": "/",
+    "category": "Trending",
+    "description": "Comprehensive overview of all metrics tracked on each chain, including TVL, Fees, Revenue, Volume, and protocols on each chain",
+    "tab": "Protocols"
+  },
+  {
+    "name": "Chains",
+    "route": "/chains",
+    "category": "Trending",
+    "description": "Combined TVL, Fees, Volume and other metrics by chain",
+    "totalTrackedKey": "tvl.chains",
+    "tab": "Chains"
+  },
+  {
+    "name": "Yields: All Pools",
+    "route": "/yields",
+    "category": "Trending",
+    "description": "Pools by APY, TVL, and other metrics on all chains",
+    "totalTrackedKey": "yields.pools"
+  },
+  {
+    "name": "Perp Volume by Protocol",
+    "route": "/perps",
+    "category": "Trending",
+    "description": "Notional volume of all trades in a perp exchange, includes leverage",
+    "totalTrackedKey": "perps.protocols",
+    "keys": [
+      "derivatives",
+      "futures"
+    ],
+    "tab": "Protocols"
+  },
+  {
+    "name": "Stablecoins by Market Cap",
+    "route": "/stablecoins",
+    "category": "Trending",
+    "description": "Total market cap of stable assets",
+    "totalTrackedKey": "stablecoins.protocols",
+    "keys": [
+      "pegged"
+    ],
+    "tab": "Protocols"
+  }
+]

@@ -1,10 +1,7 @@
 /* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
 import { ECBasicOption } from 'echarts/types/dist/shared'
-import type { ISearchItem } from '~/components/Search/types'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { liquidationsIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -535,11 +532,13 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	}
 ]
 
-export const DEFAULT_ASSETS_LIST: ISearchItem[] = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
+export const DEFAULT_ASSETS_LIST = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }) => ({
 	name,
 	symbol,
 	route: `/liquidations/${symbol.toLowerCase()}`,
-	logo: liquidationsIconUrl(symbol.toLowerCase())
+	logo: liquidationsIconUrl(symbol.toLowerCase()),
+	label: `${name} (${symbol.toUpperCase()})`,
+	to: `/liquidations/${symbol.toLowerCase()}`
 }))
 
 export const PROTOCOL_NAMES_MAP = {
@@ -649,7 +648,7 @@ export const getOption = (
 			type: 'image',
 			z: 0,
 			style: {
-				image: isDark ? logoLight.src : logoDark.src,
+				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},
@@ -670,7 +669,8 @@ export const getOption = (
 			right: '1%',
 			top: '2%',
 			bottom: '2%',
-			containLabel: true
+			outerBoundsMode: 'same',
+			outerBoundsContain: 'axisLabel'
 		},
 		dataZoom: [
 			{

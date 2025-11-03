@@ -213,10 +213,10 @@ export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>):
 	).map<IJoin2ReturnType[number]>((bar) => {
 		const date = bar.date
 		delete bar.date
-		const ordredItems = Object.entries(bar)
+		const orderedItems = Object.entries(bar)
 		return {
 			date,
-			...ordredItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
+			...orderedItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
 		}
 	})
 
@@ -278,8 +278,22 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 						revenue30d: revenue?.[protocol.name]?.total30d ?? null,
 						revenue1y: revenue?.[protocol.name]?.total1y ?? null,
 						averageRevenue1y: revenue?.[protocol.name]?.average1y ?? null,
+						feesChange_1d: protocol?.change_1d ?? null,
+						feesChange_7d: protocol?.change_7d ?? null,
+						feesChange_1m: protocol?.change_1m ?? null,
+						feesChange_7dover7d: protocol?.change_7dover7d ?? null,
+						feesChange_30dover30d: protocol?.change_30dover30d ?? null,
+						revenueChange_1d: revenue?.[protocol.name]?.change_1d ?? null,
+						revenueChange_7d: revenue?.[protocol.name]?.change_7d ?? null,
+						revenueChange_1m: revenue?.[protocol.name]?.change_1m ?? null,
+						revenueChange_7dover7d: revenue?.[protocol.name]?.change_7dover7d ?? null,
+						revenueChange_30dover30d: revenue?.[protocol.name]?.change_30dover30d ?? null,
 						holdersRevenue24h: holdersRevenue?.[protocol.name]?.total24h ?? null,
-						holdersRevenue30d: holdersRevenue?.[protocol.name]?.total30d ?? null
+						holdersRevenue30d: holdersRevenue?.[protocol.name]?.total30d ?? null,
+						holdersRevenueChange_7dover7d: holdersRevenue?.[protocol.name]?.change_7dover7d ?? null,
+						holdersRevenueChange_30dover30d: holdersRevenue?.[protocol.name]?.change_30dover30d ?? null,
+						pf: protocol?.pf ?? null,
+						ps: protocol?.ps ?? null
 					}
 				]
 			}
@@ -302,6 +316,40 @@ export const getDexVolumeByChain = async ({
 		`${DIMENISIONS_OVERVIEW_API}/dexs${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	).catch((err) => {
+		console.log(err)
+		return null
+	})
+
+	return data
+}
+
+export const getPerpsVolumeByChain = async ({
+	chain,
+	excludeTotalDataChart,
+	excludeTotalDataChartBreakdown
+}: {
+	chain?: string
+	excludeTotalDataChart: boolean
+	excludeTotalDataChartBreakdown: boolean
+}) => {
+	const data = await fetchJson(
+		`${DIMENISIONS_OVERVIEW_API}/derivatives${
+			chain && chain !== 'All' ? '/' + slug(chain) : ''
+		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	).catch((err) => {
+		console.log(err)
+		return null
+	})
+
+	return data
+}
+
+export const getOpenInterestByChain = async ({ chain }: { chain?: string }) => {
+	const data = await fetchJson(
+		`${DIMENISIONS_OVERVIEW_API}/open-interest${
+			chain && chain !== 'All' ? '/' + slug(chain) : ''
+		}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
 	).catch((err) => {
 		console.log(err)
 		return null

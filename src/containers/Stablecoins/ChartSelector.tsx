@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { FormattedName } from '~/components/FormattedName'
+import { Icon } from '~/components/Icon'
 
 interface IProps {
 	options: string[]
@@ -15,7 +16,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 
 	return (
 		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
-			<Ariakit.Select className="z-10 m-3 mr-auto mb-0 flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+			<Ariakit.Select className="mr-auto flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
@@ -26,8 +27,12 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 			>
+				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.PopoverDismiss>
+
 				{options.map((option) => (
 					<Ariakit.SelectItem
 						value={option}

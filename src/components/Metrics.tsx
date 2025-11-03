@@ -1,4 +1,5 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { Fragment, memo, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import * as React from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -6,141 +7,132 @@ import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
+import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
+import defillamaPages from '~/public/pages.json'
+import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
+import { TagGroup } from './TagGroup'
+import { Tooltip } from './Tooltip'
 
-export interface ITotalTrackedByMetric {
-	tvl: { protocols: number; chains: number }
-	stablecoins: { protocols: number; chains: number }
-	fees: { protocols: number; chains: number }
-	revenue: { protocols: number; chains: number }
-	holdersRevenue: { protocols: number; chains: number }
-	dexs: { protocols: number; chains: number }
-	dexAggregators: { protocols: number; chains: number }
-	perps: { protocols: number; chains: number }
-	perpsOpenInterest: { protocols: number; chains: number }
-	perpAggregators: { protocols: number; chains: number }
-	options: { protocols: number; chains: number }
-	bridgeAggregators: { protocols: number; chains: number }
-	lending: { protocols: number; chains: number }
-	treasury: { protocols: number; chains: number }
-	emissions: { protocols: number; chains: number }
-	oracles: { protocols: number; chains: number }
-	forks: { protocols: number; chains: number }
-	cexs: { protocols: number; chains: number }
-	nfts: { protocols: number; chains: number }
-	bridgedTVL: { protocols: number; chains: number }
-	staking: { protocols: number; chains: number }
-	pool2: { protocols: number; chains: number }
-	mcap: { protocols: number; chains: number }
-	fdv: { protocols: number; chains: number }
-	adjustedFDV: { protocols: number; chains: number }
-	pf: { protocols: number; chains: number }
-	ps: { protocols: number; chains: number }
-	price: { protocols: number; chains: number }
-	totalValueLostInHacks: { protocols: number; chains: number }
+interface IPage {
+	name: string
+	route: string
+	description: string
+	tags?: string[]
+	tab?: string
+	totalTrackedKey?: string
 }
 
-export type TMetric =
-	| 'TVL'
-	| 'Stablecoin Supply'
-	| 'Fees'
-	| 'Revenue'
-	| 'Holders Revenue'
-	| 'DEX Volume'
-	| 'Perp Volume'
-	| 'Open Interest'
-	| 'DEX Aggregator Volume'
-	| 'Perp Aggregator Volume'
-	| 'Options Premium Volume'
-	| 'Options Notional Volume'
-	| 'Bridge Aggregator Volume'
-	| 'Total Borrowed'
-	| 'Net Project Treasury'
-	| 'App Revenue'
-	| 'Oracle TVS'
-	| 'TVL in forks'
-	| 'CEX Assets'
-	| 'Total Raised'
-	| 'Bridged TVL'
-	| 'NFT Volume'
-	| 'REV'
-	| 'Unlocks'
-	| 'Earnings'
-	| 'Total Staked'
-	| 'Pool2 TVL'
-	| 'Market Cap'
-	| 'P/F'
-	| 'P/S'
-	| 'Token Price'
-	| 'Treasury'
-	| 'Total Value Lost in Hacks'
-	| 'FDV'
-	| 'Outstanding FDV'
+const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage> }]
 
-export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; isChains?: boolean }) => {
-	const router = useRouter()
-	const dialogStore = Ariakit.useDialogStore()
-	const chain = router.query.chain as string
-	const [tab, setTab] = useState<'Protocols' | 'Chains'>(isChains ? 'Chains' : 'Protocols')
+export const metricsByCategory = trending.concat(
+	Object.entries(
+		defillamaPages.Metrics.reduce((acc, metric) => {
+			const category = metric.category || 'Others'
+			acc[category] = acc[category] || []
+			acc[category].push({
+				...metric,
+				name: metric.name.includes(': ') ? metric.name.split(': ')[1] : metric.name,
+				description: metric.description ?? ''
+			})
+			return acc
+		}, {})
+	).map(([category, metrics]: [string, Array<IPage>]) => ({
+		category,
+		metrics
+	}))
+)
 
+const TABS = ['All', 'Protocols', 'Chains'] as const
+
+export function Metrics({
+	canDismiss = false,
+	hasScrolledToCategoryRef
+}: {
+	canDismiss?: boolean
+	hasScrolledToCategoryRef?: React.RefObject<string>
+}) {
+	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
-	const { chains, protocols } = useMemo(() => {
-		if (searchValue.length < 2) {
-			return { chains: chainsMetrics, protocols: protocolsMetrics }
-		}
+	const router = useRouter()
 
-		const chains = matchSorter(chainsMetrics, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['category', 'pages.*.name', 'pages.*.description'],
-			threshold: matchSorter.rankings.CONTAINS
-		})
-			.map((category) => ({
-				...category,
-				pages: category.pages.filter(
-					(page) =>
-						matchSorter([page], deferredSearchValue, {
-							keys: ['name', 'description'],
-							threshold: matchSorter.rankings.CONTAINS
-						}).length > 0
-				)
-			}))
-			.filter((category) => category.pages.length > 0)
+	const currentCategory = useMemo(() => {
+		return metricsByCategory.find(
+			(category) =>
+				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
+		)?.category
+	}, [router.pathname])
 
-		const protocols = matchSorter(protocolsMetrics, deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
-			keys: ['category', 'pages.*.name', 'pages.*.description'],
-			threshold: matchSorter.rankings.CONTAINS
-		})
-			.map((category) => ({
-				...category,
-				pages: category.pages.filter(
-					(page) =>
-						matchSorter([page], deferredSearchValue, {
-							keys: ['name', 'description'],
-							threshold: matchSorter.rankings.CONTAINS
-						}).length > 0
-				)
-			}))
-			.filter((category) => category.category !== 'Trending 🔥' && category.pages.length > 0)
-
-		return { chains, protocols }
-	}, [deferredSearchValue])
+	const metricsInputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		const handleRouteChange = () => {
-			dialogStore.hide()
+		if (currentCategory && canDismiss) {
+			const el = document.querySelector(`[data-category="${currentCategory}"]`)
+			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
+				requestAnimationFrame(() => {
+					console.log('scrolling to', hasScrolledToCategoryRef.current)
+					hasScrolledToCategoryRef.current = `${currentCategory}-true`
+					el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+				})
+			}
+		} else if (metricsInputRef.current) {
+			requestAnimationFrame(() => {
+				metricsInputRef.current?.focus()
+			})
 		}
+	}, [currentCategory, canDismiss, hasScrolledToCategoryRef])
 
-		router.events.on('routeChangeComplete', handleRouteChange)
+	const tabPages = useMemo(() => {
+		return metricsByCategory
+			.concat(
+				canDismiss
+					? [
+							{
+								category: 'Tools',
+								metrics: defillamaPages.Tools.map((tool: IPage) => ({
+									...tool,
+									description: tool.description ?? ''
+								}))
+							}
+						]
+					: []
+			)
+			.map((page) => ({
+				category: page.category,
+				metrics: page.metrics.filter((metric) => {
+					if (tab === 'All') return true
+					return metric.tab === tab
+				})
+			}))
+			.filter((page) => page.metrics.length > 0)
+	}, [tab, canDismiss])
 
-		// If the component is unmounted, unsubscribe
-		// from the event with the `off` method:
-		return () => {
-			router.events.off('routeChangeComplete', handleRouteChange)
-		}
-	}, [router, dialogStore])
+	const pages = useMemo(() => {
+		if (!deferredSearchValue) return tabPages
+
+		return matchSorter(tabPages, deferredSearchValue, {
+			keys: ['category', 'metrics.*.name', 'metrics.*.description', 'metrics.*.keys'],
+			threshold: matchSorter.rankings.CONTAINS
+		}).map((item) => {
+			// If the category name matches the search term, show all metrics in that category
+			const categoryMatches = item.category.toLowerCase().includes(deferredSearchValue.toLowerCase())
+
+			return {
+				...item,
+				metrics: categoryMatches
+					? item.metrics // Show all metrics if category matches
+					: item.metrics.filter(
+							(metric) =>
+								matchSorter([metric], deferredSearchValue, {
+									keys: ['name', 'description', 'keys'],
+									threshold: matchSorter.rankings.CONTAINS
+								}).length > 0
+						)
+			}
+		})
+	}, [deferredSearchValue, tabPages])
 
 	const { data: totalTrackedByMetric } = useQuery({
 		queryKey: ['totalTrackedByMetric'],
@@ -149,556 +141,255 @@ export const Metrics = ({ currentMetric, isChains }: { currentMetric: TMetric; i
 	})
 
 	return (
-		<Ariakit.DialogProvider store={dialogStore}>
-			<div className="relative isolate h-10 w-full rounded-md bg-(--cards-bg) p-1">
-				<img
-					src="/icons/metrics-l.svg"
-					width={92}
-					height={40}
-					alt=""
-					className="absolute top-0 left-0 h-full w-auto rounded-l-md object-cover"
-					fetchPriority="high"
-				/>
-				<div className="flex h-full flex-wrap items-center justify-center gap-1">
-					<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
-						<Icon name="sparkles" height={12} width={12} />
-						<span>New</span>
-					</span>
-					<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
-						{currentMetric === 'CEX Assets' ? 'CEXs' : isChains ? 'Chains' : 'Protocols'}
-					</Ariakit.DialogDisclosure>
-					<span>ranked by </span>
-					<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-[rgba(31,103,210,0.12)] px-[10px] py-1 font-semibold">
-						{currentMetric === 'CEX Assets' ? 'Assets' : currentMetric}
-					</Ariakit.DialogDisclosure>
-					<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-[6px] py-1 text-xs text-(--text-form)">
-						<Icon name="search" height={12} width={12} />
-						<span className="hidden sm:block">Click to browse & search</span>
-					</Ariakit.DialogDisclosure>
-				</div>
-				<img
-					src="/icons/metrics-r.svg"
-					width={92}
-					height={40}
-					alt=""
-					className="absolute top-0 right-0 h-full w-auto rounded-r-md object-cover"
-					fetchPriority="high"
-				/>
-				<svg
-					width="100%"
-					height="100%"
-					className="absolute top-0 right-0 bottom-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
-				>
-					<defs>
-						<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-							<stop offset="0%" stopColor="#1f67d2" />
-							<stop offset="8%" stopColor="#1f67d2" />
-							<stop offset="18%" stopColor="currentColor" />
-							<stop offset="82%" stopColor="currentColor" />
-							<stop offset="92%" stopColor="#1f67d2" />
-							<stop offset="100%" stopColor="#1f67d2" />
-						</linearGradient>
-					</defs>
-					<rect
-						x="1"
-						y="1"
-						width="calc(100% - 1.5px)"
-						height="calc(100% - 1.5px)"
-						rx="6"
-						ry="6"
-						fill="none"
-						stroke="url(#border-gradient)"
-						strokeWidth="1"
-					/>
-				</svg>
-			</div>
-			<Ariakit.Dialog
-				className="dialog max-sm:drawer h-[70vh] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)] lg:h-[calc(100vh-32px)]"
-				unmountOnHide
-			>
-				<div className="flex flex-col gap-2 rounded-md bg-(--cards-bg) p-1">
-					<div className="flex items-center gap-2">
-						<Ariakit.DialogHeading className="text-2xl font-bold">Metrics for</Ariakit.DialogHeading>
-						<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border-(--bg-input) bg-(--bg-input) p-1 text-xs font-medium">
-							{['Protocols', 'Chains'].map((dataType) => (
-								<button
-									onClick={() => setTab(dataType as 'Protocols' | 'Chains')}
-									className="min-h-8 shrink-0 rounded-md px-[10px] py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									data-active={tab === dataType}
-									key={dataType}
-								>
-									{dataType}
-								</button>
-							))}
-						</div>
+		<>
+			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex items-center gap-2">
+					<h1 className="text-2xl font-bold">Metrics</h1>
+					<TagGroup selectedValue={tab} setValue={(value) => setTab(value as (typeof TABS)[number])} values={TABS} />
+					{canDismiss ? (
 						<Ariakit.DialogDismiss
 							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
 							aria-label="Close modal"
 						>
 							<Icon name="x" height={20} width={20} />
 						</Ariakit.DialogDismiss>
-					</div>
-					<div className="relative">
-						<Icon
-							name="search"
-							height={16}
-							width={16}
-							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-						/>
-						<input
-							type="text"
-							placeholder="Search..."
-							className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-[6px] pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
-							value={searchValue}
-							onChange={(e) => setSearchValue(e.target.value)}
-						/>
-					</div>
+					) : null}
 				</div>
-				<div>
-					{tab === 'Chains' ? (
-						<>
-							{chains.map(({ category, pages }) => (
-								<div key={`chain-metrics-category-${category}`} className="group">
-									{category ? (
-										<div className="my-2 flex flex-nowrap items-center gap-4 group-first:mt-0">
-											<h1 className="text-lg font-bold">{category}</h1>
-											<div className="h-[1px] flex-1 border border-(--cards-border)" />
-										</div>
-									) : null}
-									<div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-										{pages.map((metric) => (
-											<BasicLink
-												key={`chain-metric-${category}-${metric.name}`}
-												className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
-												href={metric.route}
-											>
-												<span className="flex w-full flex-wrap items-center justify-between gap-2">
-													<span className="font-medium">{metric.name}</span>
-													{totalTrackedByMetric && metric.chainsTracked(totalTrackedByMetric) ? (
-														<span className="text-xs text-(--link)">
-															{metric.chainsTracked(totalTrackedByMetric)} tracked
-														</span>
-													) : null}
-												</span>
-												<span className="text-start whitespace-pre-wrap text-(--text-form)">{metric.description}</span>
-											</BasicLink>
-										))}
-									</div>
-								</div>
-							))}
-						</>
-					) : (
-						<>
-							{protocols.map(({ category, pages }) => (
-								<div key={`protocol-metrics-category-${category}`} className="group">
-									{category ? (
-										<div className="my-2 flex flex-nowrap items-center gap-4 group-first:mt-0">
-											<h1 className="text-lg font-bold">{category}</h1>
-											<div className="h-[1px] flex-1 border border-(--cards-border)" />
-										</div>
-									) : null}
-									<div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-										{pages.map((metric) => (
-											<BasicLink
-												key={`protocol-metric-${category}-${metric.name}`}
-												className="col-span-1 flex min-h-[120px] flex-col items-start gap-[2px] rounded-md border border-(--cards-border) bg-(--cards-bg) p-[10px] hover:bg-[rgba(31,103,210,0.12)]"
-												href={
-													chain && metric.chainRoute
-														? `${metric.chainRoute.replace('{chain}', chain)}`
-														: metric.mainRoute
-												}
-											>
-												<span className="flex w-full flex-wrap items-center justify-between gap-2">
-													<span className="font-medium">{metric.name}</span>
-													{totalTrackedByMetric && metric.protocolsTracked(totalTrackedByMetric) ? (
-														<span className="text-xs text-(--link)">
-															{metric.protocolsTracked(totalTrackedByMetric)} tracked
-														</span>
-													) : null}
-												</span>
-												<span className="text-start whitespace-pre-wrap text-(--text-form)">{metric.description}</span>
-											</BasicLink>
-										))}
-									</div>
-								</div>
-							))}
-						</>
-					)}
+				<label className="relative">
+					<span className="sr-only">Search pages</span>
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+					/>
+					<input
+						ref={metricsInputRef}
+						type="text"
+						inputMode="search"
+						placeholder="Search..."
+						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+						value={searchValue}
+						onChange={(e) => setSearchValue(e.target.value)}
+					/>
+				</label>
+				<div className="flex flex-wrap gap-2">
+					{pages.map(({ category }) => (
+						<button
+							key={category}
+							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue)/60 px-2 py-1 text-xs hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+							onClick={() => {
+								const element = document.querySelector(`[data-category="${category}"]`)
+								if (element) {
+									element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+								}
+							}}
+						>
+							{category}
+						</button>
+					))}
 				</div>
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
+			</div>
+			<div className="thin-scrollbar flex flex-col gap-4">
+				{pages.map(({ category, metrics }) => (
+					<div key={category} className="relative flex flex-col gap-2">
+						<div className="absolute -top-4" data-category={category} />
+						<div className="flex flex-row items-center gap-2">
+							<h2 className="text-lg font-bold">{category}</h2>
+							<hr className="flex-1 border-black/20 dark:border-white/20" />
+						</div>
+						<div
+							className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canDismiss ? 'lg:grid-cols-3 xl:grid-cols-4' : 'xl:grid-cols-3 2xl:grid-cols-4'}`}
+						>
+							{metrics.map((metric) => (
+								<LinkToMetricOrToolPage
+									key={`metric-${metric.name}-${metric.route}`}
+									page={metric}
+									totalTrackedByMetric={totalTrackedByMetric}
+								/>
+							))}
+						</div>
+					</div>
+				))}
+			</div>
+		</>
 	)
 }
 
-export const protocolsMetrics: Array<{
-	category: string
-	pages: Array<{
-		name: TMetric
-		mainRoute: string
-		chainRoute: string
-		protocolsTracked: (totalTrackedByMetric: ITotalTrackedByMetric) => number
-		description: string
-	}>
-}> = [
-	{
-		category: 'Trending 🔥',
-		pages: [
-			{
-				name: 'TVL',
-				mainRoute: '/',
-				chainRoute: `/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.tvl?.protocols ?? 0,
-				description: 'Total value of all coins held in smart contracts of the protocols'
-			},
-			{
-				name: 'Fees',
-				mainRoute: '/fees',
-				chainRoute: `/fees/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.protocols ?? 0,
-				description: 'Total fees paid by users when using the protocol'
-			},
-			{
-				name: 'DEX Volume',
-				mainRoute: '/dexs',
-				chainRoute: `/dexs/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.protocols ?? 0,
-				description: 'Volume of all spot token swaps that go through a DEX'
-			}
-		]
-	},
-	{
-		category: 'Fees & Revenue',
-		pages: [
-			{
-				name: 'Fees',
-				mainRoute: '/fees',
-				chainRoute: `/fees/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.protocols ?? 0,
-				description: 'Total fees paid by users when using the protocol'
-			},
-			{
-				name: 'Revenue',
-				mainRoute: '/revenue',
-				chainRoute: `/revenue/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
-				description:
-					"Subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
-			},
-			{
-				name: 'Holders Revenue',
-				mainRoute: '/holders-revenue',
-				chainRoute: `/holders-revenue/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.holdersRevenue?.protocols ?? 0,
-				description:
-					'Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers'
-			},
-			{
-				name: 'Earnings',
-				mainRoute: '/earnings',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.protocols ?? 0,
-				description:
-					'Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself.'
-			},
-			{
-				name: 'P/F',
-				mainRoute: '/pf',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pf?.protocols ?? 0,
-				description: 'Market cap / annualized fees'
-			},
-			{
-				name: 'P/S',
-				mainRoute: '/ps',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.ps?.protocols ?? 0,
-				description: 'Market cap / annualized revenue'
-			}
-		]
-	},
-	{
-		category: 'Volume',
-		pages: [
-			{
-				name: 'DEX Volume',
-				mainRoute: '/dexs',
-				chainRoute: `/dexs/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.protocols ?? 0,
-				description: 'Volume of all spot token swaps that go through a DEX'
-			},
-			{
-				name: 'Perp Volume',
-				mainRoute: '/perps',
-				chainRoute: `/perps/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perps?.protocols ?? 0,
-				description: 'Notional volume of all trades in a perp exchange, includes leverage'
-			},
-			{
-				name: 'Open Interest',
-				mainRoute: '/open-interest',
-				chainRoute: `/open-interest/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perpsOpenInterest?.protocols ?? 0,
-				description: 'Total notional value of all outstanding perpetual futures positions'
-			},
-			{
-				name: 'DEX Aggregator Volume',
-				mainRoute: '/dex-aggregators',
-				chainRoute: `/dex-aggregators/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexAggregators?.protocols ?? 0,
-				description: 'Volume of spot token swaps that go through a DEX aggregator'
-			},
-			{
-				name: 'Options Premium Volume',
-				mainRoute: '/options/premium-volume',
-				chainRoute: `/options/premium-volume/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.options?.protocols ?? 0,
-				description: 'Sum of value paid buying and selling options'
-			},
-			{
-				name: 'Options Notional Volume',
-				mainRoute: '/options/notional-volume',
-				chainRoute: `/options/notional-volume/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.options?.protocols ?? 0,
-				description: 'Sum of the notional value of all options that have been traded on an options exchange'
-			},
-			{
-				name: 'Bridge Aggregator Volume',
-				mainRoute: '/bridge-aggregators',
-				chainRoute: `/bridge-aggregators/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.bridgeAggregators?.protocols ?? 0,
-				description: 'Sum of value of all assets that were bridged through the Bridge Aggregators'
-			},
-			{
-				name: 'Perp Aggregator Volume',
-				mainRoute: '/perps-aggregators',
-				chainRoute: `/perps-aggregators/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perpAggregators?.protocols ?? 0,
-				description: 'Notional volume of all trades in a perp aggregator, includes leverage'
-			}
-		]
-	},
-	{
-		category: 'Treasury',
-		pages: [
-			{
-				name: 'Net Project Treasury',
-				mainRoute: '/net-project-treasury',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.treasury?.protocols ?? 0,
-				description: "Value of tokens owned by a protocol, excluding it's own token"
-			},
-			{
-				name: 'Treasury',
-				mainRoute: '/treasuries',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.treasury?.protocols ?? 0,
-				description: "Value of tokens owned by a protocol, including it's own token and breakdown of assets held"
-			}
-		]
-	},
-	{
-		category: 'Total Value',
-		pages: [
-			{
-				name: 'TVL',
-				mainRoute: '/',
-				chainRoute: `/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.tvl?.protocols ?? 0,
-				description: 'Total value of all coins held in smart contracts of the protocols'
-			},
-			{
-				name: 'Total Borrowed',
-				mainRoute: '/total-borrowed',
-				chainRoute: `/total-borrowed/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.lending?.protocols ?? 0,
-				description: 'Sum of value currently borrowed across all active loans on a Lending protocol'
-			},
-			{
-				name: 'Oracle TVS',
-				mainRoute: '/oracles',
-				chainRoute: `/oracles/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.oracles?.protocols ?? 0,
-				description: 'Total Value Secured by an oracle, where oracle failure would lead to a loss equal to TVS'
-			},
-			{
-				name: 'TVL in forks',
-				mainRoute: '/forks',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.forks?.protocols ?? 0,
-				description: 'Sum of TVL across all forks of a protocol'
-			},
-			{
-				name: 'Total Staked',
-				mainRoute: '/total-staked',
-				chainRoute: `/total-staked/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.staking?.protocols ?? 0,
-				description: 'Total value of protocols own tokens staked on their platform'
-			},
-			{
-				name: 'Pool2 TVL',
-				mainRoute: '/pool2',
-				chainRoute: `/pool2/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.pool2?.protocols ?? 0,
-				description: 'Total value locked in pool2 of a protocol'
-			}
-		]
-	},
-	{
-		category: 'Token',
-		pages: [
-			{
-				name: 'Unlocks',
-				mainRoute: '/unlocks',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.emissions?.protocols ?? 0,
-				description:
-					'Tracks the release of locked tokens into circulation according to tokenomics schedules. Includes team, investor, ecosystem, and other vesting-based unlocks'
-			},
-			{
-				name: 'Market Cap',
-				mainRoute: '/mcaps',
-				chainRoute: `/mcaps/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.mcap?.protocols ?? 0,
-				description: 'Token price multiplied by circulating supply'
-			},
-			{
-				name: 'FDV',
-				mainRoute: '/fdv',
-				chainRoute: `/fdv/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fdv?.protocols ?? 0,
-				description: 'Token price multiplied by fully diluted supply'
-			},
-			{
-				name: 'Outstanding FDV',
-				mainRoute: '/outstanding-fdv',
-				chainRoute: `/outstanding-fdv/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.adjustedFDV?.protocols ?? 0,
-				description: `Token price multiplied by outstanding supply. Outstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).`
-			},
-			{
-				name: 'Token Price',
-				mainRoute: '/token-prices',
-				chainRoute: `/token-prices/chain/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.price?.protocols ?? 0,
-				description: 'Price of the protocol token'
-			}
-		]
-	},
-	{
-		category: 'Others',
-		pages: [
-			{
-				name: 'Stablecoin Supply',
-				mainRoute: '/stablecoins',
-				chainRoute: `/stablecoins/{chain}`,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.stablecoins?.protocols ?? 0,
-				description: 'Total market cap of stable assets currently deployed on the chain'
-			},
-			{
-				name: 'Total Raised',
-				mainRoute: '/raises',
-				chainRoute: `/raises?chain={chain}`,
-				protocolsTracked: () => 0,
-				description: 'Total amount of capital raised by a protocol'
-			},
-			{
-				name: 'CEX Assets',
-				mainRoute: '/cexs',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.cexs?.protocols ?? 0,
-				description: 'Sum of assets held on a centralized exchange such as Binance'
-			},
-			{
-				name: 'Total Value Lost in Hacks',
-				mainRoute: '/hacks/total-value-lost',
-				chainRoute: null,
-				protocolsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.totalValueLostInHacks?.protocols ?? 0,
-				description: 'Total value lost in hacks by a protocol'
-			}
-		]
-	}
-]
+export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage({
+	page,
+	totalTrackedByMetric
+}: {
+	page: IPage
+	totalTrackedByMetric: any
+}) {
+	const pinnedMetrics = useSyncExternalStore(
+		subscribeToPinnedMetrics,
+		() => localStorage.getItem('pinned-metrics') ?? '[]',
+		() => '[]'
+	)
 
-export const chainsMetrics: Array<{
-	category: string
-	pages: Array<{
-		name: string
-		route: string
-		chainsTracked: (totalTrackedByMetric: ITotalTrackedByMetric) => number
-		description: string
-	}>
-}> = [
-	{
-		category: '',
-		pages: [
-			{
-				name: 'TVL',
-				route: `/chains`,
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.tvl?.chains ?? 0,
-				description: 'Total value of all coins held in smart contracts of all protocols on the chain'
-			},
-			{
-				name: 'Fees',
-				route: '/fees/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
-				description: 'Total fees paid by users when using the protocols on the chain'
-			},
-			{
-				name: 'Revenue',
-				route: '/revenue/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.revenue?.chains ?? 0,
-				description:
-					"Subset of fees that all protocols on the chain collect for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers"
-			},
-			{
-				name: 'REV',
-				route: '/rev/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
-				description: 'Sum of chain fees and MEV tips'
-			},
-			{
-				name: 'Bridged TVL',
-				route: '/bridged',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.bridgedTVL?.chains ?? 0,
-				description: 'Value of all tokens held on the chain'
-			},
-			{
-				name: 'App Revenue',
-				route: '/app-revenue/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.fees?.chains ?? 0,
-				description:
-					'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees'
-			},
-			{
-				name: 'Stablecoin Supply',
-				route: `/stablecoins/chains`,
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.stablecoins?.chains ?? 0,
-				description: 'Total market cap of stable assets currently deployed on all chains'
-			},
-			{
-				name: 'DEX Volume',
-				route: '/dexs/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.dexs?.chains ?? 0,
-				description: 'Volume of all spot token swaps that go through all DEXs on the chain'
-			},
-			{
-				name: 'Perp Volume',
-				route: '/perps/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.perps?.chains ?? 0,
-				description: 'Notional volume of all trades in all perp exchanges on the chain, includes leverage'
-			},
-			{
-				name: 'NFT Volume',
-				route: '/nfts/chains',
-				chainsTracked: (totalTrackedByMetric) => totalTrackedByMetric?.nfts?.chains ?? 0,
-				description: 'Sum of volume across all NFT exchanges on the chain'
-			},
-			{
-				name: 'Total Raised',
-				route: '/raises',
-				chainsTracked: () => 0,
-				description: 'Total amount of capital raised by a protocol'
-			}
-		]
-	}
-]
+	const isPinned = useMemo(() => {
+		const pinnedPages = JSON.parse(pinnedMetrics)
+		return pinnedPages.includes(page.route)
+	}, [pinnedMetrics, page.route])
+
+	const isExternalLink = page.route.startsWith('http')
+
+	return (
+		<div
+			className={`relative col-span-1 flex min-h-[120px] flex-col ${page.route === '/' ? '' : 'group'}`}
+			data-pinned={isPinned}
+		>
+			<BasicLink
+				className="col-span-1 flex flex-1 flex-col items-start gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 hover:bg-(--link-button)"
+				href={page.route}
+				target={isExternalLink ? '_blank' : undefined}
+				rel={isExternalLink ? 'noopener noreferrer' : undefined}
+			>
+				<span className="flex w-full flex-wrap items-center gap-1">
+					<span className="font-medium">{page.name}</span>
+					{page.tags?.map((tag) =>
+						tag === 'Hot' ? (
+							<span
+								className="flex items-center gap-1 rounded-md bg-[#D24C1F] px-1.5 py-1 text-[10px] text-white"
+								key={`tag-${page.route}-${tag}`}
+							>
+								<Icon name="flame" height={10} width={10} />
+								<span>Hot</span>
+							</span>
+						) : (
+							<span
+								className="flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-1 text-[10px] text-white"
+								key={`tag-${page.route}-${tag}`}
+							>
+								<Icon name="sparkles" height={10} width={10} />
+								<span>New</span>
+							</span>
+						)
+					)}
+					<Icon name="arrow-right" height={16} width={16} className="ml-auto" />
+				</span>
+				{totalTrackedByMetric && page.totalTrackedKey ? (
+					<span className="text-xs text-(--link)">{getTotalTracked(totalTrackedByMetric, page.totalTrackedKey)}</span>
+				) : null}
+				<span className="pt-0 text-start whitespace-pre-wrap text-(--text-form)">{page.description ?? ''}</span>
+			</BasicLink>
+
+			<Tooltip
+				content={isPinned ? 'Unpin from navigation' : 'Pin to navigation'}
+				render={
+					<button
+						onClick={(e) => {
+							const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
+							window.localStorage.setItem(
+								'pinned-metrics',
+								JSON.stringify(
+									currentPinnedMetrics.includes(page.route)
+										? currentPinnedMetrics.filter((metric: string) => metric !== page.route)
+										: [...currentPinnedMetrics, page.route]
+								)
+							)
+							window.dispatchEvent(new Event('pinnedMetricsChange'))
+							e.preventDefault()
+							e.stopPropagation()
+						}}
+					/>
+				}
+				className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-1.5 text-white group-hover:block group-data-[pinned=true]:block"
+			>
+				<Icon name="pin" height={14} width={14} style={{ '--icon-fill': isPinned ? 'white' : 'none' } as any} />
+			</Tooltip>
+		</div>
+	)
+})
+
+const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
+	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
+	if (!value) return null
+	return `${value} tracked`
+}
+
+export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: { currentMetric: Array<string> }) {
+	const dialogStore = Ariakit.useDialogStore()
+	const hasScrolledToCategoryRef = useRef('')
+	return (
+		<>
+			<Ariakit.DialogProvider store={dialogStore}>
+				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
+					<img
+						src="/icons/metrics-l.svg"
+						width={92}
+						height={40}
+						alt=""
+						className="absolute top-0 left-0 hidden h-full w-auto rounded-l-md object-cover md:block"
+						fetchPriority="high"
+					/>
+					<div className="flex h-full flex-wrap items-center justify-center gap-1">
+						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
+							<Icon name="sparkles" height={12} width={12} />
+							<span>New</span>
+						</span>
+						{currentMetric.map((metric, i) => (
+							<Fragment key={`metric-name-${metric}`}>
+								{i === 1 ? (
+									<span>{metric}</span>
+								) : (
+									<Ariakit.DialogDisclosure className="z-10 rounded-md border border-dashed border-(--old-blue) bg-(--link-button) px-2.5 py-1 font-semibold hover:bg-(--link-button-hover)">
+										{metric}
+									</Ariakit.DialogDisclosure>
+								)}
+							</Fragment>
+						))}
+						<Ariakit.DialogDisclosure className="z-10 flex items-center gap-1 px-1.5 py-1 text-xs text-(--text-form)">
+							<Icon name="search" height={12} width={12} />
+							<span className="hidden sm:block">Click to browse & search</span>
+						</Ariakit.DialogDisclosure>
+					</div>
+					<img
+						src="/icons/metrics-r.svg"
+						width={92}
+						height={40}
+						alt=""
+						className="absolute top-0 right-0 hidden h-full w-auto rounded-r-md object-cover md:block"
+						fetchPriority="high"
+					/>
+					<svg
+						width="100%"
+						height="100%"
+						className="absolute top-0 right-0 bottom-0 left-0 z-0 text-[#e6e6e6] dark:text-[#222324]"
+					>
+						<defs>
+							<linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+								<stop offset="0%" stopColor="#1f67d2" />
+								<stop offset="8%" stopColor="#1f67d2" />
+								<stop offset="18%" stopColor="currentColor" />
+								<stop offset="82%" stopColor="currentColor" />
+								<stop offset="92%" stopColor="#1f67d2" />
+								<stop offset="100%" stopColor="#1f67d2" />
+							</linearGradient>
+						</defs>
+						<rect
+							x="1"
+							y="1"
+							width="calc(100% - 1.5px)"
+							height="calc(100% - 1.5px)"
+							rx="6"
+							ry="6"
+							fill="none"
+							stroke="url(#border-gradient)"
+							strokeWidth="1"
+						/>
+					</svg>
+				</div>
+				<Ariakit.Dialog
+					className="dialog max-sm:drawer thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 sm:w-full sm:max-w-[min(85vw,1280px)]"
+					unmountOnHide
+					hideOnInteractOutside
+				>
+					<Metrics canDismiss={true} hasScrolledToCategoryRef={hasScrolledToCategoryRef} />
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+		</>
+	)
+})

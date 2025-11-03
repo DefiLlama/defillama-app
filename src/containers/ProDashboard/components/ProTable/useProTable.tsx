@@ -12,8 +12,14 @@ import {
 } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
 import {
+	useGetProtocolsAggregatorsByMultiChain,
+	useGetProtocolsBridgeAggregatorsByMultiChain,
+	useGetProtocolsEarningsByMultiChain,
 	useGetProtocolsFeesAndRevenueByMultiChain,
 	useGetProtocolsListMultiChain,
+	useGetProtocolsOpenInterestByMultiChain,
+	useGetProtocolsOptionsVolumeByMultiChain,
+	useGetProtocolsPerpsVolumeByMultiChain,
 	useGetProtocolsVolumeByMultiChain
 } from '~/api/categories/chains/multiChainClient'
 import { Icon } from '~/components/Icon'
@@ -22,8 +28,8 @@ import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/colum
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { formattedNum, getPercentChange } from '~/utils'
-import { TableFilters } from '../../types'
+import { downloadCSV, getPercentChange } from '~/utils'
+import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
 	id: string
@@ -31,6 +37,16 @@ interface CustomColumn {
 	expression: string
 	isValid: boolean
 	errorMessage?: string
+}
+
+export interface ColumnPresetDefinition {
+	id: string
+	label: string
+	columns: string[]
+	sort?: SortingState
+	group?: 'core' | 'dataset'
+	description?: string
+	icon?: string
 }
 
 // Helper function to recalculate parent protocol metrics based on filtered children
@@ -43,39 +59,61 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let mcap = 0
 	let volume_24h = 0
 	let volume_7d = 0
+	let volume_30d = 0
 	let fees_24h = 0
 	let fees_7d = 0
 	let fees_30d = 0
 	let fees_1y = 0
+	let average_1y = 0
 	let revenue_24h = 0
 	let revenue_7d = 0
 	let revenue_30d = 0
 	let revenue_1y = 0
+	let perps_volume_24h = 0
+	let perps_volume_7d = 0
+	let perps_volume_30d = 0
+	let openInterest = 0
 
 	let weightedVolumeChange = 0
 	let totalVolumeWeight = 0
+	let weightedPerpsVolumeChange = 0
+	let totalPerpsVolumeWeight = 0
 
 	// Aggregate metrics from filtered children
 	filteredSubRows.forEach((child) => {
-		if (child.tvl) tvl += child.tvl
-		if (child.tvlPrevDay) tvlPrevDay += child.tvlPrevDay
-		if (child.tvlPrevWeek) tvlPrevWeek += child.tvlPrevWeek
-		if (child.tvlPrevMonth) tvlPrevMonth += child.tvlPrevMonth
-		if (child.mcap) mcap += child.mcap
-		if (child.volume_24h) volume_24h += child.volume_24h
-		if (child.volume_7d) volume_7d += child.volume_7d
-		if (child.volume_7d && child.volumeChange_7d !== undefined && child.volumeChange_7d !== null) {
+		if (child.tvl != null) tvl += child.tvl
+		if (child.tvlPrevDay != null) tvlPrevDay += child.tvlPrevDay
+		if (child.tvlPrevWeek != null) tvlPrevWeek += child.tvlPrevWeek
+		if (child.tvlPrevMonth != null) tvlPrevMonth += child.tvlPrevMonth
+		if (child.mcap != null) mcap += child.mcap
+		if (child.volume_24h != null) volume_24h += child.volume_24h
+		if (child.volume_7d != null) volume_7d += child.volume_7d
+		if (child.volume_30d != null) volume_30d += child.volume_30d
+		if (child.volume_7d != null && child.volumeChange_7d !== undefined && child.volumeChange_7d !== null) {
 			weightedVolumeChange += child.volumeChange_7d * child.volume_7d
 			totalVolumeWeight += child.volume_7d
 		}
-		if (child.fees_24h) fees_24h += child.fees_24h
-		if (child.fees_7d) fees_7d += child.fees_7d
-		if (child.fees_30d) fees_30d += child.fees_30d
-		if (child.fees_1y) fees_1y += child.fees_1y
-		if (child.revenue_24h) revenue_24h += child.revenue_24h
-		if (child.revenue_7d) revenue_7d += child.revenue_7d
-		if (child.revenue_30d) revenue_30d += child.revenue_30d
-		if (child.revenue_1y) revenue_1y += child.revenue_1y
+		if (child.fees_24h != null) fees_24h += child.fees_24h
+		if (child.fees_7d != null) fees_7d += child.fees_7d
+		if (child.fees_30d != null) fees_30d += child.fees_30d
+		if (child.fees_1y != null) fees_1y += child.fees_1y
+		if (child.average_1y != null) average_1y += child.average_1y
+		if (child.revenue_24h != null) revenue_24h += child.revenue_24h
+		if (child.revenue_7d != null) revenue_7d += child.revenue_7d
+		if (child.revenue_30d != null) revenue_30d += child.revenue_30d
+		if (child.revenue_1y != null) revenue_1y += child.revenue_1y
+		if (child.perps_volume_24h != null) perps_volume_24h += child.perps_volume_24h
+		if (child.perps_volume_7d != null) perps_volume_7d += child.perps_volume_7d
+		if (child.perps_volume_30d != null) perps_volume_30d += child.perps_volume_30d
+		if (
+			child.perps_volume_7d != null &&
+			child.perps_volume_change_7d !== undefined &&
+			child.perps_volume_change_7d !== null
+		) {
+			weightedPerpsVolumeChange += child.perps_volume_change_7d * child.perps_volume_7d
+			totalPerpsVolumeWeight += child.perps_volume_7d
+		}
+		if (child.openInterest != null) openInterest += child.openInterest
 	})
 
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
@@ -87,11 +125,36 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
 	}
 
+	let perps_volume_change_7d = null
+	if (totalPerpsVolumeWeight > 0) {
+		perps_volume_change_7d = weightedPerpsVolumeChange / totalPerpsVolumeWeight
+	}
+
 	let mcaptvl = null
 	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
 	if (tvl && finalMcap) {
-		mcaptvl = +formattedNum(finalMcap / tvl)
+		mcaptvl = +(finalMcap / tvl).toFixed(2)
 	}
+
+	const oracleSet = new Set<string>()
+	const oraclesByChainAgg: Record<string, Set<string>> = {}
+	const addOracles = (obj: any) => {
+		if (Array.isArray(obj?.oracles)) {
+			obj.oracles.forEach((o: string) => oracleSet.add(o))
+		}
+		if (obj?.oraclesByChain) {
+			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
+				;(obj.oraclesByChain[k] || []).forEach((o: string) => set.add(o))
+			}
+		}
+	}
+	addOracles(parent)
+	filteredSubRows.forEach(addOracles)
+
+	const aggregatedOraclesByChain = Object.fromEntries(
+		Object.entries(oraclesByChainAgg).map(([k, v]) => [k, Array.from(v).sort((a, b) => a.localeCompare(b))])
+	)
 
 	return {
 		...parent,
@@ -100,37 +163,46 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		tvlPrevWeek,
 		tvlPrevMonth,
 		mcap: finalMcap,
-		volume_24h,
-		volume_7d,
+		volume_24h: volume_24h || 0,
+		volume_7d: volume_7d || 0,
+		volume_30d: volume_30d || 0,
 		volumeChange_7d,
 		fees_24h,
 		fees_7d,
 		fees_30d,
 		fees_1y,
+		average_1y,
 		revenue_24h,
 		revenue_7d,
 		revenue_30d,
 		revenue_1y,
+		perps_volume_24h,
+		perps_volume_7d,
+		perps_volume_30d,
+		perps_volume_change_7d,
+		openInterest,
 		change_1d,
 		change_7d,
 		change_1m,
 		mcaptvl,
-		subRows: filteredSubRows
+		subRows: filteredSubRows,
+		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
+		oraclesByChain: Object.keys(aggregatedOraclesByChain).length ? aggregatedOraclesByChain : parent.oraclesByChain
 	}
 }
-
-import { CustomView } from '../../types'
 
 interface UseProTableOptions {
 	initialColumnOrder?: string[]
 	initialColumnVisibility?: Record<string, boolean>
 	initialCustomColumns?: CustomColumn[]
 	initialActiveViewId?: string
+	initialActivePresetId?: string
 	onColumnsChange?: (
 		columnOrder: string[],
 		columnVisibility: Record<string, boolean>,
 		customColumns: CustomColumn[],
-		activeViewId?: string
+		activeViewId?: string,
+		activePresetId?: string
 	) => void
 }
 
@@ -143,6 +215,12 @@ export function useProTable(
 	const { fullProtocolsList, parentProtocols } = useGetProtocolsListMultiChain(chains)
 	const { data: chainProtocolsVolumes } = useGetProtocolsVolumeByMultiChain(chains)
 	const { data: chainProtocolsFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
+	const { data: chainProtocolsPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
+	const { data: chainProtocolsOpenInterest } = useGetProtocolsOpenInterestByMultiChain(chains)
+	const { data: chainProtocolsEarnings } = useGetProtocolsEarningsByMultiChain(chains)
+	const { data: chainProtocolsAggregators } = useGetProtocolsAggregatorsByMultiChain(chains)
+	const { data: chainProtocolsBridgeAggregators } = useGetProtocolsBridgeAggregatorsByMultiChain(chains)
+	const { data: chainProtocolsOptions } = useGetProtocolsOptionsVolumeByMultiChain(chains)
 	const finalProtocolsList = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 
@@ -151,7 +229,13 @@ export function useProTable(
 			protocols: fullProtocolsList,
 			parentProtocols,
 			volumeData: chainProtocolsVolumes,
-			feesData: chainProtocolsFees
+			feesData: chainProtocolsFees,
+			perpsData: chainProtocolsPerps,
+			openInterestData: chainProtocolsOpenInterest,
+			earningsData: chainProtocolsEarnings,
+			aggregatorsData: chainProtocolsAggregators,
+			bridgeAggregatorsData: chainProtocolsBridgeAggregators,
+			optionsData: chainProtocolsOptions
 		})
 
 		// Apply filters
@@ -159,6 +243,33 @@ export function useProTable(
 			// Convert arrays to Sets for O(1) lookup performance
 			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
 			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
+			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null
+			const oracleSet = filters.oracles?.length ? new Set(filters.oracles) : null
+
+			if (excludedCategorySet) {
+				protocols = protocols
+					.map((p) => {
+						if (p.category && excludedCategorySet.has(p.category)) {
+							return null
+						}
+
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter(
+								(child: any) => !child.category || !excludedCategorySet.has(child.category)
+							)
+
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							} else {
+								return null
+							}
+						}
+
+						return p
+					})
+					.filter((p) => p !== null)
+			}
 
 			if (protocolSet) {
 				protocols = protocols
@@ -182,6 +293,36 @@ export function useProTable(
 						}
 
 						return null
+					})
+					.filter((p) => p !== null)
+			}
+
+			if (oracleSet) {
+				protocols = protocols
+					.map((p) => {
+						const getOracles = (obj: any): string[] => {
+							if (Array.isArray(obj?.oracles) && obj.oracles.length) return obj.oracles
+							if (obj?.oraclesByChain) {
+								return Array.from(new Set(Object.values(obj.oraclesByChain as Record<string, string[]>).flat()))
+							}
+							return []
+						}
+
+						const protocolWithSubRows = p as any
+						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
+							const filteredSubRows = protocolWithSubRows.subRows.filter((child: any) => {
+								const childOracles = getOracles(child)
+								return childOracles.some((o) => oracleSet.has(o))
+							})
+
+							if (filteredSubRows.length > 0) {
+								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
+							}
+							return null
+						}
+
+						const pOracles = getOracles(p)
+						return pOracles.some((o) => oracleSet.has(o)) ? p : null
 					})
 					.filter((p) => p !== null)
 			}
@@ -210,31 +351,55 @@ export function useProTable(
 		}
 
 		return protocols
-	}, [fullProtocolsList, parentProtocols, chainProtocolsVolumes, chainProtocolsFees, filters])
+	}, [
+		fullProtocolsList,
+		parentProtocols,
+		chainProtocolsVolumes,
+		chainProtocolsFees,
+		chainProtocolsPerps,
+		chainProtocolsOpenInterest,
+		chainProtocolsEarnings,
+		chainProtocolsAggregators,
+		chainProtocolsBridgeAggregators,
+		chainProtocolsOptions,
+		filters
+	])
 
-	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'tvl' }])
+	const defaultSortingRef = React.useRef<SortingState>([{ id: 'tvl', desc: true }])
+	const [sorting, setSorting] = React.useState<SortingState>(defaultSortingRef.current)
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
 	const [searchTerm, setSearchTerm] = React.useState('')
 	const [columnOrder, setColumnOrder] = React.useState<string[]>(options?.initialColumnOrder || [])
 	const [customColumns, setCustomColumns] = React.useState<CustomColumn[]>(options?.initialCustomColumns || [])
-	const [selectedPreset, setSelectedPreset] = React.useState<string | null>(null)
+	const [selectedPreset, setSelectedPreset] = React.useState<string | null>(options?.initialActivePresetId || null)
 	const [columnVisibility, setColumnVisibility] = React.useState(options?.initialColumnVisibility || {})
 	const [activeCustomView, setActiveCustomView] = React.useState<string | null>(options?.initialActiveViewId || null)
+	const [activeDatasetMetric, setActiveDatasetMetric] = React.useState<string | null>(null)
+
+	const filteredProtocolsList = React.useMemo(() => {
+		if (!activeDatasetMetric) {
+			return finalProtocolsList
+		}
+
+		return finalProtocolsList.filter((protocol) => {
+			const value = protocol[activeDatasetMetric as keyof IProtocolRow]
+			return typeof value === 'number' && value > 0
+		})
+	}, [finalProtocolsList, activeDatasetMetric])
 
 	const { userConfig, saveUserConfig } = useUserConfig()
-	
-	
+
 	const customViews = React.useMemo(() => {
 		if (!userConfig || !userConfig?.tableViews) {
 			return []
 		}
 		return userConfig?.tableViews as CustomView[]
 	}, [userConfig])
-	
+
 	React.useEffect(() => {
 		if (options?.initialActiveViewId && customViews.length > 0) {
-			const view = customViews.find(v => v.id === options.initialActiveViewId)
+			const view = customViews.find((v) => v.id === options.initialActiveViewId)
 			if (view && !columnOrder.length && !Object.keys(columnVisibility).length) {
 				setColumnOrder(view.columnOrder)
 				setColumnVisibility(view.columnVisibility)
@@ -313,12 +478,18 @@ export function useProTable(
 
 	// Create custom columns with filter button
 	const columnsWithFilter = React.useMemo(() => {
-		if (!onFilterClick) return { name: null, category: null }
+		if (!onFilterClick) return { name: null, category: null, oracles: null }
 
 		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
 		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
+		const originalOraclesColumn = protocolsByChainColumns.find((col) => col.id === 'oracles')
 
-		const hasActiveFilters = filters && (filters.protocols?.length || filters.categories?.length)
+		const hasActiveFilters =
+			filters &&
+			(filters.protocols?.length ||
+				filters.categories?.length ||
+				filters.excludedCategories?.length ||
+				filters.oracles?.length)
 
 		const filterButton = (
 			<button
@@ -326,8 +497,8 @@ export function useProTable(
 					e.stopPropagation()
 					onFilterClick()
 				}}
-				className={`rounded p-1 transition-colors hover:bg-(--bg-tertiary) ${
-					hasActiveFilters ? 'text-blue-600 dark:text-blue-400' : 'text-(--text-tertiary)'
+				className={`rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
+					hasActiveFilters ? 'text-pro-blue-400 dark:text-pro-blue-200' : 'text-(--text-tertiary)'
 				}`}
 				title="Filter protocols"
 			>
@@ -361,7 +532,20 @@ export function useProTable(
 				}
 			: null
 
-		return { name: nameColumn, category: categoryColumn }
+		const oraclesColumn = originalOraclesColumn
+			? {
+					...originalOraclesColumn,
+					id: 'oracles',
+					header: () => (
+						<div className="flex items-center justify-end gap-2">
+							<span>Oracles</span>
+							{React.cloneElement(filterButton, { key: 'oracles-filter' })}
+						</div>
+					)
+				}
+			: null
+
+		return { name: nameColumn, category: categoryColumn, oracles: oraclesColumn }
 	}, [filters, onFilterClick])
 
 	const totals = React.useMemo(() => {
@@ -373,6 +557,7 @@ export function useProTable(
 			'fees_7d',
 			'fees_30d',
 			'fees_1y',
+			'average_1y',
 			'revenue_24h',
 			'revenue_7d',
 			'revenue_30d',
@@ -380,7 +565,24 @@ export function useProTable(
 			'volume_24h',
 			'volume_7d',
 			'cumulativeFees',
-			'cumulativeVolume'
+			'cumulativeVolume',
+			'perps_volume_24h',
+			'perps_volume_7d',
+			'perps_volume_30d',
+			'openInterest',
+			'earnings_24h',
+			'earnings_7d',
+			'earnings_30d',
+			'earnings_1y',
+			'aggregators_volume_24h',
+			'aggregators_volume_7d',
+			'aggregators_volume_30d',
+			'bridge_aggregators_volume_24h',
+			'bridge_aggregators_volume_7d',
+			'bridge_aggregators_volume_30d',
+			'options_volume_24h',
+			'options_volume_7d',
+			'options_volume_30d'
 		]
 
 		usdMetrics.forEach((metric) => {
@@ -407,6 +609,7 @@ export function useProTable(
 			{ key: 'fees_7d', name: 'Fees 7d % Share' },
 			{ key: 'fees_30d', name: 'Fees 30d % Share' },
 			{ key: 'fees_1y', name: 'Fees 1y % Share' },
+			{ key: 'average_1y', name: 'Monthly Avg 1Y Fees % Share' },
 			{ key: 'revenue_24h', name: 'Revenue 24h % Share' },
 			{ key: 'revenue_7d', name: 'Revenue 7d % Share' },
 			{ key: 'revenue_30d', name: 'Revenue 30d % Share' },
@@ -414,7 +617,20 @@ export function useProTable(
 			{ key: 'volume_24h', name: 'Volume 24h % Share' },
 			{ key: 'volume_7d', name: 'Volume 7d % Share' },
 			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share' },
-			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share' }
+			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share' },
+			{ key: 'earnings_24h', name: 'Earnings 24h % Share' },
+			{ key: 'earnings_7d', name: 'Earnings 7d % Share' },
+			{ key: 'earnings_30d', name: 'Earnings 30d % Share' },
+			{ key: 'earnings_1y', name: 'Earnings 1y % Share' },
+			{ key: 'aggregators_volume_24h', name: 'Agg Volume 24h % Share' },
+			{ key: 'aggregators_volume_7d', name: 'Agg Volume 7d % Share' },
+			{ key: 'aggregators_volume_30d', name: 'Agg Volume 30d % Share' },
+			{ key: 'bridge_aggregators_volume_24h', name: 'Bridge Agg Volume 24h % Share' },
+			{ key: 'bridge_aggregators_volume_7d', name: 'Bridge Agg Volume 7d % Share' },
+			{ key: 'bridge_aggregators_volume_30d', name: 'Bridge Agg Volume 30d % Share' },
+			{ key: 'options_volume_24h', name: 'Options Volume 24h % Share' },
+			{ key: 'options_volume_7d', name: 'Options Volume 7d % Share' },
+			{ key: 'options_volume_30d', name: 'Options Volume 30d % Share' }
 		]
 
 		return usdMetrics.map(
@@ -457,11 +673,18 @@ export function useProTable(
 			}
 		}
 
+		if (columnsWithFilter.oracles) {
+			const oraclesIndex = baseColumns.findIndex((col) => col.id === 'oracles')
+			if (oraclesIndex !== -1) {
+				baseColumns[oraclesIndex] = columnsWithFilter.oracles as ColumnDef<IProtocolRow>
+			}
+		}
+
 		return [...baseColumns, ...customColumnDefs, ...percentageShareColumnDefs]
 	}, [customColumnDefs, columnsWithFilter, percentageShareColumnDefs])
 
 	const table = useReactTable({
-		data: finalProtocolsList,
+		data: filteredProtocolsList,
 		columns: allColumns,
 		state: {
 			sorting,
@@ -526,6 +749,7 @@ export function useProTable(
 	const prevColumnVisibilityRef = React.useRef<Record<string, boolean>>(null)
 	const prevCustomColumnsRef = React.useRef<CustomColumn[]>(null)
 	const prevActiveCustomViewRef = React.useRef<string | null>(null)
+	const prevSelectedPresetRef = React.useRef<string | null>(null)
 
 	React.useEffect(() => {
 		if (options?.onColumnsChange) {
@@ -534,19 +758,33 @@ export function useProTable(
 				JSON.stringify(prevColumnVisibilityRef.current) !== JSON.stringify(columnVisibility)
 			const customColumnsChanged = JSON.stringify(prevCustomColumnsRef.current) !== JSON.stringify(customColumns)
 			const activeViewChanged = prevActiveCustomViewRef.current !== activeCustomView
+			const selectedPresetChanged = prevSelectedPresetRef.current !== selectedPreset
 
-			if (columnOrderChanged || columnVisibilityChanged || customColumnsChanged || activeViewChanged) {
+			if (
+				columnOrderChanged ||
+				columnVisibilityChanged ||
+				customColumnsChanged ||
+				activeViewChanged ||
+				selectedPresetChanged
+			) {
 				prevColumnOrderRef.current = columnOrder
 				prevColumnVisibilityRef.current = columnVisibility
 				prevCustomColumnsRef.current = customColumns
 				prevActiveCustomViewRef.current = activeCustomView
-				options.onColumnsChange(columnOrder, columnVisibility, customColumns, activeCustomView || undefined)
+				prevSelectedPresetRef.current = selectedPreset
+				options.onColumnsChange(
+					columnOrder,
+					columnVisibility,
+					customColumns,
+					activeCustomView || undefined,
+					selectedPreset || undefined
+				)
 			}
 		}
-	}, [columnOrder, columnVisibility, customColumns, activeCustomView, options])
+	}, [columnOrder, columnVisibility, customColumns, activeCustomView, selectedPreset, options])
 
 	React.useEffect(() => {
-		if (!options?.initialColumnVisibility) {
+		if (!options?.initialColumnVisibility && !options?.initialActivePresetId) {
 			applyPreset('essential')
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -560,38 +798,267 @@ export function useProTable(
 		setColumnVisibility(ops)
 	}
 
-	const columnPresets = React.useMemo(
-		() => ({
-			essential: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d', 'mcap'],
-			fees: ['name', 'category', 'chains', 'tvl', 'fees_24h', 'fees_7d', 'revenue_24h', 'revenue_7d'],
-			volume: ['name', 'category', 'chains', 'tvl', 'volume_24h', 'volume_7d', 'volumeChange_7d'],
-			advanced: [
-				'name',
-				'category',
-				'chains',
-				'tvl',
-				'change_1d',
-				'fees_24h',
-				'revenue_24h',
-				'volume_24h',
-				'mcaptvl',
-				'pf',
-				'ps'
-			]
-		}),
+	const columnPresets = React.useMemo<ColumnPresetDefinition[]>(
+		() => [
+			{
+				id: 'essential',
+				label: 'Essential',
+				group: 'core',
+				columns: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d', 'mcap']
+			},
+			{
+				id: 'advanced',
+				label: 'Advanced',
+				group: 'core',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'tvl',
+					'change_1d',
+					'fees_24h',
+					'revenue_24h',
+					'volume_24h',
+					'mcaptvl',
+					'pf',
+					'ps'
+				]
+			},
+			{
+				id: 'fees',
+				label: 'Fees',
+				group: 'dataset',
+				description: '24h/7d/30d fees with change metrics and cumulative totals',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'tvl',
+					'fees_24h',
+					'fees_7d',
+					'fees_30d',
+					'fees_1y',
+					'average_1y',
+					'feesChange_1d',
+					'feesChange_7d',
+					'feesChange_1m',
+					'feesChange_7dover7d',
+					'feesChange_30dover30d',
+					'cumulativeFees',
+					'pf'
+				],
+				sort: [{ id: 'fees_24h', desc: true }]
+			},
+			{
+				id: 'revenue',
+				label: 'Revenue',
+				group: 'dataset',
+				description: 'Protocol revenue across timeframes and change rates',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'tvl',
+					'revenue_24h',
+					'revenue_7d',
+					'revenue_30d',
+					'revenue_1y',
+					'average_revenue_1y',
+					'revenueChange_1d',
+					'revenueChange_7d',
+					'revenueChange_1m',
+					'revenueChange_7dover7d',
+					'revenueChange_30dover30d',
+					'treasuryRevenue_24h',
+					'supplySideRevenue_24h',
+					'userFees_24h',
+					'ps'
+				],
+				sort: [{ id: 'revenue_24h', desc: true }]
+			},
+			{
+				id: 'holders',
+				label: 'Holders Rev',
+				group: 'dataset',
+				description: 'Revenue distributions to token holders',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'holderRevenue_24h',
+					'holdersRevenue30d',
+					'holdersRevenueChange_30dover30d',
+					'revenue_30d',
+					'revenueChange_1m'
+				],
+				sort: [{ id: 'holderRevenue_24h', desc: true }]
+			},
+			{
+				id: 'earnings',
+				label: 'Earnings',
+				group: 'dataset',
+				description: 'Net protocol earnings across daily, weekly, monthly, and yearly windows',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'earnings_24h',
+					'earnings_7d',
+					'earnings_30d',
+					'earnings_1y',
+					'earningsChange_1d',
+					'earningsChange_7d',
+					'earningsChange_1m'
+				],
+				sort: [{ id: 'earnings_24h', desc: true }]
+			},
+			{
+				id: 'spot-volume',
+				label: 'Spot Volume',
+				group: 'dataset',
+				description: 'DEX spot volume with dominance share',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'volume_24h',
+					'volume_7d',
+					'volume_30d',
+					'volumeChange_1d',
+					'volumeChange_7d',
+					'volumeChange_1m',
+					'volumeDominance_24h',
+					'volumeMarketShare7d',
+					'cumulativeVolume'
+				],
+				sort: [{ id: 'volume_24h', desc: true }]
+			},
+			{
+				id: 'perps-volume',
+				label: 'Perps Volume',
+				group: 'dataset',
+				description: 'Perpetuals volume and open interest',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'perps_volume_24h',
+					'perps_volume_7d',
+					'perps_volume_30d',
+					'perps_volume_change_1d',
+					'perps_volume_change_7d',
+					'perps_volume_change_1m',
+					'perps_volume_dominance_24h',
+					'openInterest'
+				],
+				sort: [{ id: 'perps_volume_24h', desc: true }]
+			},
+			{
+				id: 'open-interest',
+				label: 'Open Interest',
+				group: 'dataset',
+				description: 'Rank protocols by open interest',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'openInterest',
+					'perps_volume_24h',
+					'perps_volume_change_1d',
+					'perps_volume_change_7d'
+				],
+				sort: [{ id: 'openInterest', desc: true }]
+			},
+			{
+				id: 'dex-aggregators',
+				label: 'DEX Aggregators',
+				group: 'dataset',
+				description: 'Aggregator trading volume and dominance metrics',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'aggregators_volume_24h',
+					'aggregators_volume_change_1d',
+					'aggregators_volume_7d',
+					'aggregators_volume_change_7d',
+					'aggregators_volume_30d',
+					'aggregators_volume_dominance_24h',
+					'aggregators_volume_marketShare7d'
+				],
+				sort: [{ id: 'aggregators_volume_24h', desc: true }]
+			},
+			{
+				id: 'bridge-aggregators',
+				label: 'Bridge Aggregators',
+				group: 'dataset',
+				description: 'Bridge aggregator flows with 24h dominance share',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'bridge_aggregators_volume_24h',
+					'bridge_aggregators_volume_change_1d',
+					'bridge_aggregators_volume_7d',
+					'bridge_aggregators_volume_change_7d',
+					'bridge_aggregators_volume_30d',
+					'bridge_aggregators_volume_dominance_24h'
+				],
+				sort: [{ id: 'bridge_aggregators_volume_24h', desc: true }]
+			},
+			{
+				id: 'options',
+				label: 'Options',
+				group: 'dataset',
+				description: 'Options trading volume across timeframes',
+				columns: [
+					'name',
+					'category',
+					'chains',
+					'options_volume_24h',
+					'options_volume_change_1d',
+					'options_volume_7d',
+					'options_volume_change_7d',
+					'options_volume_30d',
+					'options_volume_dominance_24h'
+				],
+				sort: [{ id: 'options_volume_24h', desc: true }]
+			}
+		],
 		[]
 	)
 
-	const applyPreset = (presetName: string) => {
-		const preset = columnPresets[presetName]
-		if (preset) {
-			addOption(preset)
-			setShowColumnPanel(false)
-			setSelectedPreset(presetName)
+	const applyPreset = (presetId: string) => {
+		const preset = columnPresets.find((item) => item.id === presetId)
+		if (!preset) return
 
-			setColumnOrder(preset)
+		addOption(preset.columns)
+		setColumnOrder(preset.columns)
+		setSorting(
+			(preset.sort && preset.sort.length > 0 ? preset.sort : defaultSortingRef.current).map((rule) => ({
+				...rule
+			}))
+		)
+		setShowColumnPanel(false)
+		setSelectedPreset(presetId)
+		setActiveCustomView(null)
+
+		if (preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
+			setActiveDatasetMetric(preset.sort[0].id)
+		} else {
+			setActiveDatasetMetric(null)
 		}
 	}
+
+	React.useEffect(() => {
+		if (options?.initialActivePresetId && !activeDatasetMetric) {
+			const preset = columnPresets.find((p) => p.id === options.initialActivePresetId)
+			if (preset && preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
+				setActiveDatasetMetric(preset.sort[0].id)
+				setSorting(preset.sort.map((rule) => ({ ...rule })))
+			}
+		}
+	}, [options?.initialActivePresetId, columnPresets, activeDatasetMetric])
 
 	// Get current column visibility state
 	const currentColumns = React.useMemo(() => {
@@ -619,6 +1086,7 @@ export function useProTable(
 
 		addOption(newOptions)
 		setSelectedPreset(null)
+		setActiveDatasetMetric(null)
 
 		if (isVisible) {
 			setColumnOrder((prev) => [...prev, columnKey])
@@ -655,10 +1123,10 @@ export function useProTable(
 		})
 	}
 
-	const downloadCSV = () => {
+	const handleDownloadCSV = () => {
 		if (!table) return
 
-		const visibleColumns = table.getVisibleFlatColumns().filter((col) => col.id !== 'expand')
+		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible() && col.id !== 'expand')
 
 		const sortedColumns =
 			columnOrder.length > 0
@@ -685,26 +1153,14 @@ export function useProTable(
 			})
 		})
 
-		const csvContent = [
-			headers.join(','),
-			...rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
-		].join('\n')
-
-		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-		const link = document.createElement('a')
-		const url = URL.createObjectURL(blob)
-		link.setAttribute('href', url)
 		const filename =
 			chains.length === 1
-				? `${chains[0]}_protocols_${new Date().toISOString().split('T')[0]}.csv`
+				? `${chains[0]}_protocols.csv`
 				: chains.length <= 3
-					? `${chains.join('_')}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-					: `multi_chain_${chains.length}_protocols_${new Date().toISOString().split('T')[0]}.csv`
-		link.setAttribute('download', filename)
-		link.style.visibility = 'hidden'
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
+					? `${chains.join('_')}_protocols.csv`
+					: `multi_chain_${chains.length}_protocols.csv`
+
+		downloadCSV(filename, [headers, ...rows], { addTimestamp: true })
 	}
 
 	// Custom column management functions
@@ -730,56 +1186,67 @@ export function useProTable(
 		setCustomColumns(updatedColumns)
 	}
 
-	const saveCustomView = React.useCallback(async (name: string) => {
-		const newView: CustomView = {
-			id: `custom_view_${Date.now()}`,
-			name,
-			columnOrder: [...columnOrder],
-			columnVisibility: { ...columnVisibility },
-			customColumns: [...customColumns],
-			createdAt: Date.now()
-		}
+	const saveCustomView = React.useCallback(
+		async (name: string) => {
+			const newView: CustomView = {
+				id: `custom_view_${Date.now()}`,
+				name,
+				columnOrder: [...columnOrder],
+				columnVisibility: { ...columnVisibility },
+				customColumns: [...customColumns],
+				createdAt: Date.now()
+			}
 
-		const updatedViews = [...customViews, newView]
-		
-		if (saveUserConfig) {
-			await saveUserConfig({
-				...userConfig,
-				tableViews: updatedViews
-			})
-		}
-		
-		setActiveCustomView(newView.id)
-		setSelectedPreset(null)
-		
-		return newView
-	}, [columnOrder, columnVisibility, customColumns, customViews, saveUserConfig, userConfig])
+			const updatedViews = [...customViews, newView]
 
-	const deleteCustomView = React.useCallback(async (viewId: string) => {
-		const updatedViews = customViews.filter(view => view.id !== viewId)
-		
-		if (saveUserConfig) {
-			await saveUserConfig({
-				...userConfig,
-				tableViews: updatedViews
-			})
-		}
-		
-		if (activeCustomView === viewId) {
-			setActiveCustomView(null)
-		}
-	}, [customViews, activeCustomView, saveUserConfig, userConfig])
+			if (saveUserConfig) {
+				await saveUserConfig({
+					...userConfig,
+					tableViews: updatedViews
+				})
+			}
 
-	const loadCustomView = React.useCallback((viewId: string) => {
-		const view = customViews.find(v => v.id === viewId)
-		if (view) {
-			setColumnOrder(view.columnOrder)
-			setColumnVisibility(view.columnVisibility)
-			setCustomColumns(view.customColumns || [])
-			setActiveCustomView(viewId)
+			setActiveCustomView(newView.id)
 			setSelectedPreset(null)
-		}
-	}, [customViews])
+			setActiveDatasetMetric(null)
+
+			return newView
+		},
+		[columnOrder, columnVisibility, customColumns, customViews, saveUserConfig, userConfig]
+	)
+
+	const deleteCustomView = React.useCallback(
+		async (viewId: string) => {
+			const updatedViews = customViews.filter((view) => view.id !== viewId)
+
+			if (saveUserConfig) {
+				await saveUserConfig({
+					...userConfig,
+					tableViews: updatedViews
+				})
+			}
+
+			if (activeCustomView === viewId) {
+				setActiveCustomView(null)
+			}
+		},
+		[customViews, activeCustomView, saveUserConfig, userConfig]
+	)
+
+	const loadCustomView = React.useCallback(
+		(viewId: string) => {
+			const view = customViews.find((v) => v.id === viewId)
+			if (view) {
+				setColumnOrder(view.columnOrder)
+				setColumnVisibility(view.columnVisibility)
+				setCustomColumns(view.customColumns || [])
+				setActiveCustomView(viewId)
+				setSelectedPreset(null)
+				setActiveDatasetMetric(null)
+			}
+		},
+		[customViews]
+	)
 
 	// Extract unique categories from all protocols
 	const categories = React.useMemo(() => {
@@ -819,13 +1286,14 @@ export function useProTable(
 		columnPresets,
 		applyPreset,
 		activePreset: selectedPreset || activeCustomView,
-		downloadCSV,
+		downloadCSV: handleDownloadCSV,
 		customColumns,
 		addCustomColumn,
 		removeCustomColumn,
 		updateCustomColumn,
 		categories,
 		availableProtocols,
+		parentProtocols,
 		customViews,
 		saveCustomView,
 		deleteCustomView,

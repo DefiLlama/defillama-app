@@ -6,21 +6,22 @@ import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import Layout from '~/layout'
 import {
 	capitalizeFirstLetter,
-	download,
 	formattedNum,
 	getBlockExplorer,
 	peggedAssetIconUrl,
 	preparePieChartData,
+	slug,
 	toNiceCsvDate
 } from '~/utils'
 import { PeggedAssetByChainTable } from './Table'
@@ -39,15 +40,20 @@ const risksHelperTexts = {
 }
 
 export default function PeggedContainer(props) {
-	let { name } = props.peggedAssetData
-
+	let { name, symbol } = props.peggedAssetData
+	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
 	return (
-		<Layout title={`${name}: Circulating and stats - DefiLlama`}>
-			<SEO
+		<Layout
+			title={`${nameWithSymbol} - DefiLlama`}
+			description={`Track ${nameWithSymbol} supply, market cap, price, and inflows on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${nameWithSymbol.toLowerCase()} total supply, ${nameWithSymbol.toLowerCase()} market cap, ${nameWithSymbol.toLowerCase()} price, ${nameWithSymbol.toLowerCase()} circulating, ${nameWithSymbol.toLowerCase()} stats`}
+			canonicalUrl={`/stablecoin/${slug(name)}`}
+		>
+			<LinkPreviewCard
 				stablePage={true}
 				cardName={name}
 				token={name}
-				logo={props.logo}
+				logo={peggedAssetIconUrl(name)}
 				tvl={formattedNum(props.mcap, true)?.toString()}
 			/>
 			<PeggedAssetInfo {...props} />
@@ -64,8 +70,7 @@ export const PeggedAssetInfo = ({
 	totalCirculating,
 	unreleased,
 	mcap,
-	bridgeInfo,
-	backgroundColor
+	bridgeInfo
 }) => {
 	let {
 		name,
@@ -118,7 +123,7 @@ export const PeggedAssetInfo = ({
 
 	const groupedChains = useGroupBridgeData(chainTotals, bridgeInfo)
 
-	const downloadCsv = () => {
+	const prepareCsv = React.useCallback(() => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
 		stackedData
 			.sort((a, b) => a.date - b.date)
@@ -132,8 +137,8 @@ export const PeggedAssetInfo = ({
 					}, 0)
 				])
 			})
-		download('stablecoinsChains.csv', rows.map((r) => r.join(',')).join('\n'))
-	}
+		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
+	}, [stackedData, chainsUnique])
 
 	return (
 		<>
@@ -226,11 +231,7 @@ export const PeggedAssetInfo = ({
 										</tbody>
 									</table>
 								)}
-								<CSVDownloadButton
-									onClick={downloadCsv}
-									smol
-									className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-								/>
+								<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 							</div>
 						</Ariakit.TabPanel>
 
@@ -264,10 +265,10 @@ export const PeggedAssetInfo = ({
 										<QuestionHelper text="Audits are not a security guarantee" />
 										<span>:</span>
 									</span>
-									{pegMechanism === 'fiat-backed' && auditLinks?.length > 0 ? (
+									{auditLinks?.length > 0 ? (
 										<Menu
 											name="Yes"
-											options={auditLinks}
+											options={typeof auditLinks === 'string' ? [auditLinks] : auditLinks}
 											isExternal
 											className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 										/>
@@ -364,7 +365,7 @@ export const PeggedAssetInfo = ({
 								title={`Total ${symbol} Circulating`}
 								chartData={peggedAreaTotalData}
 								stacks={totalChartTooltipLabel}
-								color={backgroundColor}
+								color={CHART_COLORS[0]}
 								hideDefaultLegend={true}
 							/>
 						</React.Suspense>

@@ -11,7 +11,7 @@ interface UseAutoSaveOptions {
 	timePeriod: TimePeriod
 	isAuthenticated: boolean
 	isReadOnly: boolean
-	currentDashboard: { user: string } | null
+	currentDashboard: { user: string; aiGenerated?: Record<string, any> | null } | null
 	userId: string | undefined
 	updateDashboard: (params: {
 		id: string
@@ -22,6 +22,7 @@ interface UseAutoSaveOptions {
 			visibility: 'private' | 'public'
 			tags: string[]
 			description: string
+			aiGenerated?: Record<string, any> | null
 		}
 	}) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
@@ -67,13 +68,14 @@ export function useAutoSave({
 				timePeriod,
 				visibility: dashboardVisibility,
 				tags: dashboardTags,
-				description: dashboardDescription
+				description: dashboardDescription,
+				aiGenerated: currentDashboard?.aiGenerated ?? null
 			}
 
 			// Set new timeout
 			autoSaveTimeoutRef.current = setTimeout(() => {
 				updateDashboard({ id: dashboardId, data }).catch((error) => {
-					console.error('Auto-save failed:', error)
+					console.log('Auto-save failed:', error)
 				})
 			}, delay)
 		},

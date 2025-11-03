@@ -1,10 +1,12 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
+import { PEGGEDS_API } from '~/constants'
 import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { preparePieChartData } from '~/utils'
-import { postRuntimeLogs } from '~/utils/async'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
 	const tvlDictionary: { [data: number]: { [chain: string]: number } } = {}
@@ -273,16 +275,29 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 
 export const buildProtocolAddlChartsData = ({
 	protocolData,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	isBorrowed
 }: {
 	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
 	extraTvlsEnabled: Record<string, boolean>
+	isBorrowed?: boolean
 }) => {
+	let chainTvls = protocolData.chainTvls ?? {}
+	if (isBorrowed) {
+		chainTvls = {}
+		for (const chain in protocolData.chainTvls ?? {}) {
+			if (chain.endsWith('-borrowed')) {
+				const chainName = chain.split('-')[0]
+				chainTvls[chainName] = protocolData.chainTvls[chain]
+			}
+		}
+	}
+
 	if (protocolData) {
 		let tokensInUsdExsists = false
 		let tokensExists = false
 
-		Object.values(protocolData.chainTvls ?? {}).forEach((chain) => {
+		Object.values(chainTvls).forEach((chain) => {
 			if (!tokensInUsdExsists && chain.tokensInUsd && chain.tokensInUsd.length > 0) {
 				tokensInUsdExsists = true
 			}
@@ -293,16 +308,16 @@ export const buildProtocolAddlChartsData = ({
 		})
 
 		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
+			const tokensUnique = getUniqueTokens({ chainTvls: chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
-				chainTvls: protocolData.chainTvls ?? {},
+				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique
 			})
 
 			const { usdInflows, tokenInflows } = buildInflows({
-				chainTvls: protocolData.chainTvls ?? {},
+				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique,
 				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : []
@@ -355,7 +370,7 @@ export const formatRaisedAmount = (n: number) => {
 	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
-export const useFetchProtocolAddlChartsData = (protocolName) => {
+export const useFetchProtocolAddlChartsData = (protocolName, isBorrowed = false) => {
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -364,14 +379,33 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 			'protocols-addl-chart-data',
 			protocolName,
 			addlProtocolData ? true : false,
-			JSON.stringify(extraTvlsEnabled)
+			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled)
 		],
-		queryFn: () => buildProtocolAddlChartsData({ protocolData: addlProtocolData as any, extraTvlsEnabled }),
+		queryFn: () =>
+			buildProtocolAddlChartsData({
+				protocolData: addlProtocolData as any,
+				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
+				isBorrowed
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000
 	})
 
-	return { ...data, historicalChainTvls: addlProtocolData?.chainTvls ?? null, isLoading: data.isLoading || isLoading }
+	const historicalChainTvls = useMemo(() => {
+		if (isBorrowed) {
+			const chainTvls = {}
+			for (const chain in addlProtocolData?.chainTvls ?? {}) {
+				if (chain.endsWith('-borrowed')) {
+					const chainName = chain.split('-')[0]
+					chainTvls[chainName] = addlProtocolData?.chainTvls[chain]
+				}
+			}
+			return chainTvls
+		}
+		return addlProtocolData?.chainTvls ?? null
+	}, [addlProtocolData, isBorrowed])
+
+	return { ...data, historicalChainTvls, isLoading: data.isLoading || isLoading }
 }
 
 export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
@@ -422,4 +456,188 @@ export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
 		}
 	}
 	return banners
+}
+
+interface IPeggedAsset {
+	id: string
+	name: string
+	symbol: string
+	pegType: string
+	pegMechanism: string
+}
+
+export const getStablecoinsList = async (): Promise<{ peggedAssets: IPeggedAsset[] }> => {
+	try {
+		const data = await fetchJson(PEGGEDS_API)
+		return data
+	} catch (error) {
+		postRuntimeLogs(`[ERROR] Failed to fetch stablecoins list: ${error}`)
+		return { peggedAssets: [] }
+	}
+}
+
+export const filterStablecoinsFromTokens = (
+	tokens: Record<string, number>,
+	stablecoinSymbols: Set<string>
+): Record<string, number> => {
+	const filteredTokens: Record<string, number> = {}
+	for (const token in tokens) {
+		if (stablecoinSymbols.has(token)) {
+			filteredTokens[token] = tokens[token]
+		}
+	}
+	return filteredTokens
+}
+
+export const groupTokensByPegType = (
+	tokens: Record<string, number>,
+	pegTypeMap: Map<string, string>
+): Record<string, number> => {
+	const grouped: Record<string, number> = {}
+	for (const token in tokens) {
+		const pegType = pegTypeMap.get(token)
+		if (pegType) {
+			grouped[pegType] = (grouped[pegType] || 0) + tokens[token]
+		}
+	}
+	return grouped
+}
+
+export const groupTokensByPegMechanism = (
+	tokens: Record<string, number>,
+	pegMechanismMap: Map<string, string>
+): Record<string, number> => {
+	const grouped: Record<string, number> = {}
+	for (const token in tokens) {
+		const pegMechanism = pegMechanismMap.get(token)
+		if (pegMechanism) {
+			grouped[pegMechanism] = (grouped[pegMechanism] || 0) + tokens[token]
+		}
+	}
+	return grouped
+}
+
+export const buildStablecoinChartsData = async ({
+	chainTvls,
+	extraTvlsEnabled
+}: {
+	chainTvls: Record<string, any>
+	extraTvlsEnabled: Record<string, boolean>
+}) => {
+	const { peggedAssets } = await getStablecoinsList()
+
+	if (!peggedAssets || peggedAssets.length === 0) {
+		return null
+	}
+
+	const stablecoinSymbols = new Set(peggedAssets.map((asset) => asset.symbol))
+	const pegTypeMap = new Map(peggedAssets.map((asset) => [asset.symbol, asset.pegType]))
+	const pegMechanismMap = new Map(peggedAssets.map((asset) => [asset.symbol, asset.pegMechanism]))
+
+	const stablecoinTokensUnique: string[] = []
+	const pegTypesUnique = new Set<string>()
+	const pegMechanismsUnique = new Set<string>()
+
+	for (const section in chainTvls) {
+		const name = section.toLowerCase()
+		if (!name.includes('-')) {
+			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
+				chainTvls[section].tokensInUsd?.forEach((dayTokens) => {
+					for (const token in dayTokens.tokens) {
+						if (stablecoinSymbols.has(token) && !stablecoinTokensUnique.includes(token)) {
+							stablecoinTokensUnique.push(token)
+							const pegType = pegTypeMap.get(token)
+							const pegMechanism = pegMechanismMap.get(token)
+							if (pegType) pegTypesUnique.add(pegType)
+							if (pegMechanism) pegMechanismsUnique.add(pegMechanism)
+						}
+					}
+				})
+			}
+		}
+	}
+
+	if (stablecoinTokensUnique.length === 0) {
+		return null
+	}
+
+	const stablecoinsByPegMechanism: Record<string, any> = {}
+	const stablecoinsByPegType: Record<string, any> = {}
+	const stablecoinsByToken: Record<string, any> = {}
+	const totalStablecoins: Record<string, any> = {}
+
+	for (const section in chainTvls) {
+		const name = section.toLowerCase()
+		if (!name.includes('-')) {
+			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
+				chainTvls[section].tokensInUsd?.forEach(({ date, tokens }) => {
+					const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
+					const groupedByPegMechanism = groupTokensByPegMechanism(stablecoinsOnly, pegMechanismMap)
+					const groupedByPegType = groupTokensByPegType(stablecoinsOnly, pegTypeMap)
+
+					if (!stablecoinsByPegMechanism[date]) {
+						stablecoinsByPegMechanism[date] = { date }
+					}
+					for (const pegMechanism in groupedByPegMechanism) {
+						stablecoinsByPegMechanism[date][pegMechanism] =
+							(stablecoinsByPegMechanism[date][pegMechanism] || 0) + groupedByPegMechanism[pegMechanism]
+					}
+
+					if (!stablecoinsByPegType[date]) {
+						stablecoinsByPegType[date] = { date }
+					}
+					for (const pegType in groupedByPegType) {
+						stablecoinsByPegType[date][pegType] = (stablecoinsByPegType[date][pegType] || 0) + groupedByPegType[pegType]
+					}
+
+					if (!stablecoinsByToken[date]) {
+						stablecoinsByToken[date] = { date }
+					}
+					for (const token in stablecoinsOnly) {
+						stablecoinsByToken[date][token] = (stablecoinsByToken[date][token] || 0) + stablecoinsOnly[token]
+					}
+
+					const total = Object.values(stablecoinsOnly).reduce((acc, val) => acc + val, 0)
+					totalStablecoins[date] = (totalStablecoins[date] || 0) + total
+				})
+			}
+		}
+	}
+
+	const stablecoinsByPegMechanismArray = Object.values(stablecoinsByPegMechanism).sort((a, b) => a.date - b.date)
+	const stablecoinsByPegTypeArray = Object.values(stablecoinsByPegType).sort((a, b) => a.date - b.date)
+	const stablecoinsByTokenArray = Object.values(stablecoinsByToken).sort((a, b) => a.date - b.date)
+	const totalStablecoinsArray = Object.entries(totalStablecoins)
+		.map(([date, value]) => ({ date: Number(date), value }))
+		.sort((a, b) => a.date - b.date)
+
+	const latestByPegMechanism = stablecoinsByPegMechanismArray[stablecoinsByPegMechanismArray.length - 1]
+	const pegMechanismPieChart = latestByPegMechanism
+		? Object.entries(latestByPegMechanism)
+				.filter(([key]) => key !== 'date')
+				.map(([name, value]) => ({ name, value }))
+		: []
+
+	const pieChartDataByPegMechanism = preparePieChartData({ data: pegMechanismPieChart, limit: 10 })
+
+	const latestByPegType = stablecoinsByPegTypeArray[stablecoinsByPegTypeArray.length - 1]
+	const pegTypePieChart = latestByPegType
+		? Object.entries(latestByPegType)
+				.filter(([key]) => key !== 'date')
+				.map(([name, value]) => ({ name, value }))
+		: []
+
+	const pieChartDataByPegType = preparePieChartData({ data: pegTypePieChart, limit: 10 })
+
+	return {
+		stablecoinsByPegMechanism: stablecoinsByPegMechanismArray.length > 0 ? stablecoinsByPegMechanismArray : null,
+		stablecoinsByPegType: stablecoinsByPegTypeArray.length > 0 ? stablecoinsByPegTypeArray : null,
+		stablecoinsByToken: stablecoinsByTokenArray.length > 0 ? stablecoinsByTokenArray : null,
+		totalStablecoins: totalStablecoinsArray.length > 0 ? totalStablecoinsArray : null,
+		pegMechanismPieChart: pieChartDataByPegMechanism,
+		pegTypePieChart: pieChartDataByPegType,
+		stablecoinTokensUnique,
+		pegTypesUnique: Array.from(pegTypesUnique),
+		pegMechanismsUnique: Array.from(pegMechanismsUnique)
+	}
 }

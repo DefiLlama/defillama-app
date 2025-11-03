@@ -64,7 +64,7 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 						!protocol.misrepresentedTokens && (protocol.category?.toLowerCase() === 'cex' ? includeCex : true)
 				)
 			} catch (error) {
-				console.error('Error fetching token usage data:', error)
+				console.log('Error fetching token usage data:', error)
 				throw error
 			}
 		},

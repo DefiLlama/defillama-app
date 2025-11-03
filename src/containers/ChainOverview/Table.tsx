@@ -1,4 +1,4 @@
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
@@ -20,13 +20,14 @@ import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { ICONS_CDN, removedCategoriesFromChainTvl } from '~/constants'
+import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
-import { chainIconUrl, download, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -42,10 +43,14 @@ export interface CustomColumnDef {
 
 export const ChainProtocolsTable = ({
 	protocols,
-	sampleRow = sampleProtocol
+	sampleRow = sampleProtocol,
+	useStickyHeader = true,
+	borderless = false
 }: {
 	protocols: Array<IProtocol>
 	sampleRow?: any
+	useStickyHeader?: boolean
+	borderless?: boolean
 }) => {
 	const { customColumns, setCustomColumns } = useCustomColumns()
 
@@ -320,30 +325,7 @@ export const ChainProtocolsTable = ({
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				/**
-				 * These first 3 conditions keep our null values at the bottom.
-				 */
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				// at this point, you have non-null values and you should do whatever is required to sort those values correctly
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -393,7 +375,7 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const handleDownloadCsv = () => {
+	const prepareCsv = useCallback(() => {
 		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
@@ -429,15 +411,20 @@ export const ChainProtocolsTable = ({
 			})
 		})
 
-		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const chainName = router.query.chain || 'all'
-		download(`defillama-${chainName}-protocols.csv`, csvContent)
-	}
+
+		return {
+			filename: `defillama-${chainName}-protocols.csv`,
+			rows: [headers, ...rows] as (string | number | boolean)[][]
+		}
+	}, [instance, router.query.chain])
 
 	return (
-		<div className="isolate rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-wrap items-center gap-2 p-3">
-				<div className="flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
+		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
+			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+				{borderless ? null : (
+					<div className="mr-auto flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
+				)}
 
 				<div className="flex items-center gap-2 max-md:w-full max-sm:flex-col">
 					<TagGroup
@@ -467,11 +454,11 @@ export const ChainProtocolsTable = ({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 							customFooter={
 								<button
-									className="mt-2 flex w-full items-center gap-2 rounded-md border border-(--form-control-border) bg-(--btn-bg) px-3 py-2 text-xs font-medium text-(--text-primary) hover:bg-(--btn-hover-bg)"
+									className="flex w-full items-center gap-2 rounded-md border border-(--form-control-border) bg-(--btn-bg) p-3 text-sm font-medium text-(--text-primary) hover:bg-(--btn-hover-bg)"
 									onClick={handleAddCustomColumn}
 									type="button"
 								>
@@ -482,15 +469,12 @@ export const ChainProtocolsTable = ({
 							onEditCustomColumn={handleEditCustomColumn}
 							onDeleteCustomColumn={handleDeleteCustomColumn}
 						/>
-						<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
-						<CSVDownloadButton
-							onClick={handleDownloadCsv}
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
+						<TVLRange triggerClassName="w-full sm:w-auto" />
+						<CSVDownloadButton prepareCsv={prepareCsv} />
 					</div>
 				</div>
 			</div>
-			<VirtualTable instance={instance} />
+			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
@@ -516,7 +500,7 @@ const MAIN_COLUMN_BY_CATEGORY = {
 	[TABLE_CATEGORIES.TVL]: 'tvl',
 	[TABLE_CATEGORIES.FEES]: 'fees_24h',
 	[TABLE_CATEGORIES.REVENUE]: 'revenue_24h',
-	[TABLE_CATEGORIES.VOLUME]: 'volume_24h'
+	[TABLE_CATEGORIES.VOLUME]: 'dex_volume_24h'
 }
 
 enum TABLE_PERIODS {
@@ -614,7 +598,7 @@ const columnOptions = [
 		key: 'cumulativeEarnings',
 		category: TABLE_CATEGORIES.REVENUE
 	},
-	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.FEES },
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.REVENUE },
 	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
 	{ name: 'Spot Volume 24h', key: 'dex_volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Spot Volume 7d', key: 'dex_volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
@@ -653,7 +637,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -728,7 +712,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				cell: ({ row }) =>
 					row.original.tvl ? (
 						row.original.strikeTvl || row.original.tvl.excludeParent ? (
-							<Tvl rowValues={row.original} />
+							<ProtocolTvlCell rowValues={row.original} />
 						) : (
 							<>{`$${formattedNum(row.original.tvl?.default?.tvl || 0)}`}</>
 						)
@@ -957,7 +941,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor((row) => row.fees?.average1y, {
+			columnHelper.accessor((row) => row.fees?.monthlyAverage1y, {
 				id: 'average_fees_1y',
 				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -993,7 +977,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.revenue?.average1y, {
+			columnHelper.accessor((row) => row.revenue?.monthlyAverage1y, {
 				id: 'average_revenue_1y',
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -1005,7 +989,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.average1y, {
+			columnHelper.accessor((row) => row.holdersRevenue?.monthlyAverage1y, {
 				id: 'average_holdersRevenue_1y',
 				header: 'Monthly Avg 1Y Holders Revenue',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -1030,7 +1014,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.emissions?.average1y, {
+			columnHelper.accessor((row) => row.emissions?.monthlyAverage1y, {
 				id: 'average_emissions_1y',
 				header: 'Monthly Avg 1Y Incentives',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -1192,8 +1176,8 @@ const columns: ColumnDef<IProtocol>[] = [
 			),
 			columnHelper.accessor(
 				(row) => {
-					const revenue = row.revenue?.average1y ?? 0
-					const emissions = row.emissions?.average1y ?? 0
+					const revenue = row.revenue?.monthlyAverage1y ?? 0
+					const emissions = row.emissions?.monthlyAverage1y ?? 0
 					return revenue && emissions ? revenue - emissions : revenue || null
 				},
 				{
@@ -1304,7 +1288,7 @@ const defaultColumns = JSON.stringify({
 	revenue_24h: true
 })
 
-const Tvl = ({ rowValues }) => {
+export const ProtocolTvlCell = ({ rowValues }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	let text = null
@@ -1331,11 +1315,9 @@ const Tvl = ({ rowValues }) => {
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
 
-		removedCategoriesFromChainTvl.forEach((removedCategory) => {
-			if (rowValues.category === removedCategory) {
-				text = `${removedCategory} protocols are not counted into Chain TVL`
-			}
-		})
+		if (removedCategoriesFromChainTvlSet.has(rowValues.category)) {
+			text = `${rowValues.category} protocols are not counted into Chain TVL`
+		}
 
 		if (text && rowValues.childProtocols) {
 			text = 'Some sub-protocols are excluded from chain tvl'

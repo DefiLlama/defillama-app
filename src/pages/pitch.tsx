@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { trim } from 'lodash'
 import { maxAgeForNext } from '~/api'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -59,12 +57,24 @@ async function generateVCList(): Promise<VC[]> {
 export const getStaticProps = withPerformanceLogging('pitch', async () => {
 	return { notFound: true }
 	const vcList = await generateVCList()
-	const categories = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.categories)?.filter(Boolean)?.map(trim))))
-	const chains = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map(trim)))
-	const defiCategories = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.defiCategories)?.filter(Boolean))?.map(trim))
+	const categories = Array.from(
+		new Set(
+			vcList.flatMap((vc) =>
+				Array.from(vc.categories)
+					?.filter(Boolean)
+					?.map((x) => x.trim())
+			)
+		)
 	)
-	const roundTypes = Array.from(new Set(vcList.flatMap((vc) => Array.from(vc.roundTypes)?.filter(Boolean))?.map(trim)))
+	const chains = Array.from(
+		new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map((x) => x.trim()))
+	)
+	const defiCategories = Array.from(
+		new Set(vcList.flatMap((vc) => Array.from(vc.defiCategories)?.filter(Boolean))?.map((x) => x.trim()))
+	)
+	const roundTypes = Array.from(
+		new Set(vcList.flatMap((vc) => Array.from(vc.roundTypes)?.filter(Boolean))?.map((x) => x.trim()))
+	)
 	const lastRounds = vcList.map((vc) => vc.lastRound).sort((a, b) => b - a)
 
 	return {
@@ -177,14 +187,19 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 			window.open(data.link, '_blank')
 			setPaymentLink(data.link)
 		} catch (error) {
-			console.error('Error creating payment:', error)
+			console.log('Error creating payment:', error)
 		} finally {
 			setIsSubmitting(false)
 		}
 	}
 
 	return (
-		<Layout title="VC Filter - DefiLlama" defaultSEO>
+		<Layout
+			title="VC Filter - DefiLlama"
+			description={`Pitch your project to VCs by filtering them by their investments in DeFi projects. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords=""
+			canonicalUrl={`/pitch`}
+		>
 			<div className="mx-auto flex w-full max-w-4xl flex-col gap-5 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-center text-xl font-semibold">Connect with Investors</h1>
 				<p className="text-center text-base text-(--text-secondary)">
@@ -195,7 +210,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 					<div className="flex flex-1 flex-col gap-4">
 						<h2 className="text-lg font-semibold">Filter Investors</h2>
 
-						<label className="flex flex-col gap-1 text-sm">
+						{/* <label className="flex flex-col gap-1 text-sm">
 							<span className="">Categories:</span>
 							<ReactSelect
 								isMulti
@@ -250,12 +265,12 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									)
 								}
 							/>
-						</label>
+						</label> */}
 						<label className="flex flex-col gap-1 text-sm">
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+								className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
@@ -272,7 +287,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								type="number"
 								value={filters.minimumInvestments}
 								onChange={(e) => handleFilterChange('minimumInvestments', parseInt(e.target.value))}
-								className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+								className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 							/>
 						</label>
 
@@ -287,7 +302,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.projectName}
 									onChange={handleProjectInfoChange}
 									required
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -296,7 +311,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									name="link"
 									value={projectInfo.link}
 									onChange={handleProjectInfoChange}
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -306,7 +321,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.textPitch}
 									onChange={handleProjectInfoChange}
 									required
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<label className="flex flex-col gap-1 text-sm">
@@ -317,7 +332,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 									value={projectInfo.founderEmail}
 									onChange={handleProjectInfoChange}
 									required
-									className="rounded-md border border-(--form-control-border) bg-white p-[6px] text-base text-black dark:bg-black dark:text-white"
+									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
 							<button

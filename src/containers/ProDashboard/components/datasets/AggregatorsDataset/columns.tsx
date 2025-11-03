@@ -36,7 +36,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
+				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
 					{value ? formattedPercent(value, false, 100) : '-'}
 				</span>
 			)
@@ -51,7 +51,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={`font-mono ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
+				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
 					{value ? formattedPercent(value, false, 100) : '-'}
 				</span>
 			)
@@ -61,13 +61,13 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		header: '24h Volume',
 		accessorKey: 'total24h',
 		size: 145,
-		cell: ({ getValue }) => <span className="pro-text1 font-mono">{formattedNum(getValue() as number, true)}</span>
+		cell: ({ getValue }) => <span className="pro-text1">{formattedNum(getValue() as number, true)}</span>
 	},
 	{
 		header: '7d Volume',
 		accessorKey: 'total7d',
 		size: 120,
-		cell: ({ getValue }) => <span className="pro-text2 font-mono">{formattedNum(getValue() as number, true)}</span>
+		cell: ({ getValue }) => <span className="pro-text2">{formattedNum(getValue() as number, true)}</span>
 	},
 	{
 		header: '7d Market Share',
@@ -75,14 +75,14 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2 font-mono">{formattedPercent(value, true)}</span>
+			return <span className="pro-text2">{formattedPercent(value, true)}</span>
 		}
 	},
 	{
 		header: '30d Volume',
 		accessorKey: 'total30d',
 		size: 120,
-		cell: ({ getValue }) => <span className="pro-text2 font-mono">{formattedNum(getValue() as number, true)}</span>
+		cell: ({ getValue }) => <span className="pro-text2">{formattedNum(getValue() as number, true)}</span>
 	},
 	{
 		header: '% of Total',
@@ -91,7 +91,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ row, table }) => {
 			const total24h = table.getFilteredRowModel().rows.reduce((sum, r) => sum + (r.original.total24h || 0), 0)
 			const percentage = total24h > 0 ? (row.original.total24h / total24h) * 100 : 0
-			return <span className="pro-text2 font-mono">{formattedPercent(percentage, true)}</span>
+			return <span className="pro-text2">{formattedPercent(percentage, true)}</span>
 		}
 	}
 ]

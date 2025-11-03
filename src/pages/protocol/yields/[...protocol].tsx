@@ -48,9 +48,10 @@ export const getStaticProps = withPerformanceLogging(
 		const otherProtocols = protocolData?.otherProtocols?.map((p) => slug(p)) ?? []
 
 		const projectYields = yields?.data?.filter(
-			({ project }) =>
-				project === slug(metadata[1].displayName) ||
-				(protocolData.parentProtocol ? false : otherProtocols.includes(project))
+			({ project, apy }) =>
+				(project === slug(metadata[1].displayName) ||
+					(protocolData.parentProtocol ? false : otherProtocols.includes(project))) &&
+				apy != 0
 		)
 
 		return {
@@ -89,19 +90,12 @@ export default function Protocols(props) {
 			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>
-			<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="yields">
-					Yields for {props.name}
-				</h2>
-			</div>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<ProtocolPools
-					data={props.yields}
-					protocol={slug(props.name)}
-					parentProtocol={props.parentProtocol}
-					otherProtocols={props.otherProtocols}
-				/>
-			</div>
+			<ProtocolPools
+				data={props.yields}
+				protocol={props.name}
+				parentProtocol={props.parentProtocol}
+				otherProtocols={props.otherProtocols}
+			/>
 		</ProtocolOverviewLayout>
 	)
 }

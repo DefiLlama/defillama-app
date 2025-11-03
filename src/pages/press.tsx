@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
+import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
 
 const PressPanel = ({ imageFilename }) => (
@@ -41,8 +42,15 @@ const pressList = [
 
 function PressPage() {
 	return (
-		<Layout title="Press - DefiLlama" defaultSEO>
-			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) text-xl font-semibold">Press & Media</h1>
+		<Layout
+			title="Press - DefiLlama"
+			description={`Press and media on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`press, media, defi press, defi media`}
+			canonicalUrl={`/press`}
+		>
+			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
+				Press & Media
+			</h1>
 
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h2 className="text-lg font-semibold">About DefiLlama</h2>
@@ -155,7 +163,7 @@ function PressPage() {
 					We always pair our name with the llama icon. We prefer to use the full DefiLlama name and icon when possible,
 					but in situations where the association with DefiLlama is clear, the icon may be used on its own.
 				</p>
-				<p>The primary color used on DefiLlama is #2172E5.</p>
+				<p>The primary color used on DefiLlama is {oldBlue}.</p>
 			</div>
 		</Layout>
 	)

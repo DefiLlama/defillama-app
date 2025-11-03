@@ -2,6 +2,7 @@ import { FormEventHandler, ReactNode } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { NestedMenu } from '~/components/NestedMenu'
 import { cn } from '~/utils/cn'
+import { Icon } from '../Icon'
 
 interface IFilterBetweenRange {
 	name: string
@@ -11,19 +12,17 @@ interface IFilterBetweenRange {
 	nestedMenu?: boolean
 	min: number | string | null
 	max: number | string | null
-	variant?: 'primary' | 'secondary' | 'third'
+	variant?: 'primary' | 'secondary'
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
 }
 
 const getVariantClasses = (variant: string) => {
 	switch (variant) {
-		case 'third':
-			return 'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 		case 'secondary':
-			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
+			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-1.5 rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
 		default:
-			return 'bg-(--btn2-bg)  hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) flex items-center justify-between gap-2 px-3 py-[6px] rounded-lg cursor-pointer text-(--text-primary) flex-nowrap relative'
+			return 'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 	}
 }
 
@@ -66,8 +65,12 @@ export function FilterBetweenRange({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 			>
+				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.PopoverDismiss>
+
 				<div className="mx-auto w-full sm:w-[260px]">
 					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
 				</div>
@@ -117,7 +120,7 @@ function Form({
 				</button>
 				<button
 					type="submit"
-					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-[#2172e5] px-4 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-(--link-active-bg) px-4 text-sm font-medium whitespace-nowrap text-white disabled:opacity-50"
 				>
 					Apply Filter
 				</button>

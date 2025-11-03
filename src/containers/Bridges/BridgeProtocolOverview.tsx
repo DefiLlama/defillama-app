@@ -3,18 +3,23 @@ import { useQuery } from '@tanstack/react-query'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
-import { SEO } from '~/components/SEO'
+import { LocalLoader } from '~/components/Loaders'
+import { LinkPreviewCard } from '~/components/SEO'
 import { BridgeAddressesTable, BridgeTokensTable } from '~/components/Table/Bridges'
+import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, getPercentChange } from '~/utils'
+import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek } from '~/utils'
 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const CHART_TYPES = ['Inflows', 'Volume', 'Tokens To', 'Tokens From'] as const
+type ChartType = (typeof CHART_TYPES)[number]
 
 const BridgeInfo = ({
 	displayName,
@@ -25,7 +30,8 @@ const BridgeInfo = ({
 	tableDataByChain,
 	config = {} as Record<string, string>
 }) => {
-	const [chartType, setChartType] = React.useState('Inflows')
+	const [chartType, setChartType] = React.useState<ChartType>('Inflows')
+	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
 	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
@@ -38,6 +44,8 @@ const BridgeInfo = ({
 	const currentDepositsUSD = prevDayChart?.Deposited ?? 0
 	const currentWithdrawalsUSD = -(prevDayChart?.Withdrawn ?? 0)
 	const currentVolume = currentDepositsUSD + currentWithdrawalsUSD
+
+	const isAllChains = currentChain === 'All Chains'
 
 	let volPercentChange = '0 '
 
@@ -55,6 +63,60 @@ const BridgeInfo = ({
 		return { name: chain, route: '' }
 	})
 
+	const allChainsVolumePairs = React.useMemo(() => {
+		if (!isAllChains || !Array.isArray(volumeChartDataByChain)) return [] as Array<[number, number]>
+		return volumeChartDataByChain.map((d: any) => [
+			d.date,
+			(Number(d?.Deposited ?? 0) + Math.abs(Number(d?.Withdrawn ?? 0))) / 2
+		])
+	}, [isAllChains, volumeChartDataByChain])
+
+	const groupedAllChainsVolumePairs = React.useMemo(() => {
+		if (!isAllChains) return [] as Array<[number, number]>
+		if (groupBy === 'daily' || allChainsVolumePairs.length === 0) return allChainsVolumePairs
+		const store: Record<number, number> = {}
+		for (const [date, value] of allChainsVolumePairs) {
+			const key = groupBy === 'weekly' ? lastDayOfWeek(date * 1e3) : firstDayOfMonth(date * 1e3)
+			store[key] = (store[key] ?? 0) + (value ?? 0)
+		}
+		return Object.entries(store)
+			.map(([k, v]) => [Number(k), v] as [number, number])
+			.sort((a, b) => a[0] - b[0])
+	}, [isAllChains, groupBy, allChainsVolumePairs])
+
+	const prevDayVolumeValue = React.useMemo(() => {
+		if (!isAllChains) return 0
+		const arr = allChainsVolumePairs as Array<[number, number]>
+		if (arr.length > 1) return arr[arr.length - 2][1]
+		if (arr.length === 1) return arr[0][1]
+		return 0
+	}, [isAllChains, allChainsVolumePairs])
+
+	React.useEffect(() => {
+		if (isAllChains && chartType === 'Inflows') setChartType('Volume')
+		if (!isAllChains && chartType === 'Volume') setChartType('Inflows')
+	}, [isAllChains])
+
+	const chartTypes = (
+		isAllChains ? (['Volume', 'Tokens To', 'Tokens From'] as const) : (['Inflows', 'Tokens To', 'Tokens From'] as const)
+	) as readonly ChartType[]
+
+	const groupedInflowsData = React.useMemo(() => {
+		if (isAllChains) return [] as any[]
+		if (!Array.isArray(volumeChartDataByChain) || volumeChartDataByChain.length === 0) return []
+		if (groupBy === 'daily') return volumeChartDataByChain
+		const store: Record<number, { Deposited: number; Withdrawn: number }> = {}
+		for (const point of volumeChartDataByChain as Array<any>) {
+			const key = groupBy === 'weekly' ? lastDayOfWeek(point.date * 1e3) : firstDayOfMonth(point.date * 1e3)
+			store[key] = store[key] || { Deposited: 0, Withdrawn: 0 }
+			store[key].Deposited += Number(point.Deposited ?? 0)
+			store[key].Withdrawn += Number(point.Withdrawn ?? 0)
+		}
+		return Object.entries(store)
+			.map(([k, v]) => ({ date: Number(k), ...v }))
+			.sort((a, b) => a.date - b.date)
+	}, [isAllChains, groupBy, volumeChartDataByChain])
+
 	return (
 		<>
 			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -65,29 +127,45 @@ const BridgeInfo = ({
 				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
 			</div>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
-				<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
-					<p className="flex flex-col gap-1 text-base">
-						<span className="text-(--text-label)">Deposited to {currentChain} (24h)</span>
-						<span className="font-jetbrains text-2xl font-semibold">
-							{formattedNum(
-								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentDepositsUSD || '0',
-								true
-							)}
-						</span>
-					</p>
+				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+					{isAllChains ? (
+						<>
+							<p className="flex flex-col gap-1 text-base">
+								<span className="inline-flex items-center gap-1 text-(--text-label)">
+									Total Volume (prev day, UTC)
+									<Tooltip
+										content={
+											'Daily volume equals (Deposited + Withdrawn)/2 for the previous UTC day to avoid double counting.'
+										}
+									>
+										<Icon name="help-circle" height={14} width={14} />
+									</Tooltip>
+								</span>
+								<span className="font-jetbrains text-2xl font-semibold">
+									{formattedNum(prevDayVolumeValue || '0', true)}
+								</span>
+							</p>
+						</>
+					) : (
+						<>
+							<p className="flex flex-col gap-1 text-base">
+								<span className="text-(--text-label)">Deposited to {currentChain} (prev day, UTC)</span>
+								<span className="font-jetbrains text-2xl font-semibold">
+									{formattedNum(currentDepositsUSD || '0', true)}
+								</span>
+							</p>
+
+							<p className="flex flex-col gap-1 text-base">
+								<span className="text-(--text-label)">Withdrawn from {currentChain} (prev day, UTC)</span>
+								<span className="font-jetbrains text-2xl font-semibold">
+									{formattedNum(currentWithdrawalsUSD || '0', true)}
+								</span>
+							</p>
+						</>
+					)}
 
 					<p className="flex flex-col gap-1 text-base">
-						<span className="text-(--text-label)">Withdrawn from {currentChain} (24h)</span>
-						<span className="font-jetbrains text-2xl font-semibold">
-							{formattedNum(
-								currentChain === 'All Chains' ? config?.last24hVolume || '0' : currentWithdrawalsUSD || '0',
-								true
-							)}
-						</span>
-					</p>
-
-					<p className="flex flex-col gap-1 text-base">
-						<span className="text-(--text-label)">Volume Change (24h)</span>
+						<span className="text-(--text-label)">Volume Change (prev day)</span>
 						<span className="font-jetbrains text-2xl font-semibold">{volPercentChange + '%'}</span>
 					</p>
 					{config?.url ? (
@@ -103,39 +181,36 @@ const BridgeInfo = ({
 				</div>
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="ml-auto w-full max-w-fit overflow-x-auto p-3">
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-							<button
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={chartType === 'Inflows'}
-								onClick={() => setChartType('Inflows')}
-							>
-								Inflows
-							</button>
-							<button
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={chartType === 'Tokens To'}
-								onClick={() => setChartType('Tokens To')}
-							>
-								Tokens To
-							</button>
-							<button
-								className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-								data-active={chartType === 'Tokens From'}
-								onClick={() => setChartType('Tokens From')}
-							>
-								Tokens From
-							</button>
-						</div>
+					<div className="ml-auto flex w-full max-w-full items-center gap-2 overflow-x-auto p-3">
+						<TagGroup
+							selectedValue={chartType}
+							setValue={(chartType) => setChartType(chartType as ChartType)}
+							values={chartTypes}
+							className="ml-0"
+						/>
+						{(chartType === 'Volume' || chartType === 'Inflows') && (
+							<TagGroup
+								selectedValue={groupBy}
+								setValue={(v) => setGroupBy(v as any)}
+								values={['daily', 'weekly', 'monthly'] as const}
+								className="ml-auto"
+							/>
+						)}
 					</div>
 					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						{chartType === 'Inflows' && volumeChartDataByChain && volumeChartDataByChain.length > 0 && (
+						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 && (
+							<React.Suspense fallback={<></>}>
+								<BarChart chartData={groupedAllChainsVolumePairs} title="" groupBy={groupBy} />
+							</React.Suspense>
+						)}
+						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 && (
 							<React.Suspense fallback={<></>}>
 								<BarChart
-									chartData={volumeChartDataByChain}
+									chartData={groupedInflowsData}
 									title=""
 									chartOptions={volumeChartOptions}
 									stacks={inflowChartStacks}
+									groupBy={groupBy}
 								/>
 							</React.Suspense>
 						)}
@@ -169,8 +244,13 @@ const BridgeInfo = ({
 
 export function BridgeProtocolOverview(props) {
 	return (
-		<Layout title={`${props.displayName}: Bridge Volume - DefiLlama`}>
-			<SEO cardName={props.displayName} token={props.displayName} />
+		<Layout
+			title={`${props.displayName}: Bridge Volume - DefiLlama`}
+			description={`Track bridge volume and cross-chain transfers on ${props.displayName}. View bridged assets, transfer volumes, and DeFi bridge analytics from DefiLlama.`}
+			keywords={`bridge volume ${props.displayName}, cross-chain transfers ${props.displayName}, DeFi bridges ${props.displayName}, bridged assets ${props.displayName}, bridge protocol ${props.displayName}`}
+			canonicalUrl={`/bridges/${props.displayName}`}
+		>
+			<LinkPreviewCard cardName={props.displayName} token={props.displayName} />
 			<BridgeInfo {...props} />
 		</Layout>
 	)
@@ -184,15 +264,19 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	})
 
 	if (isLoading) {
-		return <p className="my-[180px] text-center">Loading...</p>
+		return (
+			<div className="flex min-h-[408px] items-center justify-center">
+				<LocalLoader />
+			</div>
+		)
 	}
 
-	if (error) {
-		return <p className="my-[180px] text-center">{error.message}</p>
-	}
-
-	if (!data) {
-		return <p className="my-[180px] text-center">Something went wrong, couldn't fetch data</p>
+	if (error || !data) {
+		return (
+			<div className="flex min-h-[408px] items-center justify-center">
+				<p>{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
+			</div>
+		)
 	}
 
 	return (

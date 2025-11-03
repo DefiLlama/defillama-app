@@ -1,25 +1,50 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 
-interface DashboardSearchProps {
-	searchQuery: string
-	onSearchChange: (query: string) => void
-}
+export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
+	const router = useRouter()
 
-export function DashboardSearch({ searchQuery, onSearchChange }: DashboardSearchProps) {
+	const id = useRef(null)
+
+	// cleanup timeout on unmount
+	// so if user navigates way, we don't change the url back to discovery page with searchquery params
+	useEffect(() => {
+		return () => {
+			if (id.current) {
+				clearTimeout(id.current)
+			}
+		}
+	}, [])
+
 	return (
-		<div className="max-w-3xl flex-1">
-			<div className="flex flex-col gap-3 sm:flex-row">
-				<div className="relative flex-1">
-					<Icon name="search" height={16} width={16} className="pro-text3 absolute top-1/2 left-3 -translate-y-1/2" />
-					<input
-						type="text"
-						value={searchQuery}
-						onChange={(e) => onSearchChange(e.target.value)}
-						placeholder="Search dashboards by name or description or tags..."
-						className="pro-border pro-text1 placeholder:pro-text3 w-full border bg-(--bg-glass) py-2 pr-4 pl-10 focus:border-(--primary) focus:outline-hidden"
-					/>
-				</div>
+		<div className="w-full flex-1 lg:max-w-3xl">
+			<div className="relative flex-1">
+				<Icon name="search" height={16} width={16} className="absolute top-1/2 left-3 -translate-y-1/2" />
+				<input
+					type="text"
+					defaultValue={defaultValue ?? ''}
+					onChange={(e) => {
+						const currentValue = e.target.value
+
+						if (id.current) {
+							clearTimeout(id.current)
+						}
+						id.current = setTimeout(() => {
+							const { page, ...queryWithoutPage } = router.query
+							router.push(
+								{
+									pathname: '/pro',
+									query: { ...queryWithoutPage, query: currentValue }
+								},
+								undefined,
+								{ shallow: true }
+							)
+						}, 300)
+					}}
+					placeholder="Search dashboards by name or description or tags..."
+					className="w-full rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-2 pl-8"
+				/>
 			</div>
 		</div>
 	)

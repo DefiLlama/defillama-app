@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -11,9 +11,10 @@ import {
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import {
 	BRIDGEVOLUME_API_SLUG,
@@ -50,13 +51,14 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export function ProtocolChart(props: IProtocolOverviewPageData) {
+export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(router.query ? (tvl === 'true' ? rest : router.query) : { protocol: [slug(props.name)] })
+	}, [router.query, props.name])
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -81,11 +83,15 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			} else if (props.metrics.perps) {
 				defaultToggledCharts.push('Perp Volume')
 				toggled.perpVolume = queryParams.perpVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.options) {
-				defaultToggledCharts.push('Options Premium Volume')
-				defaultToggledCharts.push('Options Notional Volume')
-				toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
-				toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+			} else if (props.metrics.optionsPremiumVolume || props.metrics.optionsNotionalVolume) {
+				if (props.metrics.optionsPremiumVolume) {
+					defaultToggledCharts.push('Options Premium Volume')
+					toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
+				}
+				if (props.metrics.optionsNotionalVolume) {
+					defaultToggledCharts.push('Options Notional Volume')
+					toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
+				}
 			} else if (props.metrics.dexAggregators) {
 				defaultToggledCharts.push('DEX Aggregator Volume')
 				toggled.dexAggregatorVolume = queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true'
@@ -137,10 +143,10 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				? typeof queryParams.groupBy === 'string' && INTERVALS_LIST.includes(queryParams.groupBy as any)
 					? (queryParams.groupBy as any)
 					: (props.defaultChartView ?? 'daily')
-				: (props.defaultChartView ?? 'daily'),
+				: 'daily',
 			defaultToggledCharts
 		}
-	}, [queryParamsString, props.availableCharts, props.metrics])
+	}, [queryParamsString, props])
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
@@ -156,17 +162,27 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
+	const prepareCsv = useCallback(() => {
+		return prepareChartCsv(finalCharts, `${props.name}.csv`)
+	}, [finalCharts, props.name])
+
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start">
+			<div className="flex flex-wrap items-center justify-start gap-2">
 				{props.availableCharts.length > 0 ? (
 					<Ariakit.DialogProvider store={metricsDialogStore}>
 						<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 							<span>Add Metrics</span>
-							<Icon name="plus" className="h-[14px] w-[14px]" />
+							<Icon name="plus" className="h-3.5 w-3.5" />
 						</Ariakit.DialogDisclosure>
 						<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
-							<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+							<span className="flex items-center justify-between gap-1">
+								<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+								<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
+									<Icon name="x" className="h-5 w-5" />
+								</Ariakit.DialogDismiss>
+							</span>
+
 							<div className="flex flex-wrap gap-2">
 								{props.availableCharts.map((chart) => (
 									<button
@@ -197,9 +213,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									>
 										<span>{chart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
 										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
-											<Icon name="x" className="h-[14px] w-[14px]" />
+											<Icon name="x" className="h-3.5 w-3.5" />
 										) : (
-											<Icon name="plus" className="h-[14px] w-[14px]" />
+											<Icon name="plus" className="h-3.5 w-3.5" />
 										)}
 									</button>
 								))}
@@ -227,9 +243,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									>
 										<span>Events</span>
 										{toggledMetrics.events === 'true' ? (
-											<Icon name="x" className="h-[14px] w-[14px]" />
+											<Icon name="x" className="h-3.5 w-3.5" />
 										) : (
-											<Icon name="plus" className="h-[14px] w-[14px]" />
+											<Icon name="plus" className="h-3.5 w-3.5" />
 										)}
 									</button>
 								) : null}
@@ -268,7 +284,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}}
 						>
 							<span>{tchart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
-							<Icon name="x" className="h-[14px] w-[14px]" />
+							<Icon name="x" className="h-3.5 w-3.5" />
 						</span>
 					</label>
 				))}
@@ -296,7 +312,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							}}
 						>
 							<span>Events</span>
-							<Icon name="x" className="h-[14px] w-[14px]" />
+							<Icon name="x" className="h-3.5 w-3.5" />
 						</span>
 					</label>
 				) : null}
@@ -306,7 +322,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							{props.chartDenominations.map((denom) => (
 								<button
 									key={`denomination-${denom.symbol}`}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={
 										toggledMetrics.denomination === denom.symbol ||
 										(denom.symbol === 'USD' && !toggledMetrics.denomination)
@@ -345,23 +361,14 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					<EmbedChart />
-					<CSVDownloadButton
-						onClick={() => {
-							try {
-								downloadChart(finalCharts, `${props.name}.csv`)
-							} catch (error) {
-								console.error('Error generating CSV:', error)
-							}
-						}}
-						smol
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">
 				{loadingCharts ? (
-					<p className="my-auto flex min-h-[360px] flex-col items-center justify-center text-center text-xs">
-						fetching {loadingCharts}...
+					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
+						fetching {loadingCharts}
+						<LoadingDots />
 					</p>
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
@@ -380,7 +387,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 			</div>
 		</div>
 	)
-}
+})
 
 export const useFetchAndFormatChartData = ({
 	name,
@@ -633,8 +640,27 @@ export const useFetchAndFormatChartData = ({
 		enabled: isPerpsVolumeEnabled
 	})
 
+	const isOpenInterestEnabled =
+		toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady ? true : false
+	const { data: openInterestData = null, isLoading: fetchingOpenInterest } = useQuery<IAdapterSummary>({
+		queryKey: ['openInterest', name, isOpenInterestEnabled],
+		queryFn: () =>
+			isOpenInterestEnabled
+				? getAdapterProtocolSummary({
+						adapterType: 'open-interest',
+						protocol: name,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'openInterestAtEnd'
+					})
+				: Promise.resolve(null),
+		staleTime: 60 * 60 * 1000,
+		retry: 0,
+		enabled: isOpenInterestEnabled
+	})
+
 	const isOptionsPremiumVolumeEnabled =
-		toggledMetrics.optionsPremiumVolume === 'true' && metrics.options && isRouterReady ? true : false
+		toggledMetrics.optionsPremiumVolume === 'true' && metrics.optionsPremiumVolume && isRouterReady ? true : false
 	const { data: optionsPremiumVolumeData = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<IAdapterSummary>({
 		queryKey: ['optionsPremiumVolume', name, isOptionsPremiumVolumeEnabled],
 		queryFn: () =>
@@ -653,7 +679,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isOptionsNotionalVolumeEnabled =
-		toggledMetrics.optionsNotionalVolume === 'true' && metrics.options && isRouterReady ? true : false
+		toggledMetrics.optionsNotionalVolume === 'true' && metrics.optionsNotionalVolume && isRouterReady ? true : false
 	const { data: optionsNotionalVolumeData = null, isLoading: fetchingOptionsNotionalVolume } =
 		useQuery<IAdapterSummary>({
 			queryKey: ['optionsNotionalVolume', name, isOptionsNotionalVolumeEnabled],
@@ -729,7 +755,9 @@ export const useFetchAndFormatChartData = ({
 		})
 
 	const isUnlocksEnabled =
-		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') && metrics.unlocks && isRouterReady
+		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') &&
+		(metrics.unlocks || metrics.incentives) &&
+		isRouterReady
 			? true
 			: false
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
@@ -913,6 +941,9 @@ export const useFetchAndFormatChartData = ({
 		}
 		if (fetchingPerpVolume) {
 			loadingCharts.push('Perp Volume')
+		}
+		if (fetchingOpenInterest) {
+			loadingCharts.push('Open Interest')
 		}
 		if (fetchingOptionsPremiumVolume) {
 			loadingCharts.push('Options Premium Volume')
@@ -1168,6 +1199,15 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (openInterestData) {
+			const chartName: ProtocolChartsLabels = 'Open Interest' as const
+			charts[chartName] = formatLineChart({
+				data: openInterestData.totalDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
+		}
+
 		if (optionsPremiumVolumeData) {
 			const chartName: ProtocolChartsLabels = 'Options Premium Volume' as const
 			charts[chartName] = formatBarChart({
@@ -1403,6 +1443,8 @@ export const useFetchAndFormatChartData = ({
 		dexVolumeData,
 		fetchingPerpVolume,
 		perpsVolumeData,
+		fetchingOpenInterest,
+		openInterestData,
 		fetchingOptionsPremiumVolume,
 		optionsPremiumVolumeData,
 		fetchingOptionsNotionalVolume,
@@ -1435,7 +1477,8 @@ export const useFetchAndFormatChartData = ({
 		bridgeVolumeData,
 		groupBy,
 		extraTvlCharts,
-		valueSymbol
+		valueSymbol,
+		isCEX
 	])
 
 	return chartData

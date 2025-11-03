@@ -1,18 +1,22 @@
-import { Fragment, lazy, memo, Suspense, useMemo } from 'react'
+import { Fragment, lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart } from '~/components/ECharts/utils'
+import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, chainIconUrl, formattedNum, slug } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
@@ -21,15 +25,30 @@ const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export const Stats = memo(function Stats(props: IChainOverviewData) {
+interface IStatsProps extends IChainOverviewData {
+	hideChart?: boolean
+}
+
+export const Stats = memo(function Stats(props: IStatsProps) {
 	const router = useRouter()
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(
+			router.query
+				? tvl === 'true'
+					? rest
+					: router.query
+				: props.metadata.id !== 'all'
+					? { chain: [props.metadata.id] }
+					: {}
+		)
+	}, [router.query, props.metadata.id])
 
 	const [darkMode] = useDarkModeManager()
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
+
+	const { isAuthenticated } = useAuthContext()
 
 	const { toggledCharts, DENOMINATIONS, chainGeckoId, hasAtleasOneBarChart, groupBy, denomination } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -49,8 +68,8 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 		const DENOMINATIONS = CHAIN_SYMBOL ? ['USD', CHAIN_SYMBOL] : ['USD']
 
-		const toggledCharts = props.charts.filter((tchart) =>
-			tchart === 'TVL' ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+		const toggledCharts = props.charts.filter((tchart, index) =>
+			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
@@ -99,9 +118,49 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
+	const prepareCsv = useCallback(() => {
+		return prepareChartCsv(finalCharts, `${props.chain}.csv`)
+	}, [finalCharts, props.chain])
+
+	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
+		mutationFn: async () => {
+			if (!isAuthenticated) {
+				toast.error('Please sign in to download CSV data')
+				return
+			}
+
+			try {
+				const url = `https://api.llama.fi/simpleChainDataset/${
+					chainsNamesMap[props.metadata.name] || props.metadata.name
+				}?${Object.entries(tvlSettings)
+					.filter((t) => t[1] === true)
+					.map((t) => `${t[0]}=true`)
+					.join('&')}`.replaceAll(' ', '%20')
+
+				const response = await fetch(url)
+
+				if (!response || !response.ok) {
+					toast.error('Failed to download CSV data')
+					return
+				}
+
+				const csvData = await response.text()
+
+				downloadCSV(`${props.metadata.name}.csv`, csvData)
+			} catch (error) {
+				console.log('CSV download error:', error)
+				toast.error('Failed to download CSV data')
+			}
+		}
+	})
+
 	return (
-		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
-			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
+		<div className="relative isolate grid h-full grid-cols-2 gap-2 xl:grid-cols-3">
+			<div
+				className={`col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 ${
+					props.hideChart ? 'xl:col-span-full' : 'xl:col-span-1'
+				}`}
+			>
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
 						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
@@ -109,39 +168,41 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
 				)}
-				<div className="flex flex-nowrap items-end justify-between gap-8">
-					<h2 className="flex flex-col">
-						<Tooltip
-							content={
-								props.metadata.name === 'All'
-									? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
-									: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
-							}
-							className="!inline text-(--text-label) underline decoration-dotted"
-						>
-							Total Value Locked in DeFi
-						</Tooltip>
-						<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
-							{formattedNum(totalValueUSD, true)}
-						</span>
-					</h2>
-					{change24h != null ? (
-						<Tooltip
-							content={`${formattedNum(valueChange24hUSD, true)}`}
-							render={<p />}
-							className="relative bottom-[2px] flex flex-nowrap items-center gap-2"
-						>
-							<span
-								className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
-									change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
-								}`}
+				{props.protocols.length > 0 ? (
+					<div className="flex flex-nowrap items-end justify-between gap-8">
+						<h2 className="flex flex-col">
+							<Tooltip
+								content={
+									props.metadata.name === 'All'
+										? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
+										: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
+								}
+								className="!inline text-(--text-label) underline decoration-dotted"
 							>
-								{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+								Total Value Locked in DeFi
+							</Tooltip>
+							<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								{formattedNum(totalValueUSD, true)}
 							</span>
-							<span className="text-(--text-label)">24h</span>
-						</Tooltip>
-					) : null}
-				</div>
+						</h2>
+						{change24h != null ? (
+							<Tooltip
+								content={`${formattedNum(valueChange24hUSD, true)}`}
+								render={<p />}
+								className="relative bottom-0.5 flex flex-nowrap items-center gap-2"
+							>
+								<span
+									className={`font-jetbrains overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${
+										change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
+									}`}
+								>
+									{`${change24h > 0 ? '+' : ''}${change24h.toFixed(2)}%`}
+								</span>
+								<span className="text-(--text-label)">24h</span>
+							</Tooltip>
+						) : null}
+					</div>
+				) : null}
 				<div className="flex flex-1 flex-col gap-2">
 					<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
 					<div className="flex flex-col">
@@ -162,7 +223,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.stablecoins.mcap, true)}</span>
 								</summary>
@@ -278,7 +339,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total24h, true)}</span>
 								</summary>
@@ -323,7 +384,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total24h, true)}</span>
 								</summary>
@@ -383,7 +444,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
 								</summary>
@@ -411,7 +472,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.treasury.tvl, true)}</span>
 								</summary>
@@ -464,7 +525,7 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
 										{formatRaisedAmount(props.chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
@@ -506,12 +567,17 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 						{props.chainAssets ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<span className="text-(--text-label)">Bridged TVL</span>
+									<Tooltip
+										content="Value of all tokens held on the chain"
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										Bridged TVL
+									</Tooltip>
 									<Icon
 										name="chevron-down"
 										height={16}
 										width={16}
-										className="relative top-[2px] -ml-3 transition-transform duration-100 group-open:rotate-180"
+										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
 									/>
 									<span className="font-jetbrains ml-auto">
 										{formattedNum(
@@ -615,180 +681,144 @@ export const Stats = memo(function Stats(props: IChainOverviewData) {
 					</div>
 				</div>
 				<CSVDownloadButton
-					onClick={() => {
-						window.open(
-							`https://api.llama.fi/simpleChainDataset/${
-								chainsNamesMap[props.metadata.name] || props.metadata.name
-							}?${Object.entries(tvlSettings)
-								.filter((t) => t[1] === true)
-								.map((t) => `${t[0]}=true`)
-								.join('&')}`.replaceAll(' ', '%20')
-						)
-					}}
+					onClick={() => downloadAndPrepareChartCsv()}
+					isLoading={isDownloadingChartCsv}
 					smol
-					className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
+					className="ml-auto"
 				/>
 			</div>
-			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex flex-wrap items-center justify-end gap-2 p-2">
-					<div className="mr-auto flex flex-wrap items-center gap-2">
-						{props.charts.length > 0 ? (
-							<Ariakit.DialogProvider store={metricsDialogStore}>
-								<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
-									<span>Add Metrics</span>
-									<Icon name="plus" className="h-[14px] w-[14px]" />
-								</Ariakit.DialogDisclosure>
-								<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
-									<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
-									<div className="flex flex-wrap gap-2">
-										{props.charts.map((tchart) => (
-											<button
-												key={`add-chain-metric-${chainCharts[tchart]}`}
-												onClick={() => {
-													updateRoute(
-														chainCharts[tchart],
-														chainCharts[tchart] === 'tvl'
-															? router.query[chainCharts[tchart]] !== 'false'
-																? 'false'
-																: 'true'
-															: router.query[chainCharts[tchart]] === 'true'
-																? 'false'
-																: 'true',
-														router
-													)
-													metricsDialogStore.toggle()
-												}}
-												data-active={
-													chainCharts[tchart] === 'tvl'
-														? router.query[chainCharts[tchart]] !== 'false'
-														: router.query[chainCharts[tchart]] === 'true'
-												}
-												className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-											>
-												<span>
-													{tchart.includes('Token')
-														? tchart.replace(
-																'Token',
-																props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
-															)
-														: tchart}
-												</span>
-												{chainCharts[tchart] === 'tvl' ? (
-													router.query[chainCharts[tchart]] === 'false' ? (
-														<Icon name="plus" className="h-[14px] w-[14px]" />
+			{!props.hideChart ? (
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+						<div className="mr-auto flex flex-wrap items-center gap-2">
+							{props.charts.length > 0 ? (
+								<Ariakit.DialogProvider store={metricsDialogStore}>
+									<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
+										<span>Add Metrics</span>
+										<Icon name="plus" className="h-3.5 w-3.5" />
+									</Ariakit.DialogDisclosure>
+									<Ariakit.Dialog className="dialog max-sm:drawer gap-3 sm:w-full" unmountOnHide>
+										<span className="flex items-center justify-between gap-1">
+											<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+											<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
+												<Icon name="x" className="h-5 w-5" />
+											</Ariakit.DialogDismiss>
+										</span>
+										<div className="flex flex-wrap gap-2">
+											{props.charts.map((tchart) => (
+												<button
+													key={`add-chain-metric-${chainCharts[tchart]}`}
+													onClick={() => {
+														updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
+														metricsDialogStore.toggle()
+													}}
+													data-active={toggledCharts.includes(tchart)}
+													className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+												>
+													<span>
+														{tchart.includes('Token')
+															? tchart.replace(
+																	'Token',
+																	props.chainTokenInfo?.token_symbol
+																		? `$${props.chainTokenInfo?.token_symbol}`
+																		: 'Token'
+																)
+															: tchart}
+													</span>
+													{toggledCharts.includes(tchart) ? (
+														<Icon name="x" className="h-3.5 w-3.5" />
 													) : (
-														<Icon name="x" className="h-[14px] w-[14px]" />
+														<Icon name="plus" className="h-3.5 w-3.5" />
+													)}
+												</button>
+											))}
+										</div>
+									</Ariakit.Dialog>
+								</Ariakit.DialogProvider>
+							) : null}
+							{toggledCharts.map((tchart) => (
+								<label
+									className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
+									key={`add-or-remove-metric-${chainCharts[tchart]}`}
+								>
+									<input
+										type="checkbox"
+										value={tchart}
+										checked={true}
+										onChange={() => {
+											updateRoute(chainCharts[tchart], toggledCharts.includes(tchart) ? 'false' : 'true', router)
+										}}
+										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+									/>
+									<span
+										className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs hover:bg-(--bg-input) focus-visible:bg-(--bg-input)"
+										style={{
+											borderColor: chainOverviewChartColors[tchart]
+										}}
+									>
+										<span>
+											{tchart.includes('Token')
+												? tchart.replace(
+														'Token',
+														props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
 													)
-												) : router.query[chainCharts[tchart]] === 'true' ? (
-													<Icon name="x" className="h-[14px] w-[14px]" />
-												) : (
-													<Icon name="plus" className="h-[14px] w-[14px]" />
-												)}
-											</button>
-										))}
-									</div>
-								</Ariakit.Dialog>
-							</Ariakit.DialogProvider>
-						) : null}
-						{toggledCharts.map((tchart) => (
-							<label
-								className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
-								key={`add-or-remove-metric-${chainCharts[tchart]}`}
-							>
-								<input
-									type="checkbox"
-									value={tchart}
-									checked={true}
-									onChange={() => {
-										updateRoute(
-											chainCharts[tchart],
-											chainCharts[tchart] === 'tvl'
-												? router.query[chainCharts[tchart]] !== 'false'
-													? 'false'
-													: 'true'
-												: router.query[chainCharts[tchart]] === 'true'
-													? 'false'
-													: 'true',
-											router
-										)
-									}}
-									className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
-								/>
-								<span
-									className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
-									style={{
-										borderColor: chainOverviewChartColors[tchart]
-									}}
-								>
-									<span>
-										{tchart.includes('Token')
-											? tchart.replace(
-													'Token',
-													props.chainTokenInfo?.token_symbol ? `$${props.chainTokenInfo?.token_symbol}` : 'Token'
-												)
-											: tchart}
+												: tchart}
+										</span>
+										<Icon name="x" className="h-3.5 w-3.5" />
 									</span>
-									<Icon name="x" className="h-[14px] w-[14px]" />
-								</span>
-							</label>
-						))}
+								</label>
+							))}
+						</div>
+
+						{DENOMINATIONS.length > 1 ? (
+							<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+								{DENOMINATIONS.map((denom) => (
+									<button
+										key={`denom-${denom}`}
+										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+										data-active={denomination === denom}
+										onClick={() => updateRoute('currency', denom, router)}
+									>
+										{denom}
+									</button>
+								))}
+							</div>
+						) : null}
+
+						{hasAtleasOneBarChart ? (
+							<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+								{INTERVALS_LIST.map((dataInterval) => (
+									<Tooltip
+										content={capitalizeFirstLetter(dataInterval)}
+										render={<button />}
+										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+										data-active={groupBy === dataInterval}
+										onClick={() => updateGroupBy(dataInterval)}
+										key={`${props.chain}-overview-groupBy-${dataInterval}`}
+									>
+										{dataInterval.slice(0, 1).toUpperCase()}
+									</Tooltip>
+								))}
+							</div>
+						) : null}
+						<EmbedChart />
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 
-					{DENOMINATIONS.length > 1 ? (
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-							{DENOMINATIONS.map((denom) => (
-								<button
-									key={`denom-${denom}`}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--old-blue)"
-									data-active={denomination === denom}
-									onClick={() => updateRoute('currency', denom, router)}
-								>
-									{denom}
-								</button>
-							))}
+					{isFetchingChartData ? (
+						<div className="m-auto flex min-h-[360px] items-center justify-center">
+							<p className="flex items-center gap-1">
+								Loading
+								<LoadingDots />
+							</p>
 						</div>
-					) : null}
-
-					{hasAtleasOneBarChart ? (
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-							{INTERVALS_LIST.map((dataInterval) => (
-								<Tooltip
-									content={capitalizeFirstLetter(dataInterval)}
-									render={<button />}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={groupBy === dataInterval}
-									onClick={() => updateGroupBy(dataInterval)}
-									key={`${props.chain}-overview-groupBy-${dataInterval}`}
-								>
-									{dataInterval.slice(0, 1).toUpperCase()}
-								</Tooltip>
-							))}
-						</div>
-					) : null}
-					<EmbedChart />
-					<CSVDownloadButton
-						onClick={() => {
-							try {
-								downloadChart(finalCharts, `${props.chain}.csv`)
-							} catch (error) {
-								console.error('Error generating CSV:', error)
-							}
-						}}
-						smol
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					) : (
+						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+							<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={darkMode} groupBy={groupBy} />
+						</Suspense>
+					)}
 				</div>
-
-				{isFetchingChartData ? (
-					<div className="m-auto flex min-h-[360px] items-center justify-center">
-						<p>Loading...</p>
-					</div>
-				) : (
-					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={darkMode} groupBy={groupBy} />
-					</Suspense>
-				)}
-			</div>
+			) : null}
 		</div>
 	)
 })

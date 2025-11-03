@@ -3,7 +3,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -13,10 +12,9 @@ import { ITotalStakedByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-export function StakedByChain(props: ITotalStakedByChainPageData) {
+export function StakedProtocolsTVLByChain(props: ITotalStakedByChainPageData) {
 	return (
 		<>
-			<Metrics currentMetric="Total Staked" />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-3 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-base xl:col-span-1">
@@ -36,7 +34,7 @@ export function StakedByChain(props: ITotalStakedByChainPageData) {
 							</span>
 						</p>
 						{props.change24h != null ? (
-							<p className="relative bottom-[2px] flex flex-nowrap items-center gap-2 text-sm">
+							<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2 text-sm">
 								<span
 									className={`font-jetbrains text-right text-ellipsis ${
 										props.change24h >= 0 ? 'text-(--success)' : 'text-(--error)'
@@ -61,6 +59,7 @@ export function StakedByChain(props: ITotalStakedByChainPageData) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
+				sortingState={[{ id: 'totalStaked', desc: true }]}
 			/>
 		</>
 	)
@@ -90,7 +89,7 @@ const columns: ColumnDef<ITotalStakedByChainPageData['protocols'][0]>[] = [
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}

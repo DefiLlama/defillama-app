@@ -3,12 +3,9 @@ import dayjs from 'dayjs'
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
-import { Icon } from '~/components/Icon'
 import { CalendarView } from '~/components/Unlocks/CalendarView'
-import type { PrecomputedData } from '~/components/Unlocks/types'
-import { useWatchlistManager } from '~/contexts/LocalStorage'
+import type { PrecomputedData, UnlocksData } from '~/components/Unlocks/types'
 import Layout from '~/layout'
-import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const determineUnlockType = (
@@ -175,18 +172,7 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 	}
 })
 
-interface UnlocksData {
-	[date: string]: {
-		totalValue: number
-		events: Array<{
-			protocol: string
-			value: number
-			details: string
-			category?: string
-			unlockType: string
-		}>
-	}
-}
+const pageName = ['Token Unlocks Calendar']
 
 export default function UnlocksCalendar({
 	unlocksData: initialUnlocksData,
@@ -195,42 +181,14 @@ export default function UnlocksCalendar({
 	unlocksData: UnlocksData
 	precomputedData: PrecomputedData
 }) {
-	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
-	const [showOnlyInsider, setShowOnlyInsider] = React.useState(false)
-	const { savedProtocols } = useWatchlistManager('defi')
-
-	const unlocksData = React.useMemo(() => {
-		let filteredData = initialUnlocksData
-		if (!filteredData) return {}
-
-		if (showOnlyWatchlist || showOnlyInsider) {
-			filteredData = {}
-			Object.entries(initialUnlocksData).forEach(([date, dailyData]) => {
-				let filteredEvents = dailyData.events
-
-				if (showOnlyWatchlist) {
-					filteredEvents = filteredEvents.filter((event) => savedProtocols.has(event.protocol))
-				}
-
-				if (showOnlyInsider) {
-					filteredEvents = filteredEvents.filter((event) => event.category === 'insiders')
-				}
-
-				if (filteredEvents.length > 0) {
-					filteredData[date] = {
-						...dailyData,
-						events: filteredEvents,
-						totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
-					}
-				}
-			})
-		}
-
-		return filteredData
-	}, [initialUnlocksData, showOnlyWatchlist, showOnlyInsider, savedProtocols])
-
 	return (
-		<Layout title={`Token Unlocks Calendar - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Token Unlocks Calendar - DefiLlama`}
+			description={`Upcoming token unlocks. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`token unlocks calendar, defi token unlocks calendar, upcoming token unlocks, tokken emissions calendar`}
+			canonicalUrl={`/unlocks/calendar`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>
 				<span>Are we missing any protocol?</span>{' '}
 				<a
@@ -243,39 +201,8 @@ export default function UnlocksCalendar({
 				</a>
 			</Announcement>
 
-			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<h1 className="text-xl font-semibold">Token Unlocks Calendar</h1>
-				<div className="flex items-center gap-2">
-					<button
-						onClick={() => setShowOnlyWatchlist((prev) => !prev)}
-						className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
-					>
-						<Icon
-							name="bookmark"
-							height={16}
-							width={16}
-							style={{ fill: showOnlyWatchlist ? 'var(--text-primary)' : 'none' }}
-						/>
-						{showOnlyWatchlist ? 'Show All' : 'Show Watchlist'}
-					</button>
-
-					<button
-						onClick={() => setShowOnlyInsider((prev) => !prev)}
-						className="flex w-[200px] items-center justify-center gap-2 rounded-md border border-(--form-control-border) bg-white p-[6px] px-3 text-sm text-black dark:bg-black dark:text-white"
-					>
-						<Icon
-							name="key"
-							height={16}
-							width={16}
-							style={{ fill: showOnlyInsider ? 'var(--text-primary)' : 'none' }}
-						/>
-						{showOnlyInsider ? 'Show All' : 'Show Insiders Only'}
-					</button>
-				</div>
-			</div>
-
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<CalendarView unlocksData={unlocksData} precomputedData={precomputedData} />
+				<CalendarView initialUnlocksData={initialUnlocksData} precomputedData={precomputedData} />
 			</div>
 		</Layout>
 	)

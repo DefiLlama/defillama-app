@@ -30,8 +30,9 @@ const columnSizesKeys = Object.keys(bridgesColumnSizes)
 	.map((x) => Number(x))
 	.sort((a, b) => Number(b) - Number(a))
 
-export function BridgesTable({ data }) {
+export function BridgesTable({ data, searchValue = '', onSearchChange = null }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
+	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const windowSize = useWindowSize()
@@ -41,15 +42,26 @@ export function BridgesTable({ data }) {
 		columns: bridgesColumn,
 		state: {
 			sorting,
+			columnFilters,
 			columnOrder,
 			columnSizing
 		},
 		onSortingChange: setSorting,
+		onColumnFiltersChange: setColumnFilters,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
+
+	React.useEffect(() => {
+		const column = instance.getColumn('displayName')
+		const id = setTimeout(() => {
+			column?.setFilterValue(searchValue)
+		}, 200)
+		return () => clearTimeout(id)
+	}, [searchValue, instance])
 
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
@@ -125,7 +137,8 @@ export function BridgeChainsTable({ data }) {
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex items-center justify-end gap-2 p-3">
+			<div className="flex items-center justify-between gap-2 p-3">
+				<h1 className="mr-auto text-lg font-semibold">Chains</h1>
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search...</span>
 					<Icon
@@ -141,7 +154,7 @@ export function BridgeChainsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>

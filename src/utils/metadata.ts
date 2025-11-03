@@ -14,10 +14,14 @@ interface IChainMetadata {
 	name: string
 	activeUsers?: boolean
 	fees?: boolean
+	revenue?: boolean
 	chainFees?: boolean
+	chainRevenue?: boolean
 	perps?: boolean
+	openInterest?: boolean
 	dexAggregators?: boolean
-	options?: boolean
+	optionsPremiumVolume?: boolean
+	optionsNotionalVolume?: boolean
 	perpsAggregators?: boolean
 	bridgeAggregators?: boolean
 	inflows?: boolean
@@ -27,6 +31,8 @@ interface IChainMetadata {
 	github?: boolean
 	id: string
 	protocolCount?: number
+	incentives?: boolean
+	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
 }
 
 interface IProtocolMetadata {
@@ -40,6 +46,7 @@ interface IProtocolMetadata {
 	holdersRevenue?: boolean
 	dexs?: boolean
 	perps?: boolean
+	openInterest?: boolean
 	dexAggregators?: boolean
 	options?: boolean
 	perpsAggregators?: boolean
@@ -57,6 +64,7 @@ interface IProtocolMetadata {
 	tokenTax?: boolean
 	bridges?: boolean
 	stablecoins?: boolean
+	safeHarbor?: boolean
 }
 
 interface ICexItem {

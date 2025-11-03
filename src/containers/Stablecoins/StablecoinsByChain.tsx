@@ -2,10 +2,9 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { PeggedFilters } from '~/containers/Stablecoins/Filters'
 import { stablecoinAttributeOptions } from '~/containers/Stablecoins/Filters/Attribute'
@@ -17,7 +16,7 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import { download, formattedNum, getPercentChange, preparePieChartData, slug, toNiceCsvDate } from '~/utils'
+import { formattedNum, getPercentChange, preparePieChartData, slug, toNiceCsvDate } from '~/utils'
 import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -26,14 +25,13 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-function PeggedAssetsOverview({
+export function StablecoinsByChain({
 	selectedChain = 'All',
 	chains = [],
 	filteredPeggedAssets,
 	peggedAssetNames,
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
-	backgroundColor,
 	doublecountedIds
 }) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
@@ -137,7 +135,7 @@ function PeggedAssetsOverview({
 
 	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(stackedDataset)
 
-	const downloadCsv = () => {
+	const prepareCsv = () => {
 		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
 		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
 		stackedData
@@ -152,7 +150,7 @@ function PeggedAssetsOverview({
 					}, 0)
 				])
 			})
-		download('stablecoins.csv', rows.map((r) => r.join(',')).join('\n'))
+		return { filename: 'stablecoins.csv', rows: rows as (string | number | boolean)[][] }
 	}
 
 	let title = `Stablecoins Market Cap`
@@ -222,11 +220,9 @@ function PeggedAssetsOverview({
 
 	return (
 		<>
-			<Metrics currentMetric="Stablecoin Supply" />
-
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
 
-			<PeggedFilters pathname={path} downloadCsv={downloadCsv} />
+			<PeggedFilters pathname={path} prepareCsv={prepareCsv} />
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
@@ -285,12 +281,10 @@ function PeggedAssetsOverview({
 					</p>
 				</div>
 				<div
-					className={`relative col-span-2 flex min-h-[424px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) ${
+					className={`relative col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 ${
 						chartType === 'Token Inflows' && tokenInflows ? '*:first:-mb-6' : ''
 					}`}
 				>
-					<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
 							<AreaChart
@@ -300,7 +294,11 @@ function PeggedAssetsOverview({
 								valueSymbol="$"
 								hideDefaultLegend={true}
 								hallmarks={[]}
-								color={oldBlue}
+								color={CHART_COLORS[0]}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+								chartOptions={chartOptions}
 							/>
 						</React.Suspense>
 					)}
@@ -314,6 +312,10 @@ function PeggedAssetsOverview({
 								hideDefaultLegend={true}
 								hideGradient={true}
 								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+								chartOptions={chartOptions}
 							/>
 						</React.Suspense>
 					)}
@@ -328,12 +330,22 @@ function PeggedAssetsOverview({
 								hideGradient={true}
 								expandTo100Percent={true}
 								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+								chartOptions={chartOptions}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Pie' && (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={chainsCirculatingValues} stackColors={tokenColors} />
+							<PieChart
+								chartData={chainsCirculatingValues}
+								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Token Inflows' && tokenInflows && (
@@ -347,12 +359,22 @@ function PeggedAssetsOverview({
 								key={tokenInflowNames} // escape hatch to rerender state in legend options
 								chartOptions={inflowsChartOptions}
 								stackColors={tokenColors}
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'USD Inflows' && usdInflows && (
 						<React.Suspense fallback={<></>}>
-							<BarChart chartData={usdInflows} color={backgroundColor} title="" />
+							<BarChart
+								chartData={usdInflows}
+								color={CHART_COLORS[0]}
+								title=""
+								customComponents={
+									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								}
+							/>
 						</React.Suspense>
 					)}
 				</div>
@@ -411,5 +433,13 @@ const tokenColors = {
 	FDUSD: '#00FF00',
 	Others: '#FF1493'
 }
-
-export default PeggedAssetsOverview
+const chartOptions = {
+	grid: {
+		left: 12,
+		bottom: 68,
+		top: 12,
+		right: 12,
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
+	}
+}

@@ -1,19 +1,18 @@
 import { useMemo, useState } from 'react'
-import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import { reactSelectStyles } from '../../utils/reactSelectStyles'
+import { getItemIconUrl } from '../../utils'
+import { AriakitSelect } from '../AriakitSelect'
+import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
+import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
 import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
-import { ItemSelect } from '../ItemSelect'
-import { MultiItemSelect } from '../MultiItemSelect'
-import { SingleSelectWithTags } from '../SingleSelectWithTags'
 import { CombinedTableType } from './types'
 
 interface TableTabProps {
 	selectedChains: string[]
 	chainOptions: Array<{ value: string; label: string }>
 	protocolsLoading: boolean
-	onChainsChange: (options: any[]) => void
+	onChainsChange: (values: string[]) => void
 	selectedDatasetChain: string | null
-	onDatasetChainChange: (option: any) => void
+	onDatasetChainChange: (value: string | null) => void
 	selectedDatasetTimeframe: string | null
 	onDatasetTimeframeChange: (timeframe: string) => void
 	selectedTableType: CombinedTableType
@@ -22,9 +21,16 @@ interface TableTabProps {
 	onTokensChange: (tokens: string[]) => void
 	includeCex: boolean
 	onIncludeCexChange: (include: boolean) => void
+	legacyTableTypes?: CombinedTableType[]
 }
 
-const tableTypeOptions = [
+const tableTypeOptions: Array<{
+	value: CombinedTableType
+	label: string
+	description: string
+	icon: string
+	hidden?: boolean
+}> = [
 	{
 		value: 'protocols',
 		label: 'Protocols',
@@ -59,25 +65,29 @@ const tableTypeOptions = [
 		value: 'fees',
 		label: 'Fees',
 		description: 'Protocol fees generated across timeframes',
-		icon: '💸'
+		icon: '💸',
+		hidden: true
 	},
 	{
 		value: 'revenue',
 		label: 'Revenue',
 		description: 'Protocol revenue generation across timeframes',
-		icon: '💰'
+		icon: '💰',
+		hidden: true
 	},
 	{
 		value: 'holders-revenue',
 		label: 'Holders Revenue',
 		description: 'Revenue distributed to token holders',
-		icon: '👥'
+		icon: '👥',
+		hidden: true
 	},
 	{
 		value: 'earnings',
 		label: 'Earnings',
 		description: 'Protocol profitability and earnings data',
-		icon: '📈'
+		icon: '📈',
+		hidden: true
 	},
 
 	{
@@ -90,31 +100,36 @@ const tableTypeOptions = [
 		value: 'aggregators',
 		label: 'DEX Aggregators',
 		description: 'Aggregator trading volume and market dominance',
-		icon: '🔄'
+		icon: '🔄',
+		hidden: true
 	},
 	{
 		value: 'perps',
 		label: 'Perpetuals',
 		description: 'Perpetual futures trading volume and trends',
-		icon: '📉'
+		icon: '📉',
+		hidden: true
 	},
 	{
 		value: 'options',
 		label: 'Options',
 		description: 'Options trading volume across protocols',
-		icon: '⚡'
+		icon: '⚡',
+		hidden: true
 	},
 	{
 		value: 'dexs',
 		label: 'DEXs',
 		description: 'Decentralized exchange volume and market share',
-		icon: '💱'
+		icon: '💱',
+		hidden: true
 	},
 	{
 		value: 'bridge-aggregators',
 		label: 'Bridge Aggregators',
 		description: 'Cross-chain bridge aggregator volume and metrics',
-		icon: '🌉'
+		icon: '🌉',
+		hidden: true
 	},
 	{
 		value: 'trending-contracts',
@@ -123,38 +138,6 @@ const tableTypeOptions = [
 		icon: '🔥'
 	}
 ]
-
-const DatasetOption = ({ innerProps, label, data, options, innerRef }) => {
-	const isLast = options[options.length - 1].value === data.value
-	return (
-		<div
-			ref={innerRef}
-			{...innerProps}
-			style={{
-				padding: '8px 12px',
-				cursor: 'pointer',
-				borderBottom: isLast ? 'none' : '1px solid var(--divider)'
-			}}
-		>
-			<div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-				<span style={{ fontSize: '16px', marginTop: '1px' }}>{data.icon}</span>
-				<div style={{ flex: 1 }}>
-					<div style={{ fontWeight: 500, marginBottom: '2px', color: 'var(--pro-text1)', fontSize: '14px' }}>
-						{label}
-					</div>
-					<div style={{ fontSize: '12px', color: 'var(--pro-text2)', lineHeight: '1.3' }}>{data.description}</div>
-				</div>
-			</div>
-		</div>
-	)
-}
-
-const SingleValue = ({ children, data }) => (
-	<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '-2px' }}>
-		<span style={{ fontSize: '16px' }}>{data.icon}</span>
-		<span>{children}</span>
-	</div>
-)
 
 export function TableTab({
 	selectedChains,
@@ -170,7 +153,8 @@ export function TableTab({
 	selectedTokens,
 	onTokensChange,
 	includeCex,
-	onIncludeCexChange
+	onIncludeCexChange,
+	legacyTableTypes = []
 }: TableTabProps) {
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
@@ -192,71 +176,74 @@ export function TableTab({
 
 		return [...additionalOptions, ...baseOptions]
 	}, [tokenSearchInput, tokenOptions, defaultTokens, selectedTokens])
+
+	const datasetSelectOptions = useMemo(() => {
+		const legacySet = new Set(legacyTableTypes)
+		return tableTypeOptions
+			.filter((option) => !option.hidden || legacySet.has(option.value))
+			.map((option) => ({
+				value: option.value,
+				label: option.hidden ? `${option.label} (Legacy)` : option.label,
+				icon: option.icon,
+				description: option.description
+			}))
+	}, [legacyTableTypes])
+
+	const trendingChainOptions = useMemo(
+		() => chainOptions.filter((opt) => ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)),
+		[chainOptions]
+	)
+
+	const chainCategoryOptions = useMemo(
+		() => [
+			{ value: 'All', label: 'All Chains' },
+			{ value: 'EVM', label: 'EVM Chains' },
+			{ value: 'non-EVM', label: 'Non-EVM Chains' },
+			{ value: 'Layer 2', label: 'Layer 2' },
+			{ value: 'Rollup', label: 'Rollups' },
+			{ value: 'Parachain', label: 'Parachains' },
+			{ value: 'Cosmos', label: 'Cosmos' }
+		],
+		[]
+	)
+
+	const tokenOptionMap = useMemo(() => {
+		const map = new Map<string, { value: string; label: string; logo?: string }>()
+		for (const option of mergedTokenOptions) {
+			map.set(option.value, option)
+		}
+		return map
+	}, [mergedTokenOptions])
+
 	return (
 		<div className="flex flex-col gap-4">
-			<div>
-				<label className="pro-text2 mb-1.5 block text-sm font-medium md:mb-2">Table Type</label>
-				<ReactSelect
-					options={tableTypeOptions}
-					value={tableTypeOptions.find((option) => option.value === selectedTableType)}
-					onChange={(option: any) => onTableTypeChange(option.value as CombinedTableType)}
-					components={{
-						Option: DatasetOption
-					}}
-					placeholder="Select table type..."
-					className="w-full text-sm md:text-base"
-					styles={{
-						...reactSelectStyles,
-						control: (provided: any, state: any) => ({
-							...reactSelectStyles.control(provided, state),
-							minHeight: '40px'
-						}),
-						menu: (provided: any) => ({
-							...reactSelectStyles.menu(provided),
-							padding: 0
-						}),
-						menuList: (provided: any) => ({
-							...reactSelectStyles.menuList(provided),
-							maxHeight: '320px',
-							overflowY: 'auto',
-							'&::-webkit-scrollbar': {
-								width: '6px'
-							},
-							'&::-webkit-scrollbar-track': {
-								background: 'var(--pro-bg2)'
-							},
-							'&::-webkit-scrollbar-thumb': {
-								background: 'var(--pro-text3)',
-								borderRadius: '3px'
-							},
-							'&::-webkit-scrollbar-thumb:hover': {
-								background: 'var(--pro-text2)'
-							}
-						})
-					}}
-					menuPosition="fixed"
-				/>
-			</div>
+			<AriakitVirtualizedSelect
+				label="Table Type"
+				options={datasetSelectOptions}
+				selectedValue={selectedTableType}
+				onChange={(option) => onTableTypeChange(option.value as CombinedTableType)}
+				placeholder="Select table type..."
+			/>
 
 			{selectedTableType === 'protocols' ? (
-				<MultiItemSelect
+				<AriakitVirtualizedMultiSelect
 					label="Select Chains"
 					options={chainOptions}
 					selectedValues={selectedChains}
 					onChange={onChainsChange}
 					isLoading={protocolsLoading}
 					placeholder="Select chains..."
-					itemType="chain"
+					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 				/>
 			) : selectedTableType === 'stablecoins' ? (
-				<ItemSelect
+				<AriakitVirtualizedSelect
 					label="Select Chain"
 					options={chainOptions}
 					selectedValue={selectedDatasetChain}
-					onChange={onDatasetChainChange}
-					isLoading={protocolsLoading}
+					onChange={(option) => onDatasetChainChange(option.value)}
 					placeholder="Select chain..."
-					itemType="chain"
+					isLoading={protocolsLoading}
+					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 				/>
 			) : selectedTableType === 'revenue' ||
 			  selectedTableType === 'holders-revenue' ||
@@ -268,47 +255,35 @@ export function TableTab({
 			  selectedTableType === 'options' ||
 			  selectedTableType === 'dexs' ||
 			  selectedTableType === 'bridge-aggregators' ? (
-				<MultiItemSelect
+				<AriakitVirtualizedMultiSelect
 					label="Select Chains (optional)"
 					options={chainOptions}
 					selectedValues={selectedChains}
 					onChange={onChainsChange}
 					isLoading={protocolsLoading}
 					placeholder="All chains..."
-					itemType="chain"
+					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 				/>
 			) : selectedTableType === 'chains' ? (
-				<ItemSelect
+				<AriakitSelect
 					label="Select Category (optional)"
-					options={[
-						{ value: 'All', label: 'All Chains' },
-						{ value: 'EVM', label: 'EVM Chains' },
-						{ value: 'non-EVM', label: 'Non-EVM Chains' },
-						{ value: 'Layer 2', label: 'Layer 2' },
-						{ value: 'Rollup', label: 'Rollups' },
-						{ value: 'Parachain', label: 'Parachains' },
-						{ value: 'Cosmos', label: 'Cosmos' }
-					]}
+					options={chainCategoryOptions}
 					selectedValue={selectedDatasetChain}
-					onChange={onDatasetChainChange}
-					isLoading={false}
+					onChange={(option) => onDatasetChainChange(option.value)}
 					placeholder="All chains..."
-					itemType="text"
 				/>
 			) : selectedTableType === 'trending-contracts' ? (
 				<>
-					<ItemSelect
+					<AriakitVirtualizedSelect
 						label="Select Chain"
-						options={chainOptions.filter((opt) =>
-							['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)
-						)}
+						options={trendingChainOptions}
 						selectedValue={selectedDatasetChain}
-						onChange={onDatasetChainChange}
-						isLoading={protocolsLoading}
+						onChange={(option) => onDatasetChainChange(option.value)}
 						placeholder="Select chain..."
-						itemType="chain"
+						isLoading={protocolsLoading}
+						renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
 					/>
-					<ItemSelect
+					<AriakitSelect
 						label="Time Period"
 						options={[
 							{ value: '1d', label: '1 Day' },
@@ -316,41 +291,66 @@ export function TableTab({
 							{ value: '30d', label: '30 Days' }
 						]}
 						selectedValue={selectedDatasetTimeframe}
-						onChange={(option: any) => onDatasetTimeframeChange(option?.value || '1d')}
-						isLoading={false}
+						onChange={(option) => onDatasetTimeframeChange(option.value)}
 						placeholder="Select time period..."
-						itemType="text"
 					/>
 				</>
 			) : selectedTableType === 'token-usage' ? (
 				<>
-					<SingleSelectWithTags
+					<AriakitVirtualizedMultiSelect
 						label="Select Tokens (up to 4)"
 						options={mergedTokenOptions}
 						selectedValues={selectedTokens}
-						onAddValue={(value) => {
-							if (!selectedTokens.includes(value) && selectedTokens.length < 4) {
-								onTokensChange([...selectedTokens, value])
-							}
-						}}
-						onRemoveValue={(value) => {
-							onTokensChange(selectedTokens.filter((token) => token !== value))
-						}}
+						onChange={(values) => onTokensChange(values.slice(0, 4))}
 						isLoading={isLoadingTokens}
-						placeholder="Search tokens..."
-						itemType="token"
-						onInputChange={setTokenSearchInput}
+						placeholder={selectedTokens.length >= 4 ? 'Maximum 4 tokens selected' : 'Search tokens...'}
 						maxSelections={4}
+						onSearchChange={setTokenSearchInput}
+						renderIcon={(option) => option.logo || null}
 					/>
+					{selectedTokens.length > 0 && (
+						<div className="mt-2 flex flex-wrap gap-2">
+							{selectedTokens.map((token) => {
+								const option = tokenOptionMap.get(token)
+								return (
+									<div key={token} className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1">
+										{option?.logo ? (
+											<img
+												src={option.logo}
+												alt=""
+												className="h-4 w-4 rounded-full"
+												onError={(e) => {
+													e.currentTarget.style.display = 'none'
+												}}
+											/>
+										) : (
+											<div className="h-4 w-4 rounded-full bg-(--bg-tertiary)" />
+										)}
+										<span className="pro-text1 text-sm">{option?.label ?? token}</span>
+										<button
+											type="button"
+											onClick={() => onTokensChange(selectedTokens.filter((t) => t !== token))}
+											className="pro-text3 hover:pro-text1 ml-1 text-xs transition-colors"
+											aria-label={`Remove ${option?.label ?? token}`}
+										>
+											✕
+										</button>
+									</div>
+								)
+							})}
+						</div>
+					)}
 					<div
-						className="flex cursor-pointer items-center gap-2 border border-(--divider) px-3 py-1.5 transition-colors hover:border-(--text-tertiary)"
+						className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 transition-colors"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative h-4 w-4">
 							<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 							<div
 								className={`h-4 w-4 border-2 transition-all ${
-									includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
+									includeCex
+										? 'border-pro-blue-100 bg-pro-blue-100 dark:border-pro-blue-300/20 dark:bg-pro-blue-300/20'
+										: 'pro-border bg-transparent'
 								}`}
 							>
 								{includeCex && (

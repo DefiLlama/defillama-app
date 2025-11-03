@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
+import { chainIconUrl } from '~/utils'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -16,14 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		})
 
 		const chains = data.chains || []
-		const chainAssets = data.chainAssets || {}
 
-		const formattedChains = chains.map((chain: any) => {
-			const assets = chainAssets[chain.name]
-
+		const formattedChains = chains.map((chain) => {
 			return {
 				name: chain.name,
-				icon: chain.icon || null,
+				icon: chainIconUrl(chain.name),
 				protocols: chain.protocols || 0,
 				users: chain.users || null,
 				change_1d: chain.change_1d || null,
@@ -32,9 +30,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				tvl: chain.tvl || 0,
 				stablesMcap: chain.stablesMcap || null,
 				totalVolume24h: chain.totalVolume24h || null,
+				totalVolume30d: chain.totalVolume30d || null,
 				totalFees24h: chain.totalFees24h || null,
+				totalFees30d: chain.totalFees30d || null,
 				totalRevenue24h: chain.totalRevenue24h || null,
+				totalRevenue30d: chain.totalRevenue30d || null,
 				totalAppRevenue24h: chain.totalAppRevenue24h || null,
+				totalAppRevenue30d: chain.totalAppRevenue30d || null,
+				bridgedTvl: chain.bridgedTvl ?? chain.chainAssets?.total?.total ?? null,
 				mcaptvl: chain.mcaptvl || null,
 				nftVolume: chain.nftVolume || null,
 				mcap: chain.mcap || null,
@@ -43,13 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			}
 		})
 
-		const sortedChains = formattedChains
-			.filter((chain: any) => chain.tvl > 0)
-			.sort((a: any, b: any) => (b.tvl || 0) - (a.tvl || 0))
+		const sortedChains = formattedChains.filter((chain) => chain.tvl > 0).sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
 		res.status(200).json(sortedChains)
 	} catch (error) {
-		console.error('Error fetching chains data:', error)
+		console.log('Error fetching chains data:', error)
 		res.status(500).json({ error: 'Failed to fetch chains data' })
 	}
 }

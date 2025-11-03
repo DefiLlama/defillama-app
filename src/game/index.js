@@ -15,7 +15,7 @@ const Game = () => {
 	return (
 		<>
 			<Head>
-				<link rel="stylesheet" type="text/css" href="/game.css" />
+				<link rel="stylesheet" type="text/css" href="/game/game.css" />
 			</Head>
 			<div id="messageBox" className="sendmessage">
 				<h1 id="startHeader">Press Space to start</h1>

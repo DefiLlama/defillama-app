@@ -12,15 +12,26 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
+import { downloadCSV } from '~/utils'
+import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { TableFilters } from '../../../types'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { CategoryFilterModal } from '../../CategoryFilterModal'
 import { earningsDatasetColumns } from './columns'
 import { useEarningsData } from './useEarningsData'
 
-export function EarningsDataset({ chains }: { chains?: string[] }) {
+interface EarningsDatasetProps {
+	chains?: string[]
+	tableId?: string
+	filters?: TableFilters
+}
+
+export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
@@ -30,8 +41,69 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
+	const { handleTableFiltersChange } = useProDashboard()
 	const { data, isLoading, error } = useEarningsData(chains)
 	const windowSize = useWindowSize()
+
+	const [showFilterModal, setShowFilterModal] = React.useState(false)
+	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
+	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories || [])
+
+	React.useEffect(() => {
+		setIncludeCategories(filters?.categories || [])
+		setExcludeCategories(filters?.excludedCategories || [])
+	}, [filters?.categories, filters?.excludedCategories])
+
+	const availableCategories = React.useMemo(() => {
+		if (!data || data.length === 0) return [] as string[]
+		const unique = new Set<string>()
+		data.forEach((row: any) => {
+			if (row?.category) {
+				unique.add(row.category)
+			}
+		})
+		return Array.from(unique).sort((a, b) => a.localeCompare(b))
+	}, [data])
+
+	React.useEffect(() => {
+		if (!availableCategories.length) return
+		setIncludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
+		setExcludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
+	}, [availableCategories])
+
+	const filteredData = React.useMemo(() => {
+		if (!data) return []
+		return data.filter((row: any) => {
+			const category = row?.category ?? ''
+			if (includeCategories.length > 0 && !includeCategories.includes(category)) {
+				return false
+			}
+			if (excludeCategories.length > 0 && excludeCategories.includes(category)) {
+				return false
+			}
+			return true
+		})
+	}, [data, includeCategories, excludeCategories])
+
+	const handleApplyCategoryFilters = React.useCallback(
+		(include: string[], exclude: string[]) => {
+			const sanitizedInclude = include.filter((cat) => availableCategories.includes(cat))
+			const sanitizedExclude = exclude.filter((cat) => availableCategories.includes(cat))
+			setIncludeCategories(sanitizedInclude)
+			setExcludeCategories(sanitizedExclude)
+			if (tableId) {
+				handleTableFiltersChange(tableId, {
+					categories: sanitizedInclude.length ? sanitizedInclude : undefined,
+					excludedCategories: sanitizedExclude.length ? sanitizedExclude : undefined
+				})
+			}
+		},
+		[availableCategories, handleTableFiltersChange, tableId]
+	)
+
+	const handleClearCategoryFilters = React.useCallback(() => {
+		handleApplyCategoryFilters([], [])
+	}, [handleApplyCategoryFilters])
 
 	const columnsToUse = React.useMemo(() => {
 		if (chains && chains.length > 0) {
@@ -42,9 +114,41 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 		return earningsDatasetColumns
 	}, [chains])
 
+	const activeCategoryFilterCount = includeCategories.length + excludeCategories.length
+	const filterButtonIsActive = activeCategoryFilterCount > 0
+
+	const columnsWithFilterButton = React.useMemo(() => {
+		return columnsToUse.map((col: ColumnDef<any>) => {
+			const columnId = (col as any).id || (col as any).accessorKey
+			if (columnId === 'category') {
+				return {
+					...col,
+						header: () => (
+							<div className="flex items-center justify-end gap-2">
+								<span>Category</span>
+								<button
+									onClick={(event) => {
+										event.stopPropagation()
+										setShowFilterModal(true)
+									}}
+									className={`ml-2 rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
+										filterButtonIsActive ? 'text-(--primary)' : 'text-(--text-tertiary)'
+									}`}
+									title="Filter categories"
+								>
+									<Icon name="settings" height={14} width={14} />
+								</button>
+							</div>
+						)
+					}
+			}
+			return col
+		})
+	}, [columnsToUse, filterButtonIsActive, activeCategoryFilterCount])
+
 	const instance = useReactTable({
-		data: data || [],
-		columns: columnsToUse as ColumnDef<any>[],
+		data: filteredData || [],
+		columns: columnsWithFilterButton as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -132,11 +236,11 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 	return (
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
-				<div className="flex items-center justify-between gap-4">
-					<h3 className="pro-text1 text-lg font-semibold">
+				<div className="flex flex-wrap items-center justify-end gap-4">
+					<h3 className="pro-text1 mr-auto text-lg font-semibold">
 						{chains && chains.length > 0 ? `${chains.join(', ')} Earnings` : 'Protocol Earnings'}
 					</h3>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center justify-end gap-2">
 						<ProTableCSVButton
 							onClick={() => {
 								const rows = instance.getFilteredRowModel().rows
@@ -167,15 +271,7 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `earnings-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
+								downloadCSV('earnings-data.csv', csv, { addTimestamp: true })
 							}}
 							smol
 						/>
@@ -184,7 +280,7 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>
@@ -205,6 +301,15 @@ export function EarningsDataset({ chains }: { chains?: string[] }) {
 					/>
 				</div>
 			</div>
+			<CategoryFilterModal
+				isOpen={showFilterModal}
+				onClose={() => setShowFilterModal(false)}
+				onApply={(include, exclude) => handleApplyCategoryFilters(include, exclude)}
+				onClear={handleClearCategoryFilters}
+				categories={availableCategories}
+				initialInclude={includeCategories.filter((cat) => availableCategories.includes(cat))}
+				initialExclude={excludeCategories.filter((cat) => availableCategories.includes(cat))}
+			/>
 		</div>
 	)
 }

@@ -2,14 +2,13 @@ import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { forksColumn } from '~/components/Table/Defi/columns'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getForkPageData } from '~/containers/Forks/queries'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
-import { download, preparePieChartData } from '~/utils'
+import { preparePieChartData } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -26,6 +25,8 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
+
+const pageName = ['Protocols', 'ranked by', 'TVL in Forks']
 
 export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, parentTokens, forkColors }) {
 	const forkedTokensData = useCalcStakePool2Tvl(parentTokens)
@@ -45,7 +46,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 
 		const tokensList = tvls.map(({ name, value }) => {
 			const tokenTvl = forkedTokensData.find((p) => p.name.toLowerCase() === name.toLowerCase())?.tvl ?? null
-			const ftot = tokenTvl ? (value / tokenTvl) * 100 : null
+			const ftot = tokenTvl ? (Number(value.toFixed(2)) / Number(tokenTvl.toFixed(2))) * 100 : null
 
 			return {
 				name,
@@ -58,7 +59,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, forkedTokensData])
 
-	const downloadCSV = () => {
+	const prepareCsv = React.useCallback(() => {
 		const headers = ['Name', 'Forked Protocols', 'TVL', 'Forked TVL / Original TVL %']
 		const csvData = tokensList.map((row) => {
 			return {
@@ -68,26 +69,27 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 				'Forked TVL / Original TVL %': row.ftot
 			}
 		})
-		const csv = [headers].concat(csvData.map((row) => headers.map((header) => row[header]))).join('\n')
-		download('forks.csv', csv)
-	}
+		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
+		return { filename: 'forks.csv', rows: rows as (string | number | boolean)[][] }
+	}, [tokensList])
 
 	return (
-		<Layout title={`Forks - DefiLlama`} defaultSEO>
-			<Metrics currentMetric="TVL in forks" />
+		<Layout
+			title={`Forks - DefiLlama`}
+			description={`Overview of protocols by their forks value. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`forks, protocol forks, forks on blockchain`}
+			canonicalUrl={`/forks`}
+			pageName={pageName}
+		>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={'All'} />
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">
-					<CSVDownloadButton
-						onClick={downloadCSV}
-						smol
-						className="z-10 mx-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={forkColors} />
 					</React.Suspense>
 				</div>
-				<div className="min-h-[406px] flex-1 rounded-md bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -115,6 +117,7 @@ export default function Forks({ chartData, tokensProtocols, tokens, tokenLinks, 
 					placeholder={'Search protocols...'}
 					columnToSearch={'name'}
 					header={'Protocol Rankings'}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

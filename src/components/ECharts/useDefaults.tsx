@@ -12,8 +12,6 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useMedia } from '~/hooks/useMedia'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
 import { formattedNum } from '~/utils'
 
 const CHART_SYMBOLS = {
@@ -29,9 +27,9 @@ const CHART_SYMBOLS = {
 	'Median APY': '%',
 	Treasury: '$',
 	Tweets: '',
-	Contributers: '',
+	Contributors: '',
 	Developers: '',
-	'Contributers Commits': '',
+	'Contributors Commits': '',
 	Commits: '',
 	'Devs Commits': ''
 }
@@ -64,6 +62,7 @@ interface IUseDefaultsProps {
 	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
 	alwaysShowTooltip?: boolean
 	showAggregateInTooltip?: boolean
+	xAxisType?: 'time' | 'category'
 }
 
 export function useDefaults({
@@ -80,7 +79,8 @@ export function useDefaults({
 	hideOthersInTooltip,
 	groupBy,
 	alwaysShowTooltip,
-	showAggregateInTooltip = false
+	showAggregateInTooltip = false,
+	xAxisType = 'time'
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
@@ -89,7 +89,7 @@ export function useDefaults({
 			type: 'image',
 			z: 0,
 			style: {
-				image: isThemeDark ? logoLight.src : logoDark.src,
+				image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},
@@ -113,7 +113,8 @@ export function useDefaults({
 
 		const grid = {
 			left: 20,
-			containLabel: true,
+			outerBoundsMode: 'same',
+			outerBoundsContain: 'axisLabel',
 			bottom: 60,
 			top: title ? gridTop + 48 : gridTop + 20,
 			right: 20
@@ -223,7 +224,7 @@ export function useDefaults({
 						position: [60, 0],
 						backgroundColor: 'none',
 						borderWidth: '0',
-						padding: 0,
+						padding: 8,
 						boxShadow: 'none',
 						textStyle: {
 							color: isThemeDark ? 'white' : 'black'
@@ -330,7 +331,7 @@ export function useDefaults({
 						position: [60, 0],
 						backgroundColor: 'none',
 						borderWidth: '0',
-						padding: 0,
+						padding: 8,
 						boxShadow: 'none',
 						textStyle: {
 							color: isThemeDark ? 'white' : 'black'
@@ -340,8 +341,8 @@ export function useDefaults({
 		}
 
 		const xAxis = {
-			type: 'time',
-			boundaryGap: false,
+			type: xAxisType,
+			boundaryGap: xAxisType === 'category',
 			nameTextStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 14,
@@ -461,8 +462,7 @@ export function useDefaults({
 		hideOthersInTooltip,
 		tooltipValuesRelative,
 		groupBy,
-		alwaysShowTooltip,
-		showAggregateInTooltip
+		alwaysShowTooltip
 	])
 
 	return defaults

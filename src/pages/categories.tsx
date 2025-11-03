@@ -153,7 +153,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const chartData = {}
 	const extraTvlCharts = {}
 	const totalCategories = Object.keys(protocolsByCategory).length
-	const allColors = getNDistinctColors(totalCategories + 1)
+	const allColors = getNDistinctColors(totalCategories)
 	const categoryColors = Object.fromEntries(Object.keys(protocolsByCategory).map((_, i) => [_, allColors[i]]))
 
 	for (const date in chart) {
@@ -304,10 +304,22 @@ export const descriptions = {
 	'DAO Service Provider': 'Protocols that provide services to DAOs',
 	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights',
 	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks',
-	Interface: 'Projects that provide a user interface to interact with external protocols'
+	Interface: 'Projects that provide a user interface to interact with external protocols',
+	'Video Infrastructure':
+		'Protocols that provide decentralized tools and infrastructure for video streaming, transcoding, recording, playback, or media processing',
+	DePIN:
+		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance',
+	'Dual-Token Stablecoin':
+		'Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability',
+	'Physical TCG': 'Protocols that allow you to trade physical trading cards',
+	'Mining Pools': 'Protocols that coordinate user resources into shared mining pools',
+	'NFT Automated Strategies': 'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
+	'Luck Games': 'Protocols that allow you to play games of chance, such as dice, or other games of chance',
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
+
+const pageName = ['Protocol Categories']
 
 export default function Protocols({ categories, tableData, chartData, extraTvlCharts }) {
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
@@ -432,7 +444,14 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [tableData, extaTvlsEnabled])
 
 	return (
-		<Layout title={`Categories - DefiLlama`} defaultSEO includeInMetricsOptions={finalTvlOptions}>
+		<Layout
+			title={`Categories - DefiLlama`}
+			description={`Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocols categories, defi categories`}
+			canonicalUrl={`/categories`}
+			metricFilters={finalTvlOptions}
+			pageName={pageName}
+		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Categories</h1>
@@ -466,7 +485,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
-					defaultSorting={[{ id: 'tvl', desc: true }]}
+					sortingState={[{ id: 'tvl', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>
@@ -558,28 +577,28 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 		size: 135
 	},
 	{
-		header: '1d Change',
+		header: '1d TVL Change',
 		accessorKey: 'change_1d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: '7d Change',
+		header: '7d TVL Change',
 		accessorKey: 'change_7d',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
 	},
 	{
-		header: '1m Change',
+		header: '1m TVL Change',
 		accessorKey: 'change_1m',
 		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 110,
+		size: 140,
 		meta: {
 			align: 'end'
 		}

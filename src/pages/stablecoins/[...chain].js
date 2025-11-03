@@ -1,7 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { primaryColor } from '~/constants/colors'
 import { getPeggedAssets, getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import PeggedList from '~/containers/Stablecoins/StablecoinsByChain'
+import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -17,10 +16,11 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metadata = metadataCache.chainMetadata[slug(chain)]
 
-		if (!metadata)
+		if (!metadata?.stablecoins) {
 			return {
 				notFound: true
 			}
+		}
 
 		const props = await getPeggedOverviewPageData(metadata.name)
 
@@ -31,10 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		return {
-			props: {
-				...props,
-				backgroundColor: primaryColor
-			},
+			props,
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -50,6 +47,8 @@ export async function getStaticPaths() {
 	return { paths: paths.slice(0, 11), fallback: 'blocking' }
 }
 
+const pageName = ['Stablecoins', 'by', 'Market Cap']
+
 export default function PeggedAssets({
 	chains,
 	filteredPeggedAssets,
@@ -57,12 +56,17 @@ export default function PeggedAssets({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	doublecountedIds,
-	chain,
-	backgroundColor
+	chain
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
-			<PeggedList
+		<Layout
+			title={`Stablecoins Circulating on ${chain} - DefiLlama`}
+			description={`Stablecoins Circulating on ${chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`stablecoins circulating on ${chain}, stablecoins supply on ${chain}, stablecoins market cap on ${chain}, stablecoins price on ${chain}, stablecoins percent off peg on ${chain}`.toLowerCase()}
+			canonicalUrl={`/stablecoins/${chain}`}
+			pageName={pageName}
+		>
+			<StablecoinsByChain
 				chains={chains}
 				selectedChain={chain}
 				filteredPeggedAssets={filteredPeggedAssets}
@@ -70,7 +74,6 @@ export default function PeggedAssets({
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				doublecountedIds={doublecountedIds}
-				backgroundColor={backgroundColor}
 			/>
 		</Layout>
 	)

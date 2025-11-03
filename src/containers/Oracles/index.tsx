@@ -5,16 +5,17 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
-import { Metrics } from '~/components/Metrics'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import Layout from '~/layout'
-import { download, formattedNum, preparePieChartData } from '~/utils'
+import { formattedNum, preparePieChartData } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
+
+const pageName = ['Oracles', 'ranked by', 'TVS']
 
 export const OraclesByChain = ({
 	chartData,
@@ -48,29 +49,35 @@ export const OraclesByChain = ({
 		return { tokenTvls, tokensList }
 	}, [chainsWithExtraTvlsByDay, tokensProtocols, chainsByOracle])
 
-	const downloadCsv = () => {
-		const header = Object.keys(tokensList[0]).join(',')
-		download('oracles.csv', [header, ...tokensList.map((r) => Object.values(r).join(','))].join('\n'))
-	}
+	const prepareCsv = React.useCallback(() => {
+		const headers = Object.keys(tokensList[0])
+		const rows = [headers].concat(
+			tokensList.map((row) =>
+				headers.map((header) => (Array.isArray(row[header]) ? row[header].join(', ') : row[header]))
+			)
+		)
+		return { filename: 'oracles.csv', rows }
+	}, [tokensList])
 
 	return (
-		<Layout title={`Oracles - DefiLlama`} defaultSEO includeInMetricsOptions={tvlOptions}>
-			<Metrics currentMetric="Oracle TVS" />
-
+		<Layout
+			title={`Oracles - DefiLlama`}
+			description={`Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama.`}
+			keywords={`oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle`}
+			canonicalUrl={`/oracles`}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
 			<RowLinksWithDropdown links={tokenLinks} activeLink={chain || 'All'} />
 
 			<div className="flex flex-col gap-1 xl:flex-row">
-				<div className="relative isolate flex min-h-[406px] flex-1 flex-col rounded-md bg-(--cards-bg) pt-2">
-					<CSVDownloadButton
-						onClick={downloadCsv}
-						smol
-						className="z-10 mx-2 ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mr-2 ml-auto" />
 					<React.Suspense fallback={<></>}>
 						<PieChart chartData={tokenTvls} stackColors={oraclesColors} />
 					</React.Suspense>
 				</div>
-				<div className="min-h-[406px] flex-1 rounded-md bg-(--cards-bg) pt-2">
+				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
 						<AreaChart
 							chartData={chainsWithExtraTvlsAndDominanceByDay}
@@ -98,6 +105,7 @@ export const OraclesByChain = ({
 					columnToSearch={'name'}
 					placeholder={'Search oracles...'}
 					header={'Oracle Rankings'}
+					sortingState={[{ id: 'tvs', desc: true }]}
 				/>
 			</React.Suspense>
 		</Layout>

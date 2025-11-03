@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { maxAgeForNext } from '~/api'
 import { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
+import { LocalLoader } from '~/components/Loaders'
 import { PROTOCOL_TREASURY_API } from '~/constants'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
@@ -104,7 +105,7 @@ export default function Protocols(props) {
 		}
 
 		return { tokenBreakdown, tokenBreakdownUSD, tokensUnique, top10Tokens, historicalTreasury: finalHistoricalTreasury }
-	}, [data, includeOwnTokens])
+	}, [data, includeOwnTokens, props.name])
 
 	return (
 		<ProtocolOverviewLayout
@@ -126,9 +127,9 @@ export default function Protocols(props) {
 				</label>
 			</div>
 			{isLoading ? (
-				<p className="flex min-h-[384px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-center">
-					Loading...
-				</p>
+				<div className="flex min-h-[384px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
 			) : (
 				<div className="grid min-h-[384px] grid-cols-2 gap-2 rounded-md">
 					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">

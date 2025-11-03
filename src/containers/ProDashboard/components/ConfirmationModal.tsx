@@ -1,5 +1,4 @@
-import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 
 interface ConfirmationModalProps {
@@ -23,65 +22,46 @@ export function ConfirmationModal({
 	cancelText = 'Cancel',
 	confirmButtonClass = 'bg-red-500 hover:bg-red-600 text-white'
 }: ConfirmationModalProps) {
-	useEffect(() => {
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				onClose()
-			}
-		}
-
-		if (isOpen) {
-			document.addEventListener('keydown', handleEscape)
-			document.body.style.overflow = 'hidden'
-		}
-
-		return () => {
-			document.removeEventListener('keydown', handleEscape)
-			document.body.style.overflow = ''
-		}
-	}, [isOpen, onClose])
-
-	if (!isOpen) return null
-
-	const target = document.querySelector('.pro-dashboard') ?? document.body
-
-	return createPortal(
-		<div
-			className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-xs dark:bg-black/70"
-			onClick={onClose}
+	return (
+		<Ariakit.DialogProvider
+			open={isOpen}
+			setOpen={(open) => {
+				if (!open) onClose()
+			}}
 		>
-			<div
-				className="pro-bg1 mx-4 w-full max-w-md border border-white/10 p-6 shadow-xl"
-				onClick={(e) => e.stopPropagation()}
+			<Ariakit.Dialog
+				className="dialog pro-dashboard w-full max-w-sm gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+				unmountOnHide
+				portal
+				hideOnInteractOutside
 			>
-				<div className="mb-4 flex items-center justify-between">
-					<h2 className="pro-text1 text-lg font-semibold">{title}</h2>
-					<button onClick={onClose} className="pro-hover-bg pro-text1 p-1 transition-colors" aria-label="Close modal">
+				<div className="mb-6 flex items-center justify-between">
+					<h2 className="pro-text1 text-xl font-semibold">{title}</h2>
+					<Ariakit.DialogDismiss
+						className="pro-hover-bg pro-text1 rounded-md p-1 transition-colors"
+						aria-label="Close modal"
+					>
 						<Icon name="x" height={20} width={20} />
-					</button>
+					</Ariakit.DialogDismiss>
 				</div>
 
 				<p className="pro-text2 mb-6">{message}</p>
 
 				<div className="flex justify-end gap-3">
-					<button
-						onClick={onClose}
-						className="pro-hover-bg pro-text1 border border-white/20 px-4 py-2 font-medium transition-colors"
-					>
+					<Ariakit.DialogDismiss className="pro-border pro-text2 hover:pro-text1 pro-hover-bg rounded-md border px-4 py-2 text-sm transition-colors">
 						{cancelText}
-					</button>
+					</Ariakit.DialogDismiss>
 					<button
 						onClick={() => {
 							onConfirm()
 							onClose()
 						}}
-						className={`px-4 py-2 font-medium transition-colors ${confirmButtonClass}`}
+						className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${confirmButtonClass}`}
 					>
 						{confirmText}
 					</button>
 				</div>
-			</div>
-		</div>,
-		target
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }

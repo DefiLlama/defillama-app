@@ -4,9 +4,14 @@ export default function Document() {
 	return (
 		<Html lang="en">
 			<Head>
+				<link rel="icon" href="/favicon.ico" />
+				<link rel="icon" href="/icons/favicon-32x32.png" />
+				<link rel="icon" href="/icons/favicon-16x16.png" />
+				<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+				<link rel="manifest" href="/manifest.json" />
 				<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
-				<link href="/icons/v5.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
+				<link href="/icons/v25.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `

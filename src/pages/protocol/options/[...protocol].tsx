@@ -1,11 +1,11 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { downloadChart, formatBarChart } from '~/components/ECharts/utils'
+import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
 import { KeyMetrics } from '~/containers/ProtocolOverview'
@@ -36,34 +36,38 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].options) {
+		if (!metadata || (!metadata[1].optionsPremiumVolume && !metadata[1].optionsNotionalVolume)) {
 			return { notFound: true, props: null }
 		}
 
 		const [protocolData, premiumVolumeData, notionalVolumeData] = await Promise.all([
 			getProtocol(protocol),
-			getAdapterProtocolSummary({
-				adapterType: 'options',
-				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
-			getAdapterProtocolSummary({
-				adapterType: 'options',
-				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true,
-				dataType: 'dailyNotionalVolume'
-			}).catch(() => null)
+			metadata[1].optionsPremiumVolume
+				? getAdapterProtocolSummary({
+						adapterType: 'options',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true
+					}).catch(() => null)
+				: null,
+			metadata[1].optionsNotionalVolume
+				? getAdapterProtocolSummary({
+						adapterType: 'options',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyNotionalVolume'
+					}).catch(() => null)
+				: null
 		])
 
 		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
 
 		const optionsPremiumVolume: IProtocolOverviewPageData['optionsPremiumVolume'] = {
-			total24h: premiumVolumeData.total24h ?? null,
-			total7d: premiumVolumeData.total7d ?? null,
-			total30d: premiumVolumeData.total30d ?? null,
-			totalAllTime: premiumVolumeData.totalAllTime ?? null
+			total24h: premiumVolumeData?.total24h ?? null,
+			total7d: premiumVolumeData?.total7d ?? null,
+			total30d: premiumVolumeData?.total30d ?? null,
+			totalAllTime: premiumVolumeData?.totalAllTime ?? null
 		}
 
 		const optionsNotionalVolume: IProtocolOverviewPageData['optionsNotionalVolume'] = {
@@ -147,7 +151,7 @@ export default function Protocols(props) {
 					denominationPriceHistory: null,
 					dateInMs: false
 				}),
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		}
 		if (charts.includes('Notional Volume')) {
@@ -161,11 +165,19 @@ export default function Protocols(props) {
 					denominationPriceHistory: null,
 					dateInMs: false
 				}),
-				color: '#E59421'
+				color: CHART_COLORS[1]
 			}
 		}
 		return finalCharts
 	}, [charts, groupBy, props.charts])
+
+	const prepareCsv = useCallback(() => {
+		const dataByChartType = {}
+		for (const chartType in finalCharts) {
+			dataByChartType[chartType] = finalCharts[chartType].data
+		}
+		return prepareChartCsv(dataByChartType, `${props.name}-total-options-volume.csv`)
+	}, [finalCharts, props.name])
 
 	return (
 		<ProtocolOverviewLayout
@@ -205,7 +217,7 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						{props.defaultCharts.length > 0 ? (
+						{props.defaultCharts.length > 1 ? (
 							<Select
 								allValues={props.defaultCharts}
 								selectedValues={charts}
@@ -218,26 +230,12 @@ export default function Protocols(props) {
 								}}
 								triggerProps={{
 									className:
-										'h-[30px] bg-transparent! border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) flex items-center gap-1 rounded-md p-2 text-xs'
+										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 								}}
 								labelType="smol"
 							/>
 						) : null}
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									const dataByChartType = {}
-									for (const chartType in finalCharts) {
-										dataByChartType[chartType] = finalCharts[chartType].data
-									}
-									downloadChart(dataByChartType, `${props.name}-total-options-volume.csv`)
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
+						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<LineAndBarChart charts={finalCharts} valueSymbol="$" />

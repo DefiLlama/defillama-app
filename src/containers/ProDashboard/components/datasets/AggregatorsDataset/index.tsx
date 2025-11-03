@@ -16,6 +16,7 @@ import {
 import { TagGroup } from '~/components/TagGroup'
 import { AggregatorItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
+import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -150,11 +151,11 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 	return (
 		<div className="flex h-full w-full flex-col p-4">
 			<div className="mb-3">
-				<div className="flex items-center justify-between gap-4">
-					<h3 className="pro-text1 text-lg font-semibold">
+				<div className="flex flex-wrap items-center justify-end gap-4">
+					<h3 className="pro-text1 mr-auto text-lg font-semibold">
 						{chains && chains.length > 0 ? `${chains.join(', ')} DEX Aggregators` : 'DEX Aggregators Volume'}
 					</h3>
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center justify-end gap-2">
 						<ProTableCSVButton
 							onClick={() => {
 								const rows = instance.getFilteredRowModel().rows
@@ -190,15 +191,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 									})
 								].join('\n')
 
-								const blob = new Blob([csv], { type: 'text/csv' })
-								const url = URL.createObjectURL(blob)
-								const a = document.createElement('a')
-								a.href = url
-								a.download = `aggregators-data-${new Date().toISOString().split('T')[0]}.csv`
-								document.body.appendChild(a)
-								a.click()
-								document.body.removeChild(a)
-								URL.revokeObjectURL(url)
+								downloadCSV('aggregators-data.csv', csv, { addTimestamp: true })
 							}}
 							smol
 						/>
@@ -207,7 +200,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 							placeholder="Search protocols..."
 							value={protocolName}
 							onChange={(e) => setProtocolName(e.target.value)}
-							className="pro-border pro-bg1 pro-text1 border px-3 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="pro-border pro-text1 rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>
 				</div>

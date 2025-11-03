@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
@@ -76,14 +76,14 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			totalStaked,
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && totalStaked != null
-					? (getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
+					? Number(getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
 					: null
 		}
 
@@ -114,8 +114,8 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 				totalStaked: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalStaked ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
-					totalPrevMonth != null && totalPrevMonth != null
-						? (getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
+					totalStaked != null && totalPrevMonth != null
+						? Number(getPercentChange(totalStaked, totalPrevMonth)?.toFixed(2) ?? 0)
 						: null,
 				subRows: finalParentProtocols[parent]
 			})
@@ -130,7 +130,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			...chains.map((chain) => ({ label: chain, to: `/total-staked/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Total Staked': { name: 'Total Staked', data: chart, type: 'line', stack: 'Total Staked', color: oldBlue }
+			'Total Staked': { name: 'Total Staked', data: chart, type: 'line', stack: 'Total Staked', color: CHART_COLORS[0] }
 		},
 		totalStaked: chart[chart.length - 1][1],
 		change24h:

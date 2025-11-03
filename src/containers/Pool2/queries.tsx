@@ -1,11 +1,11 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
 
-export interface IPool2ByChainPageData {
+export interface IPool2ProtocolsTVLByChainPageData {
 	protocols: Array<{
 		name: string
 		logo: string
@@ -31,7 +31,11 @@ export interface IPool2ByChainPageData {
 	change24h: number | null
 }
 
-export async function getPool2TVLByChain({ chain }: { chain: string }): Promise<IPool2ByChainPageData | null> {
+export async function getPool2TVLByChain({
+	chain
+}: {
+	chain: string
+}): Promise<IPool2ProtocolsTVLByChainPageData | null> {
 	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
 			protocols: Array<ILiteProtocol>
@@ -76,14 +80,14 @@ export async function getPool2TVLByChain({ chain }: { chain: string }): Promise<
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			pool2Tvl,
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && pool2Tvl != null
-					? (getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2) ?? 0)
+					? Number(getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2) ?? 0)
 					: null
 		}
 
@@ -114,8 +118,8 @@ export async function getPool2TVLByChain({ chain }: { chain: string }): Promise<
 				pool2Tvl: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.pool2Tvl ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
-					totalPrevMonth != null && totalPrevMonth != null
-						? (getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2) ?? 0)
+					pool2Tvl != null && totalPrevMonth != null
+						? Number(getPercentChange(pool2Tvl, totalPrevMonth)?.toFixed(2) ?? 0)
 						: null,
 				subRows: finalParentProtocols[parent]
 			})
@@ -130,7 +134,7 @@ export async function getPool2TVLByChain({ chain }: { chain: string }): Promise<
 			...chains.map((chain) => ({ label: chain, to: `/pool2/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Pool2 TVL': { name: 'Pool2 TVL', data: chart, type: 'line', stack: 'Pool2 TVL', color: oldBlue }
+			'Pool2 TVL': { name: 'Pool2 TVL', data: chart, type: 'line', stack: 'Pool2 TVL', color: CHART_COLORS[0] }
 		},
 		pool2Tvl: chart[chart.length - 1][1],
 		change24h:

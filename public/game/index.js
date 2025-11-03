@@ -1203,7 +1203,7 @@
 	 * @param {Obstacle.type} type
 	 * @param {Object} spritePos Obstacle position in sprite.
 	 * @param {Object} dimensions
-	 * @param {number} gapCoefficient Mutipler in determining the gap.
+     * @param {number} gapCoefficient Multiplier in determining the gap.
 	 * @param {number} speed
 	 * @param {number} opt_xOffset
 	 */
@@ -1349,7 +1349,7 @@
 
 			/**
 			 * Calculate a random gap size.
-			 * - Minimum gap gets wider as speed increses
+			 * - Minimum gap gets wider as speed increases
 			 * @param {number} gapCoefficient
 			 * @param {number} speed
 			 * @return {number} The gap size.
@@ -1570,7 +1570,7 @@
 
 		/**
 		 * Setter for the jump velocity.
-		 * The approriate drop velocity is also set.
+		 * The appropriate drop velocity is also set.
 		 */
 		setJumpVelocity: function (setting) {
 			this.config.INIITAL_JUMP_VELOCITY = -setting
@@ -1951,7 +1951,7 @@
 		},
 
 		/**
-		 * Covert pixel distance to a 'real' distance.
+		 * Convert pixel distance to a 'real' distance.
 		 * @param {number} distance Pixel distance ran.
 		 * @return {number} The 'real' distance ran.
 		 */
@@ -2036,7 +2036,7 @@
 		},
 
 		/**
-		 * Set the highscore as a array string.
+         * Set the high score as an array string.
 		 * Position of char in the sprite: H - 10, I - 11.
 		 * @param {number} distance Distance ran in pixels.
 		 */
@@ -2156,7 +2156,7 @@
 	//******************************************************************************
 
 	/**
-	 * Nightmode shows a moon and stars on the horizon.
+     * Night mode shows a moon and stars on the horizon.
 	 */
 	function NightMode(canvas, spritePos, containerWidth) {
 		this.spritePos = spritePos

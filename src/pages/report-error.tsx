@@ -30,19 +30,29 @@ function ReportError() {
 			message: form.message?.value ?? '',
 			correctSource: form.correctSource?.value ?? '',
 			contact: form.contact?.value ?? ''
-		}).then((data) => {
-			if (data?.message === 'success') {
-				toast.success('Report submitted successfully', { position: 'bottom-right' })
-				form.reset()
-			} else {
-				console.log(data)
-				toast.error('Failed to report', { position: 'bottom-right' })
-			}
 		})
+			.then((data) => {
+				if (data?.message === 'success') {
+					toast.success('Report submitted successfully', { position: 'bottom-right' })
+					form.reset()
+				} else {
+					console.log(data)
+					toast.error('Failed to report', { position: 'bottom-right' })
+				}
+			})
+			.catch((err) => {
+				console.log(err)
+				toast.error('Failed to report', { position: 'bottom-right' })
+			})
 	}
 
 	return (
-		<Layout title="Report Error - DefiLlama" defaultSEO>
+		<Layout
+			title="Report Error - DefiLlama"
+			description={`Report Error on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`report error, defi report error, report error on blockchain, report error on defillama, report error on protocol`}
+			canonicalUrl={`/report-error`}
+		>
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
 				<form
 					onSubmit={onSubmit}
@@ -50,7 +60,7 @@ function ReportError() {
 				>
 					<h1 className="mb-3 text-center text-xl font-semibold">Report Error</h1>
 					<label className="flex flex-col gap-1">
-						<span>Chain / Protocol</span>
+						<span>Chain / Protocol / Institution</span>
 						<input
 							name="protocol"
 							required
@@ -83,13 +93,13 @@ function ReportError() {
 					<button
 						name="submit-btn"
 						disabled={isPending}
-						className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+						className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
 					>
 						{isPending ? 'Submitting...' : 'Report'}
 					</button>
 					{error && <small className="text-center text-red-500">{error.message}</small>}
 				</form>
-				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-center text-base font-medium">
 						Please submit a report if you notice any of the following:
 					</p>

@@ -11,25 +11,27 @@ import {
 } from '@tanstack/react-table'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
-import { oldBlue } from '~/constants/colors'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import useWindowSize from '~/hooks/useWindowSize'
 import Layout from '~/layout'
-import { downloadCsv } from './download'
+import { slug } from '~/utils'
+import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const columnResizeMode = 'onChange'
 
-function RaisesTable({ raises, downloadCsv }) {
+function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -92,23 +94,20 @@ function RaisesTable({ raises, downloadCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton
-					onClick={downloadCsv}
-					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-				/>
-				<CSVDownloadButton
-					customText="Download .json"
-					onClick={() => window.open('https://api.llama.fi/raises')}
-					className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-				/>
+				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton onClick={() => window.open('https://api.llama.fi/raises')} isLoading={false}>
+					Download.json
+				</CSVDownloadButton>
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
 	)
 }
+
+const pageName = ['Deals by Investor']
 
 export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
@@ -120,7 +119,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		selectedChains,
 		selectedSectors,
 		raisesByCategory,
-		fundingRoundsByMonth,
+		fundingRoundsByMonthChart,
 		investmentByRounds
 	} = useRaisesData({
 		raises,
@@ -130,8 +129,18 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 		chains
 	})
 
+	const prepareCsv = React.useCallback(() => {
+		return prepareRaisesCsv({ raises: filteredRaisesList })
+	}, [filteredRaisesList])
+
 	return (
-		<Layout title={`Raises - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Raises - DefiLlama`}
+			description={`Track ${investorName} investments, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${investorName.toLowerCase()} investments, total funding amount, total funding rounds`}
+			canonicalUrl={`/raises/${slug(investorName)}`}
+			pageName={pageName}
+		>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -186,7 +195,7 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 				</div>
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<BarChart chartData={fundingRoundsByMonth} title="" groupBy="monthly" color={oldBlue} valueSymbol="" />
+						<LineAndBarChart charts={fundingRoundsByMonthChart} groupBy="monthly" valueSymbol="" />
 					</React.Suspense>
 				</div>
 			</div>
@@ -194,17 +203,17 @@ export const InvestorContainer = ({ raises, investors, rounds, sectors, chains, 
 			<div className="grid grid-cols-2 gap-1">
 				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={investmentByRounds} title="Investment by Rounds" usdFormat={false} />
+						<PieChart chartData={investmentByRounds} title="Investment by Rounds" valueSymbol="" />
 					</React.Suspense>
 				</LazyChart>
 				<LazyChart className="relative col-span-full flex min-h-[372px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<></>}>
-						<PieChart chartData={raisesByCategory} title="Investments by Category" usdFormat={false} />
+						<PieChart chartData={raisesByCategory} title="Investments by Category" valueSymbol="" />
 					</React.Suspense>
 				</LazyChart>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
+			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
 		</Layout>
 	)
 }

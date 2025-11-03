@@ -1,16 +1,17 @@
-import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import { slug } from '~/utils'
 
 export function RaisesSearch({ list }) {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
+		if (!deferredSearchValue) return list || []
 		return matchSorter(list || [], deferredSearchValue, {
-			baseSort: (a, b) => (a.index < b.index ? -1 : 1),
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [list, deferredSearchValue])
@@ -18,6 +19,24 @@ export function RaisesSearch({ list }) {
 	const [viewableMatches, setViewableMatches] = useState(20)
 
 	const [open, setOpen] = useState(false)
+
+	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	return (
 		<div className="relative hidden flex-col rounded-md data-[alwaysdisplay=true]:flex lg:flex">
@@ -40,23 +59,28 @@ export function RaisesSearch({ list }) {
 					wrapperProps={{
 						className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! w-full!'
 					}}
-					className="max-sm:drawer z-10 flex h-full max-h-[70vh] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-[hsl(204,20%,88%)] bg-(--bg-main) sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+					className="max-sm:drawer thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 				>
+					<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+						<Icon name="x" className="h-5 w-5" />
+					</Ariakit.PopoverDismiss>
 					{matches.length ? (
-						<>
-							{matches.slice(0, viewableMatches + 1).map((option) => (
+						<Ariakit.ComboboxList ref={comboboxRef}>
+							{matches.slice(0, viewableMatches).map((option) => (
 								<Row key={option} name={option} setOpen={setOpen} />
 							))}
-
 							{matches.length > viewableMatches ? (
-								<button
-									className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-									onClick={() => setViewableMatches((prev) => prev + 20)}
+								<Ariakit.ComboboxItem
+									value="__see_more__"
+									setValueOnClick={false}
+									hideOnClick={false}
+									className="w-full cursor-pointer px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+									onClick={handleSeeMore}
 								>
 									See more...
-								</button>
+								</Ariakit.ComboboxItem>
 							) : null}
-						</>
+						</Ariakit.ComboboxList>
 					) : (
 						<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 					)}
@@ -82,16 +106,16 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 	return (
 		<>
 			{!hideIcon ? (
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-[8px] left-[9px] opacity-50">
+				<button onClick={(prev) => setOpen(!prev)} className="absolute top-2 left-2 opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
-							<Icon name="x" height={16} width={16} />
+							<Icon name="x" height={18} width={18} />
 						</>
 					) : (
 						<>
 							<span className="sr-only">Open Search</span>
-							<Icon name="search" height={14} width={14} />
+							<Icon name="search" height={16} width={16} />
 						</>
 					)}
 				</button>
@@ -104,7 +128,7 @@ function Input({ open, setOpen, placeholder, hideIcon, onSearchTermChange }: IIn
 				onChange={(e) => {
 					onSearchTermChange?.(e.target.value)
 				}}
-				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-[10px] py-[5px] pl-8 text-sm text-black dark:text-white"
+				className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2 py-1 pl-7 text-black dark:text-white"
 			/>
 		</>
 	)
@@ -132,21 +156,7 @@ const Row = ({ name, setOpen }) => {
 			className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 		>
 			<span>{name}</span>
-			{loading ? (
-				<svg
-					className="mr-3 -ml-1 h-4 w-4 animate-spin"
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-					<path
-						className="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-					></path>
-				</svg>
-			) : null}
+			{loading ? <LoadingSpinner size={12} /> : null}
 		</Ariakit.ComboboxItem>
 	)
 }

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { ProtocolsTableWithSearch } from '~/components/Table/Defi/Protocols'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatChartTvlsByDay } from '~/hooks/data'
 import { formatDataWithExtraTvls } from '~/hooks/data/defi'
@@ -38,7 +38,7 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 					type: 'line',
 					stack: 'TVL',
 					data: finalChartData,
-					color: oldBlue
+					color: CHART_COLORS[0]
 				}
 			} as const,
 			totalValueUSD,
@@ -78,7 +78,7 @@ export const ForksByProtocol = ({ chartData, filteredProtocols, parentTokens }) 
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 				</div>
-				<div className="col-span-2 flex min-h-[370px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 min-h-[370px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<Suspense fallback={<></>}>
 						<LineAndBarChart charts={charts} alwaysShowTooltip />
 					</Suspense>

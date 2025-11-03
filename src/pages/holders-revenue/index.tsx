@@ -1,15 +1,15 @@
 import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
-import { TMetric } from '~/components/Metrics'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const dataType = ADAPTER_DATA_TYPES.HOLDERS_REVENUE
-const type: TMetric = 'Holders Revenue'
+const dataType = ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+const type = 'Holders Revenue'
 
 export const getStaticProps = withPerformanceLogging(`${type}/index`, async () => {
 	const data = await getAdapterByChainPageData({
@@ -27,13 +27,18 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	}
 })
 
-const RevenueOnAllChains = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
-			defaultSEO
-			includeInMetricsOptions={feesOptions}
-			includeInMetricsOptionslabel="Include in Revenue"
+			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol`}
+			canonicalUrl={`/holders-revenue`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Revenue"
+			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>

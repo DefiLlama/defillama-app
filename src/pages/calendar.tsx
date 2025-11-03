@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
+	ColumnDef,
 	ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -12,12 +13,12 @@ import {
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
-import { calendarColumns } from '~/components/Table/Defi/columns'
+import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { PROTOCOL_EMISSIONS_API } from '~/constants'
 import calendarEvents from '~/constants/calendar'
 import Layout from '~/layout'
-import { formatPercentage } from '~/utils'
+import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -62,7 +63,7 @@ const options = ['Unlock', 'Close', 'Macro', 'Crypto']
 
 export default function Protocols({ emissions }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'timestamp', desc: false }])
 	const router = useRouter()
 	const { type } = router.query
 
@@ -132,7 +133,12 @@ export default function Protocols({ emissions }) {
 	}, [projectName, instance])
 
 	return (
-		<Layout title={`Calendar - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Calendar - DefiLlama`}
+			description={`Crypto calendar on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`crypto calendar, defillama`}
+			canonicalUrl={`/calendar`}
+		>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -177,8 +183,12 @@ export default function Protocols({ emissions }) {
 							wrapperProps={{
 								className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 							}}
-							className="max-sm:drawer z-10 flex max-h-[60vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
+							className="max-sm:drawer z-10 flex max-h-[60dvh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none dark:border-[hsl(204,3%,32%)]"
 						>
+							<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+								<Icon name="x" className="h-5 w-5" />
+							</Ariakit.PopoverDismiss>
+
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								<button
 									onClick={() => {
@@ -246,12 +256,88 @@ export default function Protocols({ emissions }) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search events..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>
 				<VirtualTable instance={instance} />
 			</div>
 		</Layout>
+	)
+}
+
+export const calendarColumns: ColumnDef<any>[] = [
+	{
+		header: 'Name',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ getValue, row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+
+			return (
+				<span className="relative flex items-center gap-2">
+					<span className="shrink-0">{index + 1}</span>
+					{row.original.type === 'Unlock' ? (
+						<BasicLink
+							href={`/unlocks/${slug(row.original.link)}`}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{getValue() as string}
+						</BasicLink>
+					) : (
+						(getValue() as string)
+					)}
+				</span>
+			)
+		},
+		size: 220
+	},
+	{
+		header: 'Type',
+		accessorKey: 'type',
+		size: 100
+	},
+	{
+		header: 'Date',
+		id: 'timestamp',
+		accessorKey: 'timestamp',
+		cell: ({ getValue, row }) => {
+			return <SimpleUpcomingEvent timestamp={(getValue() as number) / 1e3} name={row.original.name} />
+		},
+		size: 800
+	}
+]
+
+const SimpleUpcomingEvent = ({ timestamp, name }) => {
+	const timeLeft = timestamp - Date.now() / 1e3
+	const days = Math.floor(timeLeft / 86400)
+	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
+	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
+	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
+
+	const [_, rerender] = React.useState(1)
+
+	React.useEffect(() => {
+		const id = setInterval(() => rerender((value) => value + 1), 1000)
+
+		return () => clearInterval(id)
+	}, [])
+
+	return (
+		<span className="flex items-center gap-2">
+			<span>{name}</span>
+			<span className="h-10 w-px bg-(--bg-border)" />
+			<span className="flex items-center gap-1">
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{days}D</span>
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{hours}H</span>
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{minutes}M</span>
+				<span className="flex h-8 w-8 items-center justify-center rounded-md bg-(--bg-border) text-sm">{seconds}S</span>
+			</span>
+			<span className="h-10 w-px bg-(--bg-border)" />
+			<span className="flex items-center justify-between gap-2">
+				<span>{toNiceDayMonthYear(timestamp)}</span>
+				<span>{toNiceHour(timestamp)}</span>
+			</span>
+		</span>
 	)
 }

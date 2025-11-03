@@ -1,12 +1,12 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { download, slug, toNiceCsvDate } from '~/utils'
+import { slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
-import { stringToColour } from '../utils'
+import { mergeDeep, stringToColour } from '../utils'
 
 // TODO remove color prop and use stackColors by default
 export default function AreaChart({
@@ -28,10 +28,12 @@ export default function AreaChart({
 	hideGradient = false,
 	hideOthersInTooltip,
 	hideLegend = true,
-	hideDefaultLegend,
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
+	connectNulls = false,
+	onReady,
+	customComponents,
 	...props
 }: IChartProps) {
 	const id = useId()
@@ -66,6 +68,7 @@ export default function AreaChart({
 					shadowBlur: 10
 				},
 				symbol: 'none',
+				connectNulls,
 				itemStyle: {
 					color: chartColor
 				},
@@ -83,27 +86,63 @@ export default function AreaChart({
 				},
 				data: [],
 				...(hallmarks && {
-					markLine: {
-						data: hallmarks.map(([date, event], index) => [
-							{
-								name: event,
-								xAxis: +date * 1e3,
-								yAxis: 0,
-								label: {
-									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-									fontFamily: 'sans-serif',
-									fontSize: 14,
-									fontWeight: 500
+					markLine:
+						hallmarks.length > 8
+							? {
+									symbol: 'none',
+									data: hallmarks.map(([date, event]) => [
+										{
+											name: event,
+											xAxis: +date * 1e3,
+											yAxis: 0,
+											label: {
+												show: false,
+												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+												fontFamily: 'sans-serif',
+												fontSize: 14,
+												fontWeight: 500,
+												position: 'insideEndTop'
+											},
+											emphasis: {
+												label: {
+													show: true, // Show on hover
+													color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+													fontFamily: 'sans-serif',
+													fontSize: 14,
+													fontWeight: 500,
+													position: 'insideEndTop'
+												}
+											}
+										},
+										{
+											name: 'end',
+											xAxis: +date * 1e3,
+											yAxis: 'max',
+											y: 0
+										}
+									])
 								}
-							},
-							{
-								name: 'end',
-								xAxis: +date * 1e3,
-								yAxis: 'max',
-								y: Math.max(hallmarks.length * 40 - index * 40, 40)
-							}
-						])
-					}
+							: {
+									data: hallmarks.map(([date, event], index) => [
+										{
+											name: event,
+											xAxis: +date * 1e3,
+											yAxis: 0,
+											label: {
+												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+												fontFamily: 'sans-serif',
+												fontSize: 14,
+												fontWeight: 500
+											}
+										},
+										{
+											name: 'end',
+											xAxis: +date * 1e3,
+											yAxis: 'max',
+											y: Math.max(hallmarks.length * 40 - index * 40, 40)
+										}
+									])
+								}
 				})
 			}
 
@@ -126,6 +165,7 @@ export default function AreaChart({
 						shadowBlur: 10
 					},
 					symbol: 'none',
+					connectNulls,
 					itemStyle: {
 						color: stackColor ? stackColor : index === 0 ? chartColor : null
 					},
@@ -151,27 +191,63 @@ export default function AreaChart({
 								} as { color?: echarts.graphic.LinearGradient }),
 					data: [],
 					...(hallmarks && {
-						markLine: {
-							data: hallmarks.map(([date, event], index) => [
-								{
-									name: event,
-									xAxis: +date * 1e3,
-									yAxis: 0,
-									label: {
-										color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-										fontFamily: 'sans-serif',
-										fontSize: 14,
-										fontWeight: 500
+						markLine:
+							hallmarks.length > 8
+								? {
+										symbol: 'none',
+										data: hallmarks.map(([date, event]) => [
+											{
+												name: event,
+												xAxis: +date * 1e3,
+												yAxis: 0,
+												label: {
+													show: false,
+													color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+													fontFamily: 'sans-serif',
+													fontSize: 14,
+													fontWeight: 500,
+													position: 'insideEndTop'
+												},
+												emphasis: {
+													label: {
+														show: true, // Show on hover
+														color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+														fontFamily: 'sans-serif',
+														fontSize: 14,
+														fontWeight: 500,
+														position: 'insideEndTop'
+													}
+												}
+											},
+											{
+												name: 'end',
+												xAxis: +date * 1e3,
+												yAxis: 'max',
+												y: 0
+											}
+										])
 									}
-								},
-								{
-									name: 'end',
-									xAxis: +date * 1e3,
-									yAxis: 'max',
-									y: Math.max(hallmarks.length * 40 - index * 40, 40)
-								}
-							])
-						}
+								: {
+										data: hallmarks.map(([date, event], index) => [
+											{
+												name: event,
+												xAxis: +date * 1e3,
+												yAxis: 0,
+												label: {
+													color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+													fontFamily: 'sans-serif',
+													fontSize: 14,
+													fontWeight: 500
+												}
+											},
+											{
+												name: 'end',
+												xAxis: +date * 1e3,
+												yAxis: 'max',
+												y: Math.max(hallmarks.length * 40 - index * 40, 40)
+											}
+										])
+									}
 					})
 				}
 				index++
@@ -211,7 +287,8 @@ export default function AreaChart({
 		stackColors,
 		expandTo100Percent,
 		isStackedChart,
-		hideGradient
+		hideGradient,
+		connectNulls
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
@@ -221,12 +298,15 @@ export default function AreaChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
+		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		if (onReady && isNewInstance) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
@@ -241,22 +321,18 @@ export default function AreaChart({
 					}
 				}
 			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
 
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+
 		chartInstance.setOption({
 			graphic,
 			tooltip,
-			grid: {
-				left: 12,
-				bottom: 68,
-				top: 12,
-				right: 12,
-				containLabel: true
-			},
+			grid,
 			xAxis,
 			yAxis: {
 				...yAxis,
@@ -302,6 +378,9 @@ export default function AreaChart({
 			if (chartRef.current) {
 				chartRef.current = null
 			}
+			if (onReady) {
+				onReady(null)
+			}
 		}
 	}, [id])
 
@@ -309,11 +388,31 @@ export default function AreaChart({
 
 	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
 
+	const prepareCsv = useCallback(() => {
+		let rows = []
+		if (!chartsStack || chartsStack.length === 0) {
+			rows = [['Timestamp', 'Date', 'Value']]
+			for (const [date, value] of chartData ?? []) {
+				rows.push([date, toNiceCsvDate(date), value])
+			}
+		} else {
+			rows = [['Timestamp', 'Date', ...chartsStack]]
+			for (const item of chartData ?? []) {
+				const { date, ...rest } = item
+				rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
+			}
+		}
+		const Mytitle = title ? slug(title) : 'data'
+		const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
+	}, [chartData, chartsStack, title])
+
 	return (
 		<div className="relative" {...props}>
 			{title || showLegend || !hideDownloadButton ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
 					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{customComponents ?? null}
 					{customLegendName && customLegendOptions?.length > 1 && (
 						<SelectWithCombobox
 							allValues={customLegendOptions}
@@ -328,44 +427,17 @@ export default function AreaChart({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 py-[6px] px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 							}}
 							portal
 						/>
 					)}
-					{hideDownloadButton ? null : (
-						<CSVDownloadButton
-							onClick={() => {
-								try {
-									let rows = []
-									if (!chartsStack || chartsStack.length === 0) {
-										rows = [['Timestamp', 'Date', 'Value']]
-										for (const [date, value] of chartData ?? []) {
-											rows.push([date, toNiceCsvDate(date), value])
-										}
-									} else {
-										rows = [['Timestamp', 'Date', ...chartsStack]]
-										for (const item of chartData ?? []) {
-											const { date, ...rest } = item
-											rows.push([date, toNiceCsvDate(date), ...chartsStack.map((stack) => rest[stack] ?? '')])
-										}
-									}
-									const Mytitle = title ? slug(title) : 'data'
-									const filename = `area-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
-									download(filename, rows.map((r) => r.join(',')).join('\n'))
-								} catch (error) {
-									console.error('Error generating CSV:', error)
-								}
-							}}
-							smol
-							className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-						/>
-					)}
+					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
 				</div>
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto min-h-[360px]'}
+				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
 				style={height ? { height } : undefined}
 			/>
 		</div>

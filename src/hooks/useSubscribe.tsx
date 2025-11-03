@@ -11,6 +11,7 @@ export interface SubscriptionRequest {
 	cancelUrl: string
 	provider: string
 	subscriptionType: string
+	billingInterval?: 'year' | 'month'
 }
 
 export interface SubscriptionCreateResponse {
@@ -28,6 +29,8 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
+	billingInterval?: 'year' | 'month'
+	overage?: boolean
 	metadata?: {
 		is_trial?: boolean
 		trial_started_at?: string
@@ -89,7 +92,7 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 
 				return data
 			} catch (error) {
-				console.error('Error fetching subscription:', error)
+				console.log('Error fetching subscription:', error)
 				return defaultInactiveSubscription
 			}
 		},
@@ -143,7 +146,8 @@ export const useSubscribe = () => {
 	const handleSubscribe = async (
 		paymentMethod: 'stripe' | 'llamapay',
 		type: 'api' | 'contributor' | 'llamafeed',
-		onSuccess?: (checkoutUrl: string) => void
+		onSuccess?: (checkoutUrl: string) => void,
+		billingInterval: 'year' | 'month' = 'month'
 	) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to subscribe')
@@ -161,7 +165,8 @@ export const useSubscribe = () => {
 				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
 				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 				provider: paymentMethod,
-				subscriptionType: type || 'api'
+				subscriptionType: type || 'api',
+				billingInterval
 			}
 
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)
@@ -173,7 +178,7 @@ export const useSubscribe = () => {
 				window.open(result.checkoutUrl, '_blank')
 			}
 		} catch (error) {
-			console.error('Subscription error:', error)
+			console.log('Subscription error:', error)
 			throw error
 		} finally {
 			setIsStripeLoading(false)
@@ -217,7 +222,7 @@ export const useSubscribe = () => {
 						window.localStorage.setItem('pro_apikey', data.apiKey.api_key)
 					}
 				} catch (error) {
-					console.error('Error fetching API key:', error)
+					console.log('Error fetching API key:', error)
 				} finally {
 					setIsApiKeyLoading(false)
 				}
@@ -241,7 +246,7 @@ export const useSubscribe = () => {
 				window.localStorage.setItem('pro_apikey', data.apiKey)
 			}
 		} catch (error) {
-			console.error('Error generating API key:', error)
+			console.log('Error generating API key:', error)
 		} finally {
 			setIsApiKeyLoading(false)
 		}
@@ -318,7 +323,7 @@ export const useSubscribe = () => {
 			return data.url
 		},
 		onError: (error) => {
-			console.error('Failed to create portal session:', error)
+			console.log('Failed to create portal session:', error)
 			toast.error('Failed to access subscription management. Please try again.')
 		}
 	})
@@ -350,12 +355,65 @@ export const useSubscribe = () => {
 		}
 	}
 
+	const enableOverageMutation = useMutation({
+		mutationFn: async () => {
+			if (!isAuthenticated) {
+				throw new Error('Not authenticated')
+			}
+
+			const response = await authorizedFetch(
+				`${AUTH_SERVER}/subscription/enable-overage`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				},
+				true
+			)
+
+			if (!response.ok) {
+				const error = await response.json()
+				throw new Error(error.message || 'Failed to enable overage')
+			}
+
+			return response.json()
+		},
+		onSuccess: () => {
+			toast.success('Overage has been enabled successfully')
+			queryClient.invalidateQueries({ queryKey: ['subscription', pb.authStore.record?.id, 'api'] })
+		},
+		onError: (error) => {
+			console.log('Failed to enable overage:', error)
+			toast.error('Failed to enable overage. Please try again.')
+		}
+	})
+
+	const enableOverage = async () => {
+		if (!isAuthenticated) {
+			toast.error('Please sign in to enable overage')
+			return
+		}
+
+		if (apiSubscription?.subscription?.status !== 'active') {
+			toast.error('No active API subscription found')
+			return
+		}
+
+		try {
+			await enableOverageMutation.mutateAsync()
+		} catch (error) {
+			console.log('Enable overage error:', error)
+		}
+	}
+
 	return {
 		createSubscription,
 		handleSubscribe,
 		isLoading: createSubscription.isPending,
 		error: createSubscription.error,
 		subscription: subscriptionData,
+		hasActiveSubscription: subscriptionData?.status === 'active',
 		loading: isStripeLoading ? 'stripe' : isLlamaLoading ? 'llamapay' : null,
 		isSubscriptionLoading:
 			isApiSubscriptionLoading ||
@@ -381,6 +439,8 @@ export const useSubscribe = () => {
 		refetchCredits,
 		createPortalSession,
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
+		enableOverage,
+		isEnableOverageLoading: enableOverageMutation.isPending,
 		isContributor: false,
 		apiSubscription: apiSubscription?.subscription,
 		llamafeedSubscription: llamafeedSubscription?.subscription,

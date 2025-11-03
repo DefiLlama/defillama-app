@@ -8,7 +8,7 @@ export function TVLRange({
 	triggerClassName,
 	placement
 }: {
-	variant?: 'primary' | 'secondary' | 'third'
+	variant?: 'primary' | 'secondary'
 	nestedMenu?: boolean
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
@@ -37,9 +37,9 @@ export function TVLRange({
 		)
 	}
 
-	const handleClear = () => {
-		const { minTvl, maxTvl, ...restQuery } = router.query
+	const { minTvl, maxTvl, ...restQuery } = router.query
 
+	const handleClear = () => {
 		router.push(
 			{
 				pathname: router.pathname,
@@ -52,7 +52,6 @@ export function TVLRange({
 		)
 	}
 
-	const { minTvl, maxTvl } = router.query
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null
 	const max = typeof maxTvl === 'string' && maxTvl !== '' ? Number(maxTvl) : null
 

@@ -17,37 +17,49 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics, TMetric } from '~/components/Metrics'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { chainIconUrl, download, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
 import { AdapterByChainChart } from './ChainChart'
 import { IAdapterByChainPageData } from './types'
 
+type TPageType =
+	| 'Fees'
+	| 'Revenue'
+	| 'Holders Revenue'
+	| 'DEX Volume'
+	| 'Perp Volume'
+	| 'Open Interest'
+	| 'Bridge Aggregator Volume'
+	| 'Perp Aggregator Volume'
+	| 'DEX Aggregator Volume'
+	| 'Options Premium Volume'
+	| 'Options Notional Volume'
+	| 'Earnings'
+	| 'P/F'
+	| 'P/S'
+
 interface IProps extends IAdapterByChainPageData {
-	type: Extract<
-		TMetric,
-		| 'Fees'
-		| 'Revenue'
-		| 'Holders Revenue'
-		| 'DEX Volume'
-		| 'Perp Volume'
-		| 'Open Interest'
-		| 'Bridge Aggregator Volume'
-		| 'Perp Aggregator Volume'
-		| 'DEX Aggregator Volume'
-		| 'Options Premium Volume'
-		| 'Options Notional Volume'
-		| 'Earnings'
-	>
+	type: TPageType
 }
+
+const SUPPORTED_OLD_VIEWS: TPageType[] = [
+	'DEX Volume',
+	'Perp Volume',
+	'Options Premium Volume',
+	'Options Notional Volume',
+	'DEX Aggregator Volume',
+	'Bridge Aggregator Volume'
+]
 
 const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
 	const final = []
@@ -199,29 +211,7 @@ export function AdapterByChain(props: IProps) {
 			columnOrder
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				if (typeof a === 'number' && a <= 0) a = null
-				if (typeof b === 'number' && b <= 0) b = null
-
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
@@ -258,7 +248,7 @@ export function AdapterByChain(props: IProps) {
 		instance.setColumnSizing(colSize[1])
 	}, [instance, windowSize])
 
-	const downloadCsv = useCallback(() => {
+	const prepareCsv = useCallback(() => {
 		const header = [
 			'Protocol',
 			'Category',
@@ -279,6 +269,7 @@ export function AdapterByChain(props: IProps) {
 				protocol.category,
 				protocol.chains.join(', '),
 				protocol.total24h,
+				protocol.total7d,
 				protocol.total30d,
 				protocol.total1y,
 				protocol.totalAllTime,
@@ -288,9 +279,7 @@ export function AdapterByChain(props: IProps) {
 			]
 		})
 
-		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
-
-		download(`${props.type}-${props.chain}-protocols.csv`, csv)
+		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
 	}, [props, protocols])
 
 	const { category, chain, ...queries } = router.query
@@ -345,7 +334,7 @@ export function AdapterByChain(props: IProps) {
 		)
 	}
 
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue'].includes(props.type)
+	const metricName = ['Fees', 'Revenue', 'Holders Revenue', 'Open Interest'].includes(props.type)
 		? props.type
 		: props.type.includes('Volume')
 			? props.type
@@ -385,9 +374,8 @@ export function AdapterByChain(props: IProps) {
 
 	return (
 		<>
-			<Metrics currentMetric={props.type} />
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.adapterType !== 'fees' && props.type !== 'Open Interest' ? (
+			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' && (
@@ -409,6 +397,17 @@ export function AdapterByChain(props: IProps) {
 						) : null}
 
 						<div className="flex flex-col">
+							{props.openInterest ? (
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+									<Tooltip
+										content="Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC"
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										Open Interest
+									</Tooltip>
+									<span className="font-jetbrains ml-auto">{formattedNum(props.openInterest, true)}</span>
+								</p>
+							) : null}
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<span className="text-(--text-label)">{metricName} (30d)</span>
@@ -445,7 +444,8 @@ export function AdapterByChain(props: IProps) {
 			) : null}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
-					<div className="relative mr-auto w-full sm:max-w-[280px]">
+					<label className="relative mr-auto w-full sm:max-w-[280px]">
+						<span className="sr-only">Search protocols</span>
 						<Icon
 							name="search"
 							height={16}
@@ -458,9 +458,9 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
-					</div>
+					</label>
 					<SelectWithCombobox
 						allValues={columnsOptions}
 						selectedValues={selectedColumns}
@@ -473,7 +473,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						triggerProps={{
 							className:
-								'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+								'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 						}}
 					/>
 					{props.categories.length > 0 && (
@@ -489,15 +489,12 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 px-2 py-[6px] text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 					)}
-					<FullOldViewButton type={props.type} />
-					<CSVDownloadButton
-						onClick={downloadCsv}
-						className="h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 
 				<VirtualTable instance={instance} rowSize={64} compact />
@@ -514,11 +511,11 @@ const columnSizes = Object.entries({
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const columnOrders = Object.entries({
-	0: ['name', 'total24h', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'total7d', 'total30d']
+	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
+	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const protocolChartsKeys: Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]> = {
+const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
 	Fees: 'fees',
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
@@ -526,7 +523,7 @@ const protocolChartsKeys: Record<IProps['type'], (typeof protocolCharts)[keyof t
 	'Options Notional Volume': 'optionsNotionalVolume',
 	'DEX Volume': 'dexVolume',
 	'Perp Volume': 'perpVolume',
-	'Open Interest': 'perpVolume',
+	'Open Interest': 'openInterest',
 	'Bridge Aggregator Volume': 'bridgeAggregatorVolume',
 	'Perp Aggregator Volume': 'perpAggregatorVolume',
 	'DEX Aggregator Volume': 'dexAggregatorVolume',
@@ -608,16 +605,20 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 				</span>
 			)
 
-			const basePath = ['Chain', 'Rollup'].includes(row.original.category) ? 'chain' : 'protocol'
-			const chartKey = ['Chain', 'Rollup'].includes(row.original.category)
-				? (chainChartsKeys[type] ?? protocolChartsKeys[type])
-				: protocolChartsKeys[type]
+			const basePath =
+				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+					? 'chain'
+					: 'protocol'
+			const chartKey =
+				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
+					: protocolChartsKeys[type]
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[18px]"
+							className="absolute -left-4.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -644,7 +645,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink
-							href={`/${basePath}/${row.original.slug}?tvl=false&events=false&${chartKey}=true`}
+							href={`/${basePath}/${row.original.slug}${chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
 							{value}
@@ -663,7 +664,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 const getColumnsByType = (
 	isChain: boolean = false
-): Record<IProps['type'] & 'P/F', ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
+): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
 	return {
 		Fees: [
 			NameColumn('Fees'),
@@ -983,7 +984,17 @@ const getColumnsByType = (
 				id: 'total24h',
 				header: 'DEX Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -996,7 +1007,17 @@ const getColumnsByType = (
 				id: 'total7d',
 				header: 'DEX Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1009,7 +1030,17 @@ const getColumnsByType = (
 				id: 'total30d',
 				header: 'DEX Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1025,7 +1056,33 @@ const getColumnsByType = (
 				id: 'total24h',
 				header: 'Perp Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1036,10 +1093,50 @@ const getColumnsByType = (
 				size: 160
 			},
 			{
+				header: 'Open Interest',
+				id: 'open_interest',
+				accessorFn: (protocol) => protocol.openInterest,
+				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				sortUndefined: 'last',
+				sortingFn: 'alphanumericFalsyLast' as any,
+				meta: {
+					align: 'center',
+					headerHelperText:
+						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+				},
+				size: 160
+			},
+			{
 				id: 'total7d',
 				header: 'Perp Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1052,7 +1149,33 @@ const getColumnsByType = (
 				id: 'total30d',
 				header: 'Perp Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() == null) return null
+					const helpers = []
+					if (info.row.original.zeroFeePerp) {
+						helpers.push('This protocol charges no fees for most of its users')
+					}
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						helpers.push(
+							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+						)
+					}
+
+					if (helpers.length > 0) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								{helpers.map((helper) => (
+									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+								))}
+								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+									{formattedNum(info.getValue(), true)}
+								</span>
+							</span>
+						)
+					}
+
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -1072,7 +1195,7 @@ const getColumnsByType = (
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
-					align: 'center',
+					align: 'end',
 					headerHelperText:
 						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
 				},

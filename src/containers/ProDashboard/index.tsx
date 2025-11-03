@@ -1,28 +1,44 @@
-import { useState } from 'react'
-import { useRouter } from 'next/router'
-import toast from 'react-hot-toast'
+import { url } from 'inspector'
+import { lazy, Suspense, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { SubscribeModal } from '~/components/Modal/SubscribeModal'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
+import { BasicLink } from '~/components/Link'
+import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { AddChartModal } from './components/AddChartModal'
+import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
-import { CreateDashboardModal } from './components/CreateDashboardModal'
-import { DashboardSettingsModal } from './components/DashboardSettingsModal'
-import { DemoPreview } from './components/DemoPreview'
 import { EmptyState } from './components/EmptyState'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
-import { TimePeriod, useProDashboard } from './ProDashboardAPIContext'
+import { AIGeneratedData, TimePeriod, useProDashboard } from './ProDashboardAPIContext'
+import { Dashboard } from './services/DashboardAPI'
 import { DashboardItemConfig } from './types'
 
+const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
+const AddChartModal = lazy(() => import('./components/AddChartModal').then((m) => ({ default: m.AddChartModal })))
+const CreateDashboardModal = lazy(() =>
+	import('./components/CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
+)
+const DashboardSettingsModal = lazy(() =>
+	import('./components/DashboardSettingsModal').then((m) => ({ default: m.DashboardSettingsModal }))
+)
+const GenerateDashboardModal = lazy(() =>
+	import('./components/GenerateDashboardModal').then((m) => ({ default: m.GenerateDashboardModal }))
+)
+const AIGenerationHistory = lazy(() =>
+	import('./components/AIGenerationHistory').then((m) => ({ default: m.AIGenerationHistory }))
+)
+const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: m.Rating })))
+
 function ProDashboardContent() {
-	const router = useRouter()
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
 	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
-	const [showDashboardMenu, setShowDashboardMenu] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
@@ -35,11 +51,7 @@ function ProDashboardContent() {
 		dashboardName,
 		setDashboardName,
 		dashboardId,
-		dashboards,
-		isLoadingDashboards,
-		isLoadingDashboard,
 		createNewDashboard,
-		loadDashboard,
 		deleteDashboard,
 		saveDashboard,
 		saveDashboardName,
@@ -52,12 +64,21 @@ function ProDashboardContent() {
 		setDashboardVisibility,
 		setDashboardTags,
 		setDashboardDescription,
-		showCreateDashboardModal,
-		setShowCreateDashboardModal,
-		handleCreateDashboard
+		createDashboardDialogStore,
+		showGenerateDashboardModal,
+		setShowGenerateDashboardModal,
+		showIterateDashboardModal,
+		setShowIterateDashboardModal,
+		handleCreateDashboard,
+		handleGenerateDashboard,
+		handleIterateDashboard,
+		getCurrentRatingSession,
+		submitRating,
+		skipRating,
+		dismissRating,
+		undoAIGeneration,
+		canUndo
 	} = useProDashboard()
-
-	const { trackView, toggleLike, isLiking } = useDashboardEngagement(dashboardId)
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },
@@ -69,8 +90,10 @@ function ProDashboardContent() {
 	]
 
 	const hasChartItems = items?.some(
-		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder'
+		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder' || item?.kind === 'yields'
 	)
+
+	const currentRatingSession = getCurrentRatingSession()
 
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -89,326 +112,198 @@ function ProDashboardContent() {
 	}
 
 	if (!isAuthenticated && subscription?.status !== 'active' && dashboardVisibility !== 'public') {
-		return <DemoPreview />
+		return (
+			<Suspense
+				fallback={
+					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+				}
+			>
+				<DemoPreview />
+			</Suspense>
+		)
 	}
 
 	return (
-		<div className="pro-dashboard p-4 md:p-6">
-			<div className="mb-4">
-				<button
-					onClick={() => router.push('/pro')}
-					className="pro-text2 hover:pro-text1 flex items-center gap-2 transition-colors"
-				>
-					<Icon name="arrow-left" height={16} width={16} />
-					Back to Dashboards
-				</button>
-			</div>
+		<div className="pro-dashboard flex flex-1 flex-col gap-2 p-2 lg:px-0">
+			<BasicLink
+				href="/pro"
+				className="mr-auto mb-2 flex items-center gap-2 text-(--text-label) hover:text-(--link-text)"
+			>
+				<Icon name="arrow-left" height={16} width={16} />
+				Back to Dashboards
+			</BasicLink>
 
-			<div className="mb-4 flex flex-col gap-4 md:mb-2 md:flex-row md:items-center md:justify-between">
-				<Tooltip content={!hasChartItems ? 'Add chart items to enable time period selection' : null} placement="bottom">
-					<div className={`order-2 flex gap-0 overflow-x-auto md:order-1 ${isReadOnly ? 'invisible' : ''}`}>
-						{timePeriods.map((period) => (
-							<button
-								key={period.value}
-								className={`flex-1 border px-3 py-1.5 text-sm font-medium transition-colors duration-200 md:flex-initial md:px-4 md:py-2 ${
-									timePeriod === period.value
-										? 'border-(--primary) bg-(--primary) text-white'
-										: 'pro-border pro-hover-bg pro-text2'
-								} ${!hasChartItems ? 'cursor-not-allowed opacity-50' : ''}`}
-								onClick={() => hasChartItems && setTimePeriod(period.value)}
-								disabled={!hasChartItems}
-							>
-								{period.label}
-							</button>
-						))}
+			<div className="grid grid-cols-12 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 md:gap-4 md:p-4">
+				<div className="col-span-full flex flex-col gap-2 md:col-span-8">
+					<div className="flex flex-col gap-1">
+						<span className="flex flex-wrap items-center gap-2">
+							<h1 className="text-lg font-semibold">{dashboardName}</h1>
+							{currentDashboard?.visibility === 'public' ? (
+								<p className="bg-pro-green-100 text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+									<Icon name="earth" height={12} width={12} />
+									<span>Public </span>
+								</p>
+							) : (
+								<p className="bg-pro-gold-100 text-pro-gold-400 dark:bg-pro-gold-300/20 dark:text-pro-gold-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+									<Icon name="key" height={12} width={12} />
+									<span>Private</span>
+								</p>
+							)}
+							{currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0 ? (
+								<p className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 flex items-center gap-1 rounded-md px-2 py-1.25 text-xs">
+									<Icon name="sparkles" height={14} width={14} />
+									<span className="text-xs font-medium">AI Generated</span>
+								</p>
+							) : null}
+						</span>
+						<p className="text-sm text-(--text-form)">{dashboardDescription}</p>
 					</div>
-				</Tooltip>
-
-				<div className="order-1 flex w-full items-center gap-2 md:order-2 md:w-auto">
-					<div className="flex min-w-0 flex-1 items-center gap-2 md:flex-initial">
-						{isEditingName && !isReadOnly ? (
-							<form onSubmit={handleNameSubmit} className="flex flex-1 items-center">
-								<input
-									type="text"
-									value={dashboardName}
-									onChange={(e) => setDashboardName(e.target.value)}
-									onBlur={() => {
-										setIsEditingName(false)
-										saveDashboardName()
-									}}
-									onKeyDown={handleNameKeyDown}
-									className="pro-text1 w-full min-w-0 border-b-2 border-(--primary) bg-transparent px-2 py-1 text-lg font-semibold focus:outline-hidden md:px-3 md:py-2 md:text-center md:text-xl"
-									autoFocus
-									placeholder="Dashboard Name"
-								/>
-							</form>
-						) : (
-							<div className="flex items-center gap-2">
-								<button
-									onClick={() => !isReadOnly && setIsEditingName(true)}
-									className={`group pro-text1 bg-opacity-30 bg-(--bg-glass) px-2 py-1 text-lg font-semibold md:px-3 md:py-2 md:text-xl ${
-										!isReadOnly ? 'pro-hover-bg hover:border-(--form-control-border)' : ''
-									} flex min-w-0 items-center gap-2 transition-colors`}
-									disabled={isReadOnly}
-								>
-									<span className="truncate">{dashboardName}</span>
-									{!isReadOnly && <Icon name="pencil" height={14} width={14} className="pro-text1 shrink-0" />}
-									{isReadOnly && <span className="pro-text3 ml-2 shrink-0 text-xs">(Read-only)</span>}
-									{!isReadOnly && dashboardId && (
-										<span
-											className={`ml-2 shrink-0 px-2 py-0.5 text-xs ${
-												dashboardVisibility === 'public'
-													? 'bg-opacity-20 bg-(--primary)'
-													: 'bg-opacity-50 pro-text3 bg-(--bg-main)'
-											}`}
-										>
-											{dashboardVisibility === 'public' ? 'Public' : 'Private'}
-										</span>
-									)}
-								</button>
-								{dashboardVisibility === 'public' && (
-									<div className="pro-text3 flex items-center gap-3 text-sm">
-										<div className="flex items-center gap-1" title="Views">
-											<Icon name="eye" height={16} width={16} />
-											<span>{currentDashboard?.viewCount || 0}</span>
-										</div>
-										<button
-											onClick={() => toggleLike()}
-											disabled={isLiking || !isAuthenticated}
-											className={`flex items-center gap-1 transition-colors ${
-												currentDashboard?.liked ? 'text-(--primary)' : 'hover:text-(--primary)'
-											}`}
-											title={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
-										>
-											<Icon
-												name="star"
-												height={16}
-												width={16}
-												className={currentDashboard?.liked ? 'fill-current' : ''}
-											/>
-											<span>{currentDashboard?.likeCount || 0}</span>
-										</button>
-										<button
-											onClick={() => {
-												const url = `${window.location.origin}/pro/${dashboardId}`
-												navigator.clipboard.writeText(url)
-												toast.success('Dashboard link copied to clipboard!')
-											}}
-											className="flex items-center gap-1 transition-colors hover:text-(--primary)"
-											title="Share dashboard"
-										>
-											<Icon name="link" height={16} width={16} />
-											<span className="hidden xl:inline">Share</span>
-										</button>
-									</div>
-								)}
-								{dashboardVisibility === 'private' && dashboardId && (
-									<Tooltip content="Make dashboard public to share" placement="bottom">
-										<button
-											disabled
-											className="pro-text3 flex cursor-not-allowed items-center gap-1 text-sm opacity-50"
-										>
-											<Icon name="link" height={16} width={16} />
-											<span className="hidden xl:inline">Share</span>
-										</button>
-									</Tooltip>
-								)}
+					{dashboardTags.length > 0 && (
+						<div className="flex flex-nowrap items-start gap-1 text-(--text-disabled)">
+							<Tooltip content="Tags">
+								<Icon name="tag" height={16} width={16} className="mt-1" />
+							</Tooltip>
+							<div className="flex flex-wrap items-center gap-1">
+								{dashboardTags.map((tag) => (
+									<p key={tag} className="rounded-md border border-(--cards-border) px-1 py-0.5 text-xs">
+										{tag}
+									</p>
+								))}
 							</div>
-						)}
-
-						{isAuthenticated && isReadOnly && (
-							<button
-								onClick={() => {
-									if (subscription?.status === 'active') {
-										copyDashboard()
-									} else {
-										setShowSubscribeModal(true)
-									}
-								}}
-								className="ml-2 flex items-center gap-2 border border-(--primary) px-2 py-2 text-(--primary) transition-colors hover:bg-(--primary) hover:text-white xl:px-3"
-								title="Copy Dashboard"
-							>
-								<Icon name="copy" height={16} width={16} />
-								<span className="hidden xl:inline">Copy</span>
-							</button>
-						)}
-
-						{isAuthenticated && (
-							<div className="relative">
-								<button
-									onClick={() => setShowDashboardMenu(!showDashboardMenu)}
-									className="bg-opacity-30 pro-hover-bg bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border)"
-									title="Dashboard menu"
-								>
-									<Icon name="chevron-down" height={16} width={16} className="pro-text1" />
-								</button>
-
-								{showDashboardMenu && (
-									<>
-										<div className="fixed inset-0 z-10" onClick={() => setShowDashboardMenu(false)} />
-										<div className="bg-opacity-90 pro-glass-border absolute top-full right-0 z-[1000] mt-2 w-64 border bg-(--bg-glass) shadow-lg backdrop-blur-xl backdrop-filter">
-											<div className="p-2">
-												{isReadOnly ? (
-													<button
-														onClick={() => {
-															if (subscription?.status === 'active') {
-																copyDashboard()
-															} else {
-																setShowSubscribeModal(true)
-															}
-															setShowDashboardMenu(false)
-														}}
-														className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
-													>
-														<Icon name="copy" height={16} width={16} />
-														Copy Dashboard
-													</button>
-												) : (
-													<>
-														<button
-															onClick={() => {
-																saveDashboard()
-																setShowDashboardMenu(false)
-															}}
-															className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
-															disabled={!dashboardId && items.length === 0}
-														>
-															<Icon name="download-cloud" height={16} width={16} />
-															{dashboardId ? 'Save Dashboard' : 'Save as New Dashboard'}
-														</button>
-
-														{dashboardId && (
-															<button
-																onClick={() => {
-																	deleteDashboard(dashboardId)
-																	setShowDashboardMenu(false)
-																}}
-																className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left text-red-500"
-															>
-																<Icon name="trash-2" height={16} width={16} />
-																Delete Dashboard
-															</button>
-														)}
-													</>
-												)}
-
-												<button
-													onClick={() => {
-														createNewDashboard()
-														setShowDashboardMenu(false)
-													}}
-													className="pro-hover-bg flex w-full items-center gap-2 px-3 py-2 text-left"
-												>
-													<Icon name="plus" height={16} width={16} />
-													New Dashboard
-												</button>
-
-												{dashboards.length > 0 && (
-													<>
-														<div className="my-2 border-t border-(--divider)" />
-														<div className="pro-text3 px-3 py-1 text-xs">My Dashboards</div>
-														{isLoadingDashboards ? (
-															<div className="pro-text3 px-3 py-2 text-sm">Loading...</div>
-														) : (
-															<div className="thin-scrollbar max-h-64 overflow-y-auto">
-																{dashboards.map((dashboard) => (
-																	<button
-																		key={dashboard.id}
-																		onClick={() => {
-																			loadDashboard(dashboard.id)
-																			setShowDashboardMenu(false)
-																		}}
-																		className={`pro-hover-bg w-full px-3 py-2 text-left text-sm ${
-																			dashboard.id === dashboardId ? 'bg-(--bg-tertiary)' : ''
-																		}`}
-																	>
-																		<div className="flex items-center justify-between">
-																			<span className="truncate">{dashboard.data.dashboardName}</span>
-																			{dashboard.id === dashboardId && (
-																				<Icon name="check" height={14} width={14} className="text-(--primary)" />
-																			)}
-																		</div>
-																		<div className="pro-text3 text-xs">
-																			{new Date(dashboard.updated).toLocaleDateString()}
-																		</div>
-																	</button>
-																))}
-															</div>
-														)}
-													</>
-												)}
-											</div>
-										</div>
-									</>
-								)}
-							</div>
-						)}
-					</div>
-
-					<div className="flex items-center gap-2 md:hidden">
-						{dashboardId && !isReadOnly && (
-							<button
-								onClick={() => setShowSettingsModal(true)}
-								className="bg-opacity-30 pro-hover-bg bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border)"
-								title="Dashboard Settings"
-							>
-								<Icon name="settings" height={16} width={16} className="pro-text1" />
-							</button>
-						)}
-						<button
-							className={`px-2.5 py-2 md:px-4 md:py-2 ${
-								!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
-							} flex items-center gap-2 text-sm whitespace-nowrap text-white md:text-base`}
-							onClick={() => !isReadOnly && setShowAddModal(true)}
-							disabled={isReadOnly}
-							title="Add Item"
-						>
-							<Icon name="plus" height={16} width={16} />
-						</button>
-					</div>
-				</div>
-
-				<div className="order-3 flex items-center gap-2">
-					{dashboardId && !isReadOnly && (
-						<button
-							onClick={() => setShowSettingsModal(true)}
-							className="bg-opacity-30 pro-hover-bg hidden bg-(--bg-glass) p-2 transition-colors hover:border-(--form-control-border) md:flex"
-							title="Dashboard Settings"
-						>
-							<Icon name="settings" height={20} width={20} className="pro-text1" />
-						</button>
+						</div>
 					)}
-					<button
-						className={`px-4 py-2 ${
-							!isReadOnly ? 'bg-(--primary) hover:bg-(--primary-hover)' : 'cursor-not-allowed bg-(--bg-tertiary)'
-						} hidden items-center gap-2 text-base whitespace-nowrap text-white md:flex ${
-							isReadOnly ? 'invisible' : ''
-						}`}
-						onClick={() => !isReadOnly && setShowAddModal(true)}
-						disabled={isReadOnly}
-					>
-						<Icon name="plus" height={16} width={16} />
-						Add Item
-					</button>
+				</div>
+				<div className="col-span-full flex flex-col gap-2 md:col-span-4 md:gap-4">
+					<div className="flex flex-wrap items-center justify-end gap-2">
+						{isAuthenticated ? (
+							<>
+								{isReadOnly ? (
+									<button
+										onClick={() => {
+											if (subscription?.status === 'active') {
+												copyDashboard()
+											} else {
+												setShowSubscribeModal(true)
+											}
+										}}
+										className="pro-btn-blue-outline flex items-center gap-1 rounded-md px-4 py-1"
+									>
+										<Icon name="copy" height={16} width={16} />
+										<span>Copy Dashboard</span>
+									</button>
+								) : null}
+								<button
+									onClick={() => {
+										createNewDashboard()
+									}}
+									className="pro-btn-purple-outline flex items-center gap-1 rounded-md px-4 py-1"
+								>
+									<Icon name="plus" height={16} width={16} />
+									<span>New Dashboard</span>
+								</button>
+							</>
+						) : null}
+					</div>
+					<div className="mt-auto ml-auto flex flex-wrap items-center gap-1">
+						<Tooltip
+							content="Views"
+							render={<p />}
+							className="flex items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled)"
+						>
+							<Icon name="eye" height={14} width={14} />
+							<span>{currentDashboard?.viewCount || 0}</span>
+							<span className="sr-only">Views</span>
+						</Tooltip>
+						<LikeDashboardButton
+							currentDashboard={currentDashboard}
+							dashboardVisibility={dashboardVisibility}
+							dashboardId={dashboardId}
+						/>
+						<CopyDashboardLinkButton dashboardVisibility={dashboardVisibility} dashboardId={dashboardId} />
+					</div>
 				</div>
 			</div>
 
-			{!isAuthenticated && (
-				<div className="pro-text2 mb-4 border border-(--divider) bg-(--bg-tertiary) p-3 text-sm">
-					<Icon name="help-circle" height={16} width={16} className="mr-2 inline" />
-					Sign in to save and manage multiple dashboards
-				</div>
+			{currentDashboard?.aiGenerated && (
+				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
 			)}
 
-			{dashboardTags.length > 0 && (
-				<div className="mb-4 flex items-center gap-2">
-					<Icon name="bookmark" height={14} width={14} className="pro-text3" />
-					<div className="flex flex-wrap gap-2">
-						{dashboardTags.map((tag) => (
-							<span key={tag} className="bg-opacity-50 pro-text2 pro-border border bg-(--bg-main) px-2 py-1 text-xs">
-								{tag}
-							</span>
-						))}
+			{currentRatingSession && !isReadOnly && (
+				<Suspense fallback={<></>}>
+					<Rating
+						sessionId={currentRatingSession.sessionId}
+						mode={currentRatingSession.mode}
+						variant="banner"
+						prompt={currentRatingSession.prompt}
+						onRate={submitRating}
+						onSkip={skipRating}
+						onDismiss={dismissRating}
+					/>
+				</Suspense>
+			)}
+
+			{!isReadOnly && (
+				<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+					<Tooltip
+						content={!hasChartItems ? 'Add chart items to enable time period selection' : null}
+						placement="bottom"
+					>
+						<div className="order-2 flex gap-0 overflow-x-auto md:order-1">
+							{timePeriods.map((period) => (
+								<button
+									key={period.value}
+									className={`-ml-px flex-1 rounded-none border px-3 py-1.5 text-sm font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:flex-initial md:px-4 md:py-2 ${
+										timePeriod === period.value
+											? 'pro-border pro-btn-blue'
+											: 'pro-border pro-text2 hover:pro-text1 pro-hover-bg'
+									} ${!hasChartItems ? 'cursor-not-allowed opacity-50' : ''}`}
+									onClick={() => hasChartItems && setTimePeriod(period.value)}
+									disabled={!hasChartItems}
+								>
+									{period.label}
+								</button>
+							))}
+						</div>
+					</Tooltip>
+					<div className="order-3 flex items-center gap-2">
+						{dashboardId && (
+							<button
+								onClick={() => setShowSettingsModal(true)}
+								className="pro-glass pro-hover-bg hidden rounded-md p-2 transition-colors md:flex"
+								title="Dashboard Settings"
+							>
+								<Icon name="settings" height={20} width={20} className="pro-text1" />
+							</button>
+						)}
+						{items.length > 0 && (
+							<button
+								className="animate-ai-glow pro-btn-blue-outline hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
+								onClick={() => setShowIterateDashboardModal(true)}
+								title="Edit with LlamaAI"
+							>
+								<Icon name="sparkles" height={16} width={16} />
+								Edit with LlamaAI
+							</button>
+						)}
+						{canUndo && (
+							<button
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg hidden items-center gap-2 rounded-md border px-4 py-2 text-base whitespace-nowrap transition-colors md:flex"
+								onClick={undoAIGeneration}
+								title="Undo AI changes"
+							>
+								<Icon name="arrow-left" height={16} width={16} />
+								Undo
+							</button>
+						)}
+
+						<button
+							className="pro-btn-blue hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
+							onClick={() => setShowAddModal(true)}
+							disabled={isReadOnly}
+						>
+							<Icon name="plus" height={16} width={16} />
+							Add Item
+						</button>
 					</div>
 				</div>
 			)}
@@ -423,42 +318,227 @@ function ProDashboardContent() {
 				/>
 			)}
 
-			<AddChartModal
-				isOpen={showAddModal}
-				onClose={() => {
-					setShowAddModal(false)
-					setEditItem(null)
-				}}
-				editItem={editItem}
-			/>
+			<Suspense fallback={<></>}>
+				<AddChartModal
+					isOpen={showAddModal}
+					onClose={() => {
+						setShowAddModal(false)
+						setEditItem(null)
+					}}
+					editItem={editItem}
+				/>
+			</Suspense>
 
-			{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={() => setShowAddModal(true)} />}
+			{!protocolsLoading && items.length === 0 && (
+				<EmptyState
+					onAddChart={() => setShowAddModal(true)}
+					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
+					isReadOnly={isReadOnly}
+				/>
+			)}
 
-			<DashboardSettingsModal
-				isOpen={showSettingsModal}
-				onClose={() => setShowSettingsModal(false)}
-				visibility={dashboardVisibility}
-				tags={dashboardTags}
-				description={dashboardDescription}
-				onVisibilityChange={setDashboardVisibility}
-				onTagsChange={setDashboardTags}
-				onDescriptionChange={setDashboardDescription}
-				onSave={saveDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<DashboardSettingsModal
+					isOpen={showSettingsModal}
+					onClose={() => setShowSettingsModal(false)}
+					visibility={dashboardVisibility}
+					tags={dashboardTags}
+					description={dashboardDescription}
+					onVisibilityChange={setDashboardVisibility}
+					onTagsChange={setDashboardTags}
+					onDescriptionChange={setDashboardDescription}
+					onSave={saveDashboard}
+				/>
+			</Suspense>
 
-			<CreateDashboardModal
-				isOpen={showCreateDashboardModal}
-				onClose={() => setShowCreateDashboardModal(false)}
-				onCreate={handleCreateDashboard}
-			/>
+			<Suspense fallback={<></>}>
+				<CreateDashboardModal dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
+			</Suspense>
 
-			<SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)}>
-				<SubscribePlusCard context="modal" returnUrl={router.asPath} />
-			</SubscribeModal>
+			<Suspense fallback={<></>}>
+				<GenerateDashboardModal
+					isOpen={showGenerateDashboardModal}
+					onClose={() => setShowGenerateDashboardModal(false)}
+					onGenerate={handleGenerateDashboard}
+				/>
+			</Suspense>
+
+			<Suspense fallback={<></>}>
+				<GenerateDashboardModal
+					isOpen={showIterateDashboardModal}
+					onClose={() => setShowIterateDashboardModal(false)}
+					mode="iterate"
+					existingDashboard={{
+						dashboardName,
+						visibility: dashboardVisibility,
+						tags: dashboardTags,
+						description: dashboardDescription,
+						items,
+						aiGenerated: currentDashboard?.aiGenerated
+					}}
+					onGenerate={handleIterateDashboard}
+				/>
+			</Suspense>
+
+			<Suspense fallback={<></>}>
+				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
+			</Suspense>
 		</div>
 	)
 }
 
 export default function ProDashboard() {
-	return <ProDashboardContent />
+	return (
+		<AppMetadataProvider>
+			<ProDashboardContent />
+		</AppMetadataProvider>
+	)
+}
+
+const LikeDashboardButton = ({
+	currentDashboard,
+	dashboardVisibility,
+	dashboardId
+}: {
+	currentDashboard: Dashboard
+	dashboardVisibility: 'private' | 'public'
+	dashboardId: string
+}) => {
+	const { isAuthenticated } = useAuthContext()
+	const { toggleLike, isLiking, liked, likeCount } = useDashboardEngagement(dashboardId)
+	if (dashboardVisibility === 'private') return null
+	const isLiked = currentDashboard?.liked ? true : false
+	return (
+		<Tooltip
+			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
+			render={<button onClick={() => toggleLike()} disabled={isLiking || !isAuthenticated} />}
+			className={`hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent`}
+		>
+			{isLiking ? (
+				<LoadingSpinner size={14} />
+			) : (
+				<Icon
+					name="star"
+					height={14}
+					width={14}
+					className={(liked ?? isLiked) ? 'fill-current text-yellow-400' : 'fill-none'}
+				/>
+			)}
+			<span>{likeCount || currentDashboard?.likeCount || 0}</span>
+			<span className="sr-only">Likes</span>
+		</Tooltip>
+	)
+}
+
+const CopyDashboardLinkButton = ({
+	dashboardVisibility,
+	dashboardId
+}: {
+	dashboardVisibility: 'private' | 'public'
+	dashboardId: string
+}) => {
+	const [copied, setCopied] = useState(false)
+	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
+
+	const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/pro/${dashboardId}`
+
+	const handleCopyLink = async () => {
+		try {
+			await navigator.clipboard.writeText(shareUrl)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.error('Failed to copy link:', error)
+		}
+	}
+
+	const handleShareTo = (social: 'twitter' | 'telegram') => {
+		const text = encodeURIComponent('Check out this dashboard on DefiLlama')
+		const url = encodeURIComponent(shareUrl)
+
+		let socialUrl = `https://x.com/intent/tweet?text=${text}&url=${url}`
+
+		if (social === 'telegram') {
+			socialUrl = `https://t.me/share/url?text=${text}&url=${url}`
+		}
+
+		window.open(socialUrl, '_blank', 'noopener,noreferrer')
+	}
+
+	if (dashboardVisibility === 'private') {
+		return (
+			<Tooltip
+				content="Make dashboard public to share"
+				render={<button aria-disabled={true} />}
+				className="flex cursor-not-allowed items-center gap-1 rounded-md border border-(--cards-border) px-1.5 py-1 text-xs text-(--text-disabled) hover:border-transparent focus-visible:border-transparent"
+			>
+				{copied ? <Icon name="check-circle" height={14} width={14} /> : <Icon name="link" height={14} width={14} />}
+				<span>Share</span>
+			</Tooltip>
+		)
+	}
+
+	return (
+		<Ariakit.PopoverProvider store={popover}>
+			<Ariakit.PopoverDisclosure className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)">
+				<Icon name="share" height={14} width={14} />
+				<span>Share</span>
+			</Ariakit.PopoverDisclosure>
+
+			<Ariakit.Popover
+				gutter={8}
+				className="z-50 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3 shadow-lg"
+				style={{ minWidth: '280px' }}
+			>
+				<div className="flex flex-col gap-3">
+					<div className="flex flex-col gap-1.5">
+						<label className="text-xs font-medium text-(--text-label)">Share Link</label>
+						<div className="flex gap-2">
+							<input
+								type="text"
+								value={shareUrl}
+								readOnly
+								className="flex-1 rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs"
+							/>
+							<button
+								onClick={handleCopyLink}
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs transition-colors"
+								title="Copy link"
+							>
+								{copied ? (
+									<Icon name="check-circle" height={14} width={14} className="text-green-500" />
+								) : (
+									<Icon name="copy" height={14} width={14} />
+								)}
+							</button>
+						</div>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<label className="text-xs font-medium text-(--text-label)">Share on</label>
+						<div className="flex gap-2">
+							<button
+								onClick={() => handleShareTo('twitter')}
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors"
+								title="Share on Twitter/X"
+							>
+								<Icon name="twitter" height={16} width={16} />
+								<span>Twitter</span>
+							</button>
+							<button
+								onClick={() => handleShareTo('telegram')}
+								className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors"
+								title="Share on Telegram"
+							>
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+									<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+								</svg>
+								<span>Telegram</span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
+	)
 }

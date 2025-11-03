@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_API, PROTOCOLS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
@@ -80,14 +80,14 @@ export async function getTotalBorrowedByChain({
 			slug: slug(protocol.name),
 			category: protocol.category,
 			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId].chains : null) ??
+				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
 				protocol.chains ??
 				[],
 			totalBorrowed,
 			totalPrevMonth,
 			change_1m:
 				totalPrevMonth != null && totalBorrowed != null
-					? (getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0)
+					? Number(getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0)
 					: null
 		}
 
@@ -118,8 +118,8 @@ export async function getTotalBorrowedByChain({
 				totalBorrowed: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalBorrowed ?? 0), 0),
 				totalPrevMonth: finalParentProtocols[parent].reduce((acc, curr) => acc + (curr.totalPrevMonth ?? 0), 0),
 				change_1m:
-					totalPrevMonth != null && totalPrevMonth != null
-						? (getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0)
+					totalBorrowed != null && totalPrevMonth != null
+						? Number(getPercentChange(totalBorrowed, totalPrevMonth)?.toFixed(2) ?? 0)
 						: null,
 				subRows: finalParentProtocols[parent]
 			})
@@ -134,7 +134,13 @@ export async function getTotalBorrowedByChain({
 			...chains.map((chain) => ({ label: chain, to: `/total-borrowed/chain/${slug(chain)}` }))
 		],
 		charts: {
-			'Total Borrowed': { name: 'Total Borrowed', data: chart, type: 'line', stack: 'Total Borrowed', color: oldBlue }
+			'Total Borrowed': {
+				name: 'Total Borrowed',
+				data: chart,
+				type: 'line',
+				stack: 'Total Borrowed',
+				color: CHART_COLORS[0]
+			}
 		},
 		totalBorrowed: chart[chart.length - 1][1],
 		change24h:

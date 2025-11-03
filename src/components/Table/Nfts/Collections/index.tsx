@@ -43,7 +43,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<h1 className="mr-auto text-xl font-semibold">NFT Collections</h1>
+				<h1 className="mr-auto text-xl font-semibold">NFT Collection Metrics</h1>
 				<label className="relative w-full sm:max-w-[280px]">
 					<span className="sr-only">Search collections...</span>
 					<Icon
@@ -59,7 +59,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 							setCollectionName(e.target.value)
 						}}
 						placeholder="Search collections..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>

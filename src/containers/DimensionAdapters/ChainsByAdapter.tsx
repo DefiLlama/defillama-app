@@ -15,30 +15,30 @@ import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Metrics, TMetric } from '~/components/Metrics'
 import { VirtualTable } from '~/components/Table/Table'
+import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import { download, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
 import { IChainsByAdapterPageData } from './types'
 
+type TPageType =
+	| 'Fees'
+	| 'Revenue'
+	| 'Holders Revenue'
+	| 'DEX Volume'
+	| 'Perp Volume'
+	| 'Bridge Aggregator Volume'
+	| 'Perp Aggregator Volume'
+	| 'DEX Aggregator Volume'
+	| 'Options Premium Volume'
+	| 'Options Notional Volume'
+	| 'App Revenue'
+
 interface IProps extends IChainsByAdapterPageData {
-	type: Extract<
-		TMetric,
-		| 'Fees'
-		| 'Revenue'
-		| 'Holders Revenue'
-		| 'DEX Volume'
-		| 'Perp Volume'
-		| 'Bridge Aggregator Volume'
-		| 'Perp Aggregator Volume'
-		| 'DEX Aggregator Volume'
-		| 'Options Premium Volume'
-		| 'Options Notional Volume'
-		| 'App Revenue'
-	>
+	type: TPageType
 }
 
 export function ChainsByAdapter(props: IProps) {
@@ -82,29 +82,7 @@ export function ChainsByAdapter(props: IProps) {
 			columnOrder
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				if (typeof a === 'number' && a <= 0) a = null
-				if (typeof b === 'number' && b <= 0) b = null
-
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onSortingChange: setSorting,
@@ -140,14 +118,13 @@ export function ChainsByAdapter(props: IProps) {
 		instance.setColumnSizing(colSize[1])
 	}, [instance, windowSize])
 
-	const downloadCsv = useCallback(() => {
+	const prepareCsv = useCallback(() => {
 		const header = ['Chain', 'Total 1d', 'Total 1m']
 		const csvdata = chains.map((protocol) => {
 			return [protocol.name, protocol.total24h, protocol.total30d]
 		})
-		const csv = [header, ...csvdata].map((row) => row.join(',')).join('\n')
 
-		download(`${props.type}-chains-protocols.csv`, csv)
+		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
 	}, [props, chains])
 
 	return (
@@ -165,13 +142,13 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			<Metrics currentMetric={props.type} isChains={true} />
 			{props.adapterType !== 'fees' && (
 				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
 			)}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
-					<div className="relative mr-auto w-full sm:max-w-[280px]">
+					<label className="relative mr-auto w-full sm:max-w-[280px]">
+						<span className="sr-only">Search chains</span>
 						<Icon
 							name="search"
 							height={16}
@@ -184,10 +161,10 @@ export function ChainsByAdapter(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 						/>
-					</div>
-					<CSVDownloadButton onClick={downloadCsv} className="min-h-8" />
+					</label>
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
@@ -240,8 +217,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Fees paid by users to all the protocols on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: 'Fees paid by users when using the chain in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -254,7 +230,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Fees paid by users to all the protocols on the chain in the last 30 days'
+				headerHelperText: 'Fees paid by users when using the chain in the last 30 days'
 			},
 			size: 128
 		}
@@ -271,7 +247,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText:
-					'Revenue earned by all the protocols on the chain in the last 24 hours, updated daily at 00:00 UTC'
+					'Subset of fees that the chain collects for itself in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 128
 		},
@@ -284,7 +260,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Revenue earned by all the protocols on the chain in the last 30 days'
+				headerHelperText: 'Subset of fees that the chain collects for itself in the last 30 days'
 			},
 			size: 128
 		}
@@ -301,7 +277,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText:
-					'Revenue earned by token holders of all the protocols on the chain in the last 24 hours, updated daily at 00:00 UTC'
+					'Revenue earned by token holders of the chain in the last 24 hours, updated daily at 00:00 UTC'
 			},
 			size: 180
 		},
@@ -314,13 +290,13 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Revenue earned by token holders of all the protocols on the chain in the last 30 days'
+				headerHelperText: 'Revenue earned by token holders of the chain in the last 30 days'
 			},
 			size: 180
 		}
 	],
 	'App Revenue': [
-		NameColumn('app-revenue'),
+		NameColumn('revenue'),
 		{
 			id: 'total24h',
 			header: 'App Revenue 24h',

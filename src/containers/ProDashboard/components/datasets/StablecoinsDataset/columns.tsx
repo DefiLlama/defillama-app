@@ -26,14 +26,11 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorFn: (row) => row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			// Use row.index which is already calculated by tanstack table
-			const index = row.index
 			const name = getValue() as string
 			const symbol = row.original.symbol
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={peggedAssetIconUrl(name)} data-lgonly />
 					<BasicLink
 						href={`/stablecoins/${row.original.gecko_id || name}`}
@@ -92,11 +89,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
-					{formattedPercent(value)}
-				</span>
-			)
+			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
 		},
 		size: 100,
 		meta: {
@@ -108,11 +101,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
-					{formattedPercent(value)}
-				</span>
-			)
+			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
 		},
 		size: 100,
 		meta: {
@@ -124,11 +113,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1m',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return (
-				<span className={`font-mono ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
-					{formattedPercent(value)}
-				</span>
-			)
+			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
 		},
 		size: 100,
 		meta: {

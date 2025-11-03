@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
+import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
@@ -56,8 +57,9 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(router.query ? (tvl === 'true' ? rest : router.query) : { protocol: [slug(props.name)] })
+	}, [router.query, props.name])
 
 	const { toggledMetrics, groupBy, tvlSettings, feesSettings } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -73,7 +75,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
 					: props.metrics.perps
 						? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
-						: props.metrics.options
+						: props.metrics.optionsPremiumVolume || props.metrics.optionsNotionalVolume
 							? {
 									optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
 									optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
@@ -163,13 +165,13 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 	})
 
 	return (
-		<div className="flex min-h-[360px] flex-col">
+		<div className="col-span-full flex min-h-[360px] flex-col">
 			{loadingCharts ? (
-				<p className="my-auto flex min-h-[360px] flex-col items-center justify-center text-center text-xs">
-					fetching {loadingCharts}...
-				</p>
+				<div className="flex min-h-[360px] items-center justify-center">
+					<LocalLoader />
+				</div>
 			) : (
-				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
 					<ProtocolLineBarChart
 						chartData={finalCharts}
 						chartColors={props.chartColors}

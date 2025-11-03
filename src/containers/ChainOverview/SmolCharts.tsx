@@ -4,7 +4,7 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
-import { oldBlue, purple } from '~/constants/colors'
+import { CHART_COLORS, purple } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
 
@@ -27,7 +27,8 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -101,7 +102,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 					shadowBlur: 10
 				},
 				data: series,
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		})
 
@@ -157,7 +158,8 @@ export function SmolLineChart({
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -243,11 +245,13 @@ export function SmolLineChart({
 export function SmolBarChart({
 	series,
 	name,
-	className
+	className,
+	groupBy
 }: {
 	series: Array<[string, number]>
 	name: string
 	className?: string
+	groupBy?: 'daily' | 'weekly' | 'monthly'
 }) {
 	const id = useId()
 
@@ -265,7 +269,8 @@ export function SmolBarChart({
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -295,7 +300,7 @@ export function SmolBarChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+					let chartdate = formatTooltipChartDate(params[0].value[0], groupBy ?? 'daily')
 
 					return (
 						chartdate +
@@ -321,7 +326,7 @@ export function SmolBarChart({
 				symbol: 'none',
 				itemStyle: {
 					color: function (params) {
-						return params.value[1] >= 0 ? oldBlue : purple
+						return params.value[1] >= 0 ? CHART_COLORS[0] : purple
 					}
 				}
 			}
@@ -382,7 +387,7 @@ export function UpcomingUnlocksChart({
 					shadowBlur: 10
 				},
 				itemStyle: {
-					color: oldBlue
+					color: CHART_COLORS[0]
 				},
 				symbol: 'none',
 				data: seriesData
@@ -398,7 +403,8 @@ export function UpcomingUnlocksChart({
 			animation: false,
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0

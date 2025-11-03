@@ -2,25 +2,43 @@ import { Icon } from '~/components/Icon'
 
 interface EmptyStateProps {
 	onAddChart: () => void
+	onGenerateWithAI?: () => void
+	isReadOnly?: boolean
 }
 
-export function EmptyState({ onAddChart }: EmptyStateProps) {
+export function EmptyState({ onAddChart, onGenerateWithAI, isReadOnly = false }: EmptyStateProps) {
+	const showAIGeneration = onGenerateWithAI && !isReadOnly
+
 	return (
-		<div className="py-16 text-center">
-			<div className="pro-glass mx-auto max-w-lg p-12">
-				<div className="mb-6">
-					<Icon name="bar-chart-2" height={64} width={64} className="pro-text3 mx-auto opacity-50" />
+		<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
+			<Icon name="bar-chart-2" height={48} width={48} className="text-(--text-label)" />
+			<h1 className="text-3xl font-bold">{isReadOnly ? 'This dashboard is empty' : 'No charts added yet'}</h1>
+			{!isReadOnly && (
+				<p className="text-center text-base text-(--text-label)">
+					Start building your dashboard by adding charts
+					{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
+				</p>
+			)}
+			{!isReadOnly && (
+				<div className="mt-7 flex flex-col justify-center gap-4 sm:flex-row">
+					{showAIGeneration && (
+						<button
+							className="pro-btn-blue flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+							onClick={onGenerateWithAI}
+						>
+							<Icon name="sparkles" height={20} width={20} />
+							Generate with LlamaAI
+						</button>
+					)}
+					<button
+						className="pro-btn-purple flex items-center gap-1 rounded-md px-6 py-3 font-medium"
+						onClick={onAddChart}
+					>
+						<Icon name="plus" height={20} width={20} />
+						Add Your First Chart
+					</button>
 				</div>
-				<h2 className="pro-text1 mb-3 text-2xl font-semibold">No charts added yet</h2>
-				<p className="pro-text2 mb-6 text-lg">Click the "Add Item" button to start building your dashboard</p>
-				<button
-					className="mx-auto flex items-center gap-2 bg-(--primary) px-6 py-3 text-base font-medium text-white hover:bg-(--primary-hover)"
-					onClick={onAddChart}
-				>
-					<Icon name="plus" height={20} width={20} />
-					Add Your First Chart
-				</button>
-			</div>
+			)}
 		</div>
 	)
 }

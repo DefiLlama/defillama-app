@@ -2,34 +2,49 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps } from '~/components/ECharts/types'
-import { Metrics } from '~/components/Metrics'
-import { oldBlue } from '~/constants/colors'
+import type { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
-import { downloadCsv } from './download'
+import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './RaisesTable'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const LineAndBarChart = React.lazy(
+	() => import('~/components/ECharts/LineAndBarChart')
+) as React.FC<ILineAndBarChartProps>
 
 const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
 	const { pathname } = useRouter()
 
-	const { filteredRaisesList, selectedInvestors, selectedRounds, selectedChains, selectedSectors, monthlyInvestment } =
-		useRaisesData({
-			raises,
-			investors,
-			rounds,
-			sectors,
-			chains
-		})
+	const {
+		filteredRaisesList,
+		selectedInvestors,
+		selectedRounds,
+		selectedChains,
+		selectedSectors,
+		totalAmountRaised,
+		monthlyInvestmentChart
+	} = useRaisesData({
+		raises,
+		investors,
+		rounds,
+		sectors,
+		chains
+	})
 
-	const totalAmountRaised = monthlyInvestment.reduce((acc, curr) => (acc += curr[1]), 0)
+	const prepareCsv = React.useCallback(() => {
+		return prepareRaisesCsv({ raises: filteredRaisesList })
+	}, [filteredRaisesList])
 
 	return (
-		<Layout title={`Raises - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Raises - DefiLlama`}
+			description={`Track recent raises, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`recent raises, total funding amount, total funding rounds`}
+			canonicalUrl={`/raises`}
+			pageName={['Raises Overview']}
+		>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -41,9 +56,13 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					Add it here!
 				</a>
 				<br />
-				<span>Are you a VC and want to submit your investments in bulk? Email them to us at support@defillama.com</span>
+				<span>
+					Are you a VC and want to submit your investments in bulk? Email them to us at{' '}
+					<a href="mailto:support@defillama.com" className="text-(--blue) underline">
+						support@defillama.com
+					</a>
+				</span>
 			</Announcement>
-			<Metrics currentMetric="Total Raised" />
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}
 				rounds={rounds}
@@ -67,20 +86,17 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton
-						onClick={() => downloadCsv({ raises })}
-						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<React.Suspense fallback={<></>}>
-						<BarChart chartData={monthlyInvestment} title="" valueSymbol="$" color={oldBlue} groupBy="monthly" />
+						<LineAndBarChart charts={monthlyInvestmentChart} valueSymbol="$" groupBy="monthly" />
 					</React.Suspense>
 				</div>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} downloadCsv={() => downloadCsv({ raises })} />
+			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
 		</Layout>
 	)
 }

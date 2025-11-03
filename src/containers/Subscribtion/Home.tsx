@@ -1,24 +1,27 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
-import { LocalLoader } from '~/components/LocalLoader'
+import { Icon } from '~/components/Icon'
+import { LocalLoader } from '~/components/Loaders'
+import { FreeCard } from '~/components/SubscribeCards/FreeCard'
+import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
-import { SubscribePlusCard } from '~/components/SubscribeCards/SubscribePlusCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { AccountInfo } from './AccountInfo'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailChangeModal } from './components/EmailChangeModal'
+import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
 import { TrialActivation } from './components/TrialActivation'
 import { SignIn } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
-	const { isAuthenticated, loaders, user, changeEmail, addEmail } = useAuthContext()
+	const { isAuthenticated, loaders, user, changeEmail, addEmail, resendVerification } = useAuthContext()
 	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [newEmail, setNewEmail] = useState('')
+	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isWalletUser = user?.email?.includes('@defillama.com')
 	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -30,52 +33,21 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		setNewEmail('')
 		setShowEmailForm(false)
 	}
+
+	const handleResendVerification = () => {
+		if (user?.email) {
+			resendVerification(user.email)
+		}
+	}
+
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
-	const router = useRouter()
+
 	const queryClient = useQueryClient()
 	const [showReturnModal, setShowReturnModal] = useState(false)
 	const [hasShownModal, setHasShownModal] = useState(false)
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
-	const [activePriceCard, setActivePriceCard] = useState(0)
-
-	useEffect(() => {
-		const ref = pricingContainer.current
-		if (!ref) return
-
-		const calculateActiveCard = () => {
-			if (ref.children.length === 0) return
-			const cardWidth = (ref.children[0] as HTMLElement).offsetWidth
-			const gapWidth = 16
-			const scrollLeft = ref.scrollLeft
-			let closestIndex = 0
-			let minDistance = Infinity
-			const containerVisibleWidth = ref.offsetWidth
-			const containerCenter = scrollLeft + containerVisibleWidth / 2
-
-			for (let i = 0; i < ref.children.length; i++) {
-				const cardElement = ref.children[i] as HTMLElement
-				const cardCenter = cardElement.offsetLeft + cardWidth / 2
-				const distance = Math.abs(containerCenter - cardCenter)
-
-				if (distance < minDistance) {
-					minDistance = distance
-					closestIndex = i
-				}
-			}
-			setActivePriceCard(closestIndex)
-		}
-
-		ref.addEventListener('scroll', calculateActiveCard, { passive: true })
-		calculateActiveCard()
-		window.addEventListener('resize', calculateActiveCard)
-
-		return () => {
-			ref.removeEventListener('scroll', calculateActiveCard)
-			window.removeEventListener('resize', calculateActiveCard)
-		}
-	}, [isClient])
 
 	useEffect(() => {
 		setIsClient(true)
@@ -83,10 +55,20 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	useEffect(() => {
 		if (isAuthenticated && returnUrl && !hasShownModal && !loaders.userLoading) {
-			setShowReturnModal(true)
-			setHasShownModal(true)
+			const justSignedUp = sessionStorage.getItem('just_signed_up') === 'true'
+			const accountAge = user?.created ? Date.now() - new Date(user.created).getTime() : Infinity
+			const isRecentAccount = accountAge < 10000
+
+			if (justSignedUp) {
+				sessionStorage.removeItem('just_signed_up')
+			}
+
+			if (!justSignedUp && !isRecentAccount) {
+				setShowReturnModal(true)
+				setHasShownModal(true)
+			}
 		}
-	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading])
+	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading, user?.created])
 
 	useEffect(() => {
 		setHasShownModal(false)
@@ -97,7 +79,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		(loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription)))
 	) {
 		return (
-			<div className="flex h-[60vh] items-center justify-center">
+			<div className="flex h-[60dvh] items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -115,7 +97,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 						className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
 					/>
 					<img
-						src="/llama.png"
+						src="/icons/llama.webp"
 						height={118}
 						width={118}
 						className="z-10 mx-auto aspect-square rounded-full object-contain"
@@ -123,10 +105,39 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					/>
 				</div>
 				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
-				{isSubscribed ? null : (
-					<p className="text-center text-[#919296]">
-						Upgrade now for access to LlamaFeed, increased api limits and premium api endpoints.
-					</p>
+				{!isSubscribed && (
+					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
+						<p className="text-center text-[#919296]">
+							Upgrade now for access to LlamaFeed, Custom Dashboards, CSV data downloads and more.
+						</p>
+						{isAuthenticated ? (
+							<div className="mx-auto w-full max-w-[400px]">
+								<button
+									onClick={() => {
+										const proCardElement = document.querySelector('[data-plan="pro"]')
+										if (proCardElement) {
+											proCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+										}
+									}}
+									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"
+								>
+									Get Pro for ${billingInterval === 'year' ? '490' : '49'}
+									{billingInterval === 'year' ? '/year' : '/month'}
+								</button>
+								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+							</div>
+						) : (
+							<div className="mx-auto w-full max-w-[400px] lg:hidden">
+								<SignIn
+									text={`Get Pro for $${billingInterval === 'year' ? '490' : '49'}${billingInterval === 'year' ? '/year' : '/month'}`}
+									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"
+									pendingActionMessage="Sign in or create an account to subscribe to the Pro plan."
+									defaultFlow="signup"
+								/>
+								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+							</div>
+						)}
+					</div>
 				)}
 
 				{!isAuthenticated && isTrial && (
@@ -216,9 +227,19 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				)}
 
+				{isAuthenticated && !user?.verified && !isWalletUser && user?.email && (
+					<div className="mx-auto w-full max-w-3xl">
+						<EmailVerificationWarning
+							email={user.email}
+							onResendVerification={handleResendVerification}
+							isLoading={loaders.resendVerification}
+						/>
+					</div>
+				)}
+
 				{isAuthenticated && isSubscribed ? null : (
 					<div
-						className="relative -bottom-[60px] z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
+						className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
 						style={{
 							filter: 'blur(64px)',
 							background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
@@ -226,17 +247,6 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					/>
 				)}
 
-				{isAuthenticated && !isSubscribed && (
-					<>
-						<AccountStatus
-							user={user}
-							isVerified={user?.verified}
-							isSubscribed={isSubscribed}
-							subscription={subscription}
-							onEmailChange={() => setShowEmailForm(true)}
-						/>
-					</>
-				)}
 				<EmailChangeModal
 					isOpen={showEmailForm}
 					onClose={() => setShowEmailForm(false)}
@@ -252,44 +262,83 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				) : (
 					<div className="relative">
-						<div
-							ref={pricingContainer}
-							className="pricing-container relative z-10 flex snap-x snap-mandatory flex-row justify-start gap-4 overflow-x-auto scroll-smooth py-4 max-md:-mx-2 max-md:pl-2 md:justify-center md:overflow-visible"
-						>
-							<SubscribePlusCard
-								context="page"
-								active={
-									subscription?.status === 'active' &&
-									subscription?.type === 'llamafeed' &&
-									subscription?.provider !== 'trial'
-								}
-							/>
-							<SubscribeProCard
-								context="page"
-								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
-							/>
-							<SubscribeEnterpriseCard />
-						</div>
-						<div className="mt-4 flex justify-center gap-2 md:hidden">
-							{[0, 1, 2].map((index) => (
+						<div className="relative z-10 mb-6 flex items-center justify-center">
+							<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
 								<button
-									key={index}
-									className={`h-2 w-2 rounded-full transition-colors duration-300 ${
-										activePriceCard === index ? 'bg-white' : 'bg-gray-500'
+									onClick={() => setBillingInterval('month')}
+									className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+										billingInterval === 'month'
+											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+											: 'text-[#8a8c90] hover:text-white'
 									}`}
-									aria-label={`Go to slide ${index + 1}`}
-									onClick={() => {
-										const ref = pricingContainer.current
-										if (ref && ref.children[index]) {
-											const cardElement = ref.children[index] as HTMLElement
-											// Calculate scroll position to center the card, considering container padding/margins
-											const scrollLeft = cardElement.offsetLeft + cardElement.offsetWidth / 2 - ref.offsetWidth / 2
-											ref.scrollTo({ left: scrollLeft, behavior: 'smooth' })
-										}
-									}}
-								/>
-							))}
+								>
+									Monthly
+								</button>
+								<button
+									onClick={() => setBillingInterval('year')}
+									className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+										billingInterval === 'year'
+											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+											: 'text-[#8a8c90] hover:text-white'
+									}`}
+								>
+									Yearly
+									<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">
+										2 months free
+									</span>
+								</button>
+							</div>
 						</div>
+						<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
+							<div
+								data-plan="pro"
+								className={`relative flex flex-col overflow-hidden rounded-xl border-2 border-[#5C5CF9]/50 bg-[#22242930] px-4 py-6 shadow-lg shadow-[#5C5CF9]/20 backdrop-blur-md transition-all duration-300 lg:order-2 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-1' : 'order-2'}`}
+							>
+								<SubscribeProCard
+									context="page"
+									active={
+										subscription?.status === 'active' &&
+										subscription?.type === 'llamafeed' &&
+										subscription?.provider !== 'trial'
+									}
+									billingInterval={billingInterval}
+								/>
+							</div>
+							<div
+								className={`relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:order-1 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-2' : 'order-1'}`}
+							>
+								<FreeCard />
+							</div>
+							<div className="relative order-3 flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:py-8 lg:hover:scale-[1.02]">
+								<SubscribeAPICard
+									context="page"
+									isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
+									billingInterval={billingInterval}
+								/>
+							</div>
+						</div>
+						<div className="relative z-10 mt-4 rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
+							<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
+								<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
+								<SubscribeEnterpriseCard />
+							</span>
+						</div>
+
+						{isAuthenticated && !isSubscribed && (
+							<div className="relative z-10 mt-8 w-full">
+								<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+									<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
+									Manage Account
+								</h3>
+								<AccountStatus
+									user={user}
+									isVerified={user?.verified}
+									isSubscribed={isSubscribed}
+									subscription={subscription}
+									onEmailChange={() => setShowEmailForm(true)}
+								/>
+							</div>
+						)}
 					</div>
 				)}
 			</div>
@@ -297,22 +346,22 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
 				<div className="grid grid-cols-2 place-items-center gap-20 md:grid-cols-4 lg:grid-cols-5">
-					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-[60px] object-contain" />
+					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-15 object-contain" />
 					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
 					<span className="flex flex-col gap-2">
-						<img src="/icons/ecb-1.svg" alt="" className="h-[28px] object-contain" />
-						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-[10px] object-contain" />
+						<img src="/icons/ecb-1.svg" alt="" className="h-7 object-contain" />
+						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
 					</span>
-					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-[60px] object-contain" />
+					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-15 object-contain" />
 					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[48px] object-contain" />
-					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-[60px] object-contain" />
-					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-[28px] object-contain" />
-					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-[60px] object-contain" />
-					<img src="/icons/boe.svg" alt="Bank of England" className="h-[28px] object-contain" />
-					<img src="/icons/binance.svg" alt="Binance" className="h-[28px] object-contain" />
-					<img src="/icons/okx.svg" alt="OKX" className="h-[28px] object-contain" />
-					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-[28px] object-contain" />
-					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-[28px] object-contain" />
+					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-15 object-contain" />
+					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
+					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
+					<img src="/icons/boe.svg" alt="Bank of England" className="h-7 object-contain" />
+					<img src="/icons/binance.svg" alt="Binance" className="h-7 object-contain" />
+					<img src="/icons/okx.svg" alt="OKX" className="h-7 object-contain" />
+					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
+					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
 				</div>
 			</div>
 			{returnUrl && (

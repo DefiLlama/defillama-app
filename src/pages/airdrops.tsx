@@ -3,6 +3,7 @@ import { getAirdropDirectoryData, getSimpleProtocolsPageData } from '~/api/categ
 import { basicPropertiesToKeep } from '~/api/categories/protocols/utils'
 import { FORK_API, RAISES_API } from '~/constants'
 import { RecentProtocols } from '~/containers/RecentProtocols'
+import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -170,13 +171,18 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 	}
 })
 
+const pageName = ['Tokenless protocols']
+
 export default function Protocols(props) {
 	return (
-		<RecentProtocols
-			title="Airdroppable protocols - Defi Llama"
-			name="Airdrops"
-			header="Tokenless protocols that may airdrop 🧑‍🌾"
-			{...props}
-		/>
+		<Layout
+			title="Tokenless protocols that may airdrop 🧑‍🌾 - DefiLlama"
+			description={`Tokenless protocols that may airdrop. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`tokenless protocols, DeFi airdrops, potential airdrops, crypto airdrops, DefiLlama airdrops`}
+			canonicalUrl={`/airdrops`}
+			pageName={pageName}
+		>
+			<RecentProtocols {...props} />
+		</Layout>
 	)
 }

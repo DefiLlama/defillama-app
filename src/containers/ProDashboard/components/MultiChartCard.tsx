@@ -1,11 +1,15 @@
-import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { download } from '~/utils'
+import { Select } from '~/components/Select'
+import { Tooltip } from '~/components/Tooltip'
+import { capitalizeFirstLetter, download } from '~/utils'
+import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
-import { EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
+import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ProTableCSVButton } from './ProTable/CsvButton'
+import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
@@ -14,9 +18,16 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo, handleGroupingChange, handleCumulativeChange, handlePercentageChange, isReadOnly } =
-		useProDashboard()
-	const [showStacked, setShowStacked] = useState(true)
+	const {
+		getProtocolInfo,
+		handleGroupingChange,
+		handleCumulativeChange,
+		handlePercentageChange,
+		handleStackedChange,
+		isReadOnly
+	} = useProDashboard()
+	const { chartInstance, handleChartReady } = useChartImageExport()
+	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 
 	// Filter valid items and create series data
@@ -42,6 +53,44 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		const uniqueProtocols = new Set(validItems.filter((item) => item.protocol).map((item) => item.protocol))
 		const isSingleChain = uniqueChains.size === 1 && validItems.every((item) => !item.protocol)
 		const isSingleProtocol = uniqueProtocols.size === 1 && validItems.every((item) => item.protocol)
+		const color_uniqueItemIdsPerProtocol = new Map<string, string[]>()
+		const color_uniqueItemIdsPerChain = new Map<string, string[]>()
+		const color_uniqueItemIds = new Set<string>()
+		for (const item of validItems) {
+			if (item.protocol) {
+				color_uniqueItemIdsPerProtocol.set(item.protocol, [
+					...(color_uniqueItemIdsPerProtocol.get(item.protocol) || []),
+					item.id
+				])
+			}
+			if (item.chain) {
+				color_uniqueItemIdsPerChain.set(item.chain, [...(color_uniqueItemIdsPerChain.get(item.chain) || []), item.id])
+			}
+		}
+
+		for (const item in Object.fromEntries(color_uniqueItemIdsPerProtocol)) {
+			if (color_uniqueItemIdsPerProtocol.get(item)?.length > 1) {
+				;(color_uniqueItemIdsPerProtocol.get(item) || []).forEach((id) => {
+					color_uniqueItemIds.add(id)
+				})
+			} else {
+				color_uniqueItemIds.add(item)
+			}
+		}
+
+		for (const item in Object.fromEntries(color_uniqueItemIdsPerChain)) {
+			if (color_uniqueItemIdsPerChain.get(item)?.length > 1) {
+				;(color_uniqueItemIdsPerChain.get(item) || []).forEach((id) => {
+					color_uniqueItemIds.add(id)
+				})
+			} else {
+				color_uniqueItemIds.add(item)
+			}
+		}
+
+		const color_sortedItemIds = Array.from(color_uniqueItemIds).sort()
+		const color_indexesTaken = new Set<number>()
+
 		const baseSeries = validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
@@ -59,10 +108,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 			const itemIdentifier = cfg.protocol || cfg.chain || 'unknown'
 
-			const color =
-				isSingleChain || isSingleProtocol
+			let color =
+				cfg.color ||
+				(isSingleChain || isSingleProtocol
 					? EXTENDED_COLOR_PALETTE[index % EXTENDED_COLOR_PALETTE.length]
-					: generateChartColor(itemIdentifier, meta?.color || '#8884d8')
+					: generateChartColor(itemIdentifier, meta?.color || '#8884d8'))
+
+			let color_indexOfItemId = color_sortedItemIds.indexOf(itemIdentifier)
+			if (color_indexesTaken.has(color_indexOfItemId)) {
+				color_indexOfItemId = color_sortedItemIds.findIndex((id) => cfg.id === id)
+			}
+
+			if (!cfg.color && color_indexOfItemId !== -1) {
+				color = COLOR_PALETTE_2[color_indexOfItemId % COLOR_PALETTE_2.length]
+				color_indexesTaken.add(color_indexOfItemId)
+			}
 
 			return {
 				name: `${name} ${meta?.title || cfg.type}`,
@@ -195,7 +255,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		const sortedSeries = seriesWithAverages.sort((a, b) => a.avgPercentage - b.avgPercentage)
 
 		const finalSeries = sortedSeries.map((serie, index) => {
-			const color = percentageColors[index % percentageColors.length]
+			const color = serie.color || percentageColors[index % percentageColors.length]
 			return {
 				...serie,
 				color: color,
@@ -241,6 +301,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const hasPartialFailures = failedItems.length > 0 && validItems.length > 0
 
 	const uniqueMetricTypes = new Set(validItems.map((item) => item.type))
+	const percentMetricTypes = new Set(['medianApy'])
+	const allPercentMetrics = series.length > 0 && series.every((s: any) => percentMetricTypes.has(s.metricType))
 	const hasMultipleMetrics = uniqueMetricTypes.size > 1
 
 	const allChartsGroupable = multi.items.every((item) => {
@@ -267,155 +329,195 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 	return (
-		<div className="flex h-full min-h-[340px] flex-col px-4 pt-2 pb-4">
-			<div className="mb-2">
-				<div className={``}>
-					<div className="mb-2 flex items-center gap-2">
-						<h3 className="text-sm font-medium text-(--text-primary)">
-							{multi.name || `Multi-Chart (${multi.items.length})`}
-						</h3>
-						{hasPartialFailures && (
-							<div className="flex items-center gap-1 text-xs text-yellow-500">
-								<Icon name="alert-triangle" height={12} width={12} />
-								<span className="hidden sm:inline">Partial data</span>
-								<span className="sm:hidden">!</span>
-							</div>
-						)}
-					</div>
-					<div className="flex items-center justify-end gap-2">
-						{!isReadOnly && allChartsGroupable && hasAnyData && (
-							<div className="flex overflow-hidden border border-(--form-control-border)">
-								{groupingOptions.map((option, index) => (
-									<button
-										key={option}
-										onClick={() => handleGroupingChange(multi.id, option)}
-										className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
-											multi.grouping === option
-												? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
-												: 'pro-hover-bg pro-text2 bg-transparent focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
-										}`}
-									>
-										<span className="xs:inline hidden">{option.charAt(0).toUpperCase() + option.slice(1)}</span>
-										<span className="xs:hidden">{option.charAt(0).toUpperCase()}</span>
-									</button>
-								))}
-							</div>
-						)}
-						{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
-							<button
-								onClick={() => {
-									handleCumulativeChange(multi.id, !showCumulative)
-									if (!showCumulative) {
-										setShowStacked(false)
-									}
-								}}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={showCumulative ? 'Show individual values' : 'Show cumulative values'}
-							>
-								<Icon name="trending-up" height={12} width={12} />
-								<span className="hidden xl:inline">{showCumulative ? 'Cumulative' : 'Individual'}</span>
-							</button>
-						)}
-						{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
-							<button
-								onClick={() => {
-									setShowStacked(!showStacked)
-									handlePercentageChange(multi.id, false)
-								}}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={showStacked ? 'Show separate' : 'Show stacked'}
-							>
-								<Icon name="layers" height={12} width={12} />
-								<span className="hidden xl:inline">{showStacked ? 'Stacked' : 'Separate'}</span>
-							</button>
-						)}
-						{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
-							<button
-								onClick={() => {
-									handlePercentageChange(multi.id, !showPercentage)
-									setShowStacked(false)
-								}}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 flex min-h-[25px] items-center gap-1 border px-2 py-1 text-xs transition-colors"
-								title={showPercentage ? 'Show absolute values' : 'Show percentage'}
-							>
-								<Icon name={showPercentage ? 'percent' : 'dollar-sign'} height={12} width={12} />
-								<span className="hidden xl:inline">{showPercentage ? 'Percentage' : 'Absolute'}</span>
-							</button>
-						)}
-						{series.length > 0 && (
-							<ProTableCSVButton
-								onClick={handleCsvExport}
-								smol
-								customClassName="flex items-center gap-1 px-2 py-1 text-xs border pro-divider pro-hover-bg pro-text2 transition-colors pro-bg2 min-h-[25px]"
-							/>
-						)}
-					</div>
+		<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]">
+			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
+				<div className="mr-auto flex items-center gap-2">
+					<h1 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h1>
+					{hasPartialFailures && (
+						<p className="flex items-center gap-1 text-xs text-yellow-500">
+							<Icon name="alert-triangle" height={12} width={12} />
+							<span className="hidden sm:inline">Partial data</span>
+							<span className="sm:hidden">!</span>
+						</p>
+					)}
 				</div>
+				{!isReadOnly && allChartsGroupable && hasAnyData && (
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+						{groupingOptions.map((dataInterval) => (
+							<Tooltip
+								content={capitalizeFirstLetter(dataInterval)}
+								render={<button />}
+								className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue shrink-0 px-2 py-1 text-xs whitespace-nowrap data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+								data-active={multi.grouping === dataInterval}
+								onClick={() => handleGroupingChange(multi.id, dataInterval)}
+								key={`${multi.id}-options-groupBy-${dataInterval}`}
+							>
+								{dataInterval.slice(0, 1).toUpperCase()}
+							</Tooltip>
+						))}
+					</div>
+				)}
+
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
+					<Select
+						allValues={[
+							{ name: 'Show individual values', key: 'Individual' },
+							{ name: `Show cumulative values`, key: `Cumulative` }
+						]}
+						selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
+						setSelectedValues={(value) => {
+							handleCumulativeChange(multi.id, value === 'Cumulative' ? true : false)
+							if (value === 'Cumulative') {
+								handleStackedChange(multi.id, false)
+							}
+						}}
+						label={showCumulative ? 'Cumulative' : 'Individual'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
+				)}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
+					<Select
+						allValues={[
+							{ name: 'Show separate', key: 'Separate' },
+							{ name: `Show stacked`, key: `Stacked` }
+						]}
+						selectedValues={showStacked ? 'Stacked' : 'Separate'}
+						setSelectedValues={(value) => {
+							handleStackedChange(multi.id, value === 'Separate' ? false : true)
+							handlePercentageChange(multi.id, false)
+						}}
+						label={showStacked ? 'Stacked' : 'Separate'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
+				)}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
+					<Select
+						allValues={[
+							{ name: 'Show absolute ($)', key: '$ Absolute' },
+							{ name: `Show percentage (%)`, key: `% Percentage` }
+						]}
+						selectedValues={showPercentage ? '% Percentage' : '$ Absolute'}
+						setSelectedValues={(value) => {
+							handlePercentageChange(multi.id, value === '% Percentage' ? true : false)
+							handleStackedChange(multi.id, false)
+						}}
+						label={showPercentage ? '% Percentage' : '$ Absolute'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
+				)}
+				{series.length > 0 && (
+					<>
+						<ImageExportButton
+							chartInstance={chartInstance}
+							filename={multi.name || 'multi_chart'}
+							title={multi.name || 'Multi Chart'}
+							smol
+						/>
+						<ProTableCSVButton
+							onClick={handleCsvExport}
+							smol
+							className="hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)"
+						/>
+					</>
+				)}
 			</div>
 
 			{/* Status info for failures */}
 			{(failedItems.length > 0 || loadingItems.length > 0) && (
-				<div className="mb-2 text-xs text-(--text-tertiary)">
+				<div className="px-1 text-xs text-(--text-form) md:px-3">
 					{loadingItems.length > 0 && (
-						<div>
+						<p>
 							Loading: {loadingItems.length} chart{loadingItems.length > 1 ? 's' : ''}
-						</div>
+						</p>
 					)}
 					{failedItems.length > 0 && (
-						<div>
+						<p>
 							Failed: {failedItems.length} chart{failedItems.length > 1 ? 's' : ''}
-						</div>
+						</p>
 					)}
 					{hasAnyData && (
-						<div>
+						<p>
 							Showing: {validItems.length} chart{validItems.length > 1 ? 's' : ''}
-						</div>
+						</p>
 					)}
 				</div>
 			)}
 
-			<div style={{ height: '300px', flexGrow: 1 }}>
-				{!hasAnyData && isAllLoading ? (
-					<div className="flex h-full items-center justify-center">
-						<div className="text-center">
-							<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
-							<p className="text-sm text-(--text-tertiary)">Loading charts...</p>
-						</div>
-					</div>
-				) : !hasAnyData ? (
-					<div className="flex h-full items-center justify-center">
-						<div className="text-center">
-							<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
-							<p className="text-sm text-(--text-tertiary)">Failed to load chart data</p>
-							<p className="mt-1 text-xs text-(--text-tertiary)">
-								{failedItems.length} of {multi.items.length} charts failed
-							</p>
-						</div>
-					</div>
-				) : (
-					<Suspense fallback={<></>}>
-						<MultiSeriesChart
-							key={`${multi.id}-${showStacked}-${showPercentage}-${multi.items
-								?.map((i) => `${i.id}-${i.type}`)
-								.join('-')}`}
-							series={series}
-							valueSymbol={showPercentage ? '%' : '$'}
-							groupBy={
-								multi.grouping === 'week'
-									? 'weekly'
-									: multi.grouping === 'month'
-										? 'monthly'
-										: multi.grouping === 'quarter'
-											? 'quarterly'
-											: 'daily'
-							}
-							hideDataZoom={true}
-							chartOptions={
-								showPercentage
+			{!hasAnyData && isAllLoading ? (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
+					<p className="text-sm text-(--text-form)">Loading charts...</p>
+				</div>
+			) : !hasAnyData ? (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<Icon name="alert-triangle" height={24} width={24} className="mx-auto mb-2 text-red-500" />
+					<p className="text-sm text-(--text-label)">Failed to load chart data</p>
+					<p className="mt-1 text-xs text-(--text-form)">
+						{failedItems.length} of {multi.items.length} charts failed
+					</p>
+				</div>
+			) : (
+				<Suspense fallback={<div className="h-[360px]" />}>
+					<MultiSeriesChart
+						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
+						series={series}
+						valueSymbol={showPercentage ? '%' : allPercentMetrics ? '%' : '$'}
+						groupBy={
+							multi.grouping === 'week'
+								? 'weekly'
+								: multi.grouping === 'month'
+									? 'monthly'
+									: multi.grouping === 'quarter'
+										? 'quarterly'
+										: 'daily'
+						}
+						hideDataZoom={true}
+						onReady={handleChartReady}
+						chartOptions={
+							showPercentage
+								? {
+										yAxis: {
+											max: 100,
+											min: 0,
+											axisLabel: {
+												formatter: '{value}%'
+											}
+										},
+										tooltip: {
+											valueFormatter: (value: number) => value.toFixed(2) + '%'
+										},
+										grid: {
+											top: series.length > 5 ? 80 : 80,
+											bottom: 12,
+											left: 12,
+											right: 12,
+											outerBoundsMode: 'same',
+											outerBoundsContain: 'axisLabel'
+										},
+										legend: {
+											top: 10,
+											type: 'scroll',
+											pageButtonPosition: 'end',
+											height: series.length > 5 ? 80 : 40
+										}
+									}
+								: allPercentMetrics
 									? {
 											yAxis: {
-												max: 100,
-												min: 0,
+												max: undefined,
+												min: undefined,
 												axisLabel: {
 													formatter: '{value}%'
 												}
@@ -424,14 +526,15 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 												valueFormatter: (value: number) => value.toFixed(2) + '%'
 											},
 											grid: {
-												top: series.length > 5 ? 120 : 80,
-												bottom: 68,
+												top: series.length > 5 ? 80 : 40,
+												bottom: 12,
 												left: 12,
 												right: 12,
-												containLabel: true
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
 											},
 											legend: {
-												top: 10,
+												top: 0,
 												type: 'scroll',
 												pageButtonPosition: 'end',
 												height: series.length > 5 ? 80 : 40
@@ -445,35 +548,35 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 													formatter: (value: number) => {
 														const absValue = Math.abs(value)
 														if (absValue >= 1e9) {
-															return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+															return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
 														} else if (absValue >= 1e6) {
-															return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+															return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
 														} else if (absValue >= 1e3) {
-															return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+															return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
 														}
-														return value.toString()
+														return '$' + value.toString()
 													}
 												}
 											},
 											grid: {
-												top: series.length > 5 ? 120 : 80,
-												bottom: 68,
+												top: series.length > 5 ? 80 : 40,
+												bottom: 12,
 												left: 12,
 												right: 12,
-												containLabel: true
+												outerBoundsMode: 'same',
+												outerBoundsContain: 'axisLabel'
 											},
 											legend: {
-												top: 10,
+												top: 0,
 												type: 'scroll',
 												pageButtonPosition: 'end',
 												height: series.length > 5 ? 80 : 40
 											}
 										}
-							}
-						/>
-					</Suspense>
-				)}
-			</div>
+						}
+					/>
+				</Suspense>
+			)}
 		</div>
 	)
 })

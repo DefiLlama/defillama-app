@@ -50,6 +50,10 @@ export function Flag({
 					setError(true)
 				}
 			})
+			.catch((err) => {
+				console.log(err)
+				setError(true)
+			})
 			.finally(() => {
 				setLoading(false)
 			})
@@ -151,7 +155,7 @@ export function Flag({
 					<button
 						name="submit-btn"
 						disabled={loading}
-						className="mt-3 rounded-md bg-[#2172e5] p-3 text-white hover:bg-[#4190ff] focus-visible:bg-[#4190ff] disabled:opacity-50"
+						className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
 					>
 						Report
 					</button>

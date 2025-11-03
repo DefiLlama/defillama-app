@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
-import { LocalLoader } from '~/components/LocalLoader'
+import { LocalLoader } from '~/components/Loaders'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
@@ -46,8 +46,17 @@ export default function ChainChartPage(props) {
 	const router = useRouter()
 	const selectedChain = props.metadata.name
 	const queryParamsString = useMemo(() => {
-		return JSON.stringify(router.query ?? {})
-	}, [router.query])
+		const { tvl, ...rest } = router.query ?? {}
+		return JSON.stringify(
+			router.query
+				? tvl === 'true'
+					? rest
+					: router.query
+				: props.metadata.id !== 'all'
+					? { chain: [props.metadata.id] }
+					: {}
+		)
+	}, [router.query, props.metadata.id])
 
 	const { toggledCharts, chainGeckoId, groupBy, denomination, tvlSettings, isThemeDark } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
@@ -67,8 +76,8 @@ export default function ChainChartPage(props) {
 			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
 		}
 
-		const toggledCharts = props.charts.filter((tchart) =>
-			tchart === 'TVL' ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+		const toggledCharts = props.charts.filter((tchart, index) =>
+			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
@@ -121,16 +130,16 @@ export default function ChainChartPage(props) {
 	}, [isThemeDark])
 
 	return (
-		<>
+		<div className="col-span-full flex min-h-[360px] flex-col">
 			{isFetchingChartData || !router.isReady || !isClient ? (
-				<div className="m-auto flex min-h-[360px] items-center justify-center">
+				<div className="flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
 				</div>
 			) : (
-				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
 					<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={isThemeDark} groupBy={groupBy} />
 				</Suspense>
 			)}
-		</>
+		</div>
 	)
 }

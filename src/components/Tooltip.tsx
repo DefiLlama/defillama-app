@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 
-interface ITooltip {
+interface ITooltip extends Ariakit.TooltipOptions {
 	content: string | null | React.ReactNode
 	href?: string
 	shallow?: boolean
@@ -24,15 +24,15 @@ interface ITooltip {
 		| 'right'
 		| 'right-start'
 		| 'right-end'
+	portal?: boolean
 }
 
 export function Tooltip({
 	content,
 	children,
-	color,
-	fontSize,
 	placement = 'top-start',
 	className,
+
 	...props
 }: ITooltip) {
 	const store = Ariakit.useTooltipStore({ placement })
@@ -45,18 +45,17 @@ export function Tooltip({
 				store={store}
 				className={`flex shrink-0 items-center overflow-hidden text-ellipsis whitespace-nowrap ${className ?? ''}`}
 				render={<span />}
-				onTouchStart={store.toggle}
-				onMouseLeave={store.hide}
+				{...(props.render ? {} : { onTouchStart: store.toggle, onMouseLeave: store.hide })}
 				{...props}
 			>
 				{children}
 			</Ariakit.TooltipAnchor>
-
 			<Ariakit.Tooltip
 				store={store}
-				className="z-50 max-h-[80vh] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap dark:border-[hsl(204,3%,32%)]"
+				className="z-50 max-h-[calc(100dvh-80px)] max-w-56 overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm whitespace-pre-wrap data-[fullwidth=true]:max-w-(--popover-available-width) lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				unmountOnHide
 				portal
+				data-fullwidth={props['data-fullwidth']}
 			>
 				{content}
 			</Ariakit.Tooltip>

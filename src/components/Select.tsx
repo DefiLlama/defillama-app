@@ -5,10 +5,10 @@ import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'
 
 interface ISelect {
-	allValues: Array<{ key: string; name: string; help?: string }> | Array<string>
-	selectedValues: Array<string>
-	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
-	label: string
+	allValues: ReadonlyArray<{ key: string; name: string; help?: string }> | ReadonlyArray<string>
+	selectedValues: Array<string> | string
+	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
+	label: React.ReactNode
 	clearAll?: () => void
 	toggleAll?: () => void
 	selectOnlyOne?: (value: string) => void
@@ -35,7 +35,27 @@ export function Select({
 }: ISelect) {
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
 
-	const [viewableMatches, setViewableMatches] = React.useState(20)
+	const [viewableMatches, setViewableMatches] = React.useState(6)
+
+	const canSelectOnlyOne = typeof selectedValues === 'string'
+
+	const selectRef = React.useRef<HTMLDivElement>(null)
+
+	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		e.stopPropagation()
+		const previousCount = viewableMatches
+		setViewableMatches((prev) => prev + 20)
+
+		// Focus on the first newly loaded item after a brief delay
+		setTimeout(() => {
+			const items = selectRef.current?.querySelectorAll('[role="option"]')
+			if (items && items.length > previousCount) {
+				const firstNewItem = items[previousCount] as HTMLElement
+				firstNewItem?.focus()
+			}
+		}, 0)
+	}
 
 	if (nestedMenu) {
 		return (
@@ -60,7 +80,7 @@ export function Select({
 							) : null}
 						</span>
 					) : null}
-					{allValues.slice(0, viewableMatches + 1).map((option) => (
+					{allValues.slice(0, viewableMatches).map((option) => (
 						<NestedMenuItem
 							key={valuesAreAnArrayOfStrings ? option : option.key}
 							render={<Ariakit.SelectItem value={valuesAreAnArrayOfStrings ? option : option.key} />}
@@ -81,12 +101,19 @@ export function Select({
 						</NestedMenuItem>
 					))}
 					{allValues.length > viewableMatches ? (
-						<button
-							className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-							onClick={() => setViewableMatches((prev) => prev + 20)}
+						<Ariakit.SelectItem
+							value="__see_more__"
+							setValueOnClick={false}
+							hideOnClick={false}
+							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								setViewableMatches((prev) => prev + 20)
+							}}
 						>
 							See more...
-						</button>
+						</Ariakit.SelectItem>
 					) : null}
 				</NestedMenu>
 			</Ariakit.SelectProvider>
@@ -103,11 +130,12 @@ export function Select({
 		>
 			<Ariakit.Select
 				className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+				aria-label={`${label} dropdown`}
 				{...triggerProps}
 			>
 				{labelType === 'smol' ? (
 					<span className="flex items-center gap-1">
-						<span className="-my-2 flex min-w-4 items-center justify-center rounded-full bg-(--bg-border) p-px text-[10px]">
+						<span className="flex min-w-4 items-center justify-center rounded-full border border-(--form-control-border) px-1 py-0.25 text-[10px] leading-none">
 							{selectedValues.length}
 						</span>
 						<span>{label}</span>
@@ -116,13 +144,15 @@ export function Select({
 					<>
 						<span>{label}: </span>
 						<span className="text-(--link)">
-							{selectedValues.length > 2
-								? `${selectedValues[0]} + ${selectedValues.length - 1} others`
-								: selectedValues.join(', ')}
+							{canSelectOnlyOne
+								? selectedValues
+								: selectedValues.length > 2
+									? `${selectedValues[0]} + ${selectedValues.length - 1} others`
+									: selectedValues.join(', ')}
 						</span>
 					</>
 				) : (
-					<span>{label}</span>
+					<>{label}</>
 				)}
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
@@ -133,9 +163,14 @@ export function Select({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="max-sm:drawer z-10 flex h-full max-h-[70vh] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:rounded-b-none sm:max-h-[60vh] dark:border-[hsl(204,3%,32%)]"
+				className="max-sm:drawer z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 				portal={portal || false}
+				ref={selectRef}
 			>
+				<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
+					<Icon name="x" className="h-5 w-5" />
+				</Ariakit.PopoverDismiss>
+
 				{allValues.length > 0 ? (
 					<>
 						{clearAll || toggleAll ? (
@@ -153,7 +188,7 @@ export function Select({
 							</span>
 						) : null}
 
-						{allValues.slice(0, viewableMatches + 1).map((option) => (
+						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
 								key={`${label}-${valuesAreAnArrayOfStrings ? option : option.key}`}
 								value={valuesAreAnArrayOfStrings ? option : option.key}
@@ -181,18 +216,24 @@ export function Select({
 											Only
 										</button>
 									) : null}
-									<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									{canSelectOnlyOne ? (
+										<Ariakit.SelectItemCheck />
+									) : (
+										<Ariakit.SelectItemCheck className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+									)}
 								</div>
 							</Ariakit.SelectItem>
 						))}
-
 						{allValues.length > viewableMatches ? (
-							<button
-								className="w-full px-3 py-4 text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
-								onClick={() => setViewableMatches((prev) => prev + 20)}
+							<Ariakit.SelectItem
+								value="__see_more__"
+								setValueOnClick={false}
+								hideOnClick={false}
+								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+								onClick={handleSeeMore}
 							>
 								See more...
-							</button>
+							</Ariakit.SelectItem>
 						) : null}
 					</>
 				) : (

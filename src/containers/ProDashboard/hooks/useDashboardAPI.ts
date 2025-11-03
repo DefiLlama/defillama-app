@@ -3,8 +3,28 @@ import { useRouter } from 'next/router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { TimePeriod } from '../ProDashboardAPIContext'
+import { dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
+
+export function useGetLiteDashboards() {
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
+
+	return useQuery({
+		queryKey: ['lite-dashboards', user?.id],
+		queryFn: async () => {
+			if (!isAuthenticated) return []
+			try {
+				return await dashboardAPI.listLiteDashboards(authorizedFetch)
+			} catch (error) {
+				console.log('Failed to load lite dashboards:', error)
+				return []
+			}
+		},
+		staleTime: 1000 * 60 * 5,
+		enabled: isAuthenticated && !!user?.id
+	})
+}
 
 export function useDashboardAPI() {
 	const router = useRouter()
@@ -17,16 +37,17 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards'],
+		queryKey: ['dashboards', isAuthenticated],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
 				return await dashboardAPI.listDashboards(authorizedFetch)
 			} catch (error) {
-				console.error('Failed to load dashboards:', error)
+				console.log('Failed to load dashboards:', error)
 				return []
 			}
 		},
+		staleTime: 1000 * 60 * 5,
 		enabled: isAuthenticated
 	})
 
@@ -34,6 +55,7 @@ export function useDashboardAPI() {
 		mutationFn: async (data: {
 			items: DashboardItemConfig[]
 			dashboardName: string
+			timePeriod?: TimePeriod
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
@@ -41,6 +63,8 @@ export function useDashboardAPI() {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
+			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: any) => {
@@ -57,8 +81,10 @@ export function useDashboardAPI() {
 			data: {
 				items: DashboardItemConfig[]
 				dashboardName: string
+				timePeriod?: TimePeriod
 				visibility?: 'private' | 'public'
 				tags?: string[]
+				aiGenerated?: Record<string, any> | null
 				description?: string
 			}
 		}) => {
@@ -66,6 +92,7 @@ export function useDashboardAPI() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
@@ -79,6 +106,7 @@ export function useDashboardAPI() {
 		},
 		onSuccess: (_, deletedId) => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
@@ -94,13 +122,11 @@ export function useDashboardAPI() {
 	const loadDashboard = useCallback(
 		async (id: string) => {
 			try {
-				if (isAuthenticated) {
-					const dashboard = await dashboardAPI.getDashboard(id, authorizedFetch)
-					return dashboard
-				}
-				return null
+				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
+				return dashboard
 			} catch (error: any) {
-				console.error('Failed to load dashboard:', error)
+				console.log('Failed to load dashboard:', error)
+				return null
 			}
 		},
 		[isAuthenticated, authorizedFetch]

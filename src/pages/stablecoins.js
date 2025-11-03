@@ -1,7 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { primaryColor } from '~/constants/colors'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
-import PeggedList from '~/containers/Stablecoins/StablecoinsByChain'
+import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -11,13 +10,12 @@ export const getStaticProps = withPerformanceLogging('stablecoins', async () => 
 	props.filteredPeggedAssets = props.filteredPeggedAssets || []
 
 	return {
-		props: {
-			...props,
-			backgroundColor: primaryColor
-		},
+		props,
 		revalidate: maxAgeForNext([22])
 	}
 })
+
+const pageName = ['Stablecoins', 'by', 'Market Cap']
 
 export default function PeggedAssets({
 	chains,
@@ -26,12 +24,17 @@ export default function PeggedAssets({
 	peggedNameToChartDataIndex,
 	chartDataByPeggedAsset,
 	doublecountedIds,
-	chain,
-	backgroundColor
+	chain
 }) {
 	return (
-		<Layout title={`Stablecoins Circulating - DefiLlama`} defaultSEO>
-			<PeggedList
+		<Layout
+			title={`Stablecoins Circulating - DefiLlama`}
+			description={`Total market cap of stablecoins, their price, supply, inflows, percent off peg, and more. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`stablecoins, stablecoins circulating, defi stablecoins circulating, stablecoins market cap, stablecoins price, stablecoins supply, stablecoins inflows, stablecoins percent off peg`}
+			canonicalUrl={`/stablecoins`}
+			pageName={pageName}
+		>
+			<StablecoinsByChain
 				chains={chains}
 				selectedChain={chain}
 				filteredPeggedAssets={filteredPeggedAssets}
@@ -39,7 +42,6 @@ export default function PeggedAssets({
 				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
 				chartDataByPeggedAsset={chartDataByPeggedAsset}
 				doublecountedIds={doublecountedIds}
-				backgroundColor={backgroundColor}
 			/>
 		</Layout>
 	)

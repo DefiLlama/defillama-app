@@ -20,15 +20,24 @@ export default class SProtocolSplitCharts {
 	private static cache: Map<string, { data: ProtocolSplitData; timestamp: number }> = new Map()
 	private static CACHE_DURATION = 60 * 60 * 1000
 
-	private static getCacheKey(metric: string, chains: string[], limit: number, categories: string[]): string {
-		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}`
+	private static getCacheKey(
+		metric: string,
+		chains: string[],
+		limit: number,
+		categories: string[],
+		groupByParent?: boolean,
+		filterMode: 'include' | 'exclude' = 'include'
+	): string {
+		return `${metric}-${chains.join(',')}-${limit}-${categories.join(',') || 'all'}-${groupByParent || false}-${filterMode}`
 	}
 
 	private static async fetchSplitData(
 		metric: string,
 		chains: string[],
 		limit: number,
-		categories: string[]
+		categories: string[],
+		groupByParent?: boolean,
+		filterMode: 'include' | 'exclude' = 'include'
 	): Promise<ProtocolSplitData> {
 		const params = new URLSearchParams()
 
@@ -42,6 +51,14 @@ export default class SProtocolSplitCharts {
 			params.append('categories', categories.join(','))
 		}
 
+		if (groupByParent) {
+			params.append('groupByParent', 'true')
+		}
+
+		if (filterMode) {
+			params.append('filterMode', filterMode)
+		}
+
 		const response = await fetch(`/api/protocols/split/${metric}?${params.toString()}`)
 
 		if (!response.ok) {
@@ -53,6 +70,7 @@ export default class SProtocolSplitCharts {
 
 	static async getProtocolSplitData(
 		metric:
+			| 'tvl'
 			| 'fees'
 			| 'revenue'
 			| 'volume'
@@ -66,12 +84,15 @@ export default class SProtocolSplitCharts {
 			| 'user-fees'
 			| 'holders-revenue'
 			| 'protocol-revenue'
-			| 'supply-side-revenue',
+			| 'supply-side-revenue'
+			| 'open-interest',
 		chains: string[],
 		limit: number = 10,
-		categories: string[] = []
+		categories: string[] = [],
+		groupByParent?: boolean,
+		filterMode: 'include' | 'exclude' = 'include'
 	): Promise<ProtocolSplitData> {
-		const cacheKey = this.getCacheKey(metric, chains, limit, categories)
+		const cacheKey = this.getCacheKey(metric, chains, limit, categories, groupByParent, filterMode)
 		const cached = this.cache.get(cacheKey)
 
 		if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
@@ -79,7 +100,7 @@ export default class SProtocolSplitCharts {
 		}
 
 		try {
-			const data = await this.fetchSplitData(metric, chains, limit, categories)
+			const data = await this.fetchSplitData(metric, chains, limit, categories, groupByParent, filterMode)
 
 			this.cache.set(cacheKey, {
 				data,
@@ -90,7 +111,7 @@ export default class SProtocolSplitCharts {
 
 			return data
 		} catch (error) {
-			console.error(`Error fetching ${metric} split data:`, error)
+			console.log(`Error fetching ${metric} split data:`, error)
 
 			return {
 				series: [],
@@ -117,15 +138,84 @@ export default class SProtocolSplitCharts {
 		}
 	}
 
-	static async getFeesSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('fees', chains, limit, categories)
+	static async getFeesSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('fees', chains, limit, categories, groupByParent)
 	}
 
-	static async getRevenueSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('revenue', chains, limit, categories)
+	static async getRevenueSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('revenue', chains, limit, categories, groupByParent)
 	}
 
-	static async getVolumeSplit(chains: string[], limit?: number, categories: string[] = []) {
-		return this.getProtocolSplitData('volume', chains, limit, categories)
+	static async getVolumeSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('volume', chains, limit, categories, groupByParent)
+	}
+
+	static async getTvlSplit(chains: string[], limit?: number, categories: string[] = [], groupByParent?: boolean) {
+		return this.getProtocolSplitData('tvl', chains, limit, categories, groupByParent)
+	}
+
+	static async getProtocolChainData(
+		protocol: string | undefined,
+		metric:
+			| 'tvl'
+			| 'fees'
+			| 'revenue'
+			| 'volume'
+			| 'perps'
+			| 'open-interest'
+			| 'options-notional'
+			| 'options-premium'
+			| 'bridge-aggregators'
+			| 'dex-aggregators'
+			| 'perps-aggregators'
+			| 'user-fees'
+			| 'holders-revenue'
+			| 'protocol-revenue'
+			| 'supply-side-revenue'
+			| 'stablecoins'
+			| 'chain-fees'
+			| 'chain-revenue',
+		chains?: string[],
+		limit: number = 5,
+		filterMode: 'include' | 'exclude' = 'include',
+		chainCategories?: string[]
+	): Promise<any> {
+		const params = new URLSearchParams()
+		if (protocol) params.append('protocol', protocol)
+		params.append('metric', metric)
+
+		if (chains && chains.length > 0) {
+			params.append('chains', chains.join(','))
+		}
+		if (limit) {
+			params.append('limit', String(limit))
+		}
+		if (filterMode) {
+			params.append('filterMode', filterMode)
+		}
+		if (chainCategories && chainCategories.length > 0) {
+			params.append('chainCategories', chainCategories.join(','))
+		}
+
+		try {
+			const response = await fetch(`/api/protocols/split/protocol-chain?${params.toString()}`)
+
+			if (!response.ok) {
+				throw new Error(`Failed to fetch protocol chain data: ${response.statusText}`)
+			}
+
+			return response.json()
+		} catch (error) {
+			console.log(`Error fetching protocol chain data for ${protocol}:`, error)
+			return {
+				series: [],
+				metadata: {
+					protocol,
+					metric,
+					chains: [],
+					totalChains: 0
+				}
+			}
+		}
 	}
 }

@@ -1,12 +1,11 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { primaryColor } from '~/constants/colors'
 import { getPeggedAssetPageData, getPeggedAssets } from '~/containers/Stablecoins/queries.server'
 import PeggedContainer from '~/containers/Stablecoins/StablecoinOverview'
 import { slug } from '~/utils'
-import { withErrorLogging } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+// todo check name in metadata
 export const getStaticProps = withPerformanceLogging(
 	'stablecoin/[...peggedasset]',
 	async ({
@@ -14,7 +13,15 @@ export const getStaticProps = withPerformanceLogging(
 			peggedasset: [peggedasset]
 		}
 	}) => {
-		const data = await withErrorLogging(getPeggedAssetPageData)(peggedasset)
+		const data = await getPeggedAssetPageData(peggedasset)
+
+		if (!data) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
 		const { chainsUnique, chainCirculatings, peggedAssetData, totalCirculating, unreleased, mcap, bridgeInfo } =
 			data.props
 
@@ -26,8 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 				totalCirculating,
 				unreleased,
 				mcap,
-				bridgeInfo,
-				backgroundColor: primaryColor
+				bridgeInfo
 			},
 			revalidate: maxAgeForNext([22])
 		}

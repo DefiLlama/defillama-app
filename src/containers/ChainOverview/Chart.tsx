@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
-import { formattedNum, getRandomColor } from '~/utils'
+import { mergeDeep } from '~/components/ECharts/utils'
+import { formattedNum } from '~/utils'
 import {
 	BAR_CHARTS,
 	ChainChartLabels,
@@ -21,6 +22,7 @@ export default function ChainLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	hideDataZoom = false,
 	...props
 }) {
 	const id = useId()
@@ -53,7 +55,7 @@ export default function ChainLineBarChart({
 		) as Record<ChainChartLabels, number | undefined>
 
 		const series = stacks.map((stack, index) => {
-			const stackColor = chainOverviewChartColors[stack] || getRandomColor()
+			const stackColor = chainOverviewChartColors[stack]
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
@@ -74,7 +76,7 @@ export default function ChainLineBarChart({
 				},
 				symbol: 'none',
 				itemStyle: {
-					color: stackColor || null
+					color: stackColor
 				},
 				...(type === 'line'
 					? {
@@ -119,15 +121,15 @@ export default function ChainLineBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = { ...defaultChartSettings[option], ...chartOptions[option] }
+				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
 			} else {
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		const finalYAxis = []
 
@@ -155,6 +157,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Stablecoins Mcap']
 						}
 					}
@@ -167,6 +171,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartData['Chain Fees']
 								? chainOverviewChartColors['Chain Fees']
 								: chartData['Chain Revenue']
@@ -185,6 +191,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['DEXs Volume']
 						}
 					}
@@ -197,6 +205,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Perps Volume']
 						}
 					}
@@ -209,6 +219,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Token Incentives']
 						}
 					}
@@ -221,6 +233,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Bridged TVL']
 						}
 					}
@@ -236,6 +250,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chartData['Active Addresses']
 								? chainOverviewChartColors['Active Addresses']
 								: chartData['New Addresses']
@@ -257,6 +273,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Transactions']
 						}
 					}
@@ -269,6 +287,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Net Inflows']
 						}
 					}
@@ -284,6 +304,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Core Developers']
 						}
 					}
@@ -299,6 +321,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Devs Commits']
 						}
 					}
@@ -311,6 +335,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Token Mcap']
 						}
 					}
@@ -323,6 +349,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Token Price']
 						}
 					}
@@ -335,6 +363,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Token Volume']
 						}
 					}
@@ -347,6 +377,8 @@ export default function ChainLineBarChart({
 					axisLine: {
 						show: true,
 						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
 							color: chainOverviewChartColors['Raises']
 						}
 					}
@@ -363,10 +395,11 @@ export default function ChainLineBarChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
-				containLabel: true
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
 			yAxis: finalYAxis,
@@ -389,8 +422,8 @@ export default function ChainLineBarChart({
 	return (
 		<div
 			id={id}
-			className="min-h-[360px]"
-			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+			className="h-[360px]"
+			style={height || props.style ? { height: height ?? '360px', ...(props.style ?? {}) } : undefined}
 		/>
 	)
 }

@@ -8,11 +8,11 @@ import { ResetAllStablecoinFilters } from './ResetAll'
 export function PeggedFiltersDropdowns({
 	pathname,
 	nestedMenu,
-	downloadCsv
+	prepareCsv
 }: {
 	pathname: string
 	nestedMenu?: boolean
-	downloadCsv: () => void
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 }) {
 	return (
 		<>
@@ -21,11 +21,7 @@ export function PeggedFiltersDropdowns({
 			<PegType pathname={pathname} nestedMenu={nestedMenu} />
 			<McapRange nestedMenu={nestedMenu} placement="bottom-start" />
 			<ResetAllStablecoinFilters pathname={pathname} nestedMenu={nestedMenu} />
-			<CSVDownloadButton
-				onClick={downloadCsv}
-				smol
-				className="ml-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-			/>
+			<CSVDownloadButton prepareCsv={prepareCsv} smol className="ml-auto" />
 		</>
 	)
 }

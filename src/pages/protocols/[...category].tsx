@@ -58,9 +58,15 @@ const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaki
 export default function Protocols(props) {
 	return (
 		<Layout
-			title={`${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`}
-			defaultSEO
-			includeInMetricsOptions={toggleOptions}
+			title={
+				props.isRWA
+					? `${capitalizeFirstLetter(props.category ? 'Real World Assets on Chain (RWA)' : props.tag)} Rankings - DefiLlama`
+					: `${capitalizeFirstLetter(props.category ?? props.tag)} Protocols Rankings - DefiLlama`
+			}
+			description={`${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} rankings, defi ${props.category ? 'Real World Assets on Chain (RWA)' : props.tag} rankings`.toLowerCase()}
+			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}`}
+			metricFilters={toggleOptions}
 		>
 			<ProtocolsByCategoryOrTag {...props} />
 		</Layout>

@@ -5,7 +5,15 @@ import { useFormatYieldQueryParams } from './hooks'
 import { YieldsBorrowTable } from './Tables/Borrow'
 import { toFilterPool } from './utils'
 
-const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList }) => {
+const YieldPageBorrow = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	tokens,
+	tokenSymbolsList,
+	usdPeggedSymbols
+}) => {
 	const { query, pathname } = useRouter()
 	const { minTvl, maxTvl, minApy, maxApy } = query
 
@@ -41,7 +49,8 @@ const YieldPageBorrow = ({ pools, projectList, chainList, categoryList, tokens, 
 				maxTvl,
 				minApy,
 				maxApy,
-				pairTokens: pair_tokens
+				pairTokens: pair_tokens,
+				usdPeggedSymbols
 			})
 
 			if (toFilter) {

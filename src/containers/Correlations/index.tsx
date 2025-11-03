@@ -3,12 +3,13 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
+import { TagGroup } from '~/components/TagGroup'
 import { useIsClient } from '~/hooks'
 import { FAQ } from './Faq'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient } from './util'
 
-export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins, queryCoins }: any) {
+export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins }: any) {
 	const [search, setSearch] = useState('')
 	const filteredCoins = useMemo(() => {
 		if (search === '') {
@@ -20,7 +21,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 					coin?.name?.toLowerCase().includes(search.toLowerCase())) &&
 				!selectedCoins[coin.id]
 		)
-	}, [search, selectedCoins, queryCoins])
+	}, [search, selectedCoins, coinsData])
 
 	const [resultsLength, setResultsLength] = useState(10)
 
@@ -62,7 +63,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 									width={'24px'}
 									loading="lazy"
 									onError={(e) => {
-										e.currentTarget.src = '/placeholder.png'
+										e.currentTarget.src = '/icons/placeholder.png'
 									}}
 									className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 								/>
@@ -72,7 +73,6 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 							</button>
 						)
 					})}
-
 					{resultsLength < filteredCoins.length ? (
 						<button
 							className="w-full px-4 pt-4 pb-7 text-left text-(--link) hover:bg-(--bg-secondary) focus-visible:bg-(--bg-secondary)"
@@ -86,6 +86,9 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins,
 		</Ariakit.DialogProvider>
 	)
 }
+
+const PERIODS = ['7d', '1m', '1y'] as const
+type Period = (typeof PERIODS)[number]
 
 export default function Correlations({ coinsData }) {
 	const router = useRouter()
@@ -106,9 +109,9 @@ export default function Correlations({ coinsData }) {
 				)) ||
 			{}
 		)
-	}, [queryCoins])
+	}, [queryCoins, coinsData])
 
-	const [period, setPeriod] = useState(365)
+	const [period, setPeriod] = useState<Period>('1y')
 	const { data: priceChart, isLoading } = usePriceCharts(Object.keys(selectedCoins))
 	const coins = Object.values(selectedCoins).filter(Boolean)
 	const correlations = useMemo(
@@ -118,8 +121,9 @@ export default function Correlations({ coinsData }) {
 						coins.map((coin0) => {
 							const results = coins.map((coin1) => {
 								if (coin1.id === coin0.id) return null
-								const chart0 = priceChart[coin0.id]?.slice(-period)
-								const chart1 = priceChart[coin1.id]?.slice(-period)
+								const periodLength = period === '7d' ? 7 : period === '1m' ? 30 : 365
+								const chart0 = priceChart[coin0.id]?.slice(-periodLength)
+								const chart1 = priceChart[coin1.id]?.slice(-periodLength)
 								const shortChartLength = chart0.length > chart1?.length ? chart1?.length : chart0?.length
 								const corr = pearsonCorrelationCoefficient(
 									chart0.slice(0, shortChartLength),
@@ -131,12 +135,14 @@ export default function Correlations({ coinsData }) {
 						})
 					)
 				: [],
-		[isLoading, period, queryCoins]
+		[isLoading, period, coins, priceChart]
 	)
 
 	useEffect(() => {
+		if (!router.isReady) return
+
 		if (!queryCoins?.length)
-			router.push(
+			router.replace(
 				{
 					pathname: router.pathname,
 					query: {
@@ -147,7 +153,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins, router])
+	}, [queryCoins, router, router.isReady])
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -165,29 +171,12 @@ export default function Correlations({ coinsData }) {
 		<>
 			<div className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
-				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					<button
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setPeriod(7)}
-						data-active={period === 7}
-					>
-						7d
-					</button>
-					<button
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setPeriod(30)}
-						data-active={period === 30}
-					>
-						1m
-					</button>
-					<button
-						className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						onClick={() => setPeriod(365)}
-						data-active={period === 365}
-					>
-						1y
-					</button>
-				</div>
+				<TagGroup
+					selectedValue={period}
+					setValue={(period) => setPeriod(period as Period)}
+					values={PERIODS}
+					className="ml-auto"
+				/>
 			</div>
 
 			<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -220,7 +209,7 @@ export default function Correlations({ coinsData }) {
 										width={'24px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/placeholder.png'
+											e.currentTarget.src = '/icons/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -271,7 +260,7 @@ export default function Correlations({ coinsData }) {
 													width={'24px'}
 													loading="lazy"
 													onError={(e) => {
-														e.currentTarget.src = '/placeholder.png'
+														e.currentTarget.src = '/icons/placeholder.png'
 													}}
 													className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 												/>
@@ -309,17 +298,21 @@ export default function Correlations({ coinsData }) {
 						selectedCoins={selectedCoins}
 						queryCoins={queryCoins}
 						selectCoin={(coin) => {
-							router.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										coin: Array.isArray(queryCoins) ? queryCoins.concat(coin.id) : [queryCoins, coin.id]
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
+							router
+								.push(
+									{
+										pathname: router.pathname,
+										query: {
+											...router.query,
+											coin: Array.isArray(queryCoins) ? queryCoins.concat(coin.id) : [queryCoins, coin.id]
+										}
+									},
+									undefined,
+									{ shallow: true }
+								)
+								.then(() => {
+									dialogStore.toggle()
+								})
 						}}
 					/>
 				</div>

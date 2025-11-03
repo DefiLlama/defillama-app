@@ -28,7 +28,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				/>
 			)
 		},
-		size: 200
+		size: 160
 	},
 	{
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
@@ -42,7 +42,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				borrow={true}
 			/>
 		),
-		size: 200
+		size: 160
 	},
 	{
 		header: 'Chain',
@@ -76,7 +76,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				</>
 			)
 		},
-		size: 140,
+		size: 100,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Leveraged APY consisting of deposit -> borrow (same asset, max LTV) -> deposit (same asset)'
@@ -89,7 +89,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
 		},
-		size: 140,
+		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total net APY for supplying (Base + Reward)'
@@ -102,7 +102,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return <ColoredAPY data-variant="borrow">{formattedNum(info.getValue()) + 'x'}</ColoredAPY>
 		},
-		size: 140,
+		size: 80,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Loop APY / Supply APY'
@@ -123,7 +123,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 120,
+		size: 60,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
@@ -144,7 +144,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 120,
+		size: 80,
 		meta: {
 			align: 'end'
 		}
@@ -164,7 +164,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 120,
+		size: 100,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
@@ -193,7 +193,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				</span>
 			)
 		},
-		size: 120,
+		size: 80,
 		meta: {
 			align: 'end'
 		}
@@ -275,7 +275,7 @@ const columnSizes = {
 		project: 160,
 		chain: 60,
 		loopApy: 100,
-		netSupplyApy: 100,
+		netSupplyApy: 120,
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
@@ -287,7 +287,7 @@ const columnSizes = {
 		project: 160,
 		chain: 60,
 		loopApy: 100,
-		netSupplyApy: 100,
+		netSupplyApy: 120,
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
@@ -299,7 +299,7 @@ const columnSizes = {
 		project: 160,
 		chain: 60,
 		loopApy: 100,
-		netSupplyApy: 100,
+		netSupplyApy: 120,
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
@@ -311,7 +311,7 @@ const columnSizes = {
 		project: 160,
 		chain: 60,
 		loopApy: 100,
-		netSupplyApy: 100,
+		netSupplyApy: 120,
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,
@@ -323,7 +323,7 @@ const columnSizes = {
 		project: 160,
 		chain: 60,
 		loopApy: 100,
-		netSupplyApy: 100,
+		netSupplyApy: 120,
 		boost: 80,
 		ltv: 60,
 		totalSupplyUsd: 80,

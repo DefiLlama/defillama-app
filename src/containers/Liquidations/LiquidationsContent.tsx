@@ -1,8 +1,10 @@
 import * as React from 'react'
 import Image from 'next/image'
+import { useMutation } from '@tanstack/react-query'
 import boboLogo from '~/assets/boboSmug.png'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { ISearchItem } from '~/components/Search/types'
 import { Switch } from '~/components/Switch'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import {
@@ -12,7 +14,7 @@ import {
 	PROTOCOL_NAMES_MAP_REVERSE
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download } from '~/utils'
+import { download, liquidationsIconUrl } from '~/utils'
 import { LiquidableChanges24H } from './LiquidableChanges24H'
 import { StackBySwitch } from './StackBySwitch'
 import { TotalLiquidable } from './TotalLiquidable'
@@ -22,12 +24,31 @@ const LiquidationsChart = React.lazy(() =>
 	import('./LiquidationsChart').then((module) => ({ default: module.LiquidationsChart }))
 ) as React.FC<any>
 
-export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData }) => {
+export const LiquidationsContent = (props: { data: ChartData; prevData: ChartData; options: ISearchItem[] }) => {
 	const { data, prevData } = props
 	const [bobo, setBobo] = React.useState(false)
+
+	const { mutate, isPending } = useMutation({
+		mutationFn: async () => {
+			const csvString = await getLiquidationsCsvData(data.symbol)
+			download(`${data.symbol}-all-positions.csv`, csvString)
+		}
+	})
 	return (
 		<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
-			<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
+				<h1 className="flex items-center gap-2">
+					<img
+						src={liquidationsIconUrl(data.symbol.toLowerCase())}
+						alt={data.name}
+						width={24}
+						height={24}
+						className="shrink-0 rounded-full"
+					/>
+					<span className="text-xl font-semibold">
+						{data.name} (${data.symbol.toUpperCase()})
+					</span>
+				</h1>
 				<p className="flex flex-col">
 					<TotalLiquidable {...data} />
 				</p>
@@ -37,13 +58,7 @@ export const LiquidationsContent = (props: { data: ChartData; prevData: ChartDat
 				<p className="hidden flex-col md:flex">
 					<DangerousPositionsAmount data={data} />
 				</p>
-				<CSVDownloadButton
-					onClick={async () => {
-						const csvString = await getLiquidationsCsvData(data.symbol)
-						download(`${data.symbol}-all-positions.csv`, csvString)
-					}}
-					className="mt-auto mr-auto"
-				/>
+				<CSVDownloadButton onClick={() => mutate()} isLoading={isPending} smol className="mt-auto mr-auto" />
 			</div>
 			<div className="col-span-2 flex min-h-[458px] flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-4">
@@ -77,14 +92,14 @@ const CurrencyToggle = (props: { symbol: string }) => {
 			<button
 				data-active={!isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				{props.symbol.toUpperCase()}
 			</button>
 			<button
 				data-active={isLiqsUsingUsd}
 				onClick={() => toggleLiqsSettings(LIQS_USING_USD)}
-				className="inline-flex shrink-0 items-center justify-center px-3 py-[6px] whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
+				className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 			>
 				USD
 			</button>

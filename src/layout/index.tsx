@@ -1,62 +1,59 @@
 import * as React from 'react'
-import Head from 'next/head'
+import { Announcement } from '~/components/Announcement'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
-import Nav from '~/components/Nav'
+import { MetricsAndTools } from '~/components/Metrics'
+import { Nav } from '~/components/Nav'
+import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
-import { SEO } from '~/components/SEO'
+import { ISEOProps, SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
-const GlobalSearch = React.lazy(() => import('~/components/Search').then((m) => ({ default: m.GlobalSearch })))
 
-interface ILayoutProps {
-	title: string
+interface ILayoutProps extends ISEOProps {
 	children: React.ReactNode
-	defaultSEO?: boolean
-	className?: string
-	style?: React.CSSProperties
-	includeInMetricsOptions?: { name: string; key: string }[]
-	includeInMetricsOptionslabel?: string
+	metricFilters?: { name: string; key: string }[]
+	metricFiltersLabel?: string
+	pageName?: Array<string>
+	annonuncement?: React.ReactNode
 }
 
-export default function Layout({
+function Layout({
 	title,
+	description,
+	keywords,
+	canonicalUrl,
 	children,
-	defaultSEO = false,
-	className,
-	includeInMetricsOptions,
-	includeInMetricsOptionslabel,
+	pageName,
+	metricFilters,
+	metricFiltersLabel,
+	annonuncement,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
 	return (
 		<>
-			<Head>
-				<title>{title}</title>
-				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
-			</Head>
-
-			{defaultSEO ? <SEO /> : null}
-			<Nav />
+			<SEO title={title} description={description} keywords={keywords} canonicalUrl={canonicalUrl} />
+			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}
-				className={`isolate flex min-h-screen flex-col gap-2 p-1 text-(--text-primary) lg:w-screen lg:p-4 lg:pl-[248px] ${
-					className ?? ''
-				}`}
+				className="isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-[100dvh] lg:p-4 lg:pl-0"
 			>
+				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
 					<React.Suspense fallback={<SearchFallback />}>
-						<GlobalSearch />
+						<DesktopSearch />
 					</React.Suspense>
-					{!includeInMetricsOptions || includeInMetricsOptions.length === 0 ? null : (
-						<IncludeInMetricsOptions options={includeInMetricsOptions} label={includeInMetricsOptionslabel} />
+					{!metricFilters || metricFilters.length === 0 ? null : (
+						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
 					)}
 				</span>
+				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>
 			{isClient ? (
-				<React.Suspense>
+				<React.Suspense fallback={<></>}>
 					<Toaster />
 				</React.Suspense>
 			) : null}
@@ -64,7 +61,13 @@ export default function Layout({
 	)
 }
 
-const IncludeInMetricsOptions = ({ options, label }: { options: { name: string; key: string }[]; label?: string }) => {
+const MetricFilters = React.memo(function MetricFilters({
+	options,
+	label
+}: {
+	options: { name: string; key: string }[]
+	label?: string
+}) {
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(options)
 
 	return (
@@ -79,13 +82,15 @@ const IncludeInMetricsOptions = ({ options, label }: { options: { name: string; 
 				label={label || 'Include in TVL'}
 				triggerProps={{
 					className:
-						'flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
+						'whitespace-nowrap *:shrink-0 flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 				}}
 				placement="bottom-end"
 			/>
 		</>
 	)
-}
+})
+
+export default React.memo(Layout)
 
 // sidebar + gap between nav & main + padding right
 // 228px + 4px + 16px = 248px

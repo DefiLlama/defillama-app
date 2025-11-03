@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import type { IBarChartProps } from '~/components/ECharts/types'
+import { TagGroup } from '../TagGroup'
 
 dayjs.extend(weekOfYear)
 
@@ -29,13 +30,13 @@ interface UpcomingUnlockVolumeChartProps {
 const TIME_PERIODS = ['Weekly', 'Monthly'] as const
 type TimePeriod = (typeof TIME_PERIODS)[number]
 
-const VIEW_MODES = ['Total', 'Breakdown'] as const
+const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
 
 export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
 	const [isFullView, setIsFullView] = useState(false)
-	const [viewMode, setViewMode] = useState<ViewMode>('Total')
+	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
 
 	const { chartData, chartStacks, chartStackColors, chartLegendOptions } = useMemo(() => {
 		if (!protocols || protocols.length === 0) {
@@ -77,7 +78,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 		let finalStackColors = {}
 		let finalLegendOptions: string[] = []
 
-		if (viewMode === 'Total') {
+		if (viewMode === 'Total View') {
 			const groupedData = new Map<number, number>()
 
 			upcomingUnlocks.forEach((unlock) => {
@@ -141,21 +142,6 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center gap-2 p-3">
-				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					{VIEW_MODES.map((mode) => (
-						<button
-							key={mode}
-							onClick={() => setViewMode(mode)}
-							data-active={viewMode === mode}
-							className="shrink-0 px-3 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-						>
-							{mode} View
-						</button>
-					))}
-				</div>
-			</div>
-
 			{chartData.length > 0 ? (
 				<Suspense fallback={<></>}>
 					<BarChart
@@ -163,32 +149,43 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 						title="Upcoming Unlocks"
 						height={height}
 						hideDefaultLegend={true}
-						customLegendOptions={viewMode === 'Total' ? chartLegendOptions : []}
+						customLegendOptions={viewMode === 'Total View' ? chartLegendOptions : []}
 						stacks={chartStacks}
 						stackColors={chartStackColors}
-						chartOptions={{
-							tooltip: {
-								trigger: 'axis'
-							},
-							xAxis: {
-								type: 'time'
-							},
-							yAxis: {
-								type: 'value'
-							},
-							grid: {
-								left: '3%',
-								right: '4%',
-								containLabel: true
-							}
-						}}
+						chartOptions={chartOptions}
+						customComponents={
+							<TagGroup
+								selectedValue={viewMode}
+								setValue={(value: (typeof VIEW_MODES)[number]) => setViewMode(value)}
+								values={VIEW_MODES as unknown as string[]}
+								className="ml-auto"
+							/>
+						}
 					/>
 				</Suspense>
 			) : (
-				<p className="flex items-center justify-center text-(--text-tertiary)" style={{ height: height ?? '360px' }}>
+				<p className="flex items-center justify-center" style={{ height: height ?? '360px' }}>
 					No upcoming unlock data available for the selected period.
 				</p>
 			)}
 		</>
 	)
+}
+
+const chartOptions = {
+	tooltip: {
+		trigger: 'axis'
+	},
+	xAxis: {
+		type: 'time'
+	},
+	yAxis: {
+		type: 'value'
+	},
+	grid: {
+		left: '3%',
+		right: '4%',
+		outerBoundsMode: 'same',
+		outerBoundsContain: 'axisLabel'
+	}
 }

@@ -1,18 +1,18 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
-import { TMetric } from '~/components/Metrics'
 import { DIMENISIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
-const type: TMetric = 'Fees'
+const type = 'Fees'
 
 export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
@@ -64,13 +64,18 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const FeesOnChain = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const FeesOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} - ${type} - DefiLlama`}
-			defaultSEO
-			includeInMetricsOptions={feesOptions}
-			includeInMetricsOptionslabel="Include in Fees"
+			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
+			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			canonicalUrl={`/fees/chain/${props.chain}`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Fees"
+			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />
 		</Layout>

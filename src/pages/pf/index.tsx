@@ -3,10 +3,12 @@ import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
+const type = 'P/F'
 
 export const getStaticProps = withPerformanceLogging(`fees/pf/index`, async () => {
 	const data = await getAdapterByChainPageData({
@@ -23,15 +25,20 @@ export const getStaticProps = withPerformanceLogging(`fees/pf/index`, async () =
 	}
 })
 
-const FeesOnAllChains = (props) => {
+const pageName = ['Protocols', 'ranked by', type]
+
+const FeesOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`P/F - DefiLlama`}
-			defaultSEO
-			includeInMetricsOptions={feesOptions}
-			includeInMetricsOptionslabel="Include in Metrics"
+			description={`P/F by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`p/f by protocol`}
+			canonicalUrl={`/pf`}
+			metricFilters={feesOptions}
+			metricFiltersLabel="Include in Metrics"
+			pageName={pageName}
 		>
-			<AdapterByChain {...props} type="P/F" />
+			<AdapterByChain {...props} type={type} />
 		</Layout>
 	)
 }

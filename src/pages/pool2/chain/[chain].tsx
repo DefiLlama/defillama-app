@@ -1,6 +1,6 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { Pool2ByChain } from '~/containers/Pool2/Pool2ByChain'
+import { Pool2ProtocolsTVLByChain } from '~/containers/Pool2/Pool2ByChain'
 import { getPool2TVLByChain } from '~/containers/Pool2/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -30,10 +30,18 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
+const pageName = ['Protocols', 'ranked by', 'Pool2 TVL']
+
 export default function Pool2TVLByChain(props) {
 	return (
-		<Layout title="Pool2 TVL - DefiLlama">
-			<Pool2ByChain {...props} />
+		<Layout
+			title="Pool2 TVL - DefiLlama"
+			description={`Pool2 TVL by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`pool2 tvl by protocol on ${props.chain}`}
+			canonicalUrl={`/pool2/chain/${props.chain}`}
+			pageName={pageName}
+		>
+			<Pool2ProtocolsTVLByChain {...props} />
 		</Layout>
 	)
 }

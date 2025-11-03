@@ -10,7 +10,7 @@ export function CopyHelper({ toCopy, ...props }) {
 	}
 	return (
 		<button
-			className="flex shrink-0 items-center p-[2px] hover:opacity-80 focus-visible:opacity-80"
+			className="flex shrink-0 items-center p-0.5 hover:opacity-80 focus-visible:opacity-80"
 			onClick={copy}
 			aria-label="Copy"
 			{...props}

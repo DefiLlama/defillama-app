@@ -1,6 +1,7 @@
 import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { LocalLoader } from '~/components/Loaders'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
@@ -91,8 +92,13 @@ export default function TrendingContracts() {
 	})
 
 	return (
-		<Layout title={`Trending Contracts - DefiLlama`} defaultSEO>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+		<Layout
+			title={`Trending Contracts - DefiLlama`}
+			description={`Trending Contracts on chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`trending contracts, defi trending contracts, trending contracts on chain`}
+			canonicalUrl={`/trending-contracts`}
+		>
+			<div className="flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center gap-5 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>
 					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={['1d', '7d', '30d']} />
@@ -103,9 +109,11 @@ export default function TrendingContracts() {
 					/>
 				</div>
 				{isLoading ? (
-					<p className="p-3 text-center">Loading...</p>
+					<div className="my-auto flex min-h-[360px] flex-1 items-center justify-center">
+						<LocalLoader />
+					</div>
 				) : error ? (
-					<p className="p-3 text-center">Sorry, couldn't fetch trending contracts.</p>
+					<p className="my-auto p-3 text-center">Sorry, couldn't fetch trending contracts.</p>
 				) : (
 					<VirtualTable instance={instance} />
 				)}

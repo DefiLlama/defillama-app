@@ -11,6 +11,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -29,11 +30,13 @@ const optionsKey = 'chains-overview-table-columns'
 export function ChainsByCategoryTable({
 	data,
 	useStickyHeader = true,
-	borderless = false
+	borderless = false,
+	showByGroup
 }: {
 	data: Array<IFormattedDataWithExtraTvl>
 	useStickyHeader?: boolean
 	borderless?: boolean
+	showByGroup: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
 		subscribeToLocalStorage,
@@ -42,7 +45,7 @@ export function ChainsByCategoryTable({
 	)
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>([])
+	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const windowSize = useWindowSize()
 
@@ -167,10 +170,35 @@ export function ChainsByCategoryTable({
 		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
+	const prepareCsv = React.useCallback(() => {
+		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
+		const headers = visibleColumns.map((col) => {
+			if (typeof col.columnDef.header === 'string') {
+				return col.columnDef.header
+			}
+			return col.id
+		})
+
+		const rows = instance.getSortedRowModel().rows.map((row) => {
+			return visibleColumns.map((col) => {
+				const cell = row.getAllCells().find((c) => c.column.id === col.id)
+				if (!cell) return ''
+
+				const value = cell.getValue()
+				if (value === null || value === undefined) return ''
+
+				return value
+			})
+		})
+
+		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
+	}, [instance])
+
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
-				<div className="relative mr-auto w-full sm:max-w-[280px]">
+				<label className="relative mr-auto w-full sm:max-w-[280px]">
+					<span className="sr-only">Search chains</span>
 					<Icon
 						name="search"
 						height={16}
@@ -183,27 +211,29 @@ export function ChainsByCategoryTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white py-[6px] pr-2 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
-				</div>
+				</label>
 
 				<div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
-						<SelectWithCombobox
-							allValues={DEFI_CHAINS_SETTINGS}
-							selectedValues={selectedAggregateTypes}
-							setSelectedValues={addAggrOption}
-							selectOnlyOne={addOnlyOneAggrOption}
-							toggleAll={toggleAllAggrOptions}
-							clearAll={clearAllAggrOptions}
-							nestedMenu={false}
-							label={'Group Chains'}
-							labelType="smol"
-							triggerProps={{
-								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-							}}
-						/>
+						{showByGroup ? (
+							<SelectWithCombobox
+								allValues={DEFI_CHAINS_SETTINGS}
+								selectedValues={selectedAggregateTypes}
+								setSelectedValues={addAggrOption}
+								selectOnlyOne={addOnlyOneAggrOption}
+								toggleAll={toggleAllAggrOptions}
+								clearAll={clearAllAggrOptions}
+								nestedMenu={false}
+								label={'Group Chains'}
+								labelType="smol"
+								triggerProps={{
+									className:
+										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+								}}
+							/>
+						) : null}
 						<SelectWithCombobox
 							allValues={columnOptions}
 							selectedValues={selectedColumns}
@@ -216,12 +246,13 @@ export function ChainsByCategoryTable({
 							labelType="smol"
 							triggerProps={{
 								className:
-									'flex items-center justify-between gap-2 p-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
+									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
 							}}
 						/>
 					</div>
 
-					<TVLRange variant="third" triggerClassName="w-full sm:w-auto" />
+					<TVLRange triggerClassName="w-full sm:w-auto" />
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
@@ -238,13 +269,13 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'chainAssets',
 		'change_7d',
 		'protocols',
-		'users',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	],
 	400: [
@@ -253,21 +284,20 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'tvl',
 		'chainAssets',
 		'protocols',
-		'users',
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	],
 	600: [
 		'name',
 		'protocols',
-		'users',
-		'change_7d',
 		'tvl',
+		'change_7d',
 		'chainAssets',
 		'change_1d',
 		'change_1m',
@@ -275,21 +305,22 @@ const chainsTableColumnOrders = formatColumnOrder({
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	],
 	900: [
 		'name',
 		'protocols',
-		'users',
+		'tvl',
 		'change_1d',
 		'change_7d',
 		'change_1m',
-		'tvl',
 		'chainAssets',
 		'stablesMcap',
 		'totalVolume24h',
 		'totalFees24h',
 		'totalRevenue24h',
+		'users',
 		'mcaptvl'
 	]
 })
@@ -307,9 +338,9 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					{row.subRows?.length > 0 && (
+					{row.subRows?.length > 0 ? (
 						<button
-							className="absolute -left-[2px]"
+							className="absolute -left-0.5"
 							{...{
 								onClick: row.getToggleExpandedHandler()
 							}}
@@ -326,9 +357,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 								</>
 							)}
 						</button>
+					) : (
+						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-0.5" />
 					)}
 					<span className="shrink-0">{index + 1}</span>
-					<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-[2px]" />
+
 					<TokenLogo logo={chainIconUrl(getValue())} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}
@@ -350,43 +383,6 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		}
 	},
 	{
-		header: 'Active Addresses',
-		accessorKey: 'users',
-		cell: (info) => <>{+info?.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
-		size: 180,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Active addresses in the last 24h'
-		}
-	},
-	{
-		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: '1m Change',
-		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
-		size: 140,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
 		header: 'DeFi TVL',
 		accessorKey: 'tvl',
 		cell: (info) => {
@@ -394,16 +390,47 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
+		}
+	},
+	{
+		header: '1d TVL Change',
+		accessorKey: 'change_1d',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 24 hours'
+		}
+	},
+	{
+		header: '7d TVL Change',
+		accessorKey: 'change_7d',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 7 days'
+		}
+	},
+	{
+		header: '1m TVL Change',
+		accessorKey: 'change_1m',
+		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		size: 140,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Change in TVL in the last 30 days'
 		}
 	},
 	{
 		header: 'Bridged TVL',
 		accessorKey: 'chainAssets',
-		accessorFn: (row) => row.chainAssets?.total ?? undefined,
+		accessorFn: (row) => (row.chainAssets?.total?.total ? +(+row.chainAssets.total.total).toFixed(2) : undefined),
 		cell: ({ row }) => {
 			const chainAssets: any = row.original.chainAssets
-			if (!chainAssets?.total) return null
+			if (!chainAssets?.total?.total) return null
 
 			const chainAssetsBreakdown = (
 				<div className="flex w-52 flex-col gap-1">
@@ -436,23 +463,25 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 
 			return (
 				<Tooltip content={chainAssetsBreakdown} className="justify-end">
-					{formattedNum(+chainAssets.total, true)}
+					{formattedNum(+chainAssets.total?.total, true)}
 				</Tooltip>
 			)
 		},
 		sortUndefined: 'last',
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Value of all tokens held on the chain'
 		}
 	},
 	{
-		header: 'Stables',
+		header: 'Stables MCap',
 		accessorKey: 'stablesMcap',
 		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
-		size: 120,
+		size: 128,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of market cap of all stablecoins on the chain'
 		}
 	},
 	{
@@ -463,7 +492,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		size: 152,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Sum of volume of all DEXs on the chain. Updated daily at 00:00UTC'
+			headerHelperText: 'Sum of 24h volume on all DEXs on the chain. Updated daily at 00:00UTC'
 		}
 	},
 	{
@@ -473,7 +502,8 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
 		size: 140,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Total fees paid by users when using the chain in the last 24h. Updated daily at 00:00UTC'
 		}
 	},
 	{
@@ -484,7 +514,18 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		size: 180,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Sum of revenue of all protocols on the chain. Updated daily at 00:00UTC'
+			headerHelperText:
+				'Total revenue earned by the apps on the chain in the last 24h. Excludes stablecoins, liquid staking apps, and gas fees. Updated daily at 00:00UTC'
+		}
+	},
+	{
+		header: 'Active Addresses',
+		accessorKey: 'users',
+		cell: (info) => <>{+info?.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
+		size: 180,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Active addresses in the last 24h'
 		}
 	},
 	{
@@ -495,16 +536,18 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		},
 		size: 148,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Market cap / DeFi TVL ratio'
 		}
 	},
 	{
-		header: 'NFT Volume',
+		header: '24h NFT Volume',
 		accessorKey: 'nftVolume',
 		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
-		size: 120,
+		size: 148,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Sum of 24h volume on all NFTs on the chain. Updated daily at 00:00UTC'
 		}
 	}
 ]

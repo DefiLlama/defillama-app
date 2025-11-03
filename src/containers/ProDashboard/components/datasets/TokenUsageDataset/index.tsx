@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -82,11 +82,15 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
+	const [localIncludeCex, setLocalIncludeCex] = useState(config.includeCex ?? false)
 
 	const tokenSymbols = config.tokenSymbols || []
-	const includeCex = config.includeCex ?? false
 
-	const { data: rawData = [], isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, includeCex)
+	useEffect(() => {
+		setLocalIncludeCex(config.includeCex ?? false)
+	}, [config.includeCex])
+
+	const { data: rawData = [], isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
 	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 	const { data: defaultTokens = [] } = useTokenSearch('')
 
@@ -129,9 +133,10 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}
 
 	const handleIncludeCexChange = () => {
+		setLocalIncludeCex(!localIncludeCex)
 		onConfigChange({
 			...config,
-			includeCex: !includeCex
+			includeCex: !localIncludeCex
 		})
 	}
 
@@ -510,13 +515,13 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								onClick={handleIncludeCexChange}
 							>
 								<div className="relative h-4 w-4">
-									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
+									<input type="checkbox" checked={localIncludeCex} readOnly className="sr-only" />
 									<div
 										className={`h-4 w-4 border-2 transition-all ${
-											includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
+											localIncludeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
 										}`}
 									>
-										{includeCex && (
+										{localIncludeCex && (
 											<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 												<path
 													fillRule="evenodd"
@@ -531,7 +536,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							</div>
 							<ProTableCSVButton
 								onClick={downloadCSV}
-								customClassName="flex items-center gap-2 px-3 h-[38px] text-sm border pro-border hover:bg-(--bg-tertiary) text-(--text-primary) transition-colors bg-(--bg-main) dark:bg-[#070e0f] disabled:opacity-50 disabled:cursor-not-allowed"
+								className="pro-border flex h-[38px] items-center gap-2 border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
 							/>
 						</div>
 					</div>

@@ -41,15 +41,24 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	}
 })
 
+const pageName = ['Protocols', 'ranked by', 'Expenses']
+
 export default function Protocols(props) {
 	return (
-		<Layout title={`Protocol Expenses - DefiLlama`} defaultSEO>
+		<Layout
+			title={`Protocol Expenses - DefiLlama`}
+			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`protocol expenses, expenses by protocol`}
+			canonicalUrl={`/expenses`}
+			pageName={pageName}
+		>
 			<TableWithSearch
 				data={props.expenses}
 				columns={columns}
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
+				sortingState={[{ id: 'sumAnnualUsdExpenses', desc: true }]}
 			/>
 		</Layout>
 	)
@@ -102,7 +111,7 @@ const columns: ColumnDef<any>[] = [
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
-					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-[10px] py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					href={getValue()[0] as string}
 					target="_blank"
 					rel="noopener noreferrer"

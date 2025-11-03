@@ -18,7 +18,7 @@ export default function AdapterTest() {
 	const start = Number(router.query?.start)
 	const chartData = decode((router.query?.data as string) ?? 'W10=').map((u, i) => [start + i * (24 * 3600), u])
 	return (
-		<Layout title={`Tests`} defaultSEO>
+		<Layout title={`Tests`}>
 			<Announcement>This page is just used for tests, don't trust anything on this page</Announcement>
 			<div className="grid grid-cols-2 rounded-xl bg-(--bg-card) shadow-sm">
 				<LazyChart>

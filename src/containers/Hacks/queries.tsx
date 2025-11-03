@@ -1,6 +1,6 @@
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { HACKS_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
+import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, preparePieChartData, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -38,6 +38,8 @@ export interface IHacksPageData {
 	totalHackedDefi: string
 	totalRugs: string
 	pieChartData: Array<{ name: string; value: number }>
+	techniqueOptions: Array<{ key: string; name: string }>
+	classificationOptions: Array<{ key: string; name: string }>
 }
 
 export async function getHacksPageData(): Promise<IHacksPageData> {
@@ -62,7 +64,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 	})
 
 	const totalHacked = formattedNum(
-		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0) / 1000,
+		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0),
 		true
 	)
 
@@ -70,7 +72,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		data
 			.filter((hack) => hack.target == 'DeFi Protocol')
 			.map((hack) => hack.amount)
-			.reduce((acc, amount) => acc + amount, 0) / 1000,
+			.reduce((acc, amount) => acc + amount, 0),
 		true
 	)
 
@@ -78,7 +80,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		data
 			.filter((hack) => hack.bridge === true)
 			.map((hack) => hack.amount)
-			.reduce((acc, amount) => acc + amount, 0) / 1000,
+			.reduce((acc, amount) => acc + amount, 0),
 		true
 	)
 
@@ -105,6 +107,14 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		monthlyHacksChartData.push([+date, monthlyHacks[date]])
 	}
 
+	const techniqueOptions = Array.from(new Set((data || []).map((d) => d.technique).filter(Boolean)))
+		.sort((a: string, b: string) => a.localeCompare(b))
+		.map((name: string) => ({ key: slug(name), name }))
+
+	const classificationOptions = Array.from(new Set((data || []).map((d) => d.classification).filter(Boolean)))
+		.sort((a: string, b: string) => a.localeCompare(b))
+		.map((name: string) => ({ key: slug(name), name }))
+
 	return {
 		data,
 		monthlyHacksChartData: {
@@ -113,13 +123,15 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 				stack: 'Total Value Hacked',
 				type: 'bar',
 				data: monthlyHacksChartData,
-				color: oldBlue
+				color: CHART_COLORS[0]
 			}
 		},
 		totalHacked,
 		totalHackedDefi,
 		totalRugs,
-		pieChartData
+		pieChartData,
+		techniqueOptions,
+		classificationOptions
 	}
 }
 
@@ -158,6 +170,6 @@ export async function getTotalValueLostInHacksByProtocol(): Promise<IProtocolTot
 		}
 		return { protocols: finalProtocls.sort((a, b) => b.totalHacked - a.totalHacked) }
 	} catch (error) {
-		console.error(error)
+		console.log(error)
 	}
 }

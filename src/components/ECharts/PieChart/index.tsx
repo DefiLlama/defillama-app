@@ -5,10 +5,8 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
-import logoDark from '~/public/defillama-press-kit/defi/PNG/defillama-dark-neutral.png'
-import logoLight from '~/public/defillama-press-kit/defi/PNG/defillama-light-neutral.png'
-import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
+import { formatTooltipValue } from '../useDefaults'
 
 echarts.use([
 	CanvasRenderer,
@@ -25,31 +23,17 @@ export default function PieChart({
 	stackColors,
 	chartData,
 	title,
-	usdFormat = true,
+	valueSymbol = '$',
 	radius = null,
 	showLegend = false,
-	formatTooltip = null,
-	customLabel,
 	legendPosition,
 	legendTextStyle,
-	toRight = 0,
+	customComponents,
 	...props
 }: IPieChartProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
-
-	const graphic = {
-		type: 'image',
-		z: 999,
-		style: {
-			image: isDark ? logoLight.src : logoDark.src,
-			height: 40,
-			opacity: 0.3
-		},
-		left: isSmall ? '35%' : '40%',
-		top: '160px'
-	}
 
 	const series = useMemo(() => {
 		const series: Record<string, any> = {
@@ -63,9 +47,6 @@ export default function PieChart({
 				},
 				show: showLegend ? false : true
 			},
-			tooltip: {
-				formatter: formatTooltip
-			},
 			emphasis: {
 				itemStyle: {
 					shadowBlur: 10,
@@ -73,7 +54,6 @@ export default function PieChart({
 					shadowColor: 'rgba(0, 0, 0, 0.5)'
 				}
 			},
-
 			data: chartData.map((item, idx) => ({
 				name: item.name,
 				value: item.value,
@@ -82,12 +62,17 @@ export default function PieChart({
 				}
 			}))
 		}
+
 		if (radius) {
 			series.radius = radius
+		} else {
+			if (!isSmall) {
+				series.radius = '70%'
+			}
 		}
 
 		return series
-	}, [title, isDark, showLegend, formatTooltip, chartData, radius, stackColors])
+	}, [isDark, showLegend, chartData, radius, stackColors, isSmall])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -99,16 +84,29 @@ export default function PieChart({
 		// create instance
 		const chartInstance = createInstance()
 
+		const graphic = {
+			type: 'image',
+			z: 999,
+			style: {
+				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				height: 40,
+				opacity: 0.3
+			},
+			left: isSmall ? '35%' : '40%',
+			top: '160px'
+		}
+
 		chartInstance.setOption({
 			graphic,
 			tooltip: {
 				trigger: 'item',
 				confine: true,
-				valueFormatter: (value) => (usdFormat ? formattedNum(value, true) : formattedNum(value))
+				valueFormatter: (value) => formatTooltipValue(value, valueSymbol)
 			},
 			grid: {
 				left: 0,
-				containLabel: true,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
 				bottom: 0,
 				top: 0,
 				right: 0
@@ -145,12 +143,30 @@ export default function PieChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, isDark, title, usdFormat, showLegend, chartData])
+	}, [
+		createInstance,
+		series,
+		isDark,
+		title,
+		valueSymbol,
+		showLegend,
+		chartData,
+		legendPosition,
+		legendTextStyle,
+		isSmall
+	])
 
 	return (
 		<div className="relative" {...props}>
-			{title && <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>}
-			<div id={id} className="mx-0 my-auto min-h-[360px]" style={height ? { height } : undefined}></div>
+			{customComponents ? (
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					<>{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}</>
+					<>{customComponents}</>
+				</div>
+			) : title ? (
+				<h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>
+			) : null}
+			<div id={id} className="mx-0 my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>
 	)
 }

@@ -2,11 +2,11 @@
 import * as React from 'react'
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import { maxAgeForNext } from '~/api'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { ISearchItem } from '~/components/Search/types'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { LiquidationsContent } from '~/containers/Liquidations/LiquidationsContent'
-import { LiquidationsHeader } from '~/containers/Liquidations/LiquidationsHeader'
 import { LiqPositionsTable } from '~/containers/Liquidations/PositionsTable'
 import { LiqProtocolsTable } from '~/containers/Liquidations/ProtocolsTable'
 import { TableSwitch } from '~/containers/Liquidations/TableSwitch'
@@ -57,48 +57,32 @@ const LiquidationsProvider = ({ children }) => {
 	)
 }
 
+const pageName = ['Liquidation Levels']
+
 const LiquidationsHomePage: NextPage<{ data: ChartData; prevData: ChartData; options: ISearchItem[] }> = (props) => {
 	const { data, prevData, options } = props
 	const [liqsSettings] = useLocalStorageSettingsManager('liquidations')
 	const { LIQS_SHOWING_INSPECTOR } = LIQS_SETTINGS
 	const isLiqsShowingInspector = liqsSettings[LIQS_SHOWING_INSPECTOR]
-
+	const nameAndSymbol = `${data.name} (${data.symbol.toUpperCase()})`
 	return (
-		<Layout title={`${data.name} (${data.symbol.toUpperCase()}) Liquidation Levels - DefiLlama`}>
-			<SEO
+		<Layout
+			title={`${nameAndSymbol} Liquidation Levels - DefiLlama`}
+			description={`${nameAndSymbol} Liquidation Levels on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${nameAndSymbol.toLowerCase()} liquidation levels, liquidation levels on blockchain`}
+			canonicalUrl={`/liquidations/${data.symbol.toLowerCase()}`}
+			pageName={pageName}
+		>
+			<LinkPreviewCard
 				liqsPage
-				cardName={`${data.name} (${data.symbol.toUpperCase()})`}
+				cardName={nameAndSymbol}
 				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
 				tvl={'$' + getReadableValue(data.totalLiquidable)}
 			/>
 
-			{/* {!['BNB', 'CAKE', 'SXP', 'BETH', 'ADA'].includes(data.symbol.toUpperCase()) && (
-				<>
-					<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center">
-						We are now tracking
-						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
-								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
-								<span>BSC</span>
-						</Link>
-						ecosystem assets! Choose one from the asset picker dropdown menu!
-					</p>
-					<p className="p-5 bg-(--cards-bg) border border-(--cards-border) rounded-md text-center xl:hidden">
-						We are now tracking
-						<Link href={`/liquidations/bnb`} className="flex items-center gap-1">
-								<Image src={`/asset-icons/bnb.png`} width={24} height={24} alt={'BNB'} style={{ borderRadius: 12 }} />
-								<span>BSC</span>
-						</Link>
-						!
-					</p>
-				</>
-			)} */}
-
-			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-				<h1 className="text-xl font-semibold">Liquidation levels in DeFi 💦</h1>
-				<LiquidationsHeader data={data} options={options} />
-			</div>
 			<LiquidationsProvider>
-				<LiquidationsContent data={data} prevData={prevData} />
+				<RowLinksWithDropdown links={options as any} />
+				<LiquidationsContent data={data} prevData={prevData} options={options} />
 			</LiquidationsProvider>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<TableSwitch />

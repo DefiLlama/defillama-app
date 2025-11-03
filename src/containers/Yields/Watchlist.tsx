@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
+import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
@@ -71,6 +72,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 			}))
 		} else return []
 	}, [isClient, savedProtocols, protocolsDict])
+	const [open, setOpen] = useState(false)
 
 	return (
 		<>
@@ -86,14 +88,14 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						onItemClick={(value) => setSelectedPortfolio(value)}
 						className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
-					<button
-						onClick={() => {
-							const newPortfolio = prompt('Enter a name for the new portfolio')
-							if (newPortfolio) {
-								addPortfolio(newPortfolio)
-							}
-						}}
-					>
+					<DialogForm
+						title="New Portfolio"
+						description="Enter the name of your new portfolio"
+						open={open}
+						setOpen={setOpen}
+						onSubmit={addPortfolio}
+					/>
+					<button onClick={() => setOpen(true)}>
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
 					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
@@ -245,7 +247,7 @@ export const WatchListTabs = () => {
 			<BasicLink
 				href={'/watchlist'}
 				data-active={router.pathname === '/watchlist'}
-				className="relative bottom-[-2px] shrink-0 border-b-2 border-transparent px-[10px] py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+				className="relative bottom-[-2px] shrink-0 border-b-2 border-transparent px-2.5 py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
 			>
 				DeFi
 			</BasicLink>
@@ -253,7 +255,7 @@ export const WatchListTabs = () => {
 			<BasicLink
 				href={'/yields/watchlist'}
 				data-active={router.pathname === '/yields/watchlist'}
-				className="relative bottom-[-2px] shrink-0 border-b-2 border-transparent px-[10px] py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
+				className="relative bottom-[-2px] shrink-0 border-b-2 border-transparent px-2.5 py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue)"
 			>
 				Yields
 			</BasicLink>

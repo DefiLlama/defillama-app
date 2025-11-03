@@ -43,4 +43,5 @@ export const feesOptions = [
 	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]
 
-export const extraTvlOptionsHelperTexts = Object.fromEntries(tvlOptions.map((p) => [p.key, p.help]))
+export const tvlOptionsMap = new Map(tvlOptions.map((option) => [option.key, option]))
+export const feesOptionsMap = new Map(feesOptions.map((option) => [option.key, option]))

@@ -5,20 +5,39 @@ export enum ADAPTER_TYPES {
 	PERPS = 'derivatives',
 	PERPS_AGGREGATOR = 'aggregator-derivatives',
 	OPTIONS = 'options',
-	BRIDGE_AGGREGATORS = 'bridge-aggregators'
+	BRIDGE_AGGREGATORS = 'bridge-aggregators',
+	OPEN_INTEREST = 'open-interest'
 }
 
 export enum ADAPTER_DATA_TYPES {
-	REVENUE = 'dailyRevenue',
-	HOLDERS_REVENUE = 'dailyHoldersRevenue',
-	BRIBES_REVENUE = 'dailyBribesRevenue',
-	TOKEN_TAXES = 'dailyTokenTaxes',
-	NOTIONAL_VOLUME = 'dailyNotionalVolume',
-	PREMIUM_VOLUME = 'dailyPremiumVolume',
-	APP_FEES = 'dailyAppFees',
-	APP_REVENUE = 'dailyAppRevenue',
+	DAILY_FEES = 'dailyFees',
+	DAILY_REVENUE = 'dailyRevenue',
+	DAILY_HOLDERS_REVENUE = 'dailyHoldersRevenue',
+	DAILY_BRIBES_REVENUE = 'dailyBribesRevenue',
+	DAILY_TOKEN_TAXES = 'dailyTokenTaxes',
+	DAILY_NOTIONAL_VOLUME = 'dailyNotionalVolume',
+	DAILY_PREMIUM_VOLUME = 'dailyPremiumVolume',
+	DAILY_APP_FEES = 'dailyAppFees',
+	DAILY_APP_REVENUE = 'dailyAppRevenue',
 	DAILY_EARNINGS = 'dailyEarnings',
-	OPEN_INTEREST = 'openInterestAtEnd'
+	OPEN_INTEREST_AT_END = 'openInterestAtEnd',
+	DAILY_VOLUME = 'dailyVolume',
+	DAILY_BRIDGE_VOLUME = 'dailyBridgeVolume'
+}
+
+export enum ADAPTER_DATA_TYPE_KEYS {
+	'dailyFees' = 'df',
+	'dailyRevenue' = 'dr',
+	'dailyHoldersRevenue' = 'dhr',
+	'dailyBribesRevenue' = 'dbr',
+	'dailyTokenTaxes' = 'dtt',
+	'dailyAppRevenue' = 'dar',
+	'dailyAppFees' = 'daf',
+	'dailyNotionalVolume' = 'dnv',
+	'dailyPremiumVolume' = 'dpv',
+	'openInterestAtEnd' = 'doi',
+	'dailyVolume' = 'dv',
+	'dailyBridgeVolume' = 'dbv'
 }
 
 export const VOLUME_TYPE_ADAPTERS = [

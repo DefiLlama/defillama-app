@@ -22,7 +22,7 @@ import {
 import {
 	batchFetchHistoricalPrices,
 	capitalizeFirstLetter,
-	getColorFromNumber,
+	getNDistinctColors,
 	roundToNearestHalfHour,
 	slug
 } from '~/utils'
@@ -244,7 +244,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		if (!list.includes(protocolName))
 			return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
 
-		const allEmmisions = await fetchJson(PROTOCOL_EMISSIONS_API)
+		const allEmissions = await fetchJson(PROTOCOL_EMISSIONS_API)
 
 		const res = await fetchJson(`${PROTOCOL_EMISSION_API}/${protocolName}`).then((r) => JSON.parse(r.body))
 
@@ -359,12 +359,14 @@ export const getProtocolEmissons = async (protocolName: string) => {
 
 		const stackColors = { documented: {}, realtime: {} }
 
-		pieChartData['documented'].forEach(({ name }, index) => {
-			stackColors['documented'][name] = getColorFromNumber(index, 6)
-		})
-		pieChartData['realtime'].forEach(({ name }, index) => {
-			stackColors['realtime'][name] = getColorFromNumber(index, 6)
-		})
+		const allDocumentedColors = getNDistinctColors(pieChartData['documented'].length)
+		for (let i = 0; i < pieChartData['documented'].length; i++) {
+			stackColors['documented'][pieChartData['documented'][i].name] = allDocumentedColors[i]
+		}
+		const allRealtimeColors = getNDistinctColors(pieChartData['realtime'].length)
+		for (let i = 0; i < pieChartData['realtime'].length; i++) {
+			stackColors['realtime'][pieChartData['realtime'][i].name] = allRealtimeColors[i]
+		}
 
 		if (protocolName == 'looksrare') {
 			tokenPrice.symbol = 'LOOKS'
@@ -374,7 +376,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			chartData,
 			pieChartData,
 			stackColors,
-			meta: allEmmisions?.find((p) => p?.token === metadata?.token) ?? {},
+			meta: allEmissions?.find((p) => p?.token === metadata?.token) ?? {},
 			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: metadata?.events ?? [],
@@ -501,11 +503,11 @@ export async function getLSDPageData() {
 		nameGeckoMapping[p.name] = p.name === 'Frax Ether' ? 'frax-share' : p.gecko_id
 	}
 
-	const colors = {}
-	lsdProtocols.forEach((protocol, index) => {
-		colors[protocol] = getColorFromNumber(index, 10)
-	})
-
+	const allColors = getNDistinctColors(lsdProtocols.length)
+	const colors: Record<string, string> = {}
+	for (let i = 0; i < lsdProtocols.length; i++) {
+		colors[lsdProtocols[i]] = allColors[i]
+	}
 	colors['Others'] = '#AAAAAA'
 
 	return {
@@ -630,45 +632,6 @@ export function formatGovernanceData(data: {
 	return { maxVotes, activity, proposals }
 }
 
-export async function getChainsBridged(chain?: string) {
-	const [assets, flows1d, inflows] = await Promise.all([
-		fetchJson(CHAINS_ASSETS),
-		fetchJson(CHAIN_ASSETS_FLOWS + '/24h').catch(() => null),
-		chain
-			? fetchJson(`${BRIDGEINFLOWS_API}/${sluggify(chain)}/1d`)
-					.then((data) => data.data.map((item) => ({ ...item.data, date: item.timestamp })))
-					.catch(() => [])
-			: []
-	])
-	const chainData = chain ? (Object.entries(assets ?? {}).find((a) => slug(a[0]) === slug(chain))?.[1] ?? null) : null
-
-	const tokenInflowNames = new Set<string>()
-	for (const inflow of inflows) {
-		for (const token of Object.keys(inflow)) {
-			if (token !== 'date') {
-				tokenInflowNames.add(token)
-			}
-		}
-	}
-
-	return {
-		chains: [
-			{ label: 'All', to: '/bridged' },
-			...Object.entries(assets ?? {})
-				.sort(
-					(a: any, b: any) =>
-						Number(b[1].total?.total?.split('.')?.[0] ?? 0) - Number(a[1].total?.total?.split('.')?.[0] ?? 0)
-				)
-				.map((asset) => ({ label: asset[0], to: `/bridged/${slug(asset[0])}` }))
-		],
-		assets,
-		flows1d,
-		chainData,
-		inflows,
-		tokenInflowNames: Array.from(tokenInflowNames)
-	}
-}
-
 export async function getCategoryInfo() {
 	const data = await fetchJson(CATEGORY_INFO_API).catch(() => [])
 	return data
@@ -705,7 +668,7 @@ export async function getCategoryPerformance() {
 export async function getCoinPerformance(categoryId) {
 	// for coins per category we fetch the full 365 series per coin in a given category
 	// we calculate the different pct change series in here which can all be derived from that single series
-	// using different refernce prices (eg 7d, 30d, ytd, 365d)
+	// using different reference prices (eg 7d, 30d, ytd, 365d)
 	const calculateCumulativePercentageChange = (data, mapping, timeframe) => {
 		// helper func to filter data based on timeframe
 		const filterData = (data, timeframe) => {

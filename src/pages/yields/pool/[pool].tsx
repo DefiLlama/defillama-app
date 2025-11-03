@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import exponentialLogo from '~/assets/exponential.avif'
@@ -7,9 +7,11 @@ import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
 import { BasicLink } from '~/components/Link'
+import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -17,7 +19,7 @@ import {
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
 import Layout from '~/layout'
-import { download, formattedNum, getColorFromNumber, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -89,15 +91,16 @@ const PageView = (props) => {
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	// prepare csv data
-	const downloadCsv = () => {
+	const prepareCsv = useCallback(() => {
+		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
-		chart.data?.forEach((item) => {
+		chart?.data?.forEach((item) => {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		})
 
-		download(`${query.pool}.csv`, rows.map((r) => r.join(',')).join('\n'))
-	}
+		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
+	}, [chart?.data, query?.pool])
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
 	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
@@ -232,7 +235,7 @@ const PageView = (props) => {
 	if (!isReady || isLoading) {
 		return (
 			<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p className="text-center">Loading...</p>
+				<LocalLoader />
 			</div>
 		)
 	}
@@ -303,11 +306,7 @@ const PageView = (props) => {
 						</span>
 					</p>
 
-					<CSVDownloadButton
-						onClick={downloadCsv}
-						smol
-						className="mt-auto mr-auto h-[30px] border border-(--form-control-border) bg-transparent! text-(--text-form)! hover:bg-(--link-hover-bg)! focus-visible:bg-(--link-hover-bg)!"
-					/>
+					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 min-h-[478px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
@@ -432,7 +431,7 @@ const PageView = (props) => {
 										href={riskData?.pool_url || 'https://exponential.fi/about-us'}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-2 font-medium text-[#445ed0] hover:underline dark:text-[#2172E5]"
+										className="flex items-center gap-2 font-medium text-(--link-text) hover:underline"
 									>
 										<span>{riskData?.pool_url ? 'Open Report' : 'About exponential.fi'}</span>
 										<Icon name="external-link" height={16} width={16} />
@@ -444,9 +443,9 @@ const PageView = (props) => {
 				)}
 
 				{isLoading ? (
-					<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
-						Loading...
-					</p>
+					<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<LocalLoader />
+					</div>
 				) : (
 					<>
 						{barChartData?.length ? (
@@ -468,7 +467,7 @@ const PageView = (props) => {
 									<AreaChart
 										title="7 day moving average of Supply APY"
 										chartData={areaChartData}
-										color={backgroundColor}
+										color={CHART_COLORS[0]}
 										valueSymbol={'%'}
 									/>
 								</Suspense>
@@ -479,9 +478,9 @@ const PageView = (props) => {
 			</div>
 
 			{fetchingChartDataBorrow ? (
-				<p className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-center">
-					Loading...
-				</p>
+				<div className="col-span-full flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
 			) : areaChartDataBorrow?.length ? (
 				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
 					{areaChartDataBorrow?.length ? (
@@ -503,7 +502,7 @@ const PageView = (props) => {
 								<AreaChart
 									title="Net Borrow APY"
 									chartData={netBorrowChartData}
-									color={backgroundColor}
+									color={CHART_COLORS[0]}
 									valueSymbol={'%'}
 								/>
 							</Suspense>
@@ -536,7 +535,7 @@ const PageView = (props) => {
 					</BasicLink>
 				</p>
 
-				{config.audits ? (
+				{config?.audits ? (
 					<>
 						<p className="flex items-center gap-1">
 							<span className="flex flex-nowrap items-center gap-1">
@@ -570,7 +569,7 @@ const PageView = (props) => {
 							<span>Website</span>
 						</a>
 					) : null}
-					{config.github?.length
+					{config?.github?.length
 						? config.github.map((github) => (
 								<a
 									href={`https://github.com/${github}`}
@@ -584,7 +583,7 @@ const PageView = (props) => {
 								</a>
 							))
 						: null}
-					{config.twitter ? (
+					{config?.twitter ? (
 						<a
 							href={`https://twitter.com/${config.twitter}`}
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
@@ -601,8 +600,6 @@ const PageView = (props) => {
 	)
 }
 
-const backgroundColor = '#4f8fea'
-
 const mainChartStacks = ['APY', 'TVL']
 
 const mainChartStackColors = {
@@ -611,14 +608,14 @@ const mainChartStackColors = {
 }
 
 const barChartColors = {
-	Base: backgroundColor,
-	Reward: '#E59421'
+	Base: CHART_COLORS[0],
+	Reward: CHART_COLORS[1]
 }
 
 const liquidityChartColors = {
-	Supplied: getColorFromNumber(0, 6),
-	Borrowed: getColorFromNumber(1, 6),
-	Available: getColorFromNumber(2, 6)
+	Supplied: CHART_COLORS[0],
+	Borrowed: CHART_COLORS[1],
+	Available: CHART_COLORS[2]
 }
 
 const barChartStacks = {
@@ -642,7 +639,7 @@ function cleanPool(pool) {
 
 export default function YieldPoolPage(props) {
 	return (
-		<Layout title={`Yields - DefiLlama`} defaultSEO>
+		<Layout title={`Yields - DefiLlama`}>
 			<PageView {...props} />
 		</Layout>
 	)

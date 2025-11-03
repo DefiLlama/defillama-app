@@ -2,7 +2,7 @@ import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getColorFromNumber } from '~/utils'
+import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface IOracleProtocols {
@@ -134,12 +134,11 @@ export async function getOraclePageData(oracle = null, chain = null) {
 				)
 			: [{ label: 'All', to: `/oracles` }].concat(uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` })))
 
+		const allColors = getNDistinctColors(oraclesUnique.length)
 		const colors = {}
-
-		oraclesUnique.forEach((chain, index) => {
-			colors[chain] = getColorFromNumber(index, 6)
-		})
-
+		for (let i = 0; i < oraclesUnique.length; i++) {
+			colors[oraclesUnique[i]] = allColors[i]
+		}
 		colors['Others'] = '#AAAAAA'
 
 		return {
@@ -258,12 +257,11 @@ export async function getOraclePageDataByChain(chain: string) {
 			uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` }))
 		)
 
+		const allColors = getNDistinctColors(oraclesUnique.length)
 		const colors = {}
-
-		oraclesUnique.forEach((chain, index) => {
-			colors[chain] = getColorFromNumber(index, 6)
-		})
-
+		for (let i = 0; i < oraclesUnique.length; i++) {
+			colors[oraclesUnique[i]] = allColors[i]
+		}
 		colors['Others'] = '#AAAAAA'
 
 		return {

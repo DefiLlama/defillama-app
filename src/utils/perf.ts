@@ -24,7 +24,8 @@ export const withPerformanceLogging = <T extends object>(
 				await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [end, `${(end - start).toFixed(0)}ms`])
 
 				postRuntimeLogs(
-					`[PREPARED] [${(end - start).toFixed(0)}ms] <${filename}>` + (params ? ' ' + JSON.stringify(params) : '')
+					`[PAGE_BUILD] [PREPARED] [${(end - start).toFixed(0)}ms] < ${filename} >` +
+						(params ? ' ' + JSON.stringify(params) : '')
 				)
 			}
 
@@ -36,7 +37,8 @@ export const withPerformanceLogging = <T extends object>(
 				`${(end - start).toFixed(0)}ms`
 			])
 			postRuntimeLogs(
-				`[ERROR] [${(end - start).toFixed(0)}ms] < ${filename}> ` + (params ? ' ' + JSON.stringify(params) : '')
+				`[PAGE_BUILD] [ERROR] [${(end - start).toFixed(0)}ms] < ${filename} > ` +
+					(params ? ' ' + JSON.stringify(params) : '')
 			)
 			throw error
 		}

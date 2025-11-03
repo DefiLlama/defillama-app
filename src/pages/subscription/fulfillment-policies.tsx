@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { BasicLink } from '~/components/Link'
-import { SEO } from '~/components/SEO'
+import { LinkPreviewCard } from '~/components/SEO'
 
 export default function FulfillmentPolicies() {
 	return (
@@ -36,10 +36,27 @@ export function SubscribeLayout2({ children }) {
 				<title>Subscribe - DefiLlama</title>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
-			<SEO />
-			<div className="col-span-full flex w-full flex-col">
-				<header className="flex min-h-[64px] items-center justify-end gap-4 px-5 py-3"></header>
-				{children}
+			<LinkPreviewCard />
+			<div className="col-span-full flex min-h-screen w-full flex-col bg-[oklch(0.148_0.004_228.8)] text-white">
+				<header className="sticky top-0 z-50 border-b border-[#39393E]/40 bg-[#13141a]/80 backdrop-blur-md">
+					<div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 xl:max-w-7xl 2xl:max-w-[1440px]">
+						<BasicLink href="/" className="flex items-center gap-3">
+							<img src="/icons/llama.webp" alt="DefiLlama" width={32} height={32} className="rounded-full" />
+							<span className="hidden text-lg font-bold sm:inline-block">DefiLlama</span>
+						</BasicLink>
+						<div className="flex items-center gap-4">
+							<BasicLink href="/" className="text-sm font-medium text-[#b4b7bc] transition-colors hover:text-white">
+								Return to Main Page
+							</BasicLink>
+						</div>
+					</div>
+				</header>
+
+				<main className="grow">
+					<header className="flex min-h-[64px] items-center justify-end gap-4 px-5 py-3"></header>
+					{children}
+				</main>
+
 				<footer className="mt-auto flex flex-wrap items-center justify-center gap-4 px-5 py-3 text-[#8a8c90]">
 					<a href="https://discord.defillama.com" className="underline">
 						Discord
@@ -48,7 +65,7 @@ export function SubscribeLayout2({ children }) {
 						Contact Us
 					</a>
 
-					<BasicLink href="/subscription/privacy-policy" className="underline">
+					<BasicLink href="/privacy-policy" className="underline">
 						Privacy Policy
 					</BasicLink>
 

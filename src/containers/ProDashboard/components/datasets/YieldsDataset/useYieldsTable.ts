@@ -13,6 +13,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import { downloadCSV } from '~/utils'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
@@ -55,6 +56,8 @@ export function useYieldsTable({
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 
+		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) || []
+
 		return data.filter((row) => {
 			if (filters.apyMin !== undefined && row.apy < filters.apyMin) return false
 			if (filters.apyMax !== undefined && row.apy > filters.apyMax) return false
@@ -67,6 +70,19 @@ export function useYieldsTable({
 			if (filters.chains && filters.chains.length > 0) {
 				const hasMatchingChain = row.chains?.some((chain: string) => filters.chains.includes(chain))
 				if (!hasMatchingChain) return false
+			}
+
+			if (selectedProtocols.length > 0) {
+				const projectSlug = (row.projectslug || row.project || '').toLowerCase()
+				const projectName = (row.project || '').toLowerCase()
+
+				const hasMatchingProtocol = selectedProtocols.some((protocol) => {
+					if (projectSlug && projectSlug === protocol) return true
+					if (projectName && projectName === protocol) return true
+					return false
+				})
+
+				if (!hasMatchingProtocol) return false
 			}
 
 			if (filters.hasRewards && (!row.apyReward || row.apyReward <= 0)) return false
@@ -305,67 +321,59 @@ export function useYieldsTable({
 		})
 	}
 
-	const downloadCSV = () => {
-		if (!table) return
+	// const downloadCSV = () => {
+	// 	if (!table) return
 
-		const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
-		const headerMap: Record<string, string> = {
-			pool: 'Pool',
-			project: 'Project',
-			chains: 'Chain',
-			tvl: 'TVL',
-			apy: 'APY',
-			apyBase: 'Base APY',
-			apyReward: 'Reward APY',
-			rewardTokensSymbols: 'Reward Tokens',
-			change1d: '24h Change',
-			change7d: '7d Change',
-			il7d: '7d IL',
-			apyBase7d: 'Base APY (7d)',
-			apyNet7d: 'Net APY (7d)',
-			apyMean30d: 'Mean APY (30d)',
-			volumeUsd1d: 'Volume (24h)',
-			volumeUsd7d: 'Volume (7d)',
-			apyBorrow: 'Borrow APY',
-			totalSupplyUsd: 'Total Supplied',
-			totalBorrowUsd: 'Total Borrowed',
-			totalAvailableUsd: 'Available',
-			ltv: 'LTV'
-		}
+	// 	const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
+	// 	const headerMap: Record<string, string> = {
+	// 		pool: 'Pool',
+	// 		project: 'Project',
+	// 		chains: 'Chain',
+	// 		tvl: 'TVL',
+	// 		apy: 'APY',
+	// 		apyBase: 'Base APY',
+	// 		apyReward: 'Reward APY',
+	// 		rewardTokensSymbols: 'Reward Tokens',
+	// 		change1d: '24h Change',
+	// 		change7d: '7d Change',
+	// 		il7d: '7d IL',
+	// 		apyBase7d: 'Base APY (7d)',
+	// 		apyNet7d: 'Net APY (7d)',
+	// 		apyMean30d: 'Mean APY (30d)',
+	// 		volumeUsd1d: 'Volume (24h)',
+	// 		volumeUsd7d: 'Volume (7d)',
+	// 		apyBorrow: 'Borrow APY',
+	// 		totalSupplyUsd: 'Total Supplied',
+	// 		totalBorrowUsd: 'Total Borrowed',
+	// 		totalAvailableUsd: 'Available',
+	// 		ltv: 'LTV'
+	// 	}
 
-		const rows = table.getFilteredRowModel().rows
-		const csvData = rows.map((row) => row.original)
+	// 	const rows = table.getFilteredRowModel().rows
+	// 	const csvData = rows.map((row) => row.original)
 
-		const headers = visibleColumnIds.map((id) => headerMap[id] || id)
+	// 	const headers = visibleColumnIds.map((id) => headerMap[id] || id)
 
-		const csvLines = csvData.map((item) =>
-			visibleColumnIds
-				.map((id) => {
-					const value = item[id]
-					if (value === undefined || value === null) return ''
-					if (Array.isArray(value)) {
-						return `"${value.join(';')}"`
-					}
-					if (typeof value === 'string') {
-						return `"${value.replace(/"/g, '""')}"`
-					}
-					return value
-				})
-				.join(',')
-		)
+	// 	const csvLines = csvData.map((item) =>
+	// 		visibleColumnIds
+	// 			.map((id) => {
+	// 				const value = item[id]
+	// 				if (value === undefined || value === null) return ''
+	// 				if (Array.isArray(value)) {
+	// 					return `"${value.join(';')}"`
+	// 				}
+	// 				if (typeof value === 'string') {
+	// 					return `"${value.replace(/"/g, '""')}"`
+	// 				}
+	// 				return value
+	// 			})
+	// 			.join(',')
+	// 	)
 
-		const csvContent = [headers.join(','), ...csvLines].join('\n')
+	// 	const csvContent = [headers.join(','), ...csvLines].join('\n')
 
-		const blob = new Blob([csvContent], { type: 'text/csv' })
-		const url = URL.createObjectURL(blob)
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `yields-data-${new Date().toISOString().split('T')[0]}.csv`
-		document.body.appendChild(a)
-		a.click()
-		document.body.removeChild(a)
-		URL.revokeObjectURL(url)
-	}
+	// 	downloadCSV('yields-data.csv', csvContent, { addTimestamp: true })
+	// }
 
 	const [poolName, setPoolName] = React.useState('')
 	React.useEffect(() => {
@@ -420,6 +428,7 @@ export function useYieldsTable({
 		if (filters.baseApyMin !== undefined) count++
 		if (filters.baseApyMax !== undefined) count++
 		if (filters.chains && filters.chains.length > 0) count++
+		if (filters.protocols && filters.protocols.length > 0) count++
 		if (filters.tokens && filters.tokens.length > 0) count++
 		if (filters.hasRewards) count++
 		if (filters.stablesOnly) count++
@@ -427,6 +436,47 @@ export function useYieldsTable({
 		if (filters.poolTypes && filters.poolTypes.length > 0) count++
 		return count
 	}, [filters])
+
+	const availableProtocols = React.useMemo(() => {
+		if (!data) return []
+
+		const protocolMap = new Map<string, { value: string; label: string; tvl: number }>()
+
+		data.forEach((row) => {
+			const slug = (row.projectslug || row.project || '').trim()
+			const name = (row.project || '').trim()
+			if (!slug && !name) return
+
+			const key = (slug || name).toLowerCase()
+			const existing = protocolMap.get(key)
+			const tvl = typeof row.tvl === 'number' ? row.tvl : 0
+
+			if (existing) {
+				existing.tvl += tvl
+				if (!existing.label && name) {
+					existing.label = name
+				}
+				if (!existing.value && slug) {
+					existing.value = slug
+				}
+			} else {
+				protocolMap.set(key, {
+					value: slug || name,
+					label: name || slug,
+					tvl
+				})
+			}
+		})
+
+		return Array.from(protocolMap.values())
+			.sort((a, b) => {
+				if (b.tvl !== a.tvl) {
+					return b.tvl - a.tvl
+				}
+				return a.label.localeCompare(b.label)
+			})
+			.map(({ value, label }) => ({ value, label }))
+	}, [data])
 
 	const applyFilters = React.useCallback(
 		(newFilters?: YieldsFilters) => {
@@ -473,6 +523,7 @@ export function useYieldsTable({
 		setFilters,
 		availableChains,
 		availableTokens,
+		availableProtocols,
 		activeFilterCount,
 		applyFilters,
 		resetFilters

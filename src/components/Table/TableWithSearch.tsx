@@ -1,8 +1,11 @@
 import * as React from 'react'
 import {
+	ColumnDef,
 	ColumnFiltersState,
 	ColumnOrderState,
+	ColumnOrderTableState,
 	ColumnSizingState,
+	ColumnSizingTableState,
 	ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -14,6 +17,22 @@ import {
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
+import { alphanumericFalsyLast } from './utils'
+
+interface ITableWithSearchProps {
+	data: any[]
+	columns: ColumnDef<any>[]
+	placeholder: string
+	columnToSearch: string
+	customFilters?: React.ReactNode
+	header?: string
+	renderSubComponent?: (row: any) => React.ReactNode
+	columnSizes?: ColumnSizingTableState
+	columnOrders?: ColumnOrderTableState
+	sortingState: SortingState
+	rowSize?: number
+	compact?: boolean
+}
 
 export function TableWithSearch({
 	data,
@@ -25,12 +44,12 @@ export function TableWithSearch({
 	renderSubComponent = null,
 	columnSizes = null,
 	columnOrders = null,
-	defaultSorting = null,
+	sortingState = null,
 	rowSize = null,
 	compact = false
-}) {
+}: ITableWithSearchProps) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = React.useState<SortingState>(defaultSorting ?? [])
+	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -46,29 +65,7 @@ export function TableWithSearch({
 			columnOrder
 		},
 		sortingFns: {
-			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-
-				if (typeof a === 'number' && a <= 0) a = null
-				if (typeof b === 'number' && b <= 0) b = null
-
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-
-				if (a === null && b === null) {
-					return 0
-				}
-
-				return a - b
-			}
+			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
 		},
 		filterFromLeafRows: true,
 		onExpandedChange: setExpanded,
@@ -127,7 +124,7 @@ export function TableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-sm text-black dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
 				</label>
 				{customFilters}

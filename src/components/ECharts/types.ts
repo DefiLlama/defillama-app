@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
@@ -19,7 +20,7 @@ export interface IChartProps {
 	hideLegend?: boolean
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string)
+			[key: string]: Value | Array<Value> | ((params: any) => string) | Record<string, Value>
 		}
 	}
 	height?: string
@@ -37,12 +38,35 @@ export interface IChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	containerClassName?: string
+	connectNulls?: boolean
+	alwaysShowTooltip?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	customComponents?: React.ReactNode
+}
+
+export interface ISingleSeriesChartProps
+	extends Omit<
+		IChartProps,
+		| 'stacks'
+		| 'stackColors'
+		| 'customLegendOptions'
+		| 'customLegendName'
+		| 'customYAxis'
+		| 'groupBy'
+		| 'tooltipOrderBottomUp'
+		| 'hideDownloadButton'
+		| 'containerClassName'
+	> {
+	chartName?: string
+	chartType: 'line' | 'bar'
+	symbolOnChart?: 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none'
 }
 
 export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
 	stacks?: {
 		[stack: string]: string
 	}
+	customComponents?: React.ReactNode
 }
 
 export interface ILineAndBarChartProps {
@@ -68,6 +92,8 @@ export interface ILineAndBarChartProps {
 	alwaysShowTooltip?: boolean
 	containerClassName?: string
 	solidChartAreaStyle?: boolean
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IMultiSeriesChartProps {
@@ -91,6 +117,8 @@ export interface IMultiSeriesChartProps {
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
 	title?: string
+	xAxisType?: 'time' | 'category'
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface IPieChartProps {
@@ -100,7 +128,7 @@ export interface IPieChartProps {
 	stackColors?: {
 		[stack: string]: string
 	}
-	usdFormat?: boolean
+	valueSymbol?: string
 	radius?: [string, string]
 	showLegend?: boolean
 	toRight?: number
@@ -114,4 +142,15 @@ export interface IPieChartProps {
 		orient?: 'horizontal' | 'vertical'
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
+	customComponents?: React.ReactNode
+}
+
+export interface IScatterChartProps {
+	chartData: any
+	title?: string
+	xAxisLabel?: string
+	yAxisLabel?: string
+	valueSymbol?: string
+	height?: string
+	tooltipFormatter?: (params: any) => string
 }

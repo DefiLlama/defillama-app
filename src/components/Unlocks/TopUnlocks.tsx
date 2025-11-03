@@ -58,29 +58,28 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 	}, [data, period])
 
 	return (
-		<div className={`flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 ${className}`}>
+		<div className={className}>
 			<Tooltip
-				className="mb-1 text-lg font-semibold"
+				className="text-base font-semibold"
 				content={`List of top unlocks in the last ${period} ${period === 1 ? 'day' : 'days'}`}
 			>
 				{title}
 			</Tooltip>
-			<div className="flex flex-col gap-2">
-				{topUnlocks.map((unlock, i) => (
-					<div key={unlock.name} className="flex items-center justify-between">
-						<div className="flex items-center space-x-2">
-							<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
-							<BasicLink
-								href={`/unlocks/${slug(unlock.name)}`}
-								className="overflow-hidden text-lg font-medium text-ellipsis whitespace-nowrap text-(--bg-2) hover:underline"
-							>
-								{unlock.name} ({unlock.symbol})
-							</BasicLink>
-						</div>
-						<span className="text-sm font-medium text-blue-400">{formattedNum(unlock.value, true)}</span>
+
+			{topUnlocks.map((unlock, i) => (
+				<div key={unlock.name} className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
+						<BasicLink
+							href={`/unlocks/${slug(unlock.name)}`}
+							className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline"
+						>
+							{unlock.name} ({unlock.symbol})
+						</BasicLink>
 					</div>
-				))}
-			</div>
+					<span className="text-sm font-medium text-(--primary)">{formattedNum(unlock.value, true)}</span>
+				</div>
+			))}
 		</div>
 	)
 }
