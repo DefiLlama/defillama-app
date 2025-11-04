@@ -74,7 +74,7 @@ export default function LlamaAIGetStarted() {
 						<span>LlamaAI</span>
 					</h1>
 					<p className="text-center text-lg leading-6 text-[#666] dark:text-[#919296]">
-						Your conversational interface to DeFiLlama’s data for deep, flexible analysis.
+						Your conversational interface to DefiLlama’s data for deep, flexible analysis.
 					</p>
 					{subscription?.status === 'active' ? (
 						<BasicLink
@@ -123,7 +123,7 @@ export default function LlamaAIGetStarted() {
 						<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 dark:border-[#39393E] dark:bg-[#222429]">
 							<h3 className="mb-2 text-lg font-semibold text-black dark:text-white">Explore DeFi Conversationally</h3>
 							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
-								Use natural language to navigate DeFiLlama’s dataset with flexibility. Combine metrics, compare chains
+								Use natural language to navigate DefiLlama’s dataset with flexibility. Combine metrics, compare chains
 								and protocols, and surface insights that aren’t easily discoverable on dashboards.
 							</p>
 						</div>
