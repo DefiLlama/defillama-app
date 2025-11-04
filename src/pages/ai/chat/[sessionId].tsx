@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
@@ -11,15 +12,18 @@ export default function SessionPage() {
 	const { sessionId } = router.query
 	const { hasFeature } = useFeatureFlagsContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { loaders } = useAuthContext()
+
+	const isLoading = isSubscriptionLoading || loaders.userLoading
 
 	useEffect(() => {
-		if (isSubscriptionLoading) return
+		if (isLoading) return
 		if (subscription?.status !== 'active') {
 			router.push('/ai')
 		}
-	}, [subscription, isSubscriptionLoading, router])
+	}, [subscription, isLoading, router])
 
-	if (isSubscriptionLoading) {
+	if (isLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"
