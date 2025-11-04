@@ -11,10 +11,7 @@ export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 
 	return {
 		props: {
-			cexs:
-				data.cexs
-					.map((cex) => (cex.name === 'MEXC' ? { ...cex, inflows_24h: null, inflows_1w: null, inflows_1m: null } : cex))
-					.sort((a, b) => b.cleanAssetsTvl - a.cleanAssetsTvl) ?? []
+			cexs: data.cexs.sort((a, b) => b.cleanAssetsTvl - a.cleanAssetsTvl) ?? []
 		},
 		revalidate: maxAgeForNext([22])
 	}
