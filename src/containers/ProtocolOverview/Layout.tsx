@@ -178,7 +178,7 @@ export function ProtocolOverviewLayout({
 				</p>
 			))}
 
-			<div className="isolate flex flex-col gap-2">
+			<div className="isolate flex flex-1 flex-col gap-2">
 				<div className="flex w-full overflow-x-auto text-xs font-medium">
 					{otherProtocols?.length > 1 && (
 						<Ariakit.MenuProvider>
