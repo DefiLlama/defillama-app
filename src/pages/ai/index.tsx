@@ -72,11 +72,9 @@ export default function LlamaAIGetStarted() {
 					</span>
 					<h1 className="-mt-1 -mb-2 text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
 						<span>LlamaAI</span>
-						<span className="mt-1 block text-lg font-semibold text-black dark:text-white">Insight, accelerated</span>
 					</h1>
 					<p className="text-center text-lg leading-6 text-[#666] dark:text-[#919296]">
-						Go beyond dashboards with DefiLlama’s data at your fingertips, turning conversation into deep, flexible
-						analysis.
+						Your conversational interface to DeFiLlama’s data for deep, flexible analysis.
 					</p>
 					{subscription?.status === 'active' ? (
 						<BasicLink
