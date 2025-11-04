@@ -9,25 +9,12 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('cexs/index', async () => {
 	const data: { cexs: Array<ICex> } = await fetchJson(CEXS_API)
 
-	const cexs = {}
-
-	for (const cex of data.cexs) {
-		if (cex.name === 'MEXC') {
-			cex.inflows_24h = null
-			cex.inflows_1w = null
-			cex.inflows_1m = null
-		}
-		cexs[cex.name] = { ...(cexs[cex.name] ?? {}), ...cex }
-	}
-
-	const finalCexs = []
-	for (const cex in cexs) {
-		finalCexs.push(cexs[cex])
-	}
-
 	return {
 		props: {
-			cexs: finalCexs.sort((a, b) => b.cleanAssetsTvl - a.cleanAssetsTvl)
+			cexs:
+				data.cexs
+					.map((cex) => (cex.name === 'MEXC' ? { ...cex, inflows_24h: null, inflows_1w: null, inflows_1m: null } : cex))
+					.sort((a, b) => b.cleanAssetsTvl - a.cleanAssetsTvl) ?? []
 		},
 		revalidate: maxAgeForNext([22])
 	}
