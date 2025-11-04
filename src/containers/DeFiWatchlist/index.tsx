@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { toast } from 'react-hot-toast'
 import { IFormattedProtocol } from '~/api/types'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
@@ -35,6 +36,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		removeProtocol,
 		isLoadingWatchlist
 	} = useBookmarks('defi')
+
+	const { deletePreferences: deleteNotificationPreferences } = useEmailNotifications(null)
 
 	const {
 		savedProtocols: savedChains,
@@ -129,8 +132,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 						setSelectedChainPortfolio(name)
 					}}
 					removePortfolio={(name) => {
-						removePortfolio(name)
-						setSelectedChainPortfolio(DEFAULT_PORTFOLIO_NAME)
+						deleteNotificationPreferences({ portfolioName: name }).then(() => {
+							removePortfolio(name)
+							setSelectedChainPortfolio(DEFAULT_PORTFOLIO_NAME)
+						})
 					}}
 				/>
 				<PortfolioNotifications
@@ -225,7 +230,16 @@ function PortfolioNotifications({
 	const dialogStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 	const { subscription } = useSubscribe()
-	const { preferences, isLoading, savePreferences, isSaving, deletePreferences, isDeleting } = useEmailNotifications()
+	const {
+		preferences,
+		isLoading,
+		savePreferences,
+		isSaving,
+		updateStatus,
+		isUpdatingStatus,
+		deletePreferences,
+		isDeleting
+	} = useEmailNotifications(selectedPortfolio)
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 
 	const formStore = Ariakit.useFormStore({
@@ -237,6 +251,12 @@ function PortfolioNotifications({
 
 	const handleNotificationsButtonClick = () => {
 		if (!isClient) return
+
+		if (filteredProtocols.length === 0 && filteredChains.length === 0) {
+			toast.error('Please add protocols or chains to your watchlist first')
+			return
+		}
+
 		if (subscription?.status !== 'active') {
 			setShowSubscribeModal(true)
 		} else {
@@ -302,7 +322,7 @@ function PortfolioNotifications({
 			}
 
 			if (!settings.protocols && !settings.chains) {
-				alert('Please select at least one metric for protocols or chains')
+				toast.error('Unable to save: no valid settings configured')
 				return
 			}
 
@@ -315,18 +335,20 @@ function PortfolioNotifications({
 			dialogStore.hide()
 		} catch (error) {
 			console.error('Error saving notification preferences:', error)
+			toast.error('Failed to save notification preferences')
 		}
 	}
 
 	const handleDisableNotifications = async () => {
-		try {
-			if (window.confirm('Are you sure you want to disable email notifications?')) {
-				await deletePreferences()
-				dialogStore.hide()
-			}
-		} catch (error) {
-			console.error('Error disabling notifications:', error)
-		}
+		updateStatus({ portfolioName: selectedPortfolio, active: false }).then(() => {
+			dialogStore.hide()
+		})
+	}
+
+	const handleDeleteNotifications = async () => {
+		deletePreferences({ portfolioName: selectedPortfolio }).then(() => {
+			dialogStore.hide()
+		})
 	}
 
 	return (
@@ -335,14 +357,24 @@ function PortfolioNotifications({
 				<div className="mb-3">
 					<h2 className="mb-1 text-lg font-medium">Email Notifications</h2>
 					<p className="text-sm text-(--text-secondary)">
-						{preferences && preferences.active ? (
-							<span className="flex items-center gap-2">
-								<Icon name="check-circle" height={16} width={16} className="text-green-600" />
-								<span>
-									Weekly email notifications are <strong className="text-green-600">active</strong> for "
-									{selectedPortfolio}" portfolio
+						{preferences ? (
+							preferences.active ? (
+								<span className="flex items-center gap-2">
+									<Icon name="check-circle" height={16} width={16} className="text-green-600" />
+									<span>
+										Weekly email notifications are <strong className="text-green-600">active</strong> for "
+										{selectedPortfolio}" portfolio
+									</span>
 								</span>
-							</span>
+							) : (
+								<span className="flex items-center gap-2">
+									<Icon name="pause" height={16} width={16} className="text-(--text-secondary)" />
+									<span>
+										Weekly email notifications are <strong className="text-(--text-secondary)">disabled</strong> for "
+										{selectedPortfolio}" portfolio
+									</span>
+								</span>
+							)
 						) : (
 							<span>Set up weekly email notifications for the "{selectedPortfolio}" portfolio</span>
 						)}
@@ -388,15 +420,40 @@ function PortfolioNotifications({
 						<span>{preferences ? 'Update settings' : 'Set up notifications'}</span>
 					</button>
 
-					{preferences && preferences.active && (
-						<button
-							onClick={handleDisableNotifications}
-							disabled={isDeleting}
-							className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
-						>
-							<Icon name="x" height={16} width={16} />
-							<span>{isDeleting ? 'Disabling...' : 'Disable'}</span>
-						</button>
+					{preferences && (
+						<>
+							{preferences.active && (
+								<button
+									onClick={handleDisableNotifications}
+									disabled={isUpdatingStatus}
+									className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
+									title="Temporarily disable notifications"
+								>
+									<Icon name="pause" height={16} width={16} />
+									<span>{isUpdatingStatus ? 'Disabling...' : 'Disable'}</span>
+								</button>
+							)}
+							{!preferences.active && (
+								<button
+									onClick={() => updateStatus({ portfolioName: selectedPortfolio, active: true })}
+									disabled={isUpdatingStatus}
+									className="flex items-center gap-2 rounded-md border border-green-200 px-3 py-2 text-sm text-green-600 transition-colors hover:bg-green-50 focus-visible:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 dark:focus-visible:bg-green-900/20"
+									title="Re-enable notifications"
+								>
+									<Icon name="check-circle" height={16} width={16} />
+									<span>{isUpdatingStatus ? 'Enabling...' : 'Enable'}</span>
+								</button>
+							)}
+							<button
+								onClick={handleDeleteNotifications}
+								disabled={isDeleting}
+								className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+								title="Permanently delete notification preferences"
+							>
+								<Icon name="trash-2" height={16} width={16} />
+								<span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
+							</button>
+						</>
 					)}
 				</div>
 			</div>
@@ -411,12 +468,18 @@ function PortfolioNotifications({
 						<div>
 							<h2 className="text-xl font-semibold text-(--text-primary)">
 								Email Notification Settings
-								{preferences && preferences.active && (
-									<span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-normal text-green-700 dark:bg-green-900/30 dark:text-green-400">
-										<Icon name="check" height={12} width={12} />
-										Active
-									</span>
-								)}
+								{preferences &&
+									(preferences.active ? (
+										<span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-normal text-green-700 dark:bg-green-900/30 dark:text-green-400">
+											<Icon name="check" height={12} width={12} />
+											Active
+										</span>
+									) : (
+										<span className="ml-2 inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal text-gray-700 dark:bg-gray-900/30 dark:text-gray-400">
+											<Icon name="pause" height={12} width={12} />
+											Disabled
+										</span>
+									))}
 							</h2>
 							<p className="mt-1 text-sm text-(--text-secondary)">
 								Configure weekly email alerts for "{selectedPortfolio}" portfolio
@@ -440,8 +503,8 @@ function PortfolioNotifications({
 							{filteredProtocols.length > 0 ? (
 								<>
 									<p className="mb-4 text-sm text-(--text-secondary)">
-										Select which metrics you want to receive notifications for across your {filteredProtocols.length}{' '}
-										watchlisted protocol{filteredProtocols.length === 1 ? '' : 's'}
+										Select which metrics you want to receive notifications for your {filteredProtocols.length}{' '}
+										watchlisted protocol{filteredProtocols.length === 1 ? '' : 's'}.
 									</p>
 									<div className="flex max-h-60 flex-wrap gap-3 overflow-y-auto">
 										{protocolMetrics.map((metric) => (
@@ -477,8 +540,8 @@ function PortfolioNotifications({
 							{filteredChains.length > 0 ? (
 								<>
 									<p className="mb-4 text-sm text-(--text-secondary)">
-										Select which metrics you want to receive notifications for across your {filteredChains.length}{' '}
-										watchlisted chain{filteredChains.length === 1 ? '' : 's'}
+										Select which metrics you want to receive notifications for your {filteredChains.length} watchlisted
+										chain{filteredChains.length === 1 ? '' : 's'}.
 									</p>
 									<div className="flex max-h-60 flex-wrap gap-3 overflow-y-auto">
 										{chainMetrics.map((metric) => (
@@ -506,16 +569,29 @@ function PortfolioNotifications({
 
 						<div className="flex items-center justify-between border-t border-(--cards-border) bg-(--bg-secondary) p-6">
 							<div className="flex items-center gap-3">
-								{preferences && preferences.active ? (
-									<button
-										type="button"
-										onClick={handleDisableNotifications}
-										disabled={isDeleting}
-										className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
-									>
-										<Icon name="trash-2" height={14} width={14} />
-										<span>{isDeleting ? 'Disabling...' : 'Disable Notifications'}</span>
-									</button>
+								{preferences ? (
+									<>
+										{preferences.active && (
+											<button
+												type="button"
+												onClick={handleDisableNotifications}
+												disabled={isUpdatingStatus}
+												className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
+											>
+												<Icon name="pause" height={14} width={14} />
+												<span>{isUpdatingStatus ? 'Disabling...' : 'Disable Notifications'}</span>
+											</button>
+										)}
+										<button
+											type="button"
+											onClick={handleDeleteNotifications}
+											disabled={isDeleting}
+											className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
+										>
+											<Icon name="trash-2" height={14} width={14} />
+											<span>{isDeleting ? 'Deleting...' : 'Delete Permanently'}</span>
+										</button>
+									</>
 								) : (
 									<div className="text-sm text-(--text-secondary)">
 										Configure notification settings for your portfolio
@@ -546,7 +622,7 @@ type PortfolioSelectionProps = {
 	selectedPortfolio: string
 	setSelectedPortfolio: (value: string) => void
 	addPortfolio: (name: string) => void
-	removePortfolio: (name: string) => void
+	removePortfolio: (name: string) => void | Promise<void>
 }
 
 function PortfolioSelection({

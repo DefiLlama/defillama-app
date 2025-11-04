@@ -38,7 +38,7 @@ export interface SaveNotificationPreferencesRequest {
 	frequency: 'daily' | 'weekly'
 }
 
-export const useEmailNotifications = () => {
+export const useEmailNotifications = (portfolioName?: string) => {
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
 	const isAuthenticated = !!pb.authStore.token
@@ -49,14 +49,17 @@ export const useEmailNotifications = () => {
 		isFetching,
 		error
 	} = useQuery<NotificationPreference | null>({
-		queryKey: ['notification-preferences', pb.authStore.record?.id],
+		queryKey: ['notification-preferences', pb.authStore.record?.id, portfolioName],
 		queryFn: async () => {
-			if (!isAuthenticated) {
+			if (!isAuthenticated || !portfolioName) {
 				return null
 			}
 
 			try {
-				const response = await authorizedFetch(`${AUTH_SERVER}/watchlist/preferences`, {
+				const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
+				url.searchParams.append('portfolioName', portfolioName)
+
+				const response = await authorizedFetch(url.toString(), {
 					method: 'GET'
 				})
 
@@ -70,17 +73,13 @@ export const useEmailNotifications = () => {
 				const data = await response.json()
 
 				console.log('API response:', data)
-				// The API returns preferences as an array, get the first item
-				if (data.preferences && Array.isArray(data.preferences) && data.preferences.length > 0) {
-					return data.preferences[0]
-				}
-				return null
+				return data.preferences || null
 			} catch (error) {
 				console.error('Error fetching notification preferences:', error)
 				return null
 			}
 		},
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && !!portfolioName,
 		staleTime: 1000 * 60 * 5, // 5 minutes
 		retry: false
 	})
@@ -109,14 +108,10 @@ export const useEmailNotifications = () => {
 			}
 
 			const data = await response.json()
-			// The API returns preferences as an array, get the first item
-			if (data.preferences && Array.isArray(data.preferences) && data.preferences.length > 0) {
-				return data.preferences[0]
-			}
 			return data.preferences
 		},
-		onSuccess: (data) => {
-			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id], data)
+		onSuccess: (data, variables) => {
+			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id, variables.portfolioName], data)
 			toast.success('Notification preferences saved successfully')
 		},
 		onError: (error) => {
@@ -125,14 +120,52 @@ export const useEmailNotifications = () => {
 		}
 	})
 
-	const deletePreferences = useMutation<void, Error>({
-		mutationFn: async () => {
+	const updateStatus = useMutation<void, Error, { portfolioName: string; active: boolean }>({
+		mutationFn: async ({ portfolioName: portfolioNameToUpdate, active }) => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
 			}
 
 			const response = await authorizedFetch(
-				`${AUTH_SERVER}/watchlist/preferences`,
+				`${AUTH_SERVER}/watchlist/status`,
+				{
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ portfolioName: portfolioNameToUpdate, active })
+				},
+				true
+			)
+
+			if (!response.ok) {
+				const error = await response.json()
+				throw new Error(error.message || 'Failed to update notification status')
+			}
+		},
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({
+				queryKey: ['notification-preferences', pb.authStore.record?.id, variables.portfolioName]
+			})
+			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
+		},
+		onError: (error) => {
+			console.error('Error updating notification status:', error)
+			toast.error(error.message || 'Failed to update notification status')
+		}
+	})
+
+	const deletePreferences = useMutation<void, Error, { portfolioName: string }>({
+		mutationFn: async ({ portfolioName: portfolioNameToDelete }) => {
+			if (!isAuthenticated) {
+				throw new Error('Not authenticated')
+			}
+
+			const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
+			url.searchParams.append('portfolioName', portfolioNameToDelete)
+
+			const response = await authorizedFetch(
+				url.toString(),
 				{
 					method: 'DELETE'
 				},
@@ -144,13 +177,13 @@ export const useEmailNotifications = () => {
 				throw new Error(error.message || 'Failed to delete notification preferences')
 			}
 		},
-		onSuccess: () => {
-			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id], null)
-			toast.success('Notification preferences disabled')
+		onSuccess: (_, variables) => {
+			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id, variables.portfolioName], null)
+			toast.success('Notification preferences deleted')
 		},
 		onError: (error) => {
 			console.error('Error deleting notification preferences:', error)
-			toast.error(error.message || 'Failed to disable notifications')
+			toast.error(error.message || 'Failed to delete notifications')
 		}
 	})
 
@@ -161,6 +194,8 @@ export const useEmailNotifications = () => {
 		error,
 		savePreferences: savePreferences.mutateAsync,
 		isSaving: savePreferences.isPending,
+		updateStatus: updateStatus.mutateAsync,
+		isUpdatingStatus: updateStatus.isPending,
 		deletePreferences: deletePreferences.mutateAsync,
 		isDeleting: deletePreferences.isPending
 	}

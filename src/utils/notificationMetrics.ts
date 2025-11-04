@@ -23,15 +23,15 @@ export const mapAPIMetricToUI = (apiMetric: MetricType): string => {
 	const mapping: Record<MetricType, string> = {
 		tvl: 'tvl',
 		volume: 'volume',
-		perps: 'perp_volume',
+		perps: 'perp volume',
 		fees: 'fees',
 		revenue: 'revenue',
 		mcap: 'mcap',
 		price: 'price',
 		fdv: 'fdv',
-		ofdv: 'outstanding_fdv',
+		ofdv: 'outstanding fdv',
 		stablecoins: 'stablecoins',
-		'holders-revenue': 'revenue'
+		'holders-revenue': 'holders revenue'
 	}
 
 	return mapping[apiMetric] || apiMetric
