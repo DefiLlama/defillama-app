@@ -55,6 +55,156 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 	return result
 }
 
+function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete }) {
+	const usdInflows: Record<string, number> = {}
+	const tokenInflows: Record<string, any> = {}
+	const tokensUniqueSet = new Set(tokensUnique)
+
+	let zeroUsdInfows = 0
+	let zeroTokenInfows = 0
+
+	for (const section in chainTvls) {
+		const name = section.toLowerCase()
+
+		// skip sum of keys like ethereum-staking, arbitrum-vesting
+		if (name.includes('-')) continue
+
+		const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
+		if (!isEnabled) continue
+
+		// Index per-date maps
+		const tokensInUsdByDate: Record<string, Record<string, number>> = {}
+		const tokensByDate: Record<string, Record<string, number>> = {}
+		const dateSet = new Set<string>()
+
+		for (const { date, tokens } of chainTvls[section]?.tokensInUsd ?? []) {
+			tokensInUsdByDate[date] = tokens
+			dateSet.add(String(date))
+		}
+		for (const { date, tokens } of chainTvls[section]?.tokens ?? []) {
+			tokensByDate[date] = tokens
+			dateSet.add(String(date))
+		}
+
+		const dates: string[] = Array.from(dateSet).sort((a, b) => Number(a) - Number(b))
+
+		for (let i = 1; i < dates.length; i++) {
+			const currentDate = dates[i]
+			const prevDate = dates[i - 1]
+
+			const currentTokens = tokensByDate[currentDate] || {}
+			const oldTokens = tokensByDate[prevDate] || {}
+			const currentUsdTokens = tokensInUsdByDate[currentDate] || {}
+			const oldUsdTokens = tokensInUsdByDate[prevDate] || {}
+
+			// Build price map using larger totalUSD preference
+			const priceMap: Record<string, { value: number; totalUSD: number }> = {}
+			for (const token in currentUsdTokens) {
+				const amount = currentTokens[token]
+				const usd = currentUsdTokens[token]
+				if (amount && amount > 0) {
+					priceMap[token] = { value: usd / amount, totalUSD: usd }
+				}
+			}
+			for (const token in oldUsdTokens) {
+				const amount = oldTokens[token]
+				const usd = oldUsdTokens[token]
+				if (amount && amount > 0) {
+					if (!priceMap[token] || priceMap[token].totalUSD < usd) {
+						priceMap[token] = { value: usd / amount, totalUSD: usd }
+					}
+				}
+			}
+
+			let dayDifference = 0
+			let tokenDayDifference: Record<string, number> = {}
+
+			// Iterate all tokens that changed
+			const allTokens = new Set([...Object.keys(currentTokens), ...Object.keys(oldTokens)])
+
+			for (const token of allTokens) {
+				const currentAmount = currentTokens[token] || 0
+				const prevAmount = oldTokens[token] || 0
+				const diff = currentAmount - prevAmount
+				if (diff === 0) continue
+
+				let priceInfo = priceMap[token]
+				if (!priceInfo) {
+					// Fallback price from whichever side has info
+					if (currentAmount > 0 && currentUsdTokens[token] != null) {
+						priceInfo = { value: currentUsdTokens[token] / currentAmount, totalUSD: currentUsdTokens[token] }
+					} else if (prevAmount > 0 && oldUsdTokens[token] != null) {
+						priceInfo = { value: oldUsdTokens[token] / prevAmount, totalUSD: oldUsdTokens[token] }
+					}
+				}
+
+				if (!priceInfo || !isFinite(priceInfo.value)) continue
+
+				const diffUsd = diff * priceInfo.value
+				// Ignore outliers similar to computeInflowsData
+				if (Math.abs(diffUsd) > 2 * (priceInfo.totalUSD || 0)) continue
+
+				dayDifference += diffUsd
+
+				// Track token inflows only for tokens in tokensUnique
+				if (tokensUniqueSet.has(token)) {
+					tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
+				}
+			}
+
+			if (dayDifference === 0) {
+				zeroUsdInfows++
+			}
+
+			let hasTokenDifference = false
+			for (const _ in tokenDayDifference) {
+				hasTokenDifference = true
+				break
+			}
+			if (!hasTokenDifference) {
+				zeroTokenInfows++
+			}
+
+			usdInflows[currentDate] = (usdInflows[currentDate] || 0) + dayDifference
+
+			if (!tokenInflows[currentDate]) {
+				tokenInflows[currentDate] = { date: Number(currentDate) }
+			}
+			// Merge existing values accumulated from other chains before writing
+			for (const token in tokenInflows[currentDate]) {
+				if (token !== 'date') {
+					tokenDayDifference[token] = (tokenDayDifference[token] || 0) + tokenInflows[currentDate][token]
+				}
+			}
+			for (const token in tokenDayDifference) {
+				tokenInflows[currentDate][token] = tokenDayDifference[token]
+			}
+		}
+	}
+
+	for (const date of datesToDelete) {
+		delete usdInflows[date]
+		delete tokenInflows[date]
+	}
+
+	const usdFlows: Array<[string, number]> = []
+	for (const date in usdInflows) {
+		usdFlows.push([date, usdInflows[date]])
+	}
+	usdFlows.sort((a, b) => Number(a[0]) - Number(b[0]))
+
+	const tokenFlows = []
+	for (const date in tokenInflows) {
+		tokenFlows.push(tokenInflows[date])
+	}
+	tokenFlows.sort((a, b) => a.date - b.date)
+
+	return {
+		usdInflows: (zeroUsdInfows === usdFlows.length ? null : usdFlows) as Array<[string, number]> | null,
+		tokenInflows: zeroTokenInfows === tokenFlows.length ? null : tokenFlows
+	}
+}
+
 // build unique tokens based on top 10 tokens in usd value on each day
 // also includes tokens with significant flows (outflows/inflows > $100M)
 function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
@@ -217,127 +367,6 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 	}
 
 	return Array.from(tokenSet)
-}
-
-function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete }) {
-	const usdInflows = {}
-	const tokenInflows = {}
-
-	const tokensUniqueSet = new Set(tokensUnique)
-
-	let zeroUsdInfows = 0
-	let zeroTokenInfows = 0
-
-	for (const section in chainTvls) {
-		const name = section.toLowerCase()
-
-		// skip sum of keys like ethereum-staking, arbitrum-vesting
-		if (!name.includes('-')) {
-			// sum key with staking, ethereum, arbitrum etc
-			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
-			if (isEnabled) {
-				const tokensInUsd: Record<string, Record<string, number>> = {}
-				const tokensData: Record<string, Record<string, number>> = {}
-
-				const tokensInUsdArray = chainTvls[section]?.tokensInUsd ?? []
-				for (const { date, tokens } of tokensInUsdArray) {
-					tokensInUsd[date] = tokens
-				}
-
-				const tokensArray = chainTvls[section]?.tokens ?? []
-				for (const { date, tokens } of tokensArray) {
-					tokensData[date] = tokens
-				}
-
-				const tokens = tokensData
-
-				let prevDate = null
-
-				for (const date in tokensInUsd) {
-					let dayDifference = 0
-					let tokenDayDifference = {}
-
-					for (const token in tokensInUsd[date]) {
-						const price = tokens[date]?.[token]
-							? Number((tokensInUsd[date][token] / tokens[date][token]).toFixed(4))
-							: null
-
-						const diff =
-							tokens[date]?.[token] && prevDate && tokens[prevDate]?.[token]
-								? tokens[date][token] - tokens[prevDate][token]
-								: null
-
-						const diffUsd = price && diff ? price * diff : null
-
-						if (diffUsd && !Number.isNaN(diffUsd) && isFinite(price)) {
-							// Show only top 10 inflow tokens of the day, add remaining inlfows under "Others" category
-							if (tokensUniqueSet.has(token)) {
-								tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
-							} else {
-								tokenDayDifference['Others'] = (tokenDayDifference['Others'] || 0) + diffUsd
-							}
-
-							dayDifference += diffUsd
-						}
-					}
-
-					if (dayDifference === 0) {
-						zeroUsdInfows++
-					}
-
-					let hasTokenDifference = false
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					for (const _ in tokenDayDifference) {
-						hasTokenDifference = true
-						break
-					}
-					if (!hasTokenDifference) {
-						zeroTokenInfows++
-					}
-
-					usdInflows[date] = (usdInflows[date] || 0) + dayDifference
-
-					if (!tokenInflows[date]) {
-						tokenInflows[date] = { date }
-					}
-
-					for (const token in tokenInflows[date]) {
-						if (token !== 'date') {
-							tokenDayDifference[token] = (tokenDayDifference[token] || 0) + tokenInflows[date][token]
-						}
-					}
-
-					for (const token in tokenDayDifference) {
-						tokenInflows[date][token] = tokenDayDifference[token]
-					}
-
-					prevDate = date
-				}
-			}
-		}
-	}
-
-	for (const date of datesToDelete) {
-		delete usdInflows[date]
-		delete tokenInflows[date]
-	}
-
-	const usdFlows: Array<[string, number]> = []
-	for (const date in usdInflows) {
-		usdFlows.push([date, usdInflows[date]])
-	}
-	usdFlows.sort((a, b) => Number(a[0]) - Number(b[0]))
-
-	const tokenFlows = []
-	for (const date in tokenInflows) {
-		tokenFlows.push(tokenInflows[date])
-	}
-	tokenFlows.sort((a, b) => a.date - b.date)
-
-	return {
-		usdInflows: (zeroUsdInfows === usdFlows.length ? null : usdFlows) as Array<[string, number]> | null,
-		tokenInflows: zeroTokenInfows === tokenFlows.length ? null : tokenFlows
-	}
 }
 
 function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
