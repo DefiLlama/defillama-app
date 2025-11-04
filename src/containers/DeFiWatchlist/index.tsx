@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { IFormattedProtocol } from '~/api/types'
@@ -6,11 +6,11 @@ import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { SubscribeProModal as SubscribeModal, SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
+import { SubscribeProModal as SubscribeModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
-import { formatDataWithExtraTvls, formatProtocolsList, formatProtocolsList2 } from '~/hooks/data/defi'
+import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useSubscribe } from '~/hooks/useSubscribe'
@@ -99,7 +99,6 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		toRemove.forEach((name) => removeChain(name))
 	}
 
-	// Show loading state while watchlist is syncing from server
 	if (isLoadingWatchlist) {
 		return (
 			<>
@@ -225,7 +224,6 @@ function PortfolioNotifications({
 }) {
 	const dialogStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
-	const router = useRouter()
 	const { subscription } = useSubscribe()
 	const { preferences, isLoading, savePreferences, isSaving, deletePreferences, isDeleting } = useEmailNotifications()
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
@@ -244,48 +242,45 @@ function PortfolioNotifications({
 		} else {
 			dialogStore.toggle()
 
-			setTimeout(() => {
-				if (preferences?.settings) {
-					// Load protocol metrics
-					if (preferences.settings.protocols) {
-						const allProtocolEntries = Object.entries(preferences.settings.protocols)
-						if (allProtocolEntries.length > 0) {
-							const [protocolId, firstMetrics] = allProtocolEntries[0]
+			if (preferences?.settings) {
+				// Load protocol metrics
+				if (preferences.settings.protocols) {
+					const allProtocolEntries = Object.entries(preferences.settings.protocols)
+					if (allProtocolEntries.length > 0) {
+						const [protocolId, firstMetrics] = allProtocolEntries[0]
 
-							if (Array.isArray(firstMetrics)) {
-								const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
-								formStore.setValue('protocolMetrics', uiMetrics)
-							}
+						if (Array.isArray(firstMetrics)) {
+							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
+							formStore.setValue('protocolMetrics', uiMetrics)
 						}
-					} else {
-						formStore.setValue('protocolMetrics', [])
-					}
-
-					// Load chain metrics
-					if (preferences.settings.chains) {
-						const allChainEntries = Object.entries(preferences.settings.chains)
-						if (allChainEntries.length > 0) {
-							const [chainName, firstMetrics] = allChainEntries[0]
-
-							if (Array.isArray(firstMetrics)) {
-								const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
-								formStore.setValue('chainMetrics', uiMetrics)
-							}
-						}
-					} else {
-						formStore.setValue('chainMetrics', [])
 					}
 				} else {
 					formStore.setValue('protocolMetrics', [])
+				}
+
+				// Load chain metrics
+				if (preferences.settings.chains) {
+					const allChainEntries = Object.entries(preferences.settings.chains)
+					if (allChainEntries.length > 0) {
+						const [chainName, firstMetrics] = allChainEntries[0]
+
+						if (Array.isArray(firstMetrics)) {
+							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
+							formStore.setValue('chainMetrics', uiMetrics)
+						}
+					}
+				} else {
 					formStore.setValue('chainMetrics', [])
 				}
-			}, 100)
+			} else {
+				formStore.setValue('protocolMetrics', [])
+				formStore.setValue('chainMetrics', [])
+			}
 		}
 	}
 
 	const handleFormSubmit = async () => {
 		try {
-			// Get form values directly from formStore
 			const values = formStore.getState().values
 			const { protocolMetrics, chainMetrics } = values
 
@@ -294,7 +289,6 @@ function PortfolioNotifications({
 			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
 				settings.protocols = {}
 				filteredProtocols.forEach((protocol) => {
-					// Use defillamaId if available, otherwise use the protocol name
 					const identifier = protocol.defillamaId || protocol.name
 					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
 				})
