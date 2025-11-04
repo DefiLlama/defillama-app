@@ -79,7 +79,6 @@ export function StripeCheckoutModal({
 				throw new Error(data.message || 'Failed to create subscription')
 			}
 
-			// Check if this is an upgrade
 			if (data.isUpgrade) {
 				setIsUpgrade(true)
 				setSubscriptionId(data.subscriptionId)
@@ -92,14 +91,12 @@ export function StripeCheckoutModal({
 					return null
 				}
 
-				// Payment required - set client secret and pricing info
 				if (!data.clientSecret) {
 					throw new Error('No client secret returned for upgrade payment')
 				}
 
 				setUpgradeClientSecret(data.clientSecret)
 
-				// Set pricing information if available
 				if (data.amount !== undefined && data.currency) {
 					setUpgradePricing({
 						amount: data.amount,
@@ -109,10 +106,9 @@ export function StripeCheckoutModal({
 					})
 				}
 
-				return null // Don't use embedded checkout for upgrades
+				return null
 			}
 
-			// For new subscriptions, client secret is required
 			if (!data.clientSecret) {
 				throw new Error('No client secret returned from server')
 			}
@@ -172,7 +168,7 @@ export function StripeCheckoutModal({
 					{error && (
 						<div className="border-b border-[#39393E] bg-red-500/10 p-4">
 							<div className="flex items-center gap-2 text-red-400">
-								<Icon name="alert-circle" height={20} width={20} />
+								<Icon name="alert-triangle" height={20} width={20} />
 								<p className="text-sm">{error}</p>
 							</div>
 						</div>
@@ -247,7 +243,6 @@ export function StripeCheckoutModal({
 		)
 	}
 
-	// Render new subscription checkout
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
 			<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
@@ -261,7 +256,7 @@ export function StripeCheckoutModal({
 				{error && (
 					<div className="border-b border-[#39393E] bg-red-500/10 p-4">
 						<div className="flex items-center gap-2 text-red-400">
-							<Icon name="alert-circle" height={20} width={20} />
+							<Icon name="alert-triangle" height={20} width={20} />
 							<p className="text-sm">{error}</p>
 						</div>
 					</div>
@@ -321,7 +316,6 @@ function UpgradePaymentForm({
 			}
 
 			if (paymentIntent?.status === 'succeeded') {
-				// Call backend to confirm upgrade
 				const response = await authorizedFetch(
 					`${AUTH_SERVER}/subscription/verify-upgrade`,
 					{
