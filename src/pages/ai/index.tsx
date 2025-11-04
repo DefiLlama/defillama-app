@@ -115,6 +115,38 @@ export default function LlamaAIGetStarted() {
 						<video src="/assets/llamaai.mp4" className="z-10 h-full w-full rounded-lg object-cover" controls />
 					</div>
 				</div>
+				<div className="mx-auto mb-15 w-full max-w-5xl">
+					<h2 className="text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">Why LlamaAI</h2>
+					<p className="mt-1 mb-4 text-center text-base text-[#666] dark:text-[#919296]">
+						Three reasons it changes how you work with DeFi data.
+					</p>
+
+					<div className="grid gap-3 md:grid-cols-3">
+						<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 dark:border-[#39393E] dark:bg-[#222429]">
+							<h3 className="mb-2 text-lg font-semibold text-black dark:text-white">Explore DeFi Conversationally</h3>
+							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
+								Use natural language to navigate DeFiLlama’s dataset with flexibility. Combine metrics, compare chains
+								and protocols, and surface insights that aren’t easily discoverable on dashboards.
+							</p>
+						</div>
+
+						<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 dark:border-[#39393E] dark:bg-[#222429]">
+							<h3 className="mb-2 text-lg font-semibold text-black dark:text-white">Automatic Chart Generation</h3>
+							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
+								LlamaAI automatically creates charts that best fit your query. Each answer includes structured insights,
+								visual context, and downloadable data, giving you clear results ready to explore or refine.
+							</p>
+						</div>
+
+						<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 dark:border-[#39393E] dark:bg-[#222429]">
+							<h3 className="mb-2 text-lg font-semibold text-black dark:text-white">Integrated Workflow</h3>
+							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
+								LlamaAI brings your analysis into one place, pulling data from across DeFiLlama and handling the heavy
+								lifting of data collection so you can move from question to insight in a fraction of the time.
+							</p>
+						</div>
+					</div>
+				</div>
 				<div className="mx-auto mb-15 flex w-full max-w-5xl flex-col gap-4">
 					<h2 className="text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
 						See what’s possible with LlamaAI
