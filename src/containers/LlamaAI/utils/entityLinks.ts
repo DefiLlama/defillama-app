@@ -8,7 +8,7 @@ export function getEntityUrl(type: string, slug: string): string {
 		case 'pool':
 			return `/yields/pool/${slug}`
 		case 'category':
-			return `/category/${slug}`
+			return `/protocols/${slug}`
 		default:
 			return `/${type}/${slug}`
 	}
