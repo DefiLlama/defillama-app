@@ -1065,7 +1065,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 										Failed to restore session,{' '}
-										<button onClick={handleNewChat} data-umami-event="llamaai-new-chat" className="text-(--link-text) underline">
+										<button
+											onClick={handleNewChat}
+											data-umami-event="llamaai-new-chat"
+											className="text-(--link-text) underline"
+										>
 											Start a new chat
 										</button>
 									</p>
@@ -1726,7 +1730,7 @@ const PromptResponse = ({
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
-							{progressStage && <span>({progressStage})</span>}
+							{/* {progressStage && <span>({progressStage})</span>} */}
 						</span>
 					</p>
 				) : (
