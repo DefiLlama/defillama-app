@@ -37,7 +37,7 @@ export function SubscribeLayout2({ children }) {
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />
-			<div className="col-span-full flex min-h-screen w-full flex-col bg-white text-white">
+			<div className="col-span-full flex min-h-screen w-full flex-col bg-[oklch(0.148_0.004_228.8)] text-white">
 				<header className="sticky top-0 z-50 border-b border-[#39393E]/40 bg-[#13141a]/80 backdrop-blur-md">
 					<div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 xl:max-w-7xl 2xl:max-w-[1440px]">
 						<BasicLink href="/" className="flex items-center gap-3">
