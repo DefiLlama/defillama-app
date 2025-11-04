@@ -26,7 +26,7 @@ export default function Account() {
 		const verifySession = async () => {
 			try {
 				const response = await authorizedFetch(
-					`${AUTH_SERVER}/subscription/verify-session`,
+					`${AUTH_SERVER}/subscription/verify-subscription`,
 					{
 						method: 'POST',
 						headers: {

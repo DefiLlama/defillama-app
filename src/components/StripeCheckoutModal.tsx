@@ -323,7 +323,7 @@ function UpgradePaymentForm({
 			if (paymentIntent?.status === 'succeeded') {
 				// Call backend to confirm upgrade
 				const response = await authorizedFetch(
-					`${AUTH_SERVER}/subscription/confirm-upgrade`,
+					`${AUTH_SERVER}/subscription/verify-upgrade`,
 					{
 						method: 'POST',
 						headers: {
