@@ -114,11 +114,9 @@ export default function LlamaAIGetStarted() {
 					</div>
 				</div>
 				<div className="mx-auto mb-15 w-full max-w-5xl">
-					<h2 className="text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">Why LlamaAI</h2>
-					<p className="mt-1 mb-4 text-center text-base text-[#666] dark:text-[#919296]">
-						Three reasons it changes how you work with DeFi data.
-					</p>
-
+					<h2 className="mb-5 text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">
+						Why LlamaAI
+					</h2>
 					<div className="grid gap-3 md:grid-cols-3">
 						<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 dark:border-[#39393E] dark:bg-[#222429]">
 							<h3 className="mb-2 text-lg font-semibold text-black dark:text-white">Explore DeFi Conversationally</h3>
