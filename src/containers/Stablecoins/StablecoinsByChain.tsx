@@ -53,6 +53,10 @@ export function StablecoinsByChain({
 	})
 
 	const peggedAssets = React.useMemo(() => {
+		const attributeOptionsMap = new Map(stablecoinAttributeOptions.map((option) => [option.key, option]))
+		const pegTypeOptionsMap = new Map(stablecoinPegTypeOptions.map((option) => [option.key, option]))
+		const backingOptionsMap = new Map(stablecoinBackingOptions.map((option) => [option.key, option]))
+
 		let chartDataIndexes = []
 		const peggedAssets = filteredPeggedAssets.reduce((acc, curr) => {
 			let toFilter = false
@@ -60,7 +64,7 @@ export function StablecoinsByChain({
 			// These together filter depegged. Need to refactor once any other attributes are added.
 			toFilter = Math.abs(curr.pegDeviation) < 10 || !(typeof curr.pegDeviation === 'number')
 			selectedAttributes.forEach((attribute) => {
-				const attributeOption = stablecoinAttributeOptions.find((o) => o.key === attribute)
+				const attributeOption = attributeOptionsMap.get(attribute)
 
 				if (attributeOption) {
 					toFilter = attributeOption.filterFn(curr)
@@ -71,7 +75,7 @@ export function StablecoinsByChain({
 				toFilter &&
 				selectedPegTypes
 					.map((pegtype) => {
-						const pegTypeOption = stablecoinPegTypeOptions.find((o) => o.key === pegtype)
+						const pegTypeOption = pegTypeOptionsMap.get(pegtype)
 						return pegTypeOption ? pegTypeOption.filterFn(curr) : false
 					})
 					.some((bool) => bool)
@@ -80,7 +84,7 @@ export function StablecoinsByChain({
 				toFilter &&
 				selectedBackings
 					.map((backing) => {
-						const backingOption = stablecoinBackingOptions.find((o) => o.key === backing)
+						const backingOption = backingOptionsMap.get(backing)
 						return backingOption ? backingOption.filterFn(curr) : false
 					})
 					.some((bool) => bool)
