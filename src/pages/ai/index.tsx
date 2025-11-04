@@ -139,7 +139,7 @@ export default function LlamaAIGetStarted() {
 						<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 dark:border-[#39393E] dark:bg-[#222429]">
 							<h3 className="mb-2 text-lg font-semibold text-black dark:text-white">Integrated Workflow</h3>
 							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
-								LlamaAI brings your analysis into one place, pulling data from across DeFiLlama and handling the heavy
+								LlamaAI brings your analysis into one place, pulling data from across DefiLlama and handling the heavy
 								lifting of data collection so you can move from question to insight in a fraction of the time.
 							</p>
 						</div>
@@ -268,6 +268,40 @@ export default function LlamaAIGetStarted() {
 							</a>
 						</p>
 					</FAQ>
+				</div>
+				<div className="mx-auto mt-10 mb-20 w-full max-w-5xl">
+					<div className="rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 text-center dark:border-[#39393E] dark:bg-[#222429]">
+						<h3 className="text-xl font-extrabold text-black dark:text-white">Ready to try LlamaAI?</h3>
+						<p className="mx-auto mt-2 max-w-[620px] text-base leading-6 text-[#666] dark:text-[#919296]">
+							Ask in natural language to explore, chart, and analyze DefiLlama data in one place.
+						</p>
+
+						<div className="mt-5 flex items-center justify-center">
+							{subscription?.status === 'active' ? (
+								<BasicLink
+									href="/ai/chat"
+									data-umami-event="llamaai-landing-cta-bottom-subscribed"
+									className="llamaai-glow relative flex items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-5 py-2.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
+								>
+									<svg className="h-4 w-4 shrink-0">
+										<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+									</svg>
+									<span className="whitespace-nowrap">Open LlamaAI</span>
+								</BasicLink>
+							) : (
+								<button
+									onClick={() => setShowSubscribeModal(true)}
+									data-umami-event="llamaai-landing-cta-bottom-unsubscribed"
+									className="llamaai-glow relative flex items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-5 py-2.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
+								>
+									<svg className="h-4 w-4 shrink-0">
+										<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+									</svg>
+									<span className="whitespace-nowrap">Try LlamaAI</span>
+								</button>
+							)}
+						</div>
+					</div>
 				</div>
 			</div>
 
