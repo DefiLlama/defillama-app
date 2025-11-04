@@ -39,14 +39,6 @@ export function Settings({ metricFilters = [] }: { metricFilters?: { name: strin
 						<Ariakit.SelectItemCheck />
 					</Ariakit.SelectItem>
 				))}
-				<Ariakit.SelectItem
-					value={DARK_MODE}
-					onClick={() => toggleDarkMode()}
-					className="flex items-center justify-between gap-3 px-3 py-2"
-				>
-					Dark Mode
-					<Ariakit.SelectItemCheck checked={darkMode} />
-				</Ariakit.SelectItem>
 			</Ariakit.SelectPopover>
 		</Ariakit.SelectProvider>
 	)

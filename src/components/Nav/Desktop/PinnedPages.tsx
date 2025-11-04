@@ -48,10 +48,10 @@ export const PinnedPages = React.memo(function PinnedPages({
 	return (
 		<div className="group/pinned flex flex-col">
 			<div
-				className="group flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
+				className="group flex items-center justify-between gap-3 border-t border-black/20 py-1 pt-1.5 pl-3 text-xs opacity-75 dark:border-white/20"
 				data-reordering={isReordering}
 			>
-				<span>Pinned Pages</span>
+				<span className="text-xs font-bold tracking-wider text-gray-600 uppercase">Pinned Pages</span>
 				{pinnedPages.length > 1 ? (
 					<button
 						type="button"
