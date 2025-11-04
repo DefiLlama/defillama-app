@@ -132,10 +132,12 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 						setSelectedChainPortfolio(name)
 					}}
 					removePortfolio={(name) => {
-						deleteNotificationPreferences({ portfolioName: name }).then(() => {
-							removePortfolio(name)
-							setSelectedChainPortfolio(DEFAULT_PORTFOLIO_NAME)
-						})
+						deleteNotificationPreferences({ portfolioName: name })
+							.catch(() => {})
+							.finally(() => {
+								removePortfolio(name)
+								setSelectedChainPortfolio(DEFAULT_PORTFOLIO_NAME)
+							})
 					}}
 				/>
 				<PortfolioNotifications
@@ -224,7 +226,7 @@ function PortfolioNotifications({
 	filteredChains = []
 }: {
 	selectedPortfolio: string
-	filteredProtocols?: IFormattedProtocol[]
+	filteredProtocols?: any[]
 	filteredChains?: any[]
 }) {
 	const dialogStore = Ariakit.useDialogStore()
@@ -309,7 +311,7 @@ function PortfolioNotifications({
 			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
 				settings.protocols = {}
 				filteredProtocols.forEach((protocol) => {
-					const identifier = protocol.defillamaId || protocol.name
+					const identifier = protocol.slug
 					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
 				})
 			}
