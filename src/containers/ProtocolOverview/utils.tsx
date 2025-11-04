@@ -41,10 +41,7 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 						tvlDictionary[date] = { [sectionName]: 0 }
 					}
 
-					tvlDictionary[date] = {
-						...tvlDictionary[date],
-						[sectionName]: (tvlDictionary[date][sectionName] || 0) + totalLiquidityUSD
-					}
+					tvlDictionary[date][sectionName] = (tvlDictionary[date][sectionName] || 0) + totalLiquidityUSD
 				}
 			}
 		}
@@ -226,6 +223,8 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 	const usdInflows = {}
 	const tokenInflows = {}
 
+	const tokensUniqueSet = new Set(tokensUnique)
+
 	let zeroUsdInfows = 0
 	let zeroTokenInfows = 0
 
@@ -272,7 +271,7 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 
 						if (diffUsd && !Number.isNaN(diffUsd) && isFinite(price)) {
 							// Show only top 10 inflow tokens of the day, add remaining inlfows under "Others" category
-							if (tokensUnique.includes(token)) {
+							if (tokensUniqueSet.has(token)) {
 								tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
 							} else {
 								tokenDayDifference['Others'] = (tokenDayDifference['Others'] || 0) + diffUsd
@@ -308,7 +307,9 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 						}
 					}
 
-					tokenInflows[date] = { ...tokenInflows[date], ...tokenDayDifference }
+					for (const token in tokenDayDifference) {
+						tokenInflows[date][token] = tokenDayDifference[token]
+					}
 
 					prevDate = date
 				}
@@ -348,12 +349,14 @@ function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
 		}
 	}
 
+	const tokensUniqueSet = new Set(tokensUnique)
+
 	const tokensToShow = {}
 	let remainingTokensSum = 0
 
 	// split tokens of the day into tokens present in top 10 tokens list and add tvl of remaining tokens into category named 'Others'
 	for (const token in tokensOfTheDay) {
-		if (tokensUnique.includes(token)) {
+		if (tokensUniqueSet.has(token)) {
 			tokensToShow[token] = tokensOfTheDay[token]
 		} else {
 			remainingTokensSum += tokensOfTheDay[token]
@@ -361,7 +364,7 @@ function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
 	}
 
 	// add "Others" to tokens list
-	if (tokensUnique.includes('Others') && remainingTokensSum > 0) {
+	if (tokensUniqueSet.has('Others') && remainingTokensSum > 0) {
 		tokensToShow['Others'] = remainingTokensSum
 	}
 
@@ -697,7 +700,7 @@ export const buildStablecoinChartsData = async ({
 		pegMechanismMap.set(asset.symbol, asset.pegMechanism)
 	}
 
-	const stablecoinTokensUnique: string[] = []
+	const stablecoinTokensUniqueSet = new Set<string>()
 	const pegTypesUnique = new Set<string>()
 	const pegMechanismsUnique = new Set<string>()
 
@@ -710,8 +713,8 @@ export const buildStablecoinChartsData = async ({
 				if (tokensInUsd) {
 					for (const dayTokens of tokensInUsd) {
 						for (const token in dayTokens.tokens) {
-							if (stablecoinSymbols.has(token) && !stablecoinTokensUnique.includes(token)) {
-								stablecoinTokensUnique.push(token)
+							if (stablecoinSymbols.has(token) && !stablecoinTokensUniqueSet.has(token)) {
+								stablecoinTokensUniqueSet.add(token)
 								const pegType = pegTypeMap.get(token)
 								const pegMechanism = pegMechanismMap.get(token)
 								if (pegType) pegTypesUnique.add(pegType)
@@ -724,7 +727,7 @@ export const buildStablecoinChartsData = async ({
 		}
 	}
 
-	if (stablecoinTokensUnique.length === 0) {
+	if (stablecoinTokensUniqueSet.size === 0) {
 		return null
 	}
 
@@ -834,7 +837,7 @@ export const buildStablecoinChartsData = async ({
 		totalStablecoins: totalStablecoinsArray.length > 0 ? totalStablecoinsArray : null,
 		pegMechanismPieChart: pieChartDataByPegMechanism,
 		pegTypePieChart: pieChartDataByPegType,
-		stablecoinTokensUnique,
+		stablecoinTokensUnique: Array.from(stablecoinTokensUniqueSet),
 		pegTypesUnique: Array.from(pegTypesUnique),
 		pegMechanismsUnique: Array.from(pegMechanismsUnique)
 	}
