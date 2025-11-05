@@ -440,7 +440,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 							</p>
 						) : null}
 					</div>
-					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+					<BasicLink href="/report-error" className="mt-auto mr-auto pt-4 text-left text-(--text-form) underline">
 						Report incorrect data
 					</BasicLink>
 				</div>
