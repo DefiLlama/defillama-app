@@ -54,12 +54,22 @@ export default function CandleStickAndVolumeChart({ data }: ICandlestickChartPro
 					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
 
 					let vals = ''
-					vals += '<li style="list-style:none">' + params[0].marker + '</li>'
-					for (const param of params) {
-						vals += `<li style="list-style:none">Open<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[1], '$')}</b></span></li>`
-						vals += `<li style="list-style:none">Highest<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[4], '$')}</b></span></li>`
-						vals += `<li style="list-style:none">Lowest<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[3], '$')}</b></span></li>`
-						vals += `<li style="list-style:none">Close<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[2], '$')}</b></span></li>`
+
+					if (params[0].componentSubType === 'candlestick') {
+						vals += '<li style="list-style:none">' + params[0].marker + '</li>'
+						for (const param of params) {
+							vals += `<li style="list-style:none">Open<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[1], '$')}</b></span></li>`
+							vals += `<li style="list-style:none">Highest<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[4], '$')}</b></span></li>`
+							vals += `<li style="list-style:none">Lowest<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[3], '$')}</b></span></li>`
+							vals += `<li style="list-style:none">Close<span style="float: right; margin-left: 20px"><b>${formatTooltipValue(param.value[2], '$')}</b></span></li>`
+						}
+					} else {
+						vals += params.reduce((prev, curr) => {
+							return (
+								prev +
+								`<li style="list-style:none">${curr.marker}${curr.seriesName}: ${formatTooltipValue(curr.value[1], '$')}</li>`
+							)
+						}, '')
 					}
 
 					return chartdate + vals
