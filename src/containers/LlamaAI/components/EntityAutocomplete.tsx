@@ -4,7 +4,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 interface EntitySuggestion {
 	slug: string
 	displayName: string
-	type: 'chain' | 'protocol' | 'subprotocol'
+	type: 'chain' | 'protocol' | 'subprotocol' | 'category'
 	score: number
 }
 
@@ -78,10 +78,12 @@ export function EntityAutocomplete({
 										className={`rounded px-1.5 py-0.5 text-xs font-medium ${
 											suggestion.type === 'chain'
 												? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-												: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+												: suggestion.type === 'category'
+													? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+													: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
 										}`}
 									>
-										{suggestion.type === 'chain' ? 'Chain' : 'Protocol'}
+										{suggestion.type === 'chain' ? 'Chain' : suggestion.type === 'category' ? 'Category' : 'Protocol'}
 									</span>
 								</div>
 								{suggestion.displayName.toLowerCase() !== suggestion.slug && (

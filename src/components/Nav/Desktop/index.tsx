@@ -2,11 +2,12 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Tooltip } from '../Tooltip'
-import { ThemeSwitch } from './ThemeSwitch'
-import { TNavLink, TNavLinks, TOldNavLink } from './types'
+import { ThemeSwitch } from '../ThemeSwitch'
+import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+import { LinkToPage } from './shared'
 
-const Account = React.lazy(() => import('./Account').then((mod) => ({ default: mod.Account })))
+const Account = React.lazy(() => import('../Account').then((mod) => ({ default: mod.Account })))
+const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
 
 export const DesktopNav = React.memo(function DesktopNav({
 	mainLinks,
@@ -96,37 +97,9 @@ export const DesktopNav = React.memo(function DesktopNav({
 					</details>
 
 					{pinnedPages.length > 0 ? (
-						<div>
-							<p className="flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65">
-								Pinned Pages
-							</p>
-
-							{pinnedPages.map(({ name, route }) => (
-								<span key={`pinned-page-${name}-${route}`} className="group relative flex flex-wrap items-center gap-1">
-									<LinkToPage route={route} name={name} asPath={asPath} />
-									<Tooltip
-										content="Unpin from navigation"
-										render={
-											<button
-												onClick={(e) => {
-													const currentPinnedPages = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-													window.localStorage.setItem(
-														'pinned-metrics',
-														JSON.stringify(currentPinnedPages.filter((page: string) => page !== route))
-													)
-													window.dispatchEvent(new Event('pinnedMetricsChange'))
-													e.preventDefault()
-													e.stopPropagation()
-												}}
-											/>
-										}
-										className="absolute top-1/2 right-1 hidden -translate-y-1/2 rounded-md bg-(--error) px-1 py-1 text-white group-hover:block"
-									>
-										<Icon name="x" className="h-4 w-4" />
-									</Tooltip>
-								</span>
-							))}
-						</div>
+						<React.Suspense>
+							<PinnedPages pinnedPages={pinnedPages} asPath={asPath} />
+						</React.Suspense>
 					) : null}
 
 					{userDashboards.length > 0 ? (
@@ -193,51 +166,5 @@ const NavDetailsSection = React.memo(function NavDetailsSection({
 				))}
 			</div>
 		</details>
-	)
-})
-
-const LinkToPage = React.memo(function LinkToPage({
-	route,
-	name,
-	icon,
-	attention,
-	asPath
-}: {
-	route: string
-	name: string
-	icon?: string
-	attention?: boolean
-	asPath: string
-}) {
-	const isActive = route === asPath.split('/?')[0].split('?')[0]
-	const isExternal = route.startsWith('http')
-
-	return (
-		<BasicLink
-			href={route}
-			data-linkactive={isActive}
-			target={isExternal ? '_blank' : undefined}
-			rel={isExternal ? 'noopener noreferrer' : undefined}
-			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-		>
-			{icon ? (
-				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4" />
-			) : name === 'LlamaAI' ? (
-				<img
-					src="/icons/ask-llamaai.svg"
-					alt="LlamaAI"
-					className="h-4 w-4 brightness-0 group-data-[linkactive=true]/link:invert dark:invert"
-				/>
-			) : null}
-			<span className="relative inline-flex items-center gap-2">
-				{name}
-				{attention ? (
-					<span
-						aria-hidden
-						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--app-bg)]"
-					/>
-				) : null}
-			</span>
-		</BasicLink>
 	)
 })

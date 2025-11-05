@@ -61,6 +61,11 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 
 		const isValidTvlRange = !!minimumAmountRaised || !!maximumAmountRaised
 
+		const selectedInvestorsSet = new Set(selectedInvestors)
+		const selectedChainsSet = new Set(selectedChains)
+		const selectedRoundsSet = new Set(selectedRounds)
+		const selectedSectorsSet = new Set(selectedSectors)
+
 		const filteredRaisesList = raises.filter((raise) => {
 			let toFilter = true
 
@@ -72,13 +77,13 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				let isAnInvestor = false
 
 				raise.leadInvestors.forEach((lead) => {
-					if (selectedInvestors.includes(lead)) {
+					if (selectedInvestorsSet.has(lead)) {
 						isAnInvestor = true
 					}
 				})
 
 				raise.otherInvestors.forEach((otherInv) => {
-					if (selectedInvestors.includes(otherInv)) {
+					if (selectedInvestorsSet.has(otherInv)) {
 						isAnInvestor = true
 					}
 				})
@@ -97,7 +102,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 					let raiseIncludesChain = false
 
 					raise.chains.forEach((chain) => {
-						if (selectedChains.includes(chain)) {
+						if (selectedChainsSet.has(chain)) {
 							raiseIncludesChain = true
 						}
 					})
@@ -113,7 +118,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				if (!raise.round || raise.round === '') {
 					toFilter = false
 				} else {
-					if (!selectedRounds.includes(raise.round)) {
+					if (!selectedRoundsSet.has(raise.round)) {
 						toFilter = false
 					}
 				}
@@ -124,7 +129,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				if (!raise.category || raise.category === '') {
 					toFilter = false
 				} else {
-					if (!selectedSectors.includes(raise.category)) {
+					if (!selectedSectorsSet.has(raise.category)) {
 						toFilter = false
 					}
 				}

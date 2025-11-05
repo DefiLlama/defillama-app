@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { useWatchlistManager } from '~/contexts/LocalStorage'
+import { useBookmarks } from '~/hooks/useBookmarks'
 
 interface IBookmarkProps {
 	readableName: string
@@ -15,7 +15,7 @@ export function Bookmark({ readableName, isChain, ...props }: IBookmarkProps) {
 
 	const watchlistType = isChain ? 'chains' : router.pathname.includes('/yields') ? 'yields' : 'defi'
 
-	const { savedProtocols, addProtocol, removeProtocol } = useWatchlistManager(watchlistType)
+	const { savedProtocols, addProtocol, removeProtocol } = useBookmarks(watchlistType)
 
 	const isSaved: boolean = savedProtocols.has(readableName)
 

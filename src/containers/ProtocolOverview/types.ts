@@ -33,6 +33,7 @@ export interface IProtocolMetadata {
 	bridge?: boolean
 	stablecoins?: boolean
 	safeHarbor?: boolean
+	borrowed?: boolean
 }
 
 export interface IProtocolPageMetrics {
@@ -63,6 +64,7 @@ export interface IProtocolPageMetrics {
 	inflows: boolean
 	liquidity: boolean
 	activeUsers: boolean
+	borrowed: boolean
 }
 
 export interface IUpdatedProtocol {
@@ -253,6 +255,8 @@ export interface IProtocolOverviewPageData {
 	incomeStatement?: {
 		feesByMonth: Record<string, number>
 		revenueByMonth: Record<string, number>
+		bribesByMonth: Record<string, number> | null
+		tokenTaxesByMonth: Record<string, number> | null
 		holdersRevenueByMonth: Record<string, number> | null
 		incentivesByMonth: Record<string, number> | null
 		monthDates: Array<[number, string]>
