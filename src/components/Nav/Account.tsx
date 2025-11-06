@@ -49,7 +49,7 @@ export const Account = memo(function Account() {
 									{userHandle}
 								</BasicLink>
 							)}
-							{subscription?.status === 'active' ? (
+							{user?.has_active_subscription || subscription?.status === 'active' ? (
 								<span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-500">
 									<Icon name="check-circle" className="h-3.5 w-3.5" />
 									Subscribed

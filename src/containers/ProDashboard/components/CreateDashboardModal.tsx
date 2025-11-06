@@ -169,6 +169,7 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 					Cancel
 				</Ariakit.DialogDismiss>
 				<button
+					data-umami-event="dashboard-create"
 					onClick={handleCreate}
 					disabled={!dashboardName.trim()}
 					className={`flex-1 rounded-md px-4 py-2 transition-colors ${

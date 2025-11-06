@@ -3,6 +3,7 @@ import { maxAgeForNext } from '~/api'
 import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
+import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
@@ -78,92 +79,90 @@ export default function Protocols(props) {
 			tab="assets"
 			isCEX={true}
 		>
-			<div className="grid grid-cols-2 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-				{isLoading ? (
-					<div className="col-span-full flex min-h-[400px] items-center justify-center">
-						<LocalLoader />
-					</div>
-				) : (
-					<>
-						{chainsSplit && chainsUnique?.length > 1 && (
-							<LazyChart className="relative col-span-full flex min-h-[400px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			{isLoading ? (
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
+			) : (
+				<div className="grid grid-cols-2 gap-2">
+					{chainsSplit && chainsUnique?.length > 1 && (
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<React.Suspense fallback={<></>}>
+								<AreaChart
+									chartData={chainsSplit}
+									title="Chains"
+									customLegendName="Chain"
+									customLegendOptions={chainsUnique}
+									valueSymbol="$"
+								/>
+							</React.Suspense>
+						</LazyChart>
+					)}
+
+					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
+						<>
+							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<React.Suspense fallback={<></>}>
 									<AreaChart
-										chartData={chainsSplit}
-										title="Chains"
-										customLegendName="Chain"
-										customLegendOptions={chainsUnique}
+										chartData={tokenBreakdownUSD}
+										title="Token Values (USD)"
+										customLegendName="Token"
+										customLegendOptions={tokensUnique}
 										valueSymbol="$"
 									/>
 								</React.Suspense>
 							</LazyChart>
-						)}
+						</>
+					)}
 
-						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-							<>
-								<LazyChart className="relative col-span-full flex min-h-[400px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
+						<>
+							{tokenBreakdownPieChart?.length > 0 && (
+								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<React.Suspense fallback={<></>}>
-										<AreaChart
-											chartData={tokenBreakdownUSD}
-											title="Token Values (USD)"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-											valueSymbol="$"
-										/>
+										<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
 									</React.Suspense>
 								</LazyChart>
-							</>
-						)}
+							)}
+						</>
+					)}
 
-						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-							<>
-								{tokenBreakdownPieChart?.length > 0 && (
-									<LazyChart className="relative col-span-full flex min-h-[440px] flex-col pt-10 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-										<React.Suspense fallback={<></>}>
-											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
-										</React.Suspense>
-									</LazyChart>
-								)}
-							</>
-						)}
+					{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<React.Suspense fallback={<></>}>
+								<AreaChart
+									chartData={tokenBreakdown}
+									title="Token Balances (Raw Quantities)"
+									customLegendName="Token"
+									customLegendOptions={tokensUnique}
+								/>
+							</React.Suspense>
+						</LazyChart>
+					)}
 
-						{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[400px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<AreaChart
-										chartData={tokenBreakdown}
-										title="Token Balances (Raw Quantities)"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
-
-						{usdInflows?.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[400px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<BarChart chartData={usdInflows} color={props.backgroundColor} title="USD Inflows" valueSymbol="$" />
-								</React.Suspense>
-							</LazyChart>
-						)}
-						{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[400px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-								<React.Suspense fallback={<></>}>
-									<BarChart
-										chartData={tokenInflows}
-										title="Token Inflows"
-										customLegendName="Token"
-										customLegendOptions={tokensUnique}
-										hideDefaultLegend={true}
-										valueSymbol="$"
-									/>
-								</React.Suspense>
-							</LazyChart>
-						)}
-					</>
-				)}
-			</div>
+					{usdInflows?.length > 0 && (
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<React.Suspense fallback={<></>}>
+								<BarChart chartData={usdInflows} color={oldBlue} title="USD Inflows" valueSymbol="$" />
+							</React.Suspense>
+						</LazyChart>
+					)}
+					{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
+						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<React.Suspense fallback={<></>}>
+								<BarChart
+									chartData={tokenInflows}
+									title="Inflows by Token"
+									customLegendName="Token"
+									customLegendOptions={tokensUnique}
+									hideDefaultLegend={true}
+									valueSymbol="$"
+								/>
+							</React.Suspense>
+						</LazyChart>
+					)}
+				</div>
+			)}
 		</ProtocolOverviewLayout>
 	)
 }

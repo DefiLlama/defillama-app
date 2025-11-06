@@ -1,7 +1,7 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense } from 'react'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, getPercentChange, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { IChainOverviewData } from './types'
 
 const FeesGeneratedChart: any = lazy(() =>
@@ -198,7 +198,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							) : null}
 						</div>
 					) : null} */}
-					{props.datInflows.chart?.length > 0 ? (
+					{props.datInflows?.chart?.length > 0 ? (
 						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 							<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
 								<Tooltip
@@ -220,6 +220,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									series={props.datInflows.chart}
 									name="DAT Inflows"
 									className={'my-auto h-[53px] md:h-[132px] xl:h-[156px]'}
+									groupBy="weekly"
 								/>
 							</Suspense>
 						</div>

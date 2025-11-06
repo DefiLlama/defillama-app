@@ -5,6 +5,15 @@ import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from '../types'
 
+const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
+	if (!hallmarks?.length) return []
+	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
+	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
+		return hallmarks.map((h) => [h[0], ''])
+	}
+	return hallmarks.map((h) => [h[0], h[1] || ''])
+}
+
 interface AdaptedChartData {
 	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
@@ -65,7 +74,10 @@ const formatChartValue = (value: number, valueSymbol?: string): string => {
 	}
 }
 
-const validateChartData = (data: [number, number | null][], chartType: string): [number, number | null][] => {
+const validateChartData = (
+	data: [number | string, number | null][],
+	chartType: string
+): [number | string, number | null][] => {
 	if (!data || data.length === 0) {
 		return []
 	}
@@ -77,12 +89,21 @@ const validateChartData = (data: [number, number | null][], chartType: string): 
 			return false
 		}
 
-		if (chartType === 'area' || chartType === 'line') {
-			return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
+		// Accept strings for categorical charts
+		if (typeof x === 'string' && x.length > 0) {
+			return typeof y === 'number' && !isNaN(y)
 		}
 
-		return typeof y === 'number' && !isNaN(y)
-	}) as [number, number | null][]
+		// Accept numbers for time-series charts
+		if (typeof x === 'number') {
+			if (chartType === 'area' || chartType === 'line') {
+				return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
+			}
+			return typeof y === 'number' && !isNaN(y)
+		}
+
+		return false
+	})
 
 	return validData
 }
@@ -157,7 +178,7 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 		const pieProps: Partial<IPieChartProps> = {
 			title: config.title,
 			chartData: pieData,
-			height: '300px',
+			height: '360px',
 			stackColors,
 			valueSymbol: config.valueSymbol ?? '',
 			showLegend: true
@@ -175,7 +196,7 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 		return {
 			chartType: 'pie',
 			data: [],
-			props: { title: 'Pie Chart Error', height: '300px' },
+			props: { title: 'Pie Chart Error', height: '360px' },
 			title: config.title || 'Pie Chart Error',
 			description: `Failed to render pie chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -210,24 +231,29 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField
 
+		const xAxisSymbol = config.axes.x.valueSymbol ?? config.valueSymbol ?? ''
+		const yAxisSymbol = config.axes.yAxes[0]?.valueSymbol ?? config.valueSymbol ?? ''
+
+		const formatValue = (val: number, symbol: string) => {
+			if (symbol === '$') return formattedNum(val, true)
+			if (symbol === '%') return val.toFixed(2) + '%'
+			if (symbol === '') return formattedNum(val)
+			return `${formattedNum(val)} ${symbol}`
+		}
+
 		const scatterProps = {
 			chartData: scatterData,
 			title: config.title,
 			xAxisLabel,
 			yAxisLabel,
 			valueSymbol: config.valueSymbol || '',
-			height: '300px',
+			height: '360px',
 			tooltipFormatter: (params: any) => {
 				if (params.value.length >= 2) {
 					const xValue = params.value[0]
 					const yValue = params.value[1]
 					const entityName = params.value[2] || 'Unknown'
-					const formatValue = (val: number) => {
-						if (config.valueSymbol === '$') return formattedNum(val, true)
-						if (config.valueSymbol === '%') return val.toFixed(2) + '%'
-						return formattedNum(val)
-					}
-					return `<strong>${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue)}<br/>${yAxisLabel}: ${formatValue(yValue)}`
+					return `<strong>${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue, xAxisSymbol)}<br/>${yAxisLabel}: ${formatValue(yValue, yAxisSymbol)}`
 				}
 				return ''
 			}
@@ -245,7 +271,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		return {
 			chartType: 'scatter',
 			data: [],
-			props: { chartData: [], title: 'Scatter Chart Error', height: '300px' },
+			props: { chartData: [], title: 'Scatter Chart Error', height: '360px' },
 			title: config.title || 'Scatter Chart Error',
 			description: `Failed to render scatter chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -306,8 +332,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			title: config.title,
 			valueSymbol: config.valueSymbol ?? '',
 			color,
-			height: '300px',
-			hideDataZoom: true,
+			height: '360px',
 			hideDownloadButton: false,
 			tooltipSort: true,
 
@@ -316,11 +341,15 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			hideDefaultLegend: true,
 			stackColors,
 
+			...(config.hallmarks?.length && {
+				hallmarks: normalizeHallmarks(config.hallmarks)
+			}),
+
 			chartOptions: {
 				grid: {
 					top: 12,
 					right: 12,
-					bottom: 12,
+					bottom: 68,
 					left: 12
 				},
 				tooltip: {
@@ -371,7 +400,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 		return {
 			chartType: 'area',
 			data: [],
-			props: { title: 'Chart Error', height: '300px' },
+			props: { title: 'Chart Error', height: '360px' },
 			title: config.title || 'Chart Error',
 			description: `Failed to render chart: ${error instanceof Error ? error.message : 'Unknown error'}`
 		}
@@ -445,17 +474,20 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 		const multiSeriesProps: Partial<IMultiSeriesChartProps> = {
 			series: validSeries,
 			title: config.title,
-			height: '300px',
-			hideDataZoom: true,
+			height: '360px',
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
-			xAxisType: config.axes.x.type,
+			xAxisType: config.axes.x.type === 'value' ? 'category' : config.axes.x.type,
+
+			...(config.hallmarks?.length && {
+				hallmarks: normalizeHallmarks(config.hallmarks)
+			}),
 
 			chartOptions: {
 				grid: {
 					top: 24,
 					right: 12,
-					bottom: 12,
+					bottom: 68,
 					left: 12
 				},
 				tooltip: {
@@ -499,7 +531,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			props: {
 				series: [],
 				title: 'Chart Error',
-				height: '300px'
+				height: '360px'
 			},
 			title: config.title || 'Chart Error',
 			description: `Failed to render multi-series chart: ${error instanceof Error ? error.message : 'Unknown error'}`

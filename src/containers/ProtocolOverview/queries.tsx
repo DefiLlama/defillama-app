@@ -150,7 +150,8 @@ export const getProtocolMetrics = ({
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist,
 		liquidity: metadata.liquidity ? true : false,
-		activeUsers: metadata.activeUsers ? true : false
+		activeUsers: metadata.activeUsers ? true : false,
+		borrowed: metadata.borrowed ? true : false
 	}
 }
 
@@ -1097,19 +1098,17 @@ const governanceApis = (governanceID) =>
 		) ?? []
 	).map((g) => g.toLowerCase())
 
-export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }): Promise<{
-	feesByMonth: Record<string, number>
-	revenueByMonth: Record<string, number>
-	holdersRevenueByMonth: Record<string, number> | null
-	incentivesByMonth: Record<string, number> | null
-	monthDates: Array<[number, string]>
-} | null> {
+export async function getProtocolIncomeStatement({
+	metadata
+}: {
+	metadata: IProtocolMetadata
+}): Promise<IProtocolOverviewPageData['incomeStatement']> {
 	try {
 		if (!metadata.fees || !metadata.revenue) {
 			return null
 		}
 
-		const [fees, revenue, holdersRevenue, incentives] = await Promise.all([
+		const [fees, revenue, holdersRevenue, incentives, bribes, tokenTaxes] = await Promise.all([
 			getAdapterProtocolSummary({
 				adapterType: 'fees',
 				protocol: metadata.displayName,
@@ -1138,11 +1137,31 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 					const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
 					return chart.slice(nonZeroIndex)
 				})
-				.catch(() => [])
+				.catch(() => []),
+			metadata.bribeRevenue
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: metadata.displayName,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyBribesRevenue'
+					}).catch(() => null)
+				: Promise.resolve(null),
+			metadata.tokenTax
+				? getAdapterProtocolSummary({
+						adapterType: 'fees',
+						protocol: metadata.displayName,
+						excludeTotalDataChart: false,
+						excludeTotalDataChartBreakdown: true,
+						dataType: 'dailyTokenTaxes'
+					}).catch(() => null)
+				: Promise.resolve(null)
 		])
 
 		const feesByMonth: Record<string, number> = {}
 		const revenueByMonth: Record<string, number> = {}
+		const bribesByMonth: Record<string, number> = {}
+		const tokenTaxesByMonth: Record<string, number> = {}
 		const holdersRevenueByMonth: Record<string, number> = {}
 		const incentivesByMonth: Record<string, number> = {}
 		const monthDates = new Set<number>()
@@ -1156,6 +1175,18 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		for (const [date, value] of revenue.totalDataChart ?? []) {
 			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
 			revenueByMonth[dateKey] = (revenueByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
+		for (const [date, value] of bribes?.totalDataChart ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			bribesByMonth[dateKey] = (bribesByMonth[dateKey] ?? 0) + value
+			monthDates.add(dateKey)
+		}
+
+		for (const [date, value] of tokenTaxes?.totalDataChart ?? []) {
+			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
+			tokenTaxesByMonth[dateKey] = (tokenTaxesByMonth[dateKey] ?? 0) + value
 			monthDates.add(dateKey)
 		}
 
@@ -1176,6 +1207,8 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			revenueByMonth,
 			holdersRevenueByMonth: holdersRevenue ? holdersRevenueByMonth : null,
 			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
+			bribesByMonth: bribes ? bribesByMonth : null,
+			tokenTaxesByMonth: tokenTaxes ? tokenTaxesByMonth : null,
 			monthDates: Array.from(monthDates)
 				.sort((a, b) => b - a)
 				.map((date) => [date, dayjs.utc(date).format('MMM YYYY')] as [number, string])

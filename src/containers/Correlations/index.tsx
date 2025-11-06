@@ -139,6 +139,8 @@ export default function Correlations({ coinsData }) {
 	)
 
 	useEffect(() => {
+		if (!router.isReady) return
+
 		if (!queryCoins?.length)
 			router.replace(
 				{
@@ -151,7 +153,7 @@ export default function Correlations({ coinsData }) {
 				undefined,
 				{ shallow: true }
 			)
-	}, [queryCoins, router])
+	}, [queryCoins, router, router.isReady])
 
 	const dialogStore = Ariakit.useDialogStore()
 

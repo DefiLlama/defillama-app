@@ -153,11 +153,11 @@ export default function CEXStablecoins(props: {
 			isCEX={true}
 		>
 			{isLoading ? (
-				<div className="flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
 			) : !data ? (
-				<div className="flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-(--text-label)">No stablecoin data available for this exchange</p>
 				</div>
 			) : (
@@ -190,7 +190,7 @@ export default function CEXStablecoins(props: {
 						)}
 					</div>
 
-					<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
+					<div className="grid grid-cols-2 gap-2">
 						{data.totalStablecoins && data.totalStablecoins.length > 1 && (
 							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<React.Suspense fallback={<></>}>

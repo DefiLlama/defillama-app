@@ -240,7 +240,6 @@ export function useProTable(
 
 		// Apply filters
 		if (filters) {
-			// Convert arrays to Sets for O(1) lookup performance
 			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
 			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
 			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null

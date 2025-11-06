@@ -8,7 +8,9 @@ export const getThemeCookie = (): string | null => {
 	const themeCookie = cookies.find((cookie) => cookie.trim().startsWith(`${THEME_COOKIE_NAME}=`))
 
 	if (themeCookie) {
-		return themeCookie.split('=')[1]
+		const parts = themeCookie.split('=')
+		// Safe boundary check: ensure we have at least 2 parts and the value is not empty
+		return parts.length >= 2 && parts[1] ? parts[1] : null
 	}
 
 	return null
@@ -32,7 +34,9 @@ export const parseThemeCookie = (cookieString: string): string => {
 	const themeCookie = cookies.find((cookie) => cookie.trim().startsWith(`${THEME_COOKIE_NAME}=`))
 
 	if (themeCookie) {
-		return themeCookie.split('=')[1] || 'true'
+		const parts = themeCookie.split('=')
+		// Safe boundary check: ensure we have at least 2 parts and the value is not empty
+		return parts.length >= 2 && parts[1] ? parts[1] : 'true'
 	}
 
 	return 'true'

@@ -103,15 +103,14 @@ export default function NonTimeSeriesBarChart({
 			}
 		}
 
-		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic,
 			tooltip,
-			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -156,7 +155,7 @@ export default function NonTimeSeriesBarChart({
 			) : null}
 			<div
 				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
+				className={containerClassName ? containerClassName : 'h-[360px]'}
 				style={height ? { height } : undefined}
 			></div>
 		</div>

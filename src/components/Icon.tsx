@@ -92,6 +92,7 @@ type Name =
 	| 'layout-grid'
 	| 'arrow-down'
 	| 'share'
+	| 'pause'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -99,7 +100,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v25.svg#${name}`} />
+			<use href={`/icons/v26.svg#${name}`} />
 		</svg>
 	)
 })

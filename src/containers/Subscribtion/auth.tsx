@@ -188,11 +188,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			}
 
 			const { token } = await response.json()
-
 			pb.authStore.save(token)
 		},
 		onSuccess: () => {
 			setIsAuthenticated(true)
+			sessionStorage.setItem('just_signed_up', 'true')
 			queryClient.invalidateQueries()
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id], {
 				subscription: { status: 'inactive' }

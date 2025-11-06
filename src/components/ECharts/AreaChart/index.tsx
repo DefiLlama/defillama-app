@@ -86,27 +86,63 @@ export default function AreaChart({
 				},
 				data: [],
 				...(hallmarks && {
-					markLine: {
-						data: hallmarks.map(([date, event], index) => [
-							{
-								name: event,
-								xAxis: +date * 1e3,
-								yAxis: 0,
-								label: {
-									color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-									fontFamily: 'sans-serif',
-									fontSize: 14,
-									fontWeight: 500
+					markLine:
+						hallmarks.length > 8
+							? {
+									symbol: 'none',
+									data: hallmarks.map(([date, event]) => [
+										{
+											name: event,
+											xAxis: +date * 1e3,
+											yAxis: 0,
+											label: {
+												show: false,
+												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+												fontFamily: 'sans-serif',
+												fontSize: 14,
+												fontWeight: 500,
+												position: 'insideEndTop'
+											},
+											emphasis: {
+												label: {
+													show: true, // Show on hover
+													color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+													fontFamily: 'sans-serif',
+													fontSize: 14,
+													fontWeight: 500,
+													position: 'insideEndTop'
+												}
+											}
+										},
+										{
+											name: 'end',
+											xAxis: +date * 1e3,
+											yAxis: 'max',
+											y: 0
+										}
+									])
 								}
-							},
-							{
-								name: 'end',
-								xAxis: +date * 1e3,
-								yAxis: 'max',
-								y: Math.max(hallmarks.length * 40 - index * 40, 40)
-							}
-						])
-					}
+							: {
+									data: hallmarks.map(([date, event], index) => [
+										{
+											name: event,
+											xAxis: +date * 1e3,
+											yAxis: 0,
+											label: {
+												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+												fontFamily: 'sans-serif',
+												fontSize: 14,
+												fontWeight: 500
+											}
+										},
+										{
+											name: 'end',
+											xAxis: +date * 1e3,
+											yAxis: 'max',
+											y: Math.max(hallmarks.length * 40 - index * 40, 40)
+										}
+									])
+								}
 				})
 			}
 
@@ -155,27 +191,63 @@ export default function AreaChart({
 								} as { color?: echarts.graphic.LinearGradient }),
 					data: [],
 					...(hallmarks && {
-						markLine: {
-							data: hallmarks.map(([date, event], index) => [
-								{
-									name: event,
-									xAxis: +date * 1e3,
-									yAxis: 0,
-									label: {
-										color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-										fontFamily: 'sans-serif',
-										fontSize: 14,
-										fontWeight: 500
+						markLine:
+							hallmarks.length > 8
+								? {
+										symbol: 'none',
+										data: hallmarks.map(([date, event]) => [
+											{
+												name: event,
+												xAxis: +date * 1e3,
+												yAxis: 0,
+												label: {
+													show: false,
+													color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+													fontFamily: 'sans-serif',
+													fontSize: 14,
+													fontWeight: 500,
+													position: 'insideEndTop'
+												},
+												emphasis: {
+													label: {
+														show: true, // Show on hover
+														color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+														fontFamily: 'sans-serif',
+														fontSize: 14,
+														fontWeight: 500,
+														position: 'insideEndTop'
+													}
+												}
+											},
+											{
+												name: 'end',
+												xAxis: +date * 1e3,
+												yAxis: 'max',
+												y: 0
+											}
+										])
 									}
-								},
-								{
-									name: 'end',
-									xAxis: +date * 1e3,
-									yAxis: 'max',
-									y: Math.max(hallmarks.length * 40 - index * 40, 40)
-								}
-							])
-						}
+								: {
+										data: hallmarks.map(([date, event], index) => [
+											{
+												name: event,
+												xAxis: +date * 1e3,
+												yAxis: 0,
+												label: {
+													color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+													fontFamily: 'sans-serif',
+													fontSize: 14,
+													fontWeight: 500
+												}
+											},
+											{
+												name: 'end',
+												xAxis: +date * 1e3,
+												yAxis: 'max',
+												y: Math.max(hallmarks.length * 40 - index * 40, 40)
+											}
+										])
+									}
 					})
 				}
 				index++
@@ -236,8 +308,6 @@ export default function AreaChart({
 			onReady(chartInstance)
 		}
 
-		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
 				if (Array.isArray(chartOptions[option])) {
@@ -256,6 +326,8 @@ export default function AreaChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
 
 		chartInstance.setOption({
 			graphic,

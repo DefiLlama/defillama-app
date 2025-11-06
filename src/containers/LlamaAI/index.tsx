@@ -9,6 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
@@ -363,6 +364,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [lastFailedRequest, setLastFailedRequest] = useState<{
+		userQuestion: string
+		suggestionContext?: any
+		preResolvedEntities?: Array<{ term: string; slug: string }>
+	} | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -535,10 +541,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			userQuestion: string
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
-		}) => {},
+		}) => {
+			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
+		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
+			setLastFailedRequest(null)
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -583,6 +592,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const wasUserStopped = error?.message === 'Request aborted'
+
+			if (wasUserStopped) {
+				setLastFailedRequest(null)
+			}
 
 			if (wasUserStopped && finalContent.trim()) {
 				setConversationHistory((prev) => [
@@ -709,6 +722,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		promptInputRef,
 		authorizedFetch
 	])
+
+	const handleRetry = useCallback(() => {
+		if (lastFailedRequest) {
+			submitPrompt(lastFailedRequest)
+		}
+	}, [lastFailedRequest, submitPrompt])
 
 	const handleSubmit = useCallback(
 		(
@@ -1014,7 +1033,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap overflow-hidden max-lg:flex-col lg:max-h-[calc(100dvh-72px)]">
+			<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
 				{!readOnly && (
 					<>
 						{sidebarVisible ? (
@@ -1034,7 +1053,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
 					{conversationHistory.length === 0 &&
 					prompt.length === 0 &&
@@ -1053,10 +1072,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								</div>
 							</div>
 						) : (
-							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
 									<>
@@ -1067,7 +1086,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
 											initialValue={prompt}
-											placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1078,7 +1097,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									{isRestoringSession && conversationHistory.length === 0 ? (
@@ -1183,7 +1202,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												})}
 											</div>
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-106px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
+												<div className="flex min-h-[calc(100dvh-218px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
 													<PromptResponse
 														response={
@@ -1206,6 +1225,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														progressMessage={progressMessage}
 														progressStage={progressStage}
 														onSuggestionClick={handleSuggestionClick}
+														onRetry={handleRetry}
+														canRetry={!!lastFailedRequest}
 														isGeneratingCharts={isGeneratingCharts}
 														isAnalyzingForCharts={isAnalyzingForCharts}
 														hasChartError={hasChartError}
@@ -1221,7 +1242,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
 											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-											<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
 								</div>
@@ -1263,7 +1284,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
 									/>
 								)}
 							</div>
@@ -1297,6 +1318,11 @@ const PromptInput = memo(function PromptInput({
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
 	const isProgrammaticUpdateRef = useRef(false)
+
+	// Use different placeholder for mobile devices
+	const isMobile = useMedia('(max-width: 640px)')
+	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
+	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
@@ -1344,6 +1370,12 @@ const PromptInput = memo(function PromptInput({
 		}
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
+	}
+
+	const trackSubmit = () => {
+		if (typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('llamaai-prompt-submit')
+		}
 	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1398,6 +1430,7 @@ const PromptInput = memo(function PromptInput({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
+			trackSubmit()
 			const finalEntities = getFinalEntities()
 			const promptValue = promptInputRef.current?.value ?? ''
 			resetInput()
@@ -1491,6 +1524,7 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
+					trackSubmit()
 					const form = e.target as HTMLFormElement
 					const finalEntities = getFinalEntities()
 					const promptValue = form.prompt.value
@@ -1517,7 +1551,7 @@ const PromptInput = memo(function PromptInput({
 									ref={promptInputRef}
 									rows={1}
 									maxLength={2000}
-									placeholder={placeholder}
+									placeholder={finalPlaceholder}
 									// We need to re-calculate the position of the combobox popover
 									// when the textarea contents are scrolled, and sync highlightRef scroll.
 									onScroll={handleScroll}
@@ -1526,7 +1560,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1535,7 +1569,7 @@ const PromptInput = memo(function PromptInput({
 							disabled={isPending && !isStreaming}
 						/>
 						<div
-							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
 							ref={highlightRef}
 						/>
 					</div>
@@ -1583,7 +1617,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="Stop"
 						render={<button onClick={handleStopRequest} />}
-						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
+						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1591,7 +1625,8 @@ const PromptInput = memo(function PromptInput({
 				) : (
 					<button
 						type="submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
+						data-umami-event="llamaai-prompt-submit"
+						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
@@ -1613,6 +1648,8 @@ const PromptResponse = ({
 	progressMessage,
 	progressStage,
 	onSuggestionClick,
+	onRetry,
+	canRetry,
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
@@ -1639,6 +1676,8 @@ const PromptResponse = ({
 	progressMessage?: string
 	progressStage?: string
 	onSuggestionClick?: (suggestion: any) => void
+	onRetry?: () => void
+	canRetry?: boolean
 	isGeneratingCharts?: boolean
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
@@ -1648,6 +1687,21 @@ const PromptResponse = ({
 	showMetadata?: boolean
 	readOnly?: boolean
 }) => {
+	if (error && canRetry) {
+		return (
+			<div className="flex flex-col gap-2">
+				<p className="text-(--error)">{error}</p>
+				<button
+					onClick={onRetry}
+					className="flex w-fit items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+				>
+					<Icon name="repeat" height={16} width={16} />
+					Retry
+				</button>
+			</div>
+		)
+	}
+
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
 	}
@@ -1753,10 +1807,10 @@ const SuggestedActions = memo(function SuggestedActions({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
+						className={`group flex touch-pan-y items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
-								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
+								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 active:border-(--old-blue) active:bg-(--old-blue)/12'
 						}`}
 					>
 						<span className="flex flex-1 flex-col items-start gap-1">
@@ -2036,6 +2090,7 @@ const FeedbackForm = ({
 		onSuccess: (_, variables) => {
 			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
+			toast.success('Thank you for you feedback!')
 		}
 	})
 

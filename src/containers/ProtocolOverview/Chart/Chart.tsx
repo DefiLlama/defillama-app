@@ -27,6 +27,7 @@ export default function ProtocolLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	hideDataZoom = false,
 	...props
 }) {
 	const id = useId()
@@ -174,8 +175,6 @@ export default function ProtocolLineBarChart({
 		// create instance
 		const chartInstance = createInstance()
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
-
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
 				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
@@ -183,6 +182,8 @@ export default function ProtocolLineBarChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		const finalYAxis = []
 
@@ -514,7 +515,7 @@ export default function ProtocolLineBarChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: rangeHallmarks?.length > 0 ? 18 : 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -550,8 +551,8 @@ export default function ProtocolLineBarChart({
 	return (
 		<div
 			id={id}
-			className="min-h-[360px]"
-			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+			className="h-[360px]"
+			style={height || props.style ? { height: height ?? '360px', ...(props.style ?? {}) } : undefined}
 		/>
 	)
 }
