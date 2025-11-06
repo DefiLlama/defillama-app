@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	Elements,
@@ -33,11 +32,9 @@ export function StripeCheckoutModal({
 	billingInterval = 'month'
 }: StripeCheckoutModalProps) {
 	const { authorizedFetch } = useAuthContext()!
-	const router = useRouter()
 	const queryClient = useQueryClient()
 	const [error, setError] = useState<string | null>(null)
 	const [isUpgrade, setIsUpgrade] = useState(false)
-	const [subscriptionId, setSubscriptionId] = useState<string | null>(null)
 	const [requiresPayment, setRequiresPayment] = useState<boolean>(true)
 	const [upgradeClientSecret, setUpgradeClientSecret] = useState<string | null>(null)
 	const [upgradePricing, setUpgradePricing] = useState<{
@@ -52,7 +49,7 @@ export function StripeCheckoutModal({
 			setError(null)
 
 			const subscriptionData = {
-				redirectUrl: `${window.location.origin}/account`,
+				redirectUrl: `${window.location.origin}/account?success=true`,
 				cancelUrl: `${window.location.origin}/subscription`,
 				provider: paymentMethod,
 				subscriptionType: type || 'api',
@@ -81,7 +78,6 @@ export function StripeCheckoutModal({
 
 			if (data.isUpgrade) {
 				setIsUpgrade(true)
-				setSubscriptionId(data.subscriptionId)
 				setRequiresPayment(data.requiresPayment !== false)
 
 				// If no payment required, close modal and refresh
@@ -228,14 +224,7 @@ export function StripeCheckoutModal({
 								clientSecret: upgradeClientSecret
 							}}
 						>
-							<UpgradePaymentForm
-								subscriptionId={subscriptionId!}
-								onSuccess={() => {
-									queryClient.invalidateQueries({ queryKey: ['subscription'] })
-									onClose()
-								}}
-								onError={setError}
-							/>
+							<UpgradePaymentForm onError={setError} />
 						</Elements>
 					</div>
 				</Ariakit.Dialog>
@@ -273,16 +262,8 @@ export function StripeCheckoutModal({
 }
 
 // Payment form component for upgrades
-function UpgradePaymentForm({
-	subscriptionId,
-	onSuccess,
-	onError
-}: {
-	subscriptionId: string
-	onSuccess: () => void
-	onError: (error: string) => void
-}) {
-	const { authorizedFetch } = useAuthContext()!
+function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
+	const queryClient = useQueryClient()
 	const [isProcessing, setIsProcessing] = useState(false)
 	const stripe = useStripe()
 	const elements = useElements()
@@ -306,7 +287,7 @@ function UpgradePaymentForm({
 			const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
 				elements,
 				confirmParams: {
-					return_url: `${window.location.origin}/account`
+					return_url: `${window.location.origin}/account?success=true`
 				},
 				redirect: 'if_required'
 			})
@@ -316,26 +297,8 @@ function UpgradePaymentForm({
 			}
 
 			if (paymentIntent?.status === 'succeeded') {
-				const response = await authorizedFetch(
-					`${AUTH_SERVER}/subscription/verify-upgrade`,
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							paymentIntentId: paymentIntent.id,
-							subscriptionId
-						})
-					},
-					true
-				)
-
-				if (!response.ok) {
-					throw new Error('Failed to confirm upgrade')
-				}
-
-				onSuccess()
+				queryClient.invalidateQueries({ queryKey: ['subscription'] })
+				window.location.href = `${window.location.origin}/account?success=true`
 			}
 		} catch (err) {
 			onError(err instanceof Error ? err.message : 'Payment failed')

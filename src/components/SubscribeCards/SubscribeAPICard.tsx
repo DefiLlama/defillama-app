@@ -85,7 +85,7 @@ export function SubscribeAPICard({
 				{active && !isLegacyActive ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center font-bold text-green-400">Current Plan</span>
-						{currentBillingInterval === 'month' && (
+						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
 							<div className="flex flex-col gap-2">
 								<button
 									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
