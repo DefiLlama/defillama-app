@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars*/
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
-import toast from 'react-hot-toast'
 import { useIsClient } from '~/hooks'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
