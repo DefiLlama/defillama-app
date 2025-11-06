@@ -105,7 +105,7 @@ type RawPriceEntry = {
 const fetchPriceSeries = async (tokenId: string, start: number, end: number) => {
 	if (!tokenId || !start || !end || end <= start) return [] as PricePoint[]
 	const key = `coingecko:${tokenId}`
-	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS) + 1)
+	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS))
 	const url = `${COINS_CHART_API}/${key}?start=${start}&span=${spanInDays}&searchWidth=600`
 	const response = await fetchJson(url)
 	const raw: RawPriceEntry[] = response?.coins?.[key]?.prices ?? []
