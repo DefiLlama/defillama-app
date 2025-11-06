@@ -80,8 +80,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		[uniqueCategories]
 	)
 
-	const columnKeys = React.useMemo(() => columnOptions.map((col) => col.key), [columnOptions])
-
 	const {
 		columnVisibility,
 		clearAllColumns: clearAllPersistedColumns,
@@ -91,7 +89,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		setOnlyColumnVisible
 	} = usePersistentColumnVisibility({
 		storageKey: optionsKey,
-		columnKeys
+		columnKeys: uniqueCategories
 	})
 
 	const columns = React.useMemo(() => {
@@ -156,7 +154,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const [searchValue, setSearchValue] = React.useState('')
 	const debouncedSearch = useDebounce(searchValue, 200)
 
-	const [selectedChains, setSelectedChains] = React.useState<string[]>([])
+	const [selectedChains, setSelectedChains] = React.useState<string[]>(chains)
 
 	const table = useReactTable({
 		data,
