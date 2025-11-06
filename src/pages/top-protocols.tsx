@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useRouter } from 'next/router'
 import {
 	ColumnFiltersState,
 	createColumnHelper,
@@ -16,7 +17,6 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { useDebounce } from '~/hooks/useDebounce'
-import { usePersistentColumnVisibility } from '~/hooks/usePersistentColumnVisibility'
 import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -73,29 +73,33 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 })
 
 const pageName = ['Top Protocols']
-const optionsKey = 'top-protocols-table-columns'
 
 export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const columnHelper = React.useMemo(() => createColumnHelper<any>(), [])
-
-	const chainsSet = React.useMemo(() => new Set(chains), [chains])
 
 	const columnOptions = React.useMemo(
 		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
 		[uniqueCategories]
 	)
 
-	const {
-		columnVisibility,
-		clearAllColumns: clearAllPersistedColumns,
-		selectAllColumns: selectAllPersistedColumns,
-		selectedColumns,
-		setVisibleColumns,
-		setOnlyColumnVisible
-	} = usePersistentColumnVisibility({
-		storageKey: optionsKey,
-		columnKeys: uniqueCategories
-	})
+	const router = useRouter()
+	const { selectedChains, selectedColumns, columnVisibility } = React.useMemo(() => {
+		const { chain, column } = router.query
+		const selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
+		const selectedColumns = column
+			? Array.isArray(column)
+				? column
+				: column == 'All'
+					? uniqueCategories
+					: [column]
+			: uniqueCategories
+		const selectedColumnsSet = new Set(selectedColumns)
+		const columnVisibility = {}
+		for (const col of uniqueCategories) {
+			columnVisibility[col] = selectedColumnsSet.has(col)
+		}
+		return { selectedChains, selectedColumns, columnVisibility }
+	}, [router.query, chains, uniqueCategories])
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [
@@ -159,8 +163,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const [searchValue, setSearchValue] = React.useState('')
 	const debouncedSearch = useDebounce(searchValue, 200)
 
-	const [selectedChains, setSelectedChains] = React.useState<string[]>(chains)
-
 	const table = useReactTable({
 		data,
 		columns,
@@ -174,13 +176,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	})
 
 	React.useEffect(() => {
-		setSelectedChains((prev) => {
-			const filtered = prev.filter((chain) => chainsSet.has(chain))
-			return filtered.length === prev.length ? prev : filtered
-		})
-	}, [chainsSet])
-
-	React.useEffect(() => {
 		const column = table.getColumn('chain')
 		if (!column) return
 
@@ -188,37 +183,126 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	}, [debouncedSearch, selectedChains, table])
 
 	const clearChainSelection = React.useCallback(() => {
-		setSelectedChains([])
-	}, [])
+		const { chain, ...queries } = router.query
+		router.push(
+			{
+				pathname: router.pathname,
+				query: { ...queries, chain: 'None' }
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [router])
 
 	const toggleAllChains = React.useCallback(() => {
-		setSelectedChains((prev) => (prev.length === chains.length ? [] : (chains as string[])))
-	}, [chains])
+		const { chain, ...queries } = router.query
+		router.push(
+			{
+				pathname: router.pathname,
+				query: queries
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [router])
 
-	const selectOnlyOneChain = React.useCallback((chain: string) => {
-		setSelectedChains([chain])
-	}, [])
+	const addChain = React.useCallback(
+		(newOptions: Array<string>) => {
+			const { chain, ...queries } = router.query
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...queries,
+						chain: newOptions
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		},
+		[router]
+	)
+
+	const selectOnlyOneChain = React.useCallback(
+		(chain: string) => {
+			const { chain: currentChain, ...queries } = router.query
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...queries,
+						chain: chain
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
+		},
+		[router]
+	)
 
 	const clearAllColumns = React.useCallback(() => {
-		clearAllPersistedColumns()
-	}, [clearAllPersistedColumns])
+		const { column, ...queries } = router.query
+		router.push(
+			{
+				pathname: router.pathname,
+				query: {
+					...queries,
+					column: 'None'
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [router])
 
 	const toggleAllColumns = React.useCallback(() => {
-		selectAllPersistedColumns()
-	}, [selectAllPersistedColumns])
+		const { column, ...queries } = router.query
+		router.push(
+			{
+				pathname: router.pathname,
+				query: queries
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [router])
 
 	const addColumn = React.useCallback(
 		(newOptions: Array<string>) => {
-			setVisibleColumns(newOptions)
+			const { column, ...queries } = router.query
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...queries,
+						column: newOptions
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
 		},
-		[setVisibleColumns]
+		[router]
 	)
 
 	const addOnlyOneColumn = React.useCallback(
 		(newOption: string) => {
-			setOnlyColumnVisible(newOption)
+			const { column, ...queries } = router.query
+			router.push(
+				{
+					pathname: router.pathname,
+					query: {
+						...queries,
+						column: newOption
+					}
+				},
+				undefined,
+				{ shallow: true }
+			)
 		},
-		[setOnlyColumnVisible]
+		[router]
 	)
 
 	const prepareCsv = React.useCallback(() => {
@@ -275,7 +359,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 						<SelectWithCombobox
 							allValues={chains}
 							selectedValues={selectedChains}
-							setSelectedValues={setSelectedChains}
+							setSelectedValues={addChain}
 							selectOnlyOne={selectOnlyOneChain}
 							toggleAll={toggleAllChains}
 							clearAll={clearChainSelection}
