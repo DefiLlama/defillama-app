@@ -98,6 +98,10 @@ export interface ILineAndBarChartProps {
 	hideDefaultLegend?: boolean
 }
 
+export interface ICandlestickChartProps {
+	data: Array<[number, number, number, number, number, number]>
+}
+
 export interface IMultiSeriesChartProps {
 	series?: Array<{
 		data: Array<[number, number]>

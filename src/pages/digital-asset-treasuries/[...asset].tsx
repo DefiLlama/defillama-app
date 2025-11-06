@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
@@ -227,7 +227,7 @@ export default function TreasuriesByAsset({
 							</p>
 						) : null}
 					</div>
-					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+					<BasicLink href="/report-error" className="mt-auto mr-auto pt-4 text-left text-(--text-form) underline">
 						Report incorrect data
 					</BasicLink>
 				</div>
