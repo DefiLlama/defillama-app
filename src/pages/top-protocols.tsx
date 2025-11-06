@@ -14,8 +14,9 @@ import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import Layout from '~/layout'
+import { useDebounce } from '~/hooks/useDebounce'
 import { usePersistentColumnVisibility } from '~/hooks/usePersistentColumnVisibility'
+import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { descriptions } from './categories'
@@ -59,6 +60,7 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 	return {
 		props: {
 			data,
+			chains: data.map((row) => row.chain),
 			uniqueCategories: Array.from(uniqueCategories)
 		},
 		revalidate: maxAgeForNext([22])
@@ -68,9 +70,10 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 const pageName = ['Top Protocols']
 const optionsKey = 'top-protocols-table-columns'
 
-export default function TopProtocols({ data, uniqueCategories }) {
+export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const columnHelper = React.useMemo(() => createColumnHelper<any>(), [])
-	const chainOptions: string[] = React.useMemo(() => Array.from(new Set(data.map((row) => row.chain))), [data])
+
+	const chainsSet = React.useMemo(() => new Set(chains), [chains])
 
 	const columnOptions = React.useMemo(
 		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
@@ -151,7 +154,8 @@ export default function TopProtocols({ data, uniqueCategories }) {
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [searchValue, setSearchValue] = React.useState('')
-	const [debouncedSearch, setDebouncedSearch] = React.useState('')
+	const debouncedSearch = useDebounce(searchValue, 200)
+
 	const [selectedChains, setSelectedChains] = React.useState<string[]>([])
 
 	const table = useReactTable({
@@ -168,18 +172,10 @@ export default function TopProtocols({ data, uniqueCategories }) {
 
 	React.useEffect(() => {
 		setSelectedChains((prev) => {
-			const filtered = prev.filter((chain) => chainOptions.includes(chain))
+			const filtered = prev.filter((chain) => chainsSet.has(chain))
 			return filtered.length === prev.length ? prev : filtered
 		})
-	}, [chainOptions])
-
-	React.useEffect(() => {
-		const timeout = setTimeout(() => {
-			setDebouncedSearch(searchValue)
-		}, 200)
-
-		return () => clearTimeout(timeout)
-	}, [searchValue])
+	}, [chainsSet])
 
 	React.useEffect(() => {
 		const column = table.getColumn('chain')
@@ -193,8 +189,8 @@ export default function TopProtocols({ data, uniqueCategories }) {
 	}, [])
 
 	const toggleAllChains = React.useCallback(() => {
-		setSelectedChains((prev) => (prev.length === chainOptions.length ? [] : (chainOptions as string[])))
-	}, [chainOptions])
+		setSelectedChains((prev) => (prev.length === chains.length ? [] : (chains as string[])))
+	}, [chains])
 
 	const selectOnlyOneChain = React.useCallback((chain: string) => {
 		setSelectedChains([chain])
@@ -274,7 +270,7 @@ export default function TopProtocols({ data, uniqueCategories }) {
 
 					<div className="flex items-center gap-2 max-sm:w-full max-sm:flex-col">
 						<SelectWithCombobox
-							allValues={chainOptions}
+							allValues={chains}
 							selectedValues={selectedChains}
 							setSelectedValues={setSelectedChains}
 							selectOnlyOne={selectOnlyOneChain}
