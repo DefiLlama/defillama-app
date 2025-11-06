@@ -14,6 +14,7 @@ import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
+import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { useDebounce } from '~/hooks/useDebounce'
 import { usePersistentColumnVisibility } from '~/hooks/usePersistentColumnVisibility'
 import Layout from '~/layout'
@@ -21,32 +22,36 @@ import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 import { descriptions } from './categories'
 
+const excludeChains = new Set([...DEFI_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
+const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
-	const topProtocolPerChainAndCategory = Object.fromEntries(chains.map((c) => [c, {}]))
+	const topProtocolPerChainAndCategory = {}
 
-	protocols.forEach((p) => {
+	for (const p of protocols) {
 		const { chainTvls, category, name } = p
-		if (['Bridge', 'Canonical Bridge'].includes(category)) {
-			return
+		if (excludeCategories.has(category)) {
+			continue
 		}
-		Object.entries(chainTvls ?? {}).forEach(([chain, { tvl }]: [string, { tvl: number }]) => {
-			if (topProtocolPerChainAndCategory[chain] === undefined) {
-				return
+		for (const chain in chainTvls) {
+			if (chain.includes('-') || excludeChains.has(chain)) {
+				continue
 			}
+			const tvl = chainTvls[chain].tvl
+			topProtocolPerChainAndCategory[chain] = topProtocolPerChainAndCategory[chain] ?? {}
 
 			const currentTopProtocol = topProtocolPerChainAndCategory[chain][category]
 
-			if (currentTopProtocol === undefined || tvl > currentTopProtocol[1]) {
+			if (currentTopProtocol == null || tvl > currentTopProtocol[1]) {
 				topProtocolPerChainAndCategory[chain][category] = [name, tvl]
 			}
-		})
-	})
+		}
+	}
 
 	const data = []
 	const uniqueCategories = new Set()
 
-	chains.forEach((chain) => {
+	for (const chain of chains) {
 		const categories = topProtocolPerChainAndCategory[chain]
 		const values = {}
 
@@ -55,7 +60,7 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 			values[cat] = categories[cat][0]
 		}
 		data.push({ chain, ...values })
-	})
+	}
 
 	return {
 		props: {
