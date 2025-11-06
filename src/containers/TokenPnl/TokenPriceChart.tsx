@@ -1,15 +1,18 @@
 import { useMemo } from 'react'
 import MultiSeriesChart from '~/components/ECharts/MultiSeriesChart'
 import { formattedNum } from '~/utils'
+import { formatDateLabel } from './format'
 import type { PricePoint } from './types'
 
 interface TokenPriceChartProps {
 	series: PricePoint[]
 	isLoading: boolean
+	startDate: number
+	endDate: number
 	onPointClick?: (point: { timestamp: number; price: number }) => void
 }
 
-export const TokenPriceChart = ({ series, isLoading, onPointClick }: TokenPriceChartProps) => {
+export const TokenPriceChart = ({ series, isLoading, startDate, endDate, onPointClick }: TokenPriceChartProps) => {
 	const startPrice = series[0]?.price || 0
 	const endPrice = series[series.length - 1]?.price || 0
 	const isPositive = endPrice >= startPrice
@@ -41,17 +44,36 @@ export const TokenPriceChart = ({ series, isLoading, onPointClick }: TokenPriceC
 		}
 	}, [series])
 
-	const chartSeries = useMemo(
-		() => [
+	const chartSeries = useMemo(() => {
+		if (!series.length) return []
+
+		const dataPoints: Array<[number, number]> = []
+
+		const firstPoint = series[0]
+		if (firstPoint && firstPoint.timestamp !== startDate) {
+			dataPoints.push([startDate, firstPoint.price])
+		}
+
+		series.forEach((pt) => {
+			dataPoints.push([pt.timestamp, pt.price])
+		})
+
+		const lastPoint = series[series.length - 1]
+		if (lastPoint && lastPoint.timestamp !== endDate) {
+			dataPoints.push([endDate, lastPoint.price])
+		}
+
+		dataPoints.sort((a, b) => a[0] - b[0])
+
+		return [
 			{
 				name: 'Price',
 				type: 'line' as const,
 				color: primaryColor,
-				data: series.map((pt) => [pt.timestamp, pt.price] as [number, number])
+				data: dataPoints
 			}
-		],
-		[series, primaryColor]
-	)
+		]
+	}, [series, primaryColor, startDate, endDate])
 
 	const chartOptions = useMemo(
 		() => ({
@@ -60,6 +82,18 @@ export const TokenPriceChart = ({ series, isLoading, onPointClick }: TokenPriceC
 				right: 0,
 				top: 12,
 				bottom: 12
+			},
+			xAxis: {
+				type: 'time',
+				min: startDate * 1000,
+				max: endDate * 1000,
+				axisLabel: {
+					formatter: (value: number) => formatDateLabel(value / 1000),
+					showMinLabel: true,
+					showMaxLabel: true,
+					hideOverlap: true
+				},
+				boundaryGap: false
 			},
 			yAxis: {
 				min: yAxisConfig.min,
@@ -109,17 +143,14 @@ export const TokenPriceChart = ({ series, isLoading, onPointClick }: TokenPriceC
 						},
 						label: { show: false },
 						data: [
-							{ coord: [series[0]?.timestamp * 1000, series[0]?.price || 0], name: 'Start' },
-							{
-								coord: [series[series.length - 1]?.timestamp * 1000, series[series.length - 1]?.price || 0],
-								name: 'End'
-							}
+							{ coord: [startDate * 1000, startPrice], name: 'Start' },
+							{ coord: [endDate * 1000, endPrice], name: 'End' }
 						]
 					}
 				}
 			]
 		}),
-		[series, startPrice, primaryColor, yAxisConfig]
+		[startPrice, endPrice, primaryColor, yAxisConfig, startDate, endDate]
 	)
 
 	const handleReady = (instance: any) => {

@@ -428,14 +428,16 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					<div className="mb-3 flex items-center justify-between">
 						<h3 className="text-base font-semibold">Price Over Time</h3>
 						<div className="flex items-center gap-2 text-xs text-(--text-secondary)">
-							<span>{formatDateLabel(pnlData.priceSeries[0].timestamp)}</span>
+							<span>{formatDateLabel(start)}</span>
 							<Icon name="arrow-right" width={14} height={14} />
-							<span>{formatDateLabel(pnlData.priceSeries[pnlData.priceSeries.length - 1].timestamp)}</span>
+							<span>{formatDateLabel(end)}</span>
 						</div>
 					</div>
 					<TokenPriceChart
 						series={pnlData.priceSeries}
 						isLoading={isFetching}
+						startDate={start}
+						endDate={end}
 						onPointClick={(pt) => setFocusedPoint(pt)}
 					/>
 				</div>
