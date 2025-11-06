@@ -102,13 +102,17 @@ export const UpcomingEvent = ({
 			perDayAmount = totalAmount = noOfTokens.reduce((sum, amount) => sum + amount, 0)
 			displayUnit = ''
 		}
+		const currentTime = Date.now() / 1e3
+		const endTime = timestamp + (rateDurationDays || 0) * 86400
+		const isOngoing = unlockType === 'linear' && currentTime >= timestamp && currentTime <= endTime
 		return {
 			name,
 			perDayAmount,
 			totalAmount,
 			displayUnit,
 			timestamp,
-			unlockType
+			unlockType,
+			isOngoing
 		}
 	})
 
@@ -178,7 +182,7 @@ export const UpcomingEvent = ({
 				</span>
 				<hr className="border-(--bg-border)" />
 				<span className="flex flex-col gap-4">
-					{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp }) => {
+					{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
 						const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 						const usdValue = price
 							? isLinearPerDay
@@ -191,7 +195,7 @@ export const UpcomingEvent = ({
 							<span className="flex flex-col gap-1" key={name + totalAmount}>
 								<h2 className="flex items-center justify-between gap-2">
 									<span className="flex items-center gap-2">
-										{name}
+										{name}{isOngoing && ' (Ongoing)'}
 										<Ariakit.TooltipProvider>
 											<Ariakit.TooltipAnchor>
 												<Icon
@@ -322,7 +326,7 @@ export const UpcomingEvent = ({
 					</span>
 					<hr className="border-(--bg-border)" />
 					<span className="flex flex-col gap-4">
-						{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp }) => {
+						{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
 							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 							const usdValue = price
 								? isLinearPerDay
@@ -335,7 +339,7 @@ export const UpcomingEvent = ({
 								<span className="flex flex-col gap-1" key={name + totalAmount}>
 									<span className="flex items-center justify-between gap-2">
 										<span className="flex items-center gap-2">
-											{name}
+											{name}{isOngoing && ' (Ongoing)'}
 											<Ariakit.TooltipProvider>
 												<Ariakit.TooltipAnchor>
 													<Icon

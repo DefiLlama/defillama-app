@@ -16,7 +16,8 @@ export default function LineAndBarChart({
 	alwaysShowTooltip,
 	solidChartAreaStyle = false,
 	hideDataZoom,
-	onReady
+	onReady,
+	hideDefaultLegend = true
 }: ILineAndBarChartProps) {
 	const id = useId()
 
@@ -35,7 +36,12 @@ export default function LineAndBarChart({
 	const series = useMemo(() => {
 		const series = []
 
+		let someSeriesHasYAxisIndex = false
+
 		for (const stack in charts) {
+			if (charts[stack].yAxisIndex != null) {
+				someSeriesHasYAxisIndex = true
+			}
 			series.push({
 				name: charts[stack].name,
 				type: charts[stack].type,
@@ -73,7 +79,8 @@ export default function LineAndBarChart({
 							width: 0
 						}
 					: {},
-				data: charts[stack].data
+				data: charts[stack].data,
+				...(charts[stack].yAxisIndex != null ? { yAxisIndex: charts[stack].yAxisIndex } : {})
 			})
 		}
 		if (hallmarks) {
@@ -135,6 +142,14 @@ export default function LineAndBarChart({
 							])
 						}
 		}
+		if (someSeriesHasYAxisIndex) {
+			return series.map((item) => {
+				return {
+					...item,
+					yAxisIndex: item.yAxisIndex ?? 0
+				}
+			})
+		}
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle])
 
@@ -164,9 +179,50 @@ export default function LineAndBarChart({
 			}
 		}
 
-		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { legend, graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+
+		const finalYAxis = []
+		if (series.some((item) => item.yAxisIndex != null)) {
+			// Collect all unique yAxisIndex values from series and map them to colors
+			const yAxisIndexToColor = new Map<number, string | undefined>()
+
+			series.forEach((item) => {
+				if (item.yAxisIndex != null) {
+					// Map each yAxisIndex to the color of the first series that uses it
+					if (!yAxisIndexToColor.has(item.yAxisIndex)) {
+						const seriesColor = item.itemStyle?.color
+						yAxisIndexToColor.set(item.yAxisIndex, seriesColor)
+					}
+				}
+			})
+
+			// Create yAxis objects for each index from 0 to max
+			if (yAxisIndexToColor.size > 0) {
+				const maxIndex = Math.max(...Array.from(yAxisIndexToColor.keys()))
+				for (let i = 0; i <= maxIndex; i++) {
+					const axisColor = i === 0 ? null : yAxisIndexToColor.get(i)
+					finalYAxis.push({
+						...yAxis,
+						axisLine: {
+							show: true,
+							lineStyle: {
+								type: [5, 10],
+								dashOffset: 5,
+								...(axisColor ? { color: axisColor } : {})
+							}
+						},
+						axisLabel: {
+							...yAxis.axisLabel,
+							...(axisColor ? { color: axisColor } : {})
+						},
+						...(expandTo100Percent ? { max: 100, min: 0 } : {})
+					})
+				}
+			}
+		}
 
 		chartInstance.setOption({
+			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
 			tooltip,
 			title: titleDefaults,
@@ -179,10 +235,13 @@ export default function LineAndBarChart({
 				outerBoundsContain: 'axisLabel'
 			},
 			xAxis,
-			yAxis: {
-				...yAxis,
-				...(expandTo100Percent ? { max: 100, min: 0 } : {})
-			},
+			yAxis:
+				finalYAxis.length > 0
+					? finalYAxis
+					: {
+							...yAxis,
+							...(expandTo100Percent ? { max: 100, min: 0 } : {})
+						},
 			...(!hideDataZoom ? { dataZoom } : {}),
 			series
 		})
@@ -223,7 +282,16 @@ export default function LineAndBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, expandTo100Percent, alwaysShowTooltip, hideDataZoom])
+	}, [
+		createInstance,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		expandTo100Percent,
+		alwaysShowTooltip,
+		hideDataZoom,
+		hideDefaultLegend
+	])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
 }

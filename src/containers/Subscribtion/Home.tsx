@@ -127,7 +127,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
 							</div>
 						) : (
-							<div className="mx-auto w-full max-w-[400px] lg:hidden">
+							<div className="mx-auto w-full max-w-[400px]">
 								<SignIn
 									text={`Get Pro for $${billingInterval === 'year' ? '490' : '49'}${billingInterval === 'year' ? '/year' : '/month'}`}
 									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"

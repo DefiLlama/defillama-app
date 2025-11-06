@@ -31,7 +31,7 @@ export function useGetEntities(q: string) {
 								offset: 0,
 								q: debouncedQuery,
 								filter: [
-									['type = Chain', 'type = Protocol', 'type = Stablecoin'],
+									['type = Chain', 'type = Protocol', 'type = Stablecoin', 'type = Category'],
 									['deprecated = false', 'NOT deprecated EXISTS'],
 									'NOT subName EXISTS'
 								]

@@ -87,6 +87,9 @@ export function ProtocolOverviewLayout({
 
 	const protocolTabs = useMemo(() => {
 		const final = []
+		if (metrics.borrowed) {
+			final.push(tabs.borrowed)
+		}
 		if (metrics.stablecoins) {
 			final.push(tabs.stablecoins)
 		}
@@ -175,7 +178,7 @@ export function ProtocolOverviewLayout({
 				</p>
 			))}
 
-			<div className="isolate flex flex-col gap-2">
+			<div className="isolate flex flex-1 flex-col gap-2">
 				<div className="flex w-full overflow-x-auto text-xs font-medium">
 					{otherProtocols?.length > 1 && (
 						<Ariakit.MenuProvider>
@@ -231,59 +234,53 @@ export function ProtocolOverviewLayout({
 					)}
 
 					{isCEX ? (
-						<BasicLink
-							href={`/cex/${slug(name)}`}
-							data-active={!tab || tab === 'information'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Information
-						</BasicLink>
+						<>
+							<BasicLink
+								href={`/cex/${slug(name)}`}
+								data-active={!tab || tab === 'information'}
+								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+							>
+								Information
+							</BasicLink>
+							{metrics.tvlTab ? (
+								<BasicLink
+									href={`/cex/assets/${slug(name)}`}
+									data-active={tab === 'assets'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									Assets
+								</BasicLink>
+							) : null}
+							{metrics.stablecoins ? (
+								<BasicLink
+									href={`/cex/stablecoins/${slug(name)}`}
+									data-active={tab === 'stablecoins'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									Stablecoin Info
+								</BasicLink>
+							) : null}
+						</>
 					) : (
-						<BasicLink
-							href={`/protocol/${slug(name)}`}
-							data-active={!tab || tab === 'information'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Information
-						</BasicLink>
+						<>
+							<BasicLink
+								href={`/protocol/${slug(name)}`}
+								data-active={!tab || tab === 'information'}
+								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+							>
+								Information
+							</BasicLink>
+							{metrics.tvlTab ? (
+								<BasicLink
+									href={`/protocol/tvl/${slug(name)}`}
+									data-active={tab === 'tvl'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									TVL
+								</BasicLink>
+							) : null}
+						</>
 					)}
-					{metrics.tvlTab ? (
-						isCEX ? (
-							<BasicLink
-								href={`/cex/assets/${slug(name)}`}
-								data-active={tab === 'assets'}
-								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-							>
-								Assets
-							</BasicLink>
-						) : (
-							<BasicLink
-								href={`/protocol/tvl/${slug(name)}`}
-								data-active={tab === 'tvl'}
-								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-							>
-								TVL
-							</BasicLink>
-						)
-					) : null}
-					{metrics.tvlTab && category === 'Lending' ? (
-						<BasicLink
-							href={`/protocol/borrowed/${slug(name)}`}
-							data-active={tab === 'borrowed'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Borrowed
-						</BasicLink>
-					) : null}
-					{metrics.stablecoins && isCEX ? (
-						<BasicLink
-							href={`/cex/stablecoins/${slug(name)}`}
-							data-active={tab === 'stablecoins'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Stablecoin Info
-						</BasicLink>
-					) : null}
 					{protocolTabs
 						.filter((pt) => (isCEX ? pt.id !== 'stablecoins' : true))
 						.map((pt) => (

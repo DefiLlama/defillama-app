@@ -4,6 +4,7 @@ import { IBarChartProps, IChartProps, IPieChartProps } from '~/components/EChart
 import { tvlOptionsMap } from '~/components/Filters/options'
 import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
+import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata } from '~/containers/ProtocolOverview/types'
@@ -106,11 +107,11 @@ export default function Protocols(props) {
 			toggleOptions={props.toggleOptions}
 		>
 			{isLoading ? (
-				<div className="flex h-[408px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<LocalLoader />
 				</div>
 			) : (
-				<div className="grid min-h-[408px] grid-cols-2 gap-2 rounded-md">
+				<div className="grid grid-cols-2 gap-2">
 					{chainsSplit && chainsUnique?.length > 1 && (
 						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
@@ -169,7 +170,7 @@ export default function Protocols(props) {
 					{usdInflows?.length > 0 && (
 						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
-								<BarChart chartData={usdInflows} color={props.backgroundColor} title="USD Inflows" valueSymbol="$" />
+								<BarChart chartData={usdInflows} color={oldBlue} title="USD Inflows" valueSymbol="$" />
 							</React.Suspense>
 						</LazyChart>
 					)}
@@ -179,7 +180,7 @@ export default function Protocols(props) {
 							<React.Suspense fallback={<></>}>
 								<BarChart
 									chartData={tokenInflows}
-									title="Token Inflows"
+									title="Inflows by Token"
 									customLegendName="Token"
 									customLegendOptions={tokensUnique}
 									hideDefaultLegend={true}
