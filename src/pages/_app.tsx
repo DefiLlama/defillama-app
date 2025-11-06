@@ -4,7 +4,7 @@ import NProgress from 'nprogress'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import { useEffect, useState } from 'react'
-import { AppProps } from 'next/app'
+import type { AppProps, NextWebVitalsMetric } from 'next/app'
 import { useRouter } from 'next/router'
 import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
@@ -12,8 +12,13 @@ import { AuthProvider } from '~/containers/Subscribtion/auth'
 import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
+import { reportWebVitalMetric } from '~/utils/webVitals'
 
 NProgress.configure({ showSpinner: false })
+
+export function reportWebVitals(metric: NextWebVitalsMetric) {
+	reportWebVitalMetric(metric)
+}
 
 const client = new QueryClient()
 
