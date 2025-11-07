@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -6,10 +6,19 @@ import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import Layout from '~/layout'
-import { formattedNum, getDominancePercent, getNDistinctColors, slug, toNiceCsvDate } from '~/utils'
+import {
+	firstDayOfMonth,
+	formattedNum,
+	getDominancePercent,
+	getNDistinctColors,
+	lastDayOfWeek,
+	slug,
+	toNiceCsvDate
+} from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -77,6 +86,9 @@ const breakdownColor = (type) => {
 	}
 }
 
+const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
+type GroupByType = (typeof GROUP_BY)[number]
+
 export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/index', async () => {
 	const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
 
@@ -124,6 +136,11 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 				inflowsByAssetByDate[date][asset]?.[1] ?? null
 			])
 		}
+	}
+
+	// Sort data by date for each asset to ensure correct cumulative calculations
+	for (const asset in dailyFlowsByAsset) {
+		dailyFlowsByAsset[asset].data.sort((a, b) => a[0] - b[0])
 	}
 
 	return {
@@ -242,6 +259,55 @@ const prepareDailyFlowsCsv = (dailyFlowsByAsset) => {
 	return { filename: 'digital-asset-treasuries-daily-flows.csv', rows: [headers, ...rows] }
 }
 export default function TreasuriesByInstitution({ allAssets, institutions, dailyFlowsByAsset }) {
+	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
+
+	const charts = useMemo(() => {
+		if (['Weekly', 'Monthly'].includes(groupBy)) {
+			const final = {}
+			for (const asset in dailyFlowsByAsset) {
+				final[asset] = {
+					name: dailyFlowsByAsset[asset].name,
+					stack: dailyFlowsByAsset[asset].stack,
+					type: dailyFlowsByAsset[asset].type,
+					color: dailyFlowsByAsset[asset].color,
+					data: []
+				}
+				const sumByDate = {}
+				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
+					const dateKey = groupBy === 'Monthly' ? +firstDayOfMonth(date) * 1000 : +lastDayOfWeek(date) * 1000
+					sumByDate[dateKey] = sumByDate[dateKey] ?? {}
+					sumByDate[dateKey].purchasePrice = (sumByDate[dateKey].purchasePrice ?? 0) + (purchasePrice ?? 0)
+					sumByDate[dateKey].assetQuantity = (sumByDate[dateKey].assetQuantity ?? 0) + (assetQuantity ?? 0)
+				}
+				for (const date in sumByDate) {
+					final[asset].data.push([+date, sumByDate[date].purchasePrice, sumByDate[date].assetQuantity])
+				}
+			}
+			return final
+		}
+		// if (groupBy === 'Cumulative') {
+		// 	const final = {}
+		// 	for (const asset in dailyFlowsByAsset) {
+		// 		final[asset] = {
+		// 			name: dailyFlowsByAsset[asset].name,
+		// 			stack: dailyFlowsByAsset[asset].stack,
+		// 			type: 'line',
+		// 			color: dailyFlowsByAsset[asset].color,
+		// 			data: []
+		// 		}
+		// 		let totalPurchasePrice = 0
+		// 		let totalAssetQuantity = 0
+		// 		dailyFlowsByAsset[asset].data.forEach(([date, purchasePrice, assetQuantity]) => {
+		// 			totalPurchasePrice += purchasePrice ?? 0
+		// 			totalAssetQuantity += assetQuantity ?? 0
+		// 			final[asset].data.push([date, totalPurchasePrice, totalAssetQuantity])
+		// 		})
+		// 	}
+		// 	return final
+		// }
+		return dailyFlowsByAsset
+	}, [dailyFlowsByAsset, groupBy])
+
 	return (
 		<Layout
 			title={`Digital Asset Treasuries - DefiLlama`}
@@ -254,10 +320,16 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 			<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between p-2 pb-0">
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
-					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(dailyFlowsByAsset)} smol />
+					<TagGroup
+						selectedValue={groupBy}
+						setValue={(period) => setGroupBy(period as GroupByType)}
+						values={GROUP_BY}
+						className="ml-auto"
+					/>
+					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(charts)} smol />
 				</div>
 				<Suspense fallback={<></>}>
-					<LineAndBarChart charts={dailyFlowsByAsset} valueSymbol="$" />
+					<LineAndBarChart charts={charts} valueSymbol="$" />
 				</Suspense>
 			</div>
 			<TableWithSearch
