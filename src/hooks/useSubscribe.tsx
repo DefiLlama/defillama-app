@@ -29,7 +29,7 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
-	billingInterval?: 'year' | 'month'
+	billing_interval?: 'year' | 'month'
 	overage?: boolean
 	metadata?: {
 		is_trial?: boolean
@@ -147,7 +147,8 @@ export const useSubscribe = () => {
 		paymentMethod: 'stripe' | 'llamapay',
 		type: 'api' | 'contributor' | 'llamafeed',
 		onSuccess?: (checkoutUrl: string) => void,
-		billingInterval: 'year' | 'month' = 'month'
+		billingInterval: 'year' | 'month' = 'month',
+		useEmbedded: boolean = false
 	) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to subscribe')
@@ -173,6 +174,12 @@ export const useSubscribe = () => {
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
 
+			// For embedded mode, return the result instead of opening a new tab
+			if (useEmbedded) {
+				return result
+			}
+
+			// For legacy redirect mode
 			if (result.checkoutUrl) {
 				onSuccess?.(result.checkoutUrl)
 				window.open(result.checkoutUrl, '_blank')
