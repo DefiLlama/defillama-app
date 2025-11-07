@@ -3,6 +3,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -261,6 +262,24 @@ const prepareDailyFlowsCsv = (dailyFlowsByAsset) => {
 export default function TreasuriesByInstitution({ allAssets, institutions, dailyFlowsByAsset }) {
 	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
 
+	const chartOptions = useMemo(() => {
+		return {
+			tooltip: {
+				formatter: (params: any) => {
+					let chartdate = formatTooltipChartDate(params[0].value[0], groupBy.toLowerCase() as any)
+					let vals = ''
+					let total = 0
+					for (const param of params) {
+						if (!param.value[1]) continue
+						total += param.value[1]
+						vals += `<li style="list-style:none;">${param.marker} ${param.seriesName}: ${formattedNum(param.value[1], true)}</li>`
+					}
+					vals += `<li style="list-style:none;">Total: ${formattedNum(total, true)}</li>`
+					return chartdate + vals
+				}
+			}
+		}
+	}, [groupBy])
 	const charts = useMemo(() => {
 		if (['Weekly', 'Monthly'].includes(groupBy)) {
 			const final = {}
@@ -329,7 +348,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(charts)} smol />
 				</div>
 				<Suspense fallback={<></>}>
-					<LineAndBarChart charts={charts} valueSymbol="$" />
+					<LineAndBarChart charts={charts} valueSymbol="$" chartOptions={chartOptions} />
 				</Suspense>
 			</div>
 			<TableWithSearch
