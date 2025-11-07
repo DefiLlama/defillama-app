@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { IResponseCGMarketsAPI } from '~/api/types'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { COINS_CHART_API } from '~/constants'
@@ -17,6 +19,8 @@ import { formatDateLabel, formatPercent } from './format'
 import { StatsCard } from './StatsCard'
 import { TokenPriceChart } from './TokenPriceChart'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
+
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 const DAY_IN_SECONDS = 86_400
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
@@ -241,6 +245,30 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		refetchOnWindowFocus: false
 	})
 
+	const chartData = useMemo(() => {
+		const priceSeries = pnlData?.priceSeries ?? []
+		const startPrice = priceSeries[0]?.price ?? 0
+		const endPrice = priceSeries[priceSeries.length - 1]?.price ?? 0
+		const series: Array<[number, number, number]> = priceSeries.map((point, index) => [
+			+point.timestamp * 1000,
+			point.price,
+			index === 0 ? null : startPrice ? ((point.price - startPrice) / startPrice) * 100 : 0
+		])
+		const isPositive = endPrice >= startPrice
+
+		const primaryColor = isPositive ? '#10b981' : '#ef4444'
+
+		return {
+			'Token Price': {
+				name: 'Token Price',
+				stack: 'Token Price',
+				color: primaryColor,
+				type: 'line' as const,
+				data: series as any
+			}
+		} as ILineAndBarChartProps['charts']
+	}, [pnlData?.priceSeries])
+
 	const comparisonQueries = useQueries({
 		queries: DEFAULT_COMPARISON_IDS.map((tokenId) => ({
 			queryKey: ['token-pnl-comparison-item', tokenId, start, end],
@@ -419,8 +447,8 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					</div>
 				</div>
 
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<div className="mb-3 flex items-center justify-between">
+				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+					<div className="flex items-center justify-between p-3 pb-1">
 						<h3 className="text-base font-semibold">Price Over Time</h3>
 						<div className="flex items-center gap-2 text-xs text-(--text-secondary)">
 							<span>{formatDateLabel(start)}</span>
@@ -428,13 +456,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							<span>{formatDateLabel(end)}</span>
 						</div>
 					</div>
-					<TokenPriceChart
-						series={pnlData.priceSeries}
-						isLoading={isFetching}
-						startDate={start}
-						endDate={end}
-						onPointClick={(pt) => setFocusedPoint(pt)}
-					/>
+					<Suspense fallback={<div className="min-h-[360px]"></div>}>
+						<LineAndBarChart charts={chartData} hideDataZoom chartOptions={chartOptions} />
+					</Suspense>
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -542,31 +566,35 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							/>
 						</label>
 					</div>
-					{/* <div className="flex items-center justify-between text-sm">
-						<span className="text-(--text-secondary)">Display as</span>
-						<div className="relative h-8 w-[180px] rounded-full border border-(--form-control-border) bg-(--bg-cards-bg) p-1">
-							<div
-								className={`absolute inset-1 w-[calc(50%-4px)] rounded-full bg-(--form-control-border) transition-all duration-300 ${mode === 'percent' ? 'translate-x-0' : 'translate-x-full'}`}
-							></div>
-							<div className="relative z-[1] grid h-full grid-cols-2 text-xs">
-								<button
-									onClick={() => setMode('percent')}
-									className={`rounded-full font-medium ${mode === 'percent' ? 'text-(--text-primary)' : 'text-(--text-secondary)'}`}
-								>
-									% Change
-								</button>
-								<button
-									onClick={() => setMode('absolute')}
-									className={`rounded-full font-medium ${mode === 'absolute' ? 'text-(--text-primary)' : 'text-(--text-secondary)'}`}
-								>
-									$ Change
-								</button>
-							</div>
-						</div>
-					</div> */}
 				</div>
 				<div>{renderContent()}</div>
 			</div>
 		</div>
 	)
+}
+
+const chartOptions = {
+	yAxis: {
+		min: function (value) {
+			const range = value.max - value.min
+			return value.min - range * 0.2
+		},
+		max: function (value) {
+			const range = value.max - value.min
+			return value.max + range * 0.2
+		},
+		scale: false
+	},
+	tooltip: {
+		formatter: function (params) {
+			let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+			let vals = ''
+			vals += `<li style="list-style:none;">$${formattedNum(params[0].value[1])}</li>`
+
+			if (params[0].value[2] !== null) {
+				vals += `<li style="list-style:none;font-size:12px;${params[0].value[2] >= 0 ? 'color: #10b981;' : 'color: #ef4444;'}">${formatTooltipValue(params[0].value[2], '%')} from start</li>`
+			}
+			return chartdate + vals
+		}
+	}
 }
