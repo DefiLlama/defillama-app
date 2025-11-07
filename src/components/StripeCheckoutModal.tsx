@@ -14,7 +14,7 @@ import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
-const stripeInstance = loadStripe(STRIPE_PUBLISHABLE_KEY)
+const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
 interface StripeCheckoutModalProps {
 	isOpen: boolean

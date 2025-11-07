@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -30,7 +30,44 @@ const SubscribeProModal = lazy(() =>
 export default function LlamaAIGetStarted() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const [activeFeature, setActiveFeature] = useState(0)
+	const [shouldAutoplay, setShouldAutoplay] = useState(false)
+	const videoRef = useRef<HTMLVideoElement>(null)
 	const { subscription } = useSubscribe()
+
+	useEffect(() => {
+		// Detect Safari - Safari doesn't support autoplay well
+		if (typeof navigator === 'undefined') return
+
+		const isSafari = /^((?!chrome|android|chromium|edg|opera|opr|brave).)*safari/i.test(navigator.userAgent)
+
+		// Enable autoplay for non-Safari browsers (programmatic play will handle edge cases)
+		setShouldAutoplay(!isSafari)
+	}, [])
+
+	// Attempt to play video when it's ready and autoplay is enabled
+	useEffect(() => {
+		if (!shouldAutoplay || !videoRef.current) return
+
+		const video = videoRef.current
+		const attemptPlay = async () => {
+			if (video.readyState >= 2) {
+				try {
+					await video.play()
+				} catch {
+					// Autoplay was prevented, ignore the error
+				}
+			}
+		}
+
+		attemptPlay()
+		video.addEventListener('canplay', attemptPlay, { once: true })
+		video.addEventListener('loadeddata', attemptPlay, { once: true })
+
+		return () => {
+			video.removeEventListener('canplay', attemptPlay)
+			video.removeEventListener('loadeddata', attemptPlay)
+		}
+	}, [shouldAutoplay])
 
 	return (
 		<>
@@ -111,11 +148,12 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
 						<video
+							ref={videoRef}
 							src="/assets/llamaai.mp4"
 							preload="metadata"
 							className="z-10 h-full w-full rounded-lg object-cover"
-							autoPlay
-							muted
+							muted={shouldAutoplay}
+							playsInline
 							controls
 							poster="/assets/poster.png"
 						/>
