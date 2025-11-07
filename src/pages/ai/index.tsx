@@ -261,7 +261,7 @@ export default function LlamaAIGetStarted() {
 										type="button"
 										onClick={() => setActiveFeature(index)}
 										className={cn(
-											'group flex w-full cursor-pointer flex-col gap-2 px-4 py-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FDE0A9] focus-visible:outline-none',
+											'group flex w-full cursor-pointer touch-pan-y flex-col gap-2 px-4 py-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#FDE0A9] focus-visible:outline-none',
 											isActive
 												? 'border-l-[3px] border-[#C99A4A] pl-[15px] text-black dark:border-[#FDE0A9] dark:text-white'
 												: 'border-l-[3px] border-transparent pl-[15px] text-[#666] opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 dark:text-[#6F7074]'
