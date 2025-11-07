@@ -1569,7 +1569,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[60px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[84px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1626,7 +1626,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="STRONK MODE - Extended thinking for better results (slower)"
 						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
-						className="absolute right-11 bottom-3 flex h-6 items-center gap-1.5 rounded-sm bg-(--app-bg) px-2 shadow-[0px_0px_15px_0px_rgba(253,224,169,0.8),_0px_0px_0px_2px_#FDE0A9] max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7"
+						className="absolute left-2 bottom-3 flex h-6 items-center gap-1.5 rounded-sm bg-(--app-bg) px-2 shadow-[0px_0px_15px_0px_rgba(253,224,169,0.8),_0px_0px_0px_2px_#FDE0A9] max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7"
 					>
 						<img
 							src="/icons/stronk-llama.webp"
@@ -1639,7 +1639,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="Enable STRONK MODE - Extended thinking for better results (slower)"
 						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
-						className="absolute right-11 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-[#FDE0A9]/10 hover:bg-[#FDE0A9]/20 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="absolute left-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-[#FDE0A9]/10 hover:bg-[#FDE0A9]/20 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<img
 							src="/icons/stronk-llama.webp"
