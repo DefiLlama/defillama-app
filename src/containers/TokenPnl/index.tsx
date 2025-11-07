@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
@@ -213,23 +213,18 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	const [mode, setMode] = useState<ChangeMode>('percent')
 	const [focusedPoint, setFocusedPoint] = useState<{ timestamp: number; price: number } | null>(null)
 
-	const selectedCoins = useMemo(() => {
+	const { selectedCoins, selectedCoinId, selectedCoinInfo } = useMemo(() => {
 		const queryCoins = router.query?.coin || ['bitcoin']
 		const coins = Array.isArray(queryCoins) ? queryCoins : [queryCoins]
 		return {
-			selected: coins
+			selectedCoins: coins,
+			selectedCoinId: coins[0],
+			selectedCoinInfo: coins[0] ? coinInfoMap.get(coins[0]) : null
 		}
-	}, [router.query])
-
-	const id = selectedCoins.selected[0] ?? ''
+	}, [router.query, coinInfoMap])
 
 	const start = dateStringToUnix(startDate)
 	const end = dateStringToUnix(endDate)
-
-	const fetchData = useCallback(
-		() => computeTokenPnl({ id, start, end, coinInfo: coinInfoMap.get(id) }),
-		[id, start, end, coinInfoMap]
-	)
 
 	const {
 		data: pnlData,
@@ -239,9 +234,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		refetch,
 		isFetching
 	} = useQuery({
-		queryKey: ['token-pnl', id, start, end],
-		queryFn: fetchData,
-		enabled: router.isReady && Boolean(id && start && end && end > start) ? true : false,
+		queryKey: ['token-pnl', selectedCoinId, start, end],
+		queryFn: () => computeTokenPnl({ id: selectedCoinId, start, end, coinInfo: selectedCoinInfo }),
+		enabled: router.isReady && Boolean(selectedCoinId && start && end && end > start) ? true : false,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
@@ -475,12 +470,10 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 
 				<DailyPnLGrid timeline={timeline} />
 
-				<ComparisonPanel entries={comparisonData ?? []} activeId={id} />
+				<ComparisonPanel entries={comparisonData ?? []} activeId={selectedCoinId} />
 			</div>
 		)
 	}
-
-	const selectedCoin = coinInfoMap.get(id)
 
 	return (
 		<div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4">
@@ -509,16 +502,16 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							onClick={() => dialogStore.toggle()}
 							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-base text-(--text-primary)"
 						>
-							{selectedCoin ? (
+							{selectedCoinInfo ? (
 								<>
 									<img
-										src={selectedCoin.image}
-										alt={selectedCoin.name}
+										src={selectedCoinInfo.image}
+										alt={selectedCoinInfo.name}
 										width={24}
 										height={24}
 										className="rounded-full"
 									/>
-									<span className="text-sm font-medium">{selectedCoin.name}</span>
+									<span className="text-sm font-medium">{selectedCoinInfo.name}</span>
 								</>
 							) : (
 								<>
@@ -531,7 +524,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							dialogStore={dialogStore}
 							coinsData={coinsData}
 							selectedCoins={{}}
-							queryCoins={selectedCoins.selected}
+							queryCoins={selectedCoins}
 							selectCoin={(coin) => updateCoin(coin.id)}
 						/>
 					</div>
@@ -549,7 +542,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							/>
 						</label>
 					</div>
-					<div className="flex items-center justify-between text-sm">
+					{/* <div className="flex items-center justify-between text-sm">
 						<span className="text-(--text-secondary)">Display as</span>
 						<div className="relative h-8 w-[180px] rounded-full border border-(--form-control-border) bg-(--bg-cards-bg) p-1">
 							<div
@@ -570,7 +563,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 								</button>
 							</div>
 						</div>
-					</div>
+					</div> */}
 				</div>
 				<div>{renderContent()}</div>
 			</div>
