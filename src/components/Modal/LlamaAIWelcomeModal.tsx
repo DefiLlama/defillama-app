@@ -34,12 +34,12 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						</span>
 					</div>
 
-					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-black dark:text-white">LlamaAI</h2>
-					<p className="mb-6 text-center text-lg font-semibold text-black dark:text-white">Insight, accelerated</p>
-
+					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-black dark:text-white">
+						Introducing LlamaAI 🚀
+					</h2>
 					<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
-						Go beyond dashboards with DefiLlama's data at your fingertips, turning conversation into deep, flexible
-						analysis.
+						We're upgrading your subscription with Llama AI. Turn data into deep, flexible analysis in a conversational
+						way.
 					</p>
 
 					<BasicLink
