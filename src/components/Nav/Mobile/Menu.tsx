@@ -3,6 +3,7 @@ import { Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Icon } from '~/components/Icon'
@@ -208,7 +209,11 @@ const PinnedPagesSection = React.memo(function PinnedPagesSection({
 			{isReordering ? (
 				<p className="mt-1 text-[11px] text-(--text-tertiary)">Drag to reorder, tap remove to unpin</p>
 			) : null}
-			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+			<DndContext
+				sensors={sensors}
+				onDragEnd={handleDragEnd}
+				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+			>
 				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
 					<div className="mt-1 flex flex-col gap-1">
 						{pinnedPages.map((page) => (
