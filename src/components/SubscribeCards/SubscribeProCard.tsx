@@ -64,7 +64,7 @@ export function SubscribeProCard({
 							LlamaAI
 						</Link>
 					</span>
-					<svg className="h-4 w-4 shrink-0">
+					<svg className="relative top-0.5 h-4 w-4 shrink-0">
 						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 				</li>
