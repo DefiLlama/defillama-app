@@ -4,7 +4,6 @@ import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
-	COINS_CHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -1092,7 +1091,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 }
 
 interface IDATInflow {
-	dailyFlows: Record<string, Array<[number, number]>>
+	dailyFlows: Record<string, Array<[number, number, number, number]>>
 	statsByAsset: Record<
 		string,
 		{
@@ -1115,47 +1114,16 @@ export const getDATInflows = async () => {
 
 		let total30d = 0
 
-		// 20 weeks from now
-		const startDate = new Date(Date.now() - 20 * 7 * 24 * 60 * 60 * 1000)
-		const startTimestamp = Math.floor(
-			Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()) / 1e3
-		)
-
-		const assetGeckoIds: Record<string, string> = {}
-		for (const asset in data.statsByAsset) {
-			assetGeckoIds[asset] = data.statsByAsset[asset].geckoId
-		}
-
-		const assetPricesChart: Array<[string, Map<number, number>]> = await Promise.all(
-			Object.entries(assetGeckoIds).map(([asset, geckoId]) =>
-				fetchJson(`${COINS_CHART_API}/coingecko:${geckoId}?start=${startTimestamp}&span=${20 * 7}`)
-					.then((res) => {
-						const priceMap = new Map()
-						for (const { timestamp, price } of res.coins[`coingecko:${geckoId}`].prices) {
-							const utcTimestamp = getUTCTimestamp(+timestamp * 1000)
-							priceMap.set(utcTimestamp, price)
-						}
-						return [asset, priceMap] as [string, Map<number, number>]
-					})
-					.catch(() => [asset, new Map()] as [string, Map<number, number>])
-			)
-		)
+		const lastMonthInflows: Record<number, number> = {}
 
 		for (const asset in data.dailyFlows) {
-			const priceOfAssets = assetPricesChart.find(([pAsset]) => pAsset === asset)?.[1] ?? new Map()
-
-			for (const [date, value] of data.dailyFlows[asset]) {
+			for (const [date, value, purchasePrice, usdValueOfPurchase] of data.dailyFlows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
-				// Try current day first, fallback to previous day if price not found (handles day boundary mismatches)
-				let priceOnDate = priceOfAssets.get(utcTimestamp)
-				if (!priceOnDate) {
-					const previousDay = utcTimestamp - 24 * 60 * 60 * 1000
-					priceOnDate = priceOfAssets.get(previousDay) ?? 0
-				}
 				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000
-				const usdValue = (value || 0) * (priceOnDate ?? 0)
+				const usdValue = purchasePrice || usdValueOfPurchase || 0
 				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
 					total30d += usdValue
+					lastMonthInflows[utcTimestamp] = (lastMonthInflows[utcTimestamp] || 0) + usdValue
 				}
 				weeklyInflows[finalDate] = (weeklyInflows[finalDate] || 0) + usdValue
 			}
@@ -1175,7 +1143,8 @@ export const getDATInflows = async () => {
 
 		return {
 			chart: completeChart,
-			total30d
+			total30d,
+			lastMonthInflows
 		}
 	} catch (error) {
 		console.error('Error fetching DAT inflows:', error)

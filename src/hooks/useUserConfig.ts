@@ -49,6 +49,8 @@ export function useUserConfig() {
 				hasInitializedRef.current = true
 				return {}
 			}
+
+			return null
 		} catch {
 			return null
 		}
