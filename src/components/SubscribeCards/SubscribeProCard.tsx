@@ -60,7 +60,7 @@ export function SubscribeProCard({
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 					<span className="font-bold">
 						NEW: Access to{' '}
-						<Link href="/ai" className="text-[#5C5CF9]">
+						<Link href="/ai" className="llamaai-glow-text">
 							LlamaAI
 						</Link>
 					</span>

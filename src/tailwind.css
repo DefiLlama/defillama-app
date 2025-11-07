@@ -777,3 +777,18 @@
 	position: relative;
 	z-index: 1;
 }
+
+.llamaai-glow-text {
+	background: linear-gradient(93.94deg, #fde0a9 24.73%, #fbedcb 57.42%, #fde0a9 99.73%);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	text-shadow: 0px 0px 20px rgba(253, 224, 169, 0.5);
+	text-decoration: underline;
+	text-decoration-color: #fde0a9;
+	transition: text-shadow 0.2s ease;
+}
+
+.llamaai-glow-text:hover {
+	text-shadow: 0px 0px 30px rgba(253, 224, 169, 0.8);
+}
