@@ -126,6 +126,75 @@ export default function LlamaAIGetStarted() {
 							WebkitOverflowScrolling: 'touch'
 						}}
 					>
+						<div
+							className="w-[calc(100vw-72px)] shrink-0 snap-start rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 md:w-auto dark:border-[#39393E] dark:bg-[#222429]"
+							style={{ scrollMarginLeft: '28px' }}
+						>
+							<div className="mb-2 flex flex-nowrap items-center gap-4">
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FDE0A91F]">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+										<path
+											d="M9 3H5C3.89543 3 3 3.89543 3 5V9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3Z"
+											stroke="#FDE0A9"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+										<path
+											d="M7 11V15C7 15.5304 7.21071 16.0391 7.58579 16.4142C7.96086 16.7893 8.46957 17 9 17H13"
+											stroke="#FDE0A9"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+										<path
+											d="M19 13H15C13.8954 13 13 13.8954 13 15V19C13 20.1046 13.8954 21 15 21H19C20.1046 21 21 20.1046 21 19V15C21 13.8954 20.1046 13 19 13Z"
+											stroke="#FDE0A9"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</svg>
+								</div>
+								<h3 className="text-lg font-semibold text-black dark:text-white">Faster Insights</h3>
+							</div>
+							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
+								LlamaAI leverages DefiLlama’s data to handle the heavy lifting of analysis so you can move from question
+								to insight in a fraction of the time.
+							</p>
+						</div>
+
+						<div
+							className="w-[calc(100vw-72px)] shrink-0 snap-start rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 md:w-auto dark:border-[#39393E] dark:bg-[#222429]"
+							style={{ scrollMarginLeft: '20px', scrollMarginRight: '12px' }}
+						>
+							<div className="mb-2 flex flex-nowrap items-center gap-4">
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FDE0A91F]">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+										<path
+											d="M3 3V19C3 19.5304 3.21071 20.0391 3.58579 20.4142C3.96086 20.7893 4.46957 21 5 21H21"
+											stroke="#FDE0A9"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+										<path
+											d="M7 11.2069C7.00003 11.0746 7.05253 10.9476 7.146 10.8539L9.146 8.85393C9.19245 8.80736 9.24762 8.77042 9.30837 8.74521C9.36911 8.72001 9.43423 8.70703 9.5 8.70703C9.56577 8.70703 9.63089 8.72001 9.69163 8.74521C9.75238 8.77042 9.80755 8.80736 9.854 8.85393L13.146 12.1459C13.1924 12.1925 13.2476 12.2294 13.3084 12.2546C13.3691 12.2798 13.4342 12.2928 13.5 12.2928C13.5658 12.2928 13.6309 12.2798 13.6916 12.2546C13.7524 12.2294 13.8076 12.1925 13.854 12.1459L18.146 7.85393C18.2159 7.78388 18.3049 7.73614 18.402 7.71674C18.499 7.69734 18.5996 7.70716 18.691 7.74495C18.7824 7.78274 18.8606 7.84681 18.9156 7.92905C18.9706 8.01128 19 8.10799 19 8.20692V15.9999C19 16.2651 18.8946 16.5195 18.7071 16.707C18.5196 16.8946 18.2652 16.9999 18 16.9999H8C7.73478 16.9999 7.48043 16.8946 7.29289 16.707C7.10536 16.5195 7 16.2651 7 15.9999V11.2069Z"
+											stroke="#FDE0A9"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										/>
+									</svg>
+								</div>
+								<h3 className="text-lg font-semibold text-black dark:text-white">Automatic Charts</h3>
+							</div>
+							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
+								LlamaAI automatically creates charts that best fit your query. Each answer includes structured insights,
+								visual context, and downloadable data, giving you clear results ready to explore or refine.
+							</p>
+						</div>
+
 						<div className="w-[calc(100vw-72px)] shrink-0 snap-start rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 md:w-auto dark:border-[#39393E] dark:bg-[#222429]">
 							<div className="mb-2 flex flex-nowrap items-center gap-4">
 								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FDE0A91F]">
@@ -160,80 +229,11 @@ export default function LlamaAIGetStarted() {
 										/>
 									</svg>
 								</div>
-								<h3 className="text-lg font-semibold text-black dark:text-white">Explore DeFi Conversationally</h3>
+								<h3 className="text-lg font-semibold text-black dark:text-white">Connect the Dots</h3>
 							</div>
 							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
-								Use natural language to navigate DefiLlama's dataset with flexibility. Combine metrics, compare chains
-								and protocols, and surface insights that aren't easily discoverable on dashboards.
-							</p>
-						</div>
-
-						<div
-							className="w-[calc(100vw-72px)] shrink-0 snap-start rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 md:w-auto dark:border-[#39393E] dark:bg-[#222429]"
-							style={{ scrollMarginLeft: '20px', scrollMarginRight: '12px' }}
-						>
-							<div className="mb-2 flex flex-nowrap items-center gap-4">
-								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FDE0A91F]">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-										<path
-											d="M3 3V19C3 19.5304 3.21071 20.0391 3.58579 20.4142C3.96086 20.7893 4.46957 21 5 21H21"
-											stroke="#FDE0A9"
-											strokeWidth="1.5"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-										<path
-											d="M7 11.2069C7.00003 11.0746 7.05253 10.9476 7.146 10.8539L9.146 8.85393C9.19245 8.80736 9.24762 8.77042 9.30837 8.74521C9.36911 8.72001 9.43423 8.70703 9.5 8.70703C9.56577 8.70703 9.63089 8.72001 9.69163 8.74521C9.75238 8.77042 9.80755 8.80736 9.854 8.85393L13.146 12.1459C13.1924 12.1925 13.2476 12.2294 13.3084 12.2546C13.3691 12.2798 13.4342 12.2928 13.5 12.2928C13.5658 12.2928 13.6309 12.2798 13.6916 12.2546C13.7524 12.2294 13.8076 12.1925 13.854 12.1459L18.146 7.85393C18.2159 7.78388 18.3049 7.73614 18.402 7.71674C18.499 7.69734 18.5996 7.70716 18.691 7.74495C18.7824 7.78274 18.8606 7.84681 18.9156 7.92905C18.9706 8.01128 19 8.10799 19 8.20692V15.9999C19 16.2651 18.8946 16.5195 18.7071 16.707C18.5196 16.8946 18.2652 16.9999 18 16.9999H8C7.73478 16.9999 7.48043 16.8946 7.29289 16.707C7.10536 16.5195 7 16.2651 7 15.9999V11.2069Z"
-											stroke="#FDE0A9"
-											strokeWidth="1.5"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
-								</div>
-								<h3 className="text-lg font-semibold text-black dark:text-white">Automatic Chart Generation</h3>
-							</div>
-							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
-								LlamaAI automatically creates charts that best fit your query. Each answer includes structured insights,
-								visual context, and downloadable data, giving you clear results ready to explore or refine.
-							</p>
-						</div>
-
-						<div
-							className="w-[calc(100vw-72px)] shrink-0 snap-start rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-6 md:w-auto dark:border-[#39393E] dark:bg-[#222429]"
-							style={{ scrollMarginLeft: '28px' }}
-						>
-							<div className="mb-2 flex flex-nowrap items-center gap-4">
-								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#FDE0A91F]">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-										<path
-											d="M9 3H5C3.89543 3 3 3.89543 3 5V9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3Z"
-											stroke="#FDE0A9"
-											strokeWidth="1.5"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-										<path
-											d="M7 11V15C7 15.5304 7.21071 16.0391 7.58579 16.4142C7.96086 16.7893 8.46957 17 9 17H13"
-											stroke="#FDE0A9"
-											strokeWidth="1.5"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-										<path
-											d="M19 13H15C13.8954 13 13 13.8954 13 15V19C13 20.1046 13.8954 21 15 21H19C20.1046 21 21 20.1046 21 19V15C21 13.8954 20.1046 13 19 13Z"
-											stroke="#FDE0A9"
-											strokeWidth="1.5"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
-								</div>
-								<h3 className="text-lg font-semibold text-black dark:text-white">Integrated Workflow</h3>
-							</div>
-							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
-								LlamaAI brings your analysis into one place, pulling data from across DefiLlama and handling the heavy
-								lifting of data collection so you can move from question to insight in a fraction of the time.
+								Navigate DefiLlama’s dataset with flexibility, combining metrics, comparing chains and protocols, and
+								surfacing insights that aren’t easily discoverable on dashboards using natural language.
 							</p>
 						</div>
 					</div>
