@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
@@ -57,7 +58,12 @@ export function SubscribeProCard({
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="group flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span className="font-bold">NEW: Access to LlamaAI</span>
+					<span className="font-bold">
+						NEW: Access to{' '}
+						<Link href="/ai" className="text-[#5C5CF9]">
+							LlamaAI
+						</Link>
+					</span>
 					<svg className="h-4 w-4 shrink-0">
 						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 					</svg>
