@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Icon } from '~/components/Icon'
@@ -65,7 +66,11 @@ export const PinnedPages = React.memo(function PinnedPages({
 				) : null}
 			</div>
 			{isReordering ? <p className="text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p> : null}
-			<DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+			<DndContext
+				sensors={sensors}
+				onDragEnd={handleDragEnd}
+				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+			>
 				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
 					<div className="flex flex-col">
 						{pinnedPages.map((page) => (
