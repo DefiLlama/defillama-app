@@ -110,7 +110,13 @@ export default function LlamaAIGetStarted() {
 						}}
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
-						<video src="/assets/llamaai.mp4" className="z-10 h-full w-full rounded-lg object-cover" controls />
+						<video
+							src="/assets/llamaai.mp4"
+							preload="metadata"
+							className="z-10 h-full w-full rounded-lg object-cover"
+							controls
+							poster="/assets/poster.png"
+						/>
 					</div>
 				</div>
 				<div className="mx-auto mb-15 w-full max-w-5xl">
