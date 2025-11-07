@@ -17,11 +17,14 @@ import { SignIn } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
 	const router = useRouter()
-	const { isAuthenticated, loaders, user } = useAuthContext()
+	const { isAuthenticated, loaders, user, resendVerification } = useAuthContext()
+	const isWalletUser = user?.email?.includes('@defillama.com')
+
 	const { subscription, isSubscriptionFetching, apiSubscription, llamafeedSubscription } = useSubscribe()
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
+	const [showEmailForm, setShowEmailForm] = useState(false)
 
 	const queryClient = useQueryClient()
 	const [showReturnModal, setShowReturnModal] = useState(false)
@@ -53,6 +56,12 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	useEffect(() => {
 		setHasShownModal(false)
 	}, [returnUrl])
+
+	const handleResendVerification = async () => {
+		if (user?.email) {
+			resendVerification(user.email)
+		}
+	}
 
 	if (
 		loaders &&
@@ -291,7 +300,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									subscription?.provider !== 'trial'
 								}
 								billingInterval={billingInterval}
-								currentBillingInterval={llamafeedSubscription?.billingInterval}
+								currentBillingInterval={llamafeedSubscription?.billing_interval}
 							/>
 						</div>
 						<div
@@ -304,7 +313,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								context="page"
 								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
 								billingInterval={billingInterval}
-								currentBillingInterval={apiSubscription?.billingInterval}
+								currentBillingInterval={apiSubscription?.billing_interval || 'month'}
 								active={apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'}
 							/>
 						</div>
