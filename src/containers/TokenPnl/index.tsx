@@ -17,7 +17,6 @@ import { DailyPnLGrid } from './DailyPnLGrid'
 import { DateInput } from './DateInput'
 import { formatDateLabel, formatPercent } from './format'
 import { StatsCard } from './StatsCard'
-import { TokenPriceChart } from './TokenPriceChart'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
