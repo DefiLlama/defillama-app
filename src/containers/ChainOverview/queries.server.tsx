@@ -1114,8 +1114,6 @@ export const getDATInflows = async () => {
 
 		let total30d = 0
 
-		const lastMonthInflows: Record<number, number> = {}
-
 		for (const asset in data.dailyFlows) {
 			for (const [date, value, purchasePrice, usdValueOfPurchase] of data.dailyFlows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
@@ -1123,7 +1121,6 @@ export const getDATInflows = async () => {
 				const usdValue = purchasePrice || usdValueOfPurchase || 0
 				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
 					total30d += usdValue
-					lastMonthInflows[utcTimestamp] = (lastMonthInflows[utcTimestamp] || 0) + usdValue
 				}
 				weeklyInflows[finalDate] = (weeklyInflows[finalDate] || 0) + usdValue
 			}
@@ -1143,8 +1140,7 @@ export const getDATInflows = async () => {
 
 		return {
 			chart: completeChart,
-			total30d,
-			lastMonthInflows
+			total30d
 		}
 	} catch (error) {
 		console.error('Error fetching DAT inflows:', error)
