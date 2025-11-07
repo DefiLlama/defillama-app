@@ -42,29 +42,31 @@ async function pullData() {
 			fetchJson(CEXS_DATA_URL)
 				.then((data) => data.cexs ?? [])
 				.catch(() => []),
-			fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
-				headers: {
-					Authorization: `Bearer ${process.env.TASTY_API_KEY}`
-				}
-			})
-				.then((res) => res.json())
-				.then((res) => {
-					const tastyMetrics = {}
-					const trendingRoutes = []
-					let i = 0
-					for (const xy of res) {
-						if (i <= 20) {
-							trendingRoutes.push([xy.x, xy.y])
+			process.env.TASTY_API_URL
+				? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
+						headers: {
+							Authorization: `Bearer ${process.env.TASTY_API_KEY}`
 						}
-						tastyMetrics[xy.x] = xy.y
-						i++
-					}
-					return { tastyMetrics, trendingRoutes }
-				})
-				.catch((e) => {
-					console.log('Error fetching tasty metrics', e)
-					return { tastyMetrics: {}, trendingRoutes: [] }
-				})
+					})
+						.then((res) => res.json())
+						.then((res) => {
+							const tastyMetrics = {}
+							const trendingRoutes = []
+							let i = 0
+							for (const xy of res) {
+								if (i <= 20) {
+									trendingRoutes.push([xy.x, xy.y])
+								}
+								tastyMetrics[xy.x] = xy.y
+								i++
+							}
+							return { tastyMetrics, trendingRoutes }
+						})
+						.catch((e) => {
+							console.log('Error fetching tasty metrics', e)
+							return { tastyMetrics: {}, trendingRoutes: [] }
+						})
+				: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] })
 		])
 
 		if (!fs.existsSync(CACHE_DIR)) {
