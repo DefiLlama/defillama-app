@@ -82,7 +82,7 @@ export interface ILineAndBarChartProps {
 	}
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string)
+			[key: string]: Value | Array<Value> | ((params: any) => string | number)
 		}
 	}
 	height?: string
