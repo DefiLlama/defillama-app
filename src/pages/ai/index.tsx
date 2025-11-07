@@ -152,7 +152,10 @@ export default function LlamaAIGetStarted() {
 							borderRadius: '50%'
 						}}
 					></span>
-					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
+					<div
+						className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]"
+						style={{ aspectRatio: '1024 / 590.88' }}
+					>
 						<video
 							ref={videoRef}
 							src="/assets/llamaai.mp4"
