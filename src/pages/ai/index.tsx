@@ -333,8 +333,8 @@ export default function LlamaAIGetStarted() {
 					</FAQ>
 					<FAQ question="Who has access?">
 						<p>
-							LlamaAI is included in DefiLlama Pro along with the DefiLlama Pro dashboard builder, CSV downloads,
-							LlamaFeed, and other premium features. Free users can upgrade to use it.
+							LlamaAI is included in all paid subscriptions along with the DefiLlama Pro dashboard builder, CSV
+							downloads, LlamaFeed, and other premium features. Free users can upgrade to use it.
 						</p>
 					</FAQ>
 					<FAQ question="Can I export results?">
