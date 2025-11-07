@@ -52,6 +52,8 @@ export default function LlamaAIGetStarted() {
 		const attemptPlay = async () => {
 			if (video.readyState >= 2) {
 				try {
+					// Mute before playing (required for autoplay)
+					video.muted = true
 					await video.play()
 				} catch {
 					// Autoplay was prevented, ignore the error
@@ -152,7 +154,6 @@ export default function LlamaAIGetStarted() {
 							src="/assets/llamaai.mp4"
 							preload="metadata"
 							className="z-10 h-full w-full rounded-lg object-cover"
-							muted={shouldAutoplay}
 							playsInline
 							controls
 							poster="/assets/poster.png"
