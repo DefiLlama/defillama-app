@@ -38,7 +38,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 						Introducing LlamaAI 🚀
 					</h2>
 					<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
-						We're upgrading your subscription with Llama AI. Turn data into deep, flexible analysis in a conversational
+						We're upgrading your subscription with LlamaAI. Turn data into deep, flexible analysis in a conversational
 						way.
 					</p>
 
