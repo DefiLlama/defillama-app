@@ -190,8 +190,8 @@ export default function LlamaAIGetStarted() {
 								<h3 className="text-lg font-semibold text-black dark:text-white">Automatic Charts</h3>
 							</div>
 							<p className="text-base leading-6 text-[#666] dark:text-[#919296]">
-								LlamaAI automatically creates charts that best fit your query. Each answer includes structured insights,
-								visual context, and downloadable data, giving you clear results ready to explore or refine.
+								Generates the right chart for your query and pairs it with structured insights, visual context, and
+								downloadable data, giving you clear results ready to explore or refine.
 							</p>
 						</div>
 
