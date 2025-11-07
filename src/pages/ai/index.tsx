@@ -31,15 +31,19 @@ export default function LlamaAIGetStarted() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const [activeFeature, setActiveFeature] = useState(0)
 	const [shouldAutoplay, setShouldAutoplay] = useState(false)
+	const [isIOS, setIsIOS] = useState(false)
 	const videoRef = useRef<HTMLVideoElement>(null)
 	const { subscription } = useSubscribe()
 
 	useEffect(() => {
-		// Detect Safari - Safari doesn't support autoplay well
+		// Detect Safari and iOS
 		if (typeof navigator === 'undefined') return
 
 		const isSafari = /^((?!chrome|android|chromium|edg|opera|opr|brave).)*safari/i.test(navigator.userAgent)
+		// Detect iOS devices (iPhone, iPad, iPod) and iPadOS (Safari with touch support)
+		const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (isSafari && navigator.maxTouchPoints > 1)
 
+		setIsIOS(isIOSDevice)
 		// Enable autoplay for non-Safari browsers (programmatic play will handle edge cases)
 		setShouldAutoplay(!isSafari)
 	}, [])
@@ -154,6 +158,7 @@ export default function LlamaAIGetStarted() {
 							src="/assets/llamaai.mp4"
 							preload="metadata"
 							className="z-10 h-full w-full rounded-lg object-cover"
+							muted={isIOS}
 							playsInline
 							controls
 							poster="/assets/poster.png"
