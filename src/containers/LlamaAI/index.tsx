@@ -82,7 +82,7 @@ async function fetchPromptResponse({
 	sessionId?: string | null
 	suggestionContext?: any
 	preResolvedEntities?: Array<{ term: string; slug: string }>
-	mode: 'auto' | 'sql_only'
+	mode: 'auto' | 'sql_only' | 'stronk'
 	authorizedFetch: any
 }) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
@@ -271,7 +271,7 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
-	conversationHistory: Array<{
+	messages: Array<{
 		question: string
 		response: {
 			answer: string
@@ -364,6 +364,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [stronkMode, setStronkMode] = useState(false)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
 		suggestionContext?: any
@@ -400,7 +401,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			setConversationHistory(sharedSession.conversationHistory)
+			setConversationHistory(sharedSession.messages)
 			setSessionId(sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState])
@@ -479,7 +480,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				sessionId: currentSessionId,
 				suggestionContext,
 				preResolvedEntities,
-				mode: 'auto',
+				mode: stronkMode ? 'stronk' : 'auto',
 				authorizedFetch,
 				onProgress: (data) => {
 					if (data.type === 'token') {
@@ -1087,6 +1088,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isStreaming={isStreaming}
 											initialValue={prompt}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
+											stronkMode={stronkMode}
+											setStronkMode={setStronkMode}
+											showDebug={showDebug}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1285,6 +1289,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isStreaming={isStreaming}
 										initialValue={prompt}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
+										stronkMode={stronkMode}
+										setStronkMode={setStronkMode}
+										showDebug={showDebug}
 									/>
 								)}
 							</div>
@@ -1303,7 +1310,10 @@ const PromptInput = memo(function PromptInput({
 	handleStopRequest,
 	isStreaming,
 	initialValue,
-	placeholder
+	placeholder,
+	stronkMode,
+	setStronkMode,
+	showDebug
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
@@ -1312,6 +1322,9 @@ const PromptInput = memo(function PromptInput({
 	isStreaming?: boolean
 	initialValue?: string
 	placeholder: string
+	stronkMode: boolean
+	setStronkMode: (value: boolean) => void
+	showDebug?: boolean
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1560,7 +1573,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[60px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[84px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1613,6 +1626,23 @@ const PromptInput = memo(function PromptInput({
 						))}
 					</Ariakit.ComboboxPopover>
 				)}
+				{showDebug && (stronkMode ? (
+					<Tooltip
+						content="STRONK MODE - Extended thinking for better results (slower)"
+						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
+						className="absolute bottom-3 left-2 flex h-6 w-6 items-center justify-center rounded-sm bg-(--app-bg) shadow-[0px_0px_15px_0px_rgba(253,224,169,0.8),_0px_0px_0px_2px_#FDE0A9] max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+					>
+						<img src="/icons/stronk-llama.webp" alt="STRONK MODE" className="h-4 w-4 sm:h-5 sm:w-5" />
+					</Tooltip>
+				) : (
+					<Tooltip
+						content="Enable STRONK MODE - Extended thinking for better results (slower)"
+						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
+						className="absolute bottom-3 left-2 flex h-6 w-6 items-center justify-center rounded-sm bg-[#FDE0A9]/10 hover:bg-[#FDE0A9]/20 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+					>
+						<img src="/icons/stronk-llama.webp" alt="STRONK MODE" className="h-4 w-4 opacity-50 sm:h-5 sm:w-5" />
+					</Tooltip>
+				))}
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"

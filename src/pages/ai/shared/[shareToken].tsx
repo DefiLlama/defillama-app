@@ -13,7 +13,7 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
-	conversationHistory: Array<{
+	messages: Array<{
 		question: string
 		response: {
 			answer: string
