@@ -111,12 +111,8 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 		}
 		for (let i = 0; i < res.dailyFlows[asset].length; i++) {
 			const [date, value, purchasePrice, usdValueOfPurchase] = res.dailyFlows[asset][i]
-			const prev = res.dailyFlows[asset][i - 1]
 			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
-			inflowsByAssetByDate[date][asset] = [
-				(prev?.[2] || prev?.[3] || 0) + (purchasePrice || usdValueOfPurchase || 0),
-				(prev?.[1] ?? 0) + value
-			]
+			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, value]
 		}
 	}
 
