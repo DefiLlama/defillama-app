@@ -1090,6 +1090,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
 											stronkMode={stronkMode}
 											setStronkMode={setStronkMode}
+											showDebug={showDebug}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1290,6 +1291,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
 										stronkMode={stronkMode}
 										setStronkMode={setStronkMode}
+										showDebug={showDebug}
 									/>
 								)}
 							</div>
@@ -1310,7 +1312,8 @@ const PromptInput = memo(function PromptInput({
 	initialValue,
 	placeholder,
 	stronkMode,
-	setStronkMode
+	setStronkMode,
+	showDebug
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
@@ -1321,6 +1324,7 @@ const PromptInput = memo(function PromptInput({
 	placeholder: string
 	stronkMode: boolean
 	setStronkMode: (value: boolean) => void
+	showDebug?: boolean
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1622,33 +1626,23 @@ const PromptInput = memo(function PromptInput({
 						))}
 					</Ariakit.ComboboxPopover>
 				)}
-				{stronkMode ? (
+				{showDebug && (stronkMode ? (
 					<Tooltip
 						content="STRONK MODE - Extended thinking for better results (slower)"
 						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
-						className="absolute left-2 bottom-3 flex h-6 items-center gap-1.5 rounded-sm bg-(--app-bg) px-2 shadow-[0px_0px_15px_0px_rgba(253,224,169,0.8),_0px_0px_0px_2px_#FDE0A9] max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7"
+						className="absolute bottom-3 left-2 flex h-6 w-6 items-center justify-center rounded-sm bg-(--app-bg) shadow-[0px_0px_15px_0px_rgba(253,224,169,0.8),_0px_0px_0px_2px_#FDE0A9] max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
-						<img
-							src="/icons/stronk-llama.webp"
-							alt="STRONK MODE"
-							className="h-3 w-3 sm:h-3.5 sm:w-3.5"
-						/>
-						<span className="text-[10px] font-semibold text-[#FDE0A9] sm:text-xs">STRONK MODE</span>
+						<img src="/icons/stronk-llama.webp" alt="STRONK MODE" className="h-4 w-4 sm:h-5 sm:w-5" />
 					</Tooltip>
 				) : (
 					<Tooltip
 						content="Enable STRONK MODE - Extended thinking for better results (slower)"
 						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
-						className="absolute left-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-[#FDE0A9]/10 hover:bg-[#FDE0A9]/20 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="absolute bottom-3 left-2 flex h-6 w-6 items-center justify-center rounded-sm bg-[#FDE0A9]/10 hover:bg-[#FDE0A9]/20 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
-						<img
-							src="/icons/stronk-llama.webp"
-							alt="STRONK MODE"
-							className="h-4 w-4 sm:h-5 sm:w-5 opacity-50"
-						/>
-						<span className="sr-only">Enable STRONK MODE</span>
+						<img src="/icons/stronk-llama.webp" alt="STRONK MODE" className="h-4 w-4 opacity-50 sm:h-5 sm:w-5" />
 					</Tooltip>
-				)}
+				))}
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
