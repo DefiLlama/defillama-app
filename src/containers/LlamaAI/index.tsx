@@ -82,7 +82,7 @@ async function fetchPromptResponse({
 	sessionId?: string | null
 	suggestionContext?: any
 	preResolvedEntities?: Array<{ term: string; slug: string }>
-	mode: 'auto' | 'sql_only'
+	mode: 'auto' | 'sql_only' | 'stronk'
 	authorizedFetch: any
 }) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
@@ -271,7 +271,7 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
-	conversationHistory: Array<{
+	messages: Array<{
 		question: string
 		response: {
 			answer: string
@@ -364,6 +364,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [stronkMode, setStronkMode] = useState(false)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
 		suggestionContext?: any
@@ -400,7 +401,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			setConversationHistory(sharedSession.conversationHistory)
+			setConversationHistory(sharedSession.messages)
 			setSessionId(sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState])
@@ -479,7 +480,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				sessionId: currentSessionId,
 				suggestionContext,
 				preResolvedEntities,
-				mode: 'auto',
+				mode: stronkMode ? 'stronk' : 'auto',
 				authorizedFetch,
 				onProgress: (data) => {
 					if (data.type === 'token') {
@@ -1087,6 +1088,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isStreaming={isStreaming}
 											initialValue={prompt}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
+											stronkMode={stronkMode}
+											setStronkMode={setStronkMode}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1285,6 +1288,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isStreaming={isStreaming}
 										initialValue={prompt}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
+										stronkMode={stronkMode}
+										setStronkMode={setStronkMode}
 									/>
 								)}
 							</div>
@@ -1303,7 +1308,9 @@ const PromptInput = memo(function PromptInput({
 	handleStopRequest,
 	isStreaming,
 	initialValue,
-	placeholder
+	placeholder,
+	stronkMode,
+	setStronkMode
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
@@ -1312,6 +1319,8 @@ const PromptInput = memo(function PromptInput({
 	isStreaming?: boolean
 	initialValue?: string
 	placeholder: string
+	stronkMode: boolean
+	setStronkMode: (value: boolean) => void
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1612,6 +1621,33 @@ const PromptInput = memo(function PromptInput({
 							</Ariakit.ComboboxItem>
 						))}
 					</Ariakit.ComboboxPopover>
+				)}
+				{stronkMode ? (
+					<Tooltip
+						content="STRONK MODE - Extended thinking for better results (slower)"
+						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
+						className="absolute right-11 bottom-3 flex h-6 items-center gap-1.5 rounded-sm bg-(--app-bg) px-2 shadow-[0px_0px_15px_0px_rgba(253,224,169,0.8),_0px_0px_0px_2px_#FDE0A9] max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7"
+					>
+						<img
+							src="/icons/stronk-llama.webp"
+							alt="STRONK MODE"
+							className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+						/>
+						<span className="text-[10px] font-semibold text-[#FDE0A9] sm:text-xs">STRONK MODE</span>
+					</Tooltip>
+				) : (
+					<Tooltip
+						content="Enable STRONK MODE - Extended thinking for better results (slower)"
+						render={<button type="button" onClick={() => setStronkMode(!stronkMode)} />}
+						className="absolute right-11 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-[#FDE0A9]/10 hover:bg-[#FDE0A9]/20 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+					>
+						<img
+							src="/icons/stronk-llama.webp"
+							alt="STRONK MODE"
+							className="h-4 w-4 sm:h-5 sm:w-5 opacity-50"
+						/>
+						<span className="sr-only">Enable STRONK MODE</span>
+					</Tooltip>
 				)}
 				{isStreaming ? (
 					<Tooltip
