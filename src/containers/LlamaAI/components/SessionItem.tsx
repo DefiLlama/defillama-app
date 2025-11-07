@@ -25,7 +25,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
-		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
+		router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 
 		if (document.documentElement.clientWidth < 1024) {
 			handleSidebarToggle()
@@ -140,7 +140,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 			style={style}
 		>
 			<a
-				href={`/ai/${session.sessionId}`}
+				href={`/ai/chat/${session.sessionId}`}
 				onClick={(e) => {
 					// Allow cmd/ctrl+click to open in new tab
 					if (e.metaKey || e.ctrlKey) {
@@ -173,13 +173,14 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 						<span className="sr-only">Open menu</span>
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
+						portal
 						unmountOnHide
 						hideOnInteractOutside
 						gutter={8}
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+						className="max-sm:drawer thin-scrollbar z-50 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
@@ -188,7 +189,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 							onClick={() => {
 								try {
 									if (session.isPublic && session.shareToken) {
-										navigator.clipboard.writeText(`${window.location.origin}/ai/shared/${session.shareToken}`)
+										navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
 									}
 								} catch (error) {
 									console.log(error)

@@ -5,9 +5,9 @@ import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
 import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { LoadingDots } from '~/components/Loaders'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
+import { useSubscribe } from '~/hooks/useSubscribe'
 import { fetchJson } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
@@ -77,75 +77,95 @@ const Mobile = () => {
 
 	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
 
+	const router = useRouter()
+
+	const { subscription } = useSubscribe()
+	const hasActiveSubscription = subscription?.status === 'active'
+
 	return (
-		<Ariakit.DialogProvider>
-			<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
-				<span className="sr-only">Search</span>
-				<Icon name="search" height={16} width={16} />
-			</Ariakit.DialogDisclosure>
-
-			<Ariakit.Dialog
-				className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
-				unmountOnHide
-				hideOnInteractOutside
-				portal
-			>
-				<Ariakit.ComboboxProvider
-					setValue={(value) => {
-						startTransition(() => {
-							refine(value)
-						})
-					}}
+		<>
+			{!(router.pathname === '/ai' || router.pathname.startsWith('/ai/')) && (
+				<BasicLink
+					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
+					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
+					data-umami-event="llamaai-mobile-nav-link"
+					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
-					<span className="relative isolate flex w-full items-center justify-between gap-2">
-						<Ariakit.Combobox
-							placeholder="Search..."
-							className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base focus:ring-(--primary) dark:bg-black"
-						/>
-						<Ariakit.DialogDismiss className="p-2">
-							<Icon name="x" className="h-5 w-5" />
-						</Ariakit.DialogDismiss>
-					</span>
+					<svg className="h-4 w-4 shrink-0">
+						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					</svg>
+					<span className="sr-only">Ask LlamaAI</span>
+				</BasicLink>
+			)}
+			<Ariakit.DialogProvider>
+				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
+					<span className="sr-only">Search</span>
+					<Icon name="search" height={16} width={16} />
+				</Ariakit.DialogDisclosure>
 
-					<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
-						{query ? (
-							status === 'loading' ? (
+				<Ariakit.Dialog
+					className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
+					unmountOnHide
+					hideOnInteractOutside
+					portal
+				>
+					<Ariakit.ComboboxProvider
+						setValue={(value) => {
+							startTransition(() => {
+								refine(value)
+							})
+						}}
+					>
+						<span className="relative isolate flex w-full items-center justify-between gap-2">
+							<Ariakit.Combobox
+								placeholder="Search..."
+								className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base focus:ring-(--primary) dark:bg-black"
+							/>
+							<Ariakit.DialogDismiss className="p-2">
+								<Icon name="x" className="h-5 w-5" />
+							</Ariakit.DialogDismiss>
+						</span>
+
+						<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
+							{query ? (
+								status === 'loading' ? (
+									<p className="flex items-center justify-center gap-1 p-4">
+										Loading
+										<LoadingDots />
+									</p>
+								) : error ? (
+									<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
+								) : !results?.hits?.length ? (
+									<p className="flex items-center justify-center p-4">No results found</p>
+								) : (
+									results.hits.map((route: ISearchItem) => (
+										<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+									))
+								)
+							) : isLoadingSearchList ? (
 								<p className="flex items-center justify-center gap-1 p-4">
 									Loading
 									<LoadingDots />
 								</p>
-							) : error ? (
-								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-							) : !results?.hits?.length ? (
+							) : errorSearchList ? (
+								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
+							) : !searchList?.length ? (
 								<p className="flex items-center justify-center p-4">No results found</p>
 							) : (
-								results.hits.map((route: ISearchItem) => (
-									<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
-								))
-							)
-						) : isLoadingSearchList ? (
-							<p className="flex items-center justify-center gap-1 p-4">
-								Loading
-								<LoadingDots />
-							</p>
-						) : errorSearchList ? (
-							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
-						) : !searchList?.length ? (
-							<p className="flex items-center justify-center p-4">No results found</p>
-						) : (
-							<>
-								{recentSearchList.map((route: ISearchItem) => (
-									<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
-								))}
-								{defaultSearchList.map((route: ISearchItem) => (
-									<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
-								))}
-							</>
-						)}
-					</Ariakit.ComboboxList>
-				</Ariakit.ComboboxProvider>
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
+								<>
+									{recentSearchList.map((route: ISearchItem) => (
+										<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+									))}
+									{defaultSearchList.map((route: ISearchItem) => (
+										<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+									))}
+								</>
+							)}
+						</Ariakit.ComboboxList>
+					</Ariakit.ComboboxProvider>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+		</>
 	)
 }
 
@@ -155,7 +175,8 @@ const Desktop = () => {
 	const { query, refine } = useSearchBox()
 
 	const { results, status, error } = useInstantSearch({ catchError: true })
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
+	const { subscription } = useSubscribe()
+	const hasActiveSubscription = subscription?.status === 'active'
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
@@ -257,19 +278,19 @@ const Desktop = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{!featureFlagsLoading &&
-				hasFeature('llamaai') &&
-				!(router.pathname === '/ai' || router.pathname.startsWith('/ai/')) && (
-					<BasicLink
-						href="/ai"
-						className="mr-auto hidden items-center justify-between gap-[10px] rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
-					>
-						<span className="whitespace-nowrap">Ask LlamaAI</span>
-						<svg className="h-4 w-4 shrink-0">
-							<use href="/icons/ask-llamaai-1.svg" />
-						</svg>
-					</BasicLink>
-				)}
+			{!(router.pathname === '/ai' || router.pathname.startsWith('/ai/')) && (
+				<BasicLink
+					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
+					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
+					data-umami-event="llamaai-nav-link"
+					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
+				>
+					<svg className="h-4 w-4 shrink-0">
+						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					</svg>
+					<span className="whitespace-nowrap">Ask LlamaAI</span>
+				</BasicLink>
+			)}
 		</>
 	)
 }

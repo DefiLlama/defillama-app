@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
@@ -55,21 +56,27 @@ export function SubscribeProCard({
 				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
 			)}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
+				<li className="group flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span className="font-bold">
+						NEW: Access to{' '}
+						<Link href="/ai" className="llamaai-glow-text">
+							LlamaAI
+						</Link>
+					</span>
+					<svg className="relative top-0.5 h-4 w-4 shrink-0">
+						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					</svg>
+				</li>
 				<li className="flex flex-col gap-3">
 					<div className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 						<span>Create Custom DefiLlama Pro Dashboards</span>
 					</div>
-					<ul className="flex flex-col gap-3 pl-6">
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Generate custom dashboards with LlamaAI</span>
-						</li>
-					</ul>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>CSV Data downloads</span>
+					<span>CSV data downloads</span>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -79,33 +86,9 @@ export function SubscribeProCard({
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 					<span>Access to upcoming DefiLlama products</span>
 				</li>
-				<li className="flex flex-col gap-3">
-					<div className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>Full access to LlamaFeed</span>
-					</div>
-					<ul className="flex flex-col gap-3 pl-6">
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Premium Sections Unlocked (Listings, Stocks...)</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Increased Content Per Section</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>AI-Powered News Summaries</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Flexible Content Filtering & Customization</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Redesigned for better usability on all devices</span>
-						</li>
-					</ul>
+				<li className="flex flex-nowrap items-start gap-2.5">
+					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<span>Full access to LlamaFeed</span>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
@@ -166,6 +149,7 @@ export function SubscribeProCard({
 						{isModal && (
 							<BasicLink
 								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+								data-umami-event="subscribe-modal-goto-page"
 								className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 							>
 								Go to Subscription Page
@@ -195,15 +179,25 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
+
+	useEffect(() => {
+		if (isOpen && typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('subscribe-modal-open')
+		}
+	}, [isOpen])
+
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
 			<Ariakit.Dialog
-				className="dialog gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
+				className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
 				portal
 				unmountOnHide
 			>
 				<span className="mx-auto flex w-full max-w-[440px] flex-col">
-					<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white">
+					<Ariakit.DialogDismiss
+						data-umami-event="subscribe-modal-dismiss"
+						className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+					>
 						<Icon name="x" className="h-6 w-6" />
 					</Ariakit.DialogDismiss>
 					<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />

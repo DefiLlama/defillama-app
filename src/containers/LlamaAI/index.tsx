@@ -772,7 +772,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			router.push('/ai', undefined, { shallow: true })
+			router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -1065,7 +1065,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 										Failed to restore session,{' '}
-										<button onClick={handleNewChat} className="text-(--link-text) underline">
+										<button
+											onClick={handleNewChat}
+											data-umami-event="llamaai-new-chat"
+											className="text-(--link-text) underline"
+										>
 											Start a new chat
 										</button>
 									</p>
@@ -1616,7 +1620,7 @@ const PromptInput = memo(function PromptInput({
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
-						render={<button onClick={handleStopRequest} />}
+						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
 						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
@@ -1693,6 +1697,7 @@ const PromptResponse = ({
 				<p className="text-(--error)">{error}</p>
 				<button
 					onClick={onRetry}
+					data-umami-event="llamaai-retry-request"
 					className="flex w-fit items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
 				>
 					<Icon name="repeat" height={16} width={16} />
@@ -1725,7 +1730,7 @@ const PromptResponse = ({
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
-							{progressStage && <span>({progressStage})</span>}
+							{/* {progressStage && <span>({progressStage})</span>} */}
 						</span>
 					</p>
 				) : (
@@ -1807,6 +1812,7 @@ const SuggestedActions = memo(function SuggestedActions({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
+						data-umami-event="llamaai-suggestion-click"
 						className={`group flex touch-pan-y items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
@@ -1908,7 +1914,7 @@ const ResponseControls = memo(function ResponseControls({
 		},
 		onSuccess: (data) => {
 			if (data.shareToken) {
-				const shareLink = `${window.location.origin}/ai/shared/${data.shareToken}`
+				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
 				navigator.clipboard.writeText(shareLink)
 				setShowShareModal(true)
 			}
@@ -1993,7 +1999,13 @@ const ResponseControls = memo(function ResponseControls({
 				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"
-						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
+						render={
+							<button
+								onClick={() => shareSession()}
+								disabled={isSharing || showShareModal}
+								data-umami-event="llamaai-share-conversation"
+							/>
+						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 					>
 						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
@@ -2173,7 +2185,7 @@ const FeedbackForm = ({
 
 const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
 	const [copied, setCopied] = useState(false)
-	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
+	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
 	const handleCopy = async () => {
 		if (!shareLink) return
@@ -2209,6 +2221,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 					/>
 					<button
 						onClick={handleCopy}
+						data-umami-event="llamaai-copy-share-link"
 						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 					>
 						{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
@@ -2221,6 +2234,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 				</Ariakit.DialogDismiss>
 				<button
 					onClick={handleShareToX}
+					data-umami-event="llamaai-share-to-x"
 					className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90"
 				>
 					Share to X
