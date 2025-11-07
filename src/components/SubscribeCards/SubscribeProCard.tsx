@@ -189,7 +189,7 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
 			<Ariakit.Dialog
-				className="dialog gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
+				className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
 				portal
 				unmountOnHide
 			>
