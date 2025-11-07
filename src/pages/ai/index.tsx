@@ -114,6 +114,8 @@ export default function LlamaAIGetStarted() {
 							src="/assets/llamaai.mp4"
 							preload="metadata"
 							className="z-10 h-full w-full rounded-lg object-cover"
+							autoPlay
+							muted
 							controls
 							poster="/assets/poster.png"
 						/>
