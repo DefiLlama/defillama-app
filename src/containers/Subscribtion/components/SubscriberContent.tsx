@@ -2,6 +2,7 @@ import { useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
@@ -41,11 +42,13 @@ export const SubscriberContent = ({
 	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
 	const isLegacy = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
-	const { handleSubscribe, loading } = useSubscribe()
+	const { loading } = useSubscribe()
 
 	const currentSubscription = isLlamaFeed ? llamafeedSubscription : isPro ? apiSubscription : null
-	const currentBillingInterval = currentSubscription?.billingInterval || 'month'
-	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval)
+	const currentBillingInterval = currentSubscription?.billing_interval
+	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval || 'month')
+	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+	const [upgradeType, setUpgradeType] = useState<'api' | 'llamafeed' | null>(null)
 
 	const monthlyPricePro = 49
 	const yearlyPricePro = monthlyPricePro * 10
@@ -68,13 +71,6 @@ export const SubscriberContent = ({
 			await createPortalSession(type)
 		} else {
 			window.open('https://subscriptions.llamapay.io/', '_blank')
-		}
-	}
-
-	async function handleUpgradeToYearly() {
-		const type = isLlamaFeed ? 'llamafeed' : isPro ? 'api' : null
-		if (type) {
-			await handleSubscribe('stripe', type, undefined, 'year')
 		}
 	}
 
@@ -116,7 +112,9 @@ export const SubscriberContent = ({
 						context="account"
 						active={isLlamaFeed && subscription?.provider !== 'trial'}
 						onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
-						currentBillingInterval={llamafeedSubscription?.billingInterval || 'month'}
+						currentBillingInterval={llamafeedSubscription?.billing_interval}
+						billingInterval={billingInterval}
+						// hasApiSubscription={isPro || isLegacy}
 					/>
 				</div>
 				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
@@ -125,7 +123,7 @@ export const SubscriberContent = ({
 						active={isPro || isLegacy}
 						onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
 						isLegacyActive={isLegacy}
-						currentBillingInterval={apiSubscription?.billingInterval || 'month'}
+						currentBillingInterval={apiSubscription?.billing_interval}
 						billingInterval={billingInterval}
 					/>
 				</div>
@@ -356,165 +354,221 @@ export const SubscriberContent = ({
 				</div>
 			)}
 
-			<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
-				<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
-					<div className="flex items-center gap-2.5 sm:gap-3">
-						<div className="relative">
-							<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9] sm:p-2.5">
-								<Icon name="card" height={18} width={18} className="sm:h-5 sm:w-5" />
+			{(isPro || isLlamaFeed) && (
+				<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
+					<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
+						<div className="flex items-center gap-2.5 sm:gap-3">
+							<div className="relative">
+								<div className="relative rounded-lg bg-[#5C5CF9]/10 p-2 text-[#5C5CF9] sm:p-2.5">
+									<Icon name="card" height={18} width={18} className="sm:h-5 sm:w-5" />
+								</div>
 							</div>
-						</div>
-						<div>
-							<h3 className="text-lg font-bold sm:text-xl">Subscription</h3>
-							<p className="text-xs text-[#b4b7bc] sm:text-sm">
-								Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
-								details
-							</p>
+							<div>
+								<h3 className="text-lg font-bold sm:text-xl">Subscription</h3>
+								<p className="text-xs text-[#b4b7bc] sm:text-sm">
+									Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
+									details
+								</p>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div className="p-4 sm:p-6">
-					<div className="space-y-4 sm:space-y-6">
-						<div className="rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:p-5">
-							<div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
-								<h4 className="flex items-center gap-2 text-sm font-medium sm:text-base">
-									<Icon name="bookmark" height={14} width={14} className="text-[#5C5CF9] sm:h-4 sm:w-4" />
-									<span>{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''} Plan</span>
-								</h4>
-								<div className="flex items-center gap-3 sm:gap-4">
-									<div className="flex items-center gap-2">
-										<span className="h-2 w-2 rounded-full bg-green-400"></span>
-										<span className="text-xs font-medium text-white sm:text-sm">Active</span>
+					<div className="p-4 sm:p-6">
+						<div className="space-y-4 sm:space-y-6">
+							<div className="rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:p-5">
+								<div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
+									<h4 className="flex items-center gap-2 text-sm font-medium sm:text-base">
+										<Icon name="bookmark" height={14} width={14} className="text-[#5C5CF9] sm:h-4 sm:w-4" />
+										<span>{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''} Plan</span>
+									</h4>
+									<div className="flex items-center gap-3 sm:gap-4">
+										<div className="flex items-center gap-2">
+											<span className="h-2 w-2 rounded-full bg-green-400"></span>
+											<span className="text-xs font-medium text-white sm:text-sm">Active</span>
+										</div>
+										<button
+											onClick={
+												isLlamaFeed
+													? () => handleManageSubscription('llamafeed')
+													: isPro
+														? () => handleManageSubscription('api')
+														: undefined
+											}
+											disabled={isPortalSessionLoading}
+											className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+										>
+											{isPortalSessionLoading ? (
+												<>
+													<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
+													<span className="hidden sm:inline">Loading...</span>
+												</>
+											) : (
+												<>
+													<Icon name="settings" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
+													<span className="hidden sm:inline">Manage Subscription</span>
+													<span className="sm:hidden">Manage</span>
+												</>
+											)}
+										</button>
 									</div>
-									<button
-										onClick={
-											isLlamaFeed
-												? () => handleManageSubscription('llamafeed')
-												: isPro
-													? () => handleManageSubscription('api')
-													: undefined
-										}
-										disabled={isPortalSessionLoading}
-										className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
-									>
-										{isPortalSessionLoading ? (
-											<>
-												<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
-												<span className="hidden sm:inline">Loading...</span>
-											</>
-										) : (
-											<>
-												<Icon name="settings" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
-												<span className="hidden sm:inline">Manage Subscription</span>
-												<span className="sm:hidden">Manage</span>
-											</>
-										)}
-									</button>
-								</div>
-							</div>
-
-							<div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4">
-								<div className="rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3">
-									<p className="mb-1 text-xs text-[#8a8c90]">Billing Cycle</p>
-									<p className="text-sm font-medium sm:text-base">{currentBillingInterval === 'year' ? 'Yearly' : 'Monthly'}</p>
 								</div>
 
-								<div className="rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3">
-									<p className="mb-1 text-xs text-[#8a8c90]">Price</p>
-									<p className="text-sm font-medium sm:text-base">{displayPrice}</p>
-								</div>
+								<div className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4">
+									<div className="rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3">
+										<p className="mb-1 text-xs text-[#8a8c90]">Billing Cycle</p>
+										<p className="text-sm font-medium sm:text-base">
+											{currentBillingInterval === 'year' ? 'Yearly' : 'Monthly'}
+										</p>
+									</div>
 
-								<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
-									<p className="mb-1 text-xs text-[#8a8c90]">Next billing date</p>
-									<p className="text-sm font-medium sm:text-base">
-										{isLlamaFeed && llamafeedSubscription?.expires_at
-											? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
-													month: 'short',
-													day: 'numeric',
-													year: 'numeric'
-												})
-											: isPro && apiSubscription?.expires_at
-												? new Date(+apiSubscription.expires_at * 1000).toLocaleDateString('en-US', {
+									<div className="rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3">
+										<p className="mb-1 text-xs text-[#8a8c90]">Price</p>
+										<p className="text-sm font-medium sm:text-base">{displayPrice}</p>
+									</div>
+
+									<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
+										<p className="mb-1 text-xs text-[#8a8c90]">Next billing date</p>
+										<p className="text-sm font-medium sm:text-base">
+											{isLlamaFeed && llamafeedSubscription?.expires_at
+												? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
 														month: 'short',
 														day: 'numeric',
 														year: 'numeric'
 													})
-												: 'Not available'}
-									</p>
+												: isPro && apiSubscription?.expires_at
+													? new Date(+apiSubscription.expires_at * 1000).toLocaleDateString('en-US', {
+															month: 'short',
+															day: 'numeric',
+															year: 'numeric'
+														})
+													: 'Not available'}
+										</p>
+									</div>
 								</div>
+
+								{isLlamaFeed &&
+									(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) && (
+										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
+												</div>
+												<div className="flex-1">
+													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade Pro to Yearly</h4>
+													<p className="text-xs text-[#8a8c90] sm:text-sm">
+														Switch to annual billing and save 2 months.
+													</p>
+												</div>
+											</div>
+											<button
+												onClick={() => {
+													setUpgradeType('llamafeed')
+													setIsUpgradeModalOpen(true)
+												}}
+												disabled={loading === 'stripe'}
+												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+											>
+												{loading === 'stripe' ? (
+													<>
+														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+														<span>Processing...</span>
+													</>
+												) : (
+													<>
+														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+														<span className="sm:hidden">Upgrade to Yearly</span>
+													</>
+												)}
+											</button>
+										</div>
+									)}
+
+								{isPro && (apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
+									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
+											</div>
+											<div className="flex-1">
+												<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
+												<p className="text-xs text-[#8a8c90] sm:text-sm">Switch to annual billing and save 2 months.</p>
+											</div>
+										</div>
+										<button
+											onClick={() => {
+												setUpgradeType('api')
+												setIsUpgradeModalOpen(true)
+											}}
+											disabled={loading === 'stripe'}
+											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+										>
+											{loading === 'stripe' ? (
+												<>
+													<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+													<span>Processing...</span>
+												</>
+											) : (
+												<>
+													<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+													<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+													<span className="sm:hidden">Upgrade to Yearly</span>
+												</>
+											)}
+										</button>
+									</div>
+								)}
+
+								{isPro && !apiSubscription?.overage && (
+									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
+											</div>
+											<div className="flex-1">
+												<h4 className="mb-1 text-sm font-medium sm:text-base">Enable Overage</h4>
+												<p className="text-xs text-[#8a8c90] sm:text-sm">
+													Continue API calls beyond 1M/month at $0.60 per 1,000 calls.
+												</p>
+											</div>
+										</div>
+										<button
+											onClick={enableOverage}
+											disabled={isEnableOverageLoading}
+											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+										>
+											{isEnableOverageLoading ? (
+												<>
+													<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
+													<span>Enabling...</span>
+												</>
+											) : (
+												<>
+													<Icon name="check" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
+													<span>Enable Overage</span>
+												</>
+											)}
+										</button>
+									</div>
+								)}
 							</div>
-
-							{currentBillingInterval === 'month' && (
-								<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-									<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-										<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-											<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-										</div>
-										<div className="flex-1">
-											<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade to Yearly</h4>
-											<p className="text-xs text-[#8a8c90] sm:text-sm">
-												Switch to annual billing and save 2 months.
-											</p>
-										</div>
-									</div>
-									<button
-										onClick={handleUpgradeToYearly}
-										disabled={loading === 'stripe'}
-										className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-									>
-										{loading === 'stripe' ? (
-											<>
-												<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-												<span>Processing...</span>
-											</>
-										) : (
-											<>
-												<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-												<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-												<span className="sm:hidden">Upgrade to Yearly</span>
-											</>
-										)}
-									</button>
-								</div>
-							)}
-
-							{isPro && !apiSubscription?.overage && (
-								<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-									<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-										<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-											<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-										</div>
-										<div className="flex-1">
-											<h4 className="mb-1 text-sm font-medium sm:text-base">Enable Overage</h4>
-											<p className="text-xs text-[#8a8c90] sm:text-sm">
-												Continue API calls beyond 1M/month at $0.60 per 1,000 calls.
-											</p>
-										</div>
-									</div>
-									<button
-										onClick={enableOverage}
-										disabled={isEnableOverageLoading}
-										className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9]/10 px-4 py-2 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
-									>
-										{isEnableOverageLoading ? (
-											<>
-												<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>
-												<span>Enabling...</span>
-											</>
-										) : (
-											<>
-												<Icon name="check" height={12} width={12} className="sm:h-3.5 sm:w-3.5" />
-												<span>Enable Overage</span>
-											</>
-										)}
-									</button>
-								</div>
-							)}
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
+
+			{isUpgradeModalOpen && upgradeType && (
+				<StripeCheckoutModal
+					isOpen={isUpgradeModalOpen}
+					onClose={() => {
+						setIsUpgradeModalOpen(false)
+						setUpgradeType(null)
+					}}
+					paymentMethod="stripe"
+					type={upgradeType}
+					billingInterval="year"
+				/>
+			)}
 		</>
 	)
 }

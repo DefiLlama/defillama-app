@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -8,38 +9,17 @@ import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEn
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/hooks/useSubscribe'
-import { AccountInfo } from './AccountInfo'
 import { AccountStatus } from './components/AccountStatus'
-import { EmailChangeModal } from './components/EmailChangeModal'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
 import { TrialActivation } from './components/TrialActivation'
 import { SignIn } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
-	const { isAuthenticated, loaders, user, changeEmail, addEmail, resendVerification } = useAuthContext()
-	const { subscription, isSubscriptionFetching, apiSubscription } = useSubscribe()
-	const [showEmailForm, setShowEmailForm] = useState(false)
-	const [newEmail, setNewEmail] = useState('')
+	const router = useRouter()
+	const { isAuthenticated, loaders, user } = useAuthContext()
+	const { subscription, isSubscriptionFetching, apiSubscription, llamafeedSubscription } = useSubscribe()
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
-	const isWalletUser = user?.email?.includes('@defillama.com')
-	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		if (isWalletUser) {
-			await addEmail(newEmail)
-		} else {
-			changeEmail(newEmail)
-		}
-		setNewEmail('')
-		setShowEmailForm(false)
-	}
-
-	const handleResendVerification = () => {
-		if (user?.email) {
-			resendVerification(user.email)
-		}
-	}
-
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
 
@@ -125,6 +105,13 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 									{billingInterval === 'year' ? '/year' : '/month'}
 								</button>
 								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+								<button
+									onClick={() => router.push('/account')}
+									className="mt-3 flex w-full items-center justify-center gap-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
+								>
+									<Icon name="settings" height={14} width={14} />
+									Manage Account
+								</button>
 							</div>
 						) : (
 							<div className="mx-auto w-full max-w-[400px]">
@@ -237,110 +224,114 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 				)}
 
-				{isAuthenticated && isSubscribed ? null : (
-					<div
-						className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
-						style={{
-							filter: 'blur(64px)',
-							background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
-						}}
-					/>
-				)}
-
-				<EmailChangeModal
-					isOpen={showEmailForm}
-					onClose={() => setShowEmailForm(false)}
-					onSubmit={handleEmailChange}
-					email={newEmail}
-					onEmailChange={setNewEmail}
-					isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}
-					isWalletUser={isWalletUser}
+				<div
+					className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
+					style={{
+						filter: 'blur(64px)',
+						background: 'linear-gradient(90deg, #5C5EFC 0%, #462A92 100%)'
+					}}
 				/>
-				{isAuthenticated && isSubscribed ? (
-					<div className="mx-auto mt-6 w-full max-w-[1200px]">
-						<AccountInfo />
-					</div>
-				) : (
-					<div className="relative">
-						<div className="relative z-10 mb-6 flex items-center justify-center">
-							<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
-								<button
-									onClick={() => setBillingInterval('month')}
-									className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
-										billingInterval === 'month'
-											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
-											: 'text-[#8a8c90] hover:text-white'
-									}`}
-								>
-									Monthly
-								</button>
-								<button
-									onClick={() => setBillingInterval('year')}
-									className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
-										billingInterval === 'year'
-											? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
-											: 'text-[#8a8c90] hover:text-white'
-									}`}
-								>
-									Yearly
-									<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">
-										2 months free
-									</span>
-								</button>
-							</div>
-						</div>
-						<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
-							<div
-								data-plan="pro"
-								className={`relative flex flex-col overflow-hidden rounded-xl border-2 border-[#5C5CF9]/50 bg-[#22242930] px-4 py-6 shadow-lg shadow-[#5C5CF9]/20 backdrop-blur-md transition-all duration-300 lg:order-2 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-1' : 'order-2'}`}
-							>
-								<SubscribeProCard
-									context="page"
-									active={
-										subscription?.status === 'active' &&
-										subscription?.type === 'llamafeed' &&
-										subscription?.provider !== 'trial'
-									}
-									billingInterval={billingInterval}
-								/>
-							</div>
-							<div
-								className={`relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:order-1 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-2' : 'order-1'}`}
-							>
-								<FreeCard />
-							</div>
-							<div className="relative order-3 flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:py-8 lg:hover:scale-[1.02]">
-								<SubscribeAPICard
-									context="page"
-									isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
-									billingInterval={billingInterval}
-								/>
-							</div>
-						</div>
-						<div className="relative z-10 mt-4 rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
-							<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
-								<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
-								<SubscribeEnterpriseCard />
-							</span>
-						</div>
 
-						{isAuthenticated && !isSubscribed && (
-							<div className="relative z-10 mt-8 w-full">
-								<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-									<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
-									Manage Account
-								</h3>
-								<AccountStatus
-									user={user}
-									isVerified={user?.verified}
-									isSubscribed={isSubscribed}
-									subscription={subscription}
-									onEmailChange={() => setShowEmailForm(true)}
-								/>
+				{isAuthenticated && isSubscribed && (
+					<div className="mx-auto mt-6 mb-6 flex w-full max-w-[600px] flex-col items-center gap-4">
+						<div className="flex flex-col items-center gap-4 rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
+							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
+								<Icon name="check" height={32} width={32} className="text-green-400" />
 							</div>
-						)}
+							<h2 className="text-2xl font-bold text-white">You're subscribed!</h2>
+							<p className="text-[#8a8c90]">Manage your subscription and view your account details.</p>
+							<button
+								onClick={() => router.push('/account')}
+								className="rounded-lg bg-[#5C5CF9] px-8 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+							>
+								Go to Account
+							</button>
+						</div>
 					</div>
 				)}
+
+				<div className="relative">
+					<div className="relative z-10 mb-6 flex items-center justify-center">
+						<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
+							<button
+								onClick={() => setBillingInterval('month')}
+								className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+									billingInterval === 'month'
+										? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+										: 'text-[#8a8c90] hover:text-white'
+								}`}
+							>
+								Monthly
+							</button>
+							<button
+								onClick={() => setBillingInterval('year')}
+								className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+									billingInterval === 'year'
+										? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
+										: 'text-[#8a8c90] hover:text-white'
+								}`}
+							>
+								Yearly
+								<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">
+									2 months free
+								</span>
+							</button>
+						</div>
+					</div>
+					<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
+						<div
+							data-plan="pro"
+							className={`relative flex flex-col overflow-hidden rounded-xl border-2 border-[#5C5CF9]/50 bg-[#22242930] px-4 py-6 shadow-lg shadow-[#5C5CF9]/20 backdrop-blur-md transition-all duration-300 lg:order-2 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-1' : 'order-2'}`}
+						>
+							<SubscribeProCard
+								context="page"
+								active={
+									subscription?.status === 'active' &&
+									subscription?.type === 'llamafeed' &&
+									subscription?.provider !== 'trial'
+								}
+								billingInterval={billingInterval}
+								currentBillingInterval={llamafeedSubscription?.billingInterval}
+							/>
+						</div>
+						<div
+							className={`relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:order-1 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-2' : 'order-1'}`}
+						>
+							<FreeCard />
+						</div>
+						<div className="relative order-3 flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 lg:py-8 lg:hover:scale-[1.02]">
+							<SubscribeAPICard
+								context="page"
+								isLegacyActive={apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'}
+								billingInterval={billingInterval}
+								currentBillingInterval={apiSubscription?.billingInterval}
+								active={apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'}
+							/>
+						</div>
+					</div>
+					<div className="relative z-10 mt-4 rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
+						<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
+							<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
+							<SubscribeEnterpriseCard />
+						</span>
+					</div>
+
+					{isAuthenticated && !isSubscribed && (
+						<div className="relative z-10 mt-8 w-full">
+							<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
+								<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
+								Manage Account
+							</h3>
+							<AccountStatus
+								user={user}
+								isVerified={user?.verified}
+								isSubscribed={isSubscribed}
+								subscription={subscription}
+								onEmailChange={() => setShowEmailForm(true)}
+							/>
+						</div>
+					)}
+				</div>
 			</div>
 			<div className="mx-auto mb-[64px] flex w-full max-w-6xl flex-col items-center justify-center gap-[64px] px-5 xl:max-w-7xl 2xl:max-w-[1440px]">
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
+import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -18,6 +19,7 @@ export const PaymentButton = ({
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()
 	const { isAuthenticated, user } = useAuthContext()
+	const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
 
 	const isStripe = paymentMethod === 'stripe'
 	const icon = isStripe ? 'card' : 'wallet'
@@ -35,19 +37,41 @@ export const PaymentButton = ({
 		)
 	}
 
+	const handleClick = () => {
+		// For Stripe, use embedded checkout modal
+		if (isStripe) {
+			setIsCheckoutModalOpen(true)
+		} else {
+			// For crypto payments, use the legacy flow
+			handleSubscribe(paymentMethod, type, undefined, billingInterval, false)
+		}
+	}
+
 	const disabled = loading === paymentMethod || (!user?.verified && !user?.address)
 	return (
-		<CustomTooltip content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}>
-			<button
-				onClick={() => handleSubscribe(paymentMethod, type, undefined, billingInterval)}
-				disabled={disabled}
-				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
-				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
-			>
-				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
-				<span className="break-words">{text}</span>
-			</button>
-		</CustomTooltip>
+		<>
+			<CustomTooltip content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}>
+				<button
+					onClick={handleClick}
+					disabled={disabled}
+					className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
+					data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
+				>
+					{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
+					<span className="break-words">{text}</span>
+				</button>
+			</CustomTooltip>
+
+			{isStripe && (
+				<StripeCheckoutModal
+					isOpen={isCheckoutModalOpen}
+					onClose={() => setIsCheckoutModalOpen(false)}
+					paymentMethod="stripe"
+					type={type}
+					billingInterval={billingInterval}
+				/>
+			)}
+		</>
 	)
 }
 
