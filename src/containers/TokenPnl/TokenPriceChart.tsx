@@ -123,7 +123,7 @@ export const TokenPriceChart = ({ series, isLoading, startDate, endDate, onPoint
 					const changeSign = changeFromStart >= 0 ? '+' : ''
 
 					return `<div style="background: var(--bg-card); border: 1px solid var(--bg-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); color: var(--text-primary); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; white-space: nowrap;">
-							<div style="opacity: .75; margin-bottom: 4px;">${date.toLocaleDateString()}</div>
+							<div style="opacity: .75; margin-bottom: 4px;">${formatDateLabel(date.getTime() / 1000)}</div>
 							<div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;">$${formattedNum(price)}</div>
 							<div style="font-size: 11px; color: ${changeColor}; font-weight: 500;">${changeSign}${changeFromStart.toFixed(2)}% from start</div>
 						</div>`
