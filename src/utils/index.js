@@ -837,15 +837,28 @@ export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue
 	const mainSlices = pieData.slice(0, limit)
 	const otherSlices = pieData.slice(limit)
 
-	const otherSlicesValue = otherSlices.reduce((acc, curr) => {
-		return acc + curr.value
-	}, 0)
+	// Check if "Others" already exists in mainSlices
+	const othersIndex = mainSlices.findIndex((slice) => slice.name === 'Others')
+	let othersValueFromMain = 0
+	let filteredMainSlices = mainSlices
 
-	if (otherSlicesValue > 0) {
-		return [...mainSlices, { name: 'Others', value: otherSlicesValue }]
+	if (othersIndex !== -1) {
+		// Remove existing "Others" from mainSlices and store its value
+		othersValueFromMain = mainSlices[othersIndex].value
+		filteredMainSlices = mainSlices.filter((_, index) => index !== othersIndex)
 	}
 
-	return mainSlices
+	const otherSlicesValue =
+		otherSlices.reduce((acc, curr) => {
+			// Also include any "Others" entries from otherSlices
+			return acc + curr.value
+		}, 0) + othersValueFromMain
+
+	if (otherSlicesValue > 0) {
+		return [...filteredMainSlices, { name: 'Others', value: otherSlicesValue }]
+	}
+
+	return filteredMainSlices
 }
 
 export const formatEthAddress = (address) => {
