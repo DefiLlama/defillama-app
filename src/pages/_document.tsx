@@ -11,7 +11,7 @@ export default function Document() {
 				<link rel="manifest" href="/manifest.json" />
 				<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
-				<link href="/icons/v26.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
+				<link href="/icons/v27.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `

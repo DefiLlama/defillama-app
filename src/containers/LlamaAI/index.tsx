@@ -2258,7 +2258,7 @@ const ChatControls = memo(function ChatControls({
 				render={<button onClick={handleSidebarToggle} />}
 				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 			>
-				<Icon name="arrow-right-to-line" height={16} width={16} />
+				<Icon name="panel-left-open" height={16} width={16} />
 				<span className="sr-only">Open Chat History</span>
 			</Tooltip>
 			<Tooltip
