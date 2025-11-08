@@ -171,6 +171,8 @@ const toDimensionsChainSlug = (chain: string): string => {
 	if (lc === 'bsc' || lc === 'binance smart chain') return 'bsc'
 	if (lc === 'avax' || lc === 'avalanche') return 'avax'
 	if (lc === 'gnosis' || lc === 'xdai') return 'xdai'
+	if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
+		return 'hyperliquid-l1'
 	return lc
 }
 
@@ -180,7 +182,9 @@ const displayChainName = (slug: string): string => {
 	if (lc === 'avax') return 'Avalanche'
 	if (lc === 'bsc') return 'BSC'
 	if (lc === 'xdai') return 'Gnosis'
-	return lc
+	// Normalize underscores to dashes for nicer display words
+	const norm = lc.replace(/_/g, '-')
+	return norm
 		.split('-')
 		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
 		.join(' ')
@@ -934,9 +938,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 			if (!resp.ok) return null
 			const json = await resp.json()
 			const chart: Array<[number | string, number]> = Array.isArray(json?.totalDataChart) ? json.totalDataChart : []
-			const normalized = filterOutToday(
-				normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)]))
-			)
+			const normalized = filterOutToday(normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)])))
 			return {
 				name: entry.name,
 				data: normalized,
@@ -1110,7 +1112,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		const chainSeriesPromises = picked.map(async (slug, idx) => {
 			const includeBreakdownParam = hasProtocolCategoryFilter ? 'false' : 'true'
-			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${slug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
+			const endpointSlug = toDimensionsChainSlug(slug)
+			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
 			const r = await fetch(url)
 			if (!r.ok) return null
@@ -1257,7 +1260,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			if (metricStr === 'tvl') {
 				result = await getTvlProtocolChainData(protocolStr, chainsArray, topN, fm, chainCategoriesArray)
 			} else {
-				result = await getDimensionsProtocolChainData(protocolStr, metricStr, chainsArray, topN, fm, chainCategoriesArray)
+				result = await getDimensionsProtocolChainData(
+					protocolStr,
+					metricStr,
+					chainsArray,
+					topN,
+					fm,
+					chainCategoriesArray
+				)
 			}
 		}
 
