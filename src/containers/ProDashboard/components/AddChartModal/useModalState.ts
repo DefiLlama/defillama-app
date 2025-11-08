@@ -33,6 +33,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		filterMode: 'include',
 		chains: [],
 		chainCategories: [],
+		protocolCategories: [],
 		categories: [],
 		groupBy: 'protocol',
 		limit: 10,
@@ -117,6 +118,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setChartBuilder({
 					...editItem.config,
 					mode: editItem.config.mode || 'chains',
+					protocolCategories: editItem.config.protocolCategories || [],
 					seriesColors: editItem.config.seriesColors || {}
 				})
 			} else if (editItem.kind === 'metric') {

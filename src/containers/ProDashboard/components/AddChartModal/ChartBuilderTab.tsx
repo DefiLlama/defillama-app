@@ -143,6 +143,7 @@ export function ChartBuilderTab({
 			chartBuilder.limit,
 			chartBuilder.categories,
 			chartBuilder.chainCategories,
+			chartBuilder.protocolCategories,
 			chartBuilder.groupByParent,
 			chartBuilder.filterMode || 'include',
 			timePeriod
@@ -157,6 +158,9 @@ export function ChartBuilderTab({
 					chartBuilder.filterMode || 'include',
 					chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0
 						? chartBuilder.chainCategories
+						: undefined,
+					chartBuilder.protocolCategories && chartBuilder.protocolCategories.length > 0
+						? chartBuilder.protocolCategories
 						: undefined
 				)
 
@@ -217,13 +221,21 @@ export function ChartBuilderTab({
 			return []
 		}
 
+		const hasChainCategoryFilter = (chartBuilder.chainCategories?.length || 0) > 0
+		const hasProtocolCategoryFilter = (chartBuilder.protocolCategories?.length || 0) > 0
 		const forceHideOthers =
-			chartBuilder.mode === 'protocol' && (chartBuilder.chainCategories?.length || 0) > 0
+			chartBuilder.mode === 'protocol' && (hasChainCategoryFilter || hasProtocolCategoryFilter)
 
 		return chartBuilder.hideOthers || forceHideOthers
 			? previewData.series.filter((s) => !s.name.startsWith('Others'))
 			: previewData.series
-	}, [previewData, chartBuilder.hideOthers, chartBuilder.mode, chartBuilder.chainCategories])
+	}, [
+		previewData,
+		chartBuilder.hideOthers,
+		chartBuilder.mode,
+		chartBuilder.chainCategories,
+		chartBuilder.protocolCategories
+	])
 
 	const resolveSeriesColor = (seriesName: string, fallback?: string) => {
 		const override = seriesColors[seriesName]
@@ -255,6 +267,9 @@ export function ChartBuilderTab({
 		if (CHAIN_ONLY_METRICS.has(newMetric)) {
 			updates.protocol = undefined
 		}
+		if (newMetric === 'tvl' || CHAIN_ONLY_METRICS.has(newMetric)) {
+			updates.protocolCategories = undefined
+		}
 		onChartBuilderChange(updates)
 	}
 
@@ -268,6 +283,10 @@ export function ChartBuilderTab({
 
 	const handleChainCategoriesChange = (chainCategories: string[]) => {
 		onChartBuilderChange({ chainCategories })
+	}
+
+	const handleProtocolCategoriesChange = (protocolCategories: string[]) => {
+		onChartBuilderChange({ protocolCategories })
 	}
 
 	const handleLimitChange = (option: any) => {
@@ -335,15 +354,22 @@ export function ChartBuilderTab({
 
 	useEffect(() => {
 		if (chartBuilder.mode === 'protocol') {
-			const shouldHideOthers = (chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0) || false
+			const shouldHideOthers =
+				(chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0) ||
+				(chartBuilder.protocolCategories && chartBuilder.protocolCategories.length > 0) ||
+				false
 			if (chartBuilder.hideOthers !== shouldHideOthers) {
 				onChartBuilderChange({ hideOthers: shouldHideOthers })
 			}
 		}
-	}, [chartBuilder.mode, chartBuilder.chainCategories])
+	}, [chartBuilder.mode, chartBuilder.chainCategories, chartBuilder.protocolCategories])
 
 	const handleProtocolChange = (option: any) => {
-		onChartBuilderChange({ protocol: option?.value || undefined })
+		const updates: Partial<ChartBuilderConfig> = { protocol: option?.value || undefined }
+		if (option?.value) {
+			updates.protocolCategories = undefined
+		}
+		onChartBuilderChange(updates)
 	}
 
 	return (
@@ -419,11 +445,11 @@ export function ChartBuilderTab({
 
 						{chartBuilder.mode === 'chains' ? (
 							<>
-								<div className="mb-1.5">
-									<AriakitVirtualizedMultiSelect
-										label="Chains"
-										options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
-										selectedValues={chartBuilder.chains}
+						<div className="mb-1.5">
+							<AriakitVirtualizedMultiSelect
+								label="Chains"
+								options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
+								selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
 											(chartBuilder.filterMode || 'include') === 'exclude'
@@ -520,14 +546,31 @@ export function ChartBuilderTab({
 										}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
-										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
-									/>
-								</div>
-								<div className="mb-1.5">
-									<AriakitMultiSelect
-										label="Chain Categories"
-										options={(chainCategoriesList || []).map((c) => ({ value: c, label: c }))}
-										selectedValues={chartBuilder.chainCategories || []}
+								renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+							/>
+						</div>
+						{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (
+							<div className="mb-1.5">
+								<AriakitMultiSelect
+									label="Protocol Categories"
+									options={categoryOptions}
+									selectedValues={chartBuilder.protocolCategories || []}
+									onChange={handleProtocolCategoriesChange}
+									placeholder={
+										(chartBuilder.filterMode || 'include') === 'exclude'
+											? 'Select protocol categories to exclude...'
+											: 'Select protocol categories...'
+									}
+									isLoading={false}
+									maxSelections={5}
+								/>
+							</div>
+						)}
+						<div className="mb-1.5">
+							<AriakitMultiSelect
+								label="Chain Categories"
+								options={(chainCategoriesList || []).map((c) => ({ value: c, label: c }))}
+								selectedValues={chartBuilder.chainCategories || []}
 										onChange={handleChainCategoriesChange}
 										placeholder={
 											(chartBuilder.filterMode || 'include') === 'exclude'
@@ -867,6 +910,12 @@ export function ChartBuilderTab({
 									chartBuilder.chainCategories &&
 									chartBuilder.chainCategories.length > 0 &&
 									` in ${chartBuilder.chainCategories.join(', ')} chain categories`}
+								{chartBuilder.mode === 'protocol' &&
+									chartBuilder.protocolCategories &&
+									chartBuilder.protocolCategories.length > 0 &&
+									` ${
+										(chartBuilder.filterMode || 'include') === 'exclude' ? 'excluding' : 'focusing on'
+									} ${chartBuilder.protocolCategories.join(', ')} protocol categories`}
 								{chartBuilder.mode === 'chains' &&
 									chartBuilder.categories.length > 0 &&
 									` in ${chartBuilder.categories.join(', ')} categories`}
