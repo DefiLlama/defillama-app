@@ -20,43 +20,44 @@ interface ChartBuilderCardProps {
 	builder: {
 		id: string
 		kind: 'builder'
-	config: {
-		metric:
-			| 'fees'
-			| 'revenue'
-			| 'volume'
-			| 'perps'
-			| 'open-interest'
-			| 'options-notional'
-			| 'options-premium'
-			| 'bridge-aggregators'
-			| 'dex-aggregators'
-			| 'perps-aggregators'
-			| 'user-fees'
-			| 'holders-revenue'
-			| 'protocol-revenue'
-			| 'supply-side-revenue'
-			| 'tvl'
-			| 'stablecoins'
-			| 'chain-fees'
-			| 'chain-revenue'
-		mode: 'chains' | 'protocol'
-		filterMode?: 'include' | 'exclude'
-		protocol?: string
-		chains: string[]
-		chainCategories?: string[]
-		categories: string[]
-		groupBy: 'protocol'
-		limit: number
-		chartType: 'stackedBar' | 'stackedArea' | 'line'
-		displayAs: 'timeSeries' | 'percentage'
-		hideOthers?: boolean
-		groupByParent?: boolean
-		additionalFilters?: Record<string, any>
-		seriesColors?: Record<string, string>
-	}
-	name?: string
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+		config: {
+			metric:
+				| 'fees'
+				| 'revenue'
+				| 'volume'
+				| 'perps'
+				| 'open-interest'
+				| 'options-notional'
+				| 'options-premium'
+				| 'bridge-aggregators'
+				| 'dex-aggregators'
+				| 'perps-aggregators'
+				| 'user-fees'
+				| 'holders-revenue'
+				| 'protocol-revenue'
+				| 'supply-side-revenue'
+				| 'tvl'
+				| 'stablecoins'
+				| 'chain-fees'
+				| 'chain-revenue'
+			mode: 'chains' | 'protocol'
+			filterMode?: 'include' | 'exclude'
+			protocol?: string
+			chains: string[]
+			chainCategories?: string[]
+			protocolCategories?: string[]
+			categories: string[]
+			groupBy: 'protocol'
+			limit: number
+			chartType: 'stackedBar' | 'stackedArea' | 'line'
+			displayAs: 'timeSeries' | 'percentage'
+			hideOthers?: boolean
+			groupByParent?: boolean
+			additionalFilters?: Record<string, any>
+			seriesColors?: Record<string, string>
+		}
+		name?: string
+		grouping?: 'day' | 'week' | 'month' | 'quarter'
 	}
 }
 
@@ -98,6 +99,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.limit,
 			config.categories,
 			config.chainCategories,
+			config.protocolCategories,
 			config.hideOthers,
 			config.groupByParent,
 			config.filterMode || 'include',
@@ -111,7 +113,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					config.chains.length > 0 ? config.chains : undefined,
 					config.limit,
 					config.filterMode || 'include',
-					config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories : undefined
+					config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories : undefined,
+					config.protocolCategories && config.protocolCategories.length > 0 ? config.protocolCategories : undefined
 				)
 
 				if (!data || !data.series) {
@@ -128,7 +131,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 				if (
 					config.hideOthers ||
-					(config.mode === 'protocol' && config.chainCategories && config.chainCategories.length > 0)
+					(config.mode === 'protocol' &&
+						((config.chainCategories && config.chainCategories.length > 0) ||
+							(config.protocolCategories && config.protocolCategories.length > 0)))
 				) {
 					series = series.filter((s) => !s.name.startsWith('Others'))
 				}
@@ -305,25 +310,32 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			builder.name || config.metric
 		}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${
 			config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories.join('-') + '_' : ''
+		}${
+			config.protocolCategories && config.protocolCategories.length > 0 ? config.protocolCategories.join('-') + '_' : ''
 		}${new Date().toISOString().split('T')[0]}.csv`
 		download(fileName, csvContent)
-	}, [chartSeries, builder.name, config.metric, config.chains, config.categories, config.chainCategories])
+	}, [
+		chartSeries,
+		builder.name,
+		config.metric,
+		config.chains,
+		config.categories,
+		config.chainCategories,
+		config.protocolCategories
+	])
 
 	const updateSeriesColors = useCallback(
 		(nextColors: Record<string, string>) => {
 			if (isReadOnly) {
 				return
 			}
-			handleEditItem(
-				builder.id,
-				{
-					...builder,
-					config: {
-						...builder.config,
-						seriesColors: nextColors
-					}
+			handleEditItem(builder.id, {
+				...builder,
+				config: {
+					...builder.config,
+					seriesColors: nextColors
 				}
-			)
+			})
 		},
 		[builder, handleEditItem, isReadOnly]
 	)
@@ -402,7 +414,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							labelType="none"
 							triggerProps={{
 								className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
 							}}
 						/>
 					)}
@@ -415,7 +427,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							className={`flex items-center gap-1 rounded-md border px-1.5 py-1 text-xs transition-colors disabled:cursor-not-allowed ${
 								showColors
 									? 'border-transparent bg-(--primary) text-white'
-									: 'border-(--form-control-border) hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue'
+									: 'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue border-(--form-control-border)'
 							} disabled:border-(--cards-border) disabled:text-(--text-disabled)`}
 						>
 							Colors
