@@ -110,21 +110,14 @@ export default function LlamaAIGetStarted() {
 						}}
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
-						<video
-							preload="auto"
-							className="h-full w-full rounded-lg object-cover"
-							muted
-							playsInline
-							controls
-							autoPlay
-							loop
-							poster="/assets/poster.png"
-							disablePictureInPicture
+						<iframe
+							src="https://www.youtube.com/embed/Sf7O6DTx2VE?si=z8Szj27q6kfLPTZX?autoplay=1"
+							title="YouTube video player"
+							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+							referrerPolicy="strict-origin-when-cross-origin"
+							allowFullScreen
 							style={{ aspectRatio: '990 / 556.88' }}
-						>
-							<source src="/assets/llamaai.mp4" type="video/mp4" />
-							Your browser does not support the video tag.
-						</video>
+						></iframe>
 					</div>
 				</div>
 				<div className="mx-auto mb-15 w-full max-w-5xl">
