@@ -113,11 +113,8 @@ export default function LlamaAIGetStarted() {
 						<video
 							preload="metadata"
 							className="h-full w-full rounded-lg object-cover"
-							muted
 							playsInline
 							controls
-							autoPlay
-							loop
 							poster="/assets/poster.png"
 							disablePictureInPicture
 							style={{ aspectRatio: '990 / 556.88' }}
