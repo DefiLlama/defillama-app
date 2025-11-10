@@ -734,6 +734,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			prompt: string,
 			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
 		) => {
+			if (isStreaming) {
+				return
+			}
+
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -747,11 +751,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				preResolvedEntities: preResolved
 			})
 		},
-		[sessionId, moveSessionToTop, submitPrompt]
+		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
 	const handleSubmitWithSuggestion = useCallback(
 		(prompt: string, suggestion: any) => {
+			if (isStreaming) {
+				return
+			}
+
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -765,7 +773,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				suggestionContext: suggestion
 			})
 		},
-		[sessionId, moveSessionToTop, submitPrompt]
+		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
 	const router = useRouter()
@@ -1434,6 +1442,11 @@ const PromptInput = memo(function PromptInput({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
+
+			if (isStreaming) {
+				return
+			}
+
 			trackSubmit()
 			const finalEntities = getFinalEntities()
 			const promptValue = promptInputRef.current?.value ?? ''
