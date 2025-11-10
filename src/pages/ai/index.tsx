@@ -111,7 +111,7 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
 						<video
-							preload="auto"
+							preload="metadata"
 							className="h-full w-full rounded-lg object-cover"
 							muted
 							playsInline
