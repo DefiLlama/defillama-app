@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -31,35 +31,6 @@ export default function LlamaAIGetStarted() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const [activeFeature, setActiveFeature] = useState(0)
 	const { subscription } = useSubscribe()
-	const videoRef = useRef<HTMLVideoElement>(null)
-
-	useEffect(() => {
-		const video = videoRef.current
-		if (!video) return
-
-		// Force Safari to load metadata
-		const loadMetadata = () => {
-			video.load()
-		}
-
-		const handleLoadedMetadata = () => {
-			// Force Safari to update duration display
-			if (video.duration && video.duration > 0) {
-				// Seek to 0 to force Safari to refresh the UI
-				video.currentTime = 0
-			}
-		}
-
-		// Try loading metadata on mount
-		loadMetadata()
-
-		// Also listen for metadata loaded event
-		video.addEventListener('loadedmetadata', handleLoadedMetadata)
-
-		return () => {
-			video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-		}
-	}, [])
 
 	return (
 		<>
@@ -140,7 +111,6 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
 						<video
-							ref={videoRef}
 							preload="auto"
 							className="h-full w-full rounded-lg object-cover"
 							muted
@@ -152,7 +122,7 @@ export default function LlamaAIGetStarted() {
 							disablePictureInPicture
 							style={{ aspectRatio: '990 / 556.88' }}
 						>
-							<source src="/assets/llamaai.mp4" type="video/mp4" />
+							<source src="/api/video/llamaai" type="video/mp4" />
 							Your browser does not support the video tag.
 						</video>
 					</div>
