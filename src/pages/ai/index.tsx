@@ -116,6 +116,8 @@ export default function LlamaAIGetStarted() {
 							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 							referrerPolicy="strict-origin-when-cross-origin"
 							allowFullScreen
+							width="100%"
+							height="100%"
 							style={{ aspectRatio: '990 / 556.88' }}
 						></iframe>
 					</div>
