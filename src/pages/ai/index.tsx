@@ -111,15 +111,17 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
 						<video
-							preload="metadata"
 							className="h-full w-full rounded-lg object-cover"
+							muted
 							playsInline
 							controls
+							autoPlay
+							loop
 							poster="/assets/poster.png"
 							disablePictureInPicture
 							style={{ aspectRatio: '990 / 556.88' }}
 						>
-							<source src="/assets/llamaai.mp4" type="video/mp4" />
+							<source src="/assets/llamaai.mp4" type="video/mp4; codecs=avc1.640028,mp4a.40.2" />
 							Your browser does not support the video tag.
 						</video>
 					</div>
