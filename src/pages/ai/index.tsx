@@ -111,7 +111,7 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]">
 						<iframe
-							src="https://www.youtube.com/embed/Sf7O6DTx2VE?si=z8Szj27q6kfLPTZX?autoplay=1"
+							src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14?autoplay=1"
 							title="YouTube video player"
 							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 							referrerPolicy="strict-origin-when-cross-origin"
