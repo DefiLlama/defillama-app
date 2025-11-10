@@ -111,11 +111,11 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div
 						className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]"
-						style={{ aspectRatio: '1024 / 590.88' }}
+						style={{ aspectRatio: '990 / 556.88' }}
 					>
 						<video
 							preload="metadata"
-							className="z-10 h-full w-full rounded-lg object-cover"
+							className="rounded-lg object-cover"
 							muted
 							playsInline
 							controls
