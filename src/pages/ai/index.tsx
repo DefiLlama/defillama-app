@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -30,50 +30,7 @@ const SubscribeProModal = lazy(() =>
 export default function LlamaAIGetStarted() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const [activeFeature, setActiveFeature] = useState(0)
-	const [shouldAutoplay, setShouldAutoplay] = useState(false)
-	const [isIOS, setIsIOS] = useState(false)
-	const videoRef = useRef<HTMLVideoElement>(null)
 	const { subscription } = useSubscribe()
-
-	useEffect(() => {
-		// Detect Safari and iOS
-		if (typeof navigator === 'undefined') return
-
-		const isSafari = /^((?!chrome|android|chromium|edg|opera|opr|brave).)*safari/i.test(navigator.userAgent)
-		// Detect iOS devices (iPhone, iPad, iPod) and iPadOS (Safari with touch support)
-		const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (isSafari && navigator.maxTouchPoints > 1)
-
-		setIsIOS(isIOSDevice)
-		// Enable autoplay for non-Safari browsers (programmatic play will handle edge cases)
-		setShouldAutoplay(!isSafari)
-	}, [])
-
-	// Attempt to play video when it's ready and autoplay is enabled
-	useEffect(() => {
-		if (!shouldAutoplay || !videoRef.current) return
-
-		const video = videoRef.current
-		const attemptPlay = async () => {
-			if (video.readyState >= 2) {
-				try {
-					// Mute before playing (required for autoplay)
-					video.muted = true
-					await video.play()
-				} catch {
-					// Autoplay was prevented, ignore the error
-				}
-			}
-		}
-
-		attemptPlay()
-		video.addEventListener('canplay', attemptPlay, { once: true })
-		video.addEventListener('loadeddata', attemptPlay, { once: true })
-
-		return () => {
-			video.removeEventListener('canplay', attemptPlay)
-			video.removeEventListener('loadeddata', attemptPlay)
-		}
-	}, [shouldAutoplay])
 
 	return (
 		<>
@@ -157,15 +114,19 @@ export default function LlamaAIGetStarted() {
 						style={{ aspectRatio: '1024 / 590.88' }}
 					>
 						<video
-							ref={videoRef}
-							src="/assets/llamaai.mp4"
 							preload="metadata"
 							className="z-10 h-full w-full rounded-lg object-cover"
-							muted={isIOS}
+							muted
 							playsInline
 							controls
+							autoPlay
+							loop
 							poster="/assets/poster.png"
-						/>
+							disablePictureInPicture
+						>
+							<source src="/assets/llamaai.mp4" type="video/mp4" />
+							Your browser does not support the video tag.
+						</video>
 					</div>
 				</div>
 				<div className="mx-auto mb-15 w-full max-w-5xl">
