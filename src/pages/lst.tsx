@@ -379,7 +379,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 		const type = lsd?.type
 		const pegInfo = type === 'rebase' ? rebase : type === 'accruing' ? valueAccruing : null
 
-		const mcaptvl = +formatNum(+p.mcap.toFixed(2) / +p.stakedEthInUsd.toFixed(2))
+		const mcaptvl = p.mcap && p.stakedEthInUsd ? +formatNum(+p.mcap.toFixed(2) / +p.stakedEthInUsd.toFixed(2)) : null
 
 		return {
 			...p,
