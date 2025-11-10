@@ -56,43 +56,47 @@ export function SubscribeProCard({
 				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
 			)}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
-				<li className="group flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span className="font-bold">
-						NEW: Access to{' '}
-						<Link href="/ai" className="llamaai-glow-text">
-							LlamaAI
-						</Link>
-					</span>
-					<svg className="relative top-0.5 h-4 w-4 shrink-0">
-						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
-					</svg>
-				</li>
 				<li className="flex flex-col gap-3">
-					<div className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>Create Custom DefiLlama Pro Dashboards</span>
-					</div>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>CSV data downloads</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Personalized Analysis with Custom Columns</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Access to upcoming DefiLlama products</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Full access to LlamaFeed</span>
+					<div className="font-semibold">Access to:</div>
+					<ul className="flex flex-col gap-3 pl-4">
+						<li className="group flex items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span className="font-bold">
+								NEW:{' '}
+								<Link href="/ai" className="llamaai-glow-text">
+									LlamaAI
+								</Link>{' '}
+								<svg className="relative mx-1 inline-block h-4 w-4">
+									<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+								</svg>{' '}
+								- conversational analysis of DefiLlama data
+							</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>DefiLlama Pro Dashboards - build custom dashboards</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>CSV Downloads - export any dataset</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>Custom Columns - personalized analysis</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>LlamaFeed - real-time premium insights</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>Upcoming DefiLlama Products</span>
+						</li>
+					</ul>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
-					<span>API access</span>
+					<span>API access not included</span>
 				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
