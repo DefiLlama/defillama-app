@@ -80,7 +80,7 @@ const breakdownColor = (type) => {
 			return '#16a34a'
 		case 'XRP':
 			return '#6b7280'
-		case 'Tron':
+		case 'Tron Network':
 			return '#E91E63'
 		default:
 			return null
@@ -100,7 +100,7 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 
 	const colorByAsset = {}
 	let i = 0
-	const colors = getNDistinctColors(allAssets.length + 6)
+	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
 	for (const asset in res.breakdownByAsset) {
 		const color = breakdownColor(res.breakdownByAsset[asset][0].assetName)
 		if (color) {
