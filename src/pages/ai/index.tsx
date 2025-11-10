@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -31,6 +31,39 @@ export default function LlamaAIGetStarted() {
 	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const [activeFeature, setActiveFeature] = useState(0)
 	const { subscription } = useSubscribe()
+	const videoRef = useRef<HTMLVideoElement>(null)
+
+	useEffect(() => {
+		const video = videoRef.current
+		if (!video) return
+
+		// iOS Safari fix: ensure metadata is loaded
+		const handleLoadedMetadata = () => {
+			if (video.duration === Infinity || isNaN(video.duration)) {
+				video.currentTime = 0.01
+			}
+		}
+
+		const handleLoadedData = () => {
+			// Force iOS Safari to recognize the video duration
+			if (video.readyState >= 2) {
+				video.currentTime = 0.01
+			}
+		}
+
+		video.addEventListener('loadedmetadata', handleLoadedMetadata)
+		video.addEventListener('loadeddata', handleLoadedData)
+
+		// Load video on iOS Safari
+		if (video.readyState === 0) {
+			video.load()
+		}
+
+		return () => {
+			video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+			video.removeEventListener('loadeddata', handleLoadedData)
+		}
+	}, [])
 
 	return (
 		<>
@@ -111,11 +144,12 @@ export default function LlamaAIGetStarted() {
 					></span>
 					<div
 						className="relative isolate z-10 mx-auto mt-[45px] w-full max-w-5xl rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-4 dark:border-[#39393E] dark:bg-[#222429]"
-						style={{ aspectRatio: '990 / 556.88' }}
+						style={{ aspectRatio: '1024 / 590.88' }}
 					>
 						<video
-							preload="metadata"
-							className="rounded-lg object-cover"
+							ref={videoRef}
+							preload="auto"
+							className="w-full rounded-lg object-cover"
 							muted
 							playsInline
 							controls
