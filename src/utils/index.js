@@ -119,10 +119,29 @@ const toK = (num) => {
 
 /**
  * @param {string | number | undefined | null} value
+ * @param {string | undefined | null} symbol
+ * @returns {string | null}
+ */
+function appendSymbol(value, symbol) {
+	if (!value || !symbol) return value
+
+	if (symbol === '$') {
+		return value.startsWith('-') ? `-$${value.substring(1)}` : `$${value}`
+	}
+
+	if (symbol === '%') {
+		return `${value}%`
+	}
+
+	return `${value} ${symbol}`
+}
+
+/**
+ * @param {string | number | undefined | null} value
  * @param {number} [maxDecimals]
  * @returns {string | null}
  */
-export const formatNum = (value, maxDecimals) => {
+const formatNum_internal = (value, maxDecimals) => {
 	if (!value && value !== 0) return '0'
 
 	// Convert to number for validation
@@ -216,12 +235,16 @@ export const formatNum = (value, maxDecimals) => {
 	return num + '.' + decimalsToShow.substring(0, endIndex)
 }
 
+export const formatNum = (value, maxDecimals, symbol) => {
+	return appendSymbol(formatNum_internal(value, maxDecimals), symbol)
+}
+
 /**
  * @param {string | number | undefined | null} value
- * @param {number} [maxDecimals]
+ * @param {number | undefined | null} maxDecimals
  * @returns {string | null}
  */
-export const abbreviateNumber = (value, maxDecimals) => {
+const abbreviateNumber_internal = (value, maxDecimals) => {
 	if (value == null) return null
 
 	const numValue = Number(value)
@@ -255,6 +278,16 @@ export const abbreviateNumber = (value, maxDecimals) => {
 	result = result.replace(/\.?0+([KMB])$/, '$1')
 
 	return isNegative ? `-${result}` : result
+}
+
+/**
+ * @param {string | number | undefined | null} number
+ * @param {number | undefined | null} maxDecimals
+ * @param {string | undefined | null} symbol
+ * @returns {string | null}
+ */
+export const abbreviateNumber = (value, maxDecimals, symbol) => {
+	return appendSymbol(abbreviateNumber_internal(value, maxDecimals), symbol)
 }
 
 export const formattedNum = (number, symbol = false) => {
