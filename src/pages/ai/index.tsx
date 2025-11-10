@@ -122,7 +122,7 @@ export default function LlamaAIGetStarted() {
 							disablePictureInPicture
 							style={{ aspectRatio: '990 / 556.88' }}
 						>
-							<source src="/api/video/llamaai" type="video/mp4" />
+							<source src="/assets/llamaai.mp4" type="video/mp4" />
 							Your browser does not support the video tag.
 						</video>
 					</div>
