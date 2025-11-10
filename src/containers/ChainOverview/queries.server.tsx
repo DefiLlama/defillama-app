@@ -24,7 +24,15 @@ import {
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import {
+	formatNum,
+	formattedNum,
+	getNDistinctColors,
+	getPercentChange,
+	lastDayOfWeek,
+	slug,
+	tokenIconUrl
+} from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
 import type {
@@ -861,7 +869,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: protocol.mcap ?? null,
 				mcaptvl:
 					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
-						? +(protocol.mcap / tvls.default.tvl).toFixed(2)
+						? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
 						: null,
 				strikeTvl:
 					protocol.category !== 'Bridge'
@@ -1053,7 +1061,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
 					parentProtocol.mcap && parentTvl?.default?.tvl
-						? +(parentProtocol.mcap / parentTvl.default.tvl).toFixed(2)
+						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
 						: null
 			}
 

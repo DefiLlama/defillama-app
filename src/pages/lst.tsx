@@ -7,7 +7,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { COINS_PRICES_API } from '~/constants'
 import Layout from '~/layout'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek, preparePieChartData } from '~/utils'
+import { firstDayOfMonth, formatNum, formattedNum, lastDayOfWeek, preparePieChartData } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -379,7 +379,7 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 		const type = lsd?.type
 		const pegInfo = type === 'rebase' ? rebase : type === 'accruing' ? valueAccruing : null
 
-		const mcaptvl = p.mcap / p.stakedEthInUsd
+		const mcaptvl = +formatNum(+p.mcap.toFixed(2) / +p.stakedEthInUsd.toFixed(2))
 
 		return {
 			...p,

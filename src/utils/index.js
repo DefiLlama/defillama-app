@@ -117,6 +117,146 @@ const toK = (num) => {
 	})
 }
 
+/**
+ * @param {string | number | undefined | null} value
+ * @param {number} [maxDecimals]
+ * @returns {string | null}
+ */
+export const formatNum = (value, maxDecimals) => {
+	if (!value && value !== 0) return '0'
+
+	// Convert to number for validation
+	const numValue = Number(value)
+	if (Number.isNaN(numValue) || !Number.isFinite(numValue)) {
+		return Number.isNaN(numValue) ? '0' : String(numValue)
+	}
+
+	// Handle scientific notation
+	let processedValue = typeof value === 'number' ? value.toString() : value
+	const isScientificNotation = /[eE]/.test(processedValue)
+
+	if (isScientificNotation) {
+		// Convert to fixed decimal string with enough precision
+		processedValue = numValue.toFixed(20).replace(/\.?0+$/, '')
+	}
+
+	const [num, decimals] = processedValue.split('.')
+
+	if (!decimals) return num
+
+	if (decimals?.startsWith('999')) {
+		return Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 })
+	}
+
+	if (decimals?.startsWith('0000000000')) {
+		return Number(value).toFixed(0)
+	}
+
+	if (maxDecimals !== undefined) {
+		const decimalsToShow = decimals.substring(0, maxDecimals)
+		// Check if all digits are zeros
+		let allZeros = true
+		for (let i = 0; i < decimalsToShow.length; i++) {
+			if (decimalsToShow[i] !== '0') {
+				allZeros = false
+				break
+			}
+		}
+		// If all decimal digits are zeros, return without decimal point
+		if (allZeros) {
+			return num
+		}
+		return num + '.' + decimalsToShow
+	}
+
+	// No maxDecimals provided - default behavior
+	const absValue = Math.abs(numValue)
+	const isLessThanPointOne = absValue > 0 && absValue < 0.1
+
+	// Count leading zeros (needed for determining decimal places)
+	let leadingZeros = 0
+	for (let i = 0; i < decimals.length; i++) {
+		if (decimals[i] === '0') {
+			leadingZeros++
+		} else {
+			break
+		}
+	}
+
+	if (isLessThanPointOne) {
+		// If 3 or more zeros, return "0"
+		if (leadingZeros >= 3) {
+			return '0'
+		}
+
+		// Only show all digits if there are exactly 2 leading zeros AND the decimal is short (like 0.002, 0.001)
+		// For longer decimals or 1 leading zero, show max 2 decimals (like 0.008, 0.07)
+		if (leadingZeros === 2 && decimals.length <= 4) {
+			// For very small numbers < 0.1 with exactly 2 leading zeros and short decimals, show all digits
+			return num + '.' + decimals
+		}
+		// Fall through to max 2 decimals logic below
+	}
+
+	// For numbers >= 0.1 but < 1, or >= 1, show max 2 decimals
+	// For numbers < 0.1, show 3 decimals only if there are 2 leading zeros (to get 0.008), otherwise 2 decimals
+	const maxDecimalsToShow = absValue < 0.1 && leadingZeros === 2 ? 3 : 2
+	const decimalsToShow = decimals.substring(0, maxDecimalsToShow)
+
+	// Remove trailing zeros
+	let endIndex = decimalsToShow.length
+	while (endIndex > 0 && decimalsToShow[endIndex - 1] === '0') {
+		endIndex--
+	}
+
+	if (endIndex === 0) {
+		return num
+	}
+
+	return num + '.' + decimalsToShow.substring(0, endIndex)
+}
+
+/**
+ * @param {string | number | undefined | null} value
+ * @param {number} [maxDecimals]
+ * @returns {string | null}
+ */
+export const abbreviateNumber = (value, maxDecimals) => {
+	if (value == null) return null
+
+	const numValue = Number(value)
+
+	if (Number.isNaN(numValue)) return '0'
+
+	if (numValue < 1000) return formatNum(value.toString(), maxDecimals)
+
+	// Handle negative numbers
+	const isNegative = numValue < 0
+	const absValue = Math.abs(numValue)
+
+	// Determine suffix and divisor
+	let result
+
+	if (absValue >= 1_000_000_000) {
+		// Billions - use 2 decimals max
+		result = (absValue / 1_000_000_000).toFixed(2) + 'B'
+	} else if (absValue >= 1_000_000) {
+		// Millions - use 2 decimals max
+		result = (absValue / 1_000_000).toFixed(2) + 'M'
+	} else if (absValue >= 1_000) {
+		// Thousands - use 2 decimals max
+		result = (absValue / 1_000).toFixed(2) + 'K'
+	} else {
+		// Less than 1000, show up to 2 decimals
+		return numValue.toFixed(2).replace(/\.?0+$/, '')
+	}
+
+	// Remove trailing zeros after decimal point
+	result = result.replace(/\.?0+([KMB])$/, '$1')
+
+	return isNegative ? `-${result}` : result
+}
+
 export const formattedNum = (number, symbol = false) => {
 	let currencySymbol
 	if (symbol === true) {

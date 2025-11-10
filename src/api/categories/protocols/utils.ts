@@ -2,7 +2,7 @@ import { keepNeededProperties } from '~/api/shared'
 import type { IFormattedProtocol } from '~/api/types'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getPercentChange } from '~/utils'
+import { formatNum, getPercentChange } from '~/utils'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
@@ -145,7 +145,7 @@ export const formatProtocolsData = ({
 			p.change_1d = getPercentChange(p.tvl, p.tvlPrevDay)
 			p.change_7d = getPercentChange(p.tvl, p.tvlPrevWeek)
 			p.change_1m = getPercentChange(p.tvl, p.tvlPrevMonth)
-			p.mcaptvl = protocol.mcap && p.tvl ? +(+(protocol.mcap / p.tvl).toFixed(2)) : null
+			p.mcaptvl = protocol.mcap && p.tvl ? +formatNum(+protocol.mcap.toFixed(2) / +p.tvl.toFixed(2)) : null
 
 			final = [...final, p]
 		}
