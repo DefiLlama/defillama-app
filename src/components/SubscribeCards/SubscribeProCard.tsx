@@ -3,9 +3,11 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
 import { StripeCheckoutModal } from '../StripeCheckoutModal'
 
@@ -151,13 +153,19 @@ export function SubscribeProCard({
 							</>
 						)}
 						{isModal && (
-							<BasicLink
-								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
-								data-umami-event="subscribe-modal-goto-page"
-								className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-							>
-								Go to Subscription Page
-							</BasicLink>
+							<>
+								<BasicLink
+									href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+									data-umami-event="subscribe-modal-goto-page"
+									className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+								>
+									Unlock Pro Features
+								</BasicLink>
+								<SignIn
+									text="Already a subscriber? Sign In"
+									className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30]"
+								/>
+							</>
 						)}
 					</>
 				)}
@@ -183,6 +191,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
+	const { isAuthenticated } = useAuthContext()
 
 	useEffect(() => {
 		if (isOpen && typeof window !== 'undefined' && (window as any).umami) {
@@ -190,23 +199,31 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 		}
 	}, [isOpen])
 
+	useEffect(() => {
+		if (isAuthenticated && isOpen) {
+			onClose()
+		}
+	}, [isAuthenticated, isOpen, onClose])
+
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
-			<Ariakit.Dialog
-				className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
-				portal
-				unmountOnHide
-			>
-				<span className="mx-auto flex w-full max-w-[440px] flex-col">
-					<Ariakit.DialogDismiss
-						data-umami-event="subscribe-modal-dismiss"
-						className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
-					>
-						<Icon name="x" className="h-6 w-6" />
-					</Ariakit.DialogDismiss>
-					<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />
-				</span>
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
+		<WalletProvider>
+			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+				<Ariakit.Dialog
+					className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
+					portal
+					unmountOnHide
+				>
+					<span className="mx-auto flex w-full max-w-[440px] flex-col">
+						<Ariakit.DialogDismiss
+							data-umami-event="subscribe-modal-dismiss"
+							className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+						>
+							<Icon name="x" className="h-6 w-6" />
+						</Ariakit.DialogDismiss>
+						<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />
+					</span>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+		</WalletProvider>
 	)
 }
