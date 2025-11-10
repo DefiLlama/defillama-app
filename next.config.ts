@@ -588,6 +588,35 @@ const nextConfig: NextConfig = {
 						value: 'video/mp4'
 					}
 				]
+			},
+			{
+				source: '/api/video/llamaai',
+				headers: [
+					{
+						key: 'Accept-Ranges',
+						value: 'bytes'
+					},
+					{
+						key: 'Content-Type',
+						value: 'video/mp4'
+					},
+					{
+						key: 'Access-Control-Allow-Origin',
+						value: '*'
+					},
+					{
+						key: 'Access-Control-Allow-Methods',
+						value: 'GET, HEAD, OPTIONS'
+					},
+					{
+						key: 'Access-Control-Allow-Headers',
+						value: 'Range'
+					},
+					{
+						key: 'Access-Control-Expose-Headers',
+						value: 'Content-Range, Content-Length, Accept-Ranges'
+					}
+				]
 			}
 		]
 	},
