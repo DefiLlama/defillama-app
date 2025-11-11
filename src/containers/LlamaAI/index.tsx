@@ -1482,16 +1482,18 @@ const PromptInput = memo(function PromptInput({
 
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
-		// If there's a trigger character, we'll show the combobox popover. This can
-		// be true both when the trigger character has just been typed and when
-		// content has been deleted (e.g., with backspace) and the character right
-		// before the caret is the trigger.
-		if (trigger) {
+		const triggerOffset = getTriggerOffset(event.target)
+		// Only show combobox if there's a valid trigger offset (@ is isolated) and search value
+		// This prevents showing combobox in emails like "test@gmail.com"
+		if (triggerOffset !== -1 && searchValue.length > 0) {
 			combobox.show()
 		}
-		// There will be no trigger and no search value if the trigger character has
-		// just been deleted.
-		else if (!searchValue) {
+		// If user just typed @ (trigger exists but no search value yet), don't show combobox
+		else if (trigger && searchValue.length === 0) {
+			combobox.hide()
+		}
+		// If no valid trigger offset, hide and clear
+		else if (triggerOffset === -1) {
 			combobox.setValue('')
 			combobox.hide()
 		}
