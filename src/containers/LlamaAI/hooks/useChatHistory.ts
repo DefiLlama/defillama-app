@@ -180,7 +180,7 @@ export function useChatHistory() {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
 				return {
-					conversationHistory: result.messages || result.conversationHistory || [],
+					messages: result.messages || result.conversationHistory || [],
 					pagination: {
 						hasMore: result.hasMore || false,
 						isLoadingMore: false,
@@ -191,7 +191,7 @@ export function useChatHistory() {
 			} catch (error) {
 				console.log('Failed to restore session:', error)
 				return {
-					conversationHistory: [],
+					messages: [],
 					pagination: {
 						hasMore: false,
 						isLoadingMore: false
@@ -207,7 +207,7 @@ export function useChatHistory() {
 			try {
 				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
 				return {
-					conversationHistory: result.messages || result.conversationHistory || [],
+					messages: result.messages || result.conversationHistory || [],
 					pagination: {
 						hasMore: result.hasMore || false,
 						isLoadingMore: false,
@@ -218,7 +218,7 @@ export function useChatHistory() {
 			} catch (error) {
 				console.log('Failed to load more messages:', error)
 				return {
-					conversationHistory: [],
+					messages: [],
 					pagination: {
 						hasMore: false,
 						isLoadingMore: false
