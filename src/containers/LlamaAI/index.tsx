@@ -838,10 +838,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		promptInputRef.current?.focus()
 	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
 
-	const handleSessionSelect = async (
-		selectedSessionId: string,
-		data: { messages: any[]; pagination?: any }
-	) => {
+	const handleSessionSelect = async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
 		resetScrollState()
 
 		if (sessionId && isStreaming) {
@@ -1063,11 +1060,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				<div
 					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
-					{messages.length === 0 &&
-					prompt.length === 0 &&
-					!isRestoringSession &&
-					!isPending &&
-					!isStreaming ? (
+					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
 						initialSessionId ? (
 							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
@@ -1098,7 +1091,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
 											initialValue={prompt}
-											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin"
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1296,7 +1289,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin"
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 									/>
 								)}
 							</div>
@@ -1483,13 +1476,32 @@ const PromptInput = memo(function PromptInput({
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
 		const triggerOffset = getTriggerOffset(event.target)
+		// Get the actual trigger character from the textarea at the trigger offset
+		// This is more reliable than getTrigger which only checks the previous character
+		const actualTrigger = triggerOffset !== -1 ? event.target.value[triggerOffset] : null
+		// Prepend $ to searchValue if trigger is $, so useGetEntities can detect it
+		// Always prepend $ when trigger is $, even if searchValue already starts with $
+		const searchValueWithTrigger = actualTrigger === '$' ? `$${searchValue}` : searchValue
+
+		// Sets our textarea value.
+		setValue(event.target.value)
+
 		// Only show combobox if there's a valid trigger offset (@ is isolated) and search value
 		// This prevents showing combobox in emails like "test@gmail.com"
 		if (triggerOffset !== -1 && searchValue.length > 0) {
 			combobox.show()
+			// Sets the combobox value that will be used to search in the list.
+			// Prepend $ if trigger is $ so useGetEntities knows to fetch coins
+			combobox.setValue(searchValueWithTrigger)
 		}
-		// If user just typed @ (trigger exists but no search value yet), don't show combobox
+		// If user just typed @ or $ (trigger exists but no search value yet), don't show combobox
 		else if (trigger && searchValue.length === 0) {
+			// Still set the value with $ prefix if trigger is $, so it's ready when user starts typing
+			if (actualTrigger === '$') {
+				combobox.setValue('$')
+			} else {
+				combobox.setValue('')
+			}
 			combobox.hide()
 		}
 		// If no valid trigger offset, hide and clear
@@ -1497,10 +1509,6 @@ const PromptInput = memo(function PromptInput({
 			combobox.setValue('')
 			combobox.hide()
 		}
-		// Sets our textarea value.
-		setValue(event.target.value)
-		// Sets the combobox value that will be used to search in the list.
-		combobox.setValue(searchValue)
 	}
 
 	const onItemClick = useCallback(
@@ -1613,7 +1621,7 @@ const PromptInput = memo(function PromptInput({
 								onClick={onItemClick({ id, name, type })}
 								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
 							>
-								<TokenLogo logo={logo} size={20} />
+								{logo && <TokenLogo logo={logo} size={20} />}
 								<span className="flex items-center gap-1.5">
 									<span className="text-sm font-medium">{name}</span>
 									<span
