@@ -9,7 +9,7 @@ export const StatsCard = ({
 	subtle?: string
 	variant?: 'default' | 'highlight'
 }) => {
-	const base = 'flex flex-col rounded-md border p-3 transition-colors duration-200'
+	const base = 'flex flex-col rounded-md border p-3 transition-colors duration-200 min-h-[86px]'
 	const containerClass =
 		variant === 'highlight'
 			? `${base} border-(--cards-border) bg-gradient-to-b from-white/5 to-transparent backdrop-blur-sm`
