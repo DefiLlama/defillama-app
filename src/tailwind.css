@@ -779,6 +779,21 @@
 }
 
 .llamaai-glow-text {
+	background: linear-gradient(93.94deg, #d97706 24.73%, #f59e0b 57.42%, #d97706 99.73%);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	text-shadow: 0px 0px 20px rgba(217, 119, 6, 0.4);
+	text-decoration: underline;
+	text-decoration-color: #d97706;
+	transition: text-shadow 0.2s ease;
+}
+
+.llamaai-glow-text:hover {
+	text-shadow: 0px 0px 30px rgba(217, 119, 6, 0.6);
+}
+
+.dark .llamaai-glow-text {
 	background: linear-gradient(93.94deg, #fde0a9 24.73%, #fbedcb 57.42%, #fde0a9 99.73%);
 	background-clip: text;
 	-webkit-background-clip: text;
@@ -789,6 +804,6 @@
 	transition: text-shadow 0.2s ease;
 }
 
-.llamaai-glow-text:hover {
+.dark .llamaai-glow-text:hover {
 	text-shadow: 0px 0px 30px rgba(253, 224, 169, 0.8);
 }

@@ -163,7 +163,7 @@ export function SubscribeProCard({
 								</BasicLink>
 								<SignIn
 									text="Already a subscriber? Sign In"
-									className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30]"
+									className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2b30]"
 								/>
 							</>
 						)}
