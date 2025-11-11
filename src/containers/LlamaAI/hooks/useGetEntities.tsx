@@ -36,7 +36,7 @@ async function fetchEntities(query: string) {
 	return response
 }
 
-async function fetchCoins(query: string) {
+export async function fetchCoins(query: string, limit: number = 10) {
 	const response: Array<{ id: string; name: string; logo: string; type: string }> = await fetch(
 		'https://search.defillama.com/multi-search',
 		{
@@ -49,7 +49,7 @@ async function fetchCoins(query: string) {
 				queries: [
 					{
 						indexUid: 'pages',
-						limit: 10,
+						limit,
 						offset: 0,
 						q: query,
 						filter: [['type = "Token Usage"']]

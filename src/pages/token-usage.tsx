@@ -1,10 +1,8 @@
-import { startTransition, Suspense, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, Suspense, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
-import { matchSorter } from 'match-sorter'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -14,33 +12,15 @@ import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
+import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
+import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { withPerformanceLogging } from '~/utils/perf'
-
-export const getStaticProps = withPerformanceLogging('tokenUsage', async () => {
-	const searchData = await getAllCGTokensList()
-
-	return {
-		props: {
-			searchData: searchData
-				.filter((token) => token.name && token.symbol && token.image)
-				.map((token) => ({
-					name: `${token.name}`,
-					route: `/token-usage?token=${token.symbol}`,
-					symbol: token.symbol,
-					logo: token.image2 || null,
-					fallbackLogo: token.image || null
-				}))
-		},
-		revalidate: maxAgeForNext([23])
-	}
-})
 
 const pageName = ['Token', 'usage in', 'Protocols']
 
-export default function Tokens({ searchData }) {
+export default function Tokens() {
 	const router = useRouter()
 	const { token, includecex } = router.query
 
@@ -85,10 +65,10 @@ export default function Tokens({ searchData }) {
 		>
 			<Announcement notCancellable>This is not an exhaustive list</Announcement>
 
-			<Search searchData={searchData} />
+			<Search />
 
 			<div className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				{isLoading ? (
+				{isLoading || !router.isReady ? (
 					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
 						<LocalLoader />
 					</div>
@@ -207,47 +187,21 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 	}
 ]
 
-interface ISearchData {
-	name: string
-	route: string
-	symbol: string
-	logo: string
-	fallbackLogo: string
-}
-const Search = ({ searchData }: { searchData: ISearchData[] }) => {
+const Search = () => {
 	const router = useRouter()
 
 	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
-	const matches = useMemo(() => {
-		if (!deferredSearchValue) return searchData || []
-		return matchSorter(searchData || [], deferredSearchValue, {
-			threshold: matchSorter.rankings.CONTAINS,
-			keys: ['name', 'symbol']
-		})
-	}, [searchData, deferredSearchValue])
-
-	const [viewableMatches, setViewableMatches] = useState(20)
+	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['search-tokens', debouncedSearchValue],
+		queryFn: () => fetchCoins(debouncedSearchValue, 20),
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false
+	})
 
 	const [open, setOpen] = useState(false)
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
-
-	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
-		e.preventDefault()
-		e.stopPropagation()
-		const previousCount = viewableMatches
-		setViewableMatches((prev) => prev + 20)
-
-		// Focus on the first newly loaded item after a brief delay
-		setTimeout(() => {
-			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
-			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
-			}
-		}, 0)
-	}
 
 	return (
 		<Ariakit.ComboboxProvider
@@ -289,42 +243,33 @@ const Search = ({ searchData }: { searchData: ISearchData[] }) => {
 				sameWidth
 				className="thin-scrollbar z-10 flex max-h-(--popover-available-height) flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 			>
-				{matches.length ? (
+				{isLoading ? (
+					<p className="px-3 py-6 text-center text-(--text-primary)">Loading...</p>
+				) : error ? (
+					<p className="px-3 py-6 text-center text-(--text-primary)">{`Error: ${error.message}`}</p>
+				) : !data?.length ? (
+					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
+				) : (
 					<Ariakit.ComboboxList ref={comboboxRef}>
-						{matches.slice(0, viewableMatches).map((data) => (
+						{data.map((data) => (
 							<Ariakit.ComboboxItem
 								key={`token-usage-${data.name}`}
 								value={data.name}
 								onClick={() => {
-									router.push(data.route, undefined, { shallow: true }).then(() => {
+									router.push(`/token-usage?token=${data.name}`, undefined, { shallow: true }).then(() => {
 										setOpen(false)
 									})
 								}}
 								focusOnHover
 								hideOnClick={false}
 								setValueOnClick={true}
-								className="flex cursor-pointer items-center gap-4 p-3 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
+								className="flex cursor-pointer items-center gap-4 px-3 py-2 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
-								{data?.logo || data?.fallbackLogo ? (
-									<TokenLogo logo={data?.logo} fallbackLogo={data?.fallbackLogo} />
-								) : null}
+								{data?.logo ? <TokenLogo logo={data?.logo} /> : null}
 								<span>{data.name}</span>
 							</Ariakit.ComboboxItem>
 						))}
-						{matches.length > viewableMatches ? (
-							<Ariakit.ComboboxItem
-								value="__see_more__"
-								setValueOnClick={false}
-								hideOnClick={false}
-								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-								onClick={handleSeeMore}
-							>
-								See more...
-							</Ariakit.ComboboxItem>
-						) : null}
 					</Ariakit.ComboboxList>
-				) : (
-					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				)}
 			</Ariakit.ComboboxPopover>
 		</Ariakit.ComboboxProvider>
