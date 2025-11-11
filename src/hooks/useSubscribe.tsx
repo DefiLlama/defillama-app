@@ -216,7 +216,7 @@ export const useSubscribe = () => {
 	} = useSubscription('legacy')
 
 	useEffect(() => {
-		if (router.pathname !== '/subscription') return
+		if (router.pathname !== '/account') return
 		const fetchApiKey = async () => {
 			if (isAuthenticated && apiSubscription?.subscription?.status === 'active') {
 				setIsApiKeyLoading(true)
