@@ -271,7 +271,7 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
-	conversationHistory: Array<{
+	messages: Array<{
 		question: string
 		response: {
 			answer: string
@@ -312,7 +312,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const sessionIdRef = useRef<string | null>(null)
 	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
-	const [conversationHistory, setConversationHistory] = useState<
+	const [messages, setMessages] = useState<
 		Array<{
 			role?: string
 			content?: string
@@ -400,7 +400,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			setConversationHistory(sharedSession.conversationHistory)
+			setMessages(sharedSession.messages)
 			setSessionId(sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState])
@@ -418,7 +418,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
 				.then((result) => {
-					setConversationHistory(result.conversationHistory)
+					setMessages(result.messages)
 					setPaginationState(result.pagination)
 				})
 				.catch((error) => {
@@ -554,7 +554,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingResponse(finalContent)
 			}
 
-			setConversationHistory((prev) => [
+			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
@@ -598,7 +598,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			if (wasUserStopped && finalContent.trim()) {
-				setConversationHistory((prev) => [
+				setMessages((prev) => [
 					...prev,
 					{
 						role: 'user',
@@ -668,7 +668,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (finalContent.trim()) {
-			setConversationHistory((prev) => [
+			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
@@ -711,7 +711,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingCitations,
 		currentMessageId,
 		prompt,
-		setConversationHistory,
+		setMessages,
 		setStreamingResponse,
 		setStreamingSuggestions,
 		setStreamingCharts,
@@ -832,7 +832,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setHasChartError(false)
 		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
-		setConversationHistory([])
+		setMessages([])
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
@@ -840,7 +840,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const handleSessionSelect = async (
 		selectedSessionId: string,
-		data: { conversationHistory: any[]; pagination?: any }
+		data: { messages: any[]; pagination?: any }
 	) => {
 		resetScrollState()
 
@@ -866,7 +866,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		setSessionId(selectedSessionId)
 		setHasRestoredSession(selectedSessionId)
-		setConversationHistory(data.conversationHistory)
+		setMessages(data.messages)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 		setPrompt('')
 		resetPrompt()
@@ -900,7 +900,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
-			setConversationHistory((prev) => [...result.conversationHistory, ...prev])
+			setMessages((prev) => [...result.messages, ...prev])
 			setPaginationState(result.pagination)
 
 			setTimeout(() => {
@@ -1008,14 +1008,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	}, [streamingResponse, isStreaming])
 
 	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current && conversationHistory.length > 0) {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current && messages.length > 0) {
 			requestAnimationFrame(() => {
 				if (scrollContainerRef.current && shouldAutoScrollRef.current) {
 					scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 				}
 			})
 		}
-	}, [conversationHistory.length])
+	}, [messages.length])
 
 	useEffect(() => {
 		return () => {
@@ -1063,7 +1063,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				<div
 					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
-					{conversationHistory.length === 0 &&
+					{messages.length === 0 &&
 					prompt.length === 0 &&
 					!isRestoringSession &&
 					!isPending &&
@@ -1112,12 +1112,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									{isRestoringSession && conversationHistory.length === 0 ? (
+									{isRestoringSession && messages.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 											Loading conversation
 											<LoadingDots />
 										</p>
-									) : conversationHistory.length > 0 || isSubmitted ? (
+									) : messages.length > 0 || isSubmitted ? (
 										<div className="flex w-full flex-col gap-2 px-2 pb-5">
 											{paginationState.isLoadingMore && (
 												<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
@@ -1126,7 +1126,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</p>
 											)}
 											<div className="flex flex-col gap-2.5">
-												{conversationHistory.map((item, index) => {
+												{messages.map((item, index) => {
 													if (item.role === 'user') {
 														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
 													}

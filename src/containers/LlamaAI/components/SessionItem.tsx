@@ -13,7 +13,7 @@ import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 interface SessionItemProps {
 	session: ChatSession
 	isActive: boolean
-	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
+	onSessionSelect: (sessionId: string, data: { messages: any[]; pagination?: any }) => void
 	handleSidebarToggle: () => void
 	style: React.CSSProperties
 }

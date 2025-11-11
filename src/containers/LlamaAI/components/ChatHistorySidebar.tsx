@@ -10,7 +10,7 @@ import { SessionItem } from './SessionItem'
 interface ChatHistorySidebarProps {
 	handleSidebarToggle: () => void
 	currentSessionId: string | null
-	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
+	onSessionSelect: (sessionId: string, data: { messages: any[]; pagination?: any }) => void
 	onNewChat: () => void
 	shouldAnimate?: boolean
 }
