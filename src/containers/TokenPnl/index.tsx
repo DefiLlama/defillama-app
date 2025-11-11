@@ -24,8 +24,6 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 const DAY_IN_SECONDS = 86_400
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
 
-type ChangeMode = 'percent' | 'absolute'
-
 type TokenPnlResult = {
 	coinInfo?: IResponseCGMarketsAPI
 	priceSeries: PricePoint[]
@@ -39,8 +37,18 @@ type TokenPnlResult = {
 		volatility: number
 		rangeHigh: number
 		rangeLow: number
+		holdingPeriodDays: number
+		annualizedReturn: number
+		isProfit: boolean
 	}
 	currentPrice: number
+	chartData: ILineAndBarChartProps['charts']
+	yAxisConfig: {
+		min: number
+		max: number
+		interval: number
+	}
+	primaryColor: string
 }
 
 const unixToDateString = (unixTimestamp?: number) => {
@@ -52,18 +60,6 @@ const unixToDateString = (unixTimestamp?: number) => {
 const dateStringToUnix = (dateString: string) => {
 	if (!dateString) return 0
 	return Math.floor(new Date(dateString).getTime() / 1000)
-}
-
-const buildDailyTimeline = (series: PricePoint[]): TimelinePoint[] => {
-	return series.map((point, index) => {
-		if (index === 0) {
-			return { ...point, change: 0, percentChange: 0 }
-		}
-		const prev = series[index - 1]
-		const delta = point.price - prev.price
-		const pct = prev.price ? (delta / prev.price) * 100 : 0
-		return { ...point, change: delta, percentChange: pct }
-	})
 }
 
 const calculateMaxDrawdown = (series: PricePoint[]) => {
@@ -98,6 +94,27 @@ const calculateAnnualizedVolatility = (series: PricePoint[]) => {
 	const variance = returns.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / (returns.length - 1 || 1)
 	const dailyVol = Math.sqrt(variance)
 	return dailyVol * Math.sqrt(365) * 100
+}
+
+const calculateYAxisConfigFromPrices = (prices: number[]) => {
+	if (!prices.length) return { min: 0, max: 0, interval: 1000 }
+
+	const min = Math.min(...prices)
+	const max = Math.max(...prices)
+	const range = max - min
+
+	if (range === 0) return { min: min - min * 0.1, max: max + max * 0.1, interval: max * 0.1 }
+
+	const magnitude = Math.pow(10, Math.floor(Math.log10(range)))
+	const normalized = range / magnitude
+	const interval =
+		normalized <= 1 ? magnitude * 0.2 : normalized <= 2 ? magnitude * 0.5 : normalized <= 5 ? magnitude : magnitude * 2
+
+	return {
+		min: Math.floor(min / interval) * interval,
+		max: Math.ceil(max / interval) * interval,
+		interval
+	}
 }
 
 type RawPriceEntry = {
@@ -136,6 +153,7 @@ const computeTokenPnl = async (params: {
 	const series = await fetchPriceSeries(id, start, end)
 
 	if (!series.length) {
+		const primaryColor = '#10b981'
 		return {
 			coinInfo,
 			priceSeries: [],
@@ -148,9 +166,23 @@ const computeTokenPnl = async (params: {
 				maxDrawdown: 0,
 				volatility: 0,
 				rangeHigh: 0,
-				rangeLow: 0
+				rangeLow: 0,
+				holdingPeriodDays: 0,
+				annualizedReturn: 0,
+				isProfit: false
 			},
-			currentPrice: coinInfo?.current_price ?? 0
+			currentPrice: coinInfo?.current_price ?? 0,
+			chartData: {
+				'Token Price': {
+					name: 'Token Price',
+					stack: 'Token Price',
+					color: primaryColor,
+					type: 'line' as const,
+					data: []
+				}
+			},
+			yAxisConfig: { min: 0, max: 0, interval: 1000 },
+			primaryColor
 		}
 	}
 
@@ -158,9 +190,58 @@ const computeTokenPnl = async (params: {
 	const endPrice = series[series.length - 1].price
 	const percentChange = startPrice ? ((endPrice - startPrice) / startPrice) * 100 : 0
 	const absoluteChange = endPrice - startPrice
-	const timeline = buildDailyTimeline(series)
-	const rangeHigh = Math.max(...series.map((point) => point.price))
-	const rangeLow = Math.min(...series.map((point) => point.price))
+	const isPositive = endPrice >= startPrice
+	const primaryColor = isPositive ? '#10b981' : '#ef4444'
+
+	const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
+	const annualizedReturn =
+		holdingPeriodDays > 0 ? (Math.pow(1 + percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
+
+	const prices: number[] = []
+	const timeline: TimelinePoint[] = []
+	const dataPoints: Array<[number, number]> = []
+
+	const firstPoint = series[0]
+	if (firstPoint && firstPoint.timestamp !== start) {
+		dataPoints.push([start * 1000, firstPoint.price])
+	}
+
+	series.forEach((point, index) => {
+		prices.push(point.price)
+
+		if (index === 0) {
+			timeline.push({ ...point, change: 0, percentChange: 0 })
+		} else {
+			const prev = series[index - 1]
+			const delta = point.price - prev.price
+			const pct = prev.price ? (delta / prev.price) * 100 : 0
+			timeline.push({ ...point, change: delta, percentChange: pct })
+		}
+
+		// Prepare chart data
+		dataPoints.push([point.timestamp * 1000, point.price])
+	})
+
+	const lastPoint = series[series.length - 1]
+	if (lastPoint && lastPoint.timestamp !== end) {
+		dataPoints.push([end * 1000, lastPoint.price])
+	}
+	dataPoints.sort((a, b) => a[0] - b[0])
+
+	const rangeHigh = Math.max(...prices)
+	const rangeLow = Math.min(...prices)
+
+	const chartData = {
+		'Token Price': {
+			name: 'Token Price',
+			stack: 'Token Price',
+			color: primaryColor,
+			type: 'line' as const,
+			data: dataPoints
+		}
+	} as ILineAndBarChartProps['charts']
+
+	const yAxisConfig = calculateYAxisConfigFromPrices(prices)
 
 	return {
 		coinInfo,
@@ -174,9 +255,15 @@ const computeTokenPnl = async (params: {
 			maxDrawdown: calculateMaxDrawdown(series),
 			volatility: calculateAnnualizedVolatility(series),
 			rangeHigh,
-			rangeLow
+			rangeLow,
+			holdingPeriodDays,
+			annualizedReturn,
+			isProfit: percentChange >= 0
 		},
-		currentPrice: coinInfo?.current_price ?? endPrice
+		currentPrice: coinInfo?.current_price ?? endPrice,
+		chartData,
+		yAxisConfig,
+		primaryColor
 	}
 }
 
@@ -192,11 +279,10 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
 
-	const { startDate, endDate, dateError, handleStartDateChange, handleEndDateChange, validateDateRange } =
-		useDateRangeValidation({
-			initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
-			initialEndDate: unixToDateString(now)
-		})
+	const { startDate, endDate, handleStartDateChange, handleEndDateChange, validateDateRange } = useDateRangeValidation({
+		initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
+		initialEndDate: unixToDateString(now)
+	})
 
 	useEffect(() => {
 		if (router.isReady) {
@@ -210,11 +296,17 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 				handleEndDateChange(endParam)
 			}
 		}
-	}, [router.isReady, router.query.start, router.query.end])
+	}, [
+		router.isReady,
+		router.query.start,
+		router.query.end,
+		startDate,
+		endDate,
+		handleStartDateChange,
+		handleEndDateChange
+	])
 
 	const [quantityInput, setQuantityInput] = useState('')
-	const [mode, setMode] = useState<ChangeMode>('percent')
-	const [focusedPoint, setFocusedPoint] = useState<{ timestamp: number; price: number } | null>(null)
 
 	const { selectedCoins, selectedCoinId, selectedCoinInfo } = useMemo(() => {
 		const queryCoins = router.query?.coin || ['bitcoin']
@@ -243,30 +335,6 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
-
-	const chartData = useMemo(() => {
-		const priceSeries = pnlData?.priceSeries ?? []
-		const startPrice = priceSeries[0]?.price ?? 0
-		const endPrice = priceSeries[priceSeries.length - 1]?.price ?? 0
-		const series: Array<[number, number, number]> = priceSeries.map((point, index) => [
-			+point.timestamp * 1000,
-			point.price,
-			index === 0 ? null : startPrice ? ((point.price - startPrice) / startPrice) * 100 : 0
-		])
-		const isPositive = endPrice >= startPrice
-
-		const primaryColor = isPositive ? '#10b981' : '#ef4444'
-
-		return {
-			'Token Price': {
-				name: 'Token Price',
-				stack: 'Token Price',
-				color: primaryColor,
-				type: 'line' as const,
-				data: series as any
-			}
-		} as ILineAndBarChartProps['charts']
-	}, [pnlData?.priceSeries])
 
 	const comparisonQueries = useQueries({
 		queries: DEFAULT_COMPARISON_IDS.map((tokenId) => ({
@@ -306,29 +374,69 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 		return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
 	}, [quantityInput])
 
-	const displayMetrics = useMemo(() => {
-		if (!pnlData?.metrics) return null
+	const chartOptions = useMemo(() => {
+		if (!pnlData) return {}
 
-		const { metrics } = pnlData
-		const quantityValue = quantity ? metrics.absoluteChange * quantity : metrics.absoluteChange
-		const summaryValue = mode === 'percent' ? metrics.percentChange : quantity ? quantityValue : metrics.absoluteChange
-		const isProfit = summaryValue >= 0
-		const quantityLabel = quantity
-			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
-			: `$${formattedNum(metrics.absoluteChange, false)} per token`
-
-		const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
-		const annualizedReturn =
-			holdingPeriodDays > 0 ? (Math.pow(1 + metrics.percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
+		const { metrics, yAxisConfig: yAxis } = pnlData
+		const startPrice = metrics.startPrice
 
 		return {
-			summaryValue,
-			isProfit,
-			quantityLabel,
-			holdingPeriodDays,
-			annualizedReturn
+			grid: {
+				left: 0,
+				right: 0,
+				top: 12,
+				bottom: 12
+			},
+			xAxis: {
+				type: 'time',
+				min: start * 1000,
+				max: end * 1000,
+				axisLabel: {
+					formatter: (value: number) => formatDateLabel(value / 1000),
+					showMinLabel: true,
+					showMaxLabel: true,
+					hideOverlap: true
+				},
+				boundaryGap: false
+			},
+			yAxis: {
+				min: yAxis.min,
+				max: yAxis.max,
+				interval: yAxis.interval
+			},
+			legend: {
+				show: false
+			},
+			tooltip: {
+				backgroundColor: 'transparent',
+				borderWidth: 0,
+				padding: 0,
+				axisPointer: {
+					type: 'line',
+					lineStyle: { color: 'rgba(148,163,184,0.5)', width: 1.5, type: 'solid' },
+					z: 0
+				},
+				formatter: (items: any) => {
+					const itemsArray = Array.isArray(items) ? items : [items]
+					if (!itemsArray?.length) return ''
+
+					const point = itemsArray[0]
+					const price = point.value[1]
+					const changeFromStart = startPrice ? ((price - startPrice) / startPrice) * 100 : 0
+					const changeColor = changeFromStart >= 0 ? '#10b981' : '#ef4444'
+					const changeSign = changeFromStart >= 0 ? '+' : ''
+
+					const chartdate = formatTooltipChartDate(point.value[0], 'daily')
+
+					return `<div style="background: var(--bg-card); border: 1px solid var(--bg-border); box-shadow: 0 6px 24px rgba(0,0,0,0.25); color: var(--text-primary); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; white-space: nowrap;">
+						<div style="opacity: .75; margin-bottom: 4px;">${chartdate}</div>
+						<div style="font-weight: 600; font-size: 14px; margin-bottom: 2px;">${formatTooltipValue(price, '$')}</div>
+						<div style="font-size: 11px; color: ${changeColor}; font-weight: 500;">${changeSign}${formatTooltipValue(changeFromStart, '%')} from start</div>
+					</div>`
+				}
+			}
 		}
-	}, [pnlData, quantity, mode, start, end])
+	}, [pnlData, start, end])
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -394,7 +502,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 				</div>
 			)
 		}
-		if (!pnlData || !pnlData.priceSeries.length || !displayMetrics) {
+		if (!pnlData || !pnlData.priceSeries.length) {
 			return (
 				<div className="flex flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-center">
 					<span className="text-lg font-semibold">No historical data available for this range.</span>
@@ -403,8 +511,12 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			)
 		}
 
-		const { metrics, timeline, coinInfo, currentPrice } = pnlData
-		const { summaryValue, isProfit, quantityLabel, holdingPeriodDays, annualizedReturn } = displayMetrics
+		const { metrics, timeline, coinInfo, currentPrice, chartData } = pnlData
+		const { percentChange, isProfit, holdingPeriodDays, annualizedReturn, absoluteChange } = metrics
+		const quantityValue = quantity ? absoluteChange * quantity : absoluteChange
+		const quantityLabel = quantity
+			? `${formattedNum(quantity, false)} tokens → ${quantityValue >= 0 ? '+' : ''}$${formattedNum(quantityValue, false)}`
+			: `$${formattedNum(absoluteChange, false)} per token`
 
 		return (
 			<div className="flex flex-col gap-6">
@@ -414,13 +526,9 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							isProfit ? 'border-emerald-500/30 bg-emerald-600/10' : 'border-red-500/30 bg-red-600/10'
 						}`}
 					>
-						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">
-							{mode === 'percent' ? 'Return' : isProfit ? 'Profit' : 'Loss'}
-						</span>
+						<span className="text-xs font-light tracking-wide text-(--text-secondary) uppercase">Return</span>
 						<div className={`text-3xl font-bold ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
-							{mode === 'percent'
-								? formatPercent(summaryValue)
-								: `${summaryValue >= 0 ? '+' : ''}$${formattedNum(summaryValue, false)}`}
+							{formatPercent(percentChange)}
 						</div>
 						<span className="text-xs text-(--text-secondary)">{quantityLabel}</span>
 					</div>
@@ -456,19 +564,15 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						</div>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]"></div>}>
-						<LineAndBarChart charts={chartData} hideDataZoom chartOptions={chartOptions} />
+						<LineAndBarChart charts={chartData} hideDataZoom chartOptions={chartOptions as any} />
 					</Suspense>
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					<StatsCard
 						label="Current Price"
-						value={`$${formattedNum(focusedPoint?.price || currentPrice)}`}
-						subtle={
-							focusedPoint
-								? new Date(focusedPoint.timestamp * 1000).toLocaleDateString()
-								: coinInfo?.symbol?.toUpperCase()
-						}
+						value={`$${formattedNum(currentPrice)}`}
+						subtle={coinInfo?.symbol?.toUpperCase()}
 						variant="highlight"
 					/>
 					<StatsCard label="Start Price" value={`$${formattedNum(metrics.startPrice)}`} />
@@ -570,30 +674,4 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			</div>
 		</div>
 	)
-}
-
-const chartOptions = {
-	yAxis: {
-		min: function (value) {
-			const range = value.max - value.min
-			return value.min - range * 0.2
-		},
-		max: function (value) {
-			const range = value.max - value.min
-			return value.max + range * 0.2
-		},
-		scale: false
-	},
-	tooltip: {
-		formatter: function (params) {
-			let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
-			let vals = ''
-			vals += `<li style="list-style:none;">$${formattedNum(params[0].value[1])}</li>`
-
-			if (params[0].value[2] !== null) {
-				vals += `<li style="list-style:none;font-size:12px;${params[0].value[2] >= 0 ? 'color: #10b981;' : 'color: #ef4444;'}">${formatTooltipValue(params[0].value[2], '%')} from start</li>`
-			}
-			return chartdate + vals
-		}
-	}
 }
