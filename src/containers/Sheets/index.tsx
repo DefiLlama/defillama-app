@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Icon } from '~/components/Icon'
 
 const examples = [
@@ -10,13 +11,17 @@ const examples = [
 		description: 'Get historical TVL for Uniswap on a specific date'
 	},
 	{
+		signature: '=DEFILLAMA_HISTORICAL("fees", "tether", "2025-01-01", "2025-02-01")',
+		description: 'Get historical fees for Tether on a monthly date range'
+	},
+	{
 		signature: '=DEFILLAMA_STABLECOIN_MCAP("USDT", "ethereum")',
 		description: 'Get current USDT market cap on Ethereum'
 	}
 ]
 
 const dataPoints = [
-	'Market Metrics: TVL, fees, revenue, and volumes for 8k+ protocols and 400+ chains.',
+	'Market Metrics: TVL, fees, revenue, and volumes for 6000+ protocols and 400+ chains.',
 	'Protocol Health: Monitor TVL changes, chain exposure, and dominance stats.',
 	'Stablecoins: Follow market caps, supply by chain, and daily expansion.',
 	'Yield Opportunities: Surface pool APY, TVL, and reward breakdowns.',
@@ -68,16 +73,10 @@ export default function SheetsContainer() {
 						Our Google Sheets add-on brings powerful DeFi analytics directly to your spreadsheets with custom functions.
 					</p>
 					<div className="flex items-center gap-3">
-						<span className="inline-flex items-center gap-1 rounded-full border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 px-3 py-1 text-sm text-[#5C5CF9]">
-							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							Coming Soon
+						<span className="inline-flex items-center gap-1 rounded-full border border-[#34a853]/30 bg-[#34a853]/10 px-3 py-1 text-sm text-[#34a853]">
+							<Link href="https://workspace.google.com/marketplace/app/defillama_sheets/571407189628" target="_blank">
+								Get Started
+							</Link>
 						</span>
 					</div>
 				</div>
