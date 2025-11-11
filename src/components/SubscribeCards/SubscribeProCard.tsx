@@ -96,7 +96,7 @@ export function SubscribeProCard({
 								<Link href="/sheets" className="underline">
 									DefilLama Sheets
 								</Link>{' '}
-								– access data right in your spreadsheets
+								– access blockchain data in your spreadsheets
 							</span>
 						</li>
 						<li className="flex flex-nowrap items-start gap-2.5">

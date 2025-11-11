@@ -1,5 +1,8 @@
-import Link from 'next/link'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
+import { useIsClient } from '~/hooks'
+import { useSubscribe } from '~/hooks/useSubscribe'
 
 const examples = [
 	{
@@ -29,6 +32,19 @@ const dataPoints = [
 ]
 
 export default function SheetsContainer() {
+	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const { subscription } = useSubscribe()
+	const isClient = useIsClient()
+
+	const onGoogleSheetsButtonClick = () => {
+		if (!subscription || subscription.status !== 'active') {
+			setShowSubscribeModal(true)
+			return
+		}
+
+		window.open('https://workspace.google.com/marketplace/app/defillama_sheets/571407189628', '_blank')
+	}
+
 	return (
 		<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 			<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
@@ -73,11 +89,12 @@ export default function SheetsContainer() {
 						Our Google Sheets add-on brings powerful DeFi analytics directly to your spreadsheets with custom functions.
 					</p>
 					<div className="flex items-center gap-3">
-						<span className="inline-flex items-center gap-1 rounded-full border border-[#34a853]/30 bg-[#34a853]/10 px-3 py-1 text-sm text-[#34a853]">
-							<Link href="https://workspace.google.com/marketplace/app/defillama_sheets/571407189628" target="_blank">
-								Get Started
-							</Link>
-						</span>
+						<button
+							onClick={onGoogleSheetsButtonClick}
+							className="inline-flex items-center gap-1 rounded-full border border-[#34a853]/30 bg-[#34a853]/10 px-3 py-1 text-sm text-[#34a853]"
+						>
+							Get Started
+						</button>
 					</div>
 				</div>
 
@@ -103,7 +120,7 @@ export default function SheetsContainer() {
 			<div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md">
 					<h2 className="mb-4 text-xl font-bold">Data You Can Access</h2>
-					<ul className="space-y-3 text-[#b4b7bc]">
+					<ul className="space-y-6 text-[#b4b7bc]">
 						{dataPoints.map((point, idx) => (
 							<li key={idx} className="flex items-center gap-3">
 								<Icon name="check-circle" height={16} width={16} className="text-[#5C5CF9]" />
@@ -127,6 +144,7 @@ export default function SheetsContainer() {
 					</div>
 				</div>
 			</div>
+			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 		</div>
 	)
 }
