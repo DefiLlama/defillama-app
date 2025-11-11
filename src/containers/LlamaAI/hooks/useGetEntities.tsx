@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useDebounce } from '~/hooks/useDebounce'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
 async function fetchEntities(query: string) {
@@ -72,14 +73,7 @@ async function fetchCoins(query: string) {
 }
 
 export function useGetEntities(q: string) {
-	const [debouncedQuery, setDebouncedQuery] = useState(q)
-
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedQuery(q)
-		}, 200)
-		return () => clearTimeout(timer)
-	}, [q])
+	const debouncedQuery = useDebounce(q, 200)
 
 	// Check if query starts with $ to determine if we should fetch coins
 	const isCoins = debouncedQuery.startsWith('$')
