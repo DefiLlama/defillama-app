@@ -92,6 +92,15 @@ export function SubscribeProCard({
 						</li>
 						<li className="flex flex-nowrap items-start gap-2.5">
 							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>
+								<Link href="/sheets" className="underline">
+									DefilLama Sheets
+								</Link>{' '}
+								– access blockchain data in your spreadsheets
+							</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 							<span>Upcoming DefiLlama Products</span>
 						</li>
 					</ul>
