@@ -16,20 +16,31 @@ export default function Document() {
 					dangerouslySetInnerHTML={{
 						__html: `
 							(function() {
+								const VALID_THEME_VALUES = ['dark', 'light'];
+								
+								function sanitizeThemeValue(value) {
+									if (!value) return 'dark';
+									const trimmed = String(value).trim();
+									return VALID_THEME_VALUES.includes(trimmed) ? trimmed : 'dark';
+								}
+								
 								function parseThemeCookie(cookieString) {
-									if (!cookieString) return 'true';
+									if (!cookieString) return 'dark';
 									
 									const cookies = cookieString.split(';');
 									const themeCookie = cookies.find(cookie => cookie.trim().startsWith('defillama-theme='));
 									
 									if (themeCookie) {
-										return themeCookie.split('=')[1] || 'true';
+										const parts = themeCookie.split('=');
+										if (parts.length >= 2 && parts[1]) {
+											return sanitizeThemeValue(parts[1]);
+										}
 									}
 									
-									return 'true';
+									return 'dark';
 								}
 								
-								const isDarkMode = parseThemeCookie(document.cookie) === 'true';
+								const isDarkMode = parseThemeCookie(document.cookie) === 'dark';
 								
 								if (!isDarkMode) {
 									document.documentElement.classList.remove('dark');

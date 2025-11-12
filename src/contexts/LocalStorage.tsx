@@ -198,7 +198,7 @@ export function subscribeToPinnedMetrics(callback: () => void) {
 }
 
 const toggleDarkMode = () => {
-	const isDarkMode = getThemeCookie() === 'true'
+	const isDarkMode = getThemeCookie() === 'dark'
 	setThemeCookie(!isDarkMode)
 	// Dispatch both storage event (for localStorage) and a custom theme event
 	window.dispatchEvent(new Event('storage'))
@@ -208,11 +208,11 @@ const toggleDarkMode = () => {
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getThemeCookie() ?? 'true',
-		() => 'true'
+		() => getThemeCookie() ?? 'dark',
+		() => 'dark'
 	)
 
-	const isDarkMode = store === 'true'
+	const isDarkMode = store === 'dark'
 
 	useEffect(() => {
 		if (!isDarkMode) {
