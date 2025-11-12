@@ -4,6 +4,8 @@ import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
+	CONFIG_API,
+	PEGGEDS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -24,15 +26,7 @@ import {
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import {
-	formatNum,
-	formattedNum,
-	getNDistinctColors,
-	getPercentChange,
-	lastDayOfWeek,
-	slug,
-	tokenIconUrl
-} from '~/utils'
+import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
 import type {
@@ -84,7 +78,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			rwaTvlChartData,
 			upcomingUnlocks,
 			chainIncentives,
-			datInflows
+			datInflows,
+			stablecoinsData,
+			chainStablecoins
 		]: [
 			ILiteChart,
 			{
@@ -127,7 +123,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
 			any,
 			any,
-			{ chart: Array<[number, number]>; total30d: number } | null
+			{ chart: Array<[number, number]>; total30d: number } | null,
+			{ peggedAssets: Array<{ name: string; gecko_id: string; symbol: string }> } | null,
+			Array<string> | null
 		] = await Promise.all([
 			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`, { timeout: 2 * 60 * 1000 }),
 			getProtocolsByChain({ chain, metadata }),
@@ -340,7 +338,13 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getDATInflows() : Promise.resolve(null)
+			chain === 'All' ? getDATInflows() : Promise.resolve(null),
+			chain !== 'All' ? fetchJson(PEGGEDS_API).catch(() => null) : Promise.resolve(null),
+			chain !== 'All'
+				? fetchJson(CONFIG_API)
+						.then((data) => data.chainCoingeckoIds?.[metadata.name]?.stablecoins ?? null)
+						.catch(() => null)
+				: Promise.resolve(null)
 		])
 
 		const {
@@ -634,7 +638,12 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						? `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
 						: '',
 			isDataAvailable,
-			datInflows: datInflows ?? null
+			datInflows: datInflows ?? null,
+			chainStablecoins:
+				chainStablecoins?.map((coin) => {
+					const coinData = stablecoinsData?.peggedAssets?.find((c) => c.gecko_id === coin)
+					return { name: coinData?.name ?? coin, url: `/stablecoin/${coin}`, symbol: coinData?.symbol ?? null }
+				}) ?? null
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`

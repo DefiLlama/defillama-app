@@ -9,6 +9,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -249,6 +250,18 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									) : null}
 								</div>
 							</details>
+						) : null}
+						{props.chainStablecoins?.length > 0 ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<span className="text-(--text-label)">{`Native Stablecoin${props.chainStablecoins.length > 1 ? 's' : ''}`}</span>
+								<span className="font-jetbrains ml-auto">
+									{props.chainStablecoins.map((coin) => (
+										<BasicLink key={`native-stablecoin-${coin.name}`} href={coin.url} className="hover:underline">
+											{coin.symbol ?? coin.name}
+										</BasicLink>
+									))}
+								</span>
+							</p>
 						) : null}
 						{props.chainFees?.total24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
