@@ -1,5 +1,4 @@
 import { lazy, Suspense, useState } from 'react'
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -280,9 +279,7 @@ function ProContent({
 export default function HomePage() {
 	return (
 		<ProDashboardAPIProvider>
-			<ProPageContentClient />
+			<ProPageContent />
 		</ProDashboardAPIProvider>
 	)
 }
-
-const ProPageContentClient = dynamic(async () => ProPageContent, { ssr: false })

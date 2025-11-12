@@ -4,11 +4,9 @@ import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
-import { clearPersistedQueries } from '~/utils/queryCachePersistence'
 
 interface User extends AuthModel {
 	subscription_status: string
-	has_active_subscription?: boolean
 	subscription: {
 		id: string
 		expires_at: string
@@ -64,6 +62,7 @@ interface AuthContextType {
 		addEmail: boolean
 		userLoading: boolean
 		userFetching: boolean
+		subscriptionError: boolean
 	}
 }
 
@@ -71,9 +70,9 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const queryClient = useQueryClient()
-	const [isAuthenticated, setIsAuthenticated] = useState(() => !!pb.authStore.token)
-	const cachedUserState = queryClient.getQueryState<AuthModel | null>(['currentUserAuthStatus'])
-	const cachedUserData = cachedUserState?.data || (pb.authStore.record ? { ...pb.authStore.record } : null)
+	const [isAuthenticated, setIsAuthenticated] = useState(false)
+	const [subscription, setSubscription] = useState<any>(null)
+	const [isSubscriptionError, setIsSubscriptionError] = useState(false)
 
 	const {
 		data: currentUserData,
@@ -118,8 +117,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		refetchOnWindowFocus: false,
 		gcTime: 10 * 60 * 1000,
 		retry: 3,
-		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-		initialData: cachedUserData || undefined
+		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
 	})
 
 	const loginMutation = useMutation({
@@ -238,7 +236,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			setIsAuthenticated(false)
 			queryClient.removeQueries({ queryKey: ['userWithSubscription'] })
 			queryClient.clear()
-			clearPersistedQueries()
 		}
 	})
 
@@ -545,10 +542,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const userSubscription = currentUserData?.subscription || pb.authStore.record?.subscription
-	const userSubscriptionStatus = userSubscription?.status || 'inactive'
-	const hasActiveSubscription =
-		(currentUserData as any)?.has_active_subscription ?? pb.authStore.record?.has_active_subscription ?? false
 	const contextValue: AuthContextType = {
 		user: currentUserData
 			? ({
@@ -568,9 +561,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 						: (currentUserData as any).verified,
 					emailVisibility: (currentUserData as any).emailVisibility,
 					expand: currentUserData.expand,
-				subscription_status: userSubscriptionStatus,
-				has_active_subscription: hasActiveSubscription,
-				subscription: userSubscription || { id: '', expires_at: '', status: 'inactive' },
+					subscription_status: subscription?.status || 'inactive',
+					subscription: subscription || { id: '', expires_at: '', status: 'inactive' },
 					ethereum_email: (currentUserData as any).ethereum_email
 				} as User)
 			: null,
@@ -597,8 +589,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
 			addEmail: addEmail.isPending,
-			userLoading: userQueryIsPending && !currentUserData,
-			userFetching: userQueryIsFetching
+			userLoading: userQueryIsPending,
+			userFetching: userQueryIsFetching,
+			subscriptionError: isSubscriptionError
 		}
 	}
 
