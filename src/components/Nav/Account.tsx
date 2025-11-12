@@ -23,7 +23,7 @@ export const Account = memo(function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
+	const isAccountLoading = !user && (loaders?.userLoading || (isAuthenticated && isSubscriptionLoading))
 
 	const userHandle = resolveUserHandle(user)
 

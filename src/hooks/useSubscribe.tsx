@@ -59,6 +59,10 @@ const defaultInactiveSubscription = {
 	}
 }
 
+const getDefaultInactiveSubscription = () => ({
+	subscription: { ...defaultInactiveSubscription.subscription }
+})
+
 const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 	const { isAuthenticated } = useAuthContext()!
 
@@ -67,7 +71,7 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 		queryFn: async () => {
 			console.log('isAuthenticated', isAuthenticated, type)
 			if (!isAuthenticated) {
-				return defaultInactiveSubscription
+				return getDefaultInactiveSubscription()
 			}
 
 			try {
@@ -82,22 +86,26 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 
 				if (!response.ok) {
 					console.log(`Subscription status error: ${response.status}`)
-					return defaultInactiveSubscription
+					if (response.status === 404) {
+						return getDefaultInactiveSubscription()
+					}
+					const errorText = await response.text().catch(() => null)
+					throw new Error(errorText || `Subscription status error: ${response.status}`)
 				}
 
 				const data = await response.json()
 				if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
-					return defaultInactiveSubscription
+					return getDefaultInactiveSubscription()
 				}
 
 				return data
 			} catch (error) {
 				console.log('Error fetching subscription:', error)
-				return defaultInactiveSubscription
+				throw error
 			}
 		},
-		placeholderData: defaultInactiveSubscription,
-		retry: false,
+		initialData: getDefaultInactiveSubscription,
+		retry: 1,
 		refetchOnWindowFocus: false,
 		enabled: isAuthenticated,
 		staleTime: 1000 * 60 * 15
@@ -260,9 +268,9 @@ export const useSubscribe = () => {
 	}
 
 	const subscriptionData =
-		[apiSubscription?.subscription, llamafeedSubscription?.subscription, legacySubscription?.subscription].find(
-			(subscription) => subscription?.status === 'active'
-		) || defaultInactiveSubscription.subscription
+	[apiSubscription?.subscription, llamafeedSubscription?.subscription, legacySubscription?.subscription].find(
+		(subscription) => subscription?.status === 'active'
+	) || getDefaultInactiveSubscription().subscription
 
 	const {
 		data: credits,
@@ -425,13 +433,7 @@ export const useSubscribe = () => {
 		isSubscriptionLoading:
 			isApiSubscriptionLoading ||
 			isLlamafeedSubscriptionLoading ||
-			isLegacySubscriptionLoading ||
-			isApiSubscriptionFetching ||
-			isLlamafeedSubscriptionFetching ||
-			isLegacySubscriptionFetching ||
-			isApiSubscriptionPending ||
-			isLlamafeedSubscriptionPending ||
-			isLegacySubscriptionPending,
+			isLegacySubscriptionLoading,
 		isSubscriptionFetching:
 			isAuthenticated && (isApiSubscriptionFetching || isLlamafeedSubscriptionFetching || isLegacySubscriptionFetching),
 		isSubscriptionPending:

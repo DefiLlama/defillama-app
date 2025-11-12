@@ -9,11 +9,12 @@ import { DashboardItemConfig } from '../types'
 
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
+	const userId = user?.id || ''
 
 	return useQuery({
-		queryKey: ['lite-dashboards', user?.id],
+		queryKey: ['lite-dashboards', userId],
 		queryFn: async () => {
-			if (!isAuthenticated) return []
+			if (!isAuthenticated || !userId) return []
 			try {
 				return await dashboardAPI.listLiteDashboards(authorizedFetch)
 			} catch (error) {
@@ -22,14 +23,15 @@ export function useGetLiteDashboards() {
 			}
 		},
 		staleTime: 1000 * 60 * 5,
-		enabled: isAuthenticated && !!user?.id
+		enabled: isAuthenticated && Boolean(userId)
 	})
 }
 
 export function useDashboardAPI() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
+	const userId = user?.id || ''
 
 	// Query for fetching dashboards list
 	const {
@@ -37,9 +39,9 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards', isAuthenticated],
+		queryKey: ['dashboards', userId],
 		queryFn: async () => {
-			if (!isAuthenticated) return []
+			if (!isAuthenticated || !userId) return []
 			try {
 				return await dashboardAPI.listDashboards(authorizedFetch)
 			} catch (error) {
@@ -48,7 +50,7 @@ export function useDashboardAPI() {
 			}
 		},
 		staleTime: 1000 * 60 * 5,
-		enabled: isAuthenticated
+		enabled: isAuthenticated && Boolean(userId)
 	})
 
 	const createDashboardMutation = useMutation({
