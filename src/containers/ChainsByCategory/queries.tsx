@@ -141,12 +141,16 @@ export const getChainsByCategory = async ({
 			const name = slug(chain.name)
 			const nftVolume = chainNftsVolume[name] ?? null
 			const totalFees24h = fees?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
+			const totalFees7d = fees?.protocols?.find((x) => x.displayName === chain.name)?.total7d ?? null
 			const totalFees30d = fees?.protocols?.find((x) => x.displayName === chain.name)?.total30d ?? null
 			const totalRevenue24h = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
+			const totalRevenue7d = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total7d ?? null
 			const totalRevenue30d = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total30d ?? null
 			const totalAppRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
+			const totalAppRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
 			const totalAppRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null
 			const totalVolume24h = dexs?.[chain.name]?.['24h'] ?? null
+			const totalVolume7d = dexs?.[chain.name]?.['7d'] ?? null
 			const totalVolume30d = dexs?.[chain.name]?.['30d'] ?? null
 			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
@@ -177,14 +181,18 @@ export const getChainsByCategory = async ({
 				protocols,
 				nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
 				totalVolume24h,
+				totalVolume7d,
 				totalVolume30d,
 				totalFees24h,
+				totalFees7d,
 				totalFees30d,
 				totalRevenue24h,
+				totalRevenue7d,
 				totalRevenue30d,
 				stablesMcap,
 				users: users ? +users : null,
 				totalAppRevenue24h,
+				totalAppRevenue7d,
 				totalAppRevenue30d,
 				chainAssets: chainsAssets[chain.name] ?? null,
 				bridgedTvl: chainsAssets[chain.name]?.total?.total != null ? +chainsAssets[chain.name].total.total : null,

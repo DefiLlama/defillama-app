@@ -26,7 +26,8 @@ import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 import {
 	DEFAULT_CHAINS_ROW_HEADERS,
 	DEFAULT_PROTOCOLS_ROW_HEADERS,
-	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY
+	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY,
+	DEFAULT_UNIFIED_TABLE_SORTING
 } from './components/UnifiedTable/constants'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
@@ -984,12 +985,17 @@ export function ProDashboardAPIProvider({
 				strategyType === 'chains'
 					? DEFAULT_CHAINS_ROW_HEADERS
 					: DEFAULT_PROTOCOLS_ROW_HEADERS
+			const resolvedSorting =
+				configOverrides?.defaultSorting && configOverrides.defaultSorting.length
+					? configOverrides.defaultSorting.map((item) => ({ id: item.id, desc: item.desc ?? false }))
+					: DEFAULT_UNIFIED_TABLE_SORTING.map((item) => ({ ...item }))
 
 			const newUnifiedTable: UnifiedTableConfig = {
 				id: generateItemId('unified-table', strategyType),
 				kind: 'unified-table',
 				strategyType,
 				rowHeaders: configOverrides?.rowHeaders ?? [...defaultRowHeaders],
+				defaultSorting: resolvedSorting,
 				params:
 					configOverrides?.params ??
 					(strategyType === 'protocols'
