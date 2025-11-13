@@ -139,21 +139,21 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#f7f7f7] hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#222324] dark:hover:bg-[#222324]"
 			style={style}
 		>
-			<a
-				href={`/ai/chat/${session.sessionId}`}
+			<button
+				type="button"
 				onClick={(e) => {
 					// Allow cmd/ctrl+click to open in new tab
 					if (e.metaKey || e.ctrlKey) {
+						window.open(`/ai/chat/${session.sessionId}`, '_blank')
 						return
 					}
-					e.preventDefault()
 					handleSessionClick(session.sessionId)
 				}}
 				aria-disabled={isEditing || isDeletingSession || isRestoringSession}
 				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.title}
-			</a>
+			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
 					content="Edit Session Title"
