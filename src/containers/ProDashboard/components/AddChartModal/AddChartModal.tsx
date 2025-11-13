@@ -6,12 +6,12 @@ import { SubmitButton } from './SubmitButton'
 import { TableTab } from './TableTab'
 import { TabNavigation } from './TabNavigation'
 import { TextTab } from './TextTab'
-import { UnifiedTableQuickTab } from './UnifiedTableQuickTab'
+import { UnifiedTableTab } from './UnifiedTableTab'
 import { AddChartModalProps, CombinedTableType } from './types'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
 
-export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps) {
+export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
 
 	const getCurrentItemType = () => {
@@ -38,6 +38,12 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 	]
 	const legacyTableTypes = primaryTableTypes.includes(state.selectedTableType) ? [] : [state.selectedTableType]
 
+	const dialogSizingClass = state.selectedMainTab === 'charts'
+		? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
+		: state.selectedMainTab === 'unified-table'
+			? 'max-h-[92dvh] md:max-h-[90dvh] w-[95%] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl'
+			: 'max-h-[85dvh] md:max-h-[80dvh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
+
 	return (
 		<Ariakit.DialogProvider
 			open={isOpen}
@@ -46,11 +52,7 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 			}}
 		>
 			<Ariakit.Dialog
-				className={`pro-dashboard dialog add-chart-dialog max-sm:drawer thin-scrollbar flex w-[90%] flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${
-					state.selectedMainTab === 'charts'
-						? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
-						: 'max-h-[85dvh] md:max-h-[80dvh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
-				}`}
+				className={`pro-dashboard dialog add-chart-dialog max-sm:drawer thin-scrollbar flex w-[90%] flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${dialogSizingClass}`}
 				unmountOnHide
 				portal
 				hideOnInteractOutside
@@ -156,7 +158,14 @@ export function AddChartModal({ isOpen, onClose, editItem }: AddChartModalProps)
 				/>
 			)}
 
-			{state.selectedMainTab === 'unified-table' && <UnifiedTableQuickTab onClose={onClose} />}
+			{state.selectedMainTab === 'unified-table' && (
+				<UnifiedTableTab
+					onClose={onClose}
+					chainOptions={computed.chainOptions ?? []}
+					editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
+					initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
+				/>
+			)}
 
 			{state.selectedMainTab === 'text' && (
 				<TextTab

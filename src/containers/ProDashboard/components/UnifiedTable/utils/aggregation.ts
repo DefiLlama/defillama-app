@@ -2,27 +2,57 @@ import { getPercentChange } from '~/utils'
 import type { NormalizedRow, NumericMetrics } from '../types'
 
 export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
-	let tvl = 0
-	let tvlPrevDay = 0
-	let tvlPrevWeek = 0
-	let tvlPrevMonth = 0
-	let volume24h = 0
-	let fees24h = 0
-	let revenue24h = 0
-	let perpsVolume24h = 0
-	let openInterest = 0
-	let mcap = 0
+	const sumKeys: (keyof NumericMetrics)[] = [
+		'tvl',
+		'tvlPrevDay',
+		'tvlPrevWeek',
+		'tvlPrevMonth',
+		'users',
+		'bridgedTvl',
+		'stablesMcap',
+		'nftVolume',
+		'volume24h',
+		'volume_7d',
+		'volume_30d',
+		'cumulativeVolume',
+		'fees24h',
+		'fees_7d',
+		'fees_30d',
+		'fees_1y',
+		'average_1y',
+		'cumulativeFees',
+		'userFees_24h',
+		'holderRevenue_24h',
+		'holdersRevenue30d',
+		'treasuryRevenue_24h',
+		'supplySideRevenue_24h',
+		'revenue24h',
+		'revenue_7d',
+		'revenue_30d',
+		'revenue_1y',
+		'average_revenue_1y',
+		'perpsVolume24h',
+		'perps_volume_7d',
+		'perps_volume_30d',
+		'openInterest',
+		'earnings_24h',
+		'earnings_7d',
+		'earnings_30d',
+		'earnings_1y',
+		'aggregators_volume_24h',
+		'aggregators_volume_7d',
+		'aggregators_volume_30d',
+		'bridge_aggregators_volume_24h',
+		'bridge_aggregators_volume_7d',
+		'bridge_aggregators_volume_30d',
+		'options_volume_24h',
+		'options_volume_7d',
+		'options_volume_30d',
+		'mcap'
+	]
 
-	let hasTvl = false
-	let hasPrevDay = false
-	let hasPrevWeek = false
-	let hasPrevMonth = false
-	let hasVolume = false
-	let hasFees = false
-	let hasRevenue = false
-	let hasPerpsVolume = false
-	let hasOpenInterest = false
-	let hasMcap = false
+	const totals: Partial<Record<keyof NumericMetrics, number>> = {}
+	const seen: Partial<Record<keyof NumericMetrics, boolean>> = {}
 
 	const protocolIds = new Set<string>()
 
@@ -36,64 +66,136 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 			protocolIds.add(row.id)
 		}
 
-		if (metrics.tvl !== null && metrics.tvl !== undefined) {
-			tvl += metrics.tvl
-			hasTvl = true
-		}
-		if (metrics.tvlPrevDay !== null && metrics.tvlPrevDay !== undefined) {
-			tvlPrevDay += metrics.tvlPrevDay
-			hasPrevDay = true
-		}
-		if (metrics.tvlPrevWeek !== null && metrics.tvlPrevWeek !== undefined) {
-			tvlPrevWeek += metrics.tvlPrevWeek
-			hasPrevWeek = true
-		}
-		if (metrics.tvlPrevMonth !== null && metrics.tvlPrevMonth !== undefined) {
-			tvlPrevMonth += metrics.tvlPrevMonth
-			hasPrevMonth = true
-		}
-		if (metrics.volume24h !== null && metrics.volume24h !== undefined) {
-			volume24h += metrics.volume24h
-			hasVolume = true
-		}
-		if (metrics.fees24h !== null && metrics.fees24h !== undefined) {
-			fees24h += metrics.fees24h
-			hasFees = true
-		}
-		if (metrics.revenue24h !== null && metrics.revenue24h !== undefined) {
-			revenue24h += metrics.revenue24h
-			hasRevenue = true
-		}
-		if (metrics.perpsVolume24h !== null && metrics.perpsVolume24h !== undefined) {
-			perpsVolume24h += metrics.perpsVolume24h
-			hasPerpsVolume = true
-		}
-		if (metrics.openInterest !== null && metrics.openInterest !== undefined) {
-			openInterest += metrics.openInterest
-			hasOpenInterest = true
-		}
-		if (metrics.mcap !== null && metrics.mcap !== undefined) {
-			mcap += metrics.mcap
-			hasMcap = true
+		for (const key of sumKeys) {
+			const value = metrics[key]
+			if (value !== null && value !== undefined) {
+				totals[key] = (totals[key] ?? 0) + value
+				seen[key] = true
+			}
 		}
 	}
 
-	const aggregated: NumericMetrics = {
-		tvl: hasTvl ? tvl : null,
-		tvlPrevDay: hasPrevDay ? tvlPrevDay : null,
-		tvlPrevWeek: hasPrevWeek ? tvlPrevWeek : null,
-		tvlPrevMonth: hasPrevMonth ? tvlPrevMonth : null,
-		change1d: hasTvl && hasPrevDay ? getPercentChange(tvl, tvlPrevDay) : null,
-		change7d: hasTvl && hasPrevWeek ? getPercentChange(tvl, tvlPrevWeek) : null,
-		change1m: hasTvl && hasPrevMonth ? getPercentChange(tvl, tvlPrevMonth) : null,
-		volume24h: hasVolume ? volume24h : null,
-		fees24h: hasFees ? fees24h : null,
-		revenue24h: hasRevenue ? revenue24h : null,
-		perpsVolume24h: hasPerpsVolume ? perpsVolume24h : null,
-		openInterest: hasOpenInterest ? openInterest : null,
-		mcap: hasMcap ? mcap : null,
-		protocolCount: protocolIds.size > 0 ? protocolIds.size : null
+	const aggregated: NumericMetrics = {}
+
+	for (const key of sumKeys) {
+		;(aggregated as any)[key] = seen[key] ? totals[key] ?? null : null
 	}
+
+	type WeightedChange = {
+		changeKey: keyof NumericMetrics
+		weightKey: keyof NumericMetrics
+	}
+
+	const weightedChangeMetrics: WeightedChange[] = [
+		{ changeKey: 'volumeChange_1d', weightKey: 'volume24h' },
+		{ changeKey: 'volumeChange_7d', weightKey: 'volume_7d' },
+		{ changeKey: 'volumeChange_1m', weightKey: 'volume_30d' },
+		{ changeKey: 'feesChange_1d', weightKey: 'fees24h' },
+		{ changeKey: 'feesChange_7d', weightKey: 'fees_7d' },
+		{ changeKey: 'feesChange_1m', weightKey: 'fees_30d' },
+		{ changeKey: 'feesChange_7dover7d', weightKey: 'fees_7d' },
+		{ changeKey: 'feesChange_30dover30d', weightKey: 'fees_30d' },
+		{ changeKey: 'revenueChange_1d', weightKey: 'revenue24h' },
+		{ changeKey: 'revenueChange_7d', weightKey: 'revenue_7d' },
+		{ changeKey: 'revenueChange_1m', weightKey: 'revenue_30d' },
+		{ changeKey: 'revenueChange_7dover7d', weightKey: 'revenue_7d' },
+		{ changeKey: 'revenueChange_30dover30d', weightKey: 'revenue_30d' },
+		{ changeKey: 'perps_volume_change_1d', weightKey: 'perpsVolume24h' },
+		{ changeKey: 'perps_volume_change_7d', weightKey: 'perps_volume_7d' },
+		{ changeKey: 'perps_volume_change_1m', weightKey: 'perps_volume_30d' },
+		{ changeKey: 'earningsChange_1d', weightKey: 'earnings_24h' },
+		{ changeKey: 'earningsChange_7d', weightKey: 'earnings_7d' },
+		{ changeKey: 'earningsChange_1m', weightKey: 'earnings_30d' },
+		{ changeKey: 'aggregators_volume_change_1d', weightKey: 'aggregators_volume_24h' },
+		{ changeKey: 'aggregators_volume_change_7d', weightKey: 'aggregators_volume_7d' },
+		{ changeKey: 'bridge_aggregators_volume_change_1d', weightKey: 'bridge_aggregators_volume_24h' },
+		{ changeKey: 'bridge_aggregators_volume_change_7d', weightKey: 'bridge_aggregators_volume_7d' },
+		{ changeKey: 'options_volume_change_1d', weightKey: 'options_volume_24h' },
+		{ changeKey: 'options_volume_change_7d', weightKey: 'options_volume_7d' },
+		{ changeKey: 'holdersRevenueChange_30dover30d', weightKey: 'holdersRevenue30d' }
+	]
+
+	for (const { changeKey, weightKey } of weightedChangeMetrics) {
+		let weightedSum = 0
+		let totalWeight = 0
+
+		for (const row of rows) {
+			const { metrics } = row
+			if (!metrics) continue
+
+			const changeValue = metrics[changeKey]
+			const weightValue = metrics[weightKey]
+
+			if (
+				changeValue !== null &&
+				changeValue !== undefined &&
+				weightValue !== null &&
+				weightValue !== undefined &&
+				weightValue > 0
+			) {
+				weightedSum += changeValue * weightValue
+				totalWeight += weightValue
+			}
+		}
+
+		;(aggregated as any)[changeKey] = totalWeight > 0 ? weightedSum / totalWeight : null
+	}
+
+	const dominanceKeys: (keyof NumericMetrics)[] = [
+		'volumeDominance_24h',
+		'volumeMarketShare7d',
+		'perps_volume_dominance_24h',
+		'aggregators_volume_dominance_24h',
+		'aggregators_volume_marketShare7d',
+		'bridge_aggregators_volume_dominance_24h',
+		'options_volume_dominance_24h',
+		'tvlShare',
+		'stablesShare',
+		'volume24hShare'
+	]
+
+	for (const key of dominanceKeys) {
+		;(aggregated as any)[key] = null
+	}
+
+	const hasTvl = seen.tvl ?? false
+	const hasPrevDay = seen.tvlPrevDay ?? false
+	const hasPrevWeek = seen.tvlPrevWeek ?? false
+	const hasPrevMonth = seen.tvlPrevMonth ?? false
+
+	aggregated.change1d =
+		hasTvl && hasPrevDay && aggregated.tvl !== null && aggregated.tvlPrevDay !== null
+			? getPercentChange(aggregated.tvl, aggregated.tvlPrevDay)
+			: null
+	aggregated.change7d =
+		hasTvl && hasPrevWeek && aggregated.tvl !== null && aggregated.tvlPrevWeek !== null
+			? getPercentChange(aggregated.tvl, aggregated.tvlPrevWeek)
+			: null
+	aggregated.change1m =
+		hasTvl && hasPrevMonth && aggregated.tvl !== null && aggregated.tvlPrevMonth !== null
+			? getPercentChange(aggregated.tvl, aggregated.tvlPrevMonth)
+			: null
+
+	if (aggregated.mcap !== null && aggregated.tvl && aggregated.tvl > 0) {
+		aggregated.mcaptvl = aggregated.mcap / aggregated.tvl
+	} else {
+		aggregated.mcaptvl = null
+	}
+
+	if (aggregated.mcap !== null && aggregated.fees24h && aggregated.fees24h > 0) {
+		aggregated.pf = aggregated.mcap / (aggregated.fees24h * 365)
+	} else {
+		aggregated.pf = null
+	}
+
+	if (aggregated.mcap !== null && aggregated.revenue24h && aggregated.revenue24h > 0) {
+		aggregated.ps = aggregated.mcap / (aggregated.revenue24h * 365)
+	} else {
+		aggregated.ps = null
+	}
+
+	aggregated.perpsVolume24h = aggregated.perpsVolume24h ?? null
+	aggregated.protocolCount = protocolIds.size > 0 ? protocolIds.size : null
 
 	return aggregated
 }

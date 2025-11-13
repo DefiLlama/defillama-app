@@ -43,6 +43,19 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		})
 	}
 
+	if (filters.oracles?.length) {
+		const oracleSet = new Set(filters.oracles.map((o) => normalize(o)))
+		filtered = filtered.filter((row) => {
+			if (!row.oracles || row.oracles.length === 0) {
+				return false
+			}
+			return row.oracles.some((oracle) => {
+				const normalizedOracle = normalize(oracle)
+				return normalizedOracle ? oracleSet.has(normalizedOracle) : false
+			})
+		})
+	}
+
 	return filtered
 }
 

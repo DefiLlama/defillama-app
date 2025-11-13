@@ -1,9 +1,11 @@
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
+import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
 export interface AddChartModalProps {
 	isOpen: boolean
 	onClose: () => void
 	editItem?: DashboardItemConfig | null
+	initialUnifiedFocusSection?: UnifiedTableFocusSection
 }
 
 export type MainTabType = 'charts' | 'metric' | 'table' | 'unified-table' | 'text' | 'builder'
