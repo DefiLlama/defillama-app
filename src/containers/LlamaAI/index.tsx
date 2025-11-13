@@ -369,6 +369,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		suggestionContext?: any
 		preResolvedEntities?: Array<{ term: string; slug: string }>
 	} | null>(null)
+	const [isCompletingStream, setIsCompletingStream] = useState(false)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -542,9 +543,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
 		}) => {
+			setIsCompletingStream(false)
 			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
 		},
 		onSuccess: (data, variables) => {
+			setIsCompletingStream(true)
 			setIsStreaming(false)
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
@@ -578,11 +581,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setPrompt('')
 			resetPrompt()
 			setCurrentMessageId(null)
+			setIsCompletingStream(false)
 			setTimeout(() => {
 				promptInputRef.current?.focus()
 			}, 100)
 		},
 		onError: (error, variables) => {
+			setIsCompletingStream(false)
 			setIsStreaming(false)
 			abortControllerRef.current = null
 
@@ -1060,7 +1065,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				<div
 					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
-					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
+					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming && !isCompletingStream && !streamingResponse ? (
 						initialSessionId ? (
 							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
