@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
 	ColumnOrderState,
 	getCoreRowModel,
 	getExpandedRowModel,
+	getGroupedRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
 	PaginationState,
@@ -13,11 +14,11 @@ import {
 } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
-import { buildHierarchy } from '../grouping/GroupingEngine'
+import { getGroupingColumnIdsForHeaders } from './grouping'
 import { useChainsStrategy } from '../strategies/ChainsStrategy'
 import type { PriorityMetric } from '../strategies/hooks/usePriorityChainDatasets'
 import { useProtocolsStrategy } from '../strategies/ProtocolsStrategy'
-import type { NormalizedRow, UnifiedRowNode } from '../types'
+import type { NormalizedRow } from '../types'
 import { filterRowsByConfig, filterRowsBySearch } from '../utils/dataFilters'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
 
@@ -34,7 +35,7 @@ interface UseUnifiedTableArgs {
 }
 
 interface UseUnifiedTableResult {
-	table: Table<UnifiedRowNode>
+	table: Table<NormalizedRow>
 	isLoading: boolean
 	rowHeaders: UnifiedRowHeaderType[]
 	leafRows: NormalizedRow[]
@@ -80,62 +81,115 @@ export function useUnifiedTable({
 		return filterRowsBySearch(withFilters, searchTerm)
 	}, [strategyResult.rows, config.filters, searchTerm])
 
-	const hierarchy = useMemo(() => buildHierarchy(filteredRows, sanitizedHeaders), [filteredRows, sanitizedHeaders])
-
 	const columns = useMemo(() => getUnifiedTableColumns(config.strategyType), [config.strategyType])
 	const chainLoadingStates =
 		(strategyResult as { chainLoadingStates?: Map<string, Set<PriorityMetric>> }).chainLoadingStates ??
 		new Map<string, Set<PriorityMetric>>()
-	const explodeByChain = sanitizedHeaders.includes('chain')
+	const groupingColumnIds = useMemo(
+		() => getGroupingColumnIdsForHeaders(sanitizedHeaders),
+		[sanitizedHeaders]
+	)
 
-	const getSubRows = useCallback((row: UnifiedRowNode) => row.children ?? [], [])
+	const groupingColumnSet = useMemo(() => new Set(groupingColumnIds), [groupingColumnIds])
 
-	const table = useReactTable<UnifiedRowNode>({
-		data: hierarchy,
+	const mergeColumnOrder = useCallback(
+		(order: ColumnOrderState): ColumnOrderState => {
+			const withoutGrouping = order.filter((columnId) => !groupingColumnSet.has(columnId))
+			return [...groupingColumnIds, ...withoutGrouping]
+		},
+		[groupingColumnIds, groupingColumnSet]
+	)
+
+	const stripGroupingFromOrder = useCallback(
+		(order: ColumnOrderState): ColumnOrderState => order.filter((columnId) => !groupingColumnSet.has(columnId)),
+		[groupingColumnSet]
+	)
+
+	const tableColumnOrder = useMemo(() => mergeColumnOrder(columnOrder), [columnOrder, mergeColumnOrder])
+
+	const handleColumnOrderChange = useCallback(
+		(updater: ColumnOrderState | ((prev: ColumnOrderState) => ColumnOrderState)) => {
+			if (typeof updater === 'function') {
+				onColumnOrderChange((prev) => stripGroupingFromOrder(updater(mergeColumnOrder(prev))))
+				return
+			}
+			onColumnOrderChange(stripGroupingFromOrder(updater))
+		},
+		[mergeColumnOrder, onColumnOrderChange, stripGroupingFromOrder]
+	)
+
+	const groupingColumnVisibilityDefaults = useMemo(() => {
+		return groupingColumnIds.reduce<Record<string, boolean>>((acc, columnId) => {
+			acc[columnId] = false
+			return acc
+		}, {})
+	}, [groupingColumnIds])
+
+	const mergeColumnVisibility = useCallback(
+		(visibility: VisibilityState): VisibilityState => ({
+			...visibility,
+			...groupingColumnVisibilityDefaults
+		}),
+		[groupingColumnVisibilityDefaults]
+	)
+
+	const stripGroupingFromVisibility = useCallback(
+		(visibility: VisibilityState): VisibilityState => {
+			const next: VisibilityState = { ...visibility }
+			for (const columnId of groupingColumnIds) {
+				delete next[columnId]
+			}
+			return next
+		},
+		[groupingColumnIds]
+	)
+
+	const tableColumnVisibility = useMemo(
+		() => mergeColumnVisibility(columnVisibility),
+		[columnVisibility, mergeColumnVisibility]
+	)
+
+	const handleColumnVisibilityChange = useCallback(
+		(updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+			if (typeof updater === 'function') {
+				onColumnVisibilityChange((prev) => stripGroupingFromVisibility(updater(mergeColumnVisibility(prev))))
+				return
+			}
+			onColumnVisibilityChange(stripGroupingFromVisibility(updater))
+		},
+		[mergeColumnVisibility, onColumnVisibilityChange, stripGroupingFromVisibility]
+	)
+
+	const table = useReactTable<NormalizedRow>({
+		data: filteredRows,
 		columns,
-		getSubRows,
 		getRowId: (row) => row.id,
 		state: {
-			columnOrder,
-			columnVisibility,
+			columnOrder: tableColumnOrder,
+			columnVisibility: tableColumnVisibility,
 			sorting,
+			grouping: groupingColumnIds,
 			expanded,
 			pagination
 		},
-		onColumnOrderChange,
-		onColumnVisibilityChange,
+		onColumnOrderChange: handleColumnOrderChange,
+		onColumnVisibilityChange: handleColumnVisibilityChange,
 		onSortingChange,
 		onExpandedChange: setExpanded,
 		onPaginationChange: setPagination,
 		paginateExpandedRows: false,
 		meta: {
-			chainLoadingStates,
-			explodeByChain
+			chainLoadingStates
 		},
 		getCoreRowModel: getCoreRowModel(),
+		getGroupedRowModel: getGroupedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		autoResetAll: false
+		groupedColumnMode: 'remove',
+		autoResetExpanded: false,
+		autoResetPageIndex: false
 	})
-
-	const rowsSignature = useMemo(() => filteredRows.map((row) => row.id).join('|'), [filteredRows])
-
-	const headerSignature = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
-	const resetSignatureRef = useRef<string | null>(null)
-
-	useEffect(() => {
-		const compositeSignature = `${headerSignature}|${rowsSignature}`
-		if (resetSignatureRef.current === compositeSignature) {
-			return
-		}
-		resetSignatureRef.current = compositeSignature
-		setExpanded({})
-		setPagination((prev) => {
-			if (prev.pageIndex === 0) return prev
-			return { ...prev, pageIndex: 0 }
-		})
-	}, [headerSignature, rowsSignature])
 
 	return {
 		table,

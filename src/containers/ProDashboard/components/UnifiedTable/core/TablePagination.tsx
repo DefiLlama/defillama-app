@@ -1,9 +1,9 @@
 import { Table } from '@tanstack/react-table'
 import { TagGroup } from '~/components/TagGroup'
-import type { UnifiedRowNode } from '../types'
+import type { NormalizedRow } from '../types'
 
 interface UnifiedTablePaginationProps {
-	table: Table<UnifiedRowNode>
+	table: Table<NormalizedRow>
 }
 
 const PAGE_SIZES = ['10', '30', '50']

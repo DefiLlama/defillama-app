@@ -7,8 +7,16 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import { SkeletonCell } from '../core/SkeletonCell'
+import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
+import {
+	getAggregationContextFromLeafRows,
+	getChainNameForRow,
+	getGroupingKeyForRow,
+	getRowDisplayProps
+} from '../core/groupingUtils'
 import type { PriorityMetric } from '../strategies/hooks/usePriorityChainDatasets'
-import type { NumericMetrics, UnifiedRowNode } from '../types'
+import type { NormalizedRow, NumericMetrics } from '../types'
+import type { UnifiedRowHeaderType } from '../../../types'
 import { isColumnSupported } from './metricCapabilities'
 
 declare module '@tanstack/table-core' {
@@ -49,7 +57,6 @@ const renderRatio = (value: number | null | undefined) => {
 
 type TableMeta = {
 	chainLoadingStates?: Map<string, Set<PriorityMetric>>
-	explodeByChain?: boolean
 }
 
 type ColumnMeta = {
@@ -117,23 +124,14 @@ const getMetricDependencies = (columnId: string, meta: ColumnMeta | undefined): 
 }
 
 const getChainMetricLoadingState = (
-	ctx: CellContext<UnifiedRowNode, unknown>
+	ctx: CellContext<NormalizedRow, unknown>
 ): { normalized: string; metrics: Set<PriorityMetric> } | null => {
 	const meta = ctx.table.options.meta as TableMeta | undefined
 	if (!meta?.chainLoadingStates || meta.chainLoadingStates.size === 0) {
 		return null
 	}
 
-	const node = ctx.row.original
-	if (!node) return null
-
-	let chainName: string | null = null
-	if (node.header === 'chain' && typeof node.label === 'string') {
-		chainName = node.label
-	} else if (node.type === 'leaf') {
-		chainName = node.original?.chain ?? null
-	}
-
+	const chainName = getChainNameForRow(ctx.row)
 	if (!chainName || chainName === 'All Chains') {
 		return null
 	}
@@ -148,7 +146,7 @@ const getChainMetricLoadingState = (
 }
 
 const renderMetricCell = (
-	ctx: CellContext<UnifiedRowNode, unknown>,
+	ctx: CellContext<NormalizedRow, unknown>,
 	renderer: (value: number | null | undefined) => ReactNode
 ) => {
 	const columnId = typeof ctx.column.id === 'string' ? ctx.column.id : ''
@@ -175,77 +173,107 @@ const numericSorting = (a: number | null | undefined, b: number | null | undefin
 
 const metricAccessor =
 	(key: MetricKey) =>
-	(row: UnifiedRowNode): number | null =>
+	(row: NormalizedRow): number | null =>
 		row.metrics?.[key] ?? null
 
-const applyNumericColumnSorting = (rowA: Row<UnifiedRowNode>, rowB: Row<UnifiedRowNode>, columnId: string) => {
+const applyNumericColumnSorting = (rowA: Row<NormalizedRow>, rowB: Row<NormalizedRow>, columnId: string) => {
 	const a = rowA.getValue(columnId) as number | null | undefined
 	const b = rowB.getValue(columnId) as number | null | undefined
 	return numericSorting(a, b)
 }
 
-const createUsdMetricColumn = (key: MetricKey, header: string): ColumnDef<UnifiedRowNode> => ({
+const createMetricAggregationFn = (key: MetricKey) => {
+	return (_columnId: string, leafRows: Row<NormalizedRow>[]): number | null => {
+		if (!leafRows.length) {
+			return null
+		}
+		const context = getAggregationContextFromLeafRows(leafRows)
+		const value = context.metrics?.[key]
+		return typeof value === 'number' ? value : value ?? null
+	}
+}
+
+const createUsdMetricColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
 	id: key,
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end', metricDeps: METRIC_DEPENDENCIES[key] },
 	cell: (ctx) => renderMetricCell(ctx, renderUsd),
-	sortingFn: applyNumericColumnSorting
+	sortingFn: applyNumericColumnSorting,
+	aggregationFn: createMetricAggregationFn(key)
 })
 
-const createPercentMetricColumn = (key: MetricKey, header: string): ColumnDef<UnifiedRowNode> => ({
+const createPercentMetricColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
 	id: key,
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end', metricDeps: METRIC_DEPENDENCIES[key] },
 	cell: (ctx) => renderMetricCell(ctx, renderPercent),
-	sortingFn: applyNumericColumnSorting
+	sortingFn: applyNumericColumnSorting,
+	aggregationFn: createMetricAggregationFn(key)
 })
 
-const createRatioMetricColumn = (key: MetricKey, header: string): ColumnDef<UnifiedRowNode> => ({
+const createRatioMetricColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
 	id: key,
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end', metricDeps: METRIC_DEPENDENCIES[key] },
 	cell: (ctx) => renderMetricCell(ctx, renderRatio),
-	sortingFn: applyNumericColumnSorting
+	sortingFn: applyNumericColumnSorting,
+	aggregationFn: createMetricAggregationFn(key)
 })
 
-const createNumberMetricColumn = (key: MetricKey, header: string): ColumnDef<UnifiedRowNode> => ({
+const createNumberMetricColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
 	id: key,
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end', metricDeps: METRIC_DEPENDENCIES[key] },
 	cell: (ctx) => renderMetricCell(ctx, renderNumber),
-	sortingFn: applyNumericColumnSorting
+	sortingFn: applyNumericColumnSorting,
+	aggregationFn: createMetricAggregationFn(key)
 })
 
-export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): ColumnDef<UnifiedRowNode>[] => {
-	const columns: ColumnDef<UnifiedRowNode>[] = [
+const groupingColumns: ColumnDef<NormalizedRow>[] = (Object.entries(
+	ROW_HEADER_GROUPING_COLUMN_IDS
+) as Array<[UnifiedRowHeaderType, string]>).map(([header, columnId]) => ({
+	id: columnId,
+	header,
+	accessorFn: (row) => getGroupingKeyForRow(row, header),
+	enableSorting: false,
+	enableHiding: true,
+	enableColumnFilter: false,
+	enableResizing: false,
+	size: 0,
+	minSize: 0,
+	maxSize: 0,
+	aggregationFn: (_columnId, leafRows) => leafRows[0]?.getGroupingValue(columnId) ?? null
+}))
+
+export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): ColumnDef<NormalizedRow>[] => {
+	const columns: ColumnDef<NormalizedRow>[] = [
 		{
 			id: 'name',
 			header: 'Name',
-			accessorFn: (row) => row.label,
+			accessorFn: (row) => row.displayName ?? row.name,
 			size: 280,
 			meta: {
 				align: 'start'
 			},
-			cell: ({ row, getValue }) => {
-				const value = getValue() as string
+			cell: ({ row }) => {
+				const display = getRowDisplayProps(row)
 				const depth = row.depth
-				const node = row.original
-				const normalized = node?.original
 				const canExpand = row.getCanExpand()
 				const isExpanded = row.getIsExpanded()
-				const displayName = normalized?.displayName ?? value
-				const strategyType = normalized?.strategyType
-				const nodeKind = node?.groupKind
-				const header = node?.header
-				const iconUrl =
-					node?.iconUrl ?? normalized?.logo ?? (nodeKind === 'parent' ? (normalized?.parentProtocolLogo ?? null) : null)
-				const shouldShowProtocolLogo = strategyType === 'protocols' || nodeKind === 'parent' || header === 'protocol'
-				const shouldShowChainIcon = header === 'chain'
-				const chainIcon = shouldShowChainIcon ? chainIconUrl(value) : null
+				const baseRow = display.original ?? row.original
+				const strategyType = baseRow?.strategyType
+				const shouldShowChainIcon = display.header === 'chain'
+				const shouldShowProtocolLogo =
+					!shouldShowChainIcon && (strategyType === 'protocols' || display.groupKind === 'parent' || display.header === 'protocol')
+				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
+				const iconSource = shouldShowChainIcon ? chainIcon : display.iconUrl ?? baseRow?.logo ?? undefined
+				const protocolCountValue = row.getIsGrouped()
+					? ((row.getValue('protocolCount') as number | null) ?? null)
+					: baseRow?.metrics?.protocolCount ?? null
 
 				return (
 					<div
@@ -266,17 +294,13 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 							<span className="w-4" />
 						)}
 						{shouldShowProtocolLogo || shouldShowChainIcon ? (
-							<TokenLogo
-								logo={shouldShowChainIcon ? chainIcon : (iconUrl ?? undefined)}
-								fallbackLogo="/icons/placeholder.png"
-								size={24}
-							/>
+							<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/icons/placeholder.png" size={24} />
 						) : (
 							<span className="inline-block h-6 w-6 shrink-0" />
 						)}
-						<span className="font-medium text-(--text-primary)">{displayName}</span>
-						{node?.metrics?.protocolCount && node.metrics.protocolCount > 1 && (
-							<span className="text-xs text-(--text-tertiary)">{node.metrics.protocolCount} protocols</span>
+						<span className="font-medium text-(--text-primary)">{display.label}</span>
+						{protocolCountValue && protocolCountValue > 1 && (
+							<span className="text-xs text-(--text-tertiary)">{protocolCountValue} protocols</span>
 						)}
 					</div>
 				)
@@ -290,6 +314,12 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			size: 160,
 			meta: {
 				align: 'start'
+			},
+			aggregationFn: (_columnId, leafRows) => {
+				if (!leafRows.length) {
+					return null
+				}
+				return getAggregationContextFromLeafRows(leafRows).category
 			},
 			cell: ({ getValue }) => {
 				const category = getValue() as string | null | undefined
@@ -312,6 +342,12 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			meta: {
 				align: 'end'
 			},
+			aggregationFn: (_columnId, leafRows) => {
+				if (!leafRows.length) {
+					return []
+				}
+				return getAggregationContextFromLeafRows(leafRows).chains
+			},
 			cell: ({ getValue }) => {
 				const chains = (getValue() as string[]) ?? []
 				if (!chains.length) {
@@ -323,9 +359,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		{
 			id: 'oracles',
 			header: 'Oracles',
-			// Prefer normalized row-level oracles (which include chain-specific values when exploded),
-			// fallback to the underlying original protocol payload if missing.
-			accessorFn: (row) => row.original?.oracles ?? row.original?.original?.oracles ?? [],
+			accessorFn: (row) => row.oracles ?? [],
 			enableSorting: false,
 			size: 200,
 			meta: {
@@ -362,6 +396,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.tvl ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('tvl' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -374,6 +409,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.change1d ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderPercent),
+			aggregationFn: createMetricAggregationFn('change1d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -386,6 +422,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.change7d ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderPercent),
+			aggregationFn: createMetricAggregationFn('change7d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -398,6 +435,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.change1m ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderPercent),
+			aggregationFn: createMetricAggregationFn('change1m' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -414,6 +452,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.fees24h ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('fees24h' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -426,6 +465,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.revenue24h ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('revenue24h' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -438,6 +478,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.volume24h ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('volume24h' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -450,6 +491,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.perpsVolume24h ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('perpsVolume24h' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -462,6 +504,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.openInterest ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('openInterest' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -474,6 +517,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			accessorFn: (row) => row.metrics.mcap ?? null,
 			meta: { align: 'end' },
 			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('mcap' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
 				const b = rowB.getValue(columnId) as number | null | undefined
@@ -482,7 +526,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		}
 	]
 
-	const volumeColumns: ColumnDef<UnifiedRowNode>[] = [
+	const volumeColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('volume_7d' as MetricKey, '7d Volume'),
 		createUsdMetricColumn('volume_30d' as MetricKey, '30d Volume'),
 		createUsdMetricColumn('cumulativeVolume' as MetricKey, 'Cumulative Volume'),
@@ -495,7 +539,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('volume24hShare' as MetricKey, '24h Volume Share')
 	]
 
-	const feesColumns: ColumnDef<UnifiedRowNode>[] = [
+	const feesColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('fees_7d' as MetricKey, '7d Fees'),
 		createUsdMetricColumn('fees_30d' as MetricKey, '30d Fees'),
 		createUsdMetricColumn('fees_1y' as MetricKey, '1y Fees'),
@@ -514,7 +558,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('holdersRevenueChange_30dover30d' as MetricKey, '30d/30d Holder Rev Change')
 	]
 
-	const revenueColumns: ColumnDef<UnifiedRowNode>[] = [
+	const revenueColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('revenue_7d' as MetricKey, '7d Revenue'),
 		createUsdMetricColumn('revenue_30d' as MetricKey, '30d Revenue'),
 		createUsdMetricColumn('revenue_1y' as MetricKey, '1y Revenue'),
@@ -526,7 +570,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('revenueChange_30dover30d' as MetricKey, '30d/30d Revenue Change')
 	]
 
-	const perpsColumns: ColumnDef<UnifiedRowNode>[] = [
+	const perpsColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('perps_volume_7d' as MetricKey, '7d Perps Volume'),
 		createUsdMetricColumn('perps_volume_30d' as MetricKey, '30d Perps Volume'),
 		createPercentMetricColumn('perps_volume_change_1d' as MetricKey, '1d Perps Volume Change'),
@@ -535,7 +579,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('perps_volume_dominance_24h' as MetricKey, '24h Perps Volume Share')
 	]
 
-	const earningsColumns: ColumnDef<UnifiedRowNode>[] = [
+	const earningsColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('earnings_24h' as MetricKey, '24h Earnings'),
 		createUsdMetricColumn('earnings_7d' as MetricKey, '7d Earnings'),
 		createUsdMetricColumn('earnings_30d' as MetricKey, '30d Earnings'),
@@ -545,7 +589,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('earningsChange_1m' as MetricKey, '30d Earnings Change')
 	]
 
-	const dexAggregatorColumns: ColumnDef<UnifiedRowNode>[] = [
+	const dexAggregatorColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('aggregators_volume_24h' as MetricKey, '24h Aggregator Volume'),
 		createUsdMetricColumn('aggregators_volume_7d' as MetricKey, '7d Aggregator Volume'),
 		createUsdMetricColumn('aggregators_volume_30d' as MetricKey, '30d Aggregator Volume'),
@@ -555,7 +599,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('aggregators_volume_marketShare7d' as MetricKey, '7d Aggregator Volume Share')
 	]
 
-	const bridgeAggregatorColumns: ColumnDef<UnifiedRowNode>[] = [
+	const bridgeAggregatorColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('bridge_aggregators_volume_24h' as MetricKey, '24h Bridge Aggregator Volume'),
 		createUsdMetricColumn('bridge_aggregators_volume_7d' as MetricKey, '7d Bridge Aggregator Volume'),
 		createUsdMetricColumn('bridge_aggregators_volume_30d' as MetricKey, '30d Bridge Aggregator Volume'),
@@ -564,7 +608,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('bridge_aggregators_volume_dominance_24h' as MetricKey, '24h Bridge Aggregator Share')
 	]
 
-	const optionsColumns: ColumnDef<UnifiedRowNode>[] = [
+	const optionsColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('options_volume_24h' as MetricKey, '24h Options Volume'),
 		createUsdMetricColumn('options_volume_7d' as MetricKey, '7d Options Volume'),
 		createUsdMetricColumn('options_volume_30d' as MetricKey, '30d Options Volume'),
@@ -573,7 +617,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('options_volume_dominance_24h' as MetricKey, '24h Options Volume Share')
 	]
 
-	const ratioColumns: ColumnDef<UnifiedRowNode>[] = [
+	const ratioColumns: ColumnDef<NormalizedRow>[] = [
 		createRatioMetricColumn('mcaptvl' as MetricKey, 'Mcap / TVL'),
 		createRatioMetricColumn('pf' as MetricKey, 'P/F'),
 		createRatioMetricColumn('ps' as MetricKey, 'P/S')
@@ -591,5 +635,6 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		...ratioColumns
 	)
 
-	return columns.filter((col) => isColumnSupported(String(col.id), strategyType))
+	const supportedColumns = columns.filter((col) => isColumnSupported(String(col.id), strategyType))
+	return [...groupingColumns, ...supportedColumns]
 }
