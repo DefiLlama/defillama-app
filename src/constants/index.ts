@@ -7,7 +7,7 @@ export const timeframeOptions = {
 }
 
 // API endpoints
-const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
+const SERVER_URL = 'https://pro-api.llama.fi/09ac7c34aebc6bdb6d59be47353d4332fa2defa1e28b1c840843511035694e86/api'
 const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'

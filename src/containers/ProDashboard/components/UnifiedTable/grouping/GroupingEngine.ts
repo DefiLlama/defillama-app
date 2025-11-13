@@ -30,8 +30,34 @@ const createLeafNode = (row: NormalizedRow, level: number): UnifiedRowNode => ({
 	label: row.displayName ?? row.name,
 	metrics: row.metrics,
 	original: row,
-	iconUrl: row.logo ?? null
+	iconUrl: row.logo ?? null,
+	category: row.category ?? null,
+	chains: row.chains ?? []
 })
+
+const getCommonCategory = (rows: NormalizedRow[]): string | null => {
+	if (!rows.length) return null
+	const firstCategory = rows[0].category
+	if (!firstCategory) return null
+	for (let i = 1; i < rows.length; i++) {
+		if (rows[i].category !== firstCategory) {
+			return null
+		}
+	}
+	return firstCategory
+}
+
+const getAggregatedChains = (rows: NormalizedRow[]): string[] => {
+	const chainSet = new Set<string>()
+	for (const row of rows) {
+		if (row.chains && row.chains.length) {
+			for (const chain of row.chains) {
+				chainSet.add(chain)
+			}
+		}
+	}
+	return Array.from(chainSet)
+}
 
 const getHeaderValue = (row: NormalizedRow, header: UnifiedRowHeaderType) => {
 	if (header === 'parent-protocol') {
@@ -106,6 +132,8 @@ const groupRows = (
 				const metrics = aggregateMetrics(group.rows)
 				const parentLogo =
 					group.rows.find((child) => child.parentProtocolLogo)?.parentProtocolLogo ?? null
+				const commonCategory = getCommonCategory(group.rows)
+				const aggregatedChains = getAggregatedChains(group.rows)
 
 				nodes.push({
 					id: nodeId,
@@ -117,7 +145,9 @@ const groupRows = (
 					metrics,
 					children,
 					groupKind: 'parent',
-					iconUrl: parentLogo
+					iconUrl: parentLogo,
+					category: commonCategory,
+					chains: aggregatedChains
 				})
 			}
 		}
@@ -152,7 +182,7 @@ const groupRows = (
 	const nodes: UnifiedRowNode[] = []
 
 	for (const [key, group] of groups.entries()) {
-		if (rest.length === 0 && currentHeader === 'protocol') {
+		if (rest.length === 0) {
 			const leaves = group.rows.map((row) => createLeafNode(row, level))
 			nodes.push(...sortNodes(leaves))
 			continue
@@ -161,6 +191,8 @@ const groupRows = (
 		const nodeId = `${parentKey}|${currentHeader}|${key}`
 		const children = groupRows(group.rows, rest, level + 1, nodeId)
 		const metrics = aggregateMetrics(group.rows)
+		const commonCategory = getCommonCategory(group.rows)
+		const aggregatedChains = getAggregatedChains(group.rows)
 		let iconUrl: string | null = null
 		if (group.meta?.groupType === 'parent') {
 			iconUrl = group.rows.find((row) => row.parentProtocolLogo)?.parentProtocolLogo ?? null
@@ -178,7 +210,9 @@ const groupRows = (
 			metrics,
 			children,
 			groupKind: group.meta?.groupType === 'parent' ? 'parent' : group.meta?.groupType === 'protocol' ? 'protocol' : undefined,
-			iconUrl
+			iconUrl,
+			category: commonCategory,
+			chains: aggregatedChains
 		})
 	}
 

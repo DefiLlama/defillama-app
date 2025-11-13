@@ -14,6 +14,7 @@ import { useDashboardEngagement } from './hooks/useDashboardEngagement'
 import { AIGeneratedData, TimePeriod, useProDashboard } from './ProDashboardAPIContext'
 import { Dashboard } from './services/DashboardAPI'
 import { DashboardItemConfig } from './types'
+import type { UnifiedTableFocusSection } from './components/UnifiedTable/types'
 
 const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
 
@@ -38,6 +39,7 @@ const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: 
 function ProDashboardContent() {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
 	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
+	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
@@ -311,8 +313,9 @@ function ProDashboardContent() {
 			{items.length > 0 && (
 				<ChartGrid
 					onAddChartClick={() => setShowAddModal(true)}
-					onEditItem={(item) => {
+					onEditItem={(item, focusSection) => {
 						setEditItem(item)
+						setInitialUnifiedFocusSection(focusSection)
 						setShowAddModal(true)
 					}}
 				/>
@@ -324,8 +327,10 @@ function ProDashboardContent() {
 					onClose={() => {
 						setShowAddModal(false)
 						setEditItem(null)
+						setInitialUnifiedFocusSection(undefined)
 					}}
 					editItem={editItem}
+					initialUnifiedFocusSection={initialUnifiedFocusSection}
 				/>
 			</Suspense>
 

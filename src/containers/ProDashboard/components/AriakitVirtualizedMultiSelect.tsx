@@ -51,18 +51,24 @@ export function AriakitVirtualizedMultiSelect({
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
 		getScrollElement: () => listRef.current,
-		estimateSize: () => 44,
-		overscan: 8
+		estimateSize: () => 40,
+		overscan: 5
 	})
 
 	useEffect(() => {
-		if (!isPopoverOpen) return
-
-		virtualizer.measure()
-		if (filteredOptions.length > 0) {
-			virtualizer.scrollToIndex(0, { align: 'start' })
+		if (!isPopoverOpen) {
+			setSearch('')
 		}
-	}, [isPopoverOpen, filteredOptions.length])
+	}, [isPopoverOpen])
+
+	useEffect(() => {
+		if (isPopoverOpen) {
+			virtualizer.measure()
+			if (search) {
+				virtualizer.scrollToIndex(0, { align: 'start' })
+			}
+		}
+	}, [search, filteredOptions.length, isPopoverOpen, virtualizer])
 
 	const buttonLabel = useMemo(() => {
 		if (selectedValues.length === 0) return placeholder
@@ -152,14 +158,15 @@ export function AriakitVirtualizedMultiSelect({
 									<div className="pro-text3 px-3 py-2 text-center text-xs">No results found.</div>
 								) : (
 									<div
-										className="p-1"
+										key={`virtual-${filteredOptions.length}`}
 										style={{
-											height: virtualizer.getTotalSize(),
+											height: `${virtualizer.getTotalSize()}px`,
+											width: '100%',
 											position: 'relative'
 										}}
 									>
-										{virtualizer.getVirtualItems().map((row) => {
-											const option = filteredOptions[row.index]
+										{virtualizer.getVirtualItems().map((virtualRow) => {
+											const option = filteredOptions[virtualRow.index]
 											if (!option) return null
 											const isActive = selectedValues.includes(option.value)
 											const isDisabled = option.disabled || (!isActive && isMaxReached)
@@ -173,27 +180,28 @@ export function AriakitVirtualizedMultiSelect({
 														}
 													}}
 													disabled={isDisabled}
-													className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all ${
+													className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-colors ${
 														isDisabled
 															? 'pro-text3 cursor-not-allowed opacity-50'
 															: isActive
-																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
+																? 'bg-(--primary)/10 font-semibold text-(--primary)'
 																: 'pro-text2 hover:pro-text1 hover:bg-(--cards-bg-alt)'
 													}`}
 													style={{
 														position: 'absolute',
 														top: 0,
-														left: 0,
-														width: '100%',
-														transform: `translateY(${row.start}px)`
+														left: '4px',
+														width: 'calc(100% - 8px)',
+														height: `${virtualRow.size}px`,
+														transform: `translateY(${virtualRow.start}px)`
 													}}
 												>
-													<div className={`flex min-w-0 items-center gap-2.5 ${option.isChild ? 'pl-4' : ''}`}>
+													<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
 														{iconUrl && (
 															<img
 																src={iconUrl}
 																alt={option.label}
-																className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
+																className={`h-5 w-5 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
 																onError={(e) => {
@@ -201,12 +209,12 @@ export function AriakitVirtualizedMultiSelect({
 																}}
 															/>
 														)}
-														<div className="flex min-w-0 flex-col">
+														<div className="flex min-w-0 flex-col gap-0.5">
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 																{option.label}
 															</span>
 															{option.isChild && (
-																<span className="text-[10px] text-(--text-tertiary)">Child protocol</span>
+																<span className="text-[10px] leading-none text-(--text-tertiary)">Child protocol</span>
 															)}
 														</div>
 													</div>

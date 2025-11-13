@@ -310,6 +310,9 @@ export const formatProtocolsList = ({
 		return next
 	}
 
+	const getChainBreakdown = (item: any) =>
+		item?.chainBreakdown as Record<string, ChainMetricSnapshot> | undefined
+
 	const allProtocols: Record<string, IFormattedProtocol> = {}
 
 	const shouldModifyTvl = Object.values(checkExtras).some((t) => t)
@@ -422,8 +425,8 @@ export const formatProtocolsList = ({
 			cumulativeFees: protocol.totalAllTime || undefined,
 			pf: protocol.pf ?? previous.pf ?? undefined,
 			ps: protocol.ps ?? previous.ps ?? undefined,
-			feesByChain: mergeChainBreakdown(previous.feesByChain, protocol.chainBreakdown),
-			revenueByChain: mergeChainBreakdown(previous.revenueByChain, protocol.chainBreakdown)
+			feesByChain: mergeChainBreakdown(previous.feesByChain, getChainBreakdown(protocol)),
+			revenueByChain: mergeChainBreakdown(previous.revenueByChain, getChainBreakdown(protocol))
 		}
 	}
 
@@ -446,7 +449,7 @@ export const formatProtocolsList = ({
 			volumeChange_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.volumeChange_7d,
 			volumeChange_1m: protocol.change_1m ?? previous.volumeChange_1m,
 			cumulativeVolume: protocol.totalAllTime ?? previous.cumulativeVolume,
-			volumeByChain: mergeChainBreakdown(previous.volumeByChain, protocol.chainBreakdown)
+			volumeByChain: mergeChainBreakdown(previous.volumeByChain, getChainBreakdown(protocol))
 		}
 	}
 
@@ -469,7 +472,7 @@ export const formatProtocolsList = ({
 			perps_volume_change_7d:
 				protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.perps_volume_change_7d,
 			perps_volume_change_1m: protocol.change_1m ?? previous.perps_volume_change_1m,
-			perpsVolumeByChain: mergeChainBreakdown(previous.perpsVolumeByChain, protocol.chainBreakdown)
+			perpsVolumeByChain: mergeChainBreakdown(previous.perpsVolumeByChain, getChainBreakdown(protocol))
 		}
 	}
 
@@ -486,7 +489,7 @@ export const formatProtocolsList = ({
 			...previous,
 			chains: mergedChains,
 			openInterest: protocol.total24h,
-			openInterestByChain: mergeChainBreakdown(previous.openInterestByChain, protocol.chainBreakdown)
+			openInterestByChain: mergeChainBreakdown(previous.openInterestByChain, getChainBreakdown(protocol))
 		}
 	}
 
@@ -509,7 +512,7 @@ export const formatProtocolsList = ({
 			earningsChange_1d: protocol.change_1d ?? previous.earningsChange_1d,
 			earningsChange_7d: protocol.change_7d ?? previous.earningsChange_7d,
 			earningsChange_1m: protocol.change_1m ?? previous.earningsChange_1m,
-			earningsByChain: mergeChainBreakdown(previous.earningsByChain, protocol.chainBreakdown)
+			earningsByChain: mergeChainBreakdown(previous.earningsByChain, getChainBreakdown(protocol))
 		}
 	}
 

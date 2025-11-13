@@ -1,4 +1,21 @@
+import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import type { UnifiedTableConfig, UnifiedRowHeaderType } from '../../types'
+
+export type UnifiedTableFocusSection = 'strategy' | 'columns' | 'preview'
+
+export interface UnifiedTableProps {
+	config: UnifiedTableConfig
+	previewMode?: boolean
+	columnOrderOverride?: ColumnOrderState
+	columnVisibilityOverride?: VisibilityState
+	sortingOverride?: SortingState
+	onPreviewColumnOrderChange?: (order: ColumnOrderState) => void
+	onPreviewColumnVisibilityChange?: (visibility: VisibilityState) => void
+	onPreviewSortingChange?: (sorting: SortingState) => void
+	onEdit?: (focusSection?: UnifiedTableFocusSection) => void
+	onOpenColumnModal?: () => void
+	onPresetChange?: (presetId: string) => void
+}
 
 export interface NumericMetrics {
 	tvl?: number | null
@@ -8,12 +25,87 @@ export interface NumericMetrics {
 	change1d?: number | null
 	change7d?: number | null
 	change1m?: number | null
+	users?: number | null
+	bridgedTvl?: number | null
+	stablesMcap?: number | null
+	nftVolume?: number | null
+	tvlShare?: number | null
+	stablesShare?: number | null
+	volume24hShare?: number | null
 	volume24h?: number | null
+	volume_7d?: number | null
+	volume_30d?: number | null
+	cumulativeVolume?: number | null
+	volumeChange_1d?: number | null
+	volumeChange_7d?: number | null
+	volumeChange_1m?: number | null
+	volumeDominance_24h?: number | null
+	volumeMarketShare7d?: number | null
 	fees24h?: number | null
+	fees_7d?: number | null
+	fees_30d?: number | null
+	fees_1y?: number | null
+	average_1y?: number | null
+	cumulativeFees?: number | null
+	userFees_24h?: number | null
+	holderRevenue_24h?: number | null
+	holdersRevenue30d?: number | null
+	holdersRevenueChange_30dover30d?: number | null
+	treasuryRevenue_24h?: number | null
+	supplySideRevenue_24h?: number | null
+	feesChange_1d?: number | null
+	feesChange_7d?: number | null
+	feesChange_1m?: number | null
+	feesChange_7dover7d?: number | null
+	feesChange_30dover30d?: number | null
 	revenue24h?: number | null
+	revenue_7d?: number | null
+	revenue_30d?: number | null
+	revenue_1y?: number | null
+	average_revenue_1y?: number | null
+	revenueChange_1d?: number | null
+	revenueChange_7d?: number | null
+	revenueChange_1m?: number | null
+	revenueChange_7dover7d?: number | null
+	revenueChange_30dover30d?: number | null
 	perpsVolume24h?: number | null
+	perps_volume_7d?: number | null
+	perps_volume_30d?: number | null
+	perps_volume_change_1d?: number | null
+	perps_volume_change_7d?: number | null
+	perps_volume_change_1m?: number | null
+	perps_volume_dominance_24h?: number | null
 	openInterest?: number | null
+	earnings_24h?: number | null
+	earnings_7d?: number | null
+	earnings_30d?: number | null
+	earnings_1y?: number | null
+	earningsChange_1d?: number | null
+	earningsChange_7d?: number | null
+	earningsChange_1m?: number | null
+	aggregators_volume_24h?: number | null
+	aggregators_volume_7d?: number | null
+	aggregators_volume_30d?: number | null
+	aggregators_volume_change_1d?: number | null
+	aggregators_volume_change_7d?: number | null
+	aggregators_volume_dominance_24h?: number | null
+	aggregators_volume_marketShare7d?: number | null
+	bridge_aggregators_volume_24h?: number | null
+	bridge_aggregators_volume_7d?: number | null
+	bridge_aggregators_volume_30d?: number | null
+	bridge_aggregators_volume_change_1d?: number | null
+	bridge_aggregators_volume_change_7d?: number | null
+	bridge_aggregators_volume_dominance_24h?: number | null
+	options_volume_24h?: number | null
+	options_volume_7d?: number | null
+	options_volume_30d?: number | null
+	options_volume_change_1d?: number | null
+	options_volume_change_7d?: number | null
+	options_volume_dominance_24h?: number | null
 	mcap?: number | null
+	mcaptvl?: number | null
+	pf?: number | null
+	ps?: number | null
 	protocolCount?: number | null
 }
 
@@ -26,6 +118,8 @@ export interface NormalizedRow {
 	logo?: string | null
 	chain?: string | null
 	category?: string | null
+	chains?: string[]
+	oracles?: string[]
 	parentProtocolId?: string | null
 	parentProtocolName?: string | null
 	parentProtocolLogo?: string | null
@@ -45,6 +139,8 @@ export interface UnifiedRowNode {
 	original?: NormalizedRow
 	groupKind?: 'parent' | 'protocol'
 	iconUrl?: string | null
+	category?: string | null
+	chains?: string[]
 }
 
 export interface ExportableColumn {
@@ -52,3 +148,15 @@ export interface ExportableColumn {
 	header: string
 	isVisible: boolean
 }
+
+export type MetricGroup =
+	| 'tvl'
+	| 'volume'
+	| 'fees'
+	| 'revenue'
+	| 'perps'
+	| 'earnings'
+	| 'aggregators'
+	| 'bridge-aggregators'
+	| 'options'
+	| 'ratios'
