@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Table } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType } from '../../../types'
-import type { UnifiedRowNode } from '../types'
+import type { NormalizedRow } from '../types'
+import { getChainNameForRow } from './groupingUtils'
 
 const normalizeChain = (value: string | null | undefined) => (value ? value.trim().toLowerCase() : '')
 
@@ -17,7 +18,7 @@ const haveSameMembers = (a: string[], b: string[]) => {
 }
 
 export function useVisibleChainHints(
-	table: Table<UnifiedRowNode>,
+	table: Table<NormalizedRow>,
 	rowHeaders: UnifiedRowHeaderType[],
 	maxHints: number = 50
 ): string[] {
@@ -48,17 +49,9 @@ export function useVisibleChainHints(
 	}
 
 		const rowModel = table.getRowModel()
-	for (const row of rowModel.rows) {
-		const node = row.original
-		if (!node) continue
-		if (node.header === 'chain' && typeof node.label === 'string') {
-			addChain(node.label)
-			continue
+		for (const row of rowModel.flatRows) {
+			addChain(getChainNameForRow(row))
 		}
-		if (node.type === 'leaf') {
-			addChain(node.original?.chain ?? null)
-		}
-	}
 
 	const orderedChains = Array.from(canonicalChains.entries())
 		.sort((a, b) => a[1].localeCompare(b[1]))

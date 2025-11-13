@@ -127,22 +127,6 @@ export interface NormalizedRow {
 	original?: any
 }
 
-export interface UnifiedRowNode {
-	id: string
-	type: 'group' | 'leaf'
-	level: number
-	header?: UnifiedRowHeaderType
-	value: string
-	label: string
-	metrics: NumericMetrics
-	children?: UnifiedRowNode[]
-	original?: NormalizedRow
-	groupKind?: 'parent' | 'protocol'
-	iconUrl?: string | null
-	category?: string | null
-	chains?: string[]
-}
-
 export interface ExportableColumn {
 	id: string
 	header: string
