@@ -344,7 +344,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		totalMessages?: number
 	}>({ hasMore: false, isLoadingMore: false })
 
-	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
 	const [streamingResponse, setStreamingResponse] = useState('')
 	const [streamingError, setStreamingError] = useState('')
 	const [isStreaming, setIsStreaming] = useState(false)
@@ -394,30 +393,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		if (initialSessionId && !sessionId) {
 			resetScrollState()
 			setSessionId(initialSessionId)
-			setHasRestoredSession(null)
-		}
-	}, [initialSessionId, sessionId, resetScrollState])
-
-	useEffect(() => {
-		if (sharedSession) {
-			resetScrollState()
-			setMessages(sharedSession.messages)
-			setSessionId(sharedSession.session.sessionId)
-		}
-	}, [sharedSession, resetScrollState])
-
-	useEffect(() => {
-		if (
-			sessionId &&
-			user &&
-			!sharedSession &&
-			!readOnly &&
-			hasRestoredSession !== sessionId &&
-			!newlyCreatedSessionsRef.current.has(sessionId)
-		) {
-			resetScrollState()
-			setHasRestoredSession(sessionId)
-			restoreSession(sessionId)
+			restoreSession(initialSessionId)
 				.then((result) => {
 					setMessages(result.messages)
 					setPaginationState(result.pagination)
@@ -426,7 +402,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					console.log('Failed to restore session:', error)
 				})
 		}
-	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
+	}, [initialSessionId, sessionId, resetScrollState, restoreSession])
+
+	useEffect(() => {
+		if (sharedSession && !isStreaming && !isCompletingStream) {
+			resetScrollState()
+			setMessages(sharedSession.messages)
+			setSessionId(sharedSession.session.sessionId)
+		}
+	}, [sharedSession, isStreaming, isCompletingStream, resetScrollState])
 
 	const {
 		data: promptResponse,
@@ -820,7 +804,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		setSessionId(null)
-		setHasRestoredSession(null)
 		newlyCreatedSessionsRef.current.clear()
 		setPrompt('')
 		resetPrompt()
@@ -867,7 +850,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		setSessionId(selectedSessionId)
-		setHasRestoredSession(selectedSessionId)
 		setMessages(data.messages)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 		setPrompt('')
