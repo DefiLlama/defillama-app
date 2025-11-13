@@ -271,7 +271,7 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
-	conversationHistory: Array<{
+	messages: Array<{
 		question: string
 		response: {
 			answer: string
@@ -312,7 +312,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const sessionIdRef = useRef<string | null>(null)
 	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
-	const [conversationHistory, setConversationHistory] = useState<
+	const [messages, setMessages] = useState<
 		Array<{
 			role?: string
 			content?: string
@@ -400,7 +400,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			setConversationHistory(sharedSession.conversationHistory)
+			setMessages(sharedSession.messages)
 			setSessionId(sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState])
@@ -418,7 +418,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
 				.then((result) => {
-					setConversationHistory(result.conversationHistory)
+					setMessages(result.messages)
 					setPaginationState(result.pagination)
 				})
 				.catch((error) => {
@@ -554,7 +554,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingResponse(finalContent)
 			}
 
-			setConversationHistory((prev) => [
+			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
@@ -598,7 +598,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			if (wasUserStopped && finalContent.trim()) {
-				setConversationHistory((prev) => [
+				setMessages((prev) => [
 					...prev,
 					{
 						role: 'user',
@@ -668,7 +668,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (finalContent.trim()) {
-			setConversationHistory((prev) => [
+			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
@@ -711,7 +711,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingCitations,
 		currentMessageId,
 		prompt,
-		setConversationHistory,
+		setMessages,
 		setStreamingResponse,
 		setStreamingSuggestions,
 		setStreamingCharts,
@@ -734,6 +734,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			prompt: string,
 			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
 		) => {
+			if (isStreaming) {
+				return
+			}
+
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -747,11 +751,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				preResolvedEntities: preResolved
 			})
 		},
-		[sessionId, moveSessionToTop, submitPrompt]
+		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
 	const handleSubmitWithSuggestion = useCallback(
 		(prompt: string, suggestion: any) => {
+			if (isStreaming) {
+				return
+			}
+
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -765,14 +773,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				suggestionContext: suggestion
 			})
 		},
-		[sessionId, moveSessionToTop, submitPrompt]
+		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
 	const router = useRouter()
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			router.push('/ai', undefined, { shallow: true })
+			router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -824,16 +832,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setHasChartError(false)
 		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
-		setConversationHistory([])
+		setMessages([])
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
 	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
 
-	const handleSessionSelect = async (
-		selectedSessionId: string,
-		data: { conversationHistory: any[]; pagination?: any }
-	) => {
+	const handleSessionSelect = async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
 		resetScrollState()
 
 		if (sessionId && isStreaming) {
@@ -858,7 +863,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		setSessionId(selectedSessionId)
 		setHasRestoredSession(selectedSessionId)
-		setConversationHistory(data.conversationHistory)
+		setMessages(data.messages)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 		setPrompt('')
 		resetPrompt()
@@ -892,7 +897,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
-			setConversationHistory((prev) => [...result.conversationHistory, ...prev])
+			setMessages((prev) => [...result.messages, ...prev])
 			setPaginationState(result.pagination)
 
 			setTimeout(() => {
@@ -1000,14 +1005,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	}, [streamingResponse, isStreaming])
 
 	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current && conversationHistory.length > 0) {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current && messages.length > 0) {
 			requestAnimationFrame(() => {
 				if (scrollContainerRef.current && shouldAutoScrollRef.current) {
 					scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 				}
 			})
 		}
-	}, [conversationHistory.length])
+	}, [messages.length])
 
 	useEffect(() => {
 		return () => {
@@ -1053,19 +1058,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
-					{conversationHistory.length === 0 &&
-					prompt.length === 0 &&
-					!isRestoringSession &&
-					!isPending &&
-					!isStreaming ? (
+					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
 						initialSessionId ? (
 							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 										Failed to restore session,{' '}
-										<button onClick={handleNewChat} className="text-(--link-text) underline">
+										<button
+											onClick={handleNewChat}
+											data-umami-event="llamaai-new-chat"
+											className="text-(--link-text) underline"
+										>
 											Start a new chat
 										</button>
 									</p>
@@ -1073,26 +1078,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							</div>
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
 									<>
-										<div className="shrink-0">
-											<PromptInput
-												handleSubmit={handleSubmit}
-												promptInputRef={promptInputRef}
-												isPending={isPending}
-												handleStopRequest={handleStopRequest}
-												isStreaming={isStreaming}
-												initialValue={prompt}
-												placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
-											/>
-										</div>
-										<div className="flex min-h-0 flex-1 flex-col">
-											<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
-										</div>
+										<PromptInput
+											handleSubmit={handleSubmit}
+											promptInputRef={promptInputRef}
+											isPending={isPending}
+											handleStopRequest={handleStopRequest}
+											isStreaming={isStreaming}
+											initialValue={prompt}
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+										/>
+										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
 								)}
 							</div>
@@ -1101,15 +1102,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									{isRestoringSession && conversationHistory.length === 0 ? (
+									{isRestoringSession && messages.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 											Loading conversation
 											<LoadingDots />
 										</p>
-									) : conversationHistory.length > 0 || isSubmitted ? (
+									) : messages.length > 0 || isSubmitted ? (
 										<div className="flex w-full flex-col gap-2 px-2 pb-5">
 											{paginationState.isLoadingMore && (
 												<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
@@ -1118,7 +1119,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</p>
 											)}
 											<div className="flex flex-col gap-2.5">
-												{conversationHistory.map((item, index) => {
+												{messages.map((item, index) => {
 													if (item.role === 'user') {
 														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
 													}
@@ -1246,7 +1247,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
 											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-											<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
 								</div>
@@ -1288,7 +1289,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
 										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 									/>
 								)}
 							</div>
@@ -1325,7 +1326,7 @@ const PromptInput = memo(function PromptInput({
 
 	// Use different placeholder for mobile devices
 	const isMobile = useMedia('(max-width: 640px)')
-	const mobilePlaceholder = placeholder.replace('Type @ to insert a protocol, chain', '')
+	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
 	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
@@ -1434,6 +1435,11 @@ const PromptInput = memo(function PromptInput({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
+
+			if (isStreaming) {
+				return
+			}
+
 			trackSubmit()
 			const finalEntities = getFinalEntities()
 			const promptValue = promptInputRef.current?.value ?? ''
@@ -1469,23 +1475,40 @@ const PromptInput = memo(function PromptInput({
 
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
-		// If there's a trigger character, we'll show the combobox popover. This can
-		// be true both when the trigger character has just been typed and when
-		// content has been deleted (e.g., with backspace) and the character right
-		// before the caret is the trigger.
-		if (trigger) {
+		const triggerOffset = getTriggerOffset(event.target)
+		// Get the actual trigger character from the textarea at the trigger offset
+		// This is more reliable than getTrigger which only checks the previous character
+		const actualTrigger = triggerOffset !== -1 ? event.target.value[triggerOffset] : null
+		// Prepend $ to searchValue if trigger is $, so useGetEntities can detect it
+		// Always prepend $ when trigger is $, even if searchValue already starts with $
+		const searchValueWithTrigger = actualTrigger === '$' ? `$${searchValue}` : searchValue
+
+		// Sets our textarea value.
+		setValue(event.target.value)
+
+		// Only show combobox if there's a valid trigger offset (@ is isolated) and search value
+		// This prevents showing combobox in emails like "test@gmail.com"
+		if (triggerOffset !== -1 && searchValue.length > 0) {
 			combobox.show()
+			// Sets the combobox value that will be used to search in the list.
+			// Prepend $ if trigger is $ so useGetEntities knows to fetch coins
+			combobox.setValue(searchValueWithTrigger)
 		}
-		// There will be no trigger and no search value if the trigger character has
-		// just been deleted.
-		else if (!searchValue) {
+		// If user just typed @ or $ (trigger exists but no search value yet), don't show combobox
+		else if (trigger && searchValue.length === 0) {
+			// Still set the value with $ prefix if trigger is $, so it's ready when user starts typing
+			if (actualTrigger === '$') {
+				combobox.setValue('$')
+			} else {
+				combobox.setValue('')
+			}
+			combobox.hide()
+		}
+		// If no valid trigger offset, hide and clear
+		else if (triggerOffset === -1) {
 			combobox.setValue('')
 			combobox.hide()
 		}
-		// Sets our textarea value.
-		setValue(event.target.value)
-		// Sets the combobox value that will be used to search in the list.
-		combobox.setValue(searchValue)
 	}
 
 	const onItemClick = useCallback(
@@ -1564,7 +1587,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-lg:resize-none max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1598,7 +1621,7 @@ const PromptInput = memo(function PromptInput({
 								onClick={onItemClick({ id, name, type })}
 								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
 							>
-								<TokenLogo logo={logo} size={20} />
+								{logo && <TokenLogo logo={logo} size={20} />}
 								<span className="flex items-center gap-1.5">
 									<span className="text-sm font-medium">{name}</span>
 									<span
@@ -1620,7 +1643,7 @@ const PromptInput = memo(function PromptInput({
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
-						render={<button onClick={handleStopRequest} />}
+						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
 						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
@@ -1697,7 +1720,8 @@ const PromptResponse = ({
 				<p className="text-(--error)">{error}</p>
 				<button
 					onClick={onRetry}
-					className="flex items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+					data-umami-event="llamaai-retry-request"
+					className="flex w-fit items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
 				>
 					<Icon name="repeat" height={16} width={16} />
 					Retry
@@ -1729,7 +1753,7 @@ const PromptResponse = ({
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
-							{progressStage && <span>({progressStage})</span>}
+							{/* {progressStage && <span>({progressStage})</span>} */}
 						</span>
 					</p>
 				) : (
@@ -1811,10 +1835,11 @@ const SuggestedActions = memo(function SuggestedActions({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
+						data-umami-event="llamaai-suggestion-click"
+						className={`group flex touch-pan-y items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
-								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
+								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 active:border-(--old-blue) active:bg-(--old-blue)/12'
 						}`}
 					>
 						<span className="flex flex-1 flex-col items-start gap-1">
@@ -1912,7 +1937,7 @@ const ResponseControls = memo(function ResponseControls({
 		},
 		onSuccess: (data) => {
 			if (data.shareToken) {
-				const shareLink = `${window.location.origin}/ai/shared/${data.shareToken}`
+				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
 				navigator.clipboard.writeText(shareLink)
 				setShowShareModal(true)
 			}
@@ -1997,7 +2022,13 @@ const ResponseControls = memo(function ResponseControls({
 				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"
-						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
+						render={
+							<button
+								onClick={() => shareSession()}
+								disabled={isSharing || showShareModal}
+								data-umami-event="llamaai-share-conversation"
+							/>
+						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 					>
 						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
@@ -2177,7 +2208,7 @@ const FeedbackForm = ({
 
 const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
 	const [copied, setCopied] = useState(false)
-	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
+	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
 	const handleCopy = async () => {
 		if (!shareLink) return
@@ -2213,6 +2244,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 					/>
 					<button
 						onClick={handleCopy}
+						data-umami-event="llamaai-copy-share-link"
 						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 					>
 						{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
@@ -2225,6 +2257,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 				</Ariakit.DialogDismiss>
 				<button
 					onClick={handleShareToX}
+					data-umami-event="llamaai-share-to-x"
 					className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90"
 				>
 					Share to X
@@ -2248,7 +2281,7 @@ const ChatControls = memo(function ChatControls({
 				render={<button onClick={handleSidebarToggle} />}
 				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 			>
-				<Icon name="arrow-right-to-line" height={16} width={16} />
+				<Icon name="panel-left-open" height={16} width={16} />
 				<span className="sr-only">Open Chat History</span>
 			</Tooltip>
 			<Tooltip

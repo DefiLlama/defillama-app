@@ -7,7 +7,8 @@ import {
 	DIMENISIONS_SUMMARY_BASE_API,
 	PEGGEDCHART_API,
 	PEGGEDCHART_DOMINANCE_ALL_API,
-	PROTOCOL_API
+	PROTOCOL_API,
+	PROTOCOLS_API
 } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
@@ -60,6 +61,101 @@ const CHAIN_FEES_CONFIG: Record<'chain-fees' | 'chain-revenue', { dataType?: str
 	'chain-revenue': { dataType: 'dailyRevenue' }
 }
 
+const toSlug = (name: string = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
+
+type ProtocolCategoryLookup = {
+	byName: Map<string, string>
+	bySlug: Map<string, string>
+}
+
+const createEmptyCategoryLookup = (): ProtocolCategoryLookup => ({
+	byName: new Map(),
+	bySlug: new Map()
+})
+
+let protocolCategoryCache: { data: ProtocolCategoryLookup; timestamp: number } | null = null
+const PROTOCOL_CATEGORY_CACHE_MS = 60 * 60 * 1000
+
+const registerCategoryLookupEntry = (
+	lookup: ProtocolCategoryLookup,
+	identifier: string | undefined,
+	category: string | undefined,
+	options: { asSlug?: boolean } = {}
+) => {
+	if (!lookup || !identifier || !category) return
+	const normalizedIdentifier = identifier.toLowerCase()
+	const normalizedCategory = category.toLowerCase()
+	if (options.asSlug) {
+		lookup.bySlug.set(normalizedIdentifier, normalizedCategory)
+	} else {
+		lookup.byName.set(normalizedIdentifier, normalizedCategory)
+	}
+}
+
+const extendLookupWithOverviewProtocols = (lookup: ProtocolCategoryLookup | null, overviewProtocols: any[]) => {
+	if (!lookup || !Array.isArray(overviewProtocols)) return
+	for (const proto of overviewProtocols) {
+		const category = (proto?.category || '').toLowerCase()
+		if (!category) continue
+		registerCategoryLookupEntry(lookup, proto?.name, category)
+		registerCategoryLookupEntry(lookup, proto?.displayName, category)
+		registerCategoryLookupEntry(lookup, proto?.slug, category, { asSlug: true })
+	}
+}
+
+const getCategoryFromLookup = (lookup: ProtocolCategoryLookup | null, name?: string): string => {
+	if (!lookup || !name) return ''
+	const normalizedName = name.toLowerCase()
+	if (lookup.byName.has(normalizedName)) {
+		return lookup.byName.get(normalizedName)!
+	}
+	const slug = toSlug(name)
+	if (slug && lookup.bySlug.has(slug)) {
+		return lookup.bySlug.get(slug)!
+	}
+	return ''
+}
+
+const sumNestedValues = (value: any): number => {
+	if (typeof value === 'number') {
+		return Number.isFinite(value) ? value : 0
+	}
+	if (Array.isArray(value)) {
+		return value.reduce((acc: number, curr) => acc + sumNestedValues(curr), 0)
+	}
+	if (value && typeof value === 'object') {
+		const nestedValues = Object.values(value as Record<string, any>)
+		return nestedValues.reduce((acc: number, curr) => acc + sumNestedValues(curr), 0)
+	}
+	return 0
+}
+
+const getProtocolCategoryLookup = async (): Promise<ProtocolCategoryLookup | null> => {
+	if (protocolCategoryCache && Date.now() - protocolCategoryCache.timestamp < PROTOCOL_CATEGORY_CACHE_MS) {
+		return protocolCategoryCache.data
+	}
+	try {
+		const response = await fetch(PROTOCOLS_API)
+		if (!response.ok) {
+			throw new Error(`Failed to fetch protocols for category lookup: ${response.status}`)
+		}
+		const json = await response.json()
+		const lookup = createEmptyCategoryLookup()
+		const protocols = Array.isArray(json?.protocols) ? json.protocols : []
+		for (const proto of protocols) {
+			const category = (proto?.category || '').toLowerCase()
+			if (!category) continue
+			registerCategoryLookupEntry(lookup, proto?.name, category)
+			registerCategoryLookupEntry(lookup, proto?.slug, category, { asSlug: true })
+		}
+		protocolCategoryCache = { data: lookup, timestamp: Date.now() }
+		return lookup
+	} catch (error) {
+		console.log('Failed to prepare protocol category lookup for chain builder filters:', error)
+		return null
+	}
+}
+
 const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 
 const normalizeChainKey = (chain: string): string => {
@@ -75,6 +171,8 @@ const toDimensionsChainSlug = (chain: string): string => {
 	if (lc === 'bsc' || lc === 'binance smart chain') return 'bsc'
 	if (lc === 'avax' || lc === 'avalanche') return 'avax'
 	if (lc === 'gnosis' || lc === 'xdai') return 'xdai'
+	if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
+		return 'hyperliquid-l1'
 	return lc
 }
 
@@ -84,7 +182,9 @@ const displayChainName = (slug: string): string => {
 	if (lc === 'avax') return 'Avalanche'
 	if (lc === 'bsc') return 'BSC'
 	if (lc === 'xdai') return 'Gnosis'
-	return lc
+	// Normalize underscores to dashes for nicer display words
+	const norm = lc.replace(/_/g, '-')
+	return norm
 		.split('-')
 		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
 		.join(' ')
@@ -838,9 +938,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 			if (!resp.ok) return null
 			const json = await resp.json()
 			const chart: Array<[number | string, number]> = Array.isArray(json?.totalDataChart) ? json.totalDataChart : []
-			const normalized = filterOutToday(
-				normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)]))
-			)
+			const normalized = filterOutToday(normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)])))
 			return {
 				name: entry.name,
 				data: normalized,
@@ -920,7 +1018,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 	topN: number = 5,
 	chains?: string[],
 	filterMode: 'include' | 'exclude' = 'include',
-	chainCategories?: string[]
+	chainCategories?: string[],
+	protocolCategories?: string[]
 ): Promise<ProtocolChainData> {
 	const config = METRIC_CONFIG[metric]
 	if (!config) throw new Error(`Unsupported metric: ${metric}`)
@@ -932,9 +1031,51 @@ async function getAllProtocolsTopChainsDimensionsData(
 		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
 		const overview = await overviewResp.json()
 
+		const normalizedProtocolCategories = (protocolCategories || []).map((cat) => cat.toLowerCase()).filter(Boolean)
+		const protocolCategoryFilterSet = new Set(normalizedProtocolCategories)
+		const hasProtocolCategoryFilter = protocolCategoryFilterSet.size > 0
+
+		let protocolCategoryLookup: ProtocolCategoryLookup | null = null
+		if (hasProtocolCategoryFilter) {
+			protocolCategoryLookup = await getProtocolCategoryLookup()
+		}
+
 		const chainTotals = new Map<string, number>()
 		const protocols: any[] = Array.isArray(overview?.protocols) ? overview.protocols : []
+
+		if (protocolCategoryLookup) {
+			extendLookupWithOverviewProtocols(protocolCategoryLookup, protocols)
+		}
+
+		const resolveProtocolCategory = (protocolName: string, fallbackCategory?: string): string => {
+			const fallback = (fallbackCategory || '').toLowerCase()
+			if (fallback) return fallback
+			return getCategoryFromLookup(protocolCategoryLookup, protocolName)
+		}
+
+		const shouldIncludeProtocol = (protocolName: string, fallbackCategory?: string): boolean => {
+			if (!hasProtocolCategoryFilter) return true
+			const category = resolveProtocolCategory(protocolName, fallbackCategory)
+			if (!category) return filterMode === 'exclude'
+			if (filterMode === 'include') {
+				return protocolCategoryFilterSet.has(category)
+			}
+			return !protocolCategoryFilterSet.has(category)
+		}
+
+		const aggregateProtocolsForTimestamp = (protocolsMap: Record<string, any>): number => {
+			if (!protocolsMap || typeof protocolsMap !== 'object') return 0
+			let total = 0
+			for (const [protocolName, value] of Object.entries(protocolsMap)) {
+				if (!shouldIncludeProtocol(protocolName)) continue
+				total += sumNestedValues(value)
+			}
+			return total
+		}
 		for (const p of protocols) {
+			const protocolName = (p?.name || p?.displayName || p?.slug || '') as string
+			if (!shouldIncludeProtocol(protocolName, p?.category)) continue
+
 			const br24 = p?.breakdown24h
 			if (!br24 || typeof br24 !== 'object') continue
 			for (const [chainSlug, versions] of Object.entries(br24)) {
@@ -970,15 +1111,29 @@ async function getAllProtocolsTopChainsDimensionsData(
 		const picked = ranked.slice(0, Math.min(topN, ranked.length)).map(([slug]) => slug)
 
 		const chainSeriesPromises = picked.map(async (slug, idx) => {
-			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${slug}?excludeTotalDataChartBreakdown=true`
+			const includeBreakdownParam = hasProtocolCategoryFilter ? 'false' : 'true'
+			const endpointSlug = toDimensionsChainSlug(slug)
+			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
 			const r = await fetch(url)
 			if (!r.ok) return null
 			const j = await r.json()
 			const tdc: Array<[number, number]> = Array.isArray(j?.totalDataChart) ? j.totalDataChart : []
-			const normalized = filterOutToday(
+			let normalized = filterOutToday(
 				normalizeDailyPairs((tdc as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
 			)
+
+			if (hasProtocolCategoryFilter) {
+				const breakdownSeries = Array.isArray(j?.totalDataChartBreakdown) ? j.totalDataChartBreakdown : []
+				if (breakdownSeries.length > 0) {
+					const filteredPairs = breakdownSeries.map(([timestamp, protocols]) => [
+						Number(timestamp),
+						aggregateProtocolsForTimestamp(protocols)
+					])
+					normalized = filterOutToday(normalizeDailyPairs(filteredPairs))
+				}
+			}
+
 			return {
 				name: displayChainName(slug),
 				data: normalized,
@@ -989,9 +1144,19 @@ async function getAllProtocolsTopChainsDimensionsData(
 		const seriesRaw = (await Promise.all(chainSeriesPromises)).filter(Boolean) as ChartSeries[]
 
 		const totalChart: Array<[number, number]> = Array.isArray(overview?.totalDataChart) ? overview.totalDataChart : []
-		const totalNormalized = filterOutToday(
+		let totalNormalized = filterOutToday(
 			normalizeDailyPairs((totalChart as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
 		)
+		if (hasProtocolCategoryFilter) {
+			const totalBreakdown = Array.isArray(overview?.totalDataChartBreakdown) ? overview.totalDataChartBreakdown : []
+			if (totalBreakdown.length > 0) {
+				const filteredTotal = totalBreakdown.map(([timestamp, protocols]) => [
+					Number(timestamp),
+					aggregateProtocolsForTimestamp(protocols)
+				])
+				totalNormalized = filterOutToday(normalizeDailyPairs(filteredTotal))
+			}
+		}
 
 		const tsSet = new Set<number>()
 		seriesRaw.forEach((s) => s.data.forEach(([t]) => tsSet.add(t)))
@@ -1045,12 +1210,13 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { protocol, metric = 'tvl', chains, limit = '5', filterMode, chainCategories } = req.query
+		const { protocol, metric = 'tvl', chains, limit = '5', filterMode, chainCategories, protocolCategories } = req.query
 
 		const metricStr = metric as string
 		const rawChains = (chains as string | undefined)?.split(',').filter(Boolean) || []
 		const chainsArray = rawChains.includes('All') ? [] : rawChains
 		const chainCategoriesArray = (chainCategories as string | undefined)?.split(',').filter(Boolean) || []
+		const protocolCategoriesArray = (protocolCategories as string | undefined)?.split(',').filter(Boolean) || []
 		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
 		const topN = Math.min(parseInt(limit as string), 20)
 		const protocolStr = typeof protocol === 'string' ? protocol : undefined
@@ -1081,13 +1247,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			if (metricStr === 'tvl') {
 				result = await getAllProtocolsTopChainsTvlData(topN, chainsArray, fm, chainCategoriesArray)
 			} else {
-				result = await getAllProtocolsTopChainsDimensionsData(metricStr, topN, chainsArray, fm, chainCategoriesArray)
+				result = await getAllProtocolsTopChainsDimensionsData(
+					metricStr,
+					topN,
+					chainsArray,
+					fm,
+					chainCategoriesArray,
+					protocolCategoriesArray
+				)
 			}
 		} else {
 			if (metricStr === 'tvl') {
 				result = await getTvlProtocolChainData(protocolStr, chainsArray, topN, fm, chainCategoriesArray)
 			} else {
-				result = await getDimensionsProtocolChainData(protocolStr, metricStr, chainsArray, topN, fm, chainCategoriesArray)
+				result = await getDimensionsProtocolChainData(
+					protocolStr,
+					metricStr,
+					chainsArray,
+					topN,
+					fm,
+					chainCategoriesArray
+				)
 			}
 		}
 

@@ -56,7 +56,12 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 					Add it here!
 				</a>
 				<br />
-				<span>Are you a VC and want to submit your investments in bulk? Email them to us at support@defillama.com</span>
+				<span>
+					Are you a VC and want to submit your investments in bulk? Email them to us at{' '}
+					<a href="mailto:support@defillama.com" className="text-(--blue) underline">
+						support@defillama.com
+					</a>
+				</span>
 			</Announcement>
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}

@@ -52,6 +52,7 @@ export interface ChartBuilderConfig {
 	protocol?: string
 	chains: string[]
 	chainCategories?: string[]
+	protocolCategories?: string[]
 	categories: string[]
 	groupBy: 'protocol'
 	limit: number

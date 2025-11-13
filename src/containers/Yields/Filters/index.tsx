@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
 import { useYieldFilters } from '~/contexts/LocalStorage'
@@ -12,17 +13,14 @@ import { YieldFilterDropdowns } from './Dropdowns'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
 import type { IYieldFiltersProps } from './types'
+import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 
 function SavedFilters({ currentFilters }) {
 	const { savedFilters, saveFilter, deleteFilter } = useYieldFilters()
 	const router = useRouter()
-
-	const handleSave = () => {
-		const name = window.prompt('Enter a name for this filter configuration')
-		if (name) {
-			saveFilter(name, currentFilters)
-		}
-	}
+	const [dialogOpen, setDialogOpen] = React.useState(false)
+	const [deleteOpen, setDeleteOpen] = React.useState(false)
+	const [filterToDelete, setFilterToDelete] = React.useState('')
 
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
@@ -38,20 +36,27 @@ function SavedFilters({ currentFilters }) {
 		}
 	}
 
-	const handleDelete = (name: string) => {
-		if (window.confirm(`Delete saved filter "${name}"?`)) {
-			deleteFilter(name)
-		}
-	}
-
 	return (
 		<div className="ml-auto flex items-center gap-2">
 			<button
-				onClick={handleSave}
+				onClick={() => setDialogOpen(true)}
 				className="ml-auto flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-2 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Save Current Filters
 			</button>
+			<DialogForm
+				title="Saving filters"
+				description="Enter a name for this filter configuration"
+				open={dialogOpen}
+				setOpen={setDialogOpen}
+				onSubmit={(name) => saveFilter(name, currentFilters)}
+			/>
+			<ConfirmationModal
+				title={`Deleting saved filter "${filterToDelete}"`}
+				isOpen={deleteOpen}
+				onClose={() => setDeleteOpen(false)}
+				onConfirm={() => deleteFilter(filterToDelete)}
+			/>
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
 					Saved Filters
@@ -80,7 +85,8 @@ function SavedFilters({ currentFilters }) {
 							<button
 								onClick={(e) => {
 									e.stopPropagation()
-									handleDelete(name)
+									setDeleteOpen(true)
+									setFilterToDelete(name)
 								}}
 								className="flex items-center justify-center text-red-500 hover:text-red-600"
 							>

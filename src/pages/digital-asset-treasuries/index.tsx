@@ -1,16 +1,29 @@
-import { useCallback } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import Layout from '~/layout'
-import { formattedNum, getDominancePercent, getNDistinctColors, slug } from '~/utils'
+import {
+	firstDayOfMonth,
+	formattedNum,
+	getDominancePercent,
+	getNDistinctColors,
+	lastDayOfWeek,
+	slug,
+	toNiceCsvDate
+} from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
 interface ITreasuryCompanies {
 	breakdownByAsset: {
@@ -52,6 +65,7 @@ interface ITreasuryCompanies {
 			}
 		>
 	}>
+	dailyFlows: Record<string, Array<[number, number, number, number]>>
 }
 
 const breakdownColor = (type) => {
@@ -66,12 +80,15 @@ const breakdownColor = (type) => {
 			return '#16a34a'
 		case 'XRP':
 			return '#6b7280'
-		case 'Tron':
+		case 'Tron Network':
 			return '#E91E63'
 		default:
 			return null
 	}
 }
+
+const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
+type GroupByType = (typeof GROUP_BY)[number]
 
 export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/index', async () => {
 	const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
@@ -83,7 +100,7 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 
 	const colorByAsset = {}
 	let i = 0
-	const colors = getNDistinctColors(allAssets.length + 6)
+	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
 	for (const asset in res.breakdownByAsset) {
 		const color = breakdownColor(res.breakdownByAsset[asset][0].assetName)
 		if (color) {
@@ -92,6 +109,39 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 			colorByAsset[asset] = colors[i + 6]
 		}
 		i++
+	}
+
+	const inflowsByAssetByDate: Record<string, Record<string, [number, number]>> = {}
+	const dailyFlowsByAsset = {}
+	for (const asset in res.dailyFlows) {
+		const name = res.statsByAsset[asset]?.assetName ?? asset
+		dailyFlowsByAsset[asset] = {
+			name: name,
+			stack: 'asset',
+			type: 'bar',
+			color: colorByAsset[asset],
+			data: []
+		}
+		for (let i = 0; i < res.dailyFlows[asset].length; i++) {
+			const [date, value, purchasePrice, usdValueOfPurchase] = res.dailyFlows[asset][i]
+			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
+			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, value]
+		}
+	}
+
+	for (const date in inflowsByAssetByDate) {
+		for (const asset in res.dailyFlows) {
+			dailyFlowsByAsset[asset].data.push([
+				+date,
+				inflowsByAssetByDate[date][asset]?.[0] ?? null,
+				inflowsByAssetByDate[date][asset]?.[1] ?? null
+			])
+		}
+	}
+
+	// Sort data by date for each asset to ensure correct cumulative calculations
+	for (const asset in dailyFlowsByAsset) {
+		dailyFlowsByAsset[asset].data.sort((a, b) => a[0] - b[0])
 	}
 
 	return {
@@ -118,7 +168,8 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 						}))
 						.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0))
 				}
-			})
+			}),
+			dailyFlowsByAsset
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -174,40 +225,107 @@ const prepareInstitutionsCsv = (institutions) => {
 	}
 }
 
-export default function TreasuriesByInstitution({ allAssets, institutions }) {
-	const prepareCsv = useCallback(() => {
-		const headers = [
-			'Institution',
-			'Asset',
-			'Ticker',
-			'Amount',
-			'Cost Basis',
-			'Holdings Value',
-			'Avg Price',
-			'Dominance %'
-		]
-		const rows = []
-
-		institutions.forEach((institute) => {
-			institute.assetBreakdown?.forEach((asset) => {
-				rows.push([
-					`"${institute.name}"`,
-					asset.name || '',
-					asset.ticker || '',
-					asset.amount != null ? asset.amount : '',
-					asset.cost != null ? asset.cost : '',
-					asset.usdValue != null ? asset.usdValue : '',
-					asset.avgPrice != null ? asset.avgPrice : '',
-					asset.dominance != null ? `${asset.dominance.toFixed(2)}%` : ''
-				])
-			})
-		})
-
-		return {
-			filename: 'defillama-digital-asset-treasuries.csv',
-			rows: [headers, ...rows]
+const prepareDailyFlowsCsv = (dailyFlowsByAsset) => {
+	const headers = ['Timestamp', 'Date']
+	const assetOrder = Object.keys(dailyFlowsByAsset)
+	for (const asset of assetOrder) {
+		const name = dailyFlowsByAsset[asset].name
+		headers.push(`${name} Buy/Sell Price`)
+		headers.push(`${name} Buy/Sell Quantity`)
+	}
+	const inflowsByAssetByDate = {}
+	for (const asset in dailyFlowsByAsset) {
+		for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
+			if (purchasePrice != null || assetQuantity != null) {
+				const dateKey = String(date)
+				inflowsByAssetByDate[dateKey] = inflowsByAssetByDate[dateKey] ?? {}
+				inflowsByAssetByDate[dateKey][asset] = [purchasePrice, assetQuantity]
+			}
 		}
-	}, [institutions])
+	}
+	const rows = []
+	const sortedDates = Object.keys(inflowsByAssetByDate)
+		.map(Number)
+		.sort((a, b) => a - b)
+	for (const date of sortedDates) {
+		const dateKey = String(date)
+		const row = [String(date), toNiceCsvDate(date / 1000)]
+		for (const asset of assetOrder) {
+			const data = inflowsByAssetByDate[dateKey]?.[asset]
+			row.push(data?.[0] ?? '')
+			row.push(data?.[1] ?? '')
+		}
+		rows.push(row)
+	}
+	return { filename: 'digital-asset-treasuries-daily-flows.csv', rows: [headers, ...rows] }
+}
+export default function TreasuriesByInstitution({ allAssets, institutions, dailyFlowsByAsset }) {
+	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
+
+	const chartOptions = useMemo(() => {
+		return {
+			tooltip: {
+				formatter: (params: any) => {
+					let chartdate = formatTooltipChartDate(params[0].value[0], groupBy.toLowerCase() as any)
+					let vals = ''
+					let total = 0
+					for (const param of params) {
+						if (!param.value[1]) continue
+						total += param.value[1]
+						vals += `<li style="list-style:none;">${param.marker} ${param.seriesName}: ${formattedNum(param.value[1], true)}</li>`
+					}
+					vals += `<li style="list-style:none;">Total: ${formattedNum(total, true)}</li>`
+					return chartdate + vals
+				}
+			}
+		}
+	}, [groupBy])
+	const charts = useMemo(() => {
+		if (['Weekly', 'Monthly'].includes(groupBy)) {
+			const final = {}
+			for (const asset in dailyFlowsByAsset) {
+				final[asset] = {
+					name: dailyFlowsByAsset[asset].name,
+					stack: dailyFlowsByAsset[asset].stack,
+					type: dailyFlowsByAsset[asset].type,
+					color: dailyFlowsByAsset[asset].color,
+					data: []
+				}
+				const sumByDate = {}
+				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
+					const dateKey = groupBy === 'Monthly' ? +firstDayOfMonth(date) * 1000 : +lastDayOfWeek(date) * 1000
+					sumByDate[dateKey] = sumByDate[dateKey] ?? {}
+					sumByDate[dateKey].purchasePrice = (sumByDate[dateKey].purchasePrice ?? 0) + (purchasePrice ?? 0)
+					sumByDate[dateKey].assetQuantity = (sumByDate[dateKey].assetQuantity ?? 0) + (assetQuantity ?? 0)
+				}
+				for (const date in sumByDate) {
+					final[asset].data.push([+date, sumByDate[date].purchasePrice, sumByDate[date].assetQuantity])
+				}
+			}
+			return final
+		}
+		// if (groupBy === 'Cumulative') {
+		// 	const final = {}
+		// 	for (const asset in dailyFlowsByAsset) {
+		// 		final[asset] = {
+		// 			name: dailyFlowsByAsset[asset].name,
+		// 			stack: dailyFlowsByAsset[asset].stack,
+		// 			type: 'line',
+		// 			color: dailyFlowsByAsset[asset].color,
+		// 			data: []
+		// 		}
+		// 		let totalPurchasePrice = 0
+		// 		let totalAssetQuantity = 0
+		// 		dailyFlowsByAsset[asset].data.forEach(([date, purchasePrice, assetQuantity]) => {
+		// 			totalPurchasePrice += purchasePrice ?? 0
+		// 			totalAssetQuantity += assetQuantity ?? 0
+		// 			final[asset].data.push([date, totalPurchasePrice, totalAssetQuantity])
+		// 		})
+		// 	}
+		// 	return final
+		// }
+		return dailyFlowsByAsset
+	}, [dailyFlowsByAsset, groupBy])
 
 	return (
 		<Layout
@@ -218,6 +336,21 @@ export default function TreasuriesByInstitution({ allAssets, institutions }) {
 			pageName={pageName}
 		>
 			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
+			<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap items-center justify-between p-2 pb-0">
+					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
+					<TagGroup
+						selectedValue={groupBy}
+						setValue={(period) => setGroupBy(period as GroupByType)}
+						values={GROUP_BY}
+						className="ml-auto"
+					/>
+					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(charts)} smol />
+				</div>
+				<Suspense fallback={<></>}>
+					<LineAndBarChart charts={charts} valueSymbol="$" chartOptions={chartOptions} />
+				</Suspense>
+			</div>
 			<TableWithSearch
 				data={institutions}
 				columns={columns}

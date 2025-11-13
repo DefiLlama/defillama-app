@@ -1,4 +1,8 @@
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
+import { useIsClient } from '~/hooks'
+import { useSubscribe } from '~/hooks/useSubscribe'
 
 const examples = [
 	{
@@ -10,13 +14,17 @@ const examples = [
 		description: 'Get historical TVL for Uniswap on a specific date'
 	},
 	{
+		signature: '=DEFILLAMA_HISTORICAL("fees", "tether", "2025-01-01", "2025-02-01")',
+		description: 'Get historical fees for Tether on a monthly date range'
+	},
+	{
 		signature: '=DEFILLAMA_STABLECOIN_MCAP("USDT", "ethereum")',
 		description: 'Get current USDT market cap on Ethereum'
 	}
 ]
 
 const dataPoints = [
-	'Market Metrics: TVL, fees, revenue, and volumes for 8k+ protocols and 400+ chains.',
+	'Market Metrics: TVL, fees, revenue, and volumes for 6000+ protocols and 400+ chains.',
 	'Protocol Health: Monitor TVL changes, chain exposure, and dominance stats.',
 	'Stablecoins: Follow market caps, supply by chain, and daily expansion.',
 	'Yield Opportunities: Surface pool APY, TVL, and reward breakdowns.',
@@ -24,6 +32,19 @@ const dataPoints = [
 ]
 
 export default function SheetsContainer() {
+	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const { subscription } = useSubscribe()
+	const isClient = useIsClient()
+
+	const onGoogleSheetsButtonClick = () => {
+		if (!subscription || subscription.status !== 'active') {
+			setShowSubscribeModal(true)
+			return
+		}
+
+		window.open('https://workspace.google.com/marketplace/app/defillama_sheets/571407189628', '_blank')
+	}
+
 	return (
 		<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 			<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
@@ -68,17 +89,12 @@ export default function SheetsContainer() {
 						Our Google Sheets add-on brings powerful DeFi analytics directly to your spreadsheets with custom functions.
 					</p>
 					<div className="flex items-center gap-3">
-						<span className="inline-flex items-center gap-1 rounded-full border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 px-3 py-1 text-sm text-[#5C5CF9]">
-							<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							Coming Soon
-						</span>
+						<button
+							onClick={onGoogleSheetsButtonClick}
+							className="inline-flex items-center gap-1 rounded-full border border-[#34a853]/30 bg-[#34a853]/10 px-3 py-1 text-sm text-[#34a853]"
+						>
+							Get Started
+						</button>
 					</div>
 				</div>
 
@@ -104,7 +120,7 @@ export default function SheetsContainer() {
 			<div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md">
 					<h2 className="mb-4 text-xl font-bold">Data You Can Access</h2>
-					<ul className="space-y-3 text-[#b4b7bc]">
+					<ul className="space-y-6 text-[#b4b7bc]">
 						{dataPoints.map((point, idx) => (
 							<li key={idx} className="flex items-center gap-3">
 								<Icon name="check-circle" height={16} width={16} className="text-[#5C5CF9]" />
@@ -128,6 +144,7 @@ export default function SheetsContainer() {
 					</div>
 				</div>
 			</div>
+			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
 		</div>
 	)
 }

@@ -21,6 +21,7 @@ import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
 import { trendingContractsColumns } from './columns'
 import { useTrendingContractsData } from './useTrendingContractsData'
+import { TablePagination } from '../../ProTable/TablePagination'
 
 interface TrendingContractsDatasetProps {
 	chain?: string
@@ -215,25 +216,7 @@ export function TrendingContractsDataset({
 				</div>
 			</div>
 			<TableBody table={instance} />
-			<div className="mt-2 flex w-full items-center justify-between">
-				<TagGroup
-					selectedValue={null}
-					setValue={(val) => (val === 'Next' ? instance.nextPage() : instance.previousPage())}
-					values={['Previous', 'Next']}
-					containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-					buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2"
-				/>
-				<div className="flex items-center">
-					<div className="mr-2 text-xs">Per page</div>
-					<TagGroup
-						selectedValue={String(pagination.pageSize)}
-						values={['10', '30', '50']}
-						setValue={(val) => setPagination((prev) => ({ ...prev, pageSize: Number(val), pageIndex: 0 }))}
-						containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-						buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
-					/>
-				</div>
-			</div>
+			<TablePagination table={instance} />
 		</div>
 	)
 }

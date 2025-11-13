@@ -1,10 +1,15 @@
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignIn } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
+import { StripeCheckoutModal } from '../StripeCheckoutModal'
 
 interface SubscribeProCardProps {
 	context?: 'modal' | 'page' | 'account'
@@ -28,10 +33,11 @@ export function SubscribeProCard({
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
-	const { handleSubscribe, loading } = useSubscribe()
+	const { loading } = useSubscribe()
+	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
-	const handleUpgradeToYearly = async () => {
-		await handleSubscribe('stripe', 'llamafeed', undefined, 'year')
+	const handleUpgradeToYearly = () => {
+		setIsUpgradeModalOpen(true)
 	}
 
 	return (
@@ -53,67 +59,62 @@ export function SubscribeProCard({
 			)}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-col gap-3">
-					<div className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>Create Custom DefiLlama Pro Dashboards</span>
-					</div>
-					<ul className="flex flex-col gap-3 pl-6">
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Generate custom dashboards with LlamaAI</span>
+					<div className="font-semibold">Access to:</div>
+					<ul className="flex flex-col gap-3 pl-4">
+						<li className="group flex items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span className="font-bold">
+								NEW:{' '}
+								<Link href="/ai" className="llamaai-glow-text">
+									LlamaAI
+								</Link>{' '}
+								<svg className="relative mx-1 inline-block h-4 w-4">
+									<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+								</svg>{' '}
+								- conversational analysis of DefiLlama data
+							</span>
 						</li>
-					</ul>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>CSV Data downloads</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Personalized Analysis with Custom Columns</span>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-					<span>Access to upcoming DefiLlama products</span>
-				</li>
-				<li className="flex flex-col gap-3">
-					<div className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>Full access to LlamaFeed</span>
-					</div>
-					<ul className="flex flex-col gap-3 pl-6">
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Premium Sections Unlocked (Listings, Stocks...)</span>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>DefiLlama Pro Dashboards - build custom dashboards</span>
 						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Increased Content Per Section</span>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>CSV Downloads - export any dataset</span>
 						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>AI-Powered News Summaries</span>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>Custom Columns - personalized analysis</span>
 						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Flexible Content Filtering & Customization</span>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>LlamaFeed - real-time premium insights</span>
 						</li>
-						<li className="flex flex-nowrap items-start gap-1">
-							<span className="relative w-4 shrink-0 text-center">•</span>
-							<span>Redesigned for better usability on all devices</span>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>
+								<Link href="/sheets" className="underline">
+									DefilLama Sheets
+								</Link>{' '}
+								– access blockchain data in your spreadsheets
+							</span>
+						</li>
+						<li className="flex flex-nowrap items-start gap-2.5">
+							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+							<span>Upcoming DefiLlama Products</span>
 						</li>
 					</ul>
 				</li>
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
-					<span>API access</span>
+					<span>API access not included</span>
 				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center font-bold text-green-400">Current Plan</span>
-						{currentBillingInterval === 'month' && (
+						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
 							<div className="flex flex-col gap-2">
 								<button
 									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
@@ -161,16 +162,33 @@ export function SubscribeProCard({
 							</>
 						)}
 						{isModal && (
-							<BasicLink
-								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
-								className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-							>
-								Go to Subscription Page
-							</BasicLink>
+							<>
+								<BasicLink
+									href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+									data-umami-event="subscribe-modal-goto-page"
+									className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+								>
+									Unlock Pro Features
+								</BasicLink>
+								<SignIn
+									text="Already a subscriber? Sign In"
+									className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2b30]"
+								/>
+							</>
 						)}
 					</>
 				)}
 			</div>
+
+			{isUpgradeModalOpen && (
+				<StripeCheckoutModal
+					isOpen={isUpgradeModalOpen}
+					onClose={() => setIsUpgradeModalOpen(false)}
+					paymentMethod="stripe"
+					type="llamafeed"
+					billingInterval="year"
+				/>
+			)}
 		</>
 	)
 }
@@ -182,20 +200,39 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
+	const { isAuthenticated } = useAuthContext()
+
+	useEffect(() => {
+		if (isOpen && typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('subscribe-modal-open')
+		}
+	}, [isOpen])
+
+	useEffect(() => {
+		if (isAuthenticated && isOpen) {
+			onClose()
+		}
+	}, [isAuthenticated, isOpen, onClose])
+
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
-			<Ariakit.Dialog
-				className="dialog gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
-				portal
-				unmountOnHide
-			>
-				<span className="mx-auto flex w-full max-w-[440px] flex-col">
-					<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white">
-						<Icon name="x" className="h-6 w-6" />
-					</Ariakit.DialogDismiss>
-					<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />
-				</span>
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
+		<WalletProvider>
+			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+				<Ariakit.Dialog
+					className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
+					portal
+					unmountOnHide
+				>
+					<span className="mx-auto flex w-full max-w-[440px] flex-col">
+						<Ariakit.DialogDismiss
+							data-umami-event="subscribe-modal-dismiss"
+							className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+						>
+							<Icon name="x" className="h-6 w-6" />
+						</Ariakit.DialogDismiss>
+						<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />
+					</span>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+		</WalletProvider>
 	)
 }

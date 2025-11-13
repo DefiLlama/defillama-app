@@ -4,7 +4,8 @@ import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
-	COINS_CHART_API,
+	CONFIG_API,
+	PEGGEDS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -25,7 +26,7 @@ import {
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
 import type {
@@ -77,7 +78,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			rwaTvlChartData,
 			upcomingUnlocks,
 			chainIncentives,
-			datInflows
+			datInflows,
+			stablecoinsData,
+			chainStablecoins
 		]: [
 			ILiteChart,
 			{
@@ -120,7 +123,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
 			any,
 			any,
-			{ chart: Array<[number, number]>; total30d: number } | null
+			{ chart: Array<[number, number]>; total30d: number } | null,
+			{ peggedAssets: Array<{ name: string; gecko_id: string; symbol: string }> } | null,
+			Array<string> | null
 		] = await Promise.all([
 			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`, { timeout: 2 * 60 * 1000 }),
 			getProtocolsByChain({ chain, metadata }),
@@ -333,7 +338,13 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getDATInflows() : Promise.resolve(null)
+			chain === 'All' ? getDATInflows() : Promise.resolve(null),
+			chain !== 'All' ? fetchJson(PEGGEDS_API).catch(() => null) : Promise.resolve(null),
+			chain !== 'All'
+				? fetchJson(CONFIG_API)
+						.then((data) => data.chainCoingeckoIds?.[metadata.name]?.stablecoins ?? null)
+						.catch(() => null)
+				: Promise.resolve(null)
 		])
 
 		const {
@@ -627,7 +638,12 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						? `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
 						: '',
 			isDataAvailable,
-			datInflows: datInflows ?? null
+			datInflows: datInflows ?? null,
+			chainStablecoins:
+				chainStablecoins?.map((coin) => {
+					const coinData = stablecoinsData?.peggedAssets?.find((c) => c.gecko_id === coin)
+					return { name: coinData?.name ?? coin, url: `/stablecoin/${coin}`, symbol: coinData?.symbol ?? null }
+				}) ?? null
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
@@ -862,7 +878,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: protocol.mcap ?? null,
 				mcaptvl:
 					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
-						? +(protocol.mcap / tvls.default.tvl).toFixed(2)
+						? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
 						: null,
 				strikeTvl:
 					protocol.category !== 'Bridge'
@@ -1054,7 +1070,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
 					parentProtocol.mcap && parentTvl?.default?.tvl
-						? +(parentProtocol.mcap / parentTvl.default.tvl).toFixed(2)
+						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
 						: null
 			}
 
@@ -1092,7 +1108,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 }
 
 interface IDATInflow {
-	dailyFlows: Record<string, Array<[number, number]>>
+	dailyFlows: Record<string, Array<[number, number, number, number]>>
 	statsByAsset: Record<
 		string,
 		{
@@ -1115,45 +1131,11 @@ export const getDATInflows = async () => {
 
 		let total30d = 0
 
-		// 20 weeks from now
-		const startDate = new Date(Date.now() - 20 * 7 * 24 * 60 * 60 * 1000)
-		const startTimestamp = Math.floor(
-			Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate()) / 1e3
-		)
-
-		const assetGeckoIds: Record<string, string> = {}
-		for (const asset in data.statsByAsset) {
-			assetGeckoIds[asset] = data.statsByAsset[asset].geckoId
-		}
-
-		const assetPricesChart: Array<[string, Map<number, number>]> = await Promise.all(
-			Object.entries(assetGeckoIds).map(([asset, geckoId]) =>
-				fetchJson(`${COINS_CHART_API}/coingecko:${geckoId}?start=${startTimestamp}&span=${20 * 7}`)
-					.then((res) => {
-						const priceMap = new Map()
-						for (const { timestamp, price } of res.coins[`coingecko:${geckoId}`].prices) {
-							const utcTimestamp = getUTCTimestamp(+timestamp * 1000)
-							priceMap.set(utcTimestamp, price)
-						}
-						return [asset, priceMap] as [string, Map<number, number>]
-					})
-					.catch(() => [asset, new Map()] as [string, Map<number, number>])
-			)
-		)
-
 		for (const asset in data.dailyFlows) {
-			const priceOfAssets = assetPricesChart.find(([pAsset]) => pAsset === asset)?.[1] ?? new Map()
-
-			for (const [date, value] of data.dailyFlows[asset]) {
+			for (const [date, value, purchasePrice, usdValueOfPurchase] of data.dailyFlows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
-				// Try current day first, fallback to previous day if price not found (handles day boundary mismatches)
-				let priceOnDate = priceOfAssets.get(utcTimestamp)
-				if (!priceOnDate) {
-					const previousDay = utcTimestamp - 24 * 60 * 60 * 1000
-					priceOnDate = priceOfAssets.get(previousDay) ?? 0
-				}
 				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000
-				const usdValue = (value || 0) * (priceOnDate ?? 0)
+				const usdValue = purchasePrice || usdValueOfPurchase || 0
 				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
 					total30d += usdValue
 				}

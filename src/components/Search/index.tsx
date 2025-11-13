@@ -1,30 +1,48 @@
 import { memo, startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
-import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
 import { useQuery } from '@tanstack/react-query'
-import { InstantSearch, useInstantSearch, useSearchBox } from 'react-instantsearch'
 import { LoadingDots } from '~/components/Loaders'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
-import { fetchJson } from '~/utils/async'
+import { useDebounce } from '~/hooks/useDebounce'
+import { useSubscribe } from '~/hooks/useSubscribe'
+import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
 import { SearchFallback } from './Fallback'
 
-const { searchClient } = instantMeiliSearch(
-	'https://search.defillama.com',
-	'ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5'
-)
-
-async function getSearchList() {
+async function getDefaultSearchList() {
 	try {
 		const data = await fetchJson('https://defillama-datasets.llama.fi/searchlist.json')
 		return data
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Unknown error')
 	}
+}
+async function fetchSearchList(query: string) {
+	const response: Array<ISearchItem> = await fetch('https://search.defillama.com/multi-search', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5`
+		},
+		body: JSON.stringify({
+			queries: [
+				{
+					indexUid: 'pages',
+					limit: 20,
+					offset: 0,
+					q: query
+				}
+			]
+		})
+	})
+		.then(handleSimpleFetchResponse)
+		.then((res) => res.json())
+		.then((res) => res?.results?.[0]?.hits ?? [])
+
+	return response
 }
 
 interface ISearchItem {
@@ -38,124 +56,113 @@ interface ISearchItem {
 	subName?: string
 }
 
-export const DesktopSearch = memo(function DesktopSearch() {
-	const isClient = useIsClient()
+const hideLlamaAI = new Set(['/ai'])
 
-	if (!isClient) {
-		return <SearchFallback />
-	}
+export const MobileSearch = () => {
+	const router = useRouter()
 
-	return (
-		<InstantSearch
-			indexName="pages"
-			searchClient={searchClient as any}
-			future={{ preserveSharedStateOnUnmount: true }}
-			insights={false}
-		>
-			<Desktop />
-		</InstantSearch>
-	)
-})
+	const { subscription } = useSubscribe()
+	const hasActiveSubscription = subscription?.status === 'active'
 
-export const MobileSearch = memo(function MobileSearch() {
-	return (
-		<InstantSearch
-			indexName="pages"
-			searchClient={searchClient as any}
-			future={{ preserveSharedStateOnUnmount: true }}
-			insights={false}
-		>
-			<Mobile />
-		</InstantSearch>
-	)
-})
+	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
+		useDefaultSearchList()
 
-const Mobile = () => {
-	const { query, refine } = useSearchBox()
-
-	const { results, status, error } = useInstantSearch({ catchError: true })
-
-	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
+	const [searchValue, setSearchValue] = useState('')
+	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (
-		<Ariakit.DialogProvider>
-			<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
-				<span className="sr-only">Search</span>
-				<Icon name="search" height={16} width={16} />
-			</Ariakit.DialogDisclosure>
-
-			<Ariakit.Dialog
-				className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
-				unmountOnHide
-				hideOnInteractOutside
-				portal
-			>
-				<Ariakit.ComboboxProvider
-					setValue={(value) => {
-						startTransition(() => {
-							refine(value)
-						})
-					}}
+		<>
+			{!hideLlamaAI.has(router.pathname) && (
+				<BasicLink
+					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
+					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
+					data-umami-event="llamaai-mobile-nav-link"
+					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
-					<span className="relative isolate flex w-full items-center justify-between gap-2">
-						<Ariakit.Combobox
-							placeholder="Search..."
-							className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base focus:ring-(--primary) dark:bg-black"
-						/>
-						<Ariakit.DialogDismiss className="p-2">
-							<Icon name="x" className="h-5 w-5" />
-						</Ariakit.DialogDismiss>
-					</span>
+					<svg className="h-4 w-4 shrink-0">
+						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					</svg>
+					<span className="sr-only">Ask LlamaAI</span>
+				</BasicLink>
+			)}
+			<Ariakit.DialogProvider>
+				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
+					<span className="sr-only">Search</span>
+					<Icon name="search" height={16} width={16} />
+				</Ariakit.DialogDisclosure>
 
-					<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
-						{query ? (
-							status === 'loading' ? (
+				<Ariakit.Dialog
+					className="dialog max-sm:drawer h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2"
+					unmountOnHide
+					hideOnInteractOutside
+					portal
+				>
+					<Ariakit.ComboboxProvider
+						setValue={(value) => {
+							startTransition(() => {
+								setSearchValue(value)
+							})
+						}}
+					>
+						<span className="relative isolate flex w-full items-center justify-between gap-2">
+							<Ariakit.Combobox
+								placeholder="Search..."
+								className="ml-2 flex-1 rounded-md bg-white px-3 py-1 text-base focus:ring-(--primary) dark:bg-black"
+							/>
+							<Ariakit.DialogDismiss className="p-2">
+								<Icon name="x" className="h-5 w-5" />
+							</Ariakit.DialogDismiss>
+						</span>
+
+						<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
+							{debouncedSearchValue ? (
+								isLoading ? (
+									<p className="flex items-center justify-center gap-1 p-4">
+										Loading
+										<LoadingDots />
+									</p>
+								) : error ? (
+									<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
+								) : !data?.length ? (
+									<p className="flex items-center justify-center p-4">No results found</p>
+								) : (
+									data.map((route: ISearchItem) => (
+										<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+									))
+								)
+							) : isLoadingDefaultSearchList ? (
 								<p className="flex items-center justify-center gap-1 p-4">
 									Loading
 									<LoadingDots />
 								</p>
-							) : error ? (
-								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-							) : !results?.hits?.length ? (
+							) : errorDefaultSearchList ? (
+								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorDefaultSearchList.message}`}</p>
+							) : !defaultSearchList?.length ? (
 								<p className="flex items-center justify-center p-4">No results found</p>
 							) : (
-								results.hits.map((route: ISearchItem) => (
-									<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
-								))
-							)
-						) : isLoadingSearchList ? (
-							<p className="flex items-center justify-center gap-1 p-4">
-								Loading
-								<LoadingDots />
-							</p>
-						) : errorSearchList ? (
-							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
-						) : !searchList?.length ? (
-							<p className="flex items-center justify-center p-4">No results found</p>
-						) : (
-							<>
-								{recentSearchList.map((route: ISearchItem) => (
-									<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
-								))}
-								{defaultSearchList.map((route: ISearchItem) => (
-									<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
-								))}
-							</>
-						)}
-					</Ariakit.ComboboxList>
-				</Ariakit.ComboboxProvider>
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
+								<>
+									{recentSearchList.map((route: ISearchItem) => (
+										<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
+									))}
+									{defaultSearchList.map((route: ISearchItem) => (
+										<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
+									))}
+								</>
+							)}
+						</Ariakit.ComboboxList>
+					</Ariakit.ComboboxProvider>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+		</>
 	)
 }
 
-const Desktop = () => {
+export const DesktopSearch = () => {
 	const router = useRouter()
 
-	const { query, refine } = useSearchBox()
-
-	const { results, status, error } = useInstantSearch({ catchError: true })
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
+	const { subscription } = useSubscribe()
+	const hasActiveSubscription = subscription?.status === 'active'
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
@@ -173,7 +180,12 @@ const Desktop = () => {
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [setOpen])
 
-	const { searchList, isLoadingSearchList, errorSearchList, defaultSearchList, recentSearchList } = useSearchList()
+	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
+		useDefaultSearchList()
+
+	const [searchValue, setSearchValue] = useState('')
+	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (
 		<>
@@ -181,7 +193,7 @@ const Desktop = () => {
 				resetValueOnHide
 				setValue={(value) => {
 					startTransition(() => {
-						refine(value)
+						setSearchValue(value)
 					})
 				}}
 				open={open}
@@ -220,29 +232,29 @@ const Desktop = () => {
 					portal
 				>
 					<Ariakit.ComboboxList alwaysVisible>
-						{query ? (
-							status === 'loading' ? (
+						{debouncedSearchValue ? (
+							isLoading ? (
 								<p className="flex items-center justify-center gap-1 p-4">
 									Loading
 									<LoadingDots />
 								</p>
 							) : error ? (
 								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-							) : !results?.hits?.length ? (
+							) : !data?.length ? (
 								<p className="flex items-center justify-center p-4">No results found</p>
 							) : (
-								results.hits.map((route: ISearchItem) => (
+								data.map((route: ISearchItem) => (
 									<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
 								))
 							)
-						) : isLoadingSearchList ? (
+						) : isLoadingDefaultSearchList ? (
 							<p className="flex items-center justify-center gap-1 p-4">
 								Loading
 								<LoadingDots />
 							</p>
-						) : errorSearchList ? (
-							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorSearchList.message}`}</p>
-						) : !searchList?.length ? (
+						) : errorDefaultSearchList ? (
+							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorDefaultSearchList.message}`}</p>
+						) : !defaultSearchList?.length ? (
 							<p className="flex items-center justify-center p-4">No results found</p>
 						) : (
 							<>
@@ -257,17 +269,19 @@ const Desktop = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{!featureFlagsLoading &&
-				hasFeature('llamaai') &&
-				!(router.pathname === '/ai' || router.pathname.startsWith('/ai/')) && (
-					<BasicLink
-						href="/ai"
-						className="mr-auto hidden items-center justify-between gap-[10px] rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
-					>
-						<span className="whitespace-nowrap">Ask LlamaAI</span>
-						<img src="/icons/ask-llama-ai.svg" alt="Ask LlamaAI" className="h-4 w-4 shrink-0 brightness-0" />
-					</BasicLink>
-				)}
+			{!hideLlamaAI.has(router.pathname) && (
+				<BasicLink
+					href={hasActiveSubscription ? '/ai/chat' : '/ai'}
+					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
+					data-umami-event="llamaai-nav-link"
+					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
+				>
+					<svg className="h-4 w-4 shrink-0">
+						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					</svg>
+					<span className="whitespace-nowrap">Ask LlamaAI</span>
+				</BasicLink>
+			)}
 		</>
 	)
 }
@@ -325,14 +339,10 @@ const setRecentSearch = (route: ISearchItem) => {
 	)
 }
 
-const useSearchList = () => {
-	const {
-		data: searchList,
-		isLoading: isLoadingSearchList,
-		error: errorSearchList
-	} = useQuery({
-		queryKey: ['searchlist'],
-		queryFn: getSearchList,
+const useDefaultSearchList = () => {
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['defaultsearchlist'],
+		queryFn: getDefaultSearchList,
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: false,
 		refetchOnWindowFocus: false,
@@ -346,22 +356,32 @@ const useSearchList = () => {
 	)
 
 	const { defaultSearchList, recentSearchList } = useMemo(() => {
+		if (!data || data.length === 0) return { defaultSearchList: [], recentSearchList: [] }
+
 		const recentSearchArray = JSON.parse(recentSearch)
 
 		return {
 			defaultSearchList:
-				searchList?.filter(
-					(route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)
-				) ?? [],
+				data?.filter((route: ISearchItem) => !recentSearchArray.some((r: ISearchItem) => r.route === route.route)) ??
+				[],
 			recentSearchList: recentSearchArray ?? []
 		}
-	}, [searchList, recentSearch])
+	}, [data, recentSearch])
 
 	return {
-		searchList,
-		isLoadingSearchList,
-		errorSearchList,
 		defaultSearchList,
-		recentSearchList
+		recentSearchList,
+		isLoadingDefaultSearchList: isLoading,
+		errorDefaultSearchList: error
 	}
+}
+
+function useSearch(searchValue: string) {
+	return useQuery({
+		queryKey: ['search-list', searchValue],
+		queryFn: () => fetchSearchList(searchValue),
+		enabled: searchValue.length > 0,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false
+	})
 }

@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars*/
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
-import toast from 'react-hot-toast'
 import { useIsClient } from '~/hooks'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
@@ -89,7 +88,7 @@ const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
 
 // Pro Dashboard
 export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS'
-export const LLAMA_AI_WELCOME_DISMISSED = 'LLAMA_AI_WELCOME_DISMISSED'
+export const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
@@ -199,7 +198,7 @@ export function subscribeToPinnedMetrics(callback: () => void) {
 }
 
 const toggleDarkMode = () => {
-	const isDarkMode = getThemeCookie() === 'true'
+	const isDarkMode = getThemeCookie() === 'dark'
 	setThemeCookie(!isDarkMode)
 	// Dispatch both storage event (for localStorage) and a custom theme event
 	window.dispatchEvent(new Event('storage'))
@@ -209,11 +208,11 @@ const toggleDarkMode = () => {
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getThemeCookie() ?? 'true',
-		() => 'true'
+		() => getThemeCookie() ?? 'dark',
+		() => 'dark'
 	)
 
-	const isDarkMode = store === 'true'
+	const isDarkMode = store === 'dark'
 
 	useEffect(() => {
 		if (!isDarkMode) {
@@ -417,6 +416,10 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				const newWatchlist = { ...watchlist }
 				delete newWatchlist[name]
 
+				if (Object.keys(newWatchlist).length === 0) {
+					newWatchlist[DEFAULT_PORTFOLIO_NAME] = {}
+				}
+
 				localStorage.setItem(
 					DEFILLAMA,
 					JSON.stringify({
@@ -527,12 +530,12 @@ export function useLlamaAIWelcome(): [boolean, () => void] {
 		() => '{}'
 	)
 
-	const dismissed = useMemo(() => JSON.parse(store)?.[LLAMA_AI_WELCOME_DISMISSED] ?? false, [store])
+	const shown = useMemo(() => JSON.parse(store)?.[LLAMA_AI_WELCOME_SHOWN] ?? false, [store])
 
-	const setDismissed = () => {
-		localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [LLAMA_AI_WELCOME_DISMISSED]: true }))
+	const setShown = () => {
+		localStorage.setItem(DEFILLAMA, JSON.stringify({ ...JSON.parse(store), [LLAMA_AI_WELCOME_SHOWN]: true }))
 		window.dispatchEvent(new Event('storage'))
 	}
 
-	return [dismissed, setDismissed]
+	return [shown, setShown]
 }

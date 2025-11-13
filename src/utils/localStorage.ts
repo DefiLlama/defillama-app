@@ -1,12 +1,13 @@
-export function setWithExpiry(key, value, ttl) {
+export function setWithExpiry(key: string, value: any, ttl: number) {
 	const item = {
-		value: value,
+		value,
 		expiry: new Date().getTime() + ttl
 	}
+
 	localStorage.setItem(key, JSON.stringify(item))
 }
 
-export function getWithExpiry(key) {
+export function getWithExpiry(key: string) {
 	const itemString = window.localStorage.getItem(key)
 	if (!itemString) return null
 

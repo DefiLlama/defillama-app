@@ -108,6 +108,7 @@ export interface IChainOverviewData {
 		chart: Array<[number, number]>
 		total30d: number
 	} | null
+	chainStablecoins: Array<{ name: string; url: string; symbol: string | null }> | null
 }
 
 export interface ILiteChart {

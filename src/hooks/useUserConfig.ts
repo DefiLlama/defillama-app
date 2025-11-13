@@ -1,15 +1,20 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import debounce from 'lodash/debounce'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
+const DEFILLAMA = 'DEFILLAMA'
+const SYNC_DEBOUNCE_MS = 2000
 
 type UserConfig = Record<string, any>
 
 export function useUserConfig() {
-	const { isAuthenticated, authorizedFetch, user } = useAuthContext()
+	const { isAuthenticated, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
+	const isSyncingRef = useRef(false)
+	const hasInitializedRef = useRef(false)
 
 	const fetchConfig = useCallback(async (): Promise<UserConfig | null> => {
 		if (!isAuthenticated || !authorizedFetch) {
@@ -19,12 +24,34 @@ export function useUserConfig() {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
 			if (response?.ok) {
 				const config = await response.json()
+
+				if (Object.keys(config).length > 0) {
+					isSyncingRef.current = true
+
+					const currentLocal = localStorage.getItem(DEFILLAMA)
+					const localSettings = currentLocal ? JSON.parse(currentLocal) : {}
+					const mergedSettings = { ...localSettings, ...config }
+
+					localStorage.setItem(DEFILLAMA, JSON.stringify(mergedSettings))
+					window.dispatchEvent(new Event('storage'))
+
+					setTimeout(() => {
+						isSyncingRef.current = false
+						hasInitializedRef.current = true
+					}, 100)
+				} else {
+					hasInitializedRef.current = true
+				}
+
 				return config as UserConfig
 			}
 			if (response?.status === 404) {
+				hasInitializedRef.current = true
 				return {}
 			}
-		} catch (error) {
+
+			return null
+		} catch {
 			return null
 		}
 	}, [isAuthenticated, authorizedFetch])
@@ -35,7 +62,7 @@ export function useUserConfig() {
 				return
 			}
 			try {
-				const response = await authorizedFetch(`${AUTH_SERVER}/user/config`, {
+				await authorizedFetch(`${AUTH_SERVER}/user/config`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
@@ -44,7 +71,7 @@ export function useUserConfig() {
 				})
 
 				return config
-			} catch (error) {
+			} catch {
 				return
 			}
 		},
@@ -74,6 +101,46 @@ export function useUserConfig() {
 			console.log('Mutation failed:', error.message)
 		}
 	})
+
+	const syncSettings = useMemo(
+		() =>
+			debounce(async () => {
+				try {
+					const currentSettings = localStorage.getItem(DEFILLAMA)
+					if (!currentSettings) return
+
+					const settings = JSON.parse(currentSettings)
+					await mutation.mutateAsync(settings)
+				} catch (error) {
+					console.error('Failed to sync settings:', error)
+				}
+			}, SYNC_DEBOUNCE_MS),
+		[mutation]
+	)
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			hasInitializedRef.current = false
+			syncSettings.cancel()
+			return
+		}
+
+		const handleStorageChange = () => {
+			if (isSyncingRef.current || !hasInitializedRef.current) {
+				return
+			}
+			syncSettings()
+		}
+
+		window.addEventListener('storage', handleStorageChange)
+		window.addEventListener('themeChange', handleStorageChange)
+
+		return () => {
+			window.removeEventListener('storage', handleStorageChange)
+			window.removeEventListener('themeChange', handleStorageChange)
+			syncSettings.cancel()
+		}
+	}, [isAuthenticated, syncSettings])
 
 	return {
 		userConfig,

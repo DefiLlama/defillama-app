@@ -11,25 +11,36 @@ export default function Document() {
 				<link rel="manifest" href="/manifest.json" />
 				<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
-				<link href="/icons/v25.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
+				<link href="/icons/v27.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `
 							(function() {
+								const VALID_THEME_VALUES = ['dark', 'light'];
+								
+								function sanitizeThemeValue(value) {
+									if (!value) return 'dark';
+									const trimmed = String(value).trim();
+									return VALID_THEME_VALUES.includes(trimmed) ? trimmed : 'dark';
+								}
+								
 								function parseThemeCookie(cookieString) {
-									if (!cookieString) return 'true';
+									if (!cookieString) return 'dark';
 									
 									const cookies = cookieString.split(';');
 									const themeCookie = cookies.find(cookie => cookie.trim().startsWith('defillama-theme='));
 									
 									if (themeCookie) {
-										return themeCookie.split('=')[1] || 'true';
+										const parts = themeCookie.split('=');
+										if (parts.length >= 2 && parts[1]) {
+											return sanitizeThemeValue(parts[1]);
+										}
 									}
 									
-									return 'true';
+									return 'dark';
 								}
 								
-								const isDarkMode = parseThemeCookie(document.cookie) === 'true';
+								const isDarkMode = parseThemeCookie(document.cookie) === 'dark';
 								
 								if (!isDarkMode) {
 									document.documentElement.classList.remove('dark');

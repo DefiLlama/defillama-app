@@ -28,7 +28,7 @@ import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/colum
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { formatProtocolsList } from '~/hooks/data/defi'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { downloadCSV, getPercentChange } from '~/utils'
+import { downloadCSV, formatNum, getPercentChange } from '~/utils'
 import { CustomView, TableFilters } from '../../types'
 
 interface CustomColumn {
@@ -133,7 +133,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let mcaptvl = null
 	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
 	if (tvl && finalMcap) {
-		mcaptvl = +(finalMcap / tvl).toFixed(2)
+		mcaptvl = +formatNum(+finalMcap.toFixed(2) / +tvl.toFixed(2))
 	}
 
 	const oracleSet = new Set<string>()
@@ -240,7 +240,6 @@ export function useProTable(
 
 		// Apply filters
 		if (filters) {
-			// Convert arrays to Sets for O(1) lookup performance
 			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
 			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
 			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null

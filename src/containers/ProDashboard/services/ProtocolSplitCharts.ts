@@ -178,7 +178,8 @@ export default class SProtocolSplitCharts {
 		chains?: string[],
 		limit: number = 5,
 		filterMode: 'include' | 'exclude' = 'include',
-		chainCategories?: string[]
+		chainCategories?: string[],
+		protocolCategories?: string[]
 	): Promise<any> {
 		const params = new URLSearchParams()
 		if (protocol) params.append('protocol', protocol)
@@ -195,6 +196,9 @@ export default class SProtocolSplitCharts {
 		}
 		if (chainCategories && chainCategories.length > 0) {
 			params.append('chainCategories', chainCategories.join(','))
+		}
+		if (protocolCategories && protocolCategories.length > 0) {
+			params.append('protocolCategories', protocolCategories.join(','))
 		}
 
 		try {

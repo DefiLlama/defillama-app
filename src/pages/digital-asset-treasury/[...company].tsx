@@ -2,7 +2,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import { maxAgeForNext } from '~/api'
-import { ISingleSeriesChartProps } from '~/components/ECharts/types'
+import { ICandlestickChartProps, ILineAndBarChartProps, ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -18,6 +18,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 const SingleSeriesChart = lazy(
 	() => import('~/components/ECharts/SingleSeriesChart')
 ) as React.FC<ISingleSeriesChartProps>
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
 
 interface IDigitalAssetTreasuryCompany {
 	ticker: string
@@ -70,6 +72,32 @@ interface IDigitalAssetTreasuryCompany {
 	max_mNAV?: number | null
 	price?: number | null
 	priceChange24h?: number | null
+	mnav?: {
+		history: Array<{
+			date: string
+			stockPrice: number
+			totalAssetValue: number
+			fd_realized: number
+			fd_realistic: number
+			fd_max: number
+			mcap_realized: number
+			mcap_realistic: number
+			mcap_max: number
+			mNAV_realized: number
+			mNAV_realistic: number
+			mNAV_max: number
+		}>
+	}
+	ohlcv?: {
+		history: Array<{
+			date: string
+			open: number
+			high: number
+			low: number
+			close: number
+			volume: number
+		}>
+	}
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -119,6 +147,82 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		})
 
+		const mNAVChart: ILineAndBarChartProps['charts'] = {
+			'Realized mNAV': {
+				name: 'Realized mNAV',
+				stack: 'Realized mNAV',
+				type: 'line',
+				color: CHART_COLORS[0],
+				data: []
+			},
+			'Realistic mNAV': {
+				name: 'Realistic mNAV',
+				stack: 'Realistic mNAV',
+				type: 'line',
+				color: CHART_COLORS[1],
+				data: []
+			},
+			'Max mNAV': {
+				name: 'Max mNAV',
+				stack: 'Max mNAV',
+				type: 'line',
+				color: CHART_COLORS[2],
+				data: []
+			}
+		}
+
+		const fdChart: ILineAndBarChartProps['charts'] = {
+			'FD Realized': {
+				name: 'FD Realized',
+				stack: 'FD Realized',
+				type: 'line',
+				color: CHART_COLORS[3],
+				data: []
+			},
+			'FD Realistic': {
+				name: 'FD Realistic',
+				stack: 'FD Realistic',
+				type: 'line',
+				color: CHART_COLORS[4],
+				data: []
+			},
+			'FD Max': {
+				name: 'FD Max',
+				stack: 'FD Max',
+				type: 'line',
+				color: CHART_COLORS[5],
+				data: []
+			}
+		}
+
+		const totalAssetValueChart: ILineAndBarChartProps['charts'] = {
+			'Total Asset Value': {
+				name: 'Total Asset Value',
+				stack: 'Total Asset Value',
+				type: 'line',
+				color: CHART_COLORS[6],
+				data: []
+			}
+		}
+
+		for (const item of data.mnav?.history ?? []) {
+			const date = new Date(item.date).getTime()
+			mNAVChart['Realized mNAV'].data.push([date, item.mNAV_realized])
+			mNAVChart['Realistic mNAV'].data.push([date, item.mNAV_realistic])
+			mNAVChart['Max mNAV'].data.push([date, item.mNAV_max])
+			fdChart['FD Realized'].data.push([date, item.fd_realized])
+			fdChart['FD Realistic'].data.push([date, item.fd_realistic])
+			fdChart['FD Max'].data.push([date, item.fd_max])
+			totalAssetValueChart['Total Asset Value'].data.push([date, item.totalAssetValue])
+		}
+
+		const ohlcvChartData = []
+
+		for (const item of data.ohlcv?.history ?? []) {
+			const date = new Date(item.date).getTime()
+			ohlcvChartData.push([date, item.open, item.close, item.low, item.high, item.volume])
+		}
+
 		return {
 			props: {
 				...data,
@@ -133,7 +237,9 @@ export const getStaticProps = withPerformanceLogging(
 						avgPrice: avgPrice ?? null
 					})
 				),
-				chartByAsset
+				chartByAsset,
+				...(data.mnav?.history?.length > 0 ? { mNAVChart, fdChart, totalAssetValueChart } : {}),
+				...(data.ohlcv?.history?.length > 0 ? { ohlcvChartData } : {})
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -169,6 +275,10 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 		ticker: string
 		chart: Array<[number, number, number, number | null, number | null]>
 	}>
+	mNAVChart?: ILineAndBarChartProps['charts']
+	fdChart?: ILineAndBarChartProps['charts']
+	totalAssetValueChart?: ILineAndBarChartProps['charts']
+	ohlcvChartData?: Array<[number, number, number, number, number, number]>
 }
 
 export default function DigitalAssetTreasury(props: IProps) {
@@ -330,7 +440,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 							</p>
 						) : null}
 					</div>
-					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+					<BasicLink href="/report-error" className="mt-auto mr-auto pt-4 text-left text-(--text-form) underline">
 						Report incorrect data
 					</BasicLink>
 				</div>
@@ -360,6 +470,41 @@ export default function DigitalAssetTreasury(props: IProps) {
 						/>
 					</Suspense>
 				</div>
+			</div>
+			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+				{props.mNAVChart != null && (
+					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="p-2 text-lg font-bold">mNAV</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<LineAndBarChart charts={props.mNAVChart} valueSymbol="" hideDefaultLegend={false} />
+						</Suspense>
+					</div>
+				)}
+				{props.fdChart != null && (
+					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="p-2 text-lg font-bold">Fully Diluted Shares</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<LineAndBarChart charts={props.fdChart} valueSymbol="" hideDefaultLegend={false} />
+						</Suspense>
+					</div>
+				)}
+				{props.ohlcvChartData != null && (
+					<div className="col-span-full min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<h2 className="p-2 text-lg font-bold">Share Price</h2>
+						<Suspense fallback={<div className="h-[480px]" />}>
+							<CandlestickChart data={props.ohlcvChartData} />
+						</Suspense>
+						<p className="p-2 text-xs text-(--text-disabled)">Source: Yahoo Finance</p>
+					</div>
+				)}
+				{props.totalAssetValueChart != null && (
+					<div className="col-span-full min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<h2 className="p-2 text-lg font-bold">Total Asset Value</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<LineAndBarChart charts={props.totalAssetValueChart} valueSymbol="$" />
+						</Suspense>
+					</div>
+				)}
 			</div>
 			<TableWithSearch
 				data={props.transactions}

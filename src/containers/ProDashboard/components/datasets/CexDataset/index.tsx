@@ -20,6 +20,7 @@ import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
 import { cexDatasetColumns } from './columns'
 import { useCexData } from './useCexData'
+import { TablePagination } from '../../ProTable/TablePagination'
 
 export function CexDataset() {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'cleanTvl', desc: true }])
@@ -175,21 +176,7 @@ export function CexDataset() {
 				</div>
 			</div>
 			<TableBody table={instance} />
-			<div className="mt-2 flex w-full items-center justify-between">
-				<TagGroup
-					selectedValue={null}
-					setValue={(val) => (val === 'Next' ? instance.nextPage() : instance.previousPage())}
-					values={['Previous', 'Next']}
-				/>
-				<div className="flex items-center">
-					<div className="mr-2 text-xs">Per page</div>
-					<TagGroup
-						selectedValue={String(pagination.pageSize)}
-						values={['10', '30', '50']}
-						setValue={(val) => setPagination((prev) => ({ ...prev, pageSize: Number(val), pageIndex: 0 }))}
-					/>
-				</div>
-			</div>
+			<TablePagination table={instance} />
 		</div>
 	)
 }
