@@ -312,7 +312,7 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'BribeRevenue' }))
+					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.tokenTax
