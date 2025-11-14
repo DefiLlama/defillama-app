@@ -13,6 +13,54 @@ export const convertToNumberFormat = (data: any[], convertToSeconds: boolean = f
 	])
 }
 
+export const normalizeHourlyToDaily = (
+	data: [number, number][],
+	aggregationType: 'last' | 'sum' = 'last'
+): [number, number][] => {
+	if (!data || data.length === 0) return []
+	if (data.length === 1) return data
+
+	const sortedData = [...data].sort((a, b) => a[0] - b[0])
+
+	const avgTimeDiff =
+		sortedData.slice(0, Math.min(10, sortedData.length - 1)).reduce((sum, point, idx, arr) => {
+			if (idx === arr.length - 1) return sum
+			return sum + (arr[idx + 1][0] - point[0])
+		}, 0) / Math.min(9, sortedData.length - 1)
+
+	const isHourlyData = avgTimeDiff < 24 * 60 * 60 && avgTimeDiff > 30 * 60
+
+	if (!isHourlyData) {
+		return data
+	}
+
+	const dailyData: { [dayKey: string]: { values: number[]; lastTimestamp: number; lastValue: number } } = {}
+
+	sortedData.forEach(([timestamp, value]) => {
+		const date = new Date(timestamp * 1000)
+		date.setUTCHours(0, 0, 0, 0)
+		const dayKey = (date.getTime() / 1000).toString()
+
+		if (!dailyData[dayKey]) {
+			dailyData[dayKey] = { values: [], lastTimestamp: timestamp, lastValue: value }
+		}
+
+		dailyData[dayKey].values.push(value)
+		if (timestamp >= dailyData[dayKey].lastTimestamp) {
+			dailyData[dayKey].lastTimestamp = timestamp
+			dailyData[dayKey].lastValue = value
+		}
+	})
+
+	return Object.entries(dailyData)
+		.map(([dayTimestamp, { values, lastValue }]) => {
+			const aggregatedValue = aggregationType === 'sum' ? values.reduce((sum, v) => sum + v, 0) : lastValue
+
+			return [parseInt(dayTimestamp), aggregatedValue] as [number, number]
+		})
+		.sort((a, b) => a[0] - b[0])
+}
+
 export const getStartOfWeek = (date: Date): Date => {
 	const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate())
 	const day = dt.getDay()
