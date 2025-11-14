@@ -34,21 +34,21 @@ export function SubscribeAPICard({
 	return (
 		<>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">API</h2>
-			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
-				<div className="flex items-center">
-					<span className="bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-center text-2xl font-medium text-transparent">
-						{displayPrice} USD
+			<div className="relative z-10 mt-2 flex flex-col items-center justify-center">
+				<div className="flex items-baseline gap-1">
+					<span className="bg-linear-to-r from-[#5C5CF9] to-[#8a8aff] bg-clip-text text-center text-3xl font-semibold text-transparent">
+						${displayPrice}
 					</span>
-					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
+					<span className="text-base text-[#8a8c90]">{displayPeriod}</span>
 				</div>
 				{billingInterval === 'year' && (
-					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
+					<span className="mt-1 text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
 				)}
 			</div>
 			{billingInterval === 'month' && (
-				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+				<p className="relative z-10 mt-2 text-center text-sm text-[#8a8c90]">Multiple payment options</p>
 			)}
-			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
+			<ul className="mx-auto mb-auto flex w-full flex-col gap-3.5 py-7 text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 					<span>All features included in Pro tier</span>
@@ -65,41 +65,41 @@ export function SubscribeAPICard({
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 					<span>Priority support</span>
 				</li>
-				<p className="px-6.5 font-medium">
+				<p className="px-6.5 text-base font-semibold">
 					<a href="https://api-docs.defillama.com/" target="_blank" rel="noreferrer noopener" className="underline">
 						Pro API
 					</a>{' '}
 					limits:
 				</p>
-				<li className="flex flex-col gap-2 px-6.5">
+				<li className="flex flex-col gap-2 px-6.5 text-sm">
 					<span>1000 requests/minute</span>
 				</li>
-				<li className="flex flex-col gap-2 px-6.5">
+				<li className="flex flex-col gap-2 px-6.5 text-sm">
 					<span>1M calls/month</span>
 				</li>
-				<li className="flex flex-col gap-2 px-6.5">
+				<li className="flex flex-col gap-2 px-6.5 text-sm">
 					<span>$0.60 per 1,000 additional calls after 1M limit</span>
 				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active && !isLegacyActive ? (
 					<div className="flex flex-col gap-2">
-						<span className="text-center font-bold text-green-400">Current Plan</span>
+						<span className="text-center text-base font-bold text-green-400">Current Plan</span>
 						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
 							<div className="flex flex-col gap-2">
 								<button
-									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
+									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-6 py-3.5 text-base font-semibold text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
 									onClick={handleUpgradeToYearly}
 									disabled={loading === 'stripe'}
 								>
 									{loading === 'stripe' ? 'Processing...' : 'Upgrade to Yearly'}
 								</button>
-								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
+								<p className="text-center text-sm text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
 						)}
 						{onCancelSubscription && (
 							<button
-								className="mt-2 w-full rounded-lg bg-[#222429] px-4 py-2 text-white transition-colors hover:bg-[#39393E]"
+								className="mt-2 w-full rounded-lg bg-[#222429] px-6 py-3 text-base font-medium text-white transition-colors hover:bg-[#39393E]"
 								onClick={onCancelSubscription}
 							>
 								Cancel Subscription

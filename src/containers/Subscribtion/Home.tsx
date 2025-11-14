@@ -76,8 +76,8 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 
 	return (
 		<>
-			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-3 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
-				<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
+			<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 pb-16 xl:max-w-7xl 2xl:max-w-[1440px]">
+				<div className="relative mx-auto aspect-square h-[120px] w-[120px] rounded-full object-contain">
 					<div
 						style={{
 							filter: 'blur(64px)',
@@ -87,20 +87,21 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					/>
 					<img
 						src="/icons/llama.webp"
-						height={118}
-						width={118}
+						height={120}
+						width={120}
 						className="z-10 mx-auto aspect-square rounded-full object-contain"
 						alt=""
 					/>
 				</div>
-				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
+				<h1 className="text-center text-[2.5rem] leading-tight font-extrabold md:text-[3rem]">DefiLlama</h1>
 				{!isSubscribed && (
-					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
-						<p className="text-center text-[#919296]">
-							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and more.
+					<div className="mx-auto flex max-w-[640px] flex-col gap-5 pt-2">
+						<p className="text-center text-base leading-relaxed text-[#919296] md:text-lg">
+							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
+							more.
 						</p>
 						{isAuthenticated ? (
-							<div className="mx-auto w-full max-w-[400px]">
+							<div className="mx-auto w-full max-w-[420px]">
 								<button
 									onClick={() => {
 										const proCardElement = document.querySelector('[data-plan="pro"]')
@@ -108,29 +109,29 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 											proCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
 										}
 									}}
-									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"
+									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-4 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-xl hover:shadow-[#5C5CF9]/30"
 								>
 									Get Pro for ${billingInterval === 'year' ? '490' : '49'}
 									{billingInterval === 'year' ? '/year' : '/month'}
 								</button>
-								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+								<p className="mt-3 text-center text-sm text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
 								<button
 									onClick={() => router.push('/account')}
-									className="mt-3 flex w-full items-center justify-center gap-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
+									className="mt-4 flex w-full items-center justify-center gap-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
 								>
 									<Icon name="settings" height={14} width={14} />
 									Manage Account
 								</button>
 							</div>
 						) : (
-							<div className="mx-auto w-full max-w-[400px]">
+							<div className="mx-auto w-full max-w-[420px]">
 								<SignIn
 									text={`Get Pro for $${billingInterval === 'year' ? '490' : '49'}${billingInterval === 'year' ? '/year' : '/month'}`}
-									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"
+									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-4 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-xl hover:shadow-[#5C5CF9]/30"
 									pendingActionMessage="Sign in or create an account to subscribe to the Pro plan."
 									defaultFlow="signup"
 								/>
-								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
+								<p className="mt-3 text-center text-sm text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
 							</div>
 						)}
 					</div>
@@ -242,16 +243,16 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				/>
 
 				{isAuthenticated && isSubscribed && (
-					<div className="mx-auto mt-6 mb-6 flex w-full max-w-[600px] flex-col items-center gap-4">
-						<div className="flex flex-col items-center gap-4 rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
+					<div className="mx-auto mt-8 mb-8 flex w-full max-w-[640px] flex-col items-center gap-5">
+						<div className="flex flex-col items-center gap-5 rounded-xl border border-[#39393E] bg-[#1a1b1f] p-10 text-center">
 							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
 								<Icon name="check" height={32} width={32} className="text-green-400" />
 							</div>
 							<h2 className="text-2xl font-bold text-white">You're subscribed!</h2>
-							<p className="text-[#8a8c90]">Manage your subscription and view your account details.</p>
+							<p className="text-base text-[#8a8c90]">Manage your subscription and view your account details.</p>
 							<button
 								onClick={() => router.push('/account')}
-								className="rounded-lg bg-[#5C5CF9] px-8 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+								className="rounded-lg bg-[#5C5CF9] px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#4A4AF0]"
 							>
 								Go to Account
 							</button>
@@ -260,11 +261,11 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				)}
 
 				<div className="relative">
-					<div className="relative z-10 mb-6 flex items-center justify-center">
-						<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1 backdrop-blur-sm">
+					<div className="relative z-10 mb-8 flex items-center justify-center">
+						<div className="relative inline-flex items-center rounded-xl bg-[#22242930] p-1.5 backdrop-blur-sm">
 							<button
 								onClick={() => setBillingInterval('month')}
-								className={`relative z-10 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+								className={`relative z-10 rounded-lg px-7 py-2.5 text-sm font-semibold transition-all duration-200 ${
 									billingInterval === 'month'
 										? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
 										: 'text-[#8a8c90] hover:text-white'
@@ -274,20 +275,20 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							</button>
 							<button
 								onClick={() => setBillingInterval('year')}
-								className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
+								className={`relative z-10 flex items-center gap-2 rounded-lg px-7 py-2.5 text-sm font-semibold transition-all duration-200 ${
 									billingInterval === 'year'
 										? 'bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
 										: 'text-[#8a8c90] hover:text-white'
 								}`}
 							>
 								Yearly
-								<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">
+								<span className="rounded-md bg-[#7B7BFF] px-2.5 py-0.5 text-xs font-semibold text-white">
 									2 months free
 								</span>
 							</button>
 						</div>
 					</div>
-					<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
+					<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-5 lg:grid-cols-3">
 						<div
 							data-plan="pro"
 							className={`relative flex flex-col overflow-hidden rounded-xl border-2 border-[#5C5CF9]/50 bg-[#22242930] px-4 py-6 shadow-lg shadow-[#5C5CF9]/20 backdrop-blur-md transition-all duration-300 lg:order-2 lg:py-8 lg:hover:scale-[1.02] ${isAuthenticated ? 'order-1' : 'order-2'}`}
@@ -318,7 +319,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							/>
 						</div>
 					</div>
-					<div className="relative z-10 mt-4 rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
+					<div className="relative z-10 mt-5 rounded-xl border border-[#4a4a50] bg-[#22242930] px-5 py-8 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02]">
 						<span className="mx-auto flex w-full flex-col md:w-auto md:max-w-[400px]">
 							<h2 className="text-center text-[2rem] font-extrabold whitespace-nowrap">Enterprise</h2>
 							<SubscribeEnterpriseCard />
@@ -326,9 +327,9 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					</div>
 
 					{isAuthenticated && !isSubscribed && (
-						<div className="relative z-10 mt-8 w-full">
-							<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-								<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
+						<div className="relative z-10 mt-10 w-full">
+							<h3 className="mb-5 flex items-center gap-2 text-xl font-semibold text-white">
+								<Icon name="users" height={20} width={20} className="text-[#5C5CF9]" />
 								Manage Account
 							</h3>
 							<AccountStatus
@@ -342,26 +343,95 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 					)}
 				</div>
 			</div>
-			<div className="mx-auto mb-[64px] flex w-full max-w-6xl flex-col items-center justify-center gap-[64px] px-5 xl:max-w-7xl 2xl:max-w-[1440px]">
-				<h2 className="text-[32px] font-extrabold">They trust us</h2>
+			<div className="mx-auto mb-20 flex w-full max-w-6xl flex-col items-center justify-center gap-4 px-5 xl:max-w-7xl 2xl:max-w-[1440px]">
+				<h2 className="text-3xl font-extrabold md:text-4xl">Trusted By</h2>
 
-				<div className="grid grid-cols-2 place-items-center gap-20 md:grid-cols-4 lg:grid-cols-5">
-					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-15 object-contain" />
-					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
-					<span className="flex flex-col gap-2">
-						<img src="/icons/ecb-1.svg" alt="" className="h-7 object-contain" />
-						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
-					</span>
-					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-15 object-contain" />
-					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[48px] object-contain" />
-					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-15 object-contain" />
-					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
-					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
-					<img src="/icons/boe.svg" alt="Bank of England" className="h-7 object-contain" />
-					<img src="/icons/binance.svg" alt="Binance" className="h-7 object-contain" />
-					<img src="/icons/okx.svg" alt="OKX" className="h-7 object-contain" />
-					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
-					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
+				<div className="relative w-full overflow-hidden rounded-2xl border border-[#39393E] bg-[#1a1b1f]/50 py-8">
+					<div className="flex flex-col gap-8">
+						<div className="flex flex-col gap-8">
+							<div className="flex flex-wrap items-center justify-center gap-8 px-8 md:flex-nowrap md:gap-16">
+								<img
+									src="/icons/binance.svg"
+									alt=""
+									className="top-1 left-4 h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+								<img
+									src="/icons/coinbase.svg"
+									alt=""
+									className="h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+								/>
+							</div>
+							<div className="flex flex-wrap items-center justify-center gap-8 px-8 md:flex-nowrap md:gap-16">
+								<img
+									src="/icons/chainlink.svg"
+									alt=""
+									className="h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+								/>
+								<img
+									src="/icons/okx.svg"
+									alt=""
+									className="right-3 h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+							</div>
+							<div className="flex flex-wrap items-center justify-center gap-8 px-8 md:flex-nowrap md:gap-16">
+								<div className="left-2 flex flex-col gap-2 md:relative">
+									<img
+										src="/icons/ecb-1.svg"
+										alt=""
+										className="h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+									/>
+									<img
+										src="/icons/ecb-2.svg"
+										alt=""
+										className="h-3 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+									/>
+								</div>
+								<img
+									src="/icons/boe.svg"
+									alt=""
+									className="top-2 right-1.5 h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+							</div>
+							<div className="flex flex-wrap items-center justify-center gap-8 px-8 md:flex-nowrap md:gap-16">
+								<img
+									src="/icons/bis.svg"
+									alt=""
+									className="left-6 h-14 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+								<img
+									src="/icons/boc.svg"
+									alt=""
+									className="left-2 h-16 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+							</div>
+							<div className="flex flex-wrap items-center justify-center gap-8 px-8 md:flex-nowrap md:gap-16">
+								<img
+									src="/icons/us-treasury.svg"
+									alt=""
+									className="left-3 h-16 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+								<img
+									src="/icons/mas.svg"
+									alt=""
+									className="right-0.5 h-16 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 md:relative"
+								/>
+							</div>
+							<div className="flex flex-wrap items-center justify-center gap-8 px-12 md:flex-nowrap md:gap-16">
+								<img
+									src="/icons/imf.svg"
+									alt=""
+									className="h-8 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+								/>
+							</div>
+							<div className="flex flex-wrap items-center justify-center gap-8 px-8 md:flex-nowrap md:gap-16">
+								<img
+									src="/icons/nber.svg"
+									alt=""
+									className="h-16 object-contain opacity-70 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0"
+								/>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 			{returnUrl && (
