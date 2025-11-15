@@ -104,15 +104,16 @@ const breakdownColor = (type) => {
 }
 
 export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
-	const res2: IInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
+	const res: IInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
 
-	const allAssets = [{ label: 'All', to: '/digital-asset-treasuries' }]
+	const allAssets = Object.keys(res.assetMetadata).sort(
+		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
+	)
 	const colorByAsset = {}
 	let i = 0
-	const colors = getNDistinctColors(Object.keys(res2.assetMetadata).length + 7).filter((color) => color !== '#673AB7')
-	for (const asset in res2.assetMetadata) {
-		allAssets.push({ label: res2.assetMetadata[asset].name, to: `/digital-asset-treasuries/${asset}` })
-		const color = breakdownColor(res2.assetMetadata[asset].name)
+	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
+	for (const asset in res.assetMetadata) {
+		const color = breakdownColor(res.assetMetadata[asset].name)
 		if (color) {
 			colorByAsset[asset] = color
 		} else {
@@ -155,15 +156,18 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	}
 
 	return {
-		allAssets,
-		institutions: res2.institutions.map((institution) => {
-			const metadata = res2.institutionMetadata[institution.institutionId]
+		allAssets: [
+			{ label: 'All', to: '/digital-asset-treasuries' },
+			...allAssets.map((asset) => ({ label: res.assetMetadata[asset].name, to: `/digital-asset-treasuries/${asset}` }))
+		],
+		institutions: res.institutions.map((institution) => {
+			const metadata = res.institutionMetadata[institution.institutionId]
 			return {
 				...metadata,
 				holdings: Object.entries(metadata.holdings)
 					.map(([asset, holding]) => ({
-						name: res2.assetMetadata[asset].name,
-						ticker: res2.assetMetadata[asset].ticker,
+						name: res.assetMetadata[asset].name,
+						ticker: res.assetMetadata[asset].ticker,
 						amount: holding.amount,
 						cost: holding.cost ?? null,
 						usdValue: holding.usdValue ?? null,
