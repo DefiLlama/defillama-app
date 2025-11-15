@@ -1,4 +1,6 @@
+import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { TRADFI_API } from '~/constants'
+import { oldBlue } from '~/constants/colors'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -183,5 +185,71 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 			} as IInstitutionOverview
 		}),
 		dailyFlowsByAsset
+	}
+}
+
+interface IInstitutionOverviewByAsset
+	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
+	realized_mNAV: number | null
+	realistic_mNAV: number | null
+	max_mNAV: number | null
+	holdings: IDATInstitutions['institutionMetadata'][number]['holdings'][string]
+}
+
+export interface IDATOverviewDataByAssetProps {
+	institutions: IInstitutionOverviewByAsset[]
+	asset: string
+	metadata: IDATInstitutions['assetMetadata'][string]
+	allAssets: Array<{ label: string; to: string }>
+	dailyFlowsChart: ILineAndBarChartProps['charts']
+}
+
+export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOverviewDataByAssetProps | null> {
+	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
+	const allAssets = Object.keys(res.assetMetadata).sort(
+		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
+	)
+	const metadata = res.assetMetadata[asset]
+	const institutions = res.assets[asset]
+
+	if (!metadata || !institutions) {
+		return null
+	}
+
+	return {
+		institutions: institutions.map((institution) => {
+			const metadata = res.institutionMetadata[institution.institutionId]
+			return {
+				institutionId: metadata.institutionId,
+				ticker: metadata.ticker,
+				name: metadata.name,
+				type: metadata.type,
+				price: metadata.price,
+				priceChange24h: metadata.priceChange24h,
+				volume24h: metadata.volume24h,
+				mcapRealized: metadata.mcapRealized,
+				mcapRealistic: metadata.mcapRealistic,
+				mcapMax: metadata.mcapMax,
+				holdings: metadata.holdings[asset]
+			} as IInstitutionOverviewByAsset
+		}),
+		asset,
+		metadata,
+		allAssets: [
+			{ label: 'All', to: '/digital-asset-treasuries' },
+			...allAssets.map((asset) => ({
+				label: res.assetMetadata[asset].name,
+				to: `/digital-asset-treasuries/${asset}`
+			}))
+		],
+		dailyFlowsChart: {
+			[metadata.name]: {
+				name: metadata.name,
+				stack: metadata.name,
+				type: 'bar',
+				color: oldBlue,
+				data: res.flows[asset] as any
+			}
+		}
 	}
 }

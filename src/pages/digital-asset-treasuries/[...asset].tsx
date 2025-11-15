@@ -8,22 +8,13 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
-import { oldBlue } from '~/constants/colors'
-import { IDATInstitutions } from '~/containers/DAT/queries'
+import { getDATOverviewDataByAsset, IDATInstitutions, IDATOverviewDataByAssetProps } from '~/containers/DAT/queries'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
-
-interface IInstitution
-	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
-	realized_mNAV: number | null
-	realistic_mNAV: number | null
-	max_mNAV: number | null
-	holdings: IDATInstitutions['institutionMetadata'][number]['holdings'][string]
-}
 
 export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasuries/[...asset]',
@@ -34,54 +25,14 @@ export const getStaticProps = withPerformanceLogging(
 	}) => {
 		const asset = slug(assetName)
 
-		const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
-		const allAssets = Object.keys(res.assetMetadata).sort(
-			(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-		)
-		const metadata = res.assetMetadata[asset]
-		const institutions = res.assets[asset]
+		const props = await getDATOverviewDataByAsset(asset)
 
-		if (!metadata || !institutions) {
+		if (!props) {
 			return { notFound: true, props: null }
 		}
 
 		return {
-			props: {
-				institutions: institutions.map((institution) => {
-					const metadata = res.institutionMetadata[institution.institutionId]
-					return {
-						institutionId: metadata.institutionId,
-						ticker: metadata.ticker,
-						name: metadata.name,
-						type: metadata.type,
-						price: metadata.price,
-						priceChange24h: metadata.priceChange24h,
-						volume24h: metadata.volume24h,
-						mcapRealized: metadata.mcapRealized,
-						mcapRealistic: metadata.mcapRealistic,
-						mcapMax: metadata.mcapMax,
-						holdings: metadata.holdings[asset]
-					} as IInstitution
-				}),
-				asset,
-				metadata,
-				allAssets: [
-					{ label: 'All', to: '/digital-asset-treasuries' },
-					...allAssets.map((asset) => ({
-						label: res.assetMetadata[asset].name,
-						to: `/digital-asset-treasuries/${asset}`
-					}))
-				],
-				dailyFlowsChart: {
-					[metadata.name]: {
-						name: metadata.name,
-						stack: metadata.name,
-						type: 'bar',
-						color: oldBlue,
-						data: res.flows[asset]
-					}
-				}
-			},
+			props,
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -101,7 +52,11 @@ export async function getStaticPaths() {
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
-const prepareAssetBreakdownCsv = (institutions: IInstitution[], name: string, symbol: string) => {
+const prepareAssetBreakdownCsv = (
+	institutions: IDATOverviewDataByAssetProps['institutions'],
+	name: string,
+	symbol: string
+) => {
 	const headers = [
 		'Institution',
 		'Ticker',
@@ -151,13 +106,7 @@ export default function TreasuriesByAsset({
 	metadata,
 	dailyFlowsChart,
 	institutions
-}: {
-	asset: string
-	allAssets: Array<{ label: string; to: string }>
-	metadata: IDATInstitutions['assetMetadata'][string]
-	dailyFlowsChart: ILineAndBarChartProps['charts']
-	institutions: IInstitution[]
-}) {
+}: IDATOverviewDataByAssetProps) {
 	return (
 		<Layout
 			title={`${metadata.name} Treasury Holdings - DefiLlama`}
@@ -229,7 +178,13 @@ export default function TreasuriesByAsset({
 	)
 }
 
-const columns = ({ name, symbol }: { name: string; symbol: string }): ColumnDef<IInstitution>[] => [
+const columns = ({
+	name,
+	symbol
+}: {
+	name: string
+	symbol: string
+}): ColumnDef<IDATOverviewDataByAssetProps['institutions'][number]>[] => [
 	{
 		header: 'Institution',
 		accessorKey: 'name',
