@@ -2,9 +2,9 @@ import { TRADFI_API } from '~/constants'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
-interface IInstitutions {
+export interface IDATInstitutions {
 	institutionMetadata: {
-		[id: string]: {
+		[institutionId: number]: {
 			institutionId: number
 			ticker: string
 			name: string
@@ -43,9 +43,13 @@ interface IInstitutions {
 		}
 	}
 	institutions: Array<{ institutionId: number; totalUsdValue: number; totalCost: number }>
-	assets: Array<{ institutionId: number; usdValue: number; amount: number }>
+	assets: {
+		[asset: string]: Array<{ institutionId: number; usdValue: number; amount: number }>
+	}
 	totalCompanies: number
-	flows: Array<[number, number, number, number]> // [timestamp, net, inflow, outflow]
+	flows: {
+		[asset: string]: Array<[number, number, number, number]> // [timestamp, net, inflow, outflow]
+	}
 	mNAV: {
 		[asset: string]: {
 			[company: string]: Array<[number, number, number, number]> // [timestamp, mNAV_realized, mNAV_realistic, mNAV_max]
@@ -53,7 +57,7 @@ interface IInstitutions {
 	}
 }
 
-interface IInstitutionOverview extends Omit<IInstitutions['institutionMetadata'][number], 'holdings'> {
+interface IInstitutionOverview extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings'> {
 	realized_mNAV: number | null
 	realistic_mNAV: number | null
 	max_mNAV: number | null
@@ -104,7 +108,7 @@ const breakdownColor = (type) => {
 }
 
 export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
-	const res: IInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
+	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
 
 	const allAssets = Object.keys(res.assetMetadata).sort(
 		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)

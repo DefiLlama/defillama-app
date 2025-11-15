@@ -9,6 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
+import { IDATInstitutions } from '~/containers/DAT/queries'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -16,55 +17,12 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-interface ITreasuryCompanies {
-	breakdownByAsset: {
-		[asset: string]: Array<{
-			ticker: string
-			name: string
-			type: string
-			assets: Array<string>
-			assetName: string
-			assetTicker: string
-			totalAssetsByAsset: {
-				[asset: string]: {
-					amount: number
-					usdValue?: number | null
-					cost?: number | null
-				}
-			}
-			last30dChanges: Array<{
-				date: string
-				asset: string
-				amount: number
-				type: string
-				usd_value: number | null
-			}>
-			totalAssetAmount: number
-			totalCost?: number | null
-			totalUsdValue?: number | null
-			transactionCount: number
-			firstAnnouncementDate: string
-			lastAnnouncementDate: string
-			supplyPercentage: number
-			avgPrice?: number | null
-			realized_mNAV?: number | null
-			realistic_mNAV?: number | null
-			max_mNAV?: number | null
-			price?: number | null
-			priceChange24h?: number | null
-		}>
-	}
-	totalCompanies: number
-	statsByAsset: {
-		[asset: string]: {
-			totalCompanies: number
-			totalHoldings: number
-			totalUsdValue: number
-			circSupplyPerc?: number | null
-		}
-	}
-	dailyFlows: Array<[number, number]>
-	lastUpdated: string
+interface IInstitution
+	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
+	realized_mNAV: number | null
+	realistic_mNAV: number | null
+	max_mNAV: number | null
+	holdings: IDATInstitutions['institutionMetadata'][number]['holdings'][string]
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -75,37 +33,52 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const asset = slug(assetName)
-		const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
-		const breakdown = res.breakdownByAsset[asset]
-		const stats = res.statsByAsset[asset]
-		const dailyFlows = res.dailyFlows[asset]
-		const name = breakdown[0].assetName
-		const symbol = breakdown[0].assetTicker
 
-		const allAssets = [{ label: 'All', to: '/digital-asset-treasuries' }]
-		for (const asset in res.breakdownByAsset) {
-			allAssets.push({ label: res.breakdownByAsset[asset][0].assetName, to: `/digital-asset-treasuries/${asset}` })
-		}
+		const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
+		const allAssets = Object.keys(res.assetMetadata).sort(
+			(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
+		)
+		const metadata = res.assetMetadata[asset]
+		const institutions = res.assets[asset]
 
-		if (!breakdown || !stats) {
+		if (!metadata || !institutions) {
 			return { notFound: true, props: null }
 		}
 
 		return {
 			props: {
-				breakdown,
-				stats,
+				institutions: institutions.map((institution) => {
+					const metadata = res.institutionMetadata[institution.institutionId]
+					return {
+						institutionId: metadata.institutionId,
+						ticker: metadata.ticker,
+						name: metadata.name,
+						type: metadata.type,
+						price: metadata.price,
+						priceChange24h: metadata.priceChange24h,
+						volume24h: metadata.volume24h,
+						mcapRealized: metadata.mcapRealized,
+						mcapRealistic: metadata.mcapRealistic,
+						mcapMax: metadata.mcapMax,
+						holdings: metadata.holdings[asset]
+					} as IInstitution
+				}),
 				asset,
-				name,
-				symbol,
-				allAssets,
+				metadata,
+				allAssets: [
+					{ label: 'All', to: '/digital-asset-treasuries' },
+					...allAssets.map((asset) => ({
+						label: res.assetMetadata[asset].name,
+						to: `/digital-asset-treasuries/${asset}`
+					}))
+				],
 				dailyFlowsChart: {
-					[name]: {
-						name: name,
-						stack: name,
+					[metadata.name]: {
+						name: metadata.name,
+						stack: metadata.name,
 						type: 'bar',
 						color: oldBlue,
-						data: dailyFlows
+						data: res.flows[asset]
 					}
 				}
 			},
@@ -115,12 +88,12 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
+	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
 
 	const paths = []
 
-	for (const asset in res.breakdownByAsset) {
-		paths.push(`/digital-asset-treasuries/${asset}`)
+	for (const asset in res.assetMetadata) {
+		paths.push(`/digital-asset-treasuries/${slug(asset)}`)
 	}
 
 	return { paths, fallback: false }
@@ -128,7 +101,7 @@ export async function getStaticPaths() {
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
-const prepareAssetBreakdownCsv = (breakdown, name: string, symbol: string) => {
+const prepareAssetBreakdownCsv = (institutions: IInstitution[], name: string, symbol: string) => {
 	const headers = [
 		'Institution',
 		'Ticker',
@@ -145,21 +118,23 @@ const prepareAssetBreakdownCsv = (breakdown, name: string, symbol: string) => {
 		'Last Updated'
 	]
 
-	const rows = breakdown.map((institution) => {
+	const rows = institutions.map((institution) => {
 		return [
 			institution.name,
 			institution.ticker,
 			institution.type,
-			institution.totalAssetAmount ?? '',
-			institution.totalUsdValue ?? '',
+			institution.holdings.amount ?? '',
+			institution.holdings.usdValue ?? '',
 			institution.price ?? '',
 			institution.priceChange24h ?? '',
-			institution.supplyPercentage ?? '',
+			institution.holdings.supplyPercentage ?? '',
 			institution.realized_mNAV ?? '',
 			institution.realistic_mNAV ?? '',
 			institution.max_mNAV ?? '',
-			institution.avgPrice ?? '',
-			institution.lastAnnouncementDate ? new Date(institution.lastAnnouncementDate).toLocaleDateString() : ''
+			institution.holdings.avgPrice ?? '',
+			institution.holdings.lastAnnouncementDate
+				? new Date(institution.holdings.lastAnnouncementDate).toLocaleDateString()
+				: ''
 		]
 	})
 
@@ -171,58 +146,54 @@ const prepareAssetBreakdownCsv = (breakdown, name: string, symbol: string) => {
 }
 
 export default function TreasuriesByAsset({
-	name,
-	breakdown,
-	stats,
-	symbol,
 	asset,
 	allAssets,
-	dailyFlowsChart
+	metadata,
+	dailyFlowsChart,
+	institutions
 }: {
-	name: string
-	breakdown: ITreasuryCompanies['breakdownByAsset'][string]
-	stats: ITreasuryCompanies['statsByAsset'][string]
-	symbol: string
 	asset: string
 	allAssets: Array<{ label: string; to: string }>
+	metadata: IDATInstitutions['assetMetadata'][string]
 	dailyFlowsChart: ILineAndBarChartProps['charts']
+	institutions: IInstitution[]
 }) {
 	return (
 		<Layout
-			title={`${name} Treasury Holdings - DefiLlama`}
-			description={`Track institutions that own ${name} ($${symbol}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${name} (${symbol}) treasury holdings, ${name} (${symbol}) corporate treasury, ${name} (${symbol}) treasury holdings by institution, ${name} (${symbol}) treasury holdings by company, ${name} (${symbol}) DATs, ${name} (${symbol}) digital asset treasury`}
+			title={`${metadata.name} Treasury Holdings - DefiLlama`}
+			description={`Track institutions that own ${metadata.name} (${metadata.ticker}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${metadata.name} (${metadata.ticker}) treasury holdings, ${metadata.name} (${metadata.ticker}) corporate treasury, ${metadata.name} (${metadata.ticker}) treasury holdings by institution, ${metadata.name} (${metadata.ticker}) treasury holdings by company, ${metadata.name} (${metadata.ticker}) DATs, ${metadata.name} (${metadata.ticker}) digital asset treasury`}
 			canonicalUrl={`/digital-asset-treasuries/${asset}`}
 			pageName={pageName}
 		>
-			<RowLinksWithDropdown links={allAssets} activeLink={name} />
+			<RowLinksWithDropdown links={allAssets} activeLink={metadata.name} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<Tooltip
 						render={<h1 />}
-						content={`Institutions that own ${name} as part of their corporate treasury`}
+						content={`Institutions that own ${metadata.name} as part of their corporate treasury`}
 						className="text-xl font-semibold"
 					>
-						{name} Treasury Holdings
+						{metadata.name} Treasury Holdings
 					</Tooltip>
 					<div className="flex flex-col">
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Institution</span>
-							<span className="font-jetbrains ml-auto">{stats.totalCompanies}</span>
+							<span className="font-jetbrains ml-auto">{metadata.companies}</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Holdings</span>
-							<span className="font-jetbrains ml-auto">{`${formattedNum(stats.totalHoldings, false)} ${symbol}`}</span>
+							<span className="font-jetbrains ml-auto">{`${formattedNum(metadata.totalAmount, false)} ${metadata.ticker}`}</span>
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total USD Value</span>
-							<span className="font-jetbrains ml-auto">{formattedNum(stats.totalUsdValue, true)}</span>
+							<span className="font-jetbrains ml-auto">{formattedNum(metadata.totalUsdValue, true)}</span>
 						</p>
-						{stats.circSupplyPerc != null ? (
+						{metadata.circSupplyPerc != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-								<span className="text-(--text-label)">% of {symbol} Circulating Supply</span>
+								<span className="text-(--text-label)">% of {metadata.ticker} Circulating Supply</span>
 								<span className="font-jetbrains ml-auto">
-									{stats.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
+									{metadata.circSupplyPerc.toLocaleString(undefined, { maximumFractionDigits: 3 })}%
 								</span>
 							</p>
 						) : null}
@@ -236,31 +207,29 @@ export default function TreasuriesByAsset({
 					<Suspense>
 						<LineAndBarChart
 							charts={dailyFlowsChart}
-							valueSymbol={symbol}
-							hideDataZoom={dailyFlowsChart[name].data.length < 2}
+							valueSymbol={metadata.ticker}
+							hideDataZoom={dailyFlowsChart[metadata.name].data.length < 2}
 						/>
 					</Suspense>
 				</div>
 			</div>
 			<TableWithSearch
-				data={breakdown}
-				columns={columns({ name, symbol })}
+				data={institutions}
+				columns={columns({ name: metadata.name, symbol: metadata.ticker })}
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
-				customFilters={<CSVDownloadButton prepareCsv={() => prepareAssetBreakdownCsv(breakdown, name, symbol)} />}
+				customFilters={
+					<CSVDownloadButton
+						prepareCsv={() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)}
+					/>
+				}
 			/>
 		</Layout>
 	)
 }
 
-const columns = ({
-	name,
-	symbol
-}: {
-	name: string
-	symbol: string
-}): ColumnDef<ITreasuryCompanies['breakdownByAsset'][string][0]>[] => [
+const columns = ({ name, symbol }: { name: string; symbol: string }): ColumnDef<IInstitution>[] => [
 	{
 		header: 'Institution',
 		accessorKey: 'name',
@@ -297,7 +266,7 @@ const columns = ({
 	// },
 	{
 		header: 'Holdings',
-		accessorKey: 'totalAssetAmount',
+		accessorKey: 'holdings.amount',
 		cell: ({ getValue }) => {
 			const totalAssetAmount = getValue() as number
 			if (totalAssetAmount == null) return null
@@ -310,11 +279,11 @@ const columns = ({
 	},
 	{
 		header: "Today's Holdings Value",
-		accessorKey: 'totalUsdValue',
+		accessorKey: 'holdings.usdValue',
 		cell: ({ getValue }) => {
-			const totalUsdValue = getValue() as number
-			if (totalUsdValue == null) return null
-			return <>{formattedNum(totalUsdValue, true)}</>
+			const usdValue = getValue() as number
+			if (usdValue == null) return null
+			return <>{formattedNum(usdValue, true)}</>
 		},
 		size: 196,
 		meta: {
@@ -351,7 +320,7 @@ const columns = ({
 	},
 	{
 		header: `% of ${symbol} Circulating Supply`,
-		accessorKey: 'supplyPercentage',
+		accessorKey: 'holdings.supplyPercentage',
 		cell: ({ getValue }) => {
 			const supplyPercentage = getValue() as number
 			if (supplyPercentage == null) return null
@@ -409,7 +378,7 @@ const columns = ({
 	},
 	{
 		header: 'Avg Purchase Price',
-		accessorKey: 'avgPrice',
+		accessorKey: 'holdings.avgPrice',
 		cell: ({ getValue }) => {
 			const avgPrice = getValue() as number
 			if (avgPrice == null) return null
@@ -423,7 +392,7 @@ const columns = ({
 	},
 	{
 		header: 'Last Updated',
-		accessorKey: 'lastAnnouncementDate',
+		accessorKey: 'holdings.lastAnnouncementDate',
 		cell: ({ getValue }) => {
 			const lastUpdated = getValue() as string
 			if (lastUpdated == null) return null
