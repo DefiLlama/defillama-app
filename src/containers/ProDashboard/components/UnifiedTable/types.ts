@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import type { UnifiedTableConfig, UnifiedRowHeaderType } from '../../types'
+import type { UnifiedTableConfig } from '../../types'
 
 export type UnifiedTableFocusSection = 'strategy' | 'columns' | 'preview'
 
@@ -119,6 +119,7 @@ export interface NormalizedRow {
 	chain?: string | null
 	category?: string | null
 	chains?: string[]
+	allChains?: string[]
 	oracles?: string[]
 	parentProtocolId?: string | null
 	parentProtocolName?: string | null

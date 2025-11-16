@@ -129,7 +129,10 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 	}
 
 	if (filters.multiChainOnly) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.chains?.filter(Boolean).length ?? 0) > 1)
+		filtered = filtered.filter((row) => {
+			const chainList = row.allChains ?? row.chains
+			return row.strategyType === 'protocols' && (chainList?.filter(Boolean).length ?? 0) > 1
+		})
 	}
 
 	if (filters.parentProtocolsOnly) {

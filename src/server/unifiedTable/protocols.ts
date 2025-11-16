@@ -572,6 +572,7 @@ const fetchParentProtocolsByChain = async (
 			id: `protocol-${row.protocol}-${chainSlug}`,
 			chain: chainName,
 			chains: [chainName],
+			allChains: base.chains,
 			metrics: baseMetricsMapping(row, totals)
 		}
 	})
@@ -665,6 +666,7 @@ const fetchSubProtocolsByChain = async (
 			id: `protocol-${row.sub_protocol}-${chainSlug}`,
 			chain: chainName,
 			chains: [chainName],
+			allChains: base.chains,
 			metrics: baseMetricsMapping(row, totals)
 		}
 	})

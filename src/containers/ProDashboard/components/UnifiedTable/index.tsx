@@ -2,15 +2,23 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
-import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
+import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
 import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
-import { TableControls } from './core/TableControls'
 import { UnifiedTablePagination } from './core/TablePagination'
 import { TableRenderer } from './core/TableRenderer'
 import { UnifiedTableHeader } from './core/UnifiedTableHeader'
 import { useUnifiedTable } from './core/useUnifiedTable'
 import type { NormalizedRow, UnifiedTableProps } from './types'
-import { getDefaultColumnOrder, getDefaultColumnVisibility, getDefaultRowHeaders, normalizeSorting } from './utils/configHelpers'
+import {
+	applyRowHeaderVisibilityRules,
+	getDefaultColumnOrder,
+	getDefaultColumnVisibility,
+	getDefaultRowHeaders,
+	normalizeSorting
+} from './utils/configHelpers'
+import { getActiveFilterChips } from './utils/filterChips'
+import type { ActiveFilterChip } from './utils/filterChips'
+import { sanitizeRowHeaders } from './utils/rowHeaders'
 
 const arraysEqual = (a: string[], b: string[]) => {
 	if (a.length !== b.length) return false
@@ -80,6 +88,55 @@ const ROW_HEADER_LABELS: Record<UnifiedRowHeaderType, string> = {
 	protocol: 'Protocol'
 }
 
+interface RowGroupingOption {
+	id: string
+	label: string
+	headers: UnifiedRowHeaderType[]
+}
+
+const PROTOCOL_GROUPING_OPTIONS: RowGroupingOption[] = [
+	{ id: 'parent-protocol', label: 'Protocol Group › Protocol', headers: ['parent-protocol', 'protocol'] },
+	{ id: 'protocol-only', label: 'Protocol only', headers: ['protocol'] },
+	{ id: 'category-protocol', label: 'Category › Protocol', headers: ['category', 'protocol'] },
+	{ id: 'chain-protocol', label: 'Chain › Protocol', headers: ['chain', 'parent-protocol', 'protocol'] },
+	{
+		id: 'chain-category-protocol',
+		label: 'Chain › Category › Protocol',
+		headers: ['chain', 'category', 'parent-protocol', 'protocol']
+	}
+]
+
+const rowHeadersMatch = (a: UnifiedRowHeaderType[], b: UnifiedRowHeaderType[]) => {
+	if (a.length !== b.length) {
+		return false
+	}
+	return a.every((value, index) => value === b[index])
+}
+
+const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
+	const entries = Object.entries(filters).filter(([, value]) => {
+		if (value === undefined || value === null) {
+			return false
+		}
+		if (typeof value === 'boolean') {
+			return value === true
+		}
+		if (typeof value === 'string') {
+			return value.trim().length > 0
+		}
+		if (Array.isArray(value)) {
+			return value.length > 0
+		}
+		return true
+	})
+
+	if (!entries.length) {
+		return undefined
+	}
+
+	return Object.fromEntries(entries) as TableFilters
+}
+
 const metricFromColumn = (columnId: string) => columnId
 
 const toCsvValue = (columnId: string, row: NormalizedRow): string => {
@@ -121,6 +178,34 @@ export function UnifiedTable({
 	)
 	const [sortingState, setSortingState] = useState<SortingState>(normalizeSorting(config.defaultSorting))
 	const hydratingRef = useRef(false)
+	const canEditFilters = !previewMode && !isReadOnly
+	const resolvedRowHeaders = useMemo(
+		() => sanitizeRowHeaders(getDefaultRowHeaders(config), config.strategyType),
+		[config]
+	)
+	const filterChips = useMemo(() => getActiveFilterChips(config.filters), [config.filters])
+	const activeFilterCount = filterChips.length
+	const groupingOptions = useMemo<RowGroupingOption[]>(() => {
+		if (config.strategyType !== 'protocols') {
+			return []
+		}
+		return PROTOCOL_GROUPING_OPTIONS
+	}, [config.strategyType])
+	const canEditGrouping = !previewMode && !isReadOnly && groupingOptions.length > 0
+	const groupingOptionMap = useMemo(() => {
+		return new Map(groupingOptions.map((option) => [option.id, option]))
+	}, [groupingOptions])
+	const headerGroupingOptions = useMemo(
+		() => groupingOptions.map(({ id, label }) => ({ id, label })),
+		[groupingOptions]
+	)
+	const selectedGroupingId = useMemo(() => {
+		if (!groupingOptions.length) {
+			return undefined
+		}
+		const match = groupingOptions.find((option) => rowHeadersMatch(option.headers, resolvedRowHeaders))
+		return match?.id
+	}, [groupingOptions, resolvedRowHeaders])
 
 	const effectiveColumnOrder = previewMode ? (columnOrderOverride ?? getDefaultColumnOrder(config)) : columnOrderState
 	const effectiveColumnVisibility = previewMode
@@ -218,6 +303,67 @@ export function UnifiedTable({
 		}
 	})
 
+	const persistConfigChanges = useCallback(
+		(overrides: Partial<UnifiedTableConfig>) => {
+			if (previewMode || isReadOnly) {
+				return
+			}
+			handleEditItem(config.id, {
+				...config,
+				columnOrder: columnOrderState,
+				columnVisibility: columnVisibilityState,
+				defaultSorting: sortingState.map((item) => ({ ...item })),
+				...overrides
+			})
+		},
+		[columnOrderState, columnVisibilityState, config, handleEditItem, isReadOnly, previewMode, sortingState]
+	)
+
+	const handleFilterChipRemove = useCallback(
+		(chip: ActiveFilterChip) => {
+			if (!canEditFilters) {
+				return
+			}
+			const currentFilters: TableFilters = { ...(config.filters ?? {}) }
+			let changed = false
+			for (const key of chip.clearKeys) {
+				if (key in currentFilters) {
+					delete currentFilters[key]
+					changed = true
+				}
+			}
+			if (!changed) {
+				return
+			}
+			const nextFilters = sanitizeFilters(currentFilters)
+			persistConfigChanges(nextFilters ? { filters: nextFilters } : { filters: undefined })
+		},
+		[canEditFilters, config.filters, persistConfigChanges]
+	)
+
+	const handleClearFilters = useCallback(() => {
+		if (!canEditFilters) {
+			return
+		}
+		if (!config.filters || !Object.keys(config.filters).length) {
+			return
+		}
+		persistConfigChanges({ filters: undefined })
+	}, [canEditFilters, config.filters, persistConfigChanges])
+
+	const handleGroupingChange = useCallback(
+		(groupingId: string) => {
+			const option = groupingOptionMap.get(groupingId)
+			if (!option) {
+				return
+			}
+			const normalizedHeaders = sanitizeRowHeaders(option.headers, config.strategyType)
+			const nextVisibility = applyRowHeaderVisibilityRules(normalizedHeaders, { ...columnVisibilityState })
+			persistConfigChanges({ rowHeaders: normalizedHeaders, columnVisibility: nextVisibility })
+		},
+		[columnVisibilityState, config.strategyType, groupingOptionMap, persistConfigChanges]
+	)
+
 	const handleExportClick = () => {
 		const leafColumns = unifiedTable.table.getAllLeafColumns().filter((column) => column.getIsVisible())
 
@@ -258,12 +404,13 @@ export function UnifiedTable({
 		return `Scope: ${category}`
 	}, [config.params, config.strategyType])
 	const rowHeadersSummary = useMemo(() => {
-		const headers = config.rowHeaders && config.rowHeaders.length ? config.rowHeaders : getDefaultRowHeaders(config)
-		if (!headers.length) return null
-		const labels = headers.map((header) => ROW_HEADER_LABELS[header] ?? header)
+		if (!resolvedRowHeaders.length) {
+			return null
+		}
+		const labels = resolvedRowHeaders.map((header) => ROW_HEADER_LABELS[header] ?? header)
 		const uniqueLabels = [...new Set(labels)]
 		return uniqueLabels.join(' › ')
-	}, [config])
+	}, [resolvedRowHeaders])
 
 	const handleCustomizeColumns = useCallback(() => {
 		if (previewMode || isReadOnly) return
@@ -286,8 +433,18 @@ export function UnifiedTable({
 				onCsvExport={handleCsvClick}
 				isExportDisabled={!unifiedTable.leafRows.length}
 				isLoading={unifiedTable.isLoading}
+				searchTerm={searchTerm}
+				onSearchChange={setSearchTerm}
+				filterChips={filterChips}
+				onFilterRemove={canEditFilters ? handleFilterChipRemove : undefined}
+				onClearFilters={canEditFilters ? handleClearFilters : undefined}
+				filtersEditable={canEditFilters}
+				activeFilterCount={activeFilterCount}
+				onFiltersClick={onEdit ? () => onEdit('strategy') : undefined}
+				groupingOptions={headerGroupingOptions}
+				selectedGroupingId={selectedGroupingId}
+				onGroupingChange={canEditGrouping ? handleGroupingChange : undefined}
 			/>
-			<TableControls searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 			<TableRenderer
 				table={unifiedTable.table}
 				isLoading={unifiedTable.isLoading}
