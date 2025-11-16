@@ -392,8 +392,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		strategyType: 'chains',
 		columnOrder: [
 			'name',
-			'protocolCount',
-			'users',
 			'tvl',
 			'change1d',
 			'change7d',
@@ -404,13 +402,10 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 			'revenue_7d',
 			'volume24h',
 			'volume_7d',
-			'nftVolume',
 			'mcaptvl'
 		],
 		columnVisibility: createVisibility([
 			'name',
-			'protocolCount',
-			'users',
 			'tvl',
 			'change1d',
 			'change7d',
@@ -421,7 +416,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 			'revenue_7d',
 			'volume24h',
 			'volume_7d',
-			'nftVolume',
 			'mcaptvl'
 		]),
 		rowHeaders: ['chain'],
@@ -432,24 +426,9 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		name: 'Chain Growth',
 		description: 'Momentum view across TVL, volume and fees.',
 		strategyType: 'chains',
-		columnOrder: [
-			'name',
-			'protocolCount',
-			'users',
-			'tvl',
-			'change1d',
-			'change7d',
-			'change1m',
-			'volume24h',
-			'fees24h',
-			'revenue24h',
-			'nftVolume',
-			'mcaptvl'
-		],
+		columnOrder: ['name', 'tvl', 'change1d', 'change7d', 'change1m', 'volume24h', 'fees24h', 'revenue24h', 'mcaptvl'],
 		columnVisibility: createVisibility([
 			'name',
-			'protocolCount',
-			'users',
 			'tvl',
 			'change1d',
 			'change7d',
@@ -457,7 +436,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 			'volume24h',
 			'fees24h',
 			'revenue24h',
-			'nftVolume',
 			'mcaptvl'
 		]),
 		rowHeaders: ['chain'],
@@ -469,7 +447,15 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		description: 'Compare chains by TVL, stables and 24h volume share.',
 		strategyType: 'chains',
 		columnOrder: ['name', 'tvl', 'tvlShare', 'stablesMcap', 'stablesShare', 'volume24h', 'volume24hShare'],
-		columnVisibility: createVisibility(['name', 'tvl', 'tvlShare', 'stablesMcap', 'stablesShare', 'volume24h', 'volume24hShare']),
+		columnVisibility: createVisibility([
+			'name',
+			'tvl',
+			'tvlShare',
+			'stablesMcap',
+			'stablesShare',
+			'volume24h',
+			'volume24hShare'
+		]),
 		rowHeaders: ['chain'],
 		defaultSorting: [{ id: 'tvlShare', desc: true }]
 	}

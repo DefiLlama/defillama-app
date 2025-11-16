@@ -1,6 +1,6 @@
-import { llamaDb } from '~/server/db/llama'
-import type { UnifiedTableConfig } from '~/containers/ProDashboard/types'
 import type { NormalizedRow, NumericMetrics } from '~/containers/ProDashboard/components/UnifiedTable/types'
+import type { UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import { llamaDb } from '~/server/db/llama'
 import { computeShare, derivePreviousValue, formatDisplayName, resolveChainLogo, toPercent } from './utils'
 
 type ChainRow = {
@@ -29,6 +29,8 @@ type ChainRow = {
 	chain_revenue_7d_pct_change: number | null
 	chain_revenue_30d_pct_change: number | null
 	mcap: number | null
+	bridged_tvl: number | null
+	stables_mcap: number | null
 }
 
 const totalsPromise = llamaDb.one<{
@@ -54,33 +56,45 @@ export async function fetchChainsTable(options: ChainsQueryOptions): Promise<Nor
 	const rows = await llamaDb.any<ChainRow>(
 		`
 		SELECT
-			chain,
-			protocol_count,
-			tvl_base,
-			tvl_base_1d_pct_change,
-			tvl_base_7d_pct_change,
-			tvl_base_30d_pct_change,
-			volume_dexs_1d,
-			volume_dexs_7d,
-			volume_dexs_30d,
-			volume_dexs_1d_pct_change,
-			volume_dexs_7d_pct_change,
-			volume_dexs_30d_pct_change,
-			chain_fees_1d,
-			chain_fees_7d,
-			chain_fees_30d,
-			chain_fees_1d_pct_change,
-			chain_fees_7d_pct_change,
-			chain_fees_30d_pct_change,
-			chain_revenue_1d,
-			chain_revenue_7d,
-			chain_revenue_30d,
-			chain_revenue_1d_pct_change,
-			chain_revenue_7d_pct_change,
-			chain_revenue_30d_pct_change,
-			mcap
-		FROM lens.metrics_chain_current
-	`
+			mc.chain,
+			mc.protocol_count,
+			mc.tvl_base,
+			mc.tvl_base_1d_pct_change,
+			mc.tvl_base_7d_pct_change,
+			mc.tvl_base_30d_pct_change,
+			mc.volume_dexs_1d,
+			mc.volume_dexs_7d,
+			mc.volume_dexs_30d,
+			mc.volume_dexs_1d_pct_change,
+			mc.volume_dexs_7d_pct_change,
+			mc.volume_dexs_30d_pct_change,
+			mc.chain_fees_1d,
+			mc.chain_fees_7d,
+			mc.chain_fees_30d,
+			mc.chain_fees_1d_pct_change,
+			mc.chain_fees_7d_pct_change,
+			mc.chain_fees_30d_pct_change,
+			mc.chain_revenue_1d,
+			mc.chain_revenue_7d,
+			mc.chain_revenue_30d,
+			mc.chain_revenue_1d_pct_change,
+			mc.chain_revenue_7d_pct_change,
+			mc.chain_revenue_30d_pct_change,
+			mc.mcap,
+			COALESCE(bridged_data.bridged_tvl, NULL) AS bridged_tvl,
+			COALESCE(stables_data.stables_mcap, NULL) AS stables_mcap
+		FROM lens.metrics_chain_current mc
+		LEFT JOIN LATERAL (
+			SELECT SUM(tvl) AS bridged_tvl
+			FROM lens.bridged_token_tvl_current b
+			WHERE b.chain = mc.chain
+		) bridged_data ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT SUM(mcap) AS stables_mcap
+			FROM lens.stablecoin_supply_current s
+			WHERE s.chain = mc.chain
+		) stables_data ON TRUE
+		`
 	)
 
 	return rows.map((row) => {
@@ -117,6 +131,8 @@ export async function fetchChainsTable(options: ChainsQueryOptions): Promise<Nor
 			tvlShare: computeShare(tvl, totals.tvl_base),
 			mcap: row.mcap ?? null,
 			mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
+			bridgedTvl: row.bridged_tvl ?? null,
+			stablesMcap: row.stables_mcap ?? null,
 			protocolCount: row.protocol_count ?? null
 		}
 

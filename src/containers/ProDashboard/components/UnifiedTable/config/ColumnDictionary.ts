@@ -1,6 +1,14 @@
 import type { MetricGroup } from '../types'
 
-export type ColumnRenderType = 'usd' | 'percent' | 'ratio' | 'number' | 'meta' | 'meta-category' | 'meta-chains' | 'meta-oracles'
+export type ColumnRenderType =
+	| 'usd'
+	| 'percent'
+	| 'ratio'
+	| 'number'
+	| 'meta'
+	| 'meta-category'
+	| 'meta-chains'
+	| 'meta-oracles'
 
 export interface ColumnDictionaryItem {
 	id: string
@@ -33,20 +41,6 @@ const metaColumns: ColumnDictionaryItem[] = [
 		group: 'meta',
 		render: 'meta-oracles',
 		strategies: ['protocols']
-	},
-	{
-		id: 'protocolCount',
-		header: 'Protocols',
-		group: 'meta',
-		render: 'number',
-		strategies: ['chains']
-	},
-	{
-		id: 'users',
-		header: 'Active Addresses',
-		group: 'meta',
-		render: 'number',
-		strategies: ['chains']
 	}
 ]
 
@@ -124,7 +118,6 @@ const volumeColumns: ColumnDictionaryItem[] = [
 		tags: ['dominance'],
 		strategies: ['protocols']
 	},
-	{ id: 'nftVolume', header: 'NFT Volume', group: 'volume', render: 'usd', strategies: ['chains'] },
 	{
 		id: 'volume24hShare',
 		header: '24h Volume Share',

@@ -133,6 +133,7 @@ const reducer = (state: WizardState, action: WizardAction): WizardState => {
 				chains: action.strategy === 'protocols' ? ['All'] : [],
 				category: null,
 				rowHeaders,
+				filters: {},
 				activePresetId: preset.id,
 				columnOrder: sanitized.order,
 				columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
