@@ -168,6 +168,24 @@ export interface TableFilters {
 	stablesOnly?: boolean
 	activeLending?: boolean
 	poolTypes?: string[]
+	mcapMin?: number
+	mcapMax?: number
+	volumeDex24hMin?: number
+	volumeDex24hMax?: number
+	fees24hMin?: number
+	fees24hMax?: number
+	revenue24hMin?: number
+	revenue24hMax?: number
+	hasPerps?: boolean
+	hasOptions?: boolean
+	hasOpenInterest?: boolean
+	multiChainOnly?: boolean
+	parentProtocolsOnly?: boolean
+	subProtocolsOnly?: boolean
+	protocolCountMin?: number
+	protocolCountMax?: number
+	pfRatioMin?: number
+	pfRatioMax?: number
 	[key: string]: any // Allow for future filter types
 }
 

@@ -13,7 +13,7 @@ import {
 	type Table
 } from '@tanstack/react-table'
 import { useQuery } from '@tanstack/react-query'
-import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
+import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import { getGroupingColumnIdsForHeaders } from './grouping'
 import type { PriorityMetric } from '../strategies/hooks/usePriorityChainDatasets'
@@ -43,6 +43,27 @@ interface UseUnifiedTableResult {
 
 type UnifiedTableApiResponse = {
 	rows: NormalizedRow[]
+}
+
+const createFiltersKey = (filters: TableFilters | undefined): string => {
+	if (!filters) return 'no-filters'
+	const entries = Object.entries(filters).filter(([, value]) => {
+		if (value === undefined || value === null) return false
+		if (Array.isArray(value)) {
+			return value.length > 0
+		}
+		return true
+	})
+	if (entries.length === 0) return 'no-filters'
+	const normalized = entries
+		.map(([key, value]) => {
+			if (Array.isArray(value)) {
+				return [key, [...value].sort()]
+			}
+			return [key, value]
+		})
+		.sort((a, b) => a[0].localeCompare(b[0]))
+	return JSON.stringify(normalized)
 }
 
 const fetchUnifiedTableRows = async (
@@ -97,9 +118,10 @@ export function useUnifiedTable({
 
 	const paramsKey = useMemo(() => JSON.stringify(config.params ?? {}), [config.params])
 	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
+	const filtersKey = useMemo(() => createFiltersKey(config.filters), [config.filters])
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unified-table', config.strategyType, paramsKey, headersKey],
+		queryKey: ['unified-table', config.strategyType, paramsKey, headersKey, filtersKey],
 		queryFn: () => fetchUnifiedTableRows(config.strategyType, config, sanitizedHeaders),
 		staleTime: 60 * 1000
 	})
