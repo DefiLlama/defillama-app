@@ -12,12 +12,11 @@ import {
 	VisibilityState,
 	type Table
 } from '@tanstack/react-table'
+import { useQuery } from '@tanstack/react-query'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import { getGroupingColumnIdsForHeaders } from './grouping'
-import { useChainsStrategy } from '../strategies/ChainsStrategy'
 import type { PriorityMetric } from '../strategies/hooks/usePriorityChainDatasets'
-import { useProtocolsStrategy } from '../strategies/ProtocolsStrategy'
 import type { NormalizedRow } from '../types'
 import { filterRowsByConfig, filterRowsBySearch } from '../utils/dataFilters'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
@@ -25,7 +24,6 @@ import { sanitizeRowHeaders } from '../utils/rowHeaders'
 interface UseUnifiedTableArgs {
 	config: UnifiedTableConfig
 	searchTerm: string
-	chainPriorityHints?: string[]
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 	sorting: SortingState
@@ -43,10 +41,36 @@ interface UseUnifiedTableResult {
 	chainLoadingStates: Map<string, Set<PriorityMetric>>
 }
 
+type UnifiedTableApiResponse = {
+	rows: NormalizedRow[]
+}
+
+const fetchUnifiedTableRows = async (
+	strategyType: UnifiedTableConfig['strategyType'],
+	config: UnifiedTableConfig,
+	rowHeaders: UnifiedRowHeaderType[]
+) => {
+	const response = await fetch(`/api/unified-table/${strategyType}`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			config,
+			rowHeaders
+		})
+	})
+
+	if (!response.ok) {
+		throw new Error('Failed to load unified table data')
+	}
+
+	return (await response.json()) as UnifiedTableApiResponse
+}
+
 export function useUnifiedTable({
 	config,
 	searchTerm,
-	chainPriorityHints,
 	columnOrder,
 	columnVisibility,
 	sorting,
@@ -71,20 +95,24 @@ export function useUnifiedTable({
 		[config.rowHeaders, config.strategyType]
 	)
 
-	const protocolsResult = useProtocolsStrategy(config.params ?? null, sanitizedHeaders, chainPriorityHints)
-	const chainsResult = useChainsStrategy(config.params ?? null, sanitizedHeaders)
+	const paramsKey = useMemo(() => JSON.stringify(config.params ?? {}), [config.params])
+	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
 
-	const strategyResult = config.strategyType === 'protocols' ? protocolsResult : chainsResult
+	const { data, isLoading } = useQuery({
+		queryKey: ['unified-table', config.strategyType, paramsKey, headersKey],
+		queryFn: () => fetchUnifiedTableRows(config.strategyType, config, sanitizedHeaders),
+		staleTime: 60 * 1000
+	})
+
+	const rows = data?.rows ?? []
 
 	const filteredRows = useMemo(() => {
-		const withFilters = filterRowsByConfig(strategyResult.rows, config.filters)
+		const withFilters = filterRowsByConfig(rows, config.filters)
 		return filterRowsBySearch(withFilters, searchTerm)
-	}, [strategyResult.rows, config.filters, searchTerm])
+	}, [rows, config.filters, searchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.strategyType), [config.strategyType])
-	const chainLoadingStates =
-		(strategyResult as { chainLoadingStates?: Map<string, Set<PriorityMetric>> }).chainLoadingStates ??
-		new Map<string, Set<PriorityMetric>>()
+	const chainLoadingStates = useMemo(() => new Map<string, Set<PriorityMetric>>(), [])
 	const groupingColumnIds = useMemo(
 		() => getGroupingColumnIdsForHeaders(sanitizedHeaders),
 		[sanitizedHeaders]
@@ -181,6 +209,12 @@ export function useUnifiedTable({
 		meta: {
 			chainLoadingStates
 		},
+		getRowCanExpand: (row) => {
+			if (!row.getIsGrouped()) {
+				return false
+			}
+			return row.subRows.length > 1
+		},
 		getCoreRowModel: getCoreRowModel(),
 		getGroupedRowModel: getGroupedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
@@ -193,7 +227,7 @@ export function useUnifiedTable({
 
 	return {
 		table,
-		isLoading: strategyResult.isLoading,
+		isLoading,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
 		columns,

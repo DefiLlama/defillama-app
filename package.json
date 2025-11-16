@@ -42,6 +42,7 @@
 		"match-sorter": "8.1.0",
 		"next": "15.5.0",
 		"nprogress": "0.2.0",
+		"pg-promise": "^12.3.0",
 		"pocketbase": "0.25.2",
 		"react": "19.1.1",
 		"react-dom": "19.1.1",

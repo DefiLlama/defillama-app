@@ -268,7 +268,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 				const strategyType = baseRow?.strategyType
 				const shouldShowChainIcon = display.header === 'chain'
 				const shouldShowProtocolLogo =
-					!shouldShowChainIcon && (strategyType === 'protocols' || display.groupKind === 'parent' || display.header === 'protocol')
+					!shouldShowChainIcon && display.header !== 'category' && (strategyType === 'protocols' || display.groupKind === 'parent' || display.header === 'protocol')
 				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
 				const iconSource = shouldShowChainIcon ? chainIcon : display.iconUrl ?? baseRow?.logo ?? undefined
 				const protocolCountValue = row.getIsGrouped()
@@ -293,10 +293,12 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 						) : (
 							<span className="w-4" />
 						)}
-						{shouldShowProtocolLogo || shouldShowChainIcon ? (
-							<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/icons/placeholder.png" size={24} />
-						) : (
-							<span className="inline-block h-6 w-6 shrink-0" />
+						{display.header !== 'category' && (
+							shouldShowProtocolLogo || shouldShowChainIcon ? (
+								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/icons/placeholder.png" size={24} />
+							) : (
+								<span className="inline-block h-6 w-6 shrink-0" />
+							)
 						)}
 						<span className="font-medium text-(--text-primary)">{display.label}</span>
 						{protocolCountValue && protocolCountValue > 1 && (
