@@ -19,7 +19,8 @@ import { isColumnSupported } from './metricCapabilities'
 
 declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData, TValue> {
-		align?: 'start' | 'end'
+		align?: 'start' | 'center' | 'end'
+		hidden?: boolean
 	}
 }
 
@@ -141,13 +142,16 @@ const groupingColumns: ColumnDef<NormalizedRow>[] = (
 	header,
 	accessorFn: (row) => getGroupingKeyForRow(row, header),
 	enableSorting: false,
-	enableHiding: true,
+	enableHiding: false,
 	enableColumnFilter: false,
 	enableResizing: false,
 	size: 0,
 	minSize: 0,
 	maxSize: 0,
-	aggregationFn: (_columnId, leafRows) => leafRows[0]?.getGroupingValue(columnId) ?? null
+	aggregationFn: (_columnId, leafRows) => leafRows[0]?.getGroupingValue(columnId) ?? null,
+	meta: {
+		hidden: true
+	}
 }))
 
 export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): ColumnDef<NormalizedRow>[] => {

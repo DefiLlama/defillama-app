@@ -24,6 +24,7 @@ declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData extends RowData, TValue> {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
+		hidden?: boolean
 	}
 }
 
@@ -59,12 +60,10 @@ export function VirtualTable({
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 
+	const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
+	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
-		instance
-			.getHeaderGroups()
-			.at(-1)
-			?.headers.map((header) => `minmax(${header.getSize() ?? 100}px, 1fr)`) // force consistency
-			.join(' ') || '1fr'
+		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
 
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
@@ -228,53 +227,62 @@ export function VirtualTable({
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>
-				{instance.getHeaderGroups().map((headerGroup) => (
-					<div key={headerGroup.id} style={{ display: 'grid', gridTemplateColumns, minWidth: `${totalTableWidth}px` }}>
-						{headerGroup.headers.map((header) => {
-							const meta = header.column.columnDef.meta
-							const value = flexRender(header.column.columnDef.header, header.getContext())
-							const isSticky = header.column.id === firstColumnId //first column is sticky
+				{instance.getHeaderGroups().map((headerGroup) => {
+					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
+					if (!headers.length) {
+						return null
+					}
+					return (
+						<div
+							key={headerGroup.id}
+							style={{ display: 'grid', gridTemplateColumns, minWidth: `${totalTableWidth}px` }}
+						>
+							{headers.map((header) => {
+								const meta = header.column.columnDef.meta
+								const value = flexRender(header.column.columnDef.header, header.getContext())
+								const isSticky = header.column.id === firstColumnId //first column is sticky
 
-							return (
-								<div
-									key={header.id}
-									data-chainpage={isChainPage}
-									data-align={meta?.align ?? 'start'}
-									style={{
-										gridColumn: `span ${header.colSpan}`,
-										position: isSticky ? 'sticky' : undefined,
-										left: isSticky ? 0 : undefined,
-										zIndex: isSticky ? 10 : undefined,
-										background: 'var(--cards-bg)'
-									}}
-									className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
-										compact
-											? 'flex min-h-[50px] items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
-											: ''
-									}`}
-								>
-									<span
-										className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
-										data-align={
-											meta?.align ??
-											(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
-										}
+								return (
+									<div
+										key={header.id}
+										data-chainpage={isChainPage}
+										data-align={meta?.align ?? 'start'}
+										style={{
+											gridColumn: `span ${header.colSpan}`,
+											position: isSticky ? 'sticky' : undefined,
+											left: isSticky ? 0 : undefined,
+											zIndex: isSticky ? 10 : undefined,
+											background: 'var(--cards-bg)'
+										}}
+										className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
+											compact
+												? 'flex min-h-[50px] items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+												: ''
+										}`}
 									>
-										{header.isPlaceholder ? null : (
-											<HeaderWithTooltip
-												content={meta?.headerHelperText}
-												onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
-											>
-												{value}
-											</HeaderWithTooltip>
-										)}
-										{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-									</span>
-								</div>
-							)
-						})}
-					</div>
-				))}
+										<span
+											className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
+											data-align={
+												meta?.align ??
+												(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
+											}
+										>
+											{header.isPlaceholder ? null : (
+												<HeaderWithTooltip
+													content={meta?.headerHelperText}
+													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
+												>
+													{value}
+												</HeaderWithTooltip>
+											)}
+											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+										</span>
+									</div>
+								)
+							})}
+						</div>
+					)
+				})}
 			</div>
 
 			<div id="table-header-dup"></div>
@@ -308,38 +316,41 @@ export function VirtualTable({
 					return (
 						<React.Fragment key={rowTorender.id}>
 							<div style={trStyle}>
-								{rowTorender.getVisibleCells().map((cell) => {
-									const textAlign = cell.column.columnDef.meta?.align ?? 'start'
-									const isSticky = cell.column.id === firstColumnId
-									return (
-										<div
-											key={cell.id}
-											data-ligther={stripedBg && i % 2 === 0}
-											data-chainpage={isChainPage}
-											className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
-												compact
-													? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
-													: ''
-											}`}
-											style={{
-												textAlign,
-												justifyContent: compact
-													? textAlign === 'center'
-														? 'center'
-														: textAlign === 'end'
-															? 'flex-end'
-															: 'flex-start'
-													: undefined,
-												position: isSticky ? 'sticky' : undefined,
-												left: isSticky ? 0 : undefined,
-												zIndex: isSticky ? 1 : undefined,
-												background: isSticky ? 'var(--cards-bg)' : undefined
-											}}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</div>
-									)
-								})}
+								{rowTorender
+									.getVisibleCells()
+									.filter((cell) => !cell.column.columnDef.meta?.hidden)
+									.map((cell) => {
+										const textAlign = cell.column.columnDef.meta?.align ?? 'start'
+										const isSticky = cell.column.id === firstColumnId
+										return (
+											<div
+												key={cell.id}
+												data-ligther={stripedBg && i % 2 === 0}
+												data-chainpage={isChainPage}
+												className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
+													compact
+														? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
+														: ''
+												}`}
+												style={{
+													textAlign,
+													justifyContent: compact
+														? textAlign === 'center'
+															? 'center'
+															: textAlign === 'end'
+																? 'flex-end'
+																: 'flex-start'
+														: undefined,
+													position: isSticky ? 'sticky' : undefined,
+													left: isSticky ? 0 : undefined,
+													zIndex: isSticky ? 1 : undefined,
+													background: isSticky ? 'var(--cards-bg)' : undefined
+												}}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</div>
+										)
+									})}
 							</div>
 							{renderSubComponent && rowTorender.getIsExpanded() && (
 								<div>{renderSubComponent({ row: rowTorender })}</div>

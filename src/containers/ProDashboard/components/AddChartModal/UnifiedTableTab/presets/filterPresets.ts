@@ -23,11 +23,10 @@ const SIZE_PRESETS: FilterPreset[] = [
 		description: 'Large, established multi-chain protocols',
 		category: 'size',
 		filters: {
-			tvlMin: 1_000_000_000,
-			multiChainOnly: true,
-			parentProtocolsOnly: true
+			tvlMin: 100_000_000,
+			multiChainOnly: true
 		},
-		tooltip: 'TVL ≥ $1B, multi-chain, parent rows only',
+		tooltip: 'TVL ≥ $100M, multi-chain',
 		strategyType: 'protocols'
 	},
 	{
@@ -92,10 +91,9 @@ const INVESTMENT_PRESETS: FilterPreset[] = [
 		category: 'investment',
 		filters: {
 			tvlMin: 500_000_000,
-			multiChainOnly: true,
-			parentProtocolsOnly: true
+			multiChainOnly: true
 		},
-		tooltip: 'TVL ≥ $500M, multi-chain, parent rows only',
+		tooltip: 'TVL ≥ $500M, multi-chain',
 		strategyType: 'protocols'
 	}
 ]
@@ -132,16 +130,16 @@ const QUICK_PRESETS: FilterPreset[] = [
 	{
 		id: 'top-10-tvl',
 		name: 'Top 10 by TVL',
-		description: 'Largest parent protocols by current TVL',
+		description: 'Largest protocols by current TVL',
 		category: 'quick',
 		filters: {
-			parentProtocolsOnly: true
+			protocolCountMin: 10
 		},
 		sortBy: {
 			field: 'tvl',
 			direction: 'desc'
 		},
-		tooltip: 'Parent rows only, sorted by TVL desc',
+		tooltip: 'Sorted by TVL desc',
 		strategyType: 'protocols'
 	},
 	{

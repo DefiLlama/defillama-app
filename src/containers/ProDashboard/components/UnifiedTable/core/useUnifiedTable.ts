@@ -173,11 +173,14 @@ export function useUnifiedTable({
 	}, [groupingColumnIds])
 
 	const mergeColumnVisibility = useCallback(
-		(visibility: VisibilityState): VisibilityState => ({
-			...visibility,
-			...groupingColumnVisibilityDefaults
-		}),
-		[groupingColumnVisibilityDefaults]
+		(visibility: VisibilityState): VisibilityState => {
+			const merged = { ...visibility }
+			for (const columnId of groupingColumnIds) {
+				merged[columnId] = false
+			}
+			return merged
+		},
+		[groupingColumnIds]
 	)
 
 	const stripGroupingFromVisibility = useCallback(
