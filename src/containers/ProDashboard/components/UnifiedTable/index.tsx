@@ -10,7 +10,6 @@ import { UnifiedTablePagination } from './core/TablePagination'
 import { TableRenderer } from './core/TableRenderer'
 import { UnifiedTableHeader } from './core/UnifiedTableHeader'
 import { useUnifiedTable } from './core/useUnifiedTable'
-import { useVisibleChainHints } from './core/useVisibleChainHints'
 import type { NormalizedRow, UnifiedTableProps } from './types'
 import {
 	applyPresetToConfig,
@@ -81,7 +80,6 @@ const CSV_PERCENT_COLUMNS = new Set([
 	'options_volume_dominance_24h'
 ])
 
-const MAX_CHAIN_HINTS = 50
 const ROW_HEADER_LABELS: Record<UnifiedRowHeaderType, string> = {
 	chain: 'Chain',
 	category: 'Category',
@@ -130,7 +128,6 @@ export function UnifiedTable({
 		getDefaultColumnVisibility(config)
 	)
 	const [sortingState, setSortingState] = useState<SortingState>(normalizeSorting(config.defaultSorting))
-	const [visibleChainHints, setVisibleChainHints] = useState<string[]>([])
 	const hydratingRef = useRef(false)
 
 	const effectiveColumnOrder = previewMode ? (columnOrderOverride ?? getDefaultColumnOrder(config)) : columnOrderState
@@ -199,7 +196,6 @@ export function UnifiedTable({
 			rowHeaders: getDefaultRowHeaders(config)
 		},
 		searchTerm,
-		chainPriorityHints: visibleChainHints,
 		columnOrder: effectiveColumnOrder,
 		columnVisibility: effectiveColumnVisibility,
 		sorting: effectiveSorting,
@@ -231,11 +227,6 @@ export function UnifiedTable({
 			setSortingState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
 		}
 	})
-
-	const computedChainHints = useVisibleChainHints(unifiedTable.table, unifiedTable.rowHeaders, MAX_CHAIN_HINTS)
-	useEffect(() => {
-		setVisibleChainHints(computedChainHints)
-	}, [computedChainHints])
 
 	const handleExportClick = () => {
 		const leafColumns = unifiedTable.table.getAllLeafColumns().filter((column) => column.getIsVisible())
