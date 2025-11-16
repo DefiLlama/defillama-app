@@ -16,7 +16,6 @@ import { useQuery } from '@tanstack/react-query'
 import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import { getGroupingColumnIdsForHeaders } from './grouping'
-import type { PriorityMetric } from '../strategies/hooks/usePriorityChainDatasets'
 import type { NormalizedRow } from '../types'
 import { filterRowsByConfig, filterRowsBySearch } from '../utils/dataFilters'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
@@ -38,7 +37,6 @@ interface UseUnifiedTableResult {
 	rowHeaders: UnifiedRowHeaderType[]
 	leafRows: NormalizedRow[]
 	columns: ReturnType<typeof getUnifiedTableColumns>
-	chainLoadingStates: Map<string, Set<PriorityMetric>>
 }
 
 type UnifiedTableApiResponse = {
@@ -134,7 +132,6 @@ export function useUnifiedTable({
 	}, [rows, config.filters, searchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.strategyType), [config.strategyType])
-	const chainLoadingStates = useMemo(() => new Map<string, Set<PriorityMetric>>(), [])
 	const groupingColumnIds = useMemo(
 		() => getGroupingColumnIdsForHeaders(sanitizedHeaders),
 		[sanitizedHeaders]
@@ -228,9 +225,6 @@ export function useUnifiedTable({
 		onExpandedChange: setExpanded,
 		onPaginationChange: setPagination,
 		paginateExpandedRows: false,
-		meta: {
-			chainLoadingStates
-		},
 		getRowCanExpand: (row) => {
 			if (!row.getIsGrouped()) {
 				return false
@@ -252,7 +246,6 @@ export function useUnifiedTable({
 		isLoading,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
-		columns,
-		chainLoadingStates
+		columns
 	}
 }

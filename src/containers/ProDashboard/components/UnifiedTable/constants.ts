@@ -28,8 +28,6 @@ export const DEFAULT_PROTOCOLS_COLUMN_ORDER = [
 
 export const DEFAULT_CHAINS_COLUMN_ORDER = [
 	'name',
-	'protocolCount',
-	'users',
 	'tvl',
 	'change1d',
 	'change7d',
@@ -42,7 +40,6 @@ export const DEFAULT_CHAINS_COLUMN_ORDER = [
 	'revenue_7d',
 	'volume24h',
 	'volume_7d',
-	'nftVolume',
 	'mcap'
 ]
 

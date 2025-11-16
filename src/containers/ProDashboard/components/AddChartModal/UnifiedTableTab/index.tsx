@@ -16,16 +16,18 @@ import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
 import { CollapsibleSection } from './components/CollapsibleSection'
 import { ColumnManager } from './components/ColumnManager'
+import type { FilterPill } from './components/ActiveFilterPills'
+import { ActiveFilterPills } from './components/ActiveFilterPills'
 import { FiltersPanel } from './components/FiltersPanel'
 import { FormattedNumberInput } from './components/FormattedNumberInput'
-import { PresetSelector } from './components/PresetSelector'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
+import { PresetSelector } from './components/PresetSelector'
 import { SortingSelector } from './components/SortingSelector'
 import { StrategySelector } from './components/StrategySelector'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
-import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
 import type { FilterPreset } from './presets/filterPresets'
+import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
 
 interface UnifiedTableTabProps {
 	onClose: () => void
@@ -53,6 +55,8 @@ type NumericFilterKey =
 	| 'protocolCountMin'
 	| 'protocolCountMax'
 
+type ArrayFilterKey = 'categories' | 'excludedCategories' | 'protocols' | 'oracles'
+
 type BooleanFilterKey =
 	| 'hasPerps'
 	| 'hasOptions'
@@ -60,6 +64,15 @@ type BooleanFilterKey =
 	| 'multiChainOnly'
 	| 'parentProtocolsOnly'
 	| 'subProtocolsOnly'
+
+const BOOLEAN_FILTER_LABELS: Record<BooleanFilterKey, string> = {
+	hasPerps: 'Has perps volume',
+	hasOptions: 'Has options volume',
+	hasOpenInterest: 'Has open interest',
+	multiChainOnly: 'Multi-chain protocols only',
+	parentProtocolsOnly: 'Parent protocols only',
+	subProtocolsOnly: 'Sub-protocols only'
+}
 
 const RANGE_FIELDS: Array<{
 	label: string
@@ -82,10 +95,10 @@ const RANGE_FIELDS: Array<{
 ]
 
 const BOOLEAN_FIELDS: Array<{ key: BooleanFilterKey; label: string; description?: string }> = [
-	{ key: 'hasPerps', label: 'Has perps volume' },
-	{ key: 'hasOptions', label: 'Has options volume' },
-	{ key: 'hasOpenInterest', label: 'Has open interest' },
-	{ key: 'multiChainOnly', label: 'Multi-chain protocols only' }
+	{ key: 'hasPerps', label: BOOLEAN_FILTER_LABELS.hasPerps },
+	{ key: 'hasOptions', label: BOOLEAN_FILTER_LABELS.hasOptions },
+	{ key: 'hasOpenInterest', label: BOOLEAN_FILTER_LABELS.hasOpenInterest },
+	{ key: 'multiChainOnly', label: BOOLEAN_FILTER_LABELS.multiChainOnly }
 ]
 
 const countActiveFilters = (filters: TableFilters | undefined): number => {
@@ -145,6 +158,10 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 	useEffect(() => {
 		setLocalSorting(sorting)
 	}, [sorting])
+
+	useEffect(() => {
+		setFilterErrors({})
+	}, [strategyType])
 
 	useEffect(() => {
 		if (initialFocusSection !== 'columns') return
@@ -224,6 +241,14 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 			),
 		[strategyType, recommendedPresetSet]
 	)
+
+	const chainLabelMap = useMemo(() => {
+		const map = new Map<string, string>()
+		for (const option of chainOptions) {
+			map.set(option.value, option.label)
+		}
+		return map
+	}, [chainOptions])
 
 	const handleToggleRowHeader = (header: UnifiedRowHeaderType) => {
 		if (strategyType === 'chains') {
@@ -312,17 +337,22 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 		setFilters(nextFilters ?? {})
 	}
 
+	const clearNumericFilterValues = (...keys: NumericFilterKey[]) => {
+		const next: TableFilters = { ...(filters ?? {}) }
+		const nextErrors: Partial<Record<NumericFilterKey, string>> = { ...filterErrors }
+		keys.forEach((filterKey) => {
+			delete next[filterKey]
+			delete nextErrors[filterKey]
+		})
+		setFilters(next)
+		setFilterErrors(nextErrors)
+	}
+
 	const handleNumericFilterChange = (key: NumericFilterKey, value: number | undefined) => {
 		const next = { ...(filters ?? {}) }
 
 		if (value === undefined) {
-			delete next[key]
-			setFilterErrors((prev) => {
-				const updated = { ...prev }
-				delete updated[key]
-				return updated
-			})
-			setFilters(next)
+			clearNumericFilterValues(key)
 			return
 		}
 
@@ -385,6 +415,47 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 			delete next[key]
 		}
 		setFilters(next)
+	}
+
+	const handleRemoveArrayFilterValue = (key: ArrayFilterKey, value: string) => {
+		const next: TableFilters = { ...(filters ?? {}) }
+		const current = Array.isArray(next[key]) ? ([...(next[key] as string[])]) : []
+		const updated = current.filter((item) => item !== value)
+		if (updated.length > 0) {
+			next[key] = updated
+		} else {
+			delete next[key]
+		}
+		setFilters(next)
+	}
+
+	const handleRemoveChainValue = (chainValue: string) => {
+		const nextChains = chains.filter((chain) => chain !== chainValue)
+		if (nextChains.length === 0) {
+			setChains(['All'])
+			return
+		}
+		setChains(nextChains)
+	}
+
+	const formatMetricValue = (fieldLabel: string, value: number) => {
+		if (fieldLabel === 'Protocol Count') {
+			return value.toLocaleString()
+		}
+		return `$${value.toLocaleString()}`
+	}
+
+	const buildRangeLabel = (fieldLabel: string, minValue?: number, maxValue?: number) => {
+		if (minValue !== undefined && maxValue !== undefined) {
+			return `${fieldLabel}: ${formatMetricValue(fieldLabel, minValue)} - ${formatMetricValue(fieldLabel, maxValue)}`
+		}
+		if (minValue !== undefined) {
+			return `${fieldLabel} ≥ ${formatMetricValue(fieldLabel, minValue)}`
+		}
+		if (maxValue !== undefined) {
+			return `${fieldLabel} ≤ ${formatMetricValue(fieldLabel, maxValue)}`
+		}
+		return fieldLabel
 	}
 
 	const arraysEqual = (a: string[], b: string[]) => {
@@ -455,6 +526,79 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 		}
 		setFilterErrors({})
 	}
+
+	const currentFilters = (filters ?? {}) as TableFilters
+	const includeCategories = (currentFilters.categories as string[]) ?? []
+	const excludedCategories = (currentFilters.excludedCategories as string[]) ?? []
+	const protocolFilters = (currentFilters.protocols as string[]) ?? []
+	const oracleFilters = (currentFilters.oracles as string[]) ?? []
+
+	const activeFilterPills: FilterPill[] = []
+
+	const addArrayFilterPills = (key: ArrayFilterKey, values: string[], formatter?: (value: string) => string) => {
+		values.forEach((value) => {
+			activeFilterPills.push({
+				id: `${key}-${value}`,
+				label: formatter ? formatter(value) : value,
+				onRemove: () => handleRemoveArrayFilterValue(key, value)
+			})
+		})
+	}
+
+	if (strategyType === 'protocols') {
+		chains
+			.filter((chain) => chain !== 'All')
+			.forEach((chain) => {
+				activeFilterPills.push({
+					id: `chain-${chain}`,
+					label: chainLabelMap.get(chain) ?? chain,
+					onRemove: () => handleRemoveChainValue(chain)
+				})
+			})
+	} else if (category) {
+		activeFilterPills.push({
+			id: `category-${category}`,
+			label: `Category: ${category}`,
+			onRemove: () => setCategory(null)
+		})
+	}
+
+	addArrayFilterPills('categories', includeCategories)
+	addArrayFilterPills('excludedCategories', excludedCategories, (value) => `Exclude ${value}`)
+	addArrayFilterPills('protocols', protocolFilters)
+	addArrayFilterPills('oracles', oracleFilters)
+
+	RANGE_FIELDS.forEach((field) => {
+		if (field.strategies && !field.strategies.includes(strategyType)) return
+		const minValue = currentFilters[field.minKey] as number | undefined
+		const maxValue = currentFilters[field.maxKey] as number | undefined
+		if (minValue === undefined && maxValue === undefined) return
+		const keysToClear: NumericFilterKey[] = []
+		if (minValue !== undefined) {
+			keysToClear.push(field.minKey)
+		}
+		if (maxValue !== undefined) {
+			keysToClear.push(field.maxKey)
+		}
+		activeFilterPills.push({
+			id: `${field.minKey}-${field.maxKey}`,
+			label: buildRangeLabel(field.label, minValue, maxValue),
+			onRemove: () => clearNumericFilterValues(...keysToClear)
+		})
+	})
+
+	const booleanEntries = Object.entries(BOOLEAN_FILTER_LABELS) as Array<[BooleanFilterKey, string]>
+	booleanEntries.forEach(([key, label]) => {
+		if (currentFilters[key]) {
+			activeFilterPills.push({
+				id: `boolean-${key}`,
+				label,
+				onRemove: () => handleBooleanFilterChange(key, false)
+			})
+		}
+	})
+
+	const activeFilterCount = activeFilterPills.length
 
 	const scopeCount = useMemo(() => {
 		if (strategyType === 'protocols') {
@@ -589,19 +733,53 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 							</CollapsibleSection>
 						</div>
 
-					<CollapsibleSection title="Filters" isDefaultExpanded={false} badge={totalFilterCount || undefined}>
-						<div className="flex flex-col gap-4">
-							<PresetSelector currentFilters={filters ?? {}} strategyType={strategyType} onApplyPreset={handleApplyPreset} />
-							<FiltersPanel
-								strategyType={strategyType}
-								chains={chains}
-								category={category}
-								filters={filters ?? {}}
-									availableChains={chainOptions}
-									onChainsChange={setChains}
-									onCategoryChange={setCategory}
-									onFiltersChange={handlePanelFiltersChange}
-								/>
+						<CollapsibleSection title="Filters" isDefaultExpanded={false} badge={totalFilterCount || undefined}>
+							<div className="flex flex-col gap-5">
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<h5 className="text-xs font-semibold uppercase tracking-wide text-(--text-secondary)">
+											Active filters
+										</h5>
+										<span className="text-[11px] text-(--text-tertiary)">
+											{activeFilterCount > 0 ? `${activeFilterCount} applied` : 'None'}
+										</span>
+									</div>
+									<ActiveFilterPills pills={activeFilterPills} />
+								</div>
+
+								<div className="space-y-2">
+									<div>
+										<h5 className="text-xs font-semibold text-(--text-secondary)">Filter presets</h5>
+										<p className="text-[11px] text-(--text-tertiary)">
+											Start from curated combinations tailored for each strategy.
+										</p>
+									</div>
+									<PresetSelector
+										currentFilters={filters ?? {}}
+										strategyType={strategyType}
+										onApplyPreset={handleApplyPreset}
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<div>
+										<h5 className="text-xs font-semibold text-(--text-secondary)">Scope</h5>
+										<p className="text-[11px] text-(--text-tertiary)">
+											Choose which chains, categories, protocols, or oracles to focus on.
+										</p>
+									</div>
+									<FiltersPanel
+										strategyType={strategyType}
+										chains={chains}
+										category={category}
+										filters={filters ?? {}}
+										availableChains={chainOptions}
+										onChainsChange={setChains}
+										onCategoryChange={setCategory}
+										onFiltersChange={handlePanelFiltersChange}
+									/>
+								</div>
+
 								<div className="space-y-2">
 									<div>
 										<h5 className="text-xs font-semibold text-(--text-secondary)">Metric thresholds</h5>

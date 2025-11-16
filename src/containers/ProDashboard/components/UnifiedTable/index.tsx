@@ -3,7 +3,6 @@ import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
-import { UNIFIED_TABLE_PRESETS, UNIFIED_TABLE_PRESETS_BY_ID } from './config/PresetRegistry'
 import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
 import { TableControls } from './core/TableControls'
 import { UnifiedTablePagination } from './core/TablePagination'
@@ -11,13 +10,7 @@ import { TableRenderer } from './core/TableRenderer'
 import { UnifiedTableHeader } from './core/UnifiedTableHeader'
 import { useUnifiedTable } from './core/useUnifiedTable'
 import type { NormalizedRow, UnifiedTableProps } from './types'
-import {
-	applyPresetToConfig,
-	getDefaultColumnOrder,
-	getDefaultColumnVisibility,
-	getDefaultRowHeaders,
-	normalizeSorting
-} from './utils/configHelpers'
+import { getDefaultColumnOrder, getDefaultColumnVisibility, getDefaultRowHeaders, normalizeSorting } from './utils/configHelpers'
 
 const arraysEqual = (a: string[], b: string[]) => {
 	if (a.length !== b.length) return false
@@ -83,7 +76,7 @@ const CSV_PERCENT_COLUMNS = new Set([
 const ROW_HEADER_LABELS: Record<UnifiedRowHeaderType, string> = {
 	chain: 'Chain',
 	category: 'Category',
-	'parent-protocol': 'Parent',
+	'parent-protocol': 'Protocol',
 	protocol: 'Protocol'
 }
 
@@ -118,8 +111,7 @@ export function UnifiedTable({
 	onPreviewColumnVisibilityChange,
 	onPreviewSortingChange,
 	onEdit,
-	onOpenColumnModal,
-	onPresetChange
+	onOpenColumnModal
 }: UnifiedTableProps) {
 	const { handleEditItem, isReadOnly } = useProDashboard()
 	const [searchTerm, setSearchTerm] = useState('')
@@ -145,7 +137,6 @@ export function UnifiedTable({
 		return () => clearTimeout(timer)
 	}, [config.columnOrder, config.columnVisibility, config.defaultSorting, previewMode])
 
-	// Sync state when configuration changes externally
 	useEffect(() => {
 		if (!previewMode) {
 			setColumnOrderState(getDefaultColumnOrder(config))
@@ -167,7 +158,6 @@ export function UnifiedTable({
 		}
 	}, [config.defaultSorting, previewMode, sortingState])
 
-	// Persist column settings when they change
 	useEffect(() => {
 		if (previewMode || isReadOnly) return
 		if (hydratingRef.current) return
@@ -245,11 +235,7 @@ export function UnifiedTable({
 		if (!unifiedTable.leafRows.length) return
 		handleExportClick()
 	}
-	const availablePresets = useMemo(
-		() => UNIFIED_TABLE_PRESETS.filter((preset) => preset.strategyType === config.strategyType),
-		[config.strategyType]
-	)
-	const activePreset = config.activePresetId ? (UNIFIED_TABLE_PRESETS_BY_ID.get(config.activePresetId) ?? null) : null
+
 	const title = useMemo(
 		() => (config.strategyType === 'chains' ? 'Chains overview' : 'Protocols overview'),
 		[config.strategyType]
@@ -274,43 +260,10 @@ export function UnifiedTable({
 	const rowHeadersSummary = useMemo(() => {
 		const headers = config.rowHeaders && config.rowHeaders.length ? config.rowHeaders : getDefaultRowHeaders(config)
 		if (!headers.length) return null
-		return headers.map((header) => ROW_HEADER_LABELS[header] ?? header).join(' › ')
+		const labels = headers.map((header) => ROW_HEADER_LABELS[header] ?? header)
+		const uniqueLabels = [...new Set(labels)]
+		return uniqueLabels.join(' › ')
 	}, [config])
-
-	const handlePresetSelection = useCallback(
-		(presetId: string) => {
-			const preset = UNIFIED_TABLE_PRESETS_BY_ID.get(presetId)
-			if (!preset) return
-
-			if (previewMode) {
-				onPresetChange?.(preset.id)
-				return
-			}
-
-			if (isReadOnly) return
-
-			const presetConfig = applyPresetToConfig({
-				preset,
-				includeRowHeaderRules: true,
-				mergeWithDefaults: true,
-				strategyType: config.strategyType
-			})
-
-			setColumnOrderState(presetConfig.columnOrder)
-			setColumnVisibilityState(presetConfig.columnVisibility)
-			setSortingState(presetConfig.sorting)
-
-			handleEditItem(config.id, {
-				...config,
-				rowHeaders: presetConfig.rowHeaders,
-				columnOrder: presetConfig.columnOrder,
-				columnVisibility: presetConfig.columnVisibility,
-				defaultSorting: presetConfig.sorting.map((item) => ({ ...item })),
-				activePresetId: preset.id
-			})
-		},
-		[config, handleEditItem, isReadOnly, onPresetChange, previewMode]
-	)
 
 	const handleCustomizeColumns = useCallback(() => {
 		if (previewMode || isReadOnly) return
@@ -321,7 +274,6 @@ export function UnifiedTable({
 		onEdit?.('columns')
 	}, [isReadOnly, onEdit, onOpenColumnModal, previewMode])
 
-	const canUsePresetSelector = previewMode ? Boolean(onPresetChange) : !isReadOnly
 	const canCustomizeColumns = Boolean(!previewMode && !isReadOnly && (onOpenColumnModal || onEdit))
 
 	return (
@@ -330,9 +282,6 @@ export function UnifiedTable({
 				title={title}
 				scopeDescription={scopeDescription}
 				rowHeadersSummary={rowHeadersSummary}
-				activePreset={activePreset}
-				availablePresets={availablePresets}
-				onPresetChange={canUsePresetSelector ? handlePresetSelection : undefined}
 				onCustomizeColumns={canCustomizeColumns ? handleCustomizeColumns : undefined}
 				onCsvExport={handleCsvClick}
 				isExportDisabled={!unifiedTable.leafRows.length}
