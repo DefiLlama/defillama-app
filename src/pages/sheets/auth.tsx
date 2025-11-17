@@ -26,17 +26,33 @@ function AuthContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 
 	useEffect(() => {
-		if (isAuthenticated && redirectUrl && !isSubscriptionLoading) {
-			router.push({
-				pathname: redirectUrl as string,
-				query: {
-					...router.query,
-					subscription_id: subscription?.id || '',
-					subscription_status: subscription?.status || '',
-					expires_at: subscription?.expires_at || '',
-					provider: subscription?.provider || ''
-				}
-			})
+		if (isAuthenticated && !isSubscriptionLoading) {
+			// google sheets auth, requiring redirect url
+			if (redirectUrl) {
+				router.push({
+					pathname: redirectUrl as string,
+					query: {
+						...router.query,
+						subscription_id: subscription?.id || '',
+						subscription_status: subscription?.status || '',
+						expires_at: subscription?.expires_at || '',
+						provider: subscription?.provider || ''
+					}
+				})
+			} else if (window.opener) {
+				// ms excel auth, we open auth page with `window.open` and send back the sub data to parent window
+				window.opener.postMessage(
+					{
+						subscription_id: subscription?.id || '',
+						subscription_status: subscription?.status || '',
+						expires_at: subscription?.expires_at || '',
+						provider: subscription?.provider || ''
+					},
+					'*'
+				)
+
+				window.close()
+			}
 		}
 	}, [isAuthenticated, redirectUrl, router, user, isSubscriptionLoading, subscription])
 
