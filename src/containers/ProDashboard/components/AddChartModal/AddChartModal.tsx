@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { ChartTab } from './ChartTab'
 import { MetricTab } from './MetricTab'
 import { ModalHeader } from './ModalHeader'
@@ -12,6 +13,8 @@ import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
 
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
+	const { hasFeature } = useFeatureFlagsContext()
+	const isLlamaEnabled = hasFeature('is_llama')
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
 
 	const getCurrentItemType = () => {
@@ -159,7 +162,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 						/>
 					)}
 
-					{state.selectedMainTab === 'unified-table' && (
+					{isLlamaEnabled && state.selectedMainTab === 'unified-table' && (
 						<UnifiedTableTab
 							onClose={onClose}
 							chainOptions={computed.chainOptions ?? []}

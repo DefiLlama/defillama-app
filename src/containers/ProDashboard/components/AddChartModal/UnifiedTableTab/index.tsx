@@ -622,7 +622,7 @@ const TabContent = ({
 			? 'Configure Filters'
 			: focusedSectionOnly === 'columns'
 				? 'Customize Columns'
-				: 'Build Unified Table'
+				: 'Build ProTable'
 	const headerDescription =
 		focusedSectionOnly === 'filters'
 			? 'Adjust filters to refine the data shown in your table.'

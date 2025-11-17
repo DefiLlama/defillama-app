@@ -3,6 +3,7 @@ import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig, StoredColSpan } from '../types'
@@ -81,6 +82,8 @@ interface ChartGridProps {
 }
 
 export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
+	const { hasFeature } = useFeatureFlagsContext()
+	const isLlamaEnabled = hasFeature('is_llama')
 	const {
 		chartsWithData,
 		handleChartsReordered,
@@ -192,6 +195,9 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 		}
 
 		if (item.kind === 'unified-table') {
+			if (!isLlamaEnabled) {
+				return null
+			}
 			return (
 				<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1 md:min-h-[380px]" />}>
 					<UnifiedTable
