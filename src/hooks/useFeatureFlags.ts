@@ -4,6 +4,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export interface FeatureFlags {
 	llamaai?: boolean
+	is_llama?: boolean
 	[key: string]: boolean | undefined
 }
 

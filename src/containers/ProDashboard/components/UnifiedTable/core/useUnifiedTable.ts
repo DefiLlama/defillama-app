@@ -82,7 +82,7 @@ const fetchUnifiedTableRows = async (
 	})
 
 	if (!response.ok) {
-		throw new Error('Failed to load unified table data')
+		throw new Error('Failed to load ProTable data')
 	}
 
 	return (await response.json()) as UnifiedTableApiResponse
