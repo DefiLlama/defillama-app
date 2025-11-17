@@ -27,6 +27,7 @@ function AuthContent() {
 
 	useEffect(() => {
 		if (isAuthenticated && !isSubscriptionLoading) {
+			// google sheets auth, requiring redirect url
 			if (redirectUrl) {
 				router.push({
 					pathname: redirectUrl as string,
@@ -39,6 +40,7 @@ function AuthContent() {
 					}
 				})
 			} else if (window.opener) {
+				// ms excel auth, we open auth page with `window.open` and send back the sub data to parent window
 				window.opener.postMessage(
 					{
 						subscription_id: subscription?.id || '',
@@ -48,6 +50,8 @@ function AuthContent() {
 					},
 					'*'
 				)
+
+				window.close()
 			}
 		}
 	}, [isAuthenticated, redirectUrl, router, user, isSubscriptionLoading, subscription])
