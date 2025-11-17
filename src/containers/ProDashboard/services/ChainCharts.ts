@@ -11,7 +11,7 @@ import {
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
 import { processAdjustedTvl } from '~/utils/tvl'
-import { convertToNumberFormat } from '../utils'
+import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
 const CHART_METADATA = {
 	tvl: { type: 'tvl' },
@@ -215,14 +215,16 @@ export default class ChainCharts {
 		if (!geckoId) return []
 		const data = await this.getTokenData(geckoId)
 		if (!data) return []
-		return convertToNumberFormat(data.mcaps ?? [], true)
+		const converted = convertToNumberFormat(data.mcaps ?? [], true)
+		return normalizeHourlyToDaily(converted, 'last')
 	}
 
 	private static async chainPriceData(chain: string, geckoId?: string): Promise<[number, number][]> {
 		if (!geckoId) return []
 		const data = await this.getTokenData(geckoId)
 		if (!data) return []
-		return convertToNumberFormat(data.prices ?? [], true)
+		const converted = convertToNumberFormat(data.prices ?? [], true)
+		return normalizeHourlyToDaily(converted, 'last')
 	}
 
 	static async getData(chartType: string, chain: string, geckoId?: string): Promise<[number, number][]> {

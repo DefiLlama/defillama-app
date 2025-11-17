@@ -9,7 +9,7 @@ import {
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
-import { convertToNumberFormat } from '../utils'
+import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
 interface DateTvl {
 	date: number
@@ -132,17 +132,20 @@ export default class ProtocolCharts {
 
 	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return convertToNumberFormat(data.mcaps ?? [], true)
+		const converted = convertToNumberFormat(data.mcaps ?? [], true)
+		return normalizeHourlyToDaily(converted, 'last')
 	}
 
 	static async tokenPrice(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return convertToNumberFormat(data.prices ?? [], true)
+		const converted = convertToNumberFormat(data.prices ?? [], true)
+		return normalizeHourlyToDaily(converted, 'last')
 	}
 
 	static async tokenVolume(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return convertToNumberFormat(data.volumes ?? [], true)
+		const converted = convertToNumberFormat(data.volumes ?? [], true)
+		return normalizeHourlyToDaily(converted, 'sum')
 	}
 
 	static async liquidity(protocol: string): Promise<[number, number][]> {

@@ -412,7 +412,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			!sharedSession &&
 			!readOnly &&
 			hasRestoredSession !== sessionId &&
-			!newlyCreatedSessionsRef.current.has(sessionId)
+			!newlyCreatedSessionsRef.current.has(sessionId) &&
+			!isStreaming
 		) {
 			resetScrollState()
 			setHasRestoredSession(sessionId)
@@ -425,7 +426,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					console.log('Failed to restore session:', error)
 				})
 		}
-	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
+	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState, isStreaming])
 
 	const {
 		data: promptResponse,
@@ -511,6 +512,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						newlyCreatedSessionsRef.current.add(data.sessionId)
 						setSessionId(data.sessionId)
 						sessionIdRef.current = data.sessionId
+						// Mark as restored to prevent restoration after streaming completes
+						setHasRestoredSession(data.sessionId)
 					} else if (data.type === 'suggestions') {
 						setStreamingSuggestions(data.suggestions)
 						setIsGeneratingSuggestions(false)

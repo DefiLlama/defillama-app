@@ -643,14 +643,14 @@ export const getAdapterByChainPageData = async ({
 			adapterType === 'fees'
 				? dataType === 'dailyRevenue'
 					? (protocol.methodology?.['Revenue'] ??
-						protocol.methodology?.['BribeRevenue'] ??
+						protocol.methodology?.['BribesRevenue'] ??
 						protocol.methodology?.['TokenTaxes'])
 					: dataType === 'dailyHoldersRevenue'
 						? (protocol.methodology?.['HoldersRevenue'] ??
-							protocol.methodology?.['BribeRevenue'] ??
+							protocol.methodology?.['BribesRevenue'] ??
 							protocol.methodology?.['TokenTaxes'])
 						: (protocol.methodology?.['Fees'] ??
-							protocol.methodology?.['BribeRevenue'] ??
+							protocol.methodology?.['BribesRevenue'] ??
 							protocol.methodology?.['TokenTaxes'])
 				: null
 
