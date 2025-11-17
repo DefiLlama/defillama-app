@@ -1,10 +1,10 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react'
+import * as Ariakit from '@ariakit/react'
 import {
 	DndContext,
 	DragOverlay,
 	KeyboardSensor,
 	PointerSensor,
-	useDraggable,
 	useDroppable,
 	useSensor,
 	useSensors,
@@ -16,6 +16,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable } 
 import { CSS } from '@dnd-kit/utilities'
 import type { ColumnOrderState, VisibilityState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import {
 	COLUMN_DICTIONARY_BY_ID,
 	UNIFIED_TABLE_COLUMN_DICTIONARY
@@ -49,9 +50,8 @@ const GROUP_FILTERS: Array<{ id: ColumnGroupId | 'all'; label: string }> = [
 	{ id: 'fees', label: 'Fees' },
 	{ id: 'revenue', label: 'Revenue' },
 	{ id: 'perps', label: 'Perps' },
-	{ id: 'earnings', label: 'Earnings' },
 	{ id: 'aggregators', label: 'Aggregators' },
-	{ id: 'bridge-aggregators', label: 'Bridge Aggs' },
+	{ id: 'derivatives-aggregators', label: 'Derivatives Aggs' },
 	{ id: 'options', label: 'Options' },
 	{ id: 'ratios', label: 'Ratios' }
 ]
@@ -67,9 +67,10 @@ const GROUP_LABELS: Record<ColumnGroupId, string> = GROUP_FILTERS.reduce(
 )
 
 const TAG_FILTERS: Array<{ id: string; label: string }> = [
-	{ id: 'dominance', label: 'Dominance' },
+	{ id: 'change', label: 'Changes' },
+	{ id: 'dominance', label: 'Market Share' },
 	{ id: 'cumulative', label: 'Cumulative' },
-	{ id: 'distribution', label: 'Distribution' },
+	{ id: 'distribution', label: 'Fee Breakdown' },
 	{ id: 'derived', label: 'Derived' },
 	{ id: 'advanced', label: 'Advanced' },
 	{ id: 'specialized', label: 'Specialized' }
@@ -111,6 +112,9 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
 	const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
+	const [recentlyChangedIds, setRecentlyChangedIds] = useState<Set<string>>(new Set())
+	const [selectedCheckboxIds, setSelectedCheckboxIds] = useState<Set<string>>(new Set())
+	const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null)
 
 	const allColumns = useMemo(() => buildAllColumns(strategyType), [strategyType])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((column) => column.id)), [allColumns])
@@ -195,11 +199,6 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 
 	const selectedListRef = useRef<HTMLDivElement | null>(null)
 
-	const availableDroppable = useDroppable({
-		id: 'available-drop',
-		data: { container: 'available' }
-	})
-
 	const selectedDroppable = useDroppable({
 		id: 'selected-drop',
 		data: { container: 'selected' }
@@ -217,7 +216,15 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 		})
 	}
 
-	const applyChanges = (nextSelected: string[]) => {
+	const clearAllFilters = () => {
+		setSearch('')
+		setGroupFilter('all')
+		setSelectedTags(new Set())
+	}
+
+	const hasActiveFilters = search.trim() !== '' || groupFilter !== 'all' || selectedTags.size > 0
+
+	const applyChanges = (nextSelected: string[], highlightIds?: string[]) => {
 		const remaining = allColumns.map((column) => column.id).filter((id) => id !== 'name' && !nextSelected.includes(id))
 
 		const nextOrder: ColumnOrderState = ['name', ...nextSelected, ...remaining]
@@ -231,6 +238,11 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 			nextVisibility[column.id] = nextSelected.includes(column.id)
 		}
 
+		if (highlightIds && highlightIds.length > 0) {
+			setRecentlyChangedIds(new Set(highlightIds))
+			setTimeout(() => setRecentlyChangedIds(new Set()), 200)
+		}
+
 		onChange(nextOrder, nextVisibility)
 	}
 
@@ -240,33 +252,70 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 		const next = [...selectedColumns]
 		const insertIndex = index === undefined ? next.length : Math.max(0, Math.min(index, next.length))
 		next.splice(insertIndex, 0, id)
-		applyChanges(next)
+		applyChanges(next, [id])
 	}
 
 	const handleAddColumnsBulk = (ids: string[]) => {
 		if (!ids.length) return
 		const next = [...selectedColumns]
-		let didChange = false
+		const added: string[] = []
 		for (const id of ids) {
 			if (!allColumnIds.has(id) || id === 'name') continue
 			if (next.includes(id)) continue
 			next.push(id)
-			didChange = true
+			added.push(id)
 		}
-		if (didChange) {
-			applyChanges(next)
+		if (added.length > 0) {
+			applyChanges(next, added)
 		}
 	}
 
 	const handleRemoveColumn = (id: string) => {
 		if (!selectedColumns.includes(id)) return
 		const next = selectedColumns.filter((columnId) => columnId !== id)
-		applyChanges(next)
+		applyChanges(next, [id])
 	}
 
 	const handleRemoveAllColumns = () => {
 		if (selectedColumns.length === 0) return
 		applyChanges([])
+	}
+
+	const handleCheckboxToggle = (id: string, index: number, shiftKey: boolean) => {
+		setSelectedCheckboxIds((prev) => {
+			const next = new Set(prev)
+			if (shiftKey && lastClickedIndex !== null) {
+				const start = Math.min(lastClickedIndex, index)
+				const end = Math.max(lastClickedIndex, index)
+				const shouldCheck = !prev.has(id)
+				for (let i = start; i <= end; i++) {
+					const columnId = filteredAvailableColumns[i]?.id
+					if (columnId) {
+						if (shouldCheck) {
+							next.add(columnId)
+						} else {
+							next.delete(columnId)
+						}
+					}
+				}
+			} else {
+				if (next.has(id)) {
+					next.delete(id)
+				} else {
+					next.add(id)
+				}
+			}
+			return next
+		})
+		setLastClickedIndex(index)
+	}
+
+	const handleAddSelectedColumns = () => {
+		const idsToAdd = Array.from(selectedCheckboxIds)
+		if (idsToAdd.length === 0) return
+		handleAddColumnsBulk(idsToAdd)
+		setSelectedCheckboxIds(new Set())
+		setLastClickedIndex(null)
 	}
 
 	const handleReorder = (activeId: string, overId: string | undefined) => {
@@ -295,17 +344,9 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 
 		const activeContainer = active.data.current?.container as string | undefined
 		const overId = over.id as string
-		const overContainer =
-			over.data.current?.container ??
-			(selectedColumns.includes(overId) ? 'selected' : overId === 'selected-drop' ? 'selected' : 'available')
 
-		if (activeContainer === 'selected' && overContainer === 'selected') {
+		if (activeContainer === 'selected') {
 			handleReorder(active.id as string, selectedColumns.includes(overId) ? overId : undefined)
-		} else if (activeContainer === 'available' && overContainer === 'selected') {
-			const insertIndex = selectedColumns.includes(overId) ? selectedColumns.indexOf(overId) : selectedColumns.length
-			handleAddColumn(active.id as string, insertIndex)
-		} else if (activeContainer === 'selected' && overContainer === 'available') {
-			handleRemoveColumn(active.id as string)
 		}
 
 		setActiveId(null)
@@ -315,62 +356,110 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 		setActiveId(null)
 	}
 
-	const renderColumnCard = (column: ColumnMeta, opts: { variant: 'available' | 'selected'; isDragging?: boolean }) => {
+	const renderColumnCard = (column: ColumnMeta, opts: { variant: 'available' | 'selected'; isDragging?: boolean; index?: number }) => {
 		const groupLabel = GROUP_LABELS[column.group] ?? column.group
 		const tagBadges = column.tags.slice(0, 2)
 		const remainingTags = column.tags.length - tagBadges.length
+		const isHighlighted = recentlyChangedIds.has(column.id)
+		const isChecked = selectedCheckboxIds.has(column.id)
+
+		if (opts.variant === 'available') {
+			return (
+				<Ariakit.CheckboxProvider value={isChecked}>
+					<label
+						className={`group flex w-full items-center rounded-lg border text-xs transition-all duration-150 cursor-pointer gap-2.5 px-3 py-2 ${
+							isChecked
+								? 'border-(--primary)/70 bg-(--primary)/12 shadow-sm'
+								: 'border-(--cards-border) bg-(--cards-bg) hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50 hover:shadow-sm'
+						}`}
+					>
+						<Ariakit.Checkbox
+							onChange={(e) => {
+								if (opts.index !== undefined) {
+									handleCheckboxToggle(column.id, opts.index, (e.nativeEvent as MouseEvent).shiftKey)
+								}
+							}}
+							className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border transition-all"
+						/>
+						<div className="flex min-w-0 flex-1 flex-col gap-1">
+							<span className="truncate leading-tight font-semibold text-(--text-primary) text-[11px]" title={column.header}>
+								{column.header}
+							</span>
+							<div className="flex flex-wrap items-center gap-1">
+								<span className="rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/80 px-1.5 py-0.5 font-semibold tracking-wide text-(--text-tertiary) uppercase text-[8px] leading-none">
+									{groupLabel}
+								</span>
+								{tagBadges.map((tag) => (
+									<span
+										key={tag}
+										className="rounded-md bg-(--primary)/8 px-1.5 py-0.5 text-(--text-secondary) text-[8px] leading-none font-medium"
+									>
+										{tag}
+									</span>
+								))}
+								{remainingTags > 0 ? (
+									<span className="rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-1.5 py-0.5 text-(--text-tertiary) text-[8px] leading-none">
+										+{remainingTags}
+									</span>
+								) : null}
+							</div>
+						</div>
+						<button
+							type="button"
+							onClick={(e) => {
+								e.preventDefault()
+								e.stopPropagation()
+								handleAddColumn(column.id)
+							}}
+							className="flex-shrink-0 cursor-pointer rounded-md border border-(--cards-border) p-1.5 text-(--text-secondary) transition-all opacity-0 group-hover:opacity-100 hover:border-(--primary) hover:bg-(--primary)/15 hover:text-(--primary) hover:scale-110"
+							title="Add column immediately"
+						>
+							<Icon name="plus" width={12} height={12} />
+						</button>
+					</label>
+				</Ariakit.CheckboxProvider>
+			)
+		}
 
 		return (
 			<div
-				className={`group flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition ${
-					opts.variant === 'available'
-						? 'border-(--cards-border) bg-(--cards-bg-alt)/35 hover:border-(--primary) hover:bg-(--primary)/10'
-						: 'border-(--primary)/60 bg-(--primary)/12'
-				} ${opts.isDragging ? 'opacity-70' : ''}`}
+				className={`group flex w-full items-center rounded-lg border text-xs transition-all duration-150 gap-2.5 px-3 py-2.5 border-(--primary)/50 bg-gradient-to-r from-(--primary)/10 to-(--primary)/5 shadow-sm ${
+					opts.isDragging ? 'opacity-60 scale-95' : ''
+				} ${isHighlighted ? 'ring-2 ring-(--primary)/50 shadow-md' : ''}`}
 			>
-				<span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded border border-(--cards-border) bg-(--cards-bg-alt)/60 text-(--text-tertiary)">
-					<Icon name="menu" width={10} height={10} />
+				<span className="flex flex-shrink-0 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/80 text-(--text-tertiary) h-6 w-6 cursor-grab active:cursor-grabbing">
+					<Icon name="menu" width={11} height={11} />
 				</span>
-				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="truncate text-[11px] leading-tight font-medium text-(--text-primary)" title={column.header}>
+				<div className="flex min-w-0 flex-1 flex-col gap-1">
+					<span className="truncate leading-tight font-semibold text-(--text-primary) text-[12px]" title={column.header}>
 						{column.header}
 					</span>
 					<div className="flex flex-wrap items-center gap-1">
-						<span className="rounded border border-(--cards-border) bg-(--cards-bg-alt)/70 px-1.5 py-0 text-[9px] font-medium tracking-wide text-(--text-tertiary) uppercase">
+						<span className="rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/80 px-1.5 py-0.5 font-semibold tracking-wide text-(--text-tertiary) uppercase text-[8px] leading-none">
 							{groupLabel}
 						</span>
 						{tagBadges.map((tag) => (
 							<span
 								key={tag}
-								className="rounded border border-(--cards-border) bg-(--cards-bg-alt)/60 px-1.5 py-0 text-[9px] text-(--text-tertiary)"
+								className="rounded-md bg-(--primary)/8 px-1.5 py-0.5 text-(--text-secondary) text-[8px] leading-none font-medium"
 							>
 								{tag}
 							</span>
 						))}
 						{remainingTags > 0 ? (
-							<span className="rounded border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/40 px-1.5 py-0 text-[9px] text-(--text-tertiary)">
+							<span className="rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-1.5 py-0.5 text-(--text-tertiary) text-[8px] leading-none">
 								+{remainingTags}
 							</span>
 						) : null}
 					</div>
 				</div>
-				{opts.variant === 'available' ? (
-					<button
-						type="button"
-						onClick={() => handleAddColumn(column.id)}
-						className="flex-shrink-0 cursor-pointer rounded border border-(--cards-border) px-2.5 py-0.5 text-[10px] font-medium text-(--text-secondary) transition hover:border-(--primary) hover:bg-(--primary)/12 hover:text-(--primary)"
-					>
-						Add
-					</button>
-				) : (
-					<button
-						type="button"
-						onClick={() => handleRemoveColumn(column.id)}
-						className="flex-shrink-0 cursor-pointer rounded border border-(--cards-border) px-2.5 py-0.5 text-[10px] font-medium text-(--text-secondary) transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-500"
-					>
-						Remove
-					</button>
-				)}
+				<button
+					type="button"
+					onClick={() => handleRemoveColumn(column.id)}
+					className="flex-shrink-0 cursor-pointer rounded-md border border-(--cards-border) px-3 py-1 text-[10px] font-semibold text-(--text-secondary) transition-all hover:border-red-500/70 hover:bg-red-500/15 hover:text-red-500 hover:scale-105"
+				>
+					Remove
+				</button>
 			</div>
 		)
 	}
@@ -379,7 +468,7 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 
 	return (
 		<div className="grid gap-4 lg:grid-cols-2">
-			<section className="flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg) shadow-sm">
+			<section className="flex flex-col h-[700px] rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 shadow-sm">
 				<div className="flex flex-col gap-2.5 border-b border-(--cards-border) p-3">
 					<div className="flex flex-wrap items-center justify-between gap-2">
 						<h3 className="text-xs font-semibold tracking-wide text-(--text-primary) uppercase">Available Columns</h3>
@@ -460,18 +549,41 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 						</div>
 					</div>
 				</div>
-				<div ref={availableDroppable.setNodeRef} className="thin-scrollbar max-h-[400px] overflow-auto">
+				<div className="thin-scrollbar flex-1 overflow-auto relative">
 					{filteredAvailableColumns.length === 0 ? (
-						<div className="flex h-full min-h-[200px] items-center justify-center px-4 text-center text-xs text-(--text-tertiary)">
-							No columns match your filters
+						<div className="flex h-full min-h-[200px] flex-col items-center justify-center gap-2 px-4 text-center">
+							<p className="text-xs text-(--text-tertiary)">No columns match your filters</p>
+							{hasActiveFilters && (
+								<button
+									type="button"
+									onClick={clearAllFilters}
+									className="rounded border border-(--primary)/50 px-3 py-1 text-xs font-medium text-(--primary) hover:bg-(--primary)/10"
+								>
+									Clear filters
+								</button>
+							)}
 						</div>
 					) : (
-						<div className="flex flex-col gap-1.5 p-2">
-							{filteredAvailableColumns.map((column) => (
-								<DraggableAvailableItem key={column.id} id={column.id} column={column}>
-									{renderColumnCard(column, { variant: 'available' })}
-								</DraggableAvailableItem>
+						<div className="flex flex-col gap-1.5 p-2.5 pb-20">
+							{filteredAvailableColumns.map((column, index) => (
+								<div key={column.id}>
+									{renderColumnCard(column, { variant: 'available', index })}
+								</div>
 							))}
+						</div>
+					)}
+					{selectedCheckboxIds.size > 0 && (
+						<div className="sticky bottom-0 left-0 right-0 border-t-2 border-(--primary)/30 bg-gradient-to-t from-(--cards-bg) to-(--cards-bg)/95 backdrop-blur-sm px-3 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.1)]">
+							<button
+								type="button"
+								onClick={handleAddSelectedColumns}
+								className="w-full rounded-lg border-2 border-(--primary) bg-(--primary)/20 px-4 py-2.5 text-sm font-bold text-(--primary) transition-all hover:bg-(--primary)/30 hover:border-(--primary) hover:shadow-lg active:scale-95"
+							>
+								<span className="flex items-center justify-center gap-2">
+									<Icon name="plus" width={16} height={16} />
+									Add {selectedCheckboxIds.size} column{selectedCheckboxIds.size !== 1 ? 's' : ''}
+								</span>
+							</button>
 						</div>
 					)}
 				</div>
@@ -483,10 +595,15 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 				onDragEnd={handleDragEnd}
 				onDragCancel={handleDragCancel}
 			>
-				<section className="flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg) shadow-sm">
-					<div className="flex flex-col gap-2.5 border-b border-(--cards-border) p-3">
+				<section className="flex flex-col h-[700px] rounded-lg border border-(--cards-border) border-t-2 border-t-(--primary)/20 bg-(--cards-bg) shadow-md">
+					<div className="flex flex-col gap-2.5 border-b border-(--cards-border) bg-(--cards-bg-alt)/10 p-3">
 						<div className="flex flex-wrap items-center justify-between gap-2">
-							<h3 className="text-xs font-semibold tracking-wide text-(--text-primary) uppercase">Selected Columns</h3>
+							<div className="flex items-center gap-1.5">
+								<h3 className="text-xs font-bold tracking-wide text-(--text-primary) uppercase">Selected Columns</h3>
+								<Tooltip content="The first selected column is always pinned to the left side of the table and remains visible when scrolling. Drag columns to reorder them." placement="top">
+									<Icon name="help-circle" width={12} height={12} className="text-(--text-tertiary) hover:text-(--text-secondary) cursor-help" />
+								</Tooltip>
+							</div>
 							<div className="flex items-center gap-2">
 								<span className="rounded bg-(--primary)/10 px-2 py-0.5 text-[10px] font-medium text-(--primary)">
 									{selectedColumns.length} selected
@@ -494,7 +611,7 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 							</div>
 						</div>
 						<p className="text-[11px] leading-relaxed text-(--text-secondary)">
-							Drag to reorder columns. The first column will be pinned on the left.
+							<strong>First column is pinned left.</strong> Drag to reorder remaining columns.
 						</p>
 					</div>
 
@@ -515,12 +632,12 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 							selectedListRef.current = node
 							selectedDroppable.setNodeRef(node)
 						}}
-						className="thin-scrollbar overflow-auto"
+						className="thin-scrollbar flex-1 overflow-auto"
 					>
 						<SortableContext items={selectedColumns}>
-							<div className="flex flex-col gap-1.5 p-2">
+							<div className="flex flex-col gap-2 p-2.5">
 								{selectedColumns.length === 0 ? (
-									<div className="flex min-h-[200px] items-center justify-center rounded-md border border-dashed border-(--cards-border) px-4 text-center text-xs text-(--text-tertiary)">
+									<div className="flex min-h-[200px] items-center justify-center rounded-lg border-2 border-dashed border-(--cards-border) px-4 text-center text-xs text-(--text-tertiary)">
 										Drag columns here to build your table
 									</div>
 								) : (
@@ -540,32 +657,17 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 				</section>
 
 				<DragOverlay>
-					{activeColumn ? renderColumnCard(activeColumn, { variant: 'selected', isDragging: true }) : null}
+					{activeColumn ? (
+						<div className="rotate-2 scale-105 shadow-lg">
+							{renderColumnCard(activeColumn, { variant: 'selected', isDragging: true })}
+						</div>
+					) : null}
 				</DragOverlay>
 			</DndContext>
 		</div>
 	)
 }
 
-function DraggableAvailableItem({ id, column, children }: { id: string; column: ColumnMeta; children: ReactNode }) {
-	const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-		id,
-		data: { container: 'available', column }
-	})
-
-	const style: React.CSSProperties = {
-		transform: transform ? CSS.Transform.toString(transform) : undefined,
-		opacity: isDragging ? 0.75 : undefined,
-		cursor: isDragging ? 'grabbing' : 'grab',
-		touchAction: 'none'
-	}
-
-	return (
-		<div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-			{children}
-		</div>
-	)
-}
 
 function SortableSelectedItem({ id, children, disabled }: { id: string; children: ReactNode; disabled?: boolean }) {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({

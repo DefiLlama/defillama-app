@@ -6,8 +6,8 @@ import { SubmitButton } from './SubmitButton'
 import { TableTab } from './TableTab'
 import { TabNavigation } from './TabNavigation'
 import { TextTab } from './TextTab'
-import { UnifiedTableTab } from './UnifiedTableTab'
 import { AddChartModalProps, CombinedTableType } from './types'
+import { UnifiedTableTab } from './UnifiedTableTab'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
 
@@ -38,11 +38,12 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 	]
 	const legacyTableTypes = primaryTableTypes.includes(state.selectedTableType) ? [] : [state.selectedTableType]
 
-	const dialogSizingClass = state.selectedMainTab === 'charts'
-		? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
-		: state.selectedMainTab === 'unified-table'
-			? 'max-h-[92dvh] md:max-h-[90dvh] w-[95%] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl'
-			: 'max-h-[85dvh] md:max-h-[80dvh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
+	const dialogSizingClass =
+		state.selectedMainTab === 'charts'
+			? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
+			: state.selectedMainTab === 'unified-table'
+				? 'max-h-[92dvh] md:max-h-[90dvh] w-[95%] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl'
+				: 'max-h-[85dvh] md:max-h-[80dvh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
 
 	return (
 		<Ariakit.DialogProvider
@@ -138,9 +139,9 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 						/>
 					)}
 
-			{state.selectedMainTab === 'table' && (
-				<TableTab
-					selectedChains={state.selectedChains}
+					{state.selectedMainTab === 'table' && (
+						<TableTab
+							selectedChains={state.selectedChains}
 							chainOptions={computed.chainOptions}
 							protocolsLoading={computed.protocolsLoading}
 							onChainsChange={actions.handleChainsChange}
@@ -155,20 +156,20 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							includeCex={state.includeCex}
 							onIncludeCexChange={actions.setIncludeCex}
 							legacyTableTypes={legacyTableTypes}
-				/>
-			)}
+						/>
+					)}
 
-			{state.selectedMainTab === 'unified-table' && (
-				<UnifiedTableTab
-					onClose={onClose}
-					chainOptions={computed.chainOptions ?? []}
-					editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
-					initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
-				/>
-			)}
+					{state.selectedMainTab === 'unified-table' && (
+						<UnifiedTableTab
+							onClose={onClose}
+							chainOptions={computed.chainOptions ?? []}
+							editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
+							initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
+						/>
+					)}
 
-			{state.selectedMainTab === 'text' && (
-				<TextTab
+					{state.selectedMainTab === 'text' && (
+						<TextTab
 							textTitle={state.textTitle}
 							textContent={state.textContent}
 							onTextTitleChange={actions.setTextTitle}
