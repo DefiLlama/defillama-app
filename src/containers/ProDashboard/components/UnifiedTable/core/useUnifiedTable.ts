@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnOrderState,
 	getCoreRowModel,
@@ -12,13 +13,13 @@ import {
 	VisibilityState,
 	type Table
 } from '@tanstack/react-table'
-import { useQuery } from '@tanstack/react-query'
 import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
-import { getGroupingColumnIdsForHeaders } from './grouping'
 import type { NormalizedRow } from '../types'
 import { filterRowsByConfig, filterRowsBySearch } from '../utils/dataFilters'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
+import { getGroupingColumnIdsForHeaders } from './grouping'
+import { getRowHeaderFromGroupingColumn, isSelfGroupingValue } from './groupingUtils'
 
 interface UseUnifiedTableArgs {
 	config: UnifiedTableConfig
@@ -132,10 +133,7 @@ export function useUnifiedTable({
 	}, [rows, config.filters, searchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.strategyType), [config.strategyType])
-	const groupingColumnIds = useMemo(
-		() => getGroupingColumnIdsForHeaders(sanitizedHeaders),
-		[sanitizedHeaders]
-	)
+	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
 
 	const groupingColumnSet = useMemo(() => new Set(groupingColumnIds), [groupingColumnIds])
 
@@ -164,13 +162,6 @@ export function useUnifiedTable({
 		},
 		[mergeColumnOrder, onColumnOrderChange, stripGroupingFromOrder]
 	)
-
-	const groupingColumnVisibilityDefaults = useMemo(() => {
-		return groupingColumnIds.reduce<Record<string, boolean>>((acc, columnId) => {
-			acc[columnId] = false
-			return acc
-		}, {})
-	}, [groupingColumnIds])
 
 	const mergeColumnVisibility = useCallback(
 		(visibility: VisibilityState): VisibilityState => {
@@ -232,7 +223,21 @@ export function useUnifiedTable({
 			if (!row.getIsGrouped()) {
 				return false
 			}
-			return row.subRows.length > 1
+			const header = getRowHeaderFromGroupingColumn(row.groupingColumnId)
+			if (!header) {
+				return false
+			}
+			if (header === 'protocol') {
+				return row.subRows.length > 1
+			}
+			if (header === 'parent-protocol') {
+				const isSelfParentGroup = isSelfGroupingValue(row.groupingValue as string | undefined)
+				if (isSelfParentGroup) {
+					return row.subRows.length > 1
+				}
+				return row.subRows.length > 0
+			}
+			return row.subRows.length > 0
 		},
 		getCoreRowModel: getCoreRowModel(),
 		getGroupedRowModel: getGroupedRowModel(),

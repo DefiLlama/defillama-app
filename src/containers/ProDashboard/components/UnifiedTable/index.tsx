@@ -65,17 +65,13 @@ const CSV_PERCENT_COLUMNS = new Set([
 	'perps_volume_change_7d',
 	'perps_volume_change_1m',
 	'perps_volume_dominance_24h',
-	'earningsChange_1d',
-	'earningsChange_7d',
-	'earningsChange_1m',
 	'aggregators_volume_change_1d',
 	'aggregators_volume_change_7d',
 	'aggregators_volume_dominance_24h',
 	'aggregators_volume_marketShare7d',
-
-	'bridge_aggregators_volume_change_1d',
-	'bridge_aggregators_volume_change_7d',
-	'bridge_aggregators_volume_dominance_24h',
+	'derivatives_aggregators_volume_change_1d',
+	'derivatives_aggregators_volume_change_7d',
+	'derivatives_aggregators_volume_change_1m',
 	'options_volume_change_1d',
 	'options_volume_change_7d',
 	'options_volume_dominance_24h'
@@ -97,7 +93,7 @@ interface RowGroupingOption {
 const PROTOCOL_GROUPING_OPTIONS: RowGroupingOption[] = [
 	{ id: 'parent-protocol', label: 'Protocol Group › Protocol', headers: ['parent-protocol', 'protocol'] },
 	{ id: 'protocol-only', label: 'Protocol only', headers: ['protocol'] },
-	{ id: 'category-protocol', label: 'Category › Protocol', headers: ['category', 'protocol'] },
+	{ id: 'category-protocol', label: 'Category › Protocol', headers: ['category', 'parent-protocol', 'protocol'] },
 	{ id: 'chain-protocol', label: 'Chain › Protocol', headers: ['chain', 'parent-protocol', 'protocol'] },
 	{
 		id: 'chain-category-protocol',

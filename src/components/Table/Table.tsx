@@ -18,6 +18,7 @@ interface ITableProps {
 	style?: React.CSSProperties
 	compact?: boolean
 	useStickyHeader?: boolean
+	scrollMargin?: number
 }
 
 declare module '@tanstack/table-core' {
@@ -37,6 +38,7 @@ export function VirtualTable({
 	stripedBg = false,
 	compact = false,
 	useStickyHeader = true,
+	scrollMargin,
 	...props
 }: ITableProps) {
 	const router = useRouter()
@@ -47,7 +49,7 @@ export function VirtualTable({
 		count: rows.length,
 		estimateSize: () => rowSize || 50,
 		overscan: 5,
-		scrollMargin: tableContainerRef.current?.offsetTop ?? 0
+		scrollMargin: scrollMargin ?? tableContainerRef.current?.offsetTop ?? 0
 	})
 	const virtualItems = rowVirtualizer.getVirtualItems()
 	const tableHeaderRef = useRef<HTMLDivElement>(null)
@@ -223,7 +225,7 @@ export function VirtualTable({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="relative isolate w-full overflow-auto rounded-md bg-(--cards-bg)"
+			className="thin-scrollbar relative isolate w-full overflow-auto rounded-md bg-(--cards-bg)"
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -363,10 +365,11 @@ export function VirtualTable({
 			{/* Sticky horizontal scrollbar */}
 			<div
 				ref={stickyScrollbarRef}
+				className="thin-scrollbar"
 				style={{
 					position: 'fixed',
 					bottom: 0,
-					height: '17px',
+					height: '12px',
 					overflowX: 'auto',
 					overflowY: 'hidden',
 					zIndex: 999,

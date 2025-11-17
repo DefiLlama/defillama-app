@@ -14,7 +14,8 @@ import {
 	getGroupingKeyForRow,
 	getRowDisplayProps
 } from '../core/groupingUtils'
-import type { NormalizedRow, NumericMetrics } from '../types'
+import type { MetricGroup, NormalizedRow, NumericMetrics } from '../types'
+import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
 
 declare module '@tanstack/table-core' {
@@ -273,6 +274,12 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			meta: {
 				align: 'end'
 			},
+			aggregationFn: (_columnId, leafRows) => {
+				if (!leafRows.length) {
+					return []
+				}
+				return getAggregationContextFromLeafRows(leafRows).oracles
+			},
 			cell: ({ getValue }) => {
 				const oracles = (getValue() as string[]) ?? []
 				if (!oracles.length) {
@@ -484,16 +491,6 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('perps_volume_dominance_24h' as MetricKey, '24h Perps Volume Share')
 	]
 
-	const earningsColumns: ColumnDef<NormalizedRow>[] = [
-		createUsdMetricColumn('earnings_24h' as MetricKey, '24h Earnings'),
-		createUsdMetricColumn('earnings_7d' as MetricKey, '7d Earnings'),
-		createUsdMetricColumn('earnings_30d' as MetricKey, '30d Earnings'),
-		createUsdMetricColumn('earnings_1y' as MetricKey, '1y Earnings'),
-		createPercentMetricColumn('earningsChange_1d' as MetricKey, '1d Earnings Change'),
-		createPercentMetricColumn('earningsChange_7d' as MetricKey, '7d Earnings Change'),
-		createPercentMetricColumn('earningsChange_1m' as MetricKey, '30d Earnings Change')
-	]
-
 	const dexAggregatorColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('aggregators_volume_24h' as MetricKey, '24h Aggregator Volume'),
 		createUsdMetricColumn('aggregators_volume_7d' as MetricKey, '7d Aggregator Volume'),
@@ -504,13 +501,22 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createPercentMetricColumn('aggregators_volume_marketShare7d' as MetricKey, '7d Aggregator Volume Share')
 	]
 
-	const bridgeAggregatorColumns: ColumnDef<NormalizedRow>[] = [
-		createUsdMetricColumn('bridge_aggregators_volume_24h' as MetricKey, '24h Bridge Aggregator Volume'),
-		createUsdMetricColumn('bridge_aggregators_volume_7d' as MetricKey, '7d Bridge Aggregator Volume'),
-		createUsdMetricColumn('bridge_aggregators_volume_30d' as MetricKey, '30d Bridge Aggregator Volume'),
-		createPercentMetricColumn('bridge_aggregators_volume_change_1d' as MetricKey, '1d Bridge Aggregator Volume Change'),
-		createPercentMetricColumn('bridge_aggregators_volume_change_7d' as MetricKey, '7d Bridge Aggregator Volume Change'),
-		createPercentMetricColumn('bridge_aggregators_volume_dominance_24h' as MetricKey, '24h Bridge Aggregator Share')
+	const derivativesAggregatorColumns: ColumnDef<NormalizedRow>[] = [
+		createUsdMetricColumn('derivatives_aggregators_volume_24h' as MetricKey, '24h Derivatives Aggregator Volume'),
+		createUsdMetricColumn('derivatives_aggregators_volume_7d' as MetricKey, '7d Derivatives Aggregator Volume'),
+		createUsdMetricColumn('derivatives_aggregators_volume_30d' as MetricKey, '30d Derivatives Aggregator Volume'),
+		createPercentMetricColumn(
+			'derivatives_aggregators_volume_change_1d' as MetricKey,
+			'1d Derivatives Aggregator Change'
+		),
+		createPercentMetricColumn(
+			'derivatives_aggregators_volume_change_7d' as MetricKey,
+			'7d Derivatives Aggregator Change'
+		),
+		createPercentMetricColumn(
+			'derivatives_aggregators_volume_change_1m' as MetricKey,
+			'30d Derivatives Aggregator Change'
+		)
 	]
 
 	const optionsColumns: ColumnDef<NormalizedRow>[] = [
@@ -528,18 +534,88 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createRatioMetricColumn('ps' as MetricKey, 'P/S')
 	]
 
-	columns.push(
+	const allMetricColumns = [
 		...volumeColumns,
 		...feesColumns,
 		...revenueColumns,
 		...perpsColumns,
-		...earningsColumns,
 		...dexAggregatorColumns,
-		...bridgeAggregatorColumns,
+		...derivativesAggregatorColumns,
 		...optionsColumns,
 		...ratioColumns
-	)
+	]
 
-	const supportedColumns = columns.filter((col) => isColumnSupported(String(col.id), strategyType))
-	return [...groupingColumns, ...supportedColumns]
+	const allColumns = [...columns, ...allMetricColumns]
+
+	const groupLabelMap: Record<MetricGroup, string> = {
+		tvl: 'TVL',
+		volume: 'Volume',
+		fees: 'Fees',
+		revenue: 'Revenue',
+		perps: 'Perps',
+		aggregators: 'Aggregators',
+		'derivatives-aggregators': 'Derivatives Aggregators',
+		options: 'Options',
+		ratios: 'Ratios'
+	}
+
+	const nameColumn = allColumns.find((col) => col.id === 'name')
+	const metaColumns = allColumns.filter((col) => {
+		const columnId = String(col.id)
+		const dictEntry = COLUMN_DICTIONARY_BY_ID.get(columnId)
+		return dictEntry?.group === 'meta'
+	})
+
+	const columnsByGroup = new Map<MetricGroup, ColumnDef<NormalizedRow>[]>()
+
+	allColumns.forEach((col) => {
+		const columnId = String(col.id)
+		const dictEntry = COLUMN_DICTIONARY_BY_ID.get(columnId)
+		if (!dictEntry || dictEntry.group === 'meta') return
+
+		const group = dictEntry.group as MetricGroup
+
+		if (!columnsByGroup.has(group)) {
+			columnsByGroup.set(group, [])
+		}
+		columnsByGroup.get(group)!.push(col)
+	})
+
+	const groupedColumns: ColumnDef<NormalizedRow>[] = []
+
+	if (nameColumn) {
+		groupedColumns.push(nameColumn)
+	}
+
+	const supportedMetaColumns = metaColumns.filter((col) => isColumnSupported(String(col.id), strategyType))
+	groupedColumns.push(...supportedMetaColumns)
+
+	const groupOrder: MetricGroup[] = [
+		'tvl',
+		'volume',
+		'fees',
+		'revenue',
+		'perps',
+		'aggregators',
+		'derivatives-aggregators',
+		'options',
+		'ratios'
+	]
+
+	for (const groupKey of groupOrder) {
+		const groupColumns = columnsByGroup.get(groupKey)
+		if (!groupColumns || groupColumns.length === 0) continue
+
+		const supportedColumns = groupColumns.filter((col) => isColumnSupported(String(col.id), strategyType))
+		if (supportedColumns.length === 0) continue
+
+		groupedColumns.push({
+			id: `group_${groupKey}`,
+			header: groupLabelMap[groupKey],
+			columns: supportedColumns,
+			meta: { align: 'center' }
+		})
+	}
+
+	return [...groupingColumns, ...groupedColumns]
 }

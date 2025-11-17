@@ -76,13 +76,6 @@ export interface NumericMetrics {
 	perps_volume_change_1m?: number | null
 	perps_volume_dominance_24h?: number | null
 	openInterest?: number | null
-	earnings_24h?: number | null
-	earnings_7d?: number | null
-	earnings_30d?: number | null
-	earnings_1y?: number | null
-	earningsChange_1d?: number | null
-	earningsChange_7d?: number | null
-	earningsChange_1m?: number | null
 	aggregators_volume_24h?: number | null
 	aggregators_volume_7d?: number | null
 	aggregators_volume_30d?: number | null
@@ -90,12 +83,12 @@ export interface NumericMetrics {
 	aggregators_volume_change_7d?: number | null
 	aggregators_volume_dominance_24h?: number | null
 	aggregators_volume_marketShare7d?: number | null
-	bridge_aggregators_volume_24h?: number | null
-	bridge_aggregators_volume_7d?: number | null
-	bridge_aggregators_volume_30d?: number | null
-	bridge_aggregators_volume_change_1d?: number | null
-	bridge_aggregators_volume_change_7d?: number | null
-	bridge_aggregators_volume_dominance_24h?: number | null
+	derivatives_aggregators_volume_24h?: number | null
+	derivatives_aggregators_volume_7d?: number | null
+	derivatives_aggregators_volume_30d?: number | null
+	derivatives_aggregators_volume_change_1d?: number | null
+	derivatives_aggregators_volume_change_7d?: number | null
+	derivatives_aggregators_volume_change_1m?: number | null
 	options_volume_24h?: number | null
 	options_volume_7d?: number | null
 	options_volume_30d?: number | null
@@ -140,8 +133,7 @@ export type MetricGroup =
 	| 'fees'
 	| 'revenue'
 	| 'perps'
-	| 'earnings'
 	| 'aggregators'
-	| 'bridge-aggregators'
+	| 'derivatives-aggregators'
 	| 'options'
 	| 'ratios'

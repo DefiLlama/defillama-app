@@ -14,10 +14,10 @@ import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/c
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
-import { CollapsibleSection } from './components/CollapsibleSection'
-import { ColumnManager } from './components/ColumnManager'
 import type { FilterPill } from './components/ActiveFilterPills'
 import { ActiveFilterPills } from './components/ActiveFilterPills'
+import { CollapsibleSection } from './components/CollapsibleSection'
+import { ColumnManager } from './components/ColumnManager'
 import { FiltersPanel } from './components/FiltersPanel'
 import { FormattedNumberInput } from './components/FormattedNumberInput'
 import { GroupingOptions } from './components/GroupingOptions'
@@ -34,6 +34,7 @@ interface UnifiedTableTabProps {
 	chainOptions: Array<{ label: string; value: string }>
 	editItem?: UnifiedTableConfig | null
 	initialFocusSection?: UnifiedTableFocusSection
+	focusedSectionOnly?: 'filters' | 'columns'
 }
 
 const PROTOCOL_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol']
@@ -121,7 +122,13 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	return count
 }
 
-const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: UnifiedTableTabProps) => {
+const TabContent = ({
+	onClose,
+	chainOptions,
+	editItem,
+	initialFocusSection,
+	focusedSectionOnly
+}: UnifiedTableTabProps) => {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
 	const {
 		state: {
@@ -419,7 +426,7 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 
 	const handleRemoveArrayFilterValue = (key: ArrayFilterKey, value: string) => {
 		const next: TableFilters = { ...(filters ?? {}) }
-		const current = Array.isArray(next[key]) ? ([...(next[key] as string[])]) : []
+		const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
 		const updated = current.filter((item) => item !== value)
 		if (updated.length > 0) {
 			next[key] = updated
@@ -610,261 +617,286 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
 
+	const headerTitle =
+		focusedSectionOnly === 'filters'
+			? 'Configure Filters'
+			: focusedSectionOnly === 'columns'
+				? 'Customize Columns'
+				: 'Build Unified Table'
+	const headerDescription =
+		focusedSectionOnly === 'filters'
+			? 'Adjust filters to refine the data shown in your table.'
+			: focusedSectionOnly === 'columns'
+				? 'Select and arrange columns to customize your table view.'
+				: 'Configure your table using the sections below.'
+
 	return (
 		<>
 			<div className="flex flex-col">
 				<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
-					<h2 className="text-base font-semibold text-(--text-primary)">Build Unified Table</h2>
-					<p className="text-xs text-(--text-secondary)">Configure your table using the sections below.</p>
+					<h2 className="text-base font-semibold text-(--text-primary)">{headerTitle}</h2>
+					<p className="text-xs text-(--text-secondary)">{headerDescription}</p>
 				</header>
 
 				<div className="thin-scrollbar min-h-0 flex-1 overflow-y-auto pr-1" data-unified-table-scroll="true">
 					<div className="flex flex-col gap-3">
-						<CollapsibleSection title="Strategy & Grouping" isDefaultExpanded={initialFocusSection !== 'columns'}>
-							<div className="flex flex-col gap-3">
-								<div>
-									<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Select Strategy</h4>
-									<StrategySelector strategyType={strategyType} onStrategyChange={setStrategy} />
-								</div>
-								<div>
-									<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Configure Grouping</h4>
-									<GroupingOptions
-										strategyType={strategyType}
-										rowHeaders={rowHeaders}
-										onToggleRowHeader={handleToggleRowHeader}
-									/>
-								</div>
-							</div>
-						</CollapsibleSection>
-
-						<CollapsibleSection
-							title="Data Views"
-							isDefaultExpanded={initialFocusSection !== 'columns'}
-							badge={activePreset?.name}
-						>
-							<div className="flex flex-col gap-3">
-								{recommendedPresets.length > 0 && (
-									<div className="flex flex-col gap-2">
-										<div className="flex items-center justify-between">
-											<h4 className="text-xs font-semibold text-(--text-secondary)">Recommended Data Views</h4>
-											<p className="text-[10px] text-(--text-tertiary)">Based on your filters</p>
-										</div>
-										<PresetPicker
-											strategyType={strategyType}
-											activePresetId={activePresetId}
-											onSelect={handlePresetSelect}
-											presets={recommendedPresets}
-										/>
-									</div>
-								)}
-								<div className="flex flex-col gap-2">
-									<h4 className="text-xs font-semibold text-(--text-secondary)">All Data Views</h4>
-									{otherPresets.length > 0 ? (
-										<PresetPicker
-											strategyType={strategyType}
-											activePresetId={activePresetId}
-											onSelect={handlePresetSelect}
-											presets={otherPresets}
-										/>
-									) : (
-										<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-xs text-(--text-tertiary)">
-											All available data views are shown above.
-										</div>
-									)}
-								</div>
-							</div>
-						</CollapsibleSection>
-
-						<div ref={columnsSectionRef}>
-							<CollapsibleSection
-								title="Columns & Sorting"
-								isDefaultExpanded={initialFocusSection === 'columns'}
-								badge={`${visibleColumnsCount} visible`}
-							>
+						{!focusedSectionOnly && (
+							<CollapsibleSection title="Strategy & Grouping" isDefaultExpanded={initialFocusSection !== 'columns'}>
 								<div className="flex flex-col gap-3">
-									<div className="flex flex-col gap-2">
-										<h4 className="text-xs font-semibold text-(--text-secondary)">Sorting</h4>
-										<SortingSelector
-											columnOrder={localOrder}
-											columnVisibility={localVisibility}
-											sorting={localSorting}
-											onChange={handleSortingChange}
-											onReset={() => handleSortingChange(presetSortingFallback)}
-										/>
+									<div>
+										<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Select Strategy</h4>
+										<StrategySelector strategyType={strategyType} onStrategyChange={setStrategy} />
 									</div>
-									<div className="flex flex-col gap-2">
-										<div className="flex flex-wrap items-center justify-between gap-2">
-											<h4 className="text-xs font-semibold text-(--text-secondary)">Columns</h4>
-											<div className="flex flex-wrap items-center gap-2 text-xs">
-												<button
-													type="button"
-													onClick={handleResetToPreset}
-													disabled={!isModified}
-													className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
-														isModified
-															? 'border-(--primary) text-(--primary) hover:bg-(--primary)/10'
-															: 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
-													}`}
-												>
-													Reset to preset
-												</button>
-												<button
-													type="button"
-													onClick={handleClearColumns}
-													disabled={visibleColumnsCount === 0}
-													className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
-														visibleColumnsCount === 0
-															? 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
-															: 'border-red-500/60 text-red-500 hover:bg-red-500/10'
-													}`}
-												>
-													Clear all
-												</button>
-											</div>
-										</div>
-										<ColumnManager
+									<div>
+										<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Configure Grouping</h4>
+										<GroupingOptions
 											strategyType={strategyType}
-											columnOrder={localOrder}
-											columnVisibility={localVisibility}
-											onChange={handleColumnChange}
+											rowHeaders={rowHeaders}
+											onToggleRowHeader={handleToggleRowHeader}
 										/>
 									</div>
 								</div>
 							</CollapsibleSection>
-						</div>
+						)}
 
-						<CollapsibleSection title="Filters" isDefaultExpanded={false} badge={totalFilterCount || undefined}>
-							<div className="flex flex-col gap-5">
-								<div className="space-y-2">
-									<div className="flex items-center justify-between">
-										<h5 className="text-xs font-semibold uppercase tracking-wide text-(--text-secondary)">
-											Active filters
-										</h5>
-										<span className="text-[11px] text-(--text-tertiary)">
-											{activeFilterCount > 0 ? `${activeFilterCount} applied` : 'None'}
-										</span>
-									</div>
-									<ActiveFilterPills pills={activeFilterPills} />
-								</div>
-
-								<div className="space-y-2">
-									<div>
-										<h5 className="text-xs font-semibold text-(--text-secondary)">Filter presets</h5>
-										<p className="text-[11px] text-(--text-tertiary)">
-											Start from curated combinations tailored for each strategy.
-										</p>
-									</div>
-									<PresetSelector
-										currentFilters={filters ?? {}}
-										strategyType={strategyType}
-										onApplyPreset={handleApplyPreset}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<div>
-										<h5 className="text-xs font-semibold text-(--text-secondary)">Scope</h5>
-										<p className="text-[11px] text-(--text-tertiary)">
-											Choose which chains, categories, protocols, or oracles to focus on.
-										</p>
-									</div>
-									<FiltersPanel
-										strategyType={strategyType}
-										chains={chains}
-										category={category}
-										filters={filters ?? {}}
-										availableChains={chainOptions}
-										onChainsChange={setChains}
-										onCategoryChange={setCategory}
-										onFiltersChange={handlePanelFiltersChange}
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<div>
-										<h5 className="text-xs font-semibold text-(--text-secondary)">Metric thresholds</h5>
-										<p className="text-[11px] text-(--text-tertiary)">
-											Filter rows by TVL, market cap, fees, revenue, and more.
-										</p>
-									</div>
-									<div className="grid gap-3 md:grid-cols-2">
-										{RANGE_FIELDS.filter((field) => !field.strategies || field.strategies.includes(strategyType)).map(
-											(field) => (
-												<div
-													key={field.label}
-													className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-												>
-													<div className="mb-2 space-y-0.5">
-														<p className="text-sm font-semibold text-(--text-primary)">{field.label}</p>
-														{field.description ? (
-															<p className="text-xs text-(--text-secondary)">{field.description}</p>
-														) : null}
-													</div>
-													<div className="flex gap-2">
-														<FormattedNumberInput
-															value={filters?.[field.minKey] as number | undefined}
-															onChange={(val) => handleNumericFilterChange(field.minKey, val)}
-															placeholder="Min"
-															prefix={field.label === 'Protocol Count' ? '' : '$'}
-															min={0}
-															error={filterErrors[field.minKey]}
-														/>
-														<FormattedNumberInput
-															value={filters?.[field.maxKey] as number | undefined}
-															onChange={(val) => handleNumericFilterChange(field.maxKey, val)}
-															placeholder="Max"
-															prefix={field.label === 'Protocol Count' ? '' : '$'}
-															min={0}
-															error={filterErrors[field.maxKey]}
-														/>
-													</div>
-												</div>
-											)
+						{!focusedSectionOnly && (
+							<CollapsibleSection
+								title="Data Views"
+								isDefaultExpanded={initialFocusSection !== 'columns'}
+								badge={activePreset?.name}
+							>
+								<div className="flex flex-col gap-3">
+									{recommendedPresets.length > 0 && (
+										<div className="flex flex-col gap-2">
+											<div className="flex items-center justify-between">
+												<h4 className="text-xs font-semibold text-(--text-secondary)">Recommended Data Views</h4>
+												<p className="text-[10px] text-(--text-tertiary)">Based on your filters</p>
+											</div>
+											<PresetPicker
+												strategyType={strategyType}
+												activePresetId={activePresetId}
+												onSelect={handlePresetSelect}
+												presets={recommendedPresets}
+											/>
+										</div>
+									)}
+									<div className="flex flex-col gap-2">
+										<h4 className="text-xs font-semibold text-(--text-secondary)">All Data Views</h4>
+										{otherPresets.length > 0 ? (
+											<PresetPicker
+												strategyType={strategyType}
+												activePresetId={activePresetId}
+												onSelect={handlePresetSelect}
+												presets={otherPresets}
+											/>
+										) : (
+											<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-xs text-(--text-tertiary)">
+												All available data views are shown above.
+											</div>
 										)}
 									</div>
 								</div>
-								{strategyType === 'protocols' && (
+							</CollapsibleSection>
+						)}
+
+						{(!focusedSectionOnly || focusedSectionOnly === 'columns') && (
+							<div ref={columnsSectionRef}>
+								<CollapsibleSection
+									title="Columns & Sorting"
+									isDefaultExpanded={initialFocusSection === 'columns' || focusedSectionOnly === 'columns'}
+									badge={`${visibleColumnsCount} visible`}
+								>
+									<div className="flex flex-col gap-3">
+										<div className="flex flex-col gap-2">
+											<h4 className="text-xs font-semibold text-(--text-secondary)">Sorting</h4>
+											<SortingSelector
+												columnOrder={localOrder}
+												columnVisibility={localVisibility}
+												sorting={localSorting}
+												onChange={handleSortingChange}
+												onReset={() => handleSortingChange(presetSortingFallback)}
+											/>
+										</div>
+										<div className="flex flex-col gap-2">
+											<div className="flex flex-wrap items-center justify-between gap-2">
+												<h4 className="text-xs font-semibold text-(--text-secondary)">Columns</h4>
+												<div className="flex flex-wrap items-center gap-2 text-xs">
+													<button
+														type="button"
+														onClick={handleResetToPreset}
+														disabled={!isModified}
+														className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
+															isModified
+																? 'border-(--primary) text-(--primary) hover:bg-(--primary)/10'
+																: 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
+														}`}
+													>
+														Reset to preset
+													</button>
+													<button
+														type="button"
+														onClick={handleClearColumns}
+														disabled={visibleColumnsCount === 0}
+														className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
+															visibleColumnsCount === 0
+																? 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
+																: 'border-red-500/60 text-red-500 hover:bg-red-500/10'
+														}`}
+													>
+														Clear all
+													</button>
+												</div>
+											</div>
+											<ColumnManager
+												strategyType={strategyType}
+												columnOrder={localOrder}
+												columnVisibility={localVisibility}
+												onChange={handleColumnChange}
+											/>
+										</div>
+									</div>
+								</CollapsibleSection>
+							</div>
+						)}
+
+						{(!focusedSectionOnly || focusedSectionOnly === 'filters') && (
+							<CollapsibleSection
+								title="Filters"
+								isDefaultExpanded={focusedSectionOnly === 'filters'}
+								badge={totalFilterCount || undefined}
+							>
+								<div className="flex flex-col gap-5">
+									<div className="space-y-2">
+										<div className="flex items-center justify-between">
+											<h5 className="text-xs font-semibold tracking-wide text-(--text-secondary) uppercase">
+												Active filters
+											</h5>
+											<span className="text-[11px] text-(--text-tertiary)">
+												{activeFilterCount > 0 ? `${activeFilterCount} applied` : 'None'}
+											</span>
+										</div>
+										<ActiveFilterPills pills={activeFilterPills} />
+									</div>
+
 									<div className="space-y-2">
 										<div>
-											<h5 className="text-xs font-semibold text-(--text-secondary)">Protocol flags</h5>
+											<h5 className="text-xs font-semibold text-(--text-secondary)">Filter presets</h5>
 											<p className="text-[11px] text-(--text-tertiary)">
-												Quick toggles for perps, options, multi-chain, and hierarchy filters.
+												Start from curated combinations tailored for each strategy.
+											</p>
+										</div>
+										<PresetSelector
+											currentFilters={filters ?? {}}
+											strategyType={strategyType}
+											onApplyPreset={handleApplyPreset}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<div>
+											<h5 className="text-xs font-semibold text-(--text-secondary)">Scope</h5>
+											<p className="text-[11px] text-(--text-tertiary)">
+												Choose which chains, categories, protocols, or oracles to focus on.
+											</p>
+										</div>
+										<FiltersPanel
+											strategyType={strategyType}
+											chains={chains}
+											category={category}
+											filters={filters ?? {}}
+											availableChains={chainOptions}
+											onChainsChange={setChains}
+											onCategoryChange={setCategory}
+											onFiltersChange={handlePanelFiltersChange}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<div>
+											<h5 className="text-xs font-semibold text-(--text-secondary)">Metric thresholds</h5>
+											<p className="text-[11px] text-(--text-tertiary)">
+												Filter rows by TVL, market cap, fees, revenue, and more.
 											</p>
 										</div>
 										<div className="grid gap-3 md:grid-cols-2">
-											{BOOLEAN_FIELDS.map((field) => (
-												<label
-													key={field.key}
-													className="flex cursor-pointer items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2"
-												>
-													<input
-														type="checkbox"
-														checked={Boolean(filters?.[field.key])}
-														onChange={(event) => handleBooleanFilterChange(field.key, event.target.checked)}
-														className="h-4 w-4 accent-(--primary)"
-													/>
-													<div>
-														<p className="text-sm font-medium text-(--text-primary)">{field.label}</p>
-														{field.description ? (
-															<p className="text-xs text-(--text-secondary)">{field.description}</p>
-														) : null}
+											{RANGE_FIELDS.filter((field) => !field.strategies || field.strategies.includes(strategyType)).map(
+												(field) => (
+													<div
+														key={field.label}
+														className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+													>
+														<div className="mb-2 space-y-0.5">
+															<p className="text-sm font-semibold text-(--text-primary)">{field.label}</p>
+															{field.description ? (
+																<p className="text-xs text-(--text-secondary)">{field.description}</p>
+															) : null}
+														</div>
+														<div className="flex gap-2">
+															<FormattedNumberInput
+																value={filters?.[field.minKey] as number | undefined}
+																onChange={(val) => handleNumericFilterChange(field.minKey, val)}
+																placeholder="Min"
+																prefix={field.label === 'Protocol Count' ? '' : '$'}
+																min={0}
+																error={filterErrors[field.minKey]}
+															/>
+															<FormattedNumberInput
+																value={filters?.[field.maxKey] as number | undefined}
+																onChange={(val) => handleNumericFilterChange(field.maxKey, val)}
+																placeholder="Max"
+																prefix={field.label === 'Protocol Count' ? '' : '$'}
+																min={0}
+																error={filterErrors[field.maxKey]}
+															/>
+														</div>
 													</div>
-												</label>
-											))}
+												)
+											)}
 										</div>
 									</div>
-								)}
-								<div className="flex justify-end">
-									<button
-										type="button"
-										onClick={handleClearFilters}
-										className="pro-text2 hover:pro-text1 rounded-md border border-(--cards-border) px-3 py-1.5 text-xs transition"
-									>
-										Clear filters
-									</button>
+									{strategyType === 'protocols' && (
+										<div className="space-y-2">
+											<div>
+												<h5 className="text-xs font-semibold text-(--text-secondary)">Protocol flags</h5>
+												<p className="text-[11px] text-(--text-tertiary)">
+													Quick toggles for perps, options, multi-chain, and hierarchy filters.
+												</p>
+											</div>
+											<div className="grid gap-3 md:grid-cols-2">
+												{BOOLEAN_FIELDS.map((field) => (
+													<label
+														key={field.key}
+														className="flex cursor-pointer items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2"
+													>
+														<input
+															type="checkbox"
+															checked={Boolean(filters?.[field.key])}
+															onChange={(event) => handleBooleanFilterChange(field.key, event.target.checked)}
+															className="h-4 w-4 accent-(--primary)"
+														/>
+														<div>
+															<p className="text-sm font-medium text-(--text-primary)">{field.label}</p>
+															{field.description ? (
+																<p className="text-xs text-(--text-secondary)">{field.description}</p>
+															) : null}
+														</div>
+													</label>
+												))}
+											</div>
+										</div>
+									)}
+									<div className="flex justify-end">
+										<button
+											type="button"
+											onClick={handleClearFilters}
+											className="pro-text2 hover:pro-text1 rounded-md border border-(--cards-border) px-3 py-1.5 text-xs transition"
+										>
+											Clear filters
+										</button>
+									</div>
 								</div>
-							</div>
-						</CollapsibleSection>
+							</CollapsibleSection>
+						)}
 					</div>
 				</div>
 
@@ -891,14 +923,14 @@ const TabContent = ({ onClose, chainOptions, editItem, initialFocusSection }: Un
 }
 
 export function UnifiedTableTab(props: UnifiedTableTabProps) {
-	const { editItem, ...rest } = props
+	const { editItem, focusedSectionOnly, ...rest } = props
 	return (
 		<UnifiedTableWizardProvider
 			initialStrategy={editItem?.strategyType}
 			initialPresetId={editItem?.activePresetId}
 			initialConfig={editItem}
 		>
-			<TabContent {...rest} editItem={editItem} />
+			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
 		</UnifiedTableWizardProvider>
 	)
 }

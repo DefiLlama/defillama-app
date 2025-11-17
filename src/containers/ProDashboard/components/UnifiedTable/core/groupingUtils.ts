@@ -129,10 +129,21 @@ const getAggregatedChains = (rows: NormalizedRow[]): string[] => {
 	return Array.from(set)
 }
 
+const getAggregatedOracles = (rows: NormalizedRow[]): string[] => {
+	const set = new Set<string>()
+	for (const row of rows) {
+		if (row.oracles?.length) {
+			row.oracles.forEach((oracle) => set.add(oracle))
+		}
+	}
+	return Array.from(set)
+}
+
 type AggregatedGroupContext = {
 	metrics: NumericMetrics
 	category: string | null
 	chains: string[]
+	oracles: string[]
 	rows: NormalizedRow[]
 }
 
@@ -148,7 +159,8 @@ const computeGroupContext = (leafRows: Row<NormalizedRow>[]): AggregatedGroupCon
 		rows,
 		metrics: aggregateMetrics(rows),
 		category: getCommonCategory(rows),
-		chains: getAggregatedChains(rows)
+		chains: getAggregatedChains(rows),
+		oracles: getAggregatedOracles(rows)
 	}
 	aggregationCache.set(leafRows, context)
 	return context
@@ -178,6 +190,7 @@ export const getRowDisplayProps = (
 	iconUrl?: string | null
 	category: string | null
 	chains: string[]
+	oracles: string[]
 	isSelfGroup: boolean
 	original?: NormalizedRow
 } => {
@@ -190,6 +203,7 @@ export const getRowDisplayProps = (
 			iconUrl: original?.logo ?? null,
 			category: original?.category ?? null,
 			chains: original?.chains ?? (original?.chain ? [original.chain] : []),
+			oracles: original?.oracles ?? [],
 			isSelfGroup: false,
 			original
 		}
@@ -206,6 +220,7 @@ export const getRowDisplayProps = (
 			iconUrl: null,
 			category: null,
 			chains: [],
+			oracles: [],
 			isSelfGroup: false
 		}
 	}
@@ -219,6 +234,7 @@ export const getRowDisplayProps = (
 		iconUrl: headerValue.iconUrl,
 		category: aggregation?.category ?? null,
 		chains: aggregation?.chains ?? [],
+		oracles: aggregation?.oracles ?? [],
 		isSelfGroup: isSelfGroupingValue(row.groupingValue as string | undefined),
 		original: firstLeaf
 	}

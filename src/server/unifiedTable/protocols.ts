@@ -1,12 +1,20 @@
-import { llamaDb } from '~/server/db/llama'
-import type { UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
 import type { NormalizedRow, NumericMetrics } from '~/containers/ProDashboard/components/UnifiedTable/types'
-import { computeShare, derivePreviousValue, extractChainFilters, formatDisplayName, resolveLogoUrl, toPercent } from './utils'
+import type { UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import { llamaDb } from '~/server/db/llama'
+import {
+	computeShare,
+	derivePreviousValue,
+	extractChainFilters,
+	formatDisplayName,
+	resolveLogoUrl,
+	toPercent
+} from './utils'
 
 type ProtocolAggregateRow = {
 	protocol: string
 	protocol_category: string | null
 	chain_slugs: string[] | null
+	oracle_names: string[] | null
 	tvl_base: number | null
 	tvl_base_1d_pct_change: number | null
 	tvl_base_7d_pct_change: number | null
@@ -22,10 +30,14 @@ type ProtocolAggregateRow = {
 	fees_7d: number | null
 	fees_30d: number | null
 	fees_365d: number | null
+	fees_alltime: number | null
 	fees_annualised: number | null
 	fees_1d_pct_change: number | null
 	fees_7d_pct_change: number | null
 	fees_30d_pct_change: number | null
+	holder_revenue_1d: number | null
+	holder_revenue_30d: number | null
+	holder_revenue_30d_pct_change: number | null
 	revenue_1d: number | null
 	revenue_7d: number | null
 	revenue_30d: number | null
@@ -46,6 +58,12 @@ type ProtocolAggregateRow = {
 	volume_aggregators_1d_pct_change: number | null
 	volume_aggregators_7d_pct_change: number | null
 	volume_aggregators_30d_pct_change: number | null
+	volume_aggr_derivatives_1d: number | null
+	volume_aggr_derivatives_7d: number | null
+	volume_aggr_derivatives_30d: number | null
+	volume_aggr_derivatives_1d_pct_change: number | null
+	volume_aggr_derivatives_7d_pct_change: number | null
+	volume_aggr_derivatives_30d_pct_change: number | null
 	volume_options_1d: number | null
 	volume_options_7d: number | null
 	volume_options_30d: number | null
@@ -76,6 +94,7 @@ const totalsPromise = llamaDb.one<{
 	volume_aggregators_1d: number | null
 	volume_aggregators_7d: number | null
 	volume_derivatives_1d: number | null
+	volume_aggr_derivatives_1d: number | null
 	volume_options_1d: number | null
 }>(
 	`
@@ -86,6 +105,7 @@ const totalsPromise = llamaDb.one<{
 		volume_aggregators_1d,
 		volume_aggregators_7d,
 		volume_derivatives_1d,
+		volume_aggr_derivatives_1d,
 		volume_options_1d
 	FROM lens.metrics_total_current
 `
@@ -128,7 +148,10 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 	const volume24h = row.volume_dexs_1d ?? null
 	const volume7d = row.volume_dexs_7d ?? null
 	const fees24h = row.fees_1d ?? null
+	const fees7d = row.fees_7d ?? null
+	const fees30d = row.fees_30d ?? null
 	const perps24h = row.volume_derivatives_1d ?? null
+	const holderRevenue30d = row.holder_revenue_30d ?? null
 
 	return {
 		tvl,
@@ -148,14 +171,22 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		volumeDominance_24h: computeShare(volume24h, totals.volume_dexs_1d),
 		volumeMarketShare7d: computeShare(volume7d, totals.volume_dexs_7d),
 		fees24h,
-		fees_7d: row.fees_7d ?? null,
-		fees_30d: row.fees_30d ?? null,
+		fees_7d: fees7d,
+		fees_30d: fees30d,
 		fees_1y: row.fees_365d ?? null,
 		average_1y: row.fees_annualised ? row.fees_annualised / 12 : null,
-		cumulativeFees: null,
+		cumulativeFees: row.fees_alltime ?? null,
+		userFees_24h: null,
+		holderRevenue_24h: row.holder_revenue_1d ?? null,
+		holdersRevenue30d: holderRevenue30d,
+		holdersRevenueChange_30dover30d: toPercent(row.holder_revenue_30d_pct_change),
+		treasuryRevenue_24h: null,
+		supplySideRevenue_24h: null,
 		feesChange_1d: toPercent(row.fees_1d_pct_change),
 		feesChange_7d: toPercent(row.fees_7d_pct_change),
 		feesChange_1m: toPercent(row.fees_30d_pct_change),
+		feesChange_7dover7d: fees7d && row.fees_7d_pct_change ? toPercent(row.fees_7d_pct_change) : null,
+		feesChange_30dover30d: fees30d && row.fees_30d_pct_change ? toPercent(row.fees_30d_pct_change) : null,
 		revenue24h: row.revenue_1d ?? null,
 		revenue_7d: row.revenue_7d ?? null,
 		revenue_30d: row.revenue_30d ?? null,
@@ -164,6 +195,9 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		revenueChange_1d: toPercent(row.revenue_1d_pct_change),
 		revenueChange_7d: toPercent(row.revenue_7d_pct_change),
 		revenueChange_1m: toPercent(row.revenue_30d_pct_change),
+		revenueChange_7dover7d: row.revenue_7d && row.revenue_7d_pct_change ? toPercent(row.revenue_7d_pct_change) : null,
+		revenueChange_30dover30d:
+			row.revenue_30d && row.revenue_30d_pct_change ? toPercent(row.revenue_30d_pct_change) : null,
 		perpsVolume24h: perps24h,
 		perps_volume_7d: row.volume_derivatives_7d ?? null,
 		perps_volume_30d: row.volume_derivatives_30d ?? null,
@@ -178,6 +212,12 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		aggregators_volume_change_7d: toPercent(row.volume_aggregators_7d_pct_change),
 		aggregators_volume_dominance_24h: computeShare(row.volume_aggregators_1d, totals.volume_aggregators_1d),
 		aggregators_volume_marketShare7d: computeShare(row.volume_aggregators_7d, totals.volume_aggregators_7d),
+		derivatives_aggregators_volume_24h: row.volume_aggr_derivatives_1d ?? null,
+		derivatives_aggregators_volume_7d: row.volume_aggr_derivatives_7d ?? null,
+		derivatives_aggregators_volume_30d: row.volume_aggr_derivatives_30d ?? null,
+		derivatives_aggregators_volume_change_1d: toPercent(row.volume_aggr_derivatives_1d_pct_change),
+		derivatives_aggregators_volume_change_7d: toPercent(row.volume_aggr_derivatives_7d_pct_change),
+		derivatives_aggregators_volume_change_1m: toPercent(row.volume_aggr_derivatives_30d_pct_change),
 		options_volume_24h: row.volume_options_1d ?? null,
 		options_volume_7d: row.volume_options_7d ?? null,
 		options_volume_30d: row.volume_options_30d ?? null,
@@ -215,7 +255,7 @@ const buildBaseRow = (
 		logo: resolveLogoUrl(options.slug),
 		category: options.category ? formatDisplayName(options.category) : null,
 		chains: options.chainSlugs ? options.chainSlugs.map((chain) => formatDisplayName(chain)) : [],
-		oracles: [],
+		oracles: row.oracle_names ? row.oracle_names.map((oracle) => formatDisplayName(oracle)) : [],
 		parentProtocolId: options.parentSlug ?? null,
 		parentProtocolName: parentDisplayName,
 		parentProtocolLogo: options.parentSlug ? resolveLogoUrl(options.parentSlug) : null,
@@ -265,6 +305,14 @@ const fetchProtocolAggregateRows = async (
 			FROM lens.metrics_sub_protocol_current
 			GROUP BY protocol
 		),
+		oracle_meta AS (
+			SELECT
+				protocol,
+				array_remove(array_agg(DISTINCT oracle ORDER BY oracle), NULL) AS oracle_names
+			FROM lens.oracle_tvs_current
+			WHERE protocol IS NOT NULL
+			GROUP BY protocol
+		),
 		open_interest AS (
 			SELECT
 				protocol,
@@ -276,6 +324,7 @@ const fetchProtocolAggregateRows = async (
 			mp.protocol,
 			cat.category AS protocol_category,
 			chains.chain_slugs,
+			oracles.oracle_names,
 			mp.tvl_base,
 			mp.tvl_base_1d_pct_change,
 			mp.tvl_base_7d_pct_change,
@@ -291,10 +340,14 @@ const fetchProtocolAggregateRows = async (
 			mp.fees_7d,
 			mp.fees_30d,
 			mp.fees_365d,
+			mp.fees_alltime,
 			mp.fees_annualised,
 			mp.fees_1d_pct_change,
 			mp.fees_7d_pct_change,
 			mp.fees_30d_pct_change,
+			mp.holder_revenue_1d,
+			mp.holder_revenue_30d,
+			mp.holder_revenue_30d_pct_change,
 			mp.revenue_1d,
 			mp.revenue_7d,
 			mp.revenue_30d,
@@ -315,6 +368,12 @@ const fetchProtocolAggregateRows = async (
 			mp.volume_aggregators_1d_pct_change,
 			mp.volume_aggregators_7d_pct_change,
 			mp.volume_aggregators_30d_pct_change,
+			mp.volume_aggr_derivatives_1d,
+			mp.volume_aggr_derivatives_7d,
+			mp.volume_aggr_derivatives_30d,
+			mp.volume_aggr_derivatives_1d_pct_change,
+			mp.volume_aggr_derivatives_7d_pct_change,
+			mp.volume_aggr_derivatives_30d_pct_change,
 			mp.volume_options_1d,
 			mp.volume_options_7d,
 			mp.volume_options_30d,
@@ -328,6 +387,7 @@ const fetchProtocolAggregateRows = async (
 		FROM lens.metrics_protocol_current mp
 		LEFT JOIN chain_meta chains ON chains.protocol = mp.protocol
 		LEFT JOIN category_meta cat ON cat.protocol = mp.protocol
+		LEFT JOIN oracle_meta oracles ON oracles.protocol = mp.protocol
 		LEFT JOIN open_interest oi ON oi.protocol = mp.protocol
 		${whereClause}
 	`,
@@ -372,12 +432,21 @@ const fetchSubProtocolRows = async (
 				array_remove(array_agg(DISTINCT lower(chain) ORDER BY lower(chain)), NULL) AS chain_slugs
 			FROM lens.metrics_sub_protocol_by_chain_current
 			GROUP BY sub_protocol
+		),
+		oracle_meta AS (
+			SELECT
+				COALESCE(sub_protocol, protocol) AS sub_protocol,
+				array_remove(array_agg(DISTINCT oracle ORDER BY oracle), NULL) AS oracle_names
+			FROM lens.oracle_tvs_current
+			WHERE sub_protocol IS NOT NULL OR protocol IS NOT NULL
+			GROUP BY COALESCE(sub_protocol, protocol)
 		)
 		SELECT
 			msp.sub_protocol,
 			msp.protocol,
 			msp.category AS protocol_category,
 			chains.chain_slugs,
+			oracles.oracle_names,
 			msp.tvl_base,
 			msp.tvl_base_1d_pct_change,
 			msp.tvl_base_7d_pct_change,
@@ -393,10 +462,14 @@ const fetchSubProtocolRows = async (
 			msp.fees_7d,
 			msp.fees_30d,
 			msp.fees_365d,
+			msp.fees_alltime,
 			msp.fees_annualised,
 			msp.fees_1d_pct_change,
 			msp.fees_7d_pct_change,
 			msp.fees_30d_pct_change,
+			msp.holder_revenue_1d,
+			msp.holder_revenue_30d,
+			msp.holder_revenue_30d_pct_change,
 			msp.revenue_1d,
 			msp.revenue_7d,
 			msp.revenue_30d,
@@ -417,6 +490,12 @@ const fetchSubProtocolRows = async (
 			msp.volume_aggregators_1d_pct_change,
 			msp.volume_aggregators_7d_pct_change,
 			msp.volume_aggregators_30d_pct_change,
+			msp.volume_aggr_derivatives_1d,
+			msp.volume_aggr_derivatives_7d,
+			msp.volume_aggr_derivatives_30d,
+			msp.volume_aggr_derivatives_1d_pct_change,
+			msp.volume_aggr_derivatives_7d_pct_change,
+			msp.volume_aggr_derivatives_30d_pct_change,
 			msp.volume_options_1d,
 			msp.volume_options_7d,
 			msp.volume_options_30d,
@@ -429,6 +508,7 @@ const fetchSubProtocolRows = async (
 			NULL AS open_interest
 		FROM lens.metrics_sub_protocol_current msp
 		LEFT JOIN chain_meta chains ON chains.sub_protocol = msp.sub_protocol
+		LEFT JOIN oracle_meta oracles ON oracles.sub_protocol = msp.sub_protocol
 		${whereClause}
 	`,
 		values
@@ -488,6 +568,15 @@ const fetchParentProtocolsByChain = async (
 			FROM lens.metrics_sub_protocol_current
 			GROUP BY protocol
 		),
+		oracle_meta AS (
+			SELECT
+				protocol,
+				lower(chain) AS chain,
+				array_remove(array_agg(DISTINCT oracle ORDER BY oracle), NULL) AS oracle_names
+			FROM lens.oracle_tvs_current
+			WHERE protocol IS NOT NULL
+			GROUP BY protocol, lower(chain)
+		),
 		open_interest AS (
 			SELECT
 				protocol,
@@ -500,6 +589,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.protocol,
 			cat.category AS protocol_category,
 			ARRAY[lower(mpc.chain)] AS chain_slugs,
+			oracles.oracle_names,
 			mpc.chain AS chain_slug,
 			mpc.tvl_base,
 			mpc.tvl_base_1d_pct_change,
@@ -516,10 +606,14 @@ const fetchParentProtocolsByChain = async (
 			mpc.fees_7d,
 			mpc.fees_30d,
 			mpc.fees_365d,
+			mpc.fees_alltime,
 			mpc.fees_annualised,
 			mpc.fees_1d_pct_change,
 			mpc.fees_7d_pct_change,
 			mpc.fees_30d_pct_change,
+			mpc.holder_revenue_1d,
+			mpc.holder_revenue_30d,
+			mpc.holder_revenue_30d_pct_change,
 			mpc.revenue_1d,
 			mpc.revenue_7d,
 			mpc.revenue_30d,
@@ -540,6 +634,12 @@ const fetchParentProtocolsByChain = async (
 			mpc.volume_aggregators_1d_pct_change,
 			mpc.volume_aggregators_7d_pct_change,
 			mpc.volume_aggregators_30d_pct_change,
+			mpc.volume_aggr_derivatives_1d,
+			mpc.volume_aggr_derivatives_7d,
+			mpc.volume_aggr_derivatives_30d,
+			mpc.volume_aggr_derivatives_1d_pct_change,
+			mpc.volume_aggr_derivatives_7d_pct_change,
+			mpc.volume_aggr_derivatives_30d_pct_change,
 			mpc.volume_options_1d,
 			mpc.volume_options_7d,
 			mpc.volume_options_30d,
@@ -552,6 +652,7 @@ const fetchParentProtocolsByChain = async (
 			oi.open_interest
 		FROM lens.metrics_protocol_by_chain_current mpc
 		LEFT JOIN category_meta cat ON cat.protocol = mpc.protocol
+		LEFT JOIN oracle_meta oracles ON oracles.protocol = mpc.protocol AND oracles.chain = lower(mpc.chain)
 		LEFT JOIN open_interest oi ON oi.protocol = mpc.protocol AND oi.chain = mpc.chain
 		WHERE COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mpc.chain) = ANY($1)
 	`,
@@ -589,11 +690,21 @@ const fetchSubProtocolsByChain = async (
 ): Promise<NormalizedRow[]> => {
 	const rows = await llamaDb.any<SubProtocolChainRow>(
 		`
+		WITH oracle_meta AS (
+			SELECT
+				COALESCE(sub_protocol, protocol) AS sub_protocol,
+				lower(chain) AS chain,
+				array_remove(array_agg(DISTINCT oracle ORDER BY oracle), NULL) AS oracle_names
+			FROM lens.oracle_tvs_current
+			WHERE sub_protocol IS NOT NULL OR protocol IS NOT NULL
+			GROUP BY COALESCE(sub_protocol, protocol), lower(chain)
+		)
 		SELECT
 			mspc.sub_protocol,
 			mspc.protocol,
 			mspc.category AS protocol_category,
 			ARRAY[lower(mspc.chain)] AS chain_slugs,
+			oracles.oracle_names,
 			mspc.chain AS chain_slug,
 			mspc.tvl_base,
 			mspc.tvl_base_1d_pct_change,
@@ -610,10 +721,14 @@ const fetchSubProtocolsByChain = async (
 			mspc.fees_7d,
 			mspc.fees_30d,
 			mspc.fees_365d,
+			mspc.fees_alltime,
 			mspc.fees_annualised,
 			mspc.fees_1d_pct_change,
 			mspc.fees_7d_pct_change,
 			mspc.fees_30d_pct_change,
+			mspc.holder_revenue_1d,
+			mspc.holder_revenue_30d,
+			mspc.holder_revenue_30d_pct_change,
 			mspc.revenue_1d,
 			mspc.revenue_7d,
 			mspc.revenue_30d,
@@ -634,6 +749,12 @@ const fetchSubProtocolsByChain = async (
 			mspc.volume_aggregators_1d_pct_change,
 			mspc.volume_aggregators_7d_pct_change,
 			mspc.volume_aggregators_30d_pct_change,
+			mspc.volume_aggr_derivatives_1d,
+			mspc.volume_aggr_derivatives_7d,
+			mspc.volume_aggr_derivatives_30d,
+			mspc.volume_aggr_derivatives_1d_pct_change,
+			mspc.volume_aggr_derivatives_7d_pct_change,
+			mspc.volume_aggr_derivatives_30d_pct_change,
 			mspc.volume_options_1d,
 			mspc.volume_options_7d,
 			mspc.volume_options_30d,
@@ -645,6 +766,7 @@ const fetchSubProtocolsByChain = async (
 			mspc.ps_ratio,
 			NULL AS open_interest
 		FROM lens.metrics_sub_protocol_by_chain_current mspc
+		LEFT JOIN oracle_meta oracles ON oracles.sub_protocol = mspc.sub_protocol AND oracles.chain = lower(mspc.chain)
 		WHERE
 			mspc.sub_protocol != mspc.protocol
 			AND (COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mspc.chain) = ANY($1))

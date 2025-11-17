@@ -46,9 +46,10 @@ const metaColumns: ColumnDictionaryItem[] = [
 
 const tvlColumns: ColumnDictionaryItem[] = [
 	{ id: 'tvl', header: 'TVL', group: 'tvl', render: 'usd' },
-	{ id: 'change1d', header: '1d Change', group: 'tvl', render: 'percent' },
-	{ id: 'change7d', header: '7d Change', group: 'tvl', render: 'percent' },
-	{ id: 'change1m', header: '30d Change', group: 'tvl', render: 'percent' },
+	{ id: 'change1d', header: '1d Change', group: 'tvl', render: 'percent', tags: ['change'] },
+	{ id: 'change7d', header: '7d Change', group: 'tvl', render: 'percent', tags: ['change'] },
+	{ id: 'change1m', header: '30d Change', group: 'tvl', render: 'percent', tags: ['change'] },
+	{ id: 'mcap', header: 'Market Cap', group: 'tvl', render: 'usd' },
 	{ id: 'bridgedTvl', header: 'Bridged TVL', group: 'tvl', render: 'usd', strategies: ['chains'] },
 	{ id: 'stablesMcap', header: 'Stables', group: 'tvl', render: 'usd', strategies: ['chains'] },
 	{
@@ -56,7 +57,7 @@ const tvlColumns: ColumnDictionaryItem[] = [
 		header: 'TVL Share',
 		group: 'tvl',
 		render: 'percent',
-		tags: ['share'],
+		tags: ['dominance'],
 		strategies: ['chains']
 	},
 	{
@@ -64,7 +65,7 @@ const tvlColumns: ColumnDictionaryItem[] = [
 		header: 'Stables Share',
 		group: 'tvl',
 		render: 'percent',
-		tags: ['share'],
+		tags: ['dominance'],
 		strategies: ['chains']
 	}
 ]
@@ -86,6 +87,7 @@ const volumeColumns: ColumnDictionaryItem[] = [
 		header: '1d Volume Change',
 		group: 'volume',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -93,6 +95,7 @@ const volumeColumns: ColumnDictionaryItem[] = [
 		header: '7d Volume Change',
 		group: 'volume',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -100,6 +103,7 @@ const volumeColumns: ColumnDictionaryItem[] = [
 		header: '30d Volume Change',
 		group: 'volume',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -123,7 +127,7 @@ const volumeColumns: ColumnDictionaryItem[] = [
 		header: '24h Volume Share',
 		group: 'volume',
 		render: 'percent',
-		tags: ['share'],
+		tags: ['dominance'],
 		strategies: ['chains']
 	}
 ]
@@ -194,6 +198,7 @@ const feesColumns: ColumnDictionaryItem[] = [
 		header: '1d Fees Change',
 		group: 'fees',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -201,6 +206,7 @@ const feesColumns: ColumnDictionaryItem[] = [
 		header: '7d Fees Change',
 		group: 'fees',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -208,6 +214,7 @@ const feesColumns: ColumnDictionaryItem[] = [
 		header: '30d Fees Change',
 		group: 'fees',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -215,7 +222,7 @@ const feesColumns: ColumnDictionaryItem[] = [
 		header: '7d/7d Fees Change',
 		group: 'fees',
 		render: 'percent',
-		tags: ['advanced'],
+		tags: ['change', 'advanced'],
 		strategies: ['protocols']
 	},
 	{
@@ -223,7 +230,7 @@ const feesColumns: ColumnDictionaryItem[] = [
 		header: '30d/30d Fees Change',
 		group: 'fees',
 		render: 'percent',
-		tags: ['advanced'],
+		tags: ['change', 'advanced'],
 		strategies: ['protocols']
 	},
 	{
@@ -231,7 +238,7 @@ const feesColumns: ColumnDictionaryItem[] = [
 		header: '30d/30d Holder Rev Change',
 		group: 'fees',
 		render: 'percent',
-		tags: ['distribution', 'advanced'],
+		tags: ['change', 'distribution', 'advanced'],
 		strategies: ['protocols']
 	}
 ]
@@ -254,6 +261,7 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		header: '1d Revenue Change',
 		group: 'revenue',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -261,6 +269,7 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		header: '7d Revenue Change',
 		group: 'revenue',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -268,6 +277,7 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		header: '30d Revenue Change',
 		group: 'revenue',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -275,7 +285,7 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		header: '7d/7d Revenue Change',
 		group: 'revenue',
 		render: 'percent',
-		tags: ['advanced'],
+		tags: ['change', 'advanced'],
 		strategies: ['protocols']
 	},
 	{
@@ -283,7 +293,7 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		header: '30d/30d Revenue Change',
 		group: 'revenue',
 		render: 'percent',
-		tags: ['advanced'],
+		tags: ['change', 'advanced'],
 		strategies: ['protocols']
 	}
 ]
@@ -297,6 +307,7 @@ const perpsColumns: ColumnDictionaryItem[] = [
 		header: '1d Perps Volume Change',
 		group: 'perps',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -304,6 +315,7 @@ const perpsColumns: ColumnDictionaryItem[] = [
 		header: '7d Perps Volume Change',
 		group: 'perps',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -311,6 +323,7 @@ const perpsColumns: ColumnDictionaryItem[] = [
 		header: '30d Perps Volume Change',
 		group: 'perps',
 		render: 'percent',
+		tags: ['change'],
 		strategies: ['protocols']
 	},
 	{
@@ -322,34 +335,6 @@ const perpsColumns: ColumnDictionaryItem[] = [
 		strategies: ['protocols']
 	},
 	{ id: 'openInterest', header: 'Open Interest', group: 'perps', render: 'usd', strategies: ['protocols'] }
-]
-
-const earningsColumns: ColumnDictionaryItem[] = [
-	{ id: 'earnings_24h', header: '24h Earnings', group: 'earnings', render: 'usd', strategies: ['protocols'] },
-	{ id: 'earnings_7d', header: '7d Earnings', group: 'earnings', render: 'usd', strategies: ['protocols'] },
-	{ id: 'earnings_30d', header: '30d Earnings', group: 'earnings', render: 'usd', strategies: ['protocols'] },
-	{ id: 'earnings_1y', header: '1y Earnings', group: 'earnings', render: 'usd', strategies: ['protocols'] },
-	{
-		id: 'earningsChange_1d',
-		header: '1d Earnings Change',
-		group: 'earnings',
-		render: 'percent',
-		strategies: ['protocols']
-	},
-	{
-		id: 'earningsChange_7d',
-		header: '7d Earnings Change',
-		group: 'earnings',
-		render: 'percent',
-		strategies: ['protocols']
-	},
-	{
-		id: 'earningsChange_1m',
-		header: '30d Earnings Change',
-		group: 'earnings',
-		render: 'percent',
-		strategies: ['protocols']
-	}
 ]
 
 const aggregatorsColumns: ColumnDictionaryItem[] = [
@@ -382,7 +367,7 @@ const aggregatorsColumns: ColumnDictionaryItem[] = [
 		header: '1d Aggregator Volume Change',
 		group: 'aggregators',
 		render: 'percent',
-		tags: ['specialized'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	},
 	{
@@ -390,7 +375,7 @@ const aggregatorsColumns: ColumnDictionaryItem[] = [
 		header: '7d Aggregator Volume Change',
 		group: 'aggregators',
 		render: 'percent',
-		tags: ['specialized'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	},
 	{
@@ -411,53 +396,53 @@ const aggregatorsColumns: ColumnDictionaryItem[] = [
 	}
 ]
 
-const bridgeAggregatorsColumns: ColumnDictionaryItem[] = [
+const derivativesAggregatorsColumns: ColumnDictionaryItem[] = [
 	{
-		id: 'bridge_aggregators_volume_24h',
-		header: '24h Bridge Aggregator Volume',
-		group: 'bridge-aggregators',
+		id: 'derivatives_aggregators_volume_24h',
+		header: '24h Derivatives Aggregator Volume',
+		group: 'derivatives-aggregators',
 		render: 'usd',
 		tags: ['specialized'],
 		strategies: ['protocols']
 	},
 	{
-		id: 'bridge_aggregators_volume_7d',
-		header: '7d Bridge Aggregator Volume',
-		group: 'bridge-aggregators',
+		id: 'derivatives_aggregators_volume_7d',
+		header: '7d Derivatives Aggregator Volume',
+		group: 'derivatives-aggregators',
 		render: 'usd',
 		tags: ['specialized'],
 		strategies: ['protocols']
 	},
 	{
-		id: 'bridge_aggregators_volume_30d',
-		header: '30d Bridge Aggregator Volume',
-		group: 'bridge-aggregators',
+		id: 'derivatives_aggregators_volume_30d',
+		header: '30d Derivatives Aggregator Volume',
+		group: 'derivatives-aggregators',
 		render: 'usd',
 		tags: ['specialized'],
 		strategies: ['protocols']
 	},
 	{
-		id: 'bridge_aggregators_volume_change_1d',
-		header: '1d Bridge Aggregator Change',
-		group: 'bridge-aggregators',
+		id: 'derivatives_aggregators_volume_change_1d',
+		header: '1d Derivatives Aggregator Change',
+		group: 'derivatives-aggregators',
 		render: 'percent',
-		tags: ['specialized'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	},
 	{
-		id: 'bridge_aggregators_volume_change_7d',
-		header: '7d Bridge Aggregator Change',
-		group: 'bridge-aggregators',
+		id: 'derivatives_aggregators_volume_change_7d',
+		header: '7d Derivatives Aggregator Change',
+		group: 'derivatives-aggregators',
 		render: 'percent',
-		tags: ['specialized'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	},
 	{
-		id: 'bridge_aggregators_volume_dominance_24h',
-		header: '24h Bridge Aggregator Share',
-		group: 'bridge-aggregators',
+		id: 'derivatives_aggregators_volume_change_1m',
+		header: '30d Derivatives Aggregator Change',
+		group: 'derivatives-aggregators',
 		render: 'percent',
-		tags: ['specialized', 'dominance'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	}
 ]
@@ -492,7 +477,7 @@ const optionsColumns: ColumnDictionaryItem[] = [
 		header: '1d Options Volume Change',
 		group: 'options',
 		render: 'percent',
-		tags: ['specialized'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	},
 	{
@@ -500,7 +485,7 @@ const optionsColumns: ColumnDictionaryItem[] = [
 		header: '7d Options Volume Change',
 		group: 'options',
 		render: 'percent',
-		tags: ['specialized'],
+		tags: ['change', 'specialized'],
 		strategies: ['protocols']
 	},
 	{
@@ -514,10 +499,9 @@ const optionsColumns: ColumnDictionaryItem[] = [
 ]
 
 const ratioColumns: ColumnDictionaryItem[] = [
-	{ id: 'mcap', header: 'Market Cap', group: 'ratios', render: 'usd' },
-	{ id: 'mcaptvl', header: 'Mcap / TVL', group: 'ratios', render: 'ratio' },
-	{ id: 'pf', header: 'P/F', group: 'ratios', render: 'ratio', strategies: ['protocols'] },
-	{ id: 'ps', header: 'P/S', group: 'ratios', render: 'ratio', strategies: ['protocols'] }
+	{ id: 'mcaptvl', header: 'Mcap / TVL', group: 'ratios', render: 'ratio', description: 'Market Cap divided by Total Value Locked' },
+	{ id: 'pf', header: 'P/F', group: 'ratios', render: 'ratio', description: 'Price to Fees ratio', strategies: ['protocols'] },
+	{ id: 'ps', header: 'P/S', group: 'ratios', render: 'ratio', description: 'Price to Sales (Revenue) ratio', strategies: ['protocols'] }
 ]
 
 export const UNIFIED_TABLE_COLUMN_DICTIONARY: ColumnDictionaryItem[] = [
@@ -527,9 +511,8 @@ export const UNIFIED_TABLE_COLUMN_DICTIONARY: ColumnDictionaryItem[] = [
 	...feesColumns,
 	...revenueColumns,
 	...perpsColumns,
-	...earningsColumns,
 	...aggregatorsColumns,
-	...bridgeAggregatorsColumns,
+	...derivativesAggregatorsColumns,
 	...optionsColumns,
 	...ratioColumns
 ]
