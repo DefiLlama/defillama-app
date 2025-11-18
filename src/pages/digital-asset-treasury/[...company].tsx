@@ -79,20 +79,20 @@ export const getStaticProps = withPerformanceLogging(
 			company: [company]
 		}
 	}) => {
-		const data2: IDATInstitution | null = await fetchJson(`${TRADFI_API}/institutions/${company}`).catch(() => null)
+		const data: IDATInstitution | null = await fetchJson(`${TRADFI_API}/institutions/${company}`).catch(() => null)
 
-		if (!data2) {
+		if (!data) {
 			return { notFound: true, props: null }
 		}
 
-		const chartByAsset = Object.keys(data2.assets).map((assetKey) => {
+		const chartByAsset = Object.keys(data.assets).map((assetKey) => {
 			let totalAmount = 0
-			const assetMeta = data2.assetsMeta[assetKey]
+			const assetMeta = data.assetsMeta[assetKey]
 			return {
 				asset: assetKey,
 				name: assetMeta.name,
 				ticker: assetMeta.ticker,
-				chart: data2.transactions
+				chart: data.transactions
 					.filter((item) => item.asset === assetKey)
 					.map((item) => [
 						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
@@ -159,7 +159,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		for (const item of data2.stats) {
+		for (const item of data.stats) {
 			const [
 				date,
 				fd_realized,
@@ -186,11 +186,11 @@ export const getStaticProps = withPerformanceLogging(
 				stack: 'Total Asset Value',
 				type: 'line',
 				color: CHART_COLORS[6],
-				data: data2.assetValue
+				data: data.assetValue
 			}
 		}
 
-		const ohlcvChartData = data2.ohlcv.map(([date, open, high, low, close, volume]) => [
+		const ohlcvChartData = data.ohlcv.map(([date, open, high, low, close, volume]) => [
 			date,
 			open,
 			close,
@@ -201,25 +201,25 @@ export const getStaticProps = withPerformanceLogging(
 
 		return {
 			props: {
-				name: data2.name,
-				ticker: data2.ticker,
-				transactions: data2.transactions,
-				price: data2.price,
-				priceChange24h: data2.priceChange24h,
-				totalCost: data2.totalCost,
-				totalUsdValue: data2.totalUsdValue,
-				firstAnnouncementDate: data2.transactions[data2.transactions.length - 1].report_date,
-				lastAnnouncementDate: data2.transactions[0].report_date,
-				realized_mNAV: data2.stats[data2.stats.length - 1][7],
-				realistic_mNAV: data2.stats[data2.stats.length - 1][8],
-				max_mNAV: data2.stats[data2.stats.length - 1][9],
-				assets: Object.entries(data2.assets)
+				name: data.name,
+				ticker: data.ticker,
+				transactions: data.transactions,
+				price: data.price,
+				priceChange24h: data.priceChange24h,
+				totalCost: data.totalCost,
+				totalUsdValue: data.totalUsdValue,
+				firstAnnouncementDate: data.transactions[data.transactions.length - 1].report_date,
+				lastAnnouncementDate: data.transactions[0].report_date,
+				realized_mNAV: data.stats[data.stats.length - 1][7],
+				realistic_mNAV: data.stats[data.stats.length - 1][8],
+				max_mNAV: data.stats[data.stats.length - 1][9],
+				assets: Object.entries(data.assets)
 					.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
-					.map(([asset]) => data2.assetsMeta[asset].ticker),
-				assetsBreakdown: Object.entries(data2.assets)
+					.map(([asset]) => data.assetsMeta[asset].ticker),
+				assetsBreakdown: Object.entries(data.assets)
 					.map(([asset, { amount, cost, usdValue, avgPrice }]) => ({
-						name: data2.assetsMeta[asset].name,
-						ticker: data2.assetsMeta[asset].ticker,
+						name: data.assetsMeta[asset].name,
+						ticker: data.assetsMeta[asset].ticker,
 						amount: amount,
 						cost: cost ?? null,
 						usdValue: usdValue ?? null,
@@ -227,10 +227,10 @@ export const getStaticProps = withPerformanceLogging(
 					}))
 					.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0)),
 				chartByAsset,
-				mNAVChart: data2.stats.length > 0 ? mNAVChart : null,
-				fdChart: data2.stats.length > 0 ? fdChart : null,
-				totalAssetValueChart: data2.assetValue.length > 0 ? totalAssetValueChart : null,
-				ohlcvChartData: data2.ohlcv.length > 0 ? ohlcvChartData : null
+				mNAVChart: data.stats.length > 0 ? mNAVChart : null,
+				fdChart: data.stats.length > 0 ? fdChart : null,
+				totalAssetValueChart: data.assetValue.length > 0 ? totalAssetValueChart : null,
+				ohlcvChartData: data.ohlcv.length > 0 ? ohlcvChartData : null
 			},
 			revalidate: maxAgeForNext([22])
 		}

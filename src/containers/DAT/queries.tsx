@@ -202,6 +202,7 @@ export interface IDATOverviewDataByAssetProps {
 	metadata: IDATInstitutions['assetMetadata'][string]
 	allAssets: Array<{ label: string; to: string }>
 	dailyFlowsChart: ILineAndBarChartProps['charts']
+	mNAVRealizedChart: Array<[number, number | null]>
 }
 
 export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOverviewDataByAssetProps | null> {
@@ -216,8 +217,8 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 		return null
 	}
 
-	return {
-		institutions: institutions.map((institution) => {
+	const finalInstitutions = institutions
+		.map((institution) => {
 			const metadata = res.institutionMetadata[institution.institutionId]
 			return {
 				institutionId: metadata.institutionId,
@@ -232,7 +233,28 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 				mcapMax: metadata.mcapMax,
 				holdings: metadata.holdings[asset]
 			} as IInstitutionOverviewByAsset
-		}),
+		})
+		.sort((a, b) => (b.holdings.usdValue ?? 0) - (a.holdings.usdValue ?? 0))
+
+	const mNAV_realized = {}
+
+	for (const institution in res.mNAV[asset]) {
+		for (const [date, realized, realistic, max] of res.mNAV[asset][institution]) {
+			mNAV_realized[date] = mNAV_realized[date] ?? {}
+			mNAV_realized[date][institution] = realized
+		}
+	}
+	const mNAVRealizedChart = []
+	for (const date in mNAV_realized) {
+		const arr = [+date]
+		for (const inst of finalInstitutions) {
+			arr.push(mNAV_realized[date][inst.ticker] ?? null)
+		}
+		mNAVRealizedChart.push(arr)
+	}
+
+	return {
+		institutions: finalInstitutions,
 		asset,
 		metadata,
 		allAssets: [
@@ -250,6 +272,8 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 				color: oldBlue,
 				data: res.flows[asset] as any
 			}
-		}
+		},
+
+		mNAVRealizedChart: mNAVRealizedChart.sort((a, b) => a[0] - b[0])
 	}
 }

@@ -191,7 +191,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 		>
 			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
 			<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex flex-wrap items-center justify-between p-2 pb-0">
+				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
 					<TagGroup
 						selectedValue={groupBy}

@@ -105,7 +105,8 @@ export default function TreasuriesByAsset({
 	allAssets,
 	metadata,
 	dailyFlowsChart,
-	institutions
+	institutions,
+	mNAVRealizedChart
 }: IDATOverviewDataByAssetProps) {
 	return (
 		<Layout
