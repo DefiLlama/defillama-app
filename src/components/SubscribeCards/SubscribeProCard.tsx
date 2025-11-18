@@ -218,11 +218,11 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 		<WalletProvider>
 			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[400px]"
+					className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] max-sm:max-h-[95dvh] max-sm:min-h-[95dvh] md:max-w-[400px]"
 					portal
 					unmountOnHide
 				>
-					<span className="mx-auto flex w-full max-w-[440px] flex-col">
+					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
 						<Ariakit.DialogDismiss
 							data-umami-event="subscribe-modal-dismiss"
 							className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
