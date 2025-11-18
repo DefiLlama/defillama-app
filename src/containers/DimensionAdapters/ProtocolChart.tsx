@@ -2,11 +2,13 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
 
@@ -82,6 +84,7 @@ const ChartByType = ({
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const mainChartData = React.useMemo(() => {
 		const chartData = {}
@@ -262,6 +265,13 @@ const ChartByType = ({
 					portal
 				/>
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+				<ImageExportButton
+					chartInstance={exportChartInstance}
+					filename={title ? slug(title) : `${protocolName}-${chartType}`}
+					title={title}
+					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+					smol
+				/>
 			</div>
 			<React.Suspense fallback={<></>}>
 				<LineAndBarChart
@@ -270,6 +280,7 @@ const ChartByType = ({
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
 					}
 					valueSymbol="$"
+					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</>
