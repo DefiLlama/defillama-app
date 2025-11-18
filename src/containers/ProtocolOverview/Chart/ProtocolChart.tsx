@@ -11,6 +11,7 @@ import {
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
@@ -25,6 +26,7 @@ import {
 } from '~/constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
@@ -54,6 +56,9 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
+	const { chartInstance: overviewChartInstance, handleChartReady: handleOverviewChartReady } = useChartImageExport()
+	const overviewImageFilename = slug(props.name || 'protocol') || 'protocol'
+	const overviewImageTitle = props.name ? `${props.name} Overview` : 'Protocol Overview'
 
 	const queryParamsString = useMemo(() => {
 		const { tvl, ...rest } = router.query ?? {}
@@ -362,6 +367,13 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 					) : null}
 					<EmbedChart />
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
+					<ImageExportButton
+						chartInstance={overviewChartInstance}
+						filename={overviewImageFilename}
+						title={overviewImageTitle}
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60"
+						smol
+					/>
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">
@@ -381,6 +393,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
 							unlockTokenSymbol={props.token.symbol}
+							onReady={handleOverviewChartReady}
 						/>
 					</Suspense>
 				)}

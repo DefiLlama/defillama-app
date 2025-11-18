@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ISingleSeriesChartProps } from '../types'
@@ -133,6 +133,16 @@ export default function SingleSeriesChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
+	const updateChartInstance = useCallback(
+		(instance: echarts.ECharts | null) => {
+			chartRef.current = instance
+			if (onReady) {
+				onReady(instance)
+			}
+		},
+		[onReady]
+	)
+
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
@@ -142,11 +152,8 @@ export default function SingleSeriesChart({
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
-		chartRef.current = chartInstance
 
-		if (onReady && isNewInstance) {
-			onReady(chartInstance)
-		}
+		updateChartInstance(chartInstance)
 
 		// override default chart settings
 		for (const option in chartOptions) {
@@ -192,8 +199,9 @@ export default function SingleSeriesChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			updateChartInstance(null)
 		}
-	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom])
+	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom, updateChartInstance])
 
 	useEffect(() => {
 		return () => {
@@ -204,14 +212,9 @@ export default function SingleSeriesChart({
 					chartInstance.dispose()
 				}
 			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-			if (onReady) {
-				onReady(null)
-			}
+			updateChartInstance(null)
 		}
-	}, [id])
+	}, [id, updateChartInstance])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
 }

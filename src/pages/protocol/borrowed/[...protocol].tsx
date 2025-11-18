@@ -90,6 +90,9 @@ export default function Protocols(props) {
 		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls])
+	const protocolSlug = slug(props.name || 'protocol')
+	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
+	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
 
 	return (
 		<ProtocolOverviewLayout
@@ -116,6 +119,9 @@ export default function Protocols(props) {
 									customLegendName="Chain"
 									customLegendOptions={chainsUnique}
 									valueSymbol="$"
+									enableImageExport
+									imageExportFilename={buildFilename('borrowed-by-chain')}
+									imageExportTitle={buildTitle('Borrowed by Chain')}
 								/>
 							</React.Suspense>
 						</LazyChart>
@@ -131,6 +137,9 @@ export default function Protocols(props) {
 										customLegendName="Token"
 										customLegendOptions={tokensUnique}
 										valueSymbol="$"
+										enableImageExport
+										imageExportFilename={buildFilename('borrowed-by-token-usd')}
+										imageExportTitle={buildTitle('Borrowed by Token (USD)')}
 									/>
 								</React.Suspense>
 							</LazyChart>
@@ -157,6 +166,9 @@ export default function Protocols(props) {
 									title="Borrowed by Token (Raw Quantities)"
 									customLegendName="Token"
 									customLegendOptions={tokensUnique}
+									enableImageExport
+									imageExportFilename={buildFilename('borrowed-by-token-raw')}
+									imageExportTitle={buildTitle('Borrowed by Token (Raw Quantities)')}
 								/>
 							</React.Suspense>
 						</LazyChart>

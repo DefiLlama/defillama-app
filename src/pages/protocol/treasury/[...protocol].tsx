@@ -106,6 +106,9 @@ export default function Protocols(props) {
 
 		return { tokenBreakdown, tokenBreakdownUSD, tokensUnique, top10Tokens, historicalTreasury: finalHistoricalTreasury }
 	}, [data, includeOwnTokens, props.name])
+	const protocolSlug = slug(props.name || 'protocol')
+	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
+	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
 
 	return (
 		<ProtocolOverviewLayout
@@ -139,17 +142,39 @@ export default function Protocols(props) {
 					</LazyChart>
 					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
-							<AreaChart chartData={historicalTreasury} title="Historical Treasury" valueSymbol="$" />
+							<AreaChart
+								chartData={historicalTreasury}
+								title="Historical Treasury"
+								valueSymbol="$"
+								enableImageExport
+								imageExportFilename={buildFilename('historical-treasury')}
+								imageExportTitle={buildTitle('Historical Treasury')}
+							/>
 						</Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
-							<AreaChart chartData={tokenBreakdown} title="Tokens Breakdown" stacks={tokensUnique} />
+							<AreaChart
+								chartData={tokenBreakdown}
+								title="Tokens Breakdown"
+								stacks={tokensUnique}
+								enableImageExport
+								imageExportFilename={buildFilename('tokens-breakdown')}
+								imageExportTitle={buildTitle('Tokens Breakdown')}
+							/>
 						</Suspense>
 					</LazyChart>
 					<LazyChart className="relative col-span-full flex min-h-[368px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 						<Suspense fallback={<></>}>
-							<AreaChart chartData={tokenBreakdownUSD} title="Tokens (USD)" stacks={tokensUnique} valueSymbol="$" />
+							<AreaChart
+								chartData={tokenBreakdownUSD}
+								title="Tokens (USD)"
+								stacks={tokensUnique}
+								valueSymbol="$"
+								enableImageExport
+								imageExportFilename={buildFilename('tokens-usd')}
+								imageExportTitle={buildTitle('Tokens (USD)')}
+							/>
 						</Suspense>
 					</LazyChart>
 				</div>

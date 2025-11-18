@@ -95,6 +95,9 @@ export default function Protocols(props) {
 		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls, extraTvlsEnabled])
+	const protocolSlug = slug(props.name || 'protocol')
+	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
+	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
 
 	return (
 		<ProtocolOverviewLayout
@@ -121,6 +124,9 @@ export default function Protocols(props) {
 									customLegendName="Chain"
 									customLegendOptions={chainsUnique}
 									valueSymbol="$"
+									enableImageExport
+									imageExportFilename={buildFilename('chains')}
+									imageExportTitle={buildTitle('Chains')}
 								/>
 							</React.Suspense>
 						</LazyChart>
@@ -136,6 +142,9 @@ export default function Protocols(props) {
 										customLegendName="Token"
 										customLegendOptions={tokensUnique}
 										valueSymbol="$"
+										enableImageExport
+										imageExportFilename={buildFilename('token-values-usd')}
+										imageExportTitle={buildTitle('Token Values (USD)')}
 									/>
 								</React.Suspense>
 							</LazyChart>
@@ -147,7 +156,13 @@ export default function Protocols(props) {
 							{tokenBreakdownPieChart?.length > 0 && (
 								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 									<React.Suspense fallback={<></>}>
-										<PieChart title="Tokens Breakdown (USD)" chartData={tokenBreakdownPieChart} />
+										<PieChart
+											title="Tokens Breakdown (USD)"
+											chartData={tokenBreakdownPieChart}
+											enableImageExport
+											imageExportFilename={buildFilename('tokens-breakdown-usd')}
+											imageExportTitle={buildTitle('Tokens Breakdown (USD)')}
+										/>
 									</React.Suspense>
 								</LazyChart>
 							)}
@@ -162,6 +177,9 @@ export default function Protocols(props) {
 									title="Token Balances (Raw Quantities)"
 									customLegendName="Token"
 									customLegendOptions={tokensUnique}
+									enableImageExport
+									imageExportFilename={buildFilename('token-balances')}
+									imageExportTitle={buildTitle('Token Balances (Raw Quantities)')}
 								/>
 							</React.Suspense>
 						</LazyChart>
@@ -170,7 +188,15 @@ export default function Protocols(props) {
 					{usdInflows?.length > 0 && (
 						<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<React.Suspense fallback={<></>}>
-								<BarChart chartData={usdInflows} color={oldBlue} title="USD Inflows" valueSymbol="$" />
+								<BarChart
+									chartData={usdInflows}
+									color={oldBlue}
+									title="USD Inflows"
+									valueSymbol="$"
+									enableImageExport
+									imageExportFilename={buildFilename('usd-inflows')}
+									imageExportTitle={buildTitle('USD Inflows')}
+								/>
 							</React.Suspense>
 						</LazyChart>
 					)}
@@ -185,6 +211,9 @@ export default function Protocols(props) {
 									customLegendOptions={tokensUnique}
 									hideDefaultLegend={true}
 									valueSymbol="$"
+									enableImageExport
+									imageExportFilename={buildFilename('inflows-by-token')}
+									imageExportTitle={buildTitle('Inflows by Token')}
 								/>
 							</React.Suspense>
 						</LazyChart>

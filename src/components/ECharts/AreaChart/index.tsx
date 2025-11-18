@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -34,9 +36,14 @@ export default function AreaChart({
 	connectNulls = false,
 	onReady,
 	customComponents,
+	enableImageExport,
+	imageExportFilename,
+	imageExportTitle,
 	...props
 }: IChartProps) {
 	const id = useId()
+	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 
@@ -292,6 +299,16 @@ export default function AreaChart({
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
+	const exportTitle = imageExportTitle || title
+	const updateExportInstance = useCallback(
+		(instance: echarts.ECharts | null) => {
+			if (shouldEnableExport) {
+				handleChartReady(instance)
+			}
+		},
+		[shouldEnableExport, handleChartReady]
+	)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -303,6 +320,7 @@ export default function AreaChart({
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
+		updateExportInstance(chartInstance)
 
 		if (onReady && isNewInstance) {
 			onReady(chartInstance)
@@ -363,8 +381,19 @@ export default function AreaChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			updateExportInstance(null)
 		}
-	}, [defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend, hideDataZoom, id, chartsStack])
+	}, [
+		defaultChartSettings,
+		series,
+		chartOptions,
+		expandTo100Percent,
+		hideLegend,
+		hideDataZoom,
+		id,
+		chartsStack,
+		updateExportInstance
+	])
 
 	useEffect(() => {
 		return () => {
@@ -381,8 +410,9 @@ export default function AreaChart({
 			if (onReady) {
 				onReady(null)
 			}
+			updateExportInstance(null)
 		}
-	}, [id])
+	}, [id, onReady, updateExportInstance])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
@@ -432,7 +462,16 @@ export default function AreaChart({
 							portal
 						/>
 					)}
-					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					{shouldEnableExport && (
+						<ImageExportButton
+							chartInstance={exportChartInstance}
+							filename={exportFilename}
+							title={exportTitle}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					)}
 				</div>
 			) : null}
 			<div

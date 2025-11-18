@@ -23,6 +23,7 @@ export default function ChainLineBarChart({
 	isThemeDark,
 	groupBy,
 	hideDataZoom = false,
+	onReady,
 	...props
 }) {
 	const id = useId()
@@ -120,6 +121,9 @@ export default function ChainLineBarChart({
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
+		if (onReady) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -416,8 +420,11 @@ export default function ChainLineBarChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			if (onReady) {
+				onReady(null)
+			}
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis])
+	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady])
 
 	return (
 		<div

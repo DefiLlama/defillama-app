@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
+import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { slug } from '~/utils'
 import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
@@ -17,9 +20,16 @@ export default function LineAndBarChart({
 	solidChartAreaStyle = false,
 	hideDataZoom,
 	onReady,
-	hideDefaultLegend = true
+	hideDefaultLegend = true,
+	enableImageExport,
+	imageExportFilename,
+	imageExportTitle,
+	title
 }: ILineAndBarChartProps) {
 	const id = useId()
+	const shouldEnableExport = enableImageExport ?? !!title
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const chartInstanceRef = useRef<echarts.ECharts | null>(null)
 
 	const [isThemeDark] = useDarkModeManager()
 
@@ -162,6 +172,11 @@ export default function LineAndBarChart({
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
+		chartInstanceRef.current = chartInstance
+
+		if (shouldEnableExport) {
+			handleChartReady(chartInstance)
+		}
 
 		if (onReady) {
 			onReady(chartInstance)
@@ -281,6 +296,13 @@ export default function LineAndBarChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			chartInstanceRef.current = null
+			if (shouldEnableExport) {
+				handleChartReady(null)
+			}
+			if (onReady) {
+				onReady(null)
+			}
 		}
 	}, [
 		createInstance,
@@ -290,8 +312,29 @@ export default function LineAndBarChart({
 		expandTo100Percent,
 		alwaysShowTooltip,
 		hideDataZoom,
-		hideDefaultLegend
+		hideDefaultLegend,
+		onReady,
+		shouldEnableExport,
+		handleChartReady
 	])
 
-	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
+	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
+	const exportTitle = imageExportTitle || title
+
+	return (
+		<div className="relative">
+			{shouldEnableExport && (
+				<div className="absolute right-2 top-2 z-10">
+					<ImageExportButton
+						chartInstance={exportChartInstance}
+						filename={exportFilename}
+						title={exportTitle}
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-1.5 py-1 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+						smol
+					/>
+				</div>
+			)}
+			<div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
+		</div>
+	)
 }

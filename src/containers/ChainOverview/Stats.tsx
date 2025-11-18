@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
@@ -17,6 +18,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
@@ -122,6 +124,11 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	const prepareCsv = useCallback(() => {
 		return prepareChartCsv(finalCharts, `${props.chain}.csv`)
 	}, [finalCharts, props.chain])
+
+	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
+	const imageExportFilename = slug(props.metadata.name || 'chain') || 'chain'
+	const imageExportTitle =
+		props.metadata.name && props.metadata.name !== 'All' ? `${props.metadata.name} Overview` : 'Chain Overview'
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {
@@ -816,6 +823,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						) : null}
 						<EmbedChart />
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ImageExportButton
+							chartInstance={chainChartInstance}
+							filename={imageExportFilename}
+							title={imageExportTitle}
+							className="-ml-2 flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
 					</div>
 
 					{isFetchingChartData ? (
@@ -827,7 +841,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						</div>
 					) : (
 						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-							<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={darkMode} groupBy={groupBy} />
+							<ChainChart
+								chartData={finalCharts}
+								valueSymbol={valueSymbol}
+								isThemeDark={darkMode}
+								groupBy={groupBy}
+								onReady={handleChartReady}
+							/>
 						</Suspense>
 					)}
 				</div>

@@ -28,6 +28,7 @@ export default function ProtocolLineBarChart({
 	isThemeDark,
 	groupBy,
 	hideDataZoom = false,
+	onReady,
 	...props
 }) {
 	const id = useId()
@@ -174,6 +175,9 @@ export default function ProtocolLineBarChart({
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
+		if (onReady) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -536,6 +540,9 @@ export default function ProtocolLineBarChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			if (onReady) {
+				onReady(null)
+			}
 		}
 	}, [
 		createInstance,
@@ -545,7 +552,8 @@ export default function ProtocolLineBarChart({
 		unlockTokenSymbol,
 		chartColors,
 		allYAxis,
-		rangeHallmarks
+		rangeHallmarks,
+		onReady
 	])
 
 	return (

@@ -42,6 +42,9 @@ export interface IChartProps {
 	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	customComponents?: React.ReactNode
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
 }
 
 export interface ISingleSeriesChartProps
@@ -56,6 +59,9 @@ export interface ISingleSeriesChartProps
 		| 'tooltipOrderBottomUp'
 		| 'hideDownloadButton'
 		| 'containerClassName'
+		| 'enableImageExport'
+		| 'imageExportFilename'
+		| 'imageExportTitle'
 	> {
 	chartName?: string
 	chartType: 'line' | 'bar'
@@ -96,6 +102,10 @@ export interface ILineAndBarChartProps {
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	hideDefaultLegend?: boolean
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
+	title?: string
 }
 
 export interface ICandlestickChartProps {
@@ -149,6 +159,9 @@ export interface IPieChartProps {
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 	customComponents?: React.ReactNode
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
 }
 
 export interface IScatterChartProps {
