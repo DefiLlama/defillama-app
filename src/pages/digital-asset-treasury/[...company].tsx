@@ -48,7 +48,7 @@ interface IDATInstitution {
 	}
 	ohlcv: Array<[number, number, number, number, number, number]> // [timestamp, open, high, low, close, volume]
 	assetValue: Array<[number, number]>
-	stats: Array<[number, string, string, string, number, number, number, number, number, number]> // [timestamp, fd_realized, fd_realistic, fd_maximum, mcap_realized, mcap_realistic, mcap_max, mNAV_realized, mNAV_realistic, mNAV_max]
+	stats: Array<[number, number, number, number, number, number, number, number, number, number]> // [timestamp, fd_realized, fd_realistic, fd_maximum, mcap_realized, mcap_realistic, mcap_max, mNAV_realized, mNAV_realistic, mNAV_max]
 	transactions: Array<{
 		id: number
 		asset: string
@@ -175,9 +175,9 @@ export const getStaticProps = withPerformanceLogging(
 			mNAVChart['Realized mNAV'].data.push([date, mNAV_realized])
 			mNAVChart['Realistic mNAV'].data.push([date, mNAV_realistic])
 			mNAVChart['Max mNAV'].data.push([date, mNAV_max])
-			fdChart['FD Realized'].data.push([date, +fd_realized])
-			fdChart['FD Realistic'].data.push([date, +fd_realistic])
-			fdChart['FD Max'].data.push([date, +fd_maximum])
+			fdChart['FD Realized'].data.push([date, fd_realized])
+			fdChart['FD Realistic'].data.push([date, fd_realistic])
+			fdChart['FD Max'].data.push([date, fd_maximum])
 		}
 
 		const totalAssetValueChart: ILineAndBarChartProps['charts'] = {

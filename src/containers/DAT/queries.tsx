@@ -14,9 +14,12 @@ export interface IDATInstitutions {
 			price: number
 			priceChange24h: number | null
 			volume24h: number
-			mcapRealized: number
-			mcapRealistic: number
-			mcapMax: number
+			mcapRealized: number | null
+			mcapRealistic: number | null
+			mcapMax: number | null
+			realized_mNAV: number | null
+			realistic_mNAV: number | null
+			max_mNAV: number | null
 			totalUsdValue: number
 			totalCost: number
 			holdings: {
@@ -240,9 +243,9 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 				price: metadata.price,
 				priceChange24h: metadata.priceChange24h,
 				volume24h: metadata.volume24h,
-				mcapRealized: metadata.mcapRealized,
-				mcapRealistic: metadata.mcapRealistic,
-				mcapMax: metadata.mcapMax,
+				realized_mNAV: metadata.realized_mNAV,
+				realistic_mNAV: metadata.realistic_mNAV,
+				max_mNAV: metadata.max_mNAV,
 				holdings: metadata.holdings[asset]
 			} as IInstitutionOverviewByAsset
 		})
