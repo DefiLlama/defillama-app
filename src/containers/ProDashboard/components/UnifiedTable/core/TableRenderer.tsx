@@ -17,12 +17,7 @@ export function TableRenderer({
 	isEmpty = false,
 	emptyMessage = 'No rows match the current filters.'
 }: TableRendererProps) {
-	const flatRowCount = table.getRowModel().flatRows.length
-	const shouldVirtualize = flatRowCount > 200
-	const skipVirtualization = !shouldVirtualize
 	const containerRef = useRef<HTMLDivElement>(null)
-
-	const scrollMargin = containerRef.current?.offsetTop ?? 0
 
 	if (isLoading) {
 		return (
@@ -39,7 +34,7 @@ export function TableRenderer({
 			ref={containerRef}
 			className="relative isolate flex-1 overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)"
 		>
-			<VirtualTable instance={table} skipVirtualization={skipVirtualization} scrollMargin={scrollMargin} />
+			<VirtualTable instance={table} skipVirtualization={true} />
 			{isEmpty && (
 				<div className="pointer-events-none absolute inset-0 z-5 flex items-center justify-center bg-gradient-to-b from-transparent via-(--cards-bg)/90 to-(--cards-bg)">
 					<div className="pointer-events-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3 text-sm text-(--text-secondary)">

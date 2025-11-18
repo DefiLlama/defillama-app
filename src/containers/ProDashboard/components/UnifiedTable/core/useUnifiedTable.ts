@@ -155,7 +155,7 @@ export function useUnifiedTable({
 	onSortingChange
 }: UseUnifiedTableArgs): UseUnifiedTableResult {
 	const [expanded, setExpandedInternal] = useState<Record<string, boolean>>({})
-	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
+	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 30 })
 
 	const setExpanded = (
 		updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)
@@ -274,7 +274,7 @@ export function useUnifiedTable({
 		onSortingChange,
 		onExpandedChange: setExpanded,
 		onPaginationChange: setPagination,
-		paginateExpandedRows: false,
+		paginateExpandedRows: true,
 		getRowCanExpand: (row) => {
 			if (!row.getIsGrouped()) {
 				return false
