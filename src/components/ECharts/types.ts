@@ -98,6 +98,38 @@ export interface ILineAndBarChartProps {
 	hideDefaultLegend?: boolean
 }
 
+export interface IMultiSeriesChart2Props {
+	charts?: Array<{
+		type: 'line' | 'bar'
+		name: string
+		stack: string
+		encode: {
+			x: number | Array<number>
+			y: number | Array<number>
+		}
+		color?: string
+		yAxisIndex?: number
+	}>
+	selectedCharts?: Set<string>
+	data: Array<[number, ...(number | null)[]]>
+	chartOptions?: {
+		[key: string]: {
+			[key: string]: Value | Array<Value> | ((params: any) => string | number)
+		}
+	}
+	height?: string
+	groupBy?: 'daily' | 'weekly' | 'monthly'
+	hallmarks?: [number, string][]
+	expandTo100Percent?: boolean
+	valueSymbol?: string
+	alwaysShowTooltip?: boolean
+	containerClassName?: string
+	solidChartAreaStyle?: boolean
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	hideDefaultLegend?: boolean
+}
+
 export interface ICandlestickChartProps {
 	data: Array<[number, number, number, number, number, number]>
 }

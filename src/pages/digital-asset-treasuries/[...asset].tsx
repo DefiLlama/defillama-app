@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { TRADFI_API } from '~/constants'
@@ -15,6 +16,9 @@ import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
 export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasuries/[...asset]',
@@ -106,7 +110,10 @@ export default function TreasuriesByAsset({
 	metadata,
 	dailyFlowsChart,
 	institutions,
-	mNAVRealizedChart
+	mNAVRealizedChart,
+	mNAVRealisticChart,
+	mNAVMaxChart,
+	institutionsNames
 }: IDATOverviewDataByAssetProps) {
 	return (
 		<Layout
@@ -162,6 +169,11 @@ export default function TreasuriesByAsset({
 						/>
 					</Suspense>
 				</div>
+			</div>
+			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+				<MNAVChart title="mNAV Realized" data={mNAVRealizedChart} institutionsNames={institutionsNames} />
+				<MNAVChart title="mNAV Realistic" data={mNAVRealisticChart} institutionsNames={institutionsNames} />
+				<MNAVChart title="mNAV Max" data={mNAVMaxChart} institutionsNames={institutionsNames} />
 			</div>
 			<TableWithSearch
 				data={institutions}
@@ -222,7 +234,8 @@ const columns = ({
 	// },
 	{
 		header: 'Holdings',
-		accessorKey: 'holdings.amount',
+		id: 'totalAssetAmount',
+		accessorFn: (row) => row.holdings.amount,
 		cell: ({ getValue }) => {
 			const totalAssetAmount = getValue() as number
 			if (totalAssetAmount == null) return null
@@ -235,7 +248,8 @@ const columns = ({
 	},
 	{
 		header: "Today's Holdings Value",
-		accessorKey: 'holdings.usdValue',
+		id: 'totalUsdValue',
+		accessorFn: (row) => row.holdings.usdValue,
 		cell: ({ getValue }) => {
 			const usdValue = getValue() as number
 			if (usdValue == null) return null
@@ -276,7 +290,8 @@ const columns = ({
 	},
 	{
 		header: `% of ${symbol} Circulating Supply`,
-		accessorKey: 'holdings.supplyPercentage',
+		id: 'supplyPercentage',
+		accessorFn: (row) => row.holdings.supplyPercentage,
 		cell: ({ getValue }) => {
 			const supplyPercentage = getValue() as number
 			if (supplyPercentage == null) return null
@@ -334,7 +349,8 @@ const columns = ({
 	},
 	{
 		header: 'Avg Purchase Price',
-		accessorKey: 'holdings.avgPrice',
+		id: 'avgPrice',
+		accessorFn: (row) => row.holdings.avgPrice,
 		cell: ({ getValue }) => {
 			const avgPrice = getValue() as number
 			if (avgPrice == null) return null
@@ -348,7 +364,8 @@ const columns = ({
 	},
 	{
 		header: 'Last Updated',
-		accessorKey: 'holdings.lastAnnouncementDate',
+		id: 'lastAnnouncementDate',
+		accessorFn: (row) => row.holdings.lastAnnouncementDate,
 		cell: ({ getValue }) => {
 			const lastUpdated = getValue() as string
 			if (lastUpdated == null) return null
@@ -362,3 +379,51 @@ const columns = ({
 		}
 	}
 ]
+
+const MNAVChart = ({
+	title,
+	data,
+	institutionsNames
+}: {
+	title: string
+	data: IDATOverviewDataByAssetProps['mNAVRealizedChart']
+	institutionsNames: string[]
+}) => {
+	const [selectedInstitution, setSelectedInstitution] = useState<Array<string>>(institutionsNames)
+
+	const selectedCharts = useMemo(() => {
+		return new Set(selectedInstitution)
+	}, [selectedInstitution])
+
+	return (
+		<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+			<div className="flex items-center justify-between gap-2 p-2">
+				<h2 className="text-lg font-bold">{title}</h2>
+				<SelectWithCombobox
+					allValues={institutionsNames}
+					selectedValues={selectedInstitution}
+					setSelectedValues={setSelectedInstitution}
+					selectOnlyOne={(institution) => setSelectedInstitution([institution])}
+					label="Institutions"
+					clearAll={() => setSelectedInstitution([])}
+					toggleAll={() => setSelectedInstitution(institutionsNames)}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+					portal
+				/>
+			</div>
+			<Suspense fallback={<div className="h-[360px]" />}>
+				<MultiSeriesChart2
+					charts={data.charts}
+					selectedCharts={selectedCharts}
+					data={data.data}
+					valueSymbol=""
+					hideDataZoom={data.data.length < 2}
+				/>
+			</Suspense>
+		</div>
+	)
+}

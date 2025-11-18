@@ -1,4 +1,4 @@
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { TRADFI_API } from '~/constants'
 import { oldBlue } from '~/constants/colors'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
@@ -202,7 +202,19 @@ export interface IDATOverviewDataByAssetProps {
 	metadata: IDATInstitutions['assetMetadata'][string]
 	allAssets: Array<{ label: string; to: string }>
 	dailyFlowsChart: ILineAndBarChartProps['charts']
-	mNAVRealizedChart: Array<[number, number | null]>
+	mNAVRealizedChart: {
+		charts: IMultiSeriesChart2Props['charts']
+		data: Array<[number, ...(number | null)[]]>
+	}
+	mNAVRealisticChart: {
+		charts: IMultiSeriesChart2Props['charts']
+		data: Array<[number, ...(number | null)[]]>
+	}
+	mNAVMaxChart: {
+		charts: IMultiSeriesChart2Props['charts']
+		data: Array<[number, ...(number | null)[]]>
+	}
+	institutionsNames: string[]
 }
 
 export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOverviewDataByAssetProps | null> {
@@ -237,11 +249,17 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 		.sort((a, b) => (b.holdings.usdValue ?? 0) - (a.holdings.usdValue ?? 0))
 
 	const mNAV_realized = {}
+	const mNAV_realistic = {}
+	const mNAV_max = {}
 
 	for (const institution in res.mNAV[asset]) {
 		for (const [date, realized, realistic, max] of res.mNAV[asset][institution]) {
 			mNAV_realized[date] = mNAV_realized[date] ?? {}
+			mNAV_realistic[date] = mNAV_realistic[date] ?? {}
+			mNAV_max[date] = mNAV_max[date] ?? {}
 			mNAV_realized[date][institution] = realized
+			mNAV_realistic[date][institution] = realistic
+			mNAV_max[date][institution] = max
 		}
 	}
 	const mNAVRealizedChart = []
@@ -252,7 +270,24 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 		}
 		mNAVRealizedChart.push(arr)
 	}
+	const mNAVRealisticChart = []
+	for (const date in mNAV_realistic) {
+		const arr = [+date]
+		for (const inst of finalInstitutions) {
+			arr.push(mNAV_realistic[date][inst.ticker] ?? null)
+		}
+		mNAVRealisticChart.push(arr)
+	}
+	const mNAVMaxChart = []
+	for (const date in mNAV_max) {
+		const arr = [+date]
+		for (const inst of finalInstitutions) {
+			arr.push(mNAV_max[date][inst.ticker] ?? null)
+		}
+		mNAVMaxChart.push(arr)
+	}
 
+	const chartColors = getNDistinctColors(finalInstitutions.length)
 	return {
 		institutions: finalInstitutions,
 		asset,
@@ -273,7 +308,51 @@ export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOver
 				data: res.flows[asset] as any
 			}
 		},
-
-		mNAVRealizedChart: mNAVRealizedChart.sort((a, b) => a[0] - b[0])
+		institutionsNames: finalInstitutions.map((inst) => inst.ticker),
+		mNAVRealizedChart: {
+			charts: finalInstitutions.map((inst, i) => {
+				return {
+					name: inst.ticker,
+					stack: inst.ticker,
+					type: 'line',
+					color: chartColors[i],
+					encode: {
+						x: 0,
+						y: i + 1
+					}
+				}
+			}),
+			data: mNAVRealizedChart.sort((a, b) => a[0] - b[0])
+		},
+		mNAVRealisticChart: {
+			charts: finalInstitutions.map((inst, i) => {
+				return {
+					name: inst.ticker,
+					stack: inst.ticker,
+					type: 'line',
+					color: chartColors[i],
+					encode: {
+						x: 0,
+						y: i + 1
+					}
+				}
+			}),
+			data: mNAVRealisticChart.sort((a, b) => a[0] - b[0])
+		},
+		mNAVMaxChart: {
+			charts: finalInstitutions.map((inst, i) => {
+				return {
+					name: inst.ticker,
+					stack: inst.ticker,
+					type: 'line',
+					color: chartColors[i],
+					encode: {
+						x: 0,
+						y: i + 1
+					}
+				}
+			}),
+			data: mNAVMaxChart.sort((a, b) => a[0] - b[0])
+		}
 	}
 }
