@@ -222,6 +222,17 @@ export function StablecoinsByChain({
 
 	const path = selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`
 
+	const getImageExportTitle = () => {
+		const chainPrefix = selectedChain !== 'All' ? `${selectedChain} ` : ''
+		return `${chainPrefix}Stablecoins - ${chartType}`
+	}
+
+	const getImageExportFilename = () => {
+		const chainSlug = selectedChain !== 'All' ? `${slug(selectedChain)}-` : ''
+		const chartSlug = chartType.toLowerCase().replace(/\s+/g, '-')
+		return `stablecoins-${chainSlug}${chartSlug}`
+	}
+
 	return (
 		<>
 			<RowLinksWithDropdown links={chainOptions} activeLink={selectedChain} />
@@ -303,6 +314,9 @@ export function StablecoinsByChain({
 									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								}
 								chartOptions={chartOptions}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -320,6 +334,9 @@ export function StablecoinsByChain({
 									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								}
 								chartOptions={chartOptions}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -338,6 +355,9 @@ export function StablecoinsByChain({
 									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								}
 								chartOptions={chartOptions}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -349,6 +369,9 @@ export function StablecoinsByChain({
 								customComponents={
 									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -366,6 +389,9 @@ export function StablecoinsByChain({
 								customComponents={
 									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -378,6 +404,9 @@ export function StablecoinsByChain({
 								customComponents={
 									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
 								}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
