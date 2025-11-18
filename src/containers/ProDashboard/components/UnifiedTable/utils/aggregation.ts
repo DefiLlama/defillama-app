@@ -138,17 +138,24 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	const dominanceKeys: (keyof NumericMetrics)[] = [
 		'volumeDominance_24h',
 		'volumeMarketShare7d',
+		'tvlShare',
+		'stablesShare',
+		'volume24hShare',
 		'perps_volume_dominance_24h',
 		'aggregators_volume_dominance_24h',
 		'aggregators_volume_marketShare7d',
-		'options_volume_dominance_24h',
-		'tvlShare',
-		'stablesShare',
-		'volume24hShare'
+		'options_volume_dominance_24h'
 	]
 
-	for (const key of dominanceKeys) {
-		;(aggregated as any)[key] = null
+	if (rows.length === 1) {
+		const singleMetrics = rows[0]?.metrics
+		for (const key of dominanceKeys) {
+			;(aggregated as any)[key] = singleMetrics?.[key] ?? null
+		}
+	} else {
+		for (const key of dominanceKeys) {
+			;(aggregated as any)[key] = null
+		}
 	}
 
 	const hasTvl = seen.tvl ?? false

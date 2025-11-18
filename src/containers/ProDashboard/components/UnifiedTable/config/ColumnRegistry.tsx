@@ -45,7 +45,14 @@ const renderPercent = (value: number | null | undefined) => {
 	if (value === null || value === undefined) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{formattedPercent(value)}</span>
+	return <span className="pro-text2">{formattedPercent(value, true)}</span>
+}
+
+const renderPercentChange = (value: number | null | undefined) => {
+	if (value === null || value === undefined) {
+		return renderDash()
+	}
+	return <span className="pro-text2">{formattedPercent(value, false)}</span>
 }
 
 const renderRatio = (value: number | null | undefined) => {
@@ -116,22 +123,22 @@ const createPercentMetricColumn = (key: MetricKey, header: string): ColumnDef<No
 	aggregationFn: createMetricAggregationFn(key)
 })
 
+const createPercentChangeColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
+	id: key,
+	header,
+	accessorFn: metricAccessor(key),
+	meta: { align: 'end' },
+	cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+	sortingFn: applyNumericColumnSorting,
+	aggregationFn: createMetricAggregationFn(key)
+})
+
 const createRatioMetricColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
 	id: key,
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end' },
 	cell: (ctx) => renderMetricCell(ctx, renderRatio),
-	sortingFn: applyNumericColumnSorting,
-	aggregationFn: createMetricAggregationFn(key)
-})
-
-const createNumberMetricColumn = (key: MetricKey, header: string): ColumnDef<NormalizedRow> => ({
-	id: key,
-	header,
-	accessorFn: metricAccessor(key),
-	meta: { align: 'end' },
-	cell: (ctx) => renderMetricCell(ctx, renderNumber),
 	sortingFn: applyNumericColumnSorting,
 	aggregationFn: createMetricAggregationFn(key)
 })
@@ -321,7 +328,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			header: '1d Change',
 			accessorFn: (row) => row.metrics.change1d ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercent),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
 			aggregationFn: createMetricAggregationFn('change1d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -334,7 +341,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			header: '7d Change',
 			accessorFn: (row) => row.metrics.change7d ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercent),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
 			aggregationFn: createMetricAggregationFn('change7d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -347,7 +354,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 			header: '30d Change',
 			accessorFn: (row) => row.metrics.change1m ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercent),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
 			aggregationFn: createMetricAggregationFn('change1m' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -443,9 +450,9 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('volume_7d' as MetricKey, '7d Volume'),
 		createUsdMetricColumn('volume_30d' as MetricKey, '30d Volume'),
 		createUsdMetricColumn('cumulativeVolume' as MetricKey, 'Cumulative Volume'),
-		createPercentMetricColumn('volumeChange_1d' as MetricKey, '1d Volume Change'),
-		createPercentMetricColumn('volumeChange_7d' as MetricKey, '7d Volume Change'),
-		createPercentMetricColumn('volumeChange_1m' as MetricKey, '30d Volume Change'),
+		createPercentChangeColumn('volumeChange_1d' as MetricKey, '1d Volume Change'),
+		createPercentChangeColumn('volumeChange_7d' as MetricKey, '7d Volume Change'),
+		createPercentChangeColumn('volumeChange_1m' as MetricKey, '30d Volume Change'),
 		createPercentMetricColumn('volumeDominance_24h' as MetricKey, '24h Volume Share'),
 		createPercentMetricColumn('volumeMarketShare7d' as MetricKey, '7d Volume Share'),
 		createPercentMetricColumn('volume24hShare' as MetricKey, '24h Volume Share')
@@ -462,12 +469,12 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('holdersRevenue30d' as MetricKey, '30d Holder Revenue'),
 		createUsdMetricColumn('treasuryRevenue_24h' as MetricKey, '24h Treasury Revenue'),
 		createUsdMetricColumn('supplySideRevenue_24h' as MetricKey, '24h Supply-Side Revenue'),
-		createPercentMetricColumn('feesChange_1d' as MetricKey, '1d Fees Change'),
-		createPercentMetricColumn('feesChange_7d' as MetricKey, '7d Fees Change'),
-		createPercentMetricColumn('feesChange_1m' as MetricKey, '30d Fees Change'),
-		createPercentMetricColumn('feesChange_7dover7d' as MetricKey, '7d/7d Fees Change'),
-		createPercentMetricColumn('feesChange_30dover30d' as MetricKey, '30d/30d Fees Change'),
-		createPercentMetricColumn('holdersRevenueChange_30dover30d' as MetricKey, '30d/30d Holder Rev Change')
+		createPercentChangeColumn('feesChange_1d' as MetricKey, '1d Fees Change'),
+		createPercentChangeColumn('feesChange_7d' as MetricKey, '7d Fees Change'),
+		createPercentChangeColumn('feesChange_1m' as MetricKey, '30d Fees Change'),
+		createPercentChangeColumn('feesChange_7dover7d' as MetricKey, '7d/7d Fees Change'),
+		createPercentChangeColumn('feesChange_30dover30d' as MetricKey, '30d/30d Fees Change'),
+		createPercentChangeColumn('holdersRevenueChange_30dover30d' as MetricKey, '30d/30d Holder Rev Change')
 	]
 
 	const revenueColumns: ColumnDef<NormalizedRow>[] = [
@@ -475,19 +482,19 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('revenue_30d' as MetricKey, '30d Revenue'),
 		createUsdMetricColumn('revenue_1y' as MetricKey, '1y Revenue'),
 		createUsdMetricColumn('average_revenue_1y' as MetricKey, '1y Monthly Avg Revenue'),
-		createPercentMetricColumn('revenueChange_1d' as MetricKey, '1d Revenue Change'),
-		createPercentMetricColumn('revenueChange_7d' as MetricKey, '7d Revenue Change'),
-		createPercentMetricColumn('revenueChange_1m' as MetricKey, '30d Revenue Change'),
-		createPercentMetricColumn('revenueChange_7dover7d' as MetricKey, '7d/7d Revenue Change'),
-		createPercentMetricColumn('revenueChange_30dover30d' as MetricKey, '30d/30d Revenue Change')
+		createPercentChangeColumn('revenueChange_1d' as MetricKey, '1d Revenue Change'),
+		createPercentChangeColumn('revenueChange_7d' as MetricKey, '7d Revenue Change'),
+		createPercentChangeColumn('revenueChange_1m' as MetricKey, '30d Revenue Change'),
+		createPercentChangeColumn('revenueChange_7dover7d' as MetricKey, '7d/7d Revenue Change'),
+		createPercentChangeColumn('revenueChange_30dover30d' as MetricKey, '30d/30d Revenue Change')
 	]
 
 	const perpsColumns: ColumnDef<NormalizedRow>[] = [
 		createUsdMetricColumn('perps_volume_7d' as MetricKey, '7d Perps Volume'),
 		createUsdMetricColumn('perps_volume_30d' as MetricKey, '30d Perps Volume'),
-		createPercentMetricColumn('perps_volume_change_1d' as MetricKey, '1d Perps Volume Change'),
-		createPercentMetricColumn('perps_volume_change_7d' as MetricKey, '7d Perps Volume Change'),
-		createPercentMetricColumn('perps_volume_change_1m' as MetricKey, '30d Perps Volume Change'),
+		createPercentChangeColumn('perps_volume_change_1d' as MetricKey, '1d Perps Volume Change'),
+		createPercentChangeColumn('perps_volume_change_7d' as MetricKey, '7d Perps Volume Change'),
+		createPercentChangeColumn('perps_volume_change_1m' as MetricKey, '30d Perps Volume Change'),
 		createPercentMetricColumn('perps_volume_dominance_24h' as MetricKey, '24h Perps Volume Share')
 	]
 
@@ -495,8 +502,8 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('aggregators_volume_24h' as MetricKey, '24h Aggregator Volume'),
 		createUsdMetricColumn('aggregators_volume_7d' as MetricKey, '7d Aggregator Volume'),
 		createUsdMetricColumn('aggregators_volume_30d' as MetricKey, '30d Aggregator Volume'),
-		createPercentMetricColumn('aggregators_volume_change_1d' as MetricKey, '1d Aggregator Volume Change'),
-		createPercentMetricColumn('aggregators_volume_change_7d' as MetricKey, '7d Aggregator Volume Change'),
+		createPercentChangeColumn('aggregators_volume_change_1d' as MetricKey, '1d Aggregator Volume Change'),
+		createPercentChangeColumn('aggregators_volume_change_7d' as MetricKey, '7d Aggregator Volume Change'),
 		createPercentMetricColumn('aggregators_volume_dominance_24h' as MetricKey, '24h Aggregator Volume Share'),
 		createPercentMetricColumn('aggregators_volume_marketShare7d' as MetricKey, '7d Aggregator Volume Share')
 	]
@@ -505,15 +512,15 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('derivatives_aggregators_volume_24h' as MetricKey, '24h Derivatives Aggregator Volume'),
 		createUsdMetricColumn('derivatives_aggregators_volume_7d' as MetricKey, '7d Derivatives Aggregator Volume'),
 		createUsdMetricColumn('derivatives_aggregators_volume_30d' as MetricKey, '30d Derivatives Aggregator Volume'),
-		createPercentMetricColumn(
+		createPercentChangeColumn(
 			'derivatives_aggregators_volume_change_1d' as MetricKey,
 			'1d Derivatives Aggregator Change'
 		),
-		createPercentMetricColumn(
+		createPercentChangeColumn(
 			'derivatives_aggregators_volume_change_7d' as MetricKey,
 			'7d Derivatives Aggregator Change'
 		),
-		createPercentMetricColumn(
+		createPercentChangeColumn(
 			'derivatives_aggregators_volume_change_1m' as MetricKey,
 			'30d Derivatives Aggregator Change'
 		)
@@ -523,8 +530,8 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('options_volume_24h' as MetricKey, '24h Options Volume'),
 		createUsdMetricColumn('options_volume_7d' as MetricKey, '7d Options Volume'),
 		createUsdMetricColumn('options_volume_30d' as MetricKey, '30d Options Volume'),
-		createPercentMetricColumn('options_volume_change_1d' as MetricKey, '1d Options Volume Change'),
-		createPercentMetricColumn('options_volume_change_7d' as MetricKey, '7d Options Volume Change'),
+		createPercentChangeColumn('options_volume_change_1d' as MetricKey, '1d Options Volume Change'),
+		createPercentChangeColumn('options_volume_change_7d' as MetricKey, '7d Options Volume Change'),
 		createPercentMetricColumn('options_volume_dominance_24h' as MetricKey, '24h Options Volume Share')
 	]
 
