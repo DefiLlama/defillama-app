@@ -53,7 +53,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
-			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2" id="ai-table-download">
+			<div className="ml-auto flex flex-nowrap items-center justify-end gap-2" id="ai-table-download">
 				{isStreaming ? (
 					<button
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
