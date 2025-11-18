@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo } from 'react'
 import { BarChart, CandlestickChart } from 'echarts/charts'
 import {
+	DatasetComponent,
 	DataZoomComponent,
 	GraphicComponent,
 	GridComponent,
@@ -23,7 +24,8 @@ echarts.use([
 	GridComponent,
 	DataZoomComponent,
 	GraphicComponent,
-	MarkLineComponent
+	MarkLineComponent,
+	DatasetComponent
 ])
 
 export default function CandleStickAndVolumeChart({ data }: ICandlestickChartProps) {
@@ -67,7 +69,7 @@ export default function CandleStickAndVolumeChart({ data }: ICandlestickChartPro
 						vals += params.reduce((prev, curr) => {
 							return (
 								prev +
-								`<li style="list-style:none">${curr.marker}${curr.seriesName}: ${formatTooltipValue(curr.value[1], '$')}</li>`
+								`<li style="list-style:none">${curr.marker}${curr.seriesName}: ${formatTooltipValue(curr.value[5], '$')}</li>`
 							)
 						}, '')
 					}
@@ -256,7 +258,6 @@ export default function CandleStickAndVolumeChart({ data }: ICandlestickChartPro
 				type: 'candlestick',
 				symbol: 'none',
 				large: true,
-				data: data.map((item) => [item[0], item[1], item[2], item[3], item[4]]),
 				itemStyle: {
 					color: isThemeDark ? '#3eb84f' : '#018a13',
 					color0: isThemeDark ? '#e24a42' : '#e60d02',
@@ -273,7 +274,6 @@ export default function CandleStickAndVolumeChart({ data }: ICandlestickChartPro
 				type: 'bar',
 				symbol: 'none',
 				large: true,
-				data: data.map((item) => [item[0], item[5]]),
 				xAxisIndex: 1,
 				yAxisIndex: 1,
 				encode: { x: 0, y: 5 },
@@ -282,7 +282,7 @@ export default function CandleStickAndVolumeChart({ data }: ICandlestickChartPro
 		]
 
 		return series
-	}, [data, isThemeDark])
+	}, [isThemeDark])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))

@@ -819,7 +819,7 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const name = protocolData.name ?? metadata.displayName ?? ''
-	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successfull Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
+	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
 	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
 	if (expenses) {
 		seoDescription += `, Expenses`
