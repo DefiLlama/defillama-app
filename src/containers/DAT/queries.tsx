@@ -53,7 +53,7 @@ export interface IDATInstitutions {
 	}
 	totalCompanies: number
 	flows: {
-		[asset: string]: Array<[number, number, number, number]> // [timestamp, net, inflow, outflow]
+		[asset: string]: Array<[number, number, number, number, number, number]> // [timestamp, net, inflow, outflow, purchasePrice, usdValueOfPurchase]
 	}
 	mNAV: {
 		[asset: string]: {
@@ -133,31 +133,30 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 
 	const inflowsByAssetByDate: Record<string, Record<string, [number, number]>> = {}
 	const dailyFlowsByAsset = {}
-	// for (const asset in res2.flows) {
-	// 	const name = res2.assetMetadata[asset]?.name ?? asset
-	// 	dailyFlowsByAsset[asset] = {
-	// 		name: name,
-	// 		stack: 'asset',
-	// 		type: 'bar',
-	// 		color: colorByAsset[asset],
-	// 		data: []
-	// 	}
-	// 	for (let i = 0; i < res2.flows[asset].length; i++) {
-	// 		const [date, value, purchasePrice, usdValueOfPurchase] = res2.flows[asset][i]
-	// 		inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
-	// 		inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, value]
-	// 	}
-	// }
+	for (const asset in res.flows) {
+		const name = res.assetMetadata[asset]?.name ?? asset
+		dailyFlowsByAsset[asset] = {
+			name: name,
+			stack: 'asset',
+			type: 'bar',
+			color: colorByAsset[asset],
+			data: []
+		}
+		for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
+			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
+			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, net]
+		}
+	}
 
-	// for (const date in inflowsByAssetByDate) {
-	// 	for (const asset in res.dailyFlows) {
-	// 		dailyFlowsByAsset[asset].data.push([
-	// 			+date,
-	// 			inflowsByAssetByDate[date][asset]?.[0] ?? null,
-	// 			inflowsByAssetByDate[date][asset]?.[1] ?? null
-	// 		])
-	// 	}
-	// }
+	for (const date in inflowsByAssetByDate) {
+		for (const asset in res.flows) {
+			dailyFlowsByAsset[asset].data.push([
+				+date,
+				inflowsByAssetByDate[date][asset]?.[0] ?? null,
+				inflowsByAssetByDate[date][asset]?.[1] ?? null
+			])
+		}
+	}
 
 	// Sort data by date for each asset to ensure correct cumulative calculations
 	for (const asset in dailyFlowsByAsset) {
