@@ -49,7 +49,6 @@ const tvlColumns: ColumnDictionaryItem[] = [
 	{ id: 'change1d', header: '1d Change', group: 'tvl', render: 'percent', tags: ['change'] },
 	{ id: 'change7d', header: '7d Change', group: 'tvl', render: 'percent', tags: ['change'] },
 	{ id: 'change1m', header: '30d Change', group: 'tvl', render: 'percent', tags: ['change'] },
-	{ id: 'mcap', header: 'Market Cap', group: 'tvl', render: 'usd' },
 	{ id: 'bridgedTvl', header: 'Bridged TVL', group: 'tvl', render: 'usd', strategies: ['chains'] },
 	{ id: 'stablesMcap', header: 'Stables', group: 'tvl', render: 'usd', strategies: ['chains'] },
 	{
@@ -467,6 +466,7 @@ const optionsColumns: ColumnDictionaryItem[] = [
 ]
 
 const ratioColumns: ColumnDictionaryItem[] = [
+	{ id: 'mcap', header: 'Market Cap', group: 'ratios', render: 'usd' },
 	{
 		id: 'mcaptvl',
 		header: 'Mcap / TVL',

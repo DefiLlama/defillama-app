@@ -72,6 +72,7 @@ type ProtocolAggregateRow = {
 	volume_options_7d_pct_change: number | null
 	volume_options_30d_pct_change: number | null
 	mcap: number | null
+	chain_mcap?: number | null
 	pf_ratio: number | null
 	ps_ratio: number | null
 	open_interest: number | null
@@ -223,6 +224,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		options_volume_dominance_24h: computeShare(row.volume_options_1d, totals.volume_options_1d),
 		openInterest: row.open_interest ?? null,
 		mcap: row.mcap ?? null,
+		chainMcap: row.chain_mcap ?? null,
 		mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
 		pf: row.pf_ratio ?? null,
 		ps: row.ps_ratio ?? null,
@@ -583,6 +585,12 @@ const fetchParentProtocolsByChain = async (
 				SUM(open_interest) AS open_interest
 			FROM lens.open_interest_current
 			GROUP BY protocol, chain
+		),
+		chain_mcap AS (
+			SELECT
+				lower(chain) AS chain,
+				mcap
+			FROM lens.metrics_chain_current
 		)
 		SELECT
 			mpc.protocol,
@@ -647,6 +655,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.volume_options_7d_pct_change,
 			mpc.volume_options_30d_pct_change,
 			mpc.mcap,
+			cm.mcap AS chain_mcap,
 			mpc.pf_ratio,
 			mpc.ps_ratio,
 			oi.open_interest
@@ -654,6 +663,7 @@ const fetchParentProtocolsByChain = async (
 		LEFT JOIN category_meta cat ON cat.protocol = mpc.protocol
 		LEFT JOIN oracle_meta oracles ON oracles.protocol = mpc.protocol AND oracles.chain = lower(mpc.chain)
 		LEFT JOIN open_interest oi ON oi.protocol = mpc.protocol AND oi.chain = mpc.chain
+		LEFT JOIN chain_mcap cm ON cm.chain = lower(mpc.chain)
 		WHERE COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mpc.chain) = ANY($1)
 	`,
 		[chainFilters]
@@ -698,6 +708,12 @@ const fetchSubProtocolsByChain = async (
 			FROM lens.oracle_tvs_current
 			WHERE sub_protocol IS NOT NULL OR protocol IS NOT NULL
 			GROUP BY COALESCE(sub_protocol, protocol), lower(chain)
+		),
+		chain_mcap AS (
+			SELECT
+				lower(chain) AS chain,
+				mcap
+			FROM lens.metrics_chain_current
 		)
 		SELECT
 			mspc.sub_protocol,
@@ -763,11 +779,13 @@ const fetchSubProtocolsByChain = async (
 			mspc.volume_options_7d_pct_change,
 			mspc.volume_options_30d_pct_change,
 			mspc.mcap,
+			cm.mcap AS chain_mcap,
 			mspc.pf_ratio,
 			mspc.ps_ratio,
 			NULL AS open_interest
 		FROM lens.metrics_sub_protocol_by_chain_current mspc
 		LEFT JOIN oracle_meta oracles ON oracles.sub_protocol = mspc.sub_protocol AND oracles.chain = lower(mspc.chain)
+		LEFT JOIN chain_mcap cm ON cm.chain = lower(mspc.chain)
 		WHERE
 			mspc.sub_protocol != mspc.protocol
 			AND (COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mspc.chain) = ANY($1))

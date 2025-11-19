@@ -92,6 +92,7 @@ export interface NumericMetrics {
 	options_volume_change_7d?: number | null
 	options_volume_dominance_24h?: number | null
 	mcap?: number | null
+	chainMcap?: number | null
 	mcaptvl?: number | null
 	pf?: number | null
 	ps?: number | null
