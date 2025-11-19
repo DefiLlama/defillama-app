@@ -23,6 +23,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'cumulativeFees',
 		'userFees_24h',
 		'holderRevenue_24h',
+		'holderRevenue_7d',
 		'holdersRevenue30d',
 		'treasuryRevenue_24h',
 		'supplySideRevenue_24h',
@@ -89,13 +90,9 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		{ changeKey: 'feesChange_1d', weightKey: 'fees24h' },
 		{ changeKey: 'feesChange_7d', weightKey: 'fees_7d' },
 		{ changeKey: 'feesChange_1m', weightKey: 'fees_30d' },
-		{ changeKey: 'feesChange_7dover7d', weightKey: 'fees_7d' },
-		{ changeKey: 'feesChange_30dover30d', weightKey: 'fees_30d' },
 		{ changeKey: 'revenueChange_1d', weightKey: 'revenue24h' },
 		{ changeKey: 'revenueChange_7d', weightKey: 'revenue_7d' },
 		{ changeKey: 'revenueChange_1m', weightKey: 'revenue_30d' },
-		{ changeKey: 'revenueChange_7dover7d', weightKey: 'revenue_7d' },
-		{ changeKey: 'revenueChange_30dover30d', weightKey: 'revenue_30d' },
 		{ changeKey: 'perps_volume_change_1d', weightKey: 'perpsVolume24h' },
 		{ changeKey: 'perps_volume_change_7d', weightKey: 'perps_volume_7d' },
 		{ changeKey: 'perps_volume_change_1m', weightKey: 'perps_volume_30d' },
@@ -105,8 +102,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		{ changeKey: 'derivatives_aggregators_volume_change_7d', weightKey: 'derivatives_aggregators_volume_7d' },
 		{ changeKey: 'derivatives_aggregators_volume_change_1m', weightKey: 'derivatives_aggregators_volume_30d' },
 		{ changeKey: 'options_volume_change_1d', weightKey: 'options_volume_24h' },
-		{ changeKey: 'options_volume_change_7d', weightKey: 'options_volume_7d' },
-		{ changeKey: 'holdersRevenueChange_30dover30d', weightKey: 'holdersRevenue30d' }
+		{ changeKey: 'options_volume_change_7d', weightKey: 'options_volume_7d' }
 	]
 
 	for (const { changeKey, weightKey } of weightedChangeMetrics) {

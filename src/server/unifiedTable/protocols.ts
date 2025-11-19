@@ -36,6 +36,7 @@ type ProtocolAggregateRow = {
 	fees_7d_pct_change: number | null
 	fees_30d_pct_change: number | null
 	holder_revenue_1d: number | null
+	holder_revenue_7d: number | null
 	holder_revenue_30d: number | null
 	holder_revenue_30d_pct_change: number | null
 	revenue_1d: number | null
@@ -151,6 +152,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 	const fees7d = row.fees_7d ?? null
 	const fees30d = row.fees_30d ?? null
 	const perps24h = row.volume_derivatives_1d ?? null
+	const holderRevenue7d = row.holder_revenue_7d ?? null
 	const holderRevenue30d = row.holder_revenue_30d ?? null
 
 	return {
@@ -178,15 +180,13 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		cumulativeFees: row.fees_alltime ?? null,
 		userFees_24h: null,
 		holderRevenue_24h: row.holder_revenue_1d ?? null,
+		holderRevenue_7d: holderRevenue7d,
 		holdersRevenue30d: holderRevenue30d,
-		holdersRevenueChange_30dover30d: toPercent(row.holder_revenue_30d_pct_change),
 		treasuryRevenue_24h: null,
 		supplySideRevenue_24h: null,
 		feesChange_1d: toPercent(row.fees_1d_pct_change),
 		feesChange_7d: toPercent(row.fees_7d_pct_change),
 		feesChange_1m: toPercent(row.fees_30d_pct_change),
-		feesChange_7dover7d: fees7d && row.fees_7d_pct_change ? toPercent(row.fees_7d_pct_change) : null,
-		feesChange_30dover30d: fees30d && row.fees_30d_pct_change ? toPercent(row.fees_30d_pct_change) : null,
 		revenue24h: row.revenue_1d ?? null,
 		revenue_7d: row.revenue_7d ?? null,
 		revenue_30d: row.revenue_30d ?? null,
@@ -195,9 +195,6 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		revenueChange_1d: toPercent(row.revenue_1d_pct_change),
 		revenueChange_7d: toPercent(row.revenue_7d_pct_change),
 		revenueChange_1m: toPercent(row.revenue_30d_pct_change),
-		revenueChange_7dover7d: row.revenue_7d && row.revenue_7d_pct_change ? toPercent(row.revenue_7d_pct_change) : null,
-		revenueChange_30dover30d:
-			row.revenue_30d && row.revenue_30d_pct_change ? toPercent(row.revenue_30d_pct_change) : null,
 		perpsVolume24h: perps24h,
 		perps_volume_7d: row.volume_derivatives_7d ?? null,
 		perps_volume_30d: row.volume_derivatives_30d ?? null,
@@ -346,6 +343,7 @@ const fetchProtocolAggregateRows = async (
 			mp.fees_7d_pct_change,
 			mp.fees_30d_pct_change,
 			mp.holder_revenue_1d,
+			mp.holder_revenue_7d,
 			mp.holder_revenue_30d,
 			mp.holder_revenue_30d_pct_change,
 			mp.revenue_1d,
@@ -468,6 +466,7 @@ const fetchSubProtocolRows = async (
 			msp.fees_7d_pct_change,
 			msp.fees_30d_pct_change,
 			msp.holder_revenue_1d,
+			msp.holder_revenue_7d,
 			msp.holder_revenue_30d,
 			msp.holder_revenue_30d_pct_change,
 			msp.revenue_1d,
@@ -612,6 +611,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.fees_7d_pct_change,
 			mpc.fees_30d_pct_change,
 			mpc.holder_revenue_1d,
+			mpc.holder_revenue_7d,
 			mpc.holder_revenue_30d,
 			mpc.holder_revenue_30d_pct_change,
 			mpc.revenue_1d,
@@ -727,6 +727,7 @@ const fetchSubProtocolsByChain = async (
 			mspc.fees_7d_pct_change,
 			mspc.fees_30d_pct_change,
 			mspc.holder_revenue_1d,
+			mspc.holder_revenue_7d,
 			mspc.holder_revenue_30d,
 			mspc.holder_revenue_30d_pct_change,
 			mspc.revenue_1d,

@@ -170,6 +170,14 @@ const feesColumns: ColumnDictionaryItem[] = [
 		strategies: ['protocols']
 	},
 	{
+		id: 'holderRevenue_7d',
+		header: '7d Holder Revenue',
+		group: 'fees',
+		render: 'usd',
+		tags: ['distribution'],
+		strategies: ['protocols']
+	},
+	{
 		id: 'holdersRevenue30d',
 		header: '30d Holder Revenue',
 		group: 'fees',
@@ -216,30 +224,6 @@ const feesColumns: ColumnDictionaryItem[] = [
 		render: 'percent',
 		tags: ['change'],
 		strategies: ['protocols']
-	},
-	{
-		id: 'feesChange_7dover7d',
-		header: '7d/7d Fees Change',
-		group: 'fees',
-		render: 'percent',
-		tags: ['change', 'advanced'],
-		strategies: ['protocols']
-	},
-	{
-		id: 'feesChange_30dover30d',
-		header: '30d/30d Fees Change',
-		group: 'fees',
-		render: 'percent',
-		tags: ['change', 'advanced'],
-		strategies: ['protocols']
-	},
-	{
-		id: 'holdersRevenueChange_30dover30d',
-		header: '30d/30d Holder Rev Change',
-		group: 'fees',
-		render: 'percent',
-		tags: ['change', 'distribution', 'advanced'],
-		strategies: ['protocols']
 	}
 ]
 
@@ -278,22 +262,6 @@ const revenueColumns: ColumnDictionaryItem[] = [
 		group: 'revenue',
 		render: 'percent',
 		tags: ['change'],
-		strategies: ['protocols']
-	},
-	{
-		id: 'revenueChange_7dover7d',
-		header: '7d/7d Revenue Change',
-		group: 'revenue',
-		render: 'percent',
-		tags: ['change', 'advanced'],
-		strategies: ['protocols']
-	},
-	{
-		id: 'revenueChange_30dover30d',
-		header: '30d/30d Revenue Change',
-		group: 'revenue',
-		render: 'percent',
-		tags: ['change', 'advanced'],
 		strategies: ['protocols']
 	}
 ]
@@ -499,9 +467,29 @@ const optionsColumns: ColumnDictionaryItem[] = [
 ]
 
 const ratioColumns: ColumnDictionaryItem[] = [
-	{ id: 'mcaptvl', header: 'Mcap / TVL', group: 'ratios', render: 'ratio', description: 'Market Cap divided by Total Value Locked' },
-	{ id: 'pf', header: 'P/F', group: 'ratios', render: 'ratio', description: 'Price to Fees ratio', strategies: ['protocols'] },
-	{ id: 'ps', header: 'P/S', group: 'ratios', render: 'ratio', description: 'Price to Sales (Revenue) ratio', strategies: ['protocols'] }
+	{
+		id: 'mcaptvl',
+		header: 'Mcap / TVL',
+		group: 'ratios',
+		render: 'ratio',
+		description: 'Market Cap divided by Total Value Locked'
+	},
+	{
+		id: 'pf',
+		header: 'P/F',
+		group: 'ratios',
+		render: 'ratio',
+		description: 'Price to Fees ratio',
+		strategies: ['protocols']
+	},
+	{
+		id: 'ps',
+		header: 'P/S',
+		group: 'ratios',
+		render: 'ratio',
+		description: 'Price to Sales (Revenue) ratio',
+		strategies: ['protocols']
+	}
 ]
 
 export const UNIFIED_TABLE_COLUMN_DICTIONARY: ColumnDictionaryItem[] = [
