@@ -123,7 +123,7 @@ export default function SheetsContainer() {
 					<ul className="space-y-6 text-[#b4b7bc]">
 						{dataPoints.map((point, idx) => (
 							<li key={idx} className="flex items-center gap-3">
-								<Icon name="check-circle" height={16} width={16} className="text-[#5C5CF9]" />
+								<Icon name="check-circle" height={16} width={16} className="shrink-0 text-[#5C5CF9]" />
 								<span>{point}</span>
 							</li>
 						))}
