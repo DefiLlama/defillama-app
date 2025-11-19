@@ -462,7 +462,8 @@ export function useDefaults({
 		hideOthersInTooltip,
 		tooltipValuesRelative,
 		groupBy,
-		alwaysShowTooltip
+		alwaysShowTooltip,
+		xAxisType
 	])
 
 	return defaults

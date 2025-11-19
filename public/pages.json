@@ -156,20 +156,20 @@
       "oldName": "All Projects"
     },
     {
-      "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
-      "category": "Yields",
-      "description": "Find 'long-short' strategies across all our tracked pools",
-      "oldCategory": "Yields",
-      "oldName": "Long/Short Strategies"
-    },
-    {
       "name": "Yields: APY Overview",
       "route": "/yields/overview",
       "category": "Yields",
       "description": "Find APY trends, volatility, and other metrics across all our tracked pools",
       "oldCategory": "Yields",
       "oldName": "Trends"
+    },
+    {
+      "name": "Yields: Long/Short Strategies",
+      "route": "/yields/strategyLongShort",
+      "category": "Yields",
+      "description": "Find 'long-short' strategies across all our tracked pools",
+      "oldCategory": "Yields",
+      "oldName": "Long/Short Strategies"
     },
     {
       "name": "Yields: Halal",

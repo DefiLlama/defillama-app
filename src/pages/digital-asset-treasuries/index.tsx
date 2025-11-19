@@ -9,175 +9,28 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
-import { TRADFI_API } from '~/constants'
+import { getDATOverviewData, IDATOverviewPageProps } from '~/containers/DAT/queries'
 import Layout from '~/layout'
-import {
-	firstDayOfMonth,
-	formattedNum,
-	getDominancePercent,
-	getNDistinctColors,
-	lastDayOfWeek,
-	slug,
-	toNiceCsvDate
-} from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
-
-interface ITreasuryCompanies {
-	breakdownByAsset: {
-		[asset: string]: Array<{
-			assetName: string
-		}>
-	}
-	statsByAsset: {
-		[asset: string]: {
-			assetName: string
-			assetTicker: string
-		}
-	}
-	institutions: Array<{
-		ticker: string
-		name: string
-		type: string
-		price: number
-		priceChange24h: number
-		volume24h: number
-		fd_realized: number
-		fd_realistic: number
-		fd_max: number
-		mcap_realized: number
-		mcap_realistic: number
-		mcap_max: number
-		realized_mNAV: number
-		realistic_mNAV: number
-		max_mNAV: number
-		totalCost: number
-		totalUsdValue: number
-		totalAssetsByAsset: Record<
-			string,
-			{
-				amount: number
-				usdValue?: number | null
-				cost?: number | null
-				avgPrice?: number | null
-			}
-		>
-	}>
-	dailyFlows: Record<string, Array<[number, number, number, number]>>
-}
-
-const breakdownColor = (type) => {
-	switch (type) {
-		case 'Bitcoin':
-			return '#f97316'
-		case 'Ethereum':
-			return '#2563eb'
-		case 'Solana':
-			return '#6d28d9'
-		case 'Hyperliquid':
-			return '#16a34a'
-		case 'XRP':
-			return '#6b7280'
-		case 'Tron Network':
-			return '#E91E63'
-		default:
-			return null
-	}
-}
 
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
 type GroupByType = (typeof GROUP_BY)[number]
 
 export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/index', async () => {
-	const res: ITreasuryCompanies = await fetchJson(`${TRADFI_API}/v1/companies`)
-
-	const allAssets = [{ label: 'All', to: '/digital-asset-treasuries' }]
-	for (const asset in res.breakdownByAsset) {
-		allAssets.push({ label: res.breakdownByAsset[asset][0].assetName, to: `/digital-asset-treasuries/${asset}` })
-	}
-
-	const colorByAsset = {}
-	let i = 0
-	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
-	for (const asset in res.breakdownByAsset) {
-		const color = breakdownColor(res.breakdownByAsset[asset][0].assetName)
-		if (color) {
-			colorByAsset[asset] = color
-		} else {
-			colorByAsset[asset] = colors[i + 6]
-		}
-		i++
-	}
-
-	const inflowsByAssetByDate: Record<string, Record<string, [number, number]>> = {}
-	const dailyFlowsByAsset = {}
-	for (const asset in res.dailyFlows) {
-		const name = res.statsByAsset[asset]?.assetName ?? asset
-		dailyFlowsByAsset[asset] = {
-			name: name,
-			stack: 'asset',
-			type: 'bar',
-			color: colorByAsset[asset],
-			data: []
-		}
-		for (let i = 0; i < res.dailyFlows[asset].length; i++) {
-			const [date, value, purchasePrice, usdValueOfPurchase] = res.dailyFlows[asset][i]
-			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
-			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, value]
-		}
-	}
-
-	for (const date in inflowsByAssetByDate) {
-		for (const asset in res.dailyFlows) {
-			dailyFlowsByAsset[asset].data.push([
-				+date,
-				inflowsByAssetByDate[date][asset]?.[0] ?? null,
-				inflowsByAssetByDate[date][asset]?.[1] ?? null
-			])
-		}
-	}
-
-	// Sort data by date for each asset to ensure correct cumulative calculations
-	for (const asset in dailyFlowsByAsset) {
-		dailyFlowsByAsset[asset].data.sort((a, b) => a[0] - b[0])
-	}
+	const props = await getDATOverviewData()
 
 	return {
-		props: {
-			allAssets,
-			institutions: res.institutions.map((institute) => {
-				const totalUsdValue = Object.entries(institute.totalAssetsByAsset).reduce(
-					(acc, [asset, { usdValue }]) => acc + (usdValue ?? 0),
-					0
-				)
-
-				return {
-					...institute,
-					assetBreakdown: Object.entries(institute.totalAssetsByAsset)
-						.map(([asset, { amount, cost, usdValue, avgPrice }]) => ({
-							name: res.statsByAsset[asset].assetName,
-							ticker: res.statsByAsset[asset].assetTicker,
-							amount: amount,
-							cost: cost ?? null,
-							usdValue: usdValue ?? null,
-							avgPrice: avgPrice ?? null,
-							dominance: getDominancePercent(usdValue ?? 0, totalUsdValue),
-							color: colorByAsset[asset]
-						}))
-						.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0))
-				}
-			}),
-			dailyFlowsByAsset
-		},
+		props,
 		revalidate: maxAgeForNext([22])
 	}
 })
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 
-const prepareInstitutionsCsv = (institutions) => {
+const prepareInstitutionsCsv = (institutions: IDATOverviewPageProps['institutions']) => {
 	const headers = [
 		'Institution',
 		'Ticker',
@@ -193,7 +46,7 @@ const prepareInstitutionsCsv = (institutions) => {
 	]
 
 	const rows = institutions.map((institution) => {
-		const assetBreakdownStr = institution.assetBreakdown
+		const assetBreakdownStr = institution.holdings
 			.map((asset) => {
 				const parts = [`${asset.name} (${asset.ticker})`]
 				if (asset.usdValue != null) parts.push(`Value: $${asset.usdValue.toLocaleString()}`)
@@ -259,7 +112,8 @@ const prepareDailyFlowsCsv = (dailyFlowsByAsset) => {
 	}
 	return { filename: 'digital-asset-treasuries-daily-flows.csv', rows: [headers, ...rows] }
 }
-export default function TreasuriesByInstitution({ allAssets, institutions, dailyFlowsByAsset }) {
+
+export default function TreasuriesByInstitution({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
 	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
 
 	const chartOptions = useMemo(() => {
@@ -337,7 +191,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 		>
 			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
 			<div className="col-span-2 flex min-h-[406px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex flex-wrap items-center justify-between p-2 pb-0">
+				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
 					<TagGroup
 						selectedValue={groupBy}
@@ -363,7 +217,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 	)
 }
 
-const columns: ColumnDef<ITreasuryCompanies['institutions'][0]>[] = [
+const columns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 	{
 		header: 'Institution',
 		accessorKey: 'name',
@@ -400,7 +254,7 @@ const columns: ColumnDef<ITreasuryCompanies['institutions'][0]>[] = [
 	// },
 	{
 		header: 'Assets',
-		accessorKey: 'assetBreakdown',
+		accessorKey: 'holdings',
 		enableSorting: false,
 		cell: (info) => {
 			const assetBreakdown = info.getValue() as Array<{
