@@ -27,7 +27,7 @@ import {
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from '../types'
 import { buildProtocolAddlChartsData } from '../utils'
@@ -371,6 +371,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 						chartInstance={overviewChartInstance}
 						filename={overviewImageFilename}
 						title={overviewImageTitle}
+						iconUrl={tokenIconUrl(props.name)}
 						className="-ml-1 flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60"
 						smol
 					/>

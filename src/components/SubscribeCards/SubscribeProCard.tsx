@@ -200,7 +200,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, user } = useAuthContext()
 
 	useEffect(() => {
 		if (isOpen && typeof window !== 'undefined' && (window as any).umami) {
@@ -209,10 +209,10 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 	}, [isOpen])
 
 	useEffect(() => {
-		if (isAuthenticated && isOpen) {
+		if (isAuthenticated && isOpen && user?.has_active_subscription) {
 			onClose()
 		}
-	}, [isAuthenticated, isOpen, onClose])
+	}, [isAuthenticated, isOpen, onClose, user?.has_active_subscription])
 
 	return (
 		<WalletProvider>

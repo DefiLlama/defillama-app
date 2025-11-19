@@ -17,6 +17,7 @@ interface ImageDownloadButtonProps {
 	smol?: boolean
 	title?: string
 	className?: string
+	iconUrl?: string
 }
 
 export const ImageExportButton = memo(function ImageExportButton({
@@ -24,7 +25,8 @@ export const ImageExportButton = memo(function ImageExportButton({
 	filename = 'chart',
 	smol = false,
 	title,
-	className
+	className,
+	iconUrl
 }: ImageDownloadButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
@@ -91,7 +93,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 				})
 
 				const scale = 2
-				const headerHeight = title ? 36 * scale : 0
+				const headerHeight = title ? 48 * scale : 0
 				const footerHeight = 36 * scale
 				const sidePadding = 16 * scale
 				const canvas = document.createElement('canvas')
@@ -106,10 +108,47 @@ export const ImageExportButton = memo(function ImageExportButton({
 				if (title && headerHeight > 0) {
 					ctx.fillStyle = bgColor
 					ctx.fillRect(0, 0, canvas.width, headerHeight)
-					ctx.font = `${14 * scale}px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`
+					ctx.font = `bolder ${18 * scale}px Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`
 					ctx.fillStyle = isDark ? '#ffffff' : '#111111'
 					ctx.textBaseline = 'middle'
-					ctx.fillText(title, sidePadding, headerHeight / 2)
+
+					let textX = sidePadding
+
+					if (iconUrl) {
+						try {
+							const proxyUrl = `/api/protocol-icon?url=${encodeURIComponent(iconUrl)}`
+							const response = await fetch(proxyUrl)
+							const blob = await response.blob()
+							const objectUrl = URL.createObjectURL(blob)
+
+							const protocolIcon = await new Promise<HTMLImageElement>((resolve, reject) => {
+								const img = new Image()
+								img.onload = () => resolve(img)
+								img.onerror = reject
+								img.src = objectUrl
+							})
+
+							const iconSize = 32 * scale
+							const iconGap = 12 * scale
+							const yCenter = headerHeight / 2
+
+							ctx.save()
+							ctx.beginPath()
+							ctx.arc(sidePadding + iconSize / 2, yCenter, iconSize / 2, 0, Math.PI * 2)
+							ctx.closePath()
+							ctx.clip()
+
+							ctx.drawImage(protocolIcon, sidePadding, yCenter - iconSize / 2, iconSize, iconSize)
+
+							ctx.restore()
+
+							textX = sidePadding + iconSize + iconGap
+
+							URL.revokeObjectURL(objectUrl)
+						} catch {}
+					}
+
+					ctx.fillText(title, textX, headerHeight / 2)
 				}
 
 				ctx.drawImage(baseImg, 0, headerHeight)
