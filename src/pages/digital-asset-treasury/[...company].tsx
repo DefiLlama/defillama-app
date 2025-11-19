@@ -210,9 +210,9 @@ export const getStaticProps = withPerformanceLogging(
 				totalUsdValue: data.totalUsdValue,
 				firstAnnouncementDate: data.transactions[data.transactions.length - 1].report_date,
 				lastAnnouncementDate: data.transactions[0].report_date,
-				realized_mNAV: data.stats[data.stats.length - 1][7],
-				realistic_mNAV: data.stats[data.stats.length - 1][8],
-				max_mNAV: data.stats[data.stats.length - 1][9],
+				realized_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][7] : null,
+				realistic_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][8] : null,
+				max_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][9] : null,
 				assets: Object.entries(data.assets)
 					.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
 					.map(([asset]) => data.assetsMeta[asset].ticker),
