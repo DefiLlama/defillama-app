@@ -69,7 +69,6 @@ export const SignInModal = ({
 			>
 				<SignInForm
 					text={text}
-					className={className}
 					showOnlyAuthDialog={showOnlyAuthDialog}
 					pendingActionMessage={pendingActionMessage}
 					defaultFlow={defaultFlow}
@@ -82,14 +81,12 @@ export const SignInModal = ({
 
 export const SignInForm = ({
 	text,
-	className,
 	showOnlyAuthDialog = false,
 	pendingActionMessage,
 	defaultFlow = 'signin',
 	dialogStore
 }: {
 	text?: string
-	className?: string
 	showOnlyAuthDialog?: boolean
 	pendingActionMessage?: string
 	defaultFlow?: 'signin' | 'signup' | 'forgot'
@@ -215,13 +212,10 @@ export const SignInForm = ({
 				</Ariakit.DialogHeading>
 
 				{showOnlyAuthDialog ? null : (
-					<button
-						onClick={dialogStore.hide}
-						className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
-					>
+					<Ariakit.DialogDismiss className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
 						<Icon name="x" height={18} width={18} />
 						<span className="sr-only">Close</span>
-					</button>
+					</Ariakit.DialogDismiss>
 				)}
 			</div>
 

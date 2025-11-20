@@ -5,7 +5,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { SignInModal } from '~/containers/Subscribtion/SignIn'
+import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
@@ -187,6 +187,8 @@ export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalPr
 	const router = useRouter()
 	const { isAuthenticated, user } = useAuthContext()
 
+	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
+
 	useEffect(() => {
 		if (dialogStore.getState().open && typeof window !== 'undefined' && (window as any).umami) {
 			;(window as any).umami.track('subscribe-modal-open')
@@ -205,31 +207,39 @@ export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalPr
 		<WalletProvider>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer max-h-[90dvh] max-w-md gap-0 overflow-y-auto rounded-xl p-4 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] max-sm:rounded-b-none sm:p-6"
+					className="dialog max-sm:drawer flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
+					onClose={() => setIsSignInModalOpen(false)}
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
-						<Ariakit.DialogDismiss
-							data-umami-event="subscribe-modal-dismiss"
-							className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
-						>
-							<Icon name="x" className="h-6 w-6" />
-						</Ariakit.DialogDismiss>
-						<SubscribeProCardContent billingInterval={props.billingInterval} />
-						<div className="flex flex-col gap-3">
-							<BasicLink
-								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
-								data-umami-event="subscribe-modal-goto-page"
-								className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-							>
-								Unlock Pro Features
-							</BasicLink>
-							<SignInModal
-								text="Already a subscriber? Sign In"
-								className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2b30]"
-							/>
-						</div>
+						{isSignInModalOpen ? (
+							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} />
+						) : (
+							<>
+								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
+									<Icon name="x" height={18} width={18} />
+									<span className="sr-only">Close</span>
+								</Ariakit.DialogDismiss>
+								<SubscribeProCardContent billingInterval={props.billingInterval} />
+								<div className="flex flex-col gap-3">
+									<BasicLink
+										href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+										data-umami-event="subscribe-modal-goto-page"
+										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+									>
+										Unlock Pro Features
+									</BasicLink>
+
+									<button
+										className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
+										onClick={() => setIsSignInModalOpen(true)}
+									>
+										Already a subscriber? Sign In
+									</button>
+								</div>
+							</>
+						)}
 					</span>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
