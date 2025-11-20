@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react'
+import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useSignMessage } from 'wagmi'
@@ -84,16 +85,19 @@ export const SignInForm = ({
 	showOnlyAuthDialog = false,
 	pendingActionMessage,
 	defaultFlow = 'signin',
-	dialogStore
+	dialogStore,
+	returnUrl
 }: {
 	text?: string
 	showOnlyAuthDialog?: boolean
 	pendingActionMessage?: string
 	defaultFlow?: 'signin' | 'signup' | 'forgot'
 	dialogStore: Ariakit.DialogStore
+	returnUrl?: string
 }) => {
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
+	const router = useRouter()
 
 	const [flow, setFlow] = useState<'signin' | 'signup' | 'forgot'>(defaultFlow)
 	const [email, setEmail] = useState('')
@@ -111,6 +115,9 @@ export const SignInForm = ({
 		e.preventDefault()
 		try {
 			await login(email, password)
+			if (returnUrl) {
+				router.push(returnUrl)
+			}
 			dialogStore.hide()
 		} catch (error) {
 			console.log('Error signing in:', error)
@@ -155,8 +162,13 @@ export const SignInForm = ({
 
 		try {
 			await signup(email, password, confirmPassword, turnstileToken)
-			dialogStore.hide()
 			setTurnstileToken('')
+
+			if (returnUrl) {
+				router.push(returnUrl)
+			}
+
+			dialogStore.hide()
 		} catch (error: any) {
 			console.log('Error signing up:', error)
 
@@ -193,6 +205,10 @@ export const SignInForm = ({
 		if (address) {
 			try {
 				await signInWithEthereum(address, signMessageAsync)
+				if (returnUrl) {
+					router.push(returnUrl)
+				}
+				dialogStore.hide()
 			} catch (error) {
 				console.log('Error signing in with wallet:', error)
 			}

@@ -180,12 +180,12 @@ export function SubscribeProCard({
 }
 
 interface SubscribeProModalProps extends SubscribeProCardProps {
+	returnUrl?: string
 	dialogStore: Ariakit.DialogStore
 }
 
-export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalProps) {
+export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
-	const { isAuthenticated, user } = useAuthContext()
 
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -195,13 +195,7 @@ export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalPr
 		}
 	}, [dialogStore])
 
-	useEffect(() => {
-		if (isAuthenticated && dialogStore.getState().open && user?.has_active_subscription) {
-			dialogStore.hide()
-		}
-	}, [isAuthenticated, dialogStore, user?.has_active_subscription])
-
-	const returnUrl = router.asPath
+	const finalReturnUrl = returnUrl ? returnUrl : router.asPath
 
 	return (
 		<WalletProvider>
@@ -214,7 +208,7 @@ export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalPr
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} />
+							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={returnUrl} />
 						) : (
 							<>
 								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
@@ -224,7 +218,9 @@ export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalPr
 								<SubscribeProCardContent billingInterval={props.billingInterval} />
 								<div className="flex flex-col gap-3">
 									<BasicLink
-										href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+										href={
+											finalReturnUrl ? `/subscription?returnUrl=${encodeURIComponent(finalReturnUrl)}` : '/subscription'
+										}
 										data-umami-event="subscribe-modal-goto-page"
 										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 									>

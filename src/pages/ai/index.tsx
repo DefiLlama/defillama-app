@@ -409,7 +409,7 @@ export default function LlamaAIGetStarted() {
 			</div>
 
 			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
+				<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
 			</Suspense>
 		</>
 	)
