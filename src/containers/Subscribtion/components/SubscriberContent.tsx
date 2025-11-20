@@ -446,7 +446,7 @@ export const SubscriberContent = ({
 									</div>
 								</div>
 
-								{isLlamaFeed &&
+								{/* {isLlamaFeed &&
 									(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) && (
 										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
 											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
@@ -517,7 +517,7 @@ export const SubscriberContent = ({
 											)}
 										</button>
 									</div>
-								)}
+								)} */}
 
 								{isPro && !apiSubscription?.overage && (
 									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
