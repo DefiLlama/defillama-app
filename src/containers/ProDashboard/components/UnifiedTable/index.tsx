@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
@@ -149,7 +149,7 @@ const toCsvValue = (columnId: string, row: NormalizedRow): string => {
 	return typeof value === 'number' ? String(value) : ''
 }
 
-export function UnifiedTable({
+export const UnifiedTable = memo(function UnifiedTable({
 	config,
 	previewMode = false,
 	columnOrderOverride,
@@ -445,6 +445,6 @@ export function UnifiedTable({
 			<UnifiedTablePagination table={unifiedTable.table} />
 		</div>
 	)
-}
+})
 
 export default UnifiedTable

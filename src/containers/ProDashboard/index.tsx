@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -41,7 +41,7 @@ function ProDashboardContent() {
 	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
 	const {
@@ -95,6 +95,16 @@ function ProDashboardContent() {
 	)
 
 	const currentRatingSession = getCurrentRatingSession()
+
+	const openAddModal = useCallback(() => {
+		setShowAddModal(true)
+	}, [])
+
+	const handleEditItemModal = useCallback((item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => {
+		setEditItem(item)
+		setInitialUnifiedFocusSection(focusSection)
+		setShowAddModal(true)
+	}, [])
 
 	const handleNameSubmit = (e: React.FormEvent) => {
 		e.preventDefault()
@@ -184,7 +194,7 @@ function ProDashboardContent() {
 											if (subscription?.status === 'active') {
 												copyDashboard()
 											} else {
-												subscribeModalStore.show()
+												setShowSubscribeModal(true)
 											}
 										}}
 										className="pro-btn-blue-outline flex items-center gap-1 rounded-md px-4 py-1"
@@ -299,7 +309,7 @@ function ProDashboardContent() {
 
 						<button
 							className="pro-btn-blue hidden items-center gap-2 rounded-md px-4 py-2 text-base whitespace-nowrap md:flex"
-							onClick={() => setShowAddModal(true)}
+							onClick={openAddModal}
 							disabled={isReadOnly}
 						>
 							<Icon name="plus" height={16} width={16} />
@@ -309,16 +319,7 @@ function ProDashboardContent() {
 				</div>
 			)}
 
-			{items.length > 0 && (
-				<ChartGrid
-					onAddChartClick={() => setShowAddModal(true)}
-					onEditItem={(item, focusSection) => {
-						setEditItem(item)
-						setInitialUnifiedFocusSection(focusSection)
-						setShowAddModal(true)
-					}}
-				/>
-			)}
+			{items.length > 0 && <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} />}
 
 			<Suspense fallback={<></>}>
 				<AddChartModal
@@ -335,7 +336,7 @@ function ProDashboardContent() {
 
 			{!protocolsLoading && items.length === 0 && (
 				<EmptyState
-					onAddChart={() => setShowAddModal(true)}
+					onAddChart={openAddModal}
 					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
 					isReadOnly={isReadOnly}
 				/>
@@ -385,7 +386,7 @@ function ProDashboardContent() {
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
+				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
 			</Suspense>
 		</div>
 	)
