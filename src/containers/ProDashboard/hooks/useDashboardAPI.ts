@@ -90,9 +90,10 @@ export function useDashboardAPI() {
 		}) => {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
-		onSuccess: () => {
+		onSuccess: (_data, variables) => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
 			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['dashboard', variables.id] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')

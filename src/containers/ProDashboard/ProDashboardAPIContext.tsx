@@ -327,9 +327,9 @@ export function ProDashboardAPIProvider({
 
 	useEffect(() => {
 		if (
-			currentDashboard?.id !== currentDashboard2?.id &&
 			currentDashboard2 !== null &&
-			initialDashboardId === currentDashboard2?.id
+			initialDashboardId === currentDashboard2?.id &&
+			(currentDashboard?.id !== currentDashboard2?.id || currentDashboard?.updated !== currentDashboard2?.updated)
 		) {
 			if (!currentDashboard2?.data?.items || !Array.isArray(currentDashboard2.data.items)) {
 				return
