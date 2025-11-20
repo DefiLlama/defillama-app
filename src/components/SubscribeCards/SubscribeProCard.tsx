@@ -43,59 +43,57 @@ function SubscribeProCardContent({ billingInterval = 'month' }: { billingInterva
 			{billingInterval === 'month' && (
 				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
 			)}
-			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
-				<li className="flex flex-col gap-3">
-					<div className="font-semibold">Access to:</div>
-					<ul className="flex flex-col gap-3 pl-4">
-						<li className="group flex items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span className="font-bold">
-								NEW:{' '}
-								<Link href="/ai" className="llamaai-glow-text">
-									LlamaAI
-								</Link>{' '}
-								<svg className="relative mx-1 inline-block h-4 w-4">
-									<use href="/icons/ask-llamaai-3.svg#ai-icon" />
-								</svg>{' '}
-								- conversational analysis of DefiLlama data
-							</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span>DefiLlama Pro Dashboards - build custom dashboards</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span>CSV Downloads - export any dataset</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span>Custom Columns - personalized analysis</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span>LlamaFeed - real-time premium insights</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span>
-								<Link href="/sheets" className="underline">
-									DefilLama Sheets
-								</Link>{' '}
-								– access blockchain data in your spreadsheets
-							</span>
-						</li>
-						<li className="flex flex-nowrap items-start gap-2.5">
-							<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-							<span>Upcoming DefiLlama Products</span>
-						</li>
-					</ul>
-				</li>
-				<li className="flex flex-nowrap items-start gap-2.5">
-					<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
-					<span>API access not included</span>
-				</li>
-			</ul>
+			<div className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
+				<h3 className="font-semibold">Access to:</h3>
+				<ul className="flex flex-col gap-3">
+					<li className="group flex items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span className="font-bold">
+							NEW:{' '}
+							<Link href="/ai" className="llamaai-glow-text">
+								LlamaAI
+							</Link>{' '}
+							<svg className="relative mx-1 inline-block h-4 w-4">
+								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+							</svg>{' '}
+							- conversational analysis of DefiLlama data
+						</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>DefiLlama Pro Dashboards - build custom dashboards</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>CSV Downloads - export any dataset</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>Custom Columns - personalized analysis</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>LlamaFeed - real-time premium insights</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>
+							<Link href="/sheets" className="underline">
+								DefilLama Sheets
+							</Link>{' '}
+							– access blockchain data in your spreadsheets
+						</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+						<span>Upcoming DefiLlama Products</span>
+					</li>
+					<li className="flex flex-nowrap items-start gap-2.5">
+						<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
+						<span>API access not included</span>
+					</li>
+				</ul>
+			</div>
 		</>
 	)
 }
@@ -108,8 +106,6 @@ export function SubscribeProCard({
 	billingInterval = 'month',
 	currentBillingInterval
 }: SubscribeProCardProps) {
-	const isModal = context === 'modal'
-
 	const { loading } = useSubscribe()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 
@@ -147,49 +143,29 @@ export function SubscribeProCard({
 					</div>
 				) : (
 					<>
-						{(context === 'page' || context === 'account') && (
-							<>
-								<SignInModal text="Already a subscriber? Sign In" />
-								<div
-									className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
-								>
-									{context === 'account' ? (
-										<>
-											{billingInterval === 'month' && (
-												<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
-											)}
-											<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
-										</>
-									) : (
-										<>
-											{billingInterval === 'month' && (
-												<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
-											)}
-											<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
-										</>
+						<SignInModal text="Already a subscriber? Sign In" />
+						<div
+							className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
+						>
+							{context === 'account' ? (
+								<>
+									{billingInterval === 'month' && (
+										<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
 									)}
-								</div>
-							</>
-						)}
-						{isModal && (
-							<>
-								<BasicLink
-									href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
-									data-umami-event="subscribe-modal-goto-page"
-									className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-								>
-									Unlock Pro Features
-								</BasicLink>
-								<SignInModal
-									text="Already a subscriber? Sign In"
-									className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2b30]"
-								/>
-							</>
-						)}
+									<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
+								</>
+							) : (
+								<>
+									{billingInterval === 'month' && (
+										<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
+									)}
+									<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
+								</>
+							)}
+						</div>
 					</>
 				)}
 			</div>
-
 			{isUpgradeModalOpen && (
 				<StripeCheckoutModal
 					isOpen={isUpgradeModalOpen}
@@ -224,11 +200,13 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 		}
 	}, [isAuthenticated, isOpen, onClose, user?.has_active_subscription])
 
+	const returnUrl = router.asPath
+
 	return (
 		<WalletProvider>
 			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
 				<Ariakit.Dialog
-					className="dialog max-sm:drawer gap-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] max-sm:max-h-[95dvh] max-sm:min-h-[95dvh] md:max-w-[400px]"
+					className="dialog max-sm:drawer max-h-[90dvh] max-w-md gap-0 overflow-y-auto rounded-xl p-4 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
 				>
@@ -239,7 +217,20 @@ export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProMod
 						>
 							<Icon name="x" className="h-6 w-6" />
 						</Ariakit.DialogDismiss>
-						<SubscribeProCard context="modal" returnUrl={router.asPath} {...props} />
+						<SubscribeProCardContent billingInterval={props.billingInterval} />
+						<div className="flex flex-col gap-3">
+							<BasicLink
+								href={returnUrl ? `/subscription?returnUrl=${encodeURIComponent(returnUrl)}` : '/subscription'}
+								data-umami-event="subscribe-modal-goto-page"
+								className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+							>
+								Unlock Pro Features
+							</BasicLink>
+							<SignInModal
+								text="Already a subscriber? Sign In"
+								className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2b30]"
+							/>
+						</div>
 					</span>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>

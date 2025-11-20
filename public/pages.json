@@ -344,16 +344,6 @@
       "oldName": "Perps (Chains)"
     },
     {
-      "name": "Perp Aggregator Volume by Protocol",
-      "route": "/perps-aggregators",
-      "category": "Volume",
-      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
-      "totalTrackedKey": "perpAggregators.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Volume",
-      "oldName": "Perps Aggregators"
-    },
-    {
       "name": "Open Interest by Protocol",
       "route": "/open-interest",
       "category": "Volume",
@@ -362,6 +352,16 @@
       "tab": "Protocols",
       "oldCategory": "Volume",
       "oldName": "Open Interest"
+    },
+    {
+      "name": "Perp Aggregator Volume by Protocol",
+      "route": "/perps-aggregators",
+      "category": "Volume",
+      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
+      "totalTrackedKey": "perpAggregators.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Volume",
+      "oldName": "Perps Aggregators"
     },
     {
       "name": "Options Premium Volume by Protocol",
@@ -485,24 +485,6 @@
       "oldName": "ETFs"
     },
     {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
-    },
-    {
       "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
@@ -526,6 +508,24 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
     },
     {
       "name": "Hacks: Overview",
@@ -706,13 +706,6 @@
       "oldName": "Simple"
     },
     {
-      "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl",
-      "category": "Tools",
-      "description": "Calculate the percentage change in token price between two dates",
-      "oldName": "Token PnL"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
@@ -721,12 +714,11 @@
       "oldName": "Directory"
     },
     {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets",
-      "oldCategory": "Borrow Aggregator",
-      "oldName": "Advanced"
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl",
+      "category": "Tools",
+      "description": "Calculate the percentage change in token price between two dates",
+      "oldName": "Token PnL"
     },
     {
       "name": "Transactions by Bridge",
@@ -735,6 +727,14 @@
       "description": "Download transaction data across different time periods by bridge",
       "oldCategory": "Bridges",
       "oldName": "Transactions"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets",
+      "oldCategory": "Borrow Aggregator",
+      "oldName": "Advanced"
     },
     {
       "name": "Report Error",
