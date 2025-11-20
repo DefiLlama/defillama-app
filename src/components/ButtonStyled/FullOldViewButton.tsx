@@ -1,16 +1,20 @@
-import { useState } from 'react'
+import { lazy, Suspense } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { Tooltip } from '~/components/Tooltip'
 import { useIsClient } from '~/hooks'
 import { useDashboardCreation } from '~/hooks/useDashboardCreation'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
+
 export const FullOldViewButton = () => {
 	const { createDashboardWithDataset, isAuthenticated, isLoading } = useDashboardCreation()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 
 	const handleClick = () => {
@@ -19,7 +23,7 @@ export const FullOldViewButton = () => {
 		if (isAuthenticated && subscription?.status === 'active') {
 			createDashboardWithDataset()
 		} else {
-			setShowSubscribeModal(true)
+			subscribeModalStore.show()
 		}
 	}
 
@@ -53,7 +57,9 @@ export const FullOldViewButton = () => {
 				)}
 				<span>Open in Dashboard</span>
 			</Tooltip>
-			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
 		</>
 	)
 }

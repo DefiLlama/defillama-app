@@ -1,13 +1,17 @@
-import { memo, ReactNode, useState } from 'react'
+import { lazy, memo, ReactNode, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { download } from '~/utils'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 interface CSVDownloadButtonProps {
 	// Common props
@@ -48,7 +52,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
 	const isLoading = loaders.userLoading || isSubscriptionLoading || loading || staticLoading ? true : false
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 	const router = useRouter()
 
@@ -93,7 +97,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 							}
 						}
 					} else if (!isLoading) {
-						setShowSubscribeModal(true)
+						subscribeModalStore.show()
 					}
 				}}
 				disabled={isClient ? isLoading : true}
@@ -107,7 +111,9 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
 			</button>
-			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
 		</>
 	)
 })

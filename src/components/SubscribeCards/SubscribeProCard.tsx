@@ -180,31 +180,30 @@ export function SubscribeProCard({
 }
 
 interface SubscribeProModalProps extends SubscribeProCardProps {
-	isOpen: boolean
-	onClose: () => void
+	dialogStore: Ariakit.DialogStore
 }
 
-export function SubscribeProModal({ isOpen, onClose, ...props }: SubscribeProModalProps) {
+export function SubscribeProModal({ dialogStore, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
 	const { isAuthenticated, user } = useAuthContext()
 
 	useEffect(() => {
-		if (isOpen && typeof window !== 'undefined' && (window as any).umami) {
+		if (dialogStore.getState().open && typeof window !== 'undefined' && (window as any).umami) {
 			;(window as any).umami.track('subscribe-modal-open')
 		}
-	}, [isOpen])
+	}, [dialogStore])
 
 	useEffect(() => {
-		if (isAuthenticated && isOpen && user?.has_active_subscription) {
-			onClose()
+		if (isAuthenticated && dialogStore.getState().open && user?.has_active_subscription) {
+			dialogStore.hide()
 		}
-	}, [isAuthenticated, isOpen, onClose, user?.has_active_subscription])
+	}, [isAuthenticated, dialogStore, user?.has_active_subscription])
 
 	const returnUrl = router.asPath
 
 	return (
 		<WalletProvider>
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.Dialog
 					className="dialog max-sm:drawer max-h-[90dvh] max-w-md gap-0 overflow-y-auto rounded-xl p-4 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] max-sm:rounded-b-none sm:p-6"
 					portal

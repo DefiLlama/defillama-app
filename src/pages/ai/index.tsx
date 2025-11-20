@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -28,7 +29,7 @@ const SubscribeProModal = lazy(() =>
 )
 
 export default function LlamaAIGetStarted() {
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const [activeFeature, setActiveFeature] = useState(0)
 	const { subscription } = useSubscribe()
 
@@ -89,7 +90,7 @@ export default function LlamaAIGetStarted() {
 						</BasicLink>
 					) : (
 						<button
-							onClick={() => setShowSubscribeModal(true)}
+							onClick={() => subscribeModalStore.show()}
 							data-umami-event="llamaai-landing-cta-unsubscribed"
 							className="llamaai-glow relative mx-auto flex items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						>
@@ -392,7 +393,7 @@ export default function LlamaAIGetStarted() {
 								</BasicLink>
 							) : (
 								<button
-									onClick={() => setShowSubscribeModal(true)}
+									onClick={() => subscribeModalStore.show()}
 									data-umami-event="llamaai-landing-cta-bottom-unsubscribed"
 									className="llamaai-glow relative flex items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-5 py-2.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 								>
@@ -408,7 +409,7 @@ export default function LlamaAIGetStarted() {
 			</div>
 
 			<Suspense fallback={<></>}>
-				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
+				<SubscribeProModal dialogStore={subscribeModalStore} />
 			</Suspense>
 		</>
 	)

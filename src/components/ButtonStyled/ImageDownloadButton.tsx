@@ -1,15 +1,19 @@
-import { memo, useState } from 'react'
+import { lazy, memo, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import * as echarts from 'echarts/core'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 interface ImageDownloadButtonProps {
 	chartInstance: echarts.ECharts | null
@@ -31,7 +35,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 	const [isLoading, setIsLoading] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 	const router = useRouter()
 
@@ -191,7 +195,7 @@ export const ImageExportButton = memo(function ImageExportButton({
 				setIsLoading(false)
 			}
 		} else if (!loading) {
-			setShowSubscribeModal(true)
+			subscribeModalStore.show()
 		}
 	}
 
@@ -213,9 +217,9 @@ export const ImageExportButton = memo(function ImageExportButton({
 				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
 				<span>{smol ? '.png' : 'Image'}</span>
 			</button>
-			{isClient && showSubscribeModal && (
-				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
-			)}
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
 		</>
 	)
 })

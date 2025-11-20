@@ -41,7 +41,7 @@ function ProDashboardContent() {
 	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-	const [showSubscribeModal, setShowSubscribeModal] = useState<boolean>(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const { subscription, isLoading: isSubLoading } = useSubscribe()
 	const { isAuthenticated } = useAuthContext()
 	const {
@@ -184,7 +184,7 @@ function ProDashboardContent() {
 											if (subscription?.status === 'active') {
 												copyDashboard()
 											} else {
-												setShowSubscribeModal(true)
+												subscribeModalStore.show()
 											}
 										}}
 										className="pro-btn-blue-outline flex items-center gap-1 rounded-md px-4 py-1"
@@ -385,7 +385,7 @@ function ProDashboardContent() {
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
+				<SubscribeProModal dialogStore={subscribeModalStore} />
 			</Suspense>
 		</div>
 	)

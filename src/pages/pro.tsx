@@ -1,5 +1,6 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense } from 'react'
 import { useRouter } from 'next/router'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
@@ -78,7 +79,7 @@ function ProContent({
 				? 'my-dashboards'
 				: 'discover'
 
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
 	const {
 		createNewDashboard,
@@ -145,7 +146,7 @@ function ProContent({
 									? () => router.push('/pro/preview')
 									: hasActiveSubscription
 										? () => setShowGenerateDashboardModal(true)
-										: () => setShowSubscribeModal(true)
+										: () => subscribeModalStore.show()
 							}
 							className="pro-btn-blue flex items-center gap-1 rounded-md px-4 py-2"
 						>
@@ -159,7 +160,7 @@ function ProContent({
 								? () => router.push('/pro/preview')
 								: hasActiveSubscription
 									? createNewDashboard
-									: () => setShowSubscribeModal(true)
+									: () => subscribeModalStore.show()
 						}
 						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2"
 					>
@@ -270,7 +271,7 @@ function ProContent({
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />
+				<SubscribeProModal dialogStore={subscribeModalStore} />
 			</Suspense>
 		</div>
 	)
