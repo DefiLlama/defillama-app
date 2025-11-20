@@ -1,13 +1,11 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { toast } from 'react-hot-toast'
-import { IFormattedProtocol } from '~/api/types'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { SubscribeProModal as SubscribeModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
@@ -21,6 +19,10 @@ import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { chainMetrics, protocolMetrics } from './constants'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 export function DefiWatchlistContainer({ protocols, chains }) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -242,7 +244,7 @@ function PortfolioNotifications({
 		deletePreferences,
 		isDeleting
 	} = useEmailNotifications(selectedPortfolio)
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
@@ -260,7 +262,7 @@ function PortfolioNotifications({
 		}
 
 		if (subscription?.status !== 'active') {
-			setShowSubscribeModal(true)
+			subscribeModalStore.show()
 		} else {
 			dialogStore.toggle()
 
@@ -459,7 +461,9 @@ function PortfolioNotifications({
 					)}
 				</div>
 			</div>
-			{isClient && <SubscribeModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
 
 			<Ariakit.Dialog
 				store={dialogStore}
