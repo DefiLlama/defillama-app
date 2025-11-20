@@ -8,7 +8,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
-export const SignIn = ({
+export const SignInModal = ({
 	text,
 	className,
 	showOnlyAuthDialog = false,

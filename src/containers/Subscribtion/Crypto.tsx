@@ -5,7 +5,7 @@ import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 export const PaymentButton = ({
@@ -29,7 +29,7 @@ export const PaymentButton = ({
 
 	if (!isAuthenticated) {
 		return (
-			<SignIn
+			<SignInModal
 				text={text}
 				className="group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
 				pendingActionMessage={`Sign in or create an account to subscribe to the ${planName} plan.`}

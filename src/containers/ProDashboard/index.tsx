@@ -1,4 +1,3 @@
-import { url } from 'inspector'
 import { lazy, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'

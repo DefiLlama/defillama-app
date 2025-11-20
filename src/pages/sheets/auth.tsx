@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 
@@ -87,7 +87,7 @@ function AuthContent() {
 						</div>
 					</div>
 				) : (
-					<SignIn showOnlyAuthDialog />
+					<SignInModal showOnlyAuthDialog />
 				)}
 				<Toast />
 			</div>

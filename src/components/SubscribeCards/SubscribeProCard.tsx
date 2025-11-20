@@ -5,7 +5,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
@@ -20,25 +20,11 @@ interface SubscribeProCardProps {
 	currentBillingInterval?: 'year' | 'month'
 }
 
-export function SubscribeProCard({
-	context = 'page',
-	active = false,
-	onCancelSubscription,
-	returnUrl,
-	billingInterval = 'month',
-	currentBillingInterval
-}: SubscribeProCardProps) {
-	const isModal = context === 'modal'
+function SubscribeProCardContent({ billingInterval = 'month' }: { billingInterval?: 'year' | 'month' }) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
-	const { loading } = useSubscribe()
-	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
-
-	const handleUpgradeToYearly = () => {
-		setIsUpgradeModalOpen(true)
-	}
 
 	return (
 		<>
@@ -110,6 +96,30 @@ export function SubscribeProCard({
 					<span>API access not included</span>
 				</li>
 			</ul>
+		</>
+	)
+}
+
+export function SubscribeProCard({
+	context = 'page',
+	active = false,
+	onCancelSubscription,
+	returnUrl,
+	billingInterval = 'month',
+	currentBillingInterval
+}: SubscribeProCardProps) {
+	const isModal = context === 'modal'
+
+	const { loading } = useSubscribe()
+	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+
+	const handleUpgradeToYearly = () => {
+		setIsUpgradeModalOpen(true)
+	}
+
+	return (
+		<>
+			<SubscribeProCardContent billingInterval={billingInterval} />
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
 					<div className="flex flex-col gap-2">
@@ -139,7 +149,7 @@ export function SubscribeProCard({
 					<>
 						{(context === 'page' || context === 'account') && (
 							<>
-								<SignIn text="Already a subscriber? Sign In" />
+								<SignInModal text="Already a subscriber? Sign In" />
 								<div
 									className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 								>
@@ -170,7 +180,7 @@ export function SubscribeProCard({
 								>
 									Unlock Pro Features
 								</BasicLink>
-								<SignIn
+								<SignInModal
 									text="Already a subscriber? Sign In"
 									className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-gray-100 dark:hover:bg-[#2a2b30]"
 								/>
