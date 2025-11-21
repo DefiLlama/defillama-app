@@ -249,6 +249,20 @@ export function ProDashboardAPIProvider({
 	const [dashboardDescription, setDashboardDescription] = useState<string>('')
 	const [showGenerateDashboardModal, setShowGenerateDashboardModal] = useState(false)
 	const [showIterateDashboardModal, setShowIterateDashboardModal] = useState(false)
+	const applyDashboard = useCallback((dashboard: Dashboard) => {
+		if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
+			return
+		}
+
+		setDashboardId(dashboard.id)
+		setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
+		setItems(dashboard.data.items)
+		setTimePeriodState(dashboard.data.timePeriod || '365d')
+		setCurrentDashboard(dashboard)
+		setDashboardVisibility(dashboard.visibility || 'private')
+		setDashboardTags(dashboard.tags || [])
+		setDashboardDescription(dashboard.description || '')
+	}, [])
 
 	const createDashboardDialogStore = Ariakit.useDialogStore()
 
@@ -331,19 +345,9 @@ export function ProDashboardAPIProvider({
 			initialDashboardId === currentDashboard2?.id &&
 			(currentDashboard?.id !== currentDashboard2?.id || currentDashboard?.updated !== currentDashboard2?.updated)
 		) {
-			if (!currentDashboard2?.data?.items || !Array.isArray(currentDashboard2.data.items)) {
-				return
-			}
-			setDashboardId(currentDashboard2.id)
-			setDashboardName(currentDashboard2.data.dashboardName || 'My Dashboard')
-			setItems(currentDashboard2.data.items)
-			setTimePeriodState(currentDashboard2.data.timePeriod || '365d')
-			setCurrentDashboard(currentDashboard2)
-			setDashboardVisibility(currentDashboard2.visibility || 'private')
-			setDashboardTags(currentDashboard2.tags || [])
-			setDashboardDescription(currentDashboard2.description || '')
+			applyDashboard(currentDashboard2)
 		}
-	}, [currentDashboard2, currentDashboard, initialDashboardId])
+	}, [applyDashboard, currentDashboard2, currentDashboard, initialDashboardId])
 
 	// Save dashboard
 	const saveDashboard = useCallback(
@@ -374,32 +378,38 @@ export function ProDashboardAPIProvider({
 				tags: overrides?.tags ?? dashboardTags,
 				description: overrides?.description ?? dashboardDescription,
 				aiGenerated: overrides?.aiGenerated ?? currentDashboard?.aiGenerated ?? null,
-				...(overrides?.aiUndoState && { aiUndoState: overrides.aiUndoState })
-			}
+			...(overrides?.aiUndoState && { aiUndoState: overrides.aiUndoState })
+		}
 
-			if (dashboardId) {
-				await updateDashboard({ id: dashboardId, data })
-			} else {
-				const newDashboard = await createDashboard(data)
-				setDashboardId(newDashboard.id)
+		if (dashboardId) {
+			const savedDashboard = await updateDashboard({ id: dashboardId, data })
+			if (savedDashboard) {
+				applyDashboard(savedDashboard)
 			}
-		},
-		[
-			items,
-			dashboardName,
+		} else {
+			const newDashboard = await createDashboard(data)
+			if (newDashboard) {
+				applyDashboard(newDashboard)
+			}
+		}
+	},
+	[
+		items,
+		dashboardName,
 			timePeriod,
 			dashboardId,
 			dashboardVisibility,
 			dashboardTags,
 			dashboardDescription,
 			currentDashboard?.aiGenerated,
-			isAuthenticated,
-			isReadOnly,
-			updateDashboard,
-			createDashboard,
-			cleanItemsForSaving
-		]
-	)
+		isAuthenticated,
+		isReadOnly,
+		updateDashboard,
+		createDashboard,
+		cleanItemsForSaving,
+		applyDashboard
+	]
+)
 
 	const autoSkipOlderSessionsForRating = useCallback(async () => {
 		if (!isAuthenticated || !currentDashboard?.aiGenerated || !user?.id || !dashboardId) return
@@ -458,7 +468,10 @@ export function ProDashboardAPIProvider({
 				aiGenerated: currentDashboard?.aiGenerated ?? null
 			}
 			try {
-				await updateDashboard({ id: dashboardId, data })
+				const savedDashboard = await updateDashboard({ id: dashboardId, data })
+				if (savedDashboard) {
+					applyDashboard(savedDashboard)
+				}
 			} catch (error) {
 				console.log('Failed to save dashboard name:', error)
 			}
@@ -475,7 +488,8 @@ export function ProDashboardAPIProvider({
 		dashboardDescription,
 		currentDashboard?.aiGenerated,
 		updateDashboard,
-		cleanItemsForSaving
+		cleanItemsForSaving,
+		applyDashboard
 	])
 
 	// Copy dashboard
@@ -1182,7 +1196,7 @@ export function ProDashboardAPIProvider({
 			}
 			setTimePeriodState(period)
 			setItems((currentItems) => {
-				autoSave(currentItems)
+				autoSave(currentItems, { timePeriod: period })
 				return currentItems
 			})
 		},

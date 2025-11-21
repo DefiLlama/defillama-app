@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TimePeriod } from '../ProDashboardAPIContext'
-import { dashboardAPI } from '../services/DashboardAPI'
+import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
 export function useGetLiteDashboards() {
@@ -90,10 +90,10 @@ export function useDashboardAPI() {
 		}) => {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
-		onSuccess: (_data, variables) => {
+		onSuccess: (dashboard: Dashboard, variables) => {
+			queryClient.setQueriesData({ queryKey: ['dashboard', variables.id], exact: false }, dashboard)
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
 			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['dashboard', variables.id] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
