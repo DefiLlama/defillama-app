@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
@@ -53,14 +53,9 @@ const CSV_PERCENT_COLUMNS = new Set([
 	'feesChange_1d',
 	'feesChange_7d',
 	'feesChange_1m',
-	'feesChange_7dover7d',
-	'feesChange_30dover30d',
-	'holdersRevenueChange_30dover30d',
 	'revenueChange_1d',
 	'revenueChange_7d',
 	'revenueChange_1m',
-	'revenueChange_7dover7d',
-	'revenueChange_30dover30d',
 	'perps_volume_change_1d',
 	'perps_volume_change_7d',
 	'perps_volume_change_1m',
@@ -154,7 +149,7 @@ const toCsvValue = (columnId: string, row: NormalizedRow): string => {
 	return typeof value === 'number' ? String(value) : ''
 }
 
-export function UnifiedTable({
+export const UnifiedTable = memo(function UnifiedTable({
 	config,
 	previewMode = false,
 	columnOrderOverride,
@@ -450,6 +445,6 @@ export function UnifiedTable({
 			<UnifiedTablePagination table={unifiedTable.table} />
 		</div>
 	)
-}
+})
 
 export default UnifiedTable

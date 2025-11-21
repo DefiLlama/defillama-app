@@ -637,7 +637,7 @@ const columns = (
 		},
 		size: 128
 	},
-	...(['Dexs', 'DEX Aggregators'].includes(category)
+	...(['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 		? [
 				{
 					id: 'dex_volume_7d',
@@ -689,7 +689,7 @@ const columns = (
 		},
 		size: 128
 	},
-	...(['Dexs', 'DEX Aggregators'].includes(category)
+	...(['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 		? [
 				{
 					id: 'dex_volume_30d',
@@ -729,7 +729,7 @@ const columns = (
 		},
 		size: 128
 	},
-	...(['Dexs', 'DEX Aggregators'].includes(category)
+	...(['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 		? [
 				{
 					id: 'dex_volume_24h',

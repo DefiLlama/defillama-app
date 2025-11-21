@@ -59,6 +59,7 @@ export function Metrics({
 	const router = useRouter()
 
 	const currentCategory = useMemo(() => {
+		if (router.pathname === '/') return null
 		return metricsByCategory.find(
 			(category) =>
 				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)

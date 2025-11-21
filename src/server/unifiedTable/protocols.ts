@@ -36,6 +36,7 @@ type ProtocolAggregateRow = {
 	fees_7d_pct_change: number | null
 	fees_30d_pct_change: number | null
 	holder_revenue_1d: number | null
+	holder_revenue_7d: number | null
 	holder_revenue_30d: number | null
 	holder_revenue_30d_pct_change: number | null
 	revenue_1d: number | null
@@ -71,6 +72,7 @@ type ProtocolAggregateRow = {
 	volume_options_7d_pct_change: number | null
 	volume_options_30d_pct_change: number | null
 	mcap: number | null
+	chain_mcap?: number | null
 	pf_ratio: number | null
 	ps_ratio: number | null
 	open_interest: number | null
@@ -151,6 +153,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 	const fees7d = row.fees_7d ?? null
 	const fees30d = row.fees_30d ?? null
 	const perps24h = row.volume_derivatives_1d ?? null
+	const holderRevenue7d = row.holder_revenue_7d ?? null
 	const holderRevenue30d = row.holder_revenue_30d ?? null
 
 	return {
@@ -178,15 +181,13 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		cumulativeFees: row.fees_alltime ?? null,
 		userFees_24h: null,
 		holderRevenue_24h: row.holder_revenue_1d ?? null,
+		holderRevenue_7d: holderRevenue7d,
 		holdersRevenue30d: holderRevenue30d,
-		holdersRevenueChange_30dover30d: toPercent(row.holder_revenue_30d_pct_change),
 		treasuryRevenue_24h: null,
 		supplySideRevenue_24h: null,
 		feesChange_1d: toPercent(row.fees_1d_pct_change),
 		feesChange_7d: toPercent(row.fees_7d_pct_change),
 		feesChange_1m: toPercent(row.fees_30d_pct_change),
-		feesChange_7dover7d: fees7d && row.fees_7d_pct_change ? toPercent(row.fees_7d_pct_change) : null,
-		feesChange_30dover30d: fees30d && row.fees_30d_pct_change ? toPercent(row.fees_30d_pct_change) : null,
 		revenue24h: row.revenue_1d ?? null,
 		revenue_7d: row.revenue_7d ?? null,
 		revenue_30d: row.revenue_30d ?? null,
@@ -195,9 +196,6 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		revenueChange_1d: toPercent(row.revenue_1d_pct_change),
 		revenueChange_7d: toPercent(row.revenue_7d_pct_change),
 		revenueChange_1m: toPercent(row.revenue_30d_pct_change),
-		revenueChange_7dover7d: row.revenue_7d && row.revenue_7d_pct_change ? toPercent(row.revenue_7d_pct_change) : null,
-		revenueChange_30dover30d:
-			row.revenue_30d && row.revenue_30d_pct_change ? toPercent(row.revenue_30d_pct_change) : null,
 		perpsVolume24h: perps24h,
 		perps_volume_7d: row.volume_derivatives_7d ?? null,
 		perps_volume_30d: row.volume_derivatives_30d ?? null,
@@ -226,6 +224,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		options_volume_dominance_24h: computeShare(row.volume_options_1d, totals.volume_options_1d),
 		openInterest: row.open_interest ?? null,
 		mcap: row.mcap ?? null,
+		chainMcap: row.chain_mcap ?? null,
 		mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
 		pf: row.pf_ratio ?? null,
 		ps: row.ps_ratio ?? null,
@@ -346,6 +345,7 @@ const fetchProtocolAggregateRows = async (
 			mp.fees_7d_pct_change,
 			mp.fees_30d_pct_change,
 			mp.holder_revenue_1d,
+			mp.holder_revenue_7d,
 			mp.holder_revenue_30d,
 			mp.holder_revenue_30d_pct_change,
 			mp.revenue_1d,
@@ -468,6 +468,7 @@ const fetchSubProtocolRows = async (
 			msp.fees_7d_pct_change,
 			msp.fees_30d_pct_change,
 			msp.holder_revenue_1d,
+			msp.holder_revenue_7d,
 			msp.holder_revenue_30d,
 			msp.holder_revenue_30d_pct_change,
 			msp.revenue_1d,
@@ -584,6 +585,12 @@ const fetchParentProtocolsByChain = async (
 				SUM(open_interest) AS open_interest
 			FROM lens.open_interest_current
 			GROUP BY protocol, chain
+		),
+		chain_mcap AS (
+			SELECT
+				lower(chain) AS chain,
+				mcap
+			FROM lens.metrics_chain_current
 		)
 		SELECT
 			mpc.protocol,
@@ -612,6 +619,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.fees_7d_pct_change,
 			mpc.fees_30d_pct_change,
 			mpc.holder_revenue_1d,
+			mpc.holder_revenue_7d,
 			mpc.holder_revenue_30d,
 			mpc.holder_revenue_30d_pct_change,
 			mpc.revenue_1d,
@@ -647,6 +655,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.volume_options_7d_pct_change,
 			mpc.volume_options_30d_pct_change,
 			mpc.mcap,
+			cm.mcap AS chain_mcap,
 			mpc.pf_ratio,
 			mpc.ps_ratio,
 			oi.open_interest
@@ -654,6 +663,7 @@ const fetchParentProtocolsByChain = async (
 		LEFT JOIN category_meta cat ON cat.protocol = mpc.protocol
 		LEFT JOIN oracle_meta oracles ON oracles.protocol = mpc.protocol AND oracles.chain = lower(mpc.chain)
 		LEFT JOIN open_interest oi ON oi.protocol = mpc.protocol AND oi.chain = mpc.chain
+		LEFT JOIN chain_mcap cm ON cm.chain = lower(mpc.chain)
 		WHERE COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mpc.chain) = ANY($1)
 	`,
 		[chainFilters]
@@ -698,6 +708,12 @@ const fetchSubProtocolsByChain = async (
 			FROM lens.oracle_tvs_current
 			WHERE sub_protocol IS NOT NULL OR protocol IS NOT NULL
 			GROUP BY COALESCE(sub_protocol, protocol), lower(chain)
+		),
+		chain_mcap AS (
+			SELECT
+				lower(chain) AS chain,
+				mcap
+			FROM lens.metrics_chain_current
 		)
 		SELECT
 			mspc.sub_protocol,
@@ -727,6 +743,7 @@ const fetchSubProtocolsByChain = async (
 			mspc.fees_7d_pct_change,
 			mspc.fees_30d_pct_change,
 			mspc.holder_revenue_1d,
+			mspc.holder_revenue_7d,
 			mspc.holder_revenue_30d,
 			mspc.holder_revenue_30d_pct_change,
 			mspc.revenue_1d,
@@ -762,11 +779,13 @@ const fetchSubProtocolsByChain = async (
 			mspc.volume_options_7d_pct_change,
 			mspc.volume_options_30d_pct_change,
 			mspc.mcap,
+			cm.mcap AS chain_mcap,
 			mspc.pf_ratio,
 			mspc.ps_ratio,
 			NULL AS open_interest
 		FROM lens.metrics_sub_protocol_by_chain_current mspc
 		LEFT JOIN oracle_meta oracles ON oracles.sub_protocol = mspc.sub_protocol AND oracles.chain = lower(mspc.chain)
+		LEFT JOIN chain_mcap cm ON cm.chain = lower(mspc.chain)
 		WHERE
 			mspc.sub_protocol != mspc.protocol
 			AND (COALESCE(cardinality($1::text[]), 0) = 0 OR lower(mspc.chain) = ANY($1))

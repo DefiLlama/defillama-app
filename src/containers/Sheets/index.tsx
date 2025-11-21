@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { lazy, Suspense } from 'react'
+import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
-import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 const examples = [
 	{
@@ -32,13 +35,12 @@ const dataPoints = [
 ]
 
 export default function SheetsContainer() {
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const { subscription } = useSubscribe()
-	const isClient = useIsClient()
 
 	const onGoogleSheetsButtonClick = () => {
 		if (!subscription || subscription.status !== 'active') {
-			setShowSubscribeModal(true)
+			subscribeModalStore.show()
 			return
 		}
 
@@ -144,7 +146,9 @@ export default function SheetsContainer() {
 					</div>
 				</div>
 			</div>
-			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
 		</div>
 	)
 }

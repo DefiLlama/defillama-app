@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { StripeCheckoutModal } from '../StripeCheckoutModal'
 
@@ -121,7 +121,7 @@ export function SubscribeAPICard({
 					<>
 						{context === 'page' && (
 							<>
-								<SignIn text="Already a subscriber? Sign In" />
+								<SignInModal text="Already a subscriber? Sign In" />
 								<div
 									className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 								>

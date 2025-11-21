@@ -49,15 +49,13 @@ export interface NumericMetrics {
 	cumulativeFees?: number | null
 	userFees_24h?: number | null
 	holderRevenue_24h?: number | null
+	holderRevenue_7d?: number | null
 	holdersRevenue30d?: number | null
-	holdersRevenueChange_30dover30d?: number | null
 	treasuryRevenue_24h?: number | null
 	supplySideRevenue_24h?: number | null
 	feesChange_1d?: number | null
 	feesChange_7d?: number | null
 	feesChange_1m?: number | null
-	feesChange_7dover7d?: number | null
-	feesChange_30dover30d?: number | null
 	revenue24h?: number | null
 	revenue_7d?: number | null
 	revenue_30d?: number | null
@@ -66,8 +64,6 @@ export interface NumericMetrics {
 	revenueChange_1d?: number | null
 	revenueChange_7d?: number | null
 	revenueChange_1m?: number | null
-	revenueChange_7dover7d?: number | null
-	revenueChange_30dover30d?: number | null
 	perpsVolume24h?: number | null
 	perps_volume_7d?: number | null
 	perps_volume_30d?: number | null
@@ -96,6 +92,7 @@ export interface NumericMetrics {
 	options_volume_change_7d?: number | null
 	options_volume_dominance_24h?: number | null
 	mcap?: number | null
+	chainMcap?: number | null
 	mcaptvl?: number | null
 	pf?: number | null
 	ps?: number | null

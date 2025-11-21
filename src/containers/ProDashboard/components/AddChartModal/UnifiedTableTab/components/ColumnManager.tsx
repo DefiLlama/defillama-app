@@ -57,14 +57,12 @@ const GROUP_FILTERS: Array<{ id: ColumnGroupId | 'all'; label: string }> = [
 	{ id: 'ratios', label: 'Ratios' }
 ]
 
-const GROUP_LABELS: Record<ColumnGroupId, string> = GROUP_FILTERS.reduce(
+const GROUP_LABELS: Record<ColumnGroupId | 'all', string> = GROUP_FILTERS.reduce(
 	(acc, filter) => {
-		if (filter.id !== 'all') {
-			acc[filter.id as ColumnGroupId] = filter.label
-		}
+		acc[filter.id as ColumnGroupId | 'all'] = filter.label
 		return acc
 	},
-	{} as Record<ColumnGroupId, string>
+	{} as Record<ColumnGroupId | 'all', string>
 )
 
 const TAG_FILTERS: Array<{ id: string; label: string }> = [

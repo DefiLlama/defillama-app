@@ -466,15 +466,13 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('cumulativeFees' as MetricKey, 'Cumulative Fees'),
 		createUsdMetricColumn('userFees_24h' as MetricKey, '24h User Fees'),
 		createUsdMetricColumn('holderRevenue_24h' as MetricKey, '24h Holder Revenue'),
+		createUsdMetricColumn('holderRevenue_7d' as MetricKey, '7d Holder Revenue'),
 		createUsdMetricColumn('holdersRevenue30d' as MetricKey, '30d Holder Revenue'),
 		createUsdMetricColumn('treasuryRevenue_24h' as MetricKey, '24h Treasury Revenue'),
 		createUsdMetricColumn('supplySideRevenue_24h' as MetricKey, '24h Supply-Side Revenue'),
 		createPercentChangeColumn('feesChange_1d' as MetricKey, '1d Fees Change'),
 		createPercentChangeColumn('feesChange_7d' as MetricKey, '7d Fees Change'),
-		createPercentChangeColumn('feesChange_1m' as MetricKey, '30d Fees Change'),
-		createPercentChangeColumn('feesChange_7dover7d' as MetricKey, '7d/7d Fees Change'),
-		createPercentChangeColumn('feesChange_30dover30d' as MetricKey, '30d/30d Fees Change'),
-		createPercentChangeColumn('holdersRevenueChange_30dover30d' as MetricKey, '30d/30d Holder Rev Change')
+		createPercentChangeColumn('feesChange_1m' as MetricKey, '30d Fees Change')
 	]
 
 	const revenueColumns: ColumnDef<NormalizedRow>[] = [
@@ -484,9 +482,7 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('average_revenue_1y' as MetricKey, '1y Monthly Avg Revenue'),
 		createPercentChangeColumn('revenueChange_1d' as MetricKey, '1d Revenue Change'),
 		createPercentChangeColumn('revenueChange_7d' as MetricKey, '7d Revenue Change'),
-		createPercentChangeColumn('revenueChange_1m' as MetricKey, '30d Revenue Change'),
-		createPercentChangeColumn('revenueChange_7dover7d' as MetricKey, '7d/7d Revenue Change'),
-		createPercentChangeColumn('revenueChange_30dover30d' as MetricKey, '30d/30d Revenue Change')
+		createPercentChangeColumn('revenueChange_1m' as MetricKey, '30d Revenue Change')
 	]
 
 	const perpsColumns: ColumnDef<NormalizedRow>[] = [

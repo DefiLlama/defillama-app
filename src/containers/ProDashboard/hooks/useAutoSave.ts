@@ -29,6 +29,10 @@ interface UseAutoSaveOptions {
 	delay?: number
 }
 
+interface AutoSaveOverrides {
+	timePeriod?: TimePeriod
+}
+
 export function useAutoSave({
 	dashboardId,
 	dashboardName,
@@ -47,7 +51,7 @@ export function useAutoSave({
 	const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
 	const autoSave = useCallback(
-		(newItems: DashboardItemConfig[]) => {
+		(newItems: DashboardItemConfig[], overrides?: AutoSaveOverrides) => {
 			const isOwner = currentDashboard && userId && currentDashboard.user === userId
 			const shouldBlock = !dashboardId || !isAuthenticated || isReadOnly || !isOwner
 
@@ -65,7 +69,7 @@ export function useAutoSave({
 			const data = {
 				items: cleanedItems,
 				dashboardName,
-				timePeriod,
+				timePeriod: overrides?.timePeriod ?? timePeriod,
 				visibility: dashboardVisibility,
 				tags: dashboardTags,
 				description: dashboardDescription,

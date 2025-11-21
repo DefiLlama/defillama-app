@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, memo, Suspense, useEffect, useState } from 'react'
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
@@ -81,7 +81,7 @@ interface ChartGridProps {
 	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
 }
 
-export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
+export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { hasFeature } = useFeatureFlagsContext()
 	const isLlamaEnabled = hasFeature('is_llama')
 	const {
@@ -431,4 +431,4 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 			/>
 		</>
 	)
-}
+})

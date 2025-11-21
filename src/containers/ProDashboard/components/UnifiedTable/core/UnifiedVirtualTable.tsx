@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -14,7 +14,7 @@ interface UnifiedVirtualTableProps {
 	compact?: boolean
 }
 
-export function UnifiedVirtualTable({
+export const UnifiedVirtualTable = memo(function UnifiedVirtualTable({
 	table,
 	rowSize = 50,
 	stripedBg = false,
@@ -36,7 +36,7 @@ export function UnifiedVirtualTable({
 		count: rows.length,
 		getScrollElement: () => containerRef.current,
 		estimateSize: () => rowSize,
-		overscan: 5
+		overscan: 2
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
@@ -179,7 +179,7 @@ export function UnifiedVirtualTable({
 			</div>
 		</div>
 	)
-}
+})
 
 interface HeaderWithTooltipProps {
 	children: React.ReactNode

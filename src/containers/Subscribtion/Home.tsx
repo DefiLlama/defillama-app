@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
@@ -13,7 +13,7 @@ import { AccountStatus } from './components/AccountStatus'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
 import { TrialActivation } from './components/TrialActivation'
-import { SignIn } from './SignIn'
+import { SignInModal } from './SignIn'
 
 export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTrial?: boolean }) {
 	const router = useRouter()
@@ -125,7 +125,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							</div>
 						) : (
 							<div className="mx-auto w-full max-w-[400px]">
-								<SignIn
+								<SignInModal
 									text={`Get Pro for $${billingInterval === 'year' ? '490' : '49'}${billingInterval === 'year' ? '/year' : '/month'}`}
 									className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-6 py-3.5 font-semibold text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/30"
 									pendingActionMessage="Sign in or create an account to subscribe to the Pro plan."
@@ -163,7 +163,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							24-hour trial access.
 						</p>
 
-						<SignIn
+						<SignInModal
 							text="Sign In to Activate Trial"
 							className="w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] px-4 py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20"
 						/>
