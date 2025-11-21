@@ -61,6 +61,7 @@ export interface IChainOverviewData {
 	chainFees: {
 		total24h: number | null
 		feesGenerated24h: number | null
+		change7d: number | null
 		topProtocolsChart: Array<[string, number, string]> | null
 		totalREV24h: number | null
 	}
