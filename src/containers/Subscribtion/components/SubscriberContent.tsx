@@ -91,7 +91,7 @@ export const SubscriberContent = ({
 					>
 						Monthly
 					</button>
-					{/* <button
+					<button
 						onClick={() => setBillingInterval('year')}
 						className={`relative z-10 flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-all duration-200 sm:gap-2 sm:rounded-lg sm:px-6 sm:py-2 ${
 							billingInterval === 'year'
@@ -103,7 +103,7 @@ export const SubscriberContent = ({
 						<span className="rounded-md bg-[#7B7BFF] px-1.5 py-0.5 text-xs font-semibold text-white sm:px-2">
 							2 months free
 						</span>
-					</button> */}
+					</button>
 				</div>
 			</div>
 			<div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:gap-4 md:grid-cols-3">
@@ -446,7 +446,7 @@ export const SubscriberContent = ({
 									</div>
 								</div>
 
-								{/* {isLlamaFeed &&
+								{isLlamaFeed &&
 									(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) && (
 										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
 											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
@@ -517,7 +517,7 @@ export const SubscriberContent = ({
 											)}
 										</button>
 									</div>
-								)} */}
+								)}
 
 								{isPro && !apiSubscription?.overage && (
 									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
