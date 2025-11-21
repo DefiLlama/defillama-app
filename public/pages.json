@@ -721,20 +721,20 @@
       "oldName": "Token PnL"
     },
     {
-      "name": "Transactions by Bridge",
-      "route": "/bridge-transactions",
-      "category": "Tools",
-      "description": "Download transaction data across different time periods by bridge",
-      "oldCategory": "Bridges",
-      "oldName": "Transactions"
-    },
-    {
       "name": "Borrow Aggregator: Advanced",
       "route": "/borrow/advanced",
       "category": "Borrow Aggregator",
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
+    },
+    {
+      "name": "Transactions by Bridge",
+      "route": "/bridge-transactions",
+      "category": "Tools",
+      "description": "Download transaction data across different time periods by bridge",
+      "oldCategory": "Bridges",
+      "oldName": "Transactions"
     },
     {
       "name": "Report Error",
