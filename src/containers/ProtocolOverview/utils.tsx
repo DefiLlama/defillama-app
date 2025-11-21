@@ -369,13 +369,14 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 	return Array.from(tokenSet)
 }
 
-function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
+function storeTokensBreakdown({ date, tokens, tokensUnique, directory, hideBigTokens = false }) {
 	const tokensOfTheDay = {}
 	// filters tokens that have no name or their value is near zero
 	for (const token in tokens) {
-		if (!(token.startsWith('UNKNOWN') && tokens[token] < 1)) {
-			tokensOfTheDay[token] = tokens[token]
-		}
+		if (token.startsWith('UNKNOWN') || tokens[token] < 1 || (hideBigTokens ? tokens[token] > 100_000_000 : false))
+			continue
+
+		tokensOfTheDay[token] = tokens[token]
 	}
 
 	const tokensUniqueSet = new Set(tokensUnique)
@@ -393,7 +394,7 @@ function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
 	}
 
 	// add "Others" to tokens list
-	if (tokensUniqueSet.has('Others') && remainingTokensSum > 0) {
+	if (!hideBigTokens && tokensUniqueSet.has('Others') && remainingTokensSum > 0) {
 		tokensToShow['Others'] = remainingTokensSum
 	}
 
@@ -423,7 +424,7 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 				}
 
 				for (const { date, tokens } of chainTvls[chain].tokens ?? []) {
-					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens })
+					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens, hideBigTokens: true })
 				}
 			}
 		}
