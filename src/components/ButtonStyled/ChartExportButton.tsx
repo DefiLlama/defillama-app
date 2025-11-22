@@ -336,7 +336,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 	return (
 		<>
 			<button
-				data-umami-event="image-export-new"
+				data-umami-event="image-export"
 				data-umami-event-page={router.pathname}
 				className={
 					className ??
