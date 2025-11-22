@@ -18,6 +18,20 @@ function getSelectedChainFilters(chainQueryParam, allChains) {
 	} else return [...allChains]
 }
 
+function getSelectedCategoryFilters(categoryQueryParam, allCategories) {
+	if (categoryQueryParam) {
+		if (typeof categoryQueryParam === 'string') {
+			return categoryQueryParam === 'All'
+				? [...allCategories]
+				: categoryQueryParam === 'None'
+					? []
+					: [categoryQueryParam]
+		} else {
+			return [...categoryQueryParam]
+		}
+	} else return [...allCategories]
+}
+
 interface IRecentProtocolProps {
 	protocols: any
 	chainList: string[]
@@ -27,14 +41,23 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
-	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
+	const { chain, category, hideForks, minTvl, maxTvl, ...queries } = router.query
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
-	const { selectedChains, data } = useMemo(() => {
+	// unique category list
+	const categoryList = useMemo(() => {
+		return [...new Set(protocols.map((p: any) => p.category).filter(Boolean))].sort((a: string, b: string) =>
+			a.localeCompare(b)
+		) as string[]
+	}, [protocols])
+
+	const { selectedChains, selectedCategories, data } = useMemo(() => {
 		const selectedChains = getSelectedChainFilters(chain, chainList)
+		const selectedCategories = getSelectedCategoryFilters(category, categoryList)
 
 		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
+		const _categoriesToSelect = selectedCategories.map((c) => c.toLowerCase())
 
 		const isValidTvlRange =
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
@@ -57,6 +80,19 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				})
 
 				toFilter = toFilter && includesChain
+
+				// filter by category
+				if (_categoriesToSelect.length === 0) {
+					// filter out all protocols if 'None'
+					toFilter = false
+				} else if (_categoriesToSelect.length < categoryList.length) {
+					// apply category if not 'All'
+					if (protocol.category) {
+						toFilter = toFilter && _categoriesToSelect.includes(protocol.category.toLowerCase())
+					} else {
+						toFilter = false
+					}
+				}
 
 				return toFilter
 			})
@@ -122,11 +158,11 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				(protocol) => (minTvl ? protocol.tvl >= minTvl : true) && (maxTvl ? protocol.tvl <= maxTvl : true)
 			)
 
-			return { data: filteredProtocols, selectedChains }
+			return { data: filteredProtocols, selectedChains, selectedCategories }
 		}
 
-		return { data, selectedChains }
-	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
+		return { data, selectedChains, selectedCategories }
+	}, [protocols, chain, category, chainList, categoryList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
 
@@ -297,7 +333,9 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				data={protocolsData}
 				queries={queries}
 				selectedChains={selectedChains}
+				selectedCategories={selectedCategories}
 				chainList={chainList}
+				categoryList={categoryList}
 				forkedList={forkedList}
 			/>
 		</>

@@ -13,6 +13,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { CategoryFilter } from '~/components/Filters/CategoryFilter'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -27,7 +28,9 @@ export function RecentlyListedProtocolsTable({
 	data,
 	queries,
 	selectedChains,
+	selectedCategories,
 	chainList,
+	categoryList,
 	forkedList
 }: {
 	data: Array<IProtocolRow>
@@ -35,7 +38,9 @@ export function RecentlyListedProtocolsTable({
 		[key: string]: string | string[]
 	}
 	selectedChains: Array<string>
+	selectedCategories: Array<string>
 	chainList: Array<string>
+	categoryList: Array<string>
 	forkedList: {
 		[name: string]: boolean
 	}
@@ -183,6 +188,7 @@ export function RecentlyListedProtocolsTable({
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
+						<CategoryFilter categoryList={categoryList} queries={queries} selectedCategories={selectedCategories} />
 						<SelectWithCombobox
 							label="Chains"
 							allValues={chainList}
