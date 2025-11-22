@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react'
+import { memo, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { LegendComponent } from 'echarts/components'
@@ -24,14 +24,14 @@ interface ChartExportButtonProps {
 
 echarts.use([LegendComponent])
 
-export const ChartExportButton = ({
+export const ChartExportButton = memo(function ChartExportButton({
 	chartInstance,
 	className,
 	smol,
 	title,
 	filename,
 	iconUrl
-}: ChartExportButtonProps) => {
+}: ChartExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
@@ -73,19 +73,43 @@ export const ChartExportButton = ({
 					let iconBase64: string | null = null
 					if (iconUrl) {
 						try {
-							// We use an image object to load the image and draw it to a canvas to bypass some CORS issues if possible,
-							// or at least to get the base64 representation in a cleaner way.
-							// However, fetch with mode 'cors' is more direct if the server supports it.
-							// If CORS fails, we catch it and just don't show the icon.
-							const response = await fetch(iconUrl, { mode: 'cors' })
+							const proxyUrl = `/api/protocol-icon?url=${encodeURIComponent(iconUrl)}`
+							const response = await fetch(proxyUrl)
 							if (!response.ok) throw new Error('Network response was not ok')
 							const blob = await response.blob()
-							iconBase64 = await new Promise((resolve, reject) => {
+							const base64 = await new Promise<string>((resolve, reject) => {
 								const reader = new FileReader()
 								reader.onloadend = () => resolve(reader.result as string)
 								reader.onerror = reject
 								reader.readAsDataURL(blob)
 							})
+
+							try {
+								const img = new Image()
+								await new Promise((resolve, reject) => {
+									img.onload = resolve
+									img.onerror = reject
+									img.src = base64
+								})
+
+								const canvas = document.createElement('canvas')
+								canvas.width = img.width
+								canvas.height = img.height
+								const ctx = canvas.getContext('2d')
+								if (ctx) {
+									ctx.beginPath()
+									ctx.arc(img.width / 2, img.height / 2, Math.min(img.width, img.height) / 2, 0, 2 * Math.PI)
+									ctx.closePath()
+									ctx.clip()
+									ctx.drawImage(img, 0, 0)
+									iconBase64 = canvas.toDataURL()
+								} else {
+									iconBase64 = base64
+								}
+							} catch (e) {
+								console.log('Error processing icon image', e)
+								iconBase64 = base64
+							}
 						} catch (e) {
 							console.log('Failed to load icon for export', e)
 						}
@@ -107,6 +131,9 @@ export const ChartExportButton = ({
 						currentOptions.yAxis = currentOptions.yAxis.map((yAxis) => {
 							yAxis.nameTextStyle = { ...(yAxis.nameTextStyle ?? {}), fontSize: 24 }
 							yAxis.axisLabel = { ...(yAxis.axisLabel ?? {}), fontSize: 24 }
+							if (yAxis.offset) {
+								yAxis.offset = yAxis.offset * 2
+							}
 							return yAxis
 						})
 					}
@@ -138,7 +165,7 @@ export const ChartExportButton = ({
 					currentOptions.grid = {
 						left: 16,
 						bottom: 16,
-						top: 16 + (title ? 32 + 16 : 0),
+						top: 16 + (title ? 36 + 16 : 0),
 						right: 16,
 						outerBoundsMode: 'same',
 						outerBoundsContain: 'axisLabel'
@@ -153,8 +180,9 @@ export const ChartExportButton = ({
 							rich: iconBase64
 								? {
 										icon: {
-											height: 40,
-											width: 40,
+											height: 32,
+											width: 32,
+											verticalAlign: 'middle',
 											backgroundColor: {
 												image: iconBase64
 											}
@@ -184,6 +212,30 @@ export const ChartExportButton = ({
 								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 							}
 						}
+					})
+
+					console.log(currentOptions)
+
+					// Wait for the chart (including async image loading) to finish rendering.
+					// In some cases (many series, large data) the `finished` event may not fire reliably,
+					// so we also add a timeout fallback to avoid hanging forever.
+					await new Promise<void>((resolve) => {
+						let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+						const handler = () => {
+							if (timeoutId) {
+								clearTimeout(timeoutId)
+							}
+							tempChart.off('finished', handler as any)
+							resolve()
+						}
+
+						timeoutId = setTimeout(() => {
+							tempChart.off('finished', handler as any)
+							resolve()
+						}, 5000)
+
+						tempChart.on('finished', handler as any)
 					})
 
 					// Get the data URL from the temporary chart
@@ -241,4 +293,4 @@ export const ChartExportButton = ({
 			</Suspense>
 		</>
 	)
-}
+})
