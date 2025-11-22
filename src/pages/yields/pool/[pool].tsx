@@ -562,7 +562,6 @@ const PageView = (props) => {
 									enableImageExport={true}
 									imageExportFilename={`${query.pool}-pool-liquidity`}
 									imageExportTitle="Pool Liquidity"
-									onReady={handlePoolLiquidityChartReady}
 								/>
 							</Suspense>
 						</LazyChart>
