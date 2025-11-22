@@ -1,6 +1,7 @@
 import { Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { LegendComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -12,15 +13,25 @@ import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
 
-interface ImageExportButton2Props {
+interface ChartExportButtonProps {
 	chartInstance: echarts.ECharts | null
 	className?: string
 	smol?: boolean
 	title?: string
 	filename?: string
+	iconUrl?: string
 }
 
-export const ImageExportButton2 = ({ chartInstance, className, smol, title, filename }: ImageExportButton2Props) => {
+echarts.use([LegendComponent])
+
+export const ChartExportButton = ({
+	chartInstance,
+	className,
+	smol,
+	title,
+	filename,
+	iconUrl
+}: ChartExportButtonProps) => {
 	const [isLoading, setIsLoading] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
@@ -58,6 +69,27 @@ export const ImageExportButton2 = ({ chartInstance, className, smol, title, file
 
 					// Get the current options from the original chart
 					const currentOptions = chartInstance.getOption()
+
+					let iconBase64: string | null = null
+					if (iconUrl) {
+						try {
+							// We use an image object to load the image and draw it to a canvas to bypass some CORS issues if possible,
+							// or at least to get the base64 representation in a cleaner way.
+							// However, fetch with mode 'cors' is more direct if the server supports it.
+							// If CORS fails, we catch it and just don't show the icon.
+							const response = await fetch(iconUrl, { mode: 'cors' })
+							if (!response.ok) throw new Error('Network response was not ok')
+							const blob = await response.blob()
+							iconBase64 = await new Promise((resolve, reject) => {
+								const reader = new FileReader()
+								reader.onloadend = () => resolve(reader.result as string)
+								reader.onerror = reject
+								reader.readAsDataURL(blob)
+							})
+						} catch (e) {
+							console.log('Failed to load icon for export', e)
+						}
+					}
 
 					currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: 24 }
 
@@ -113,17 +145,46 @@ export const ImageExportButton2 = ({ chartInstance, className, smol, title, file
 					}
 
 					currentOptions.title = {
-						text: title,
+						text: iconBase64 ? `{icon|} ${title}` : title,
 						textStyle: {
 							fontSize: 28,
 							fontWeight: 600,
-							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+							rich: iconBase64
+								? {
+										icon: {
+											height: 40,
+											width: 40,
+											backgroundColor: {
+												image: iconBase64
+											}
+										}
+									}
+								: undefined
 						},
 						left: 14
 					}
 
+					// @ts-expect-error - all options are in array format
+					currentOptions.legend = (currentOptions.legend ?? []).map((legend) => ({
+						...legend,
+						show: true,
+						right: 16
+					}))
+
 					// Set options on the temporary chart with any modifications you want
 					tempChart.setOption(currentOptions)
+
+					tempChart.setOption({
+						legend: {
+							show: true,
+							top: 16,
+							right: 16,
+							textStyle: {
+								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+							}
+						}
+					})
 
 					// Get the data URL from the temporary chart
 					dataURL = tempChart.getDataURL({
@@ -136,7 +197,7 @@ export const ImageExportButton2 = ({ chartInstance, className, smol, title, file
 					// Clean up the temporary chart
 					tempChart.dispose()
 				} catch (error) {
-					console.error('Error exporting chart image:', error)
+					console.log('Error exporting chart image:', error)
 					toast.error('Failed to export chart image')
 					dataURL = null
 				} finally {
@@ -148,7 +209,7 @@ export const ImageExportButton2 = ({ chartInstance, className, smol, title, file
 				const imageFilename = `${filename || 'chart'}_${new Date().toISOString().split('T')[0]}.png`
 				downloadDataURL(imageFilename, dataURL)
 			} catch (error) {
-				console.error('Error exporting chart image:', error)
+				console.log('Error exporting chart image:', error)
 				toast.error('Failed to export chart image')
 			} finally {
 				setIsLoading(false)

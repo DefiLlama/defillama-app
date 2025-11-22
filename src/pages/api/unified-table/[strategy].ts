@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
-import type { UnifiedRowHeaderType, UnifiedTableConfig, TableFilters } from '~/containers/ProDashboard/types'
 import type { NormalizedRow } from '~/containers/ProDashboard/components/UnifiedTable/types'
+import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
+import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
 import { fetchChainsTable } from '~/server/unifiedTable/chains'
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 
@@ -131,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'public, max-age=300')
 		return res.status(200).json({ rows })
 	} catch (error) {
-		console.error('Failed to fetch unified table data', error)
+		console.log('Failed to fetch unified table data', error)
 		return res.status(500).json({ error: 'Failed to load unified table data' })
 	}
 }

@@ -29,7 +29,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 					const parsed = JSON.parse(localData)
 					await saveUserConfig(parsed)
 				} catch (error) {
-					console.error('Failed to sync watchlist to server:', error)
+					console.log('Failed to sync watchlist to server:', error)
 				} finally {
 					setTimeout(() => {
 						isSyncing.current = false

@@ -101,7 +101,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 			window.localStorage.setItem(RECENTS_KEY, JSON.stringify(arr))
 			window.dispatchEvent(new Event('recentProtocolsChange'))
 		} catch (e) {
-			console.error('failed to save recent protocol', e)
+			console.log('failed to save recent protocol', e)
 		}
 	}
 

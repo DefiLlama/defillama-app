@@ -75,7 +75,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				console.log('API response:', data)
 				return data.preferences || null
 			} catch (error) {
-				console.error('Error fetching notification preferences:', error)
+				console.log('Error fetching notification preferences:', error)
 				return null
 			}
 		},
@@ -115,7 +115,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success('Notification preferences saved successfully')
 		},
 		onError: (error) => {
-			console.error('Error saving notification preferences:', error)
+			console.log('Error saving notification preferences:', error)
 			toast.error(error.message || 'Failed to save notification preferences')
 		}
 	})
@@ -150,7 +150,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
 		},
 		onError: (error) => {
-			console.error('Error updating notification status:', error)
+			console.log('Error updating notification status:', error)
 			toast.error(error.message || 'Failed to update notification status')
 		}
 	})
@@ -182,7 +182,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success('Notification preferences deleted')
 		},
 		onError: (error) => {
-			console.error('Error deleting notification preferences:', error)
+			console.log('Error deleting notification preferences:', error)
 			toast.error(error.message || 'Failed to delete notifications')
 		}
 	})

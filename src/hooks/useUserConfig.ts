@@ -112,7 +112,7 @@ export function useUserConfig() {
 					const settings = JSON.parse(currentSettings)
 					await mutation.mutateAsync(settings)
 				} catch (error) {
-					console.error('Failed to sync settings:', error)
+					console.log('Failed to sync settings:', error)
 				}
 			}, SYNC_DEBOUNCE_MS),
 		[mutation]

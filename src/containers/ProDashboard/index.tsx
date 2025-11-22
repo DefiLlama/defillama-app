@@ -453,7 +453,7 @@ const CopyDashboardLinkButton = ({
 			setCopied(true)
 			setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
-			console.error('Failed to copy link:', error)
+			console.log('Failed to copy link:', error)
 		}
 	}
 

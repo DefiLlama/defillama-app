@@ -1160,7 +1160,7 @@ export const getDATInflows = async () => {
 			total30d
 		}
 	} catch (error) {
-		console.error('Error fetching DAT inflows:', error)
+		console.log('Error fetching DAT inflows:', error)
 		return null
 	}
 }

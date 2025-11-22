@@ -2372,6 +2372,6 @@ function setInputSize(event, promptInputRef, highlightRef) {
 			})
 		}
 	} catch (error) {
-		console.error('Error calculating rows:', error)
+		console.log('Error calculating rows:', error)
 	}
 }

@@ -5,8 +5,8 @@ import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton2 } from '~/components/ButtonStyled/ImageExportButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
@@ -822,10 +822,11 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						) : null}
 						<EmbedChart />
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						<ImageExportButton2
+						<ChartExportButton
 							chartInstance={chainChartInstance}
 							filename={imageExportFilename}
 							title={imageExportTitle}
+							iconUrl={props.metadata.name !== 'All' ? chainIconUrl(props.metadata.name) : undefined}
 							className="-ml-2 flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 							smol
 						/>

@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Access-Control-Allow-Origin', '*')
 		res.send(buffer)
 	} catch (error) {
-		console.error('Error fetching icon:', error)
+		console.log('Error fetching icon:', error)
 		res.status(500).json({ error: 'Failed to fetch icon' })
 	}
 }

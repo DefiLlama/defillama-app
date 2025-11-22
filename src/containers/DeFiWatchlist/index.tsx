@@ -338,7 +338,7 @@ function PortfolioNotifications({
 
 			dialogStore.hide()
 		} catch (error) {
-			console.error('Error saving notification preferences:', error)
+			console.log('Error saving notification preferences:', error)
 			toast.error('Failed to save notification preferences')
 		}
 	}
