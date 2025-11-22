@@ -3,6 +3,7 @@ import { getAPIUrlSummary } from '~/api/categories/adaptors/client'
 import {
 	CACHE_SERVER,
 	PROTOCOL_API,
+	PROTOCOL_API_MINI,
 	PROTOCOL_EMISSION_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
@@ -17,11 +18,16 @@ interface DateTvl {
 }
 
 interface ChainTvlData {
-	tvl: DateTvl[]
+	tvl: DateTvl[] | [number, number][]
 }
 
 interface ProtocolApiResponse {
 	chainTvls: Record<string, ChainTvlData>
+}
+
+interface ProtocolApiMiniResponse {
+	chainTvls: Record<string, { tvl: [number, number][] }>
+	tvl: [number, number][]
 }
 
 export default class ProtocolCharts {
@@ -30,12 +36,16 @@ export default class ProtocolCharts {
 			return []
 		}
 		try {
-			const response = await fetch(`${PROTOCOL_API}/${protocolId}`)
+			const response = await fetch(`${PROTOCOL_API_MINI}/${protocolId}`)
 			if (!response.ok) {
 				console.log(`Failed to fetch protocol TVL for ${protocolId}: ${response.status}`)
 				return []
 			}
-			const data: ProtocolApiResponse = await response.json()
+			const data: ProtocolApiMiniResponse = await response.json()
+
+			if (Array.isArray(data?.tvl) && data.tvl.length > 0 && Array.isArray(data.tvl[0])) {
+				return data.tvl as [number, number][]
+			}
 
 			const adjusted = processAdjustedProtocolTvl(data?.chainTvls as unknown as ProtocolChainTvls)
 			return adjusted

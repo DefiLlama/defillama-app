@@ -3,6 +3,12 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import {
+	DEFAULT_CHAINS_ROW_HEADERS,
+	DEFAULT_PROTOCOLS_ROW_HEADERS,
+	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY,
+	DEFAULT_UNIFIED_TABLE_SORTING
+} from './components/UnifiedTable/constants'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { Dashboard } from './services/DashboardAPI'
@@ -23,12 +29,6 @@ import {
 	YieldsChartConfig
 } from './types'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
-import {
-	DEFAULT_CHAINS_ROW_HEADERS,
-	DEFAULT_PROTOCOLS_ROW_HEADERS,
-	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY,
-	DEFAULT_UNIFIED_TABLE_SORTING
-} from './components/UnifiedTable/constants'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
 
@@ -343,7 +343,7 @@ export function ProDashboardAPIProvider({
 		if (
 			currentDashboard2 !== null &&
 			initialDashboardId === currentDashboard2?.id &&
-			(currentDashboard?.id !== currentDashboard2?.id || currentDashboard?.updated !== currentDashboard2?.updated)
+			currentDashboard?.id !== currentDashboard2?.id
 		) {
 			applyDashboard(currentDashboard2)
 		}
@@ -378,38 +378,38 @@ export function ProDashboardAPIProvider({
 				tags: overrides?.tags ?? dashboardTags,
 				description: overrides?.description ?? dashboardDescription,
 				aiGenerated: overrides?.aiGenerated ?? currentDashboard?.aiGenerated ?? null,
-			...(overrides?.aiUndoState && { aiUndoState: overrides.aiUndoState })
-		}
+				...(overrides?.aiUndoState && { aiUndoState: overrides.aiUndoState })
+			}
 
-		if (dashboardId) {
-			const savedDashboard = await updateDashboard({ id: dashboardId, data })
-			if (savedDashboard) {
-				applyDashboard(savedDashboard)
+			if (dashboardId) {
+				const savedDashboard = await updateDashboard({ id: dashboardId, data })
+				if (savedDashboard) {
+					applyDashboard(savedDashboard)
+				}
+			} else {
+				const newDashboard = await createDashboard(data)
+				if (newDashboard) {
+					applyDashboard(newDashboard)
+				}
 			}
-		} else {
-			const newDashboard = await createDashboard(data)
-			if (newDashboard) {
-				applyDashboard(newDashboard)
-			}
-		}
-	},
-	[
-		items,
-		dashboardName,
+		},
+		[
+			items,
+			dashboardName,
 			timePeriod,
 			dashboardId,
 			dashboardVisibility,
 			dashboardTags,
 			dashboardDescription,
 			currentDashboard?.aiGenerated,
-		isAuthenticated,
-		isReadOnly,
-		updateDashboard,
-		createDashboard,
-		cleanItemsForSaving,
-		applyDashboard
-	]
-)
+			isAuthenticated,
+			isReadOnly,
+			updateDashboard,
+			createDashboard,
+			cleanItemsForSaving,
+			applyDashboard
+		]
+	)
 
 	const autoSkipOlderSessionsForRating = useCallback(async () => {
 		if (!isAuthenticated || !currentDashboard?.aiGenerated || !user?.id || !dashboardId) return
@@ -979,9 +979,9 @@ export function ProDashboardAPIProvider({
 			setItems((prev) => {
 				const newItems = [...prev, newTable]
 				autoSave(newItems)
-			return newItems
-		})
-	},
+				return newItems
+			})
+		},
 		[isReadOnly, autoSave]
 	)
 
@@ -995,10 +995,7 @@ export function ProDashboardAPIProvider({
 			const defaultColumnOrder =
 				DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY[strategyType] ??
 				DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY.protocols
-			const defaultRowHeaders =
-				strategyType === 'chains'
-					? DEFAULT_CHAINS_ROW_HEADERS
-					: DEFAULT_PROTOCOLS_ROW_HEADERS
+			const defaultRowHeaders = strategyType === 'chains' ? DEFAULT_CHAINS_ROW_HEADERS : DEFAULT_PROTOCOLS_ROW_HEADERS
 			const resolvedSorting =
 				configOverrides?.defaultSorting && configOverrides.defaultSorting.length
 					? configOverrides.defaultSorting.map((item) => ({ id: item.id, desc: item.desc ?? false }))
