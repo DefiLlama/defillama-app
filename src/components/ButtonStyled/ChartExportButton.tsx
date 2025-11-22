@@ -270,6 +270,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 						legend: {
 							show: true,
 							top: legendTop,
+							itemGap: legendItemGap,
 							right: 16,
 							textStyle: {
 								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
