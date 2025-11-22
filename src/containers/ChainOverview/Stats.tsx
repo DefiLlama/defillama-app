@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
+import { ImageExportButton2 } from '~/components/ButtonStyled/ImageExportButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
@@ -126,9 +126,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	}, [finalCharts, props.chain])
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
-	const imageExportFilename = slug(props.metadata.name || 'chain') || 'chain'
-	const imageExportTitle =
-		props.metadata.name && props.metadata.name !== 'All' ? `${props.metadata.name} Overview` : 'Chain Overview'
+	const imageExportFilename = slug(props.metadata.name)
+	const imageExportTitle = props.metadata.name === 'All' ? 'All Chains' : props.metadata.name
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {
@@ -823,11 +822,10 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						) : null}
 						<EmbedChart />
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						<ImageExportButton
+						<ImageExportButton2
 							chartInstance={chainChartInstance}
 							filename={imageExportFilename}
 							title={imageExportTitle}
-							iconUrl={props.metadata.name !== 'All' ? chainIconUrl(props.metadata.name) : undefined}
 							className="-ml-2 flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 							smol
 						/>
