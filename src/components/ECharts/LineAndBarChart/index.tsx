@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { slug } from '~/utils'
@@ -324,8 +324,8 @@ export default function LineAndBarChart({
 	return (
 		<div className="relative">
 			{shouldEnableExport && (
-				<div className="absolute right-2 top-2 z-10">
-					<ImageExportButton
+				<div className="absolute top-2 right-2 z-10">
+					<ChartExportButton
 						chartInstance={exportChartInstance}
 						filename={exportFilename}
 						title={exportTitle}

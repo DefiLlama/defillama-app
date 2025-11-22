@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { Select } from '~/components/Select'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -239,7 +239,7 @@ export default function Protocols(props) {
 							/>
 						) : null}
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						<ImageExportButton
+						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={`${slug(props.name)}-options-volume`}
 							title="Options Volume"

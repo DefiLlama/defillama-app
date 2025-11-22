@@ -3,7 +3,7 @@ import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useMedia } from '~/hooks/useMedia'
@@ -174,7 +174,7 @@ export default function PieChart({
 					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
 					{customComponents ?? null}
 					{enableImageExport && (
-						<ImageExportButton
+						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={exportFilename}
 							title={exportTitle}

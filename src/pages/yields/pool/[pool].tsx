@@ -2,8 +2,8 @@ import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import exponentialLogo from '~/assets/exponential.avif'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
@@ -325,7 +325,7 @@ const PageView = (props) => {
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end p-2">
-						<ImageExportButton
+						<ChartExportButton
 							chartInstance={tvlApyChartInstance}
 							filename={`${query.pool}-tvl-apy`}
 							title="TVL & APY"

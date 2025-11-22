@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -283,7 +283,7 @@ export default function BarChart({
 					)}
 					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
 					{shouldEnableExport && (
-						<ImageExportButton
+						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={exportFilename}
 							title={exportTitle}

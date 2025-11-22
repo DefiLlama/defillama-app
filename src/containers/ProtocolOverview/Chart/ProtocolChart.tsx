@@ -10,8 +10,8 @@ import {
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
@@ -367,7 +367,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 					) : null}
 					<EmbedChart />
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					<ImageExportButton
+					<ChartExportButton
 						chartInstance={overviewChartInstance}
 						filename={overviewImageFilename}
 						title={overviewImageTitle}

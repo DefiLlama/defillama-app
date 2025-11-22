@@ -203,6 +203,10 @@ export const ChartExportButton = memo(function ChartExportButton({
 					// @ts-expect-error - all options are in array format
 					currentOptions.legend = (currentOptions.legend ?? []).map((legend) => ({
 						...legend,
+						textStyle: {
+							...(legend.textStyle ?? {}),
+							fontSize: 24
+						},
 						show: true,
 						right: 16
 					}))
@@ -221,10 +225,8 @@ export const ChartExportButton = memo(function ChartExportButton({
 						}
 					})
 
-					console.log(currentOptions)
-
 					// Wait for the chart (including async image loading) to finish rendering.
-					// In some cases (many series, large data) the `finished` event may not fire reliably,
+					// In some cases (many series, large data) the render event may not fire reliably,
 					// so we also add a timeout fallback to avoid hanging forever.
 					await new Promise<void>((resolve) => {
 						let timeoutId: ReturnType<typeof setTimeout> | null = null
@@ -233,16 +235,16 @@ export const ChartExportButton = memo(function ChartExportButton({
 							if (timeoutId) {
 								clearTimeout(timeoutId)
 							}
-							tempChart.off('finished', handler as any)
+							tempChart.off('rendered', handler as any)
 							resolve()
 						}
 
 						timeoutId = setTimeout(() => {
-							tempChart.off('finished', handler as any)
+							tempChart.off('rendered', handler as any)
 							resolve()
-						}, 5000)
+						}, 1500)
 
-						tempChart.on('finished', handler as any)
+						tempChart.on('rendered', handler as any)
 					})
 
 					// Get the data URL from the temporary chart

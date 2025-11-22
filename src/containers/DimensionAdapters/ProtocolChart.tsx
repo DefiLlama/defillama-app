@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -265,7 +265,7 @@ const ChartByType = ({
 					portal
 				/>
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
-				<ImageExportButton
+				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={title ? slug(title) : `${protocolName}-${chartType}`}
 					title={title}

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
 import { Select } from '~/components/Select'
@@ -348,7 +348,7 @@ export default function Protocols(props) {
 							/>
 						) : null}
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						<ImageExportButton
+						<ChartExportButton
 							chartInstance={exportChartInstance}
 							filename={`${slug(props.name)}-fees-revenue`}
 							title="Fees & Revenue"

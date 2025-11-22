@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ImageExportButton } from '~/components/ButtonStyled/ImageDownloadButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -153,7 +153,7 @@ export const AdapterByChainChart = ({
 					isLoading={isDownloadingBreakdownChart}
 					smol
 				/>
-				<ImageExportButton
+				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(chain)}-${adapterType}-${chartName}`}
 					title={`${chain} - ${chartName}`}
@@ -247,7 +247,7 @@ export const ChainsByAdapterChart = ({
 						portal
 					/>
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					<ImageExportButton
+					<ChartExportButton
 						chartInstance={exportChartInstance}
 						filename={`${type}-chains-${chartInterval.toLowerCase()}`}
 						title={`${type} by Chain - ${chartType}`}
