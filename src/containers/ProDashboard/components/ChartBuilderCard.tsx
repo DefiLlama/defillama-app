@@ -6,8 +6,8 @@ import { download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
+import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
-import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
@@ -457,7 +457,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						)}
 					{chartSeries.length > 0 && (
 						<>
-							<ImageExportButton
+							<ChartExportButton
 								chartInstance={chartInstance}
 								filename={builder.name || config.metric}
 								title={builder.name || `${config.metric} by Protocol`}

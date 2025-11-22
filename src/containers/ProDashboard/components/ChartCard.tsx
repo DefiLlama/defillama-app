@@ -9,8 +9,8 @@ import { useProDashboard } from '../ProDashboardAPIContext'
 import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
+import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
-import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const SingleSeriesChart = lazy(
 	() => import('~/components/ECharts/SingleSeriesChart')
@@ -212,7 +212,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 					)}
 					{processedData && processedData.length > 0 && (
 						<>
-							<ImageExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+							<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 							<ProTableCSVButton
 								onClick={handleCsvExport}
 								smol

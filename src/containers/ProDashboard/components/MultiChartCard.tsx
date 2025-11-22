@@ -8,8 +8,8 @@ import { useProDashboard } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
+import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
-import { ImageExportButton } from './ProTable/ImageExportButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
@@ -419,7 +419,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{series.length > 0 && (
 					<>
-						<ImageExportButton
+						<ChartExportButton
 							chartInstance={chartInstance}
 							filename={multi.name || 'multi_chart'}
 							title={multi.name || 'Multi Chart'}

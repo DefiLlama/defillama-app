@@ -13,6 +13,14 @@ import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
 
+const IMAGE_EXPORT_WIDTH = 1280
+const approximateTextWidth = (text: string, fontSize: number) => {
+	if (!text) return 0
+	// Rough heuristic: average character width is ~0.6 * font size
+	const averageCharWidthRatio = 0.6
+	return text.length * fontSize * averageCharWidthRatio
+}
+
 interface ChartExportButtonProps {
 	chartInstance: echarts.ECharts | null
 	className?: string
@@ -52,7 +60,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 
 				// Create a temporary container for the cloned chart
 				const tempContainer = document.createElement('div')
-				tempContainer.style.width = '1280px'
+				tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
 				tempContainer.style.height = '720px'
 				tempContainer.style.position = 'absolute'
 				tempContainer.style.left = '-99999px'
@@ -63,7 +71,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 				try {
 					// Create a new chart instance on the temporary container
 					const tempChart = echarts.init(tempContainer, null, {
-						width: 1280,
+						width: IMAGE_EXPORT_WIDTH,
 						height: 720
 					})
 
@@ -158,7 +166,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 										element.style.height = targetHeight
 										element.style.width = imageWidth
 										element.top = '320px'
-										element.left = `${(1280 - imageWidth) / 2}px`
+										element.left = `${(IMAGE_EXPORT_WIDTH - imageWidth) / 2}px`
 									}
 
 									return element
@@ -168,11 +176,55 @@ export const ChartExportButton = memo(function ChartExportButton({
 						})
 					}
 
+					// Legend layout calculations
+					const legendArray = (currentOptions.legend ?? []) as any[]
+
+					const titleText = title ?? ''
+					const titleFontSize = 28
+					let titleWidth = approximateTextWidth(titleText, titleFontSize)
+
+					if (iconBase64) {
+						const iconWidth = 32
+						const iconGap = 8
+						titleWidth += iconWidth + iconGap
+					}
+
+					const legendFontSize = 24
+					const legendIconWidth = 24
+					const legendItemGap = 16
+
+					let legendsWidth = 0
+					legendArray.forEach((legend: any) => {
+						const data = legend?.data ?? []
+						data.forEach((item: any) => {
+							const name = typeof item === 'string' ? item : (item?.name ?? '')
+							if (!name) return
+							legendsWidth += approximateTextWidth(name, legendFontSize) + legendIconWidth + legendItemGap
+						})
+					})
+
+					const totalWidth = titleWidth + legendsWidth
+					const shouldWrapLegend = !!title && legendsWidth > 0 && totalWidth > IMAGE_EXPORT_WIDTH
+
+					const baseTopPadding = 16
+					const titleHeight = title ? 36 : 0
+					const legendHeight = legendsWidth > 0 ? 32 : 0
+					const verticalGap = 16
+
+					let legendTop = baseTopPadding
+					let gridTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
+
+					if (shouldWrapLegend) {
+						// Place legend below title and move grid further down
+						legendTop = baseTopPadding + titleHeight + verticalGap
+						gridTop = legendTop + legendHeight + verticalGap
+					}
+
 					currentOptions.animation = false
 					currentOptions.grid = {
 						left: 16,
 						bottom: 16,
-						top: 16 + (title ? 36 + 16 : 0),
+						top: gridTop,
 						right: 16,
 						outerBoundsMode: 'same',
 						outerBoundsContain: 'axisLabel'
@@ -200,14 +252,14 @@ export const ChartExportButton = memo(function ChartExportButton({
 						left: 14
 					}
 
-					// @ts-expect-error - all options are in array format
-					currentOptions.legend = (currentOptions.legend ?? []).map((legend) => ({
+					currentOptions.legend = legendArray.map((legend) => ({
 						...legend,
 						textStyle: {
 							...(legend.textStyle ?? {}),
 							fontSize: 24
 						},
 						show: true,
+						top: legendTop,
 						right: 16
 					}))
 
@@ -217,7 +269,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 					tempChart.setOption({
 						legend: {
 							show: true,
-							top: 16,
+							top: legendTop,
 							right: 16,
 							textStyle: {
 								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
