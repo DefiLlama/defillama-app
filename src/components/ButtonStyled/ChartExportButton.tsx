@@ -134,6 +134,13 @@ export const ChartExportButton = memo(function ChartExportButton({
 							if (yAxis.offset) {
 								yAxis.offset = yAxis.offset * 2
 							}
+							yAxis.axisLine = {
+								...(yAxis.axisLine ?? {}),
+								lineStyle: {
+									...(yAxis.axisLine?.lineStyle ?? {}),
+									width: 2
+								}
+							}
 							return yAxis
 						})
 					}
