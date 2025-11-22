@@ -191,7 +191,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 
 					const legendFontSize = 24
 					const legendIconWidth = 24
-					const legendItemGap = 16
+					const legendItemGap = 20
 
 					let legendsWidth = 0
 					legendArray.forEach((legend: any) => {
@@ -252,29 +252,23 @@ export const ChartExportButton = memo(function ChartExportButton({
 						left: 14
 					}
 
-					currentOptions.legend = legendArray.map((legend) => ({
-						...legend,
-						textStyle: {
-							...(legend.textStyle ?? {}),
-							fontSize: 24
-						},
-						show: true,
-						top: legendTop,
-						right: 16
-					}))
-
 					// Set options on the temporary chart with any modifications you want
 					tempChart.setOption(currentOptions)
 
+					// need to set seperately for some reason
 					tempChart.setOption({
 						legend: {
 							show: true,
-							top: legendTop,
-							itemGap: legendItemGap,
-							right: 16,
 							textStyle: {
+								fontSize: 24,
 								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-							}
+							},
+							itemHeight: 24,
+							itemWidth: 48,
+							itemGap: legendItemGap,
+							top: legendTop,
+							right: 16,
+							padding: [0, 0, 0, 18]
 						}
 					})
 
