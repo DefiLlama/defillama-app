@@ -97,8 +97,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				{!isSubscribed && (
 					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
 						<p className="text-center text-[#919296]">
-							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
-							more.
+							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and more.
 						</p>
 						{isAuthenticated ? (
 							<div className="mx-auto w-full max-w-[400px]">
@@ -273,7 +272,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 							>
 								Monthly
 							</button>
-							{/* <button
+							<button
 								onClick={() => setBillingInterval('year')}
 								className={`relative z-10 flex items-center gap-2 rounded-lg px-6 py-2 font-medium transition-all duration-200 ${
 									billingInterval === 'year'
@@ -285,7 +284,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								<span className="rounded-md bg-[#7B7BFF] px-2 py-0.5 text-xs font-semibold text-white">
 									2 months free
 								</span>
-							</button> */}
+							</button>
 						</div>
 					</div>
 					<div ref={pricingContainer} className="relative z-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
