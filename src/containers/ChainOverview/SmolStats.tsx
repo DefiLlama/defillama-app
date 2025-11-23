@@ -266,9 +266,24 @@ export const SmolStats = (props: IChainOverviewData) => {
 						>
 							Fees Paid
 						</Tooltip>
-						{props.chainFees.feesGenerated24h != null ? (
-							<p className="text-(--text-form)">{`${formattedNum(props.chainFees.feesGenerated24h ?? 0, true)} (24h)`}</p>
-						) : null}
+
+						<div>
+							{props.chainFees.feesGenerated24h != null ? (
+								<p className="text-(--text-form)">{`${formattedNum(props.chainFees.feesGenerated24h ?? 0, true)} (24h)`}</p>
+							) : null}
+							{props.chainFees.change7d && (
+								<p className="flex items-center justify-end gap-1 text-xs">
+									<span
+										className={`overflow-hidden text-ellipsis whitespace-nowrap ${
+											+props.chainFees.change7d >= 0 ? 'text-(--success)' : 'text-(--error)'
+										}`}
+									>
+										{`${+props.chainFees.change7d >= 0 ? '+' : ''}${props.chainFees.change7d}%`}
+									</span>
+									<span className="text-(--text-form)">7d</span>
+								</p>
+							)}
+						</div>
 					</div>
 					<Suspense fallback={<></>}>
 						<FeesGeneratedChart series={props.chainFees.topProtocolsChart} />
