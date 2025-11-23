@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { memo, useRef } from 'react'
+import { useRef } from 'react'
 import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -14,7 +14,7 @@ interface UnifiedVirtualTableProps {
 	compact?: boolean
 }
 
-export const UnifiedVirtualTable = memo(function UnifiedVirtualTable({
+export function UnifiedVirtualTable({
 	table,
 	rowSize = 50,
 	stripedBg = false,
@@ -179,7 +179,7 @@ export const UnifiedVirtualTable = memo(function UnifiedVirtualTable({
 			</div>
 		</div>
 	)
-})
+}
 
 interface HeaderWithTooltipProps {
 	children: React.ReactNode
