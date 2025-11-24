@@ -14,8 +14,8 @@ import type { FilterPill } from './components/ActiveFilterPills'
 import { ActiveFilterPills } from './components/ActiveFilterPills'
 import { CollapsibleSection } from './components/CollapsibleSection'
 import { ColumnManager } from './components/ColumnManager'
+import { FilterBuilder } from './components/FilterBuilder'
 import { FiltersPanel } from './components/FiltersPanel'
-import { FormattedNumberInput } from './components/FormattedNumberInput'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
@@ -38,67 +38,9 @@ const CHAIN_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain']
 
 type StrategyType = UnifiedTableConfig['strategyType']
 
-type NumericFilterKey =
-	| 'tvlMin'
-	| 'tvlMax'
-	| 'mcapMin'
-	| 'mcapMax'
-	| 'volumeDex24hMin'
-	| 'volumeDex24hMax'
-	| 'fees24hMin'
-	| 'fees24hMax'
-	| 'revenue24hMin'
-	| 'revenue24hMax'
-	| 'protocolCountMin'
-	| 'protocolCountMax'
-
 type ArrayFilterKey = 'categories' | 'excludedCategories' | 'protocols' | 'oracles'
 
-type BooleanFilterKey =
-	| 'hasPerps'
-	| 'hasOptions'
-	| 'hasOpenInterest'
-	| 'multiChainOnly'
-	| 'parentProtocolsOnly'
-	| 'subProtocolsOnly'
-
 type TabKey = 'setup' | 'columns' | 'filters'
-
-const BOOLEAN_FILTER_LABELS: Record<BooleanFilterKey, string> = {
-	hasPerps: 'Has perps volume',
-	hasOptions: 'Has options volume',
-	hasOpenInterest: 'Has open interest',
-	multiChainOnly: 'Multi-chain protocols only',
-	parentProtocolsOnly: 'Parent protocols only',
-	subProtocolsOnly: 'Sub-protocols only'
-}
-
-const RANGE_FIELDS: Array<{
-	label: string
-	description?: string
-	minKey: NumericFilterKey
-	maxKey: NumericFilterKey
-	strategies?: StrategyType[]
-}> = [
-	{ label: 'TVL', minKey: 'tvlMin', maxKey: 'tvlMax', strategies: ['protocols'] },
-	{ label: 'Market Cap', minKey: 'mcapMin', maxKey: 'mcapMax', strategies: ['protocols'] },
-	{
-		label: 'DEX Volume (24h)',
-		minKey: 'volumeDex24hMin',
-		maxKey: 'volumeDex24hMax',
-		strategies: ['protocols', 'chains']
-	},
-	{ label: 'Fees (24h)', minKey: 'fees24hMin', maxKey: 'fees24hMax', strategies: ['protocols', 'chains'] },
-	{ label: 'Revenue (24h)', minKey: 'revenue24hMin', maxKey: 'revenue24hMax', strategies: ['protocols'] },
-	{ label: 'Protocol Count', minKey: 'protocolCountMin', maxKey: 'protocolCountMax', strategies: ['chains'] }
-]
-
-const BOOLEAN_FIELDS: Array<{ key: BooleanFilterKey; label: string; description?: string }> = [
-	{ key: 'hasPerps', label: BOOLEAN_FILTER_LABELS.hasPerps },
-	{ key: 'hasOptions', label: BOOLEAN_FILTER_LABELS.hasOptions },
-	{ key: 'hasOpenInterest', label: BOOLEAN_FILTER_LABELS.hasOpenInterest },
-	{ key: 'multiChainOnly', label: BOOLEAN_FILTER_LABELS.multiChainOnly }
-]
 
 const countActiveFilters = (filters: TableFilters | undefined): number => {
 	if (!filters) return 0
@@ -148,10 +90,10 @@ const TabContent = ({
 	const [localOrder, setLocalOrder] = useState<ColumnOrderState>(columnOrder)
 	const [localVisibility, setLocalVisibility] = useState<VisibilityState>({ ...columnVisibility })
 	const [localSorting, setLocalSorting] = useState<SortingState>(sorting)
-	const [filterErrors, setFilterErrors] = useState<Partial<Record<NumericFilterKey, string>>>({})
 	const initialTab = useMemo<TabKey>(() => {
 		if (focusedSectionOnly === 'filters') return 'filters'
 		if (focusedSectionOnly === 'columns') return 'columns'
+		if (initialFocusSection === 'filters') return 'filters'
 		if (initialFocusSection === 'columns') return 'columns'
 		if (initialFocusSection === 'strategy') return 'setup'
 		return 'setup'
@@ -169,10 +111,6 @@ const TabContent = ({
 	useEffect(() => {
 		setLocalSorting(sorting)
 	}, [sorting])
-
-	useEffect(() => {
-		setFilterErrors({})
-	}, [strategyType])
 
 	useEffect(() => {
 		setActiveTab((current) => (current === initialTab ? current : initialTab))
@@ -330,91 +268,10 @@ const TabContent = ({
 			setChains([])
 		}
 		setCategory(null)
-		setFilterErrors({})
 	}
 
 	const handlePanelFiltersChange = (nextFilters: TableFilters) => {
 		setFilters(nextFilters ?? {})
-	}
-
-	const clearNumericFilterValues = (...keys: NumericFilterKey[]) => {
-		const next: TableFilters = { ...(filters ?? {}) }
-		const nextErrors: Partial<Record<NumericFilterKey, string>> = { ...filterErrors }
-		keys.forEach((filterKey) => {
-			delete next[filterKey]
-			delete nextErrors[filterKey]
-		})
-		setFilters(next)
-		setFilterErrors(nextErrors)
-	}
-
-	const handleNumericFilterChange = (key: NumericFilterKey, value: number | undefined) => {
-		const next = { ...(filters ?? {}) }
-
-		if (value === undefined) {
-			clearNumericFilterValues(key)
-			return
-		}
-
-		const isMinKey = key.endsWith('Min')
-		const isMaxKey = key.endsWith('Max')
-
-		if (isMinKey) {
-			const maxKey = key.replace('Min', 'Max') as NumericFilterKey
-			const maxValue = next[maxKey] as number | undefined
-			if (maxValue !== undefined && value > maxValue) {
-				setFilterErrors((prev) => ({
-					...prev,
-					[key]: `Min cannot exceed ${maxValue.toLocaleString()}`
-				}))
-				return
-			}
-		}
-
-		if (isMaxKey) {
-			const minKey = key.replace('Max', 'Min') as NumericFilterKey
-			const minValue = next[minKey] as number | undefined
-			if (minValue !== undefined && value < minValue) {
-				setFilterErrors((prev) => ({
-					...prev,
-					[key]: `Max cannot be less than ${minValue.toLocaleString()}`
-				}))
-				return
-			}
-		}
-
-		setFilterErrors((prev) => {
-			const updated = { ...prev }
-			delete updated[key]
-			if (isMinKey) {
-				const maxKey = key.replace('Min', 'Max') as NumericFilterKey
-				delete updated[maxKey]
-			}
-			if (isMaxKey) {
-				const minKey = key.replace('Max', 'Min') as NumericFilterKey
-				delete updated[minKey]
-			}
-			return updated
-		})
-
-		next[key] = value
-		setFilters(next)
-	}
-
-	const handleBooleanFilterChange = (key: BooleanFilterKey, checked: boolean) => {
-		const next = { ...(filters ?? {}) }
-		if (checked) {
-			next[key] = true
-			if (key === 'parentProtocolsOnly') {
-				delete next.subProtocolsOnly
-			}
-			if (key === 'subProtocolsOnly') {
-				delete next.parentProtocolsOnly
-			}
-		} else {
-			delete next[key]
-		}
-		setFilters(next)
 	}
 
 	const handleRemoveArrayFilterValue = (key: ArrayFilterKey, value: string) => {
@@ -436,26 +293,6 @@ const TabContent = ({
 			return
 		}
 		setChains(nextChains)
-	}
-
-	const formatMetricValue = (fieldLabel: string, value: number) => {
-		if (fieldLabel === 'Protocol Count') {
-			return value.toLocaleString()
-		}
-		return `$${value.toLocaleString()}`
-	}
-
-	const buildRangeLabel = (fieldLabel: string, minValue?: number, maxValue?: number) => {
-		if (minValue !== undefined && maxValue !== undefined) {
-			return `${fieldLabel}: ${formatMetricValue(fieldLabel, minValue)} - ${formatMetricValue(fieldLabel, maxValue)}`
-		}
-		if (minValue !== undefined) {
-			return `${fieldLabel} ≥ ${formatMetricValue(fieldLabel, minValue)}`
-		}
-		if (maxValue !== undefined) {
-			return `${fieldLabel} ≤ ${formatMetricValue(fieldLabel, maxValue)}`
-		}
-		return fieldLabel
 	}
 
 	const arraysEqual = (a: string[], b: string[]) => {
@@ -524,7 +361,6 @@ const TabContent = ({
 				}
 			])
 		}
-		setFilterErrors({})
 	}
 
 	const currentFilters = (filters ?? {}) as TableFilters
@@ -567,36 +403,6 @@ const TabContent = ({
 	addArrayFilterPills('excludedCategories', excludedCategories, (value) => `Exclude ${value}`)
 	addArrayFilterPills('protocols', protocolFilters)
 	addArrayFilterPills('oracles', oracleFilters)
-
-	RANGE_FIELDS.forEach((field) => {
-		if (field.strategies && !field.strategies.includes(strategyType)) return
-		const minValue = currentFilters[field.minKey] as number | undefined
-		const maxValue = currentFilters[field.maxKey] as number | undefined
-		if (minValue === undefined && maxValue === undefined) return
-		const keysToClear: NumericFilterKey[] = []
-		if (minValue !== undefined) {
-			keysToClear.push(field.minKey)
-		}
-		if (maxValue !== undefined) {
-			keysToClear.push(field.maxKey)
-		}
-		activeFilterPills.push({
-			id: `${field.minKey}-${field.maxKey}`,
-			label: buildRangeLabel(field.label, minValue, maxValue),
-			onRemove: () => clearNumericFilterValues(...keysToClear)
-		})
-	})
-
-	const booleanEntries = Object.entries(BOOLEAN_FILTER_LABELS) as Array<[BooleanFilterKey, string]>
-	booleanEntries.forEach(([key, label]) => {
-		if (currentFilters[key]) {
-			activeFilterPills.push({
-				id: `boolean-${key}`,
-				label,
-				onRemove: () => handleBooleanFilterChange(key, false)
-			})
-		}
-	})
 
 	const activeFilterCount = activeFilterPills.length
 
@@ -831,83 +637,12 @@ const TabContent = ({
 
 					<div className="space-y-2">
 						<div>
-							<h5 className="text-xs font-semibold text-(--text-secondary)">Metric thresholds</h5>
+							<h5 className="text-xs font-semibold text-(--text-secondary)">Metric & flag filters</h5>
 							<p className="text-[11px] text-(--text-tertiary)">
-								Filter rows by TVL, market cap, fees, revenue, and more.
+								Add filters for TVL, volume, fees, revenue, and other metrics.
 							</p>
 						</div>
-						<div className="grid gap-3 md:grid-cols-2">
-							{RANGE_FIELDS.filter((field) => !field.strategies || field.strategies.includes(strategyType)).map(
-								(field) => (
-									<div key={field.label} className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-										<div className="mb-2 space-y-0.5">
-											<p className="text-sm font-semibold text-(--text-primary)">{field.label}</p>
-											{field.description ? (
-												<p className="text-xs text-(--text-secondary)">{field.description}</p>
-											) : null}
-										</div>
-										<div className="flex gap-2">
-											<FormattedNumberInput
-												value={filters?.[field.minKey] as number | undefined}
-												onChange={(val) => handleNumericFilterChange(field.minKey, val)}
-												placeholder="Min"
-												prefix={field.label === 'Protocol Count' ? '' : '$'}
-												min={0}
-												error={filterErrors[field.minKey]}
-											/>
-											<FormattedNumberInput
-												value={filters?.[field.maxKey] as number | undefined}
-												onChange={(val) => handleNumericFilterChange(field.maxKey, val)}
-												placeholder="Max"
-												prefix={field.label === 'Protocol Count' ? '' : '$'}
-												min={0}
-												error={filterErrors[field.maxKey]}
-											/>
-										</div>
-									</div>
-								)
-							)}
-						</div>
-					</div>
-					{strategyType === 'protocols' && (
-						<div className="space-y-2">
-							<div>
-								<h5 className="text-xs font-semibold text-(--text-secondary)">Protocol flags</h5>
-								<p className="text-[11px] text-(--text-tertiary)">
-									Quick toggles for perps, options, multi-chain, and hierarchy filters.
-								</p>
-							</div>
-							<div className="grid gap-3 md:grid-cols-2">
-								{BOOLEAN_FIELDS.map((field) => (
-									<label
-										key={field.key}
-										className="flex cursor-pointer items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2"
-									>
-										<input
-											type="checkbox"
-											checked={Boolean(filters?.[field.key])}
-											onChange={(event) => handleBooleanFilterChange(field.key, event.target.checked)}
-											className="h-4 w-4 accent-(--primary)"
-										/>
-										<div>
-											<p className="text-sm font-medium text-(--text-primary)">{field.label}</p>
-											{field.description ? (
-												<p className="text-xs text-(--text-secondary)">{field.description}</p>
-											) : null}
-										</div>
-									</label>
-								))}
-							</div>
-						</div>
-					)}
-					<div className="flex justify-end">
-						<button
-							type="button"
-							onClick={handleClearFilters}
-							className="pro-text2 hover:pro-text1 rounded-md border border-(--cards-border) px-3 py-1.5 text-xs transition"
-						>
-							Clear filters
-						</button>
+						<FilterBuilder strategy={strategyType} filters={filters} onFiltersChange={handlePanelFiltersChange} />
 					</div>
 				</div>
 			</CollapsibleSection>

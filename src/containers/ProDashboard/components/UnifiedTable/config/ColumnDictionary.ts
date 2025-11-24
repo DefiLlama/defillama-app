@@ -193,14 +193,6 @@ const feesColumns: ColumnDictionaryItem[] = [
 		strategies: ['protocols']
 	},
 	{
-		id: 'supplySideRevenue_24h',
-		header: '24h Supply-Side Revenue',
-		group: 'fees',
-		render: 'usd',
-		tags: ['distribution'],
-		strategies: ['protocols']
-	},
-	{
 		id: 'feesChange_1d',
 		header: '1d Fees Change',
 		group: 'fees',

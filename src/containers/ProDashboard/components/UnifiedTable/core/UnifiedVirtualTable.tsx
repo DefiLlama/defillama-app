@@ -133,7 +133,7 @@ export function UnifiedVirtualTable({
 						left: 0,
 						width: '100%',
 						height: `${virtualRow.size}px`,
-						opacity: ((row.original as { disabled?: boolean } | undefined)?.disabled ? 0.3 : 1),
+						opacity: (row.original as { disabled?: boolean } | undefined)?.disabled ? 0.3 : 1,
 						transform: `translateY(${virtualRow.start}px)`
 					}
 

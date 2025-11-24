@@ -89,30 +89,110 @@ const buildQueryString = (
 
 		if (filters.protocols) filters.protocols.forEach((p) => params.append('protocols[]', p))
 		if (filters.categories) filters.categories.forEach((c) => params.append('categories[]', c))
-		if (filters.excludedCategories)
-			filters.excludedCategories.forEach((c) => params.append('excludedCategories[]', c))
+		if (filters.excludedCategories) filters.excludedCategories.forEach((c) => params.append('excludedCategories[]', c))
 		if (filters.oracles) filters.oracles.forEach((o) => params.append('oracles[]', o))
 		if (filters.chains) filters.chains.forEach((c) => params.append('chains[]', c))
 		if (filters.poolTypes) filters.poolTypes.forEach((p) => params.append('poolTypes[]', p))
 
-		if (filters.apyMin !== undefined) params.set('apyMin', String(filters.apyMin))
-		if (filters.apyMax !== undefined) params.set('apyMax', String(filters.apyMax))
-		if (filters.tvlMin !== undefined) params.set('tvlMin', String(filters.tvlMin))
-		if (filters.tvlMax !== undefined) params.set('tvlMax', String(filters.tvlMax))
-		if (filters.baseApyMin !== undefined) params.set('baseApyMin', String(filters.baseApyMin))
-		if (filters.baseApyMax !== undefined) params.set('baseApyMax', String(filters.baseApyMax))
-		if (filters.mcapMin !== undefined) params.set('mcapMin', String(filters.mcapMin))
-		if (filters.mcapMax !== undefined) params.set('mcapMax', String(filters.mcapMax))
-		if (filters.volumeDex24hMin !== undefined) params.set('volumeDex24hMin', String(filters.volumeDex24hMin))
-		if (filters.volumeDex24hMax !== undefined) params.set('volumeDex24hMax', String(filters.volumeDex24hMax))
-		if (filters.fees24hMin !== undefined) params.set('fees24hMin', String(filters.fees24hMin))
-		if (filters.fees24hMax !== undefined) params.set('fees24hMax', String(filters.fees24hMax))
-		if (filters.revenue24hMin !== undefined) params.set('revenue24hMin', String(filters.revenue24hMin))
-		if (filters.revenue24hMax !== undefined) params.set('revenue24hMax', String(filters.revenue24hMax))
-		if (filters.protocolCountMin !== undefined) params.set('protocolCountMin', String(filters.protocolCountMin))
-		if (filters.protocolCountMax !== undefined) params.set('protocolCountMax', String(filters.protocolCountMax))
-		if (filters.pfRatioMin !== undefined) params.set('pfRatioMin', String(filters.pfRatioMin))
-		if (filters.pfRatioMax !== undefined) params.set('pfRatioMax', String(filters.pfRatioMax))
+		const setNumericParam = (key: keyof TableFilters, paramKey: string) => {
+			const value = filters[key]
+			if (value !== undefined) {
+				params.set(paramKey, String(value))
+			}
+		}
+
+		const numericParams: Array<[keyof TableFilters, string]> = [
+			['apyMin', 'apyMin'],
+			['apyMax', 'apyMax'],
+			['baseApyMin', 'baseApyMin'],
+			['baseApyMax', 'baseApyMax'],
+			['tvlMin', 'tvlMin'],
+			['tvlMax', 'tvlMax'],
+			['mcapMin', 'mcapMin'],
+			['mcapMax', 'mcapMax'],
+			['volumeDex24hMin', 'volumeDex24hMin'],
+			['volumeDex24hMax', 'volumeDex24hMax'],
+			['volume7dMin', 'volume7dMin'],
+			['volume7dMax', 'volume7dMax'],
+			['volume30dMin', 'volume30dMin'],
+			['volume30dMax', 'volume30dMax'],
+			['volumeChange1dMin', 'volumeChange1dMin'],
+			['volumeChange1dMax', 'volumeChange1dMax'],
+			['volumeChange7dMin', 'volumeChange7dMin'],
+			['volumeChange7dMax', 'volumeChange7dMax'],
+			['volumeChange1mMin', 'volumeChange1mMin'],
+			['volumeChange1mMax', 'volumeChange1mMax'],
+			['fees24hMin', 'fees24hMin'],
+			['fees24hMax', 'fees24hMax'],
+			['fees7dMin', 'fees7dMin'],
+			['fees7dMax', 'fees7dMax'],
+			['fees30dMin', 'fees30dMin'],
+			['fees30dMax', 'fees30dMax'],
+			['fees1yMin', 'fees1yMin'],
+			['fees1yMax', 'fees1yMax'],
+			['feesChange1dMin', 'feesChange1dMin'],
+			['feesChange1dMax', 'feesChange1dMax'],
+			['feesChange7dMin', 'feesChange7dMin'],
+			['feesChange7dMax', 'feesChange7dMax'],
+			['feesChange1mMin', 'feesChange1mMin'],
+			['feesChange1mMax', 'feesChange1mMax'],
+			['revenue24hMin', 'revenue24hMin'],
+			['revenue24hMax', 'revenue24hMax'],
+			['revenue7dMin', 'revenue7dMin'],
+			['revenue7dMax', 'revenue7dMax'],
+			['revenue30dMin', 'revenue30dMin'],
+			['revenue30dMax', 'revenue30dMax'],
+			['revenue1yMin', 'revenue1yMin'],
+			['revenue1yMax', 'revenue1yMax'],
+			['revenueChange1dMin', 'revenueChange1dMin'],
+			['revenueChange1dMax', 'revenueChange1dMax'],
+			['revenueChange7dMin', 'revenueChange7dMin'],
+			['revenueChange7dMax', 'revenueChange7dMax'],
+			['revenueChange1mMin', 'revenueChange1mMin'],
+			['revenueChange1mMax', 'revenueChange1mMax'],
+			['change1dMin', 'change1dMin'],
+			['change1dMax', 'change1dMax'],
+			['change7dMin', 'change7dMin'],
+			['change7dMax', 'change7dMax'],
+			['change1mMin', 'change1mMin'],
+			['change1mMax', 'change1mMax'],
+			['pfRatioMin', 'pfRatioMin'],
+			['pfRatioMax', 'pfRatioMax'],
+			['protocolCountMin', 'protocolCountMin'],
+			['protocolCountMax', 'protocolCountMax'],
+			['volumeDominance24hMin', 'volumeDominance24hMin'],
+			['volumeDominance24hMax', 'volumeDominance24hMax'],
+			['volumeMarketShare7dMin', 'volumeMarketShare7dMin'],
+			['volumeMarketShare7dMax', 'volumeMarketShare7dMax'],
+			['tvlShareMin', 'tvlShareMin'],
+			['tvlShareMax', 'tvlShareMax'],
+			['perpsVolumeDominance24hMin', 'perpsVolumeDominance24hMin'],
+			['perpsVolumeDominance24hMax', 'perpsVolumeDominance24hMax'],
+			['optionsVolumeDominance24hMin', 'optionsVolumeDominance24hMin'],
+			['optionsVolumeDominance24hMax', 'optionsVolumeDominance24hMax'],
+			['holderRevenue24hMin', 'holderRevenue24hMin'],
+			['holderRevenue24hMax', 'holderRevenue24hMax'],
+			['treasuryRevenue24hMin', 'treasuryRevenue24hMin'],
+			['treasuryRevenue24hMax', 'treasuryRevenue24hMax'],
+			['stablesMcapMin', 'stablesMcapMin'],
+			['stablesMcapMax', 'stablesMcapMax'],
+			['bridgedTvlMin', 'bridgedTvlMin'],
+			['bridgedTvlMax', 'bridgedTvlMax'],
+			['aggregatorsVolume24hMin', 'aggregatorsVolume24hMin'],
+			['aggregatorsVolume24hMax', 'aggregatorsVolume24hMax'],
+			['aggregatorsVolume7dMin', 'aggregatorsVolume7dMin'],
+			['aggregatorsVolume7dMax', 'aggregatorsVolume7dMax'],
+			['aggregatorsVolume30dMin', 'aggregatorsVolume30dMin'],
+			['aggregatorsVolume30dMax', 'aggregatorsVolume30dMax'],
+			['derivativesAggregatorsVolume24hMin', 'derivativesAggregatorsVolume24hMin'],
+			['derivativesAggregatorsVolume24hMax', 'derivativesAggregatorsVolume24hMax'],
+			['derivativesAggregatorsVolume7dMin', 'derivativesAggregatorsVolume7dMin'],
+			['derivativesAggregatorsVolume7dMax', 'derivativesAggregatorsVolume7dMax'],
+			['derivativesAggregatorsVolume30dMin', 'derivativesAggregatorsVolume30dMin'],
+			['derivativesAggregatorsVolume30dMax', 'derivativesAggregatorsVolume30dMax']
+		]
+
+		numericParams.forEach(([key, paramKey]) => setNumericParam(key, paramKey))
 
 		if (filters.hasRewards !== undefined) params.set('hasRewards', String(filters.hasRewards))
 		if (filters.stablesOnly !== undefined) params.set('stablesOnly', String(filters.stablesOnly))
@@ -124,6 +204,20 @@ const buildQueryString = (
 		if (filters.parentProtocolsOnly !== undefined)
 			params.set('parentProtocolsOnly', String(filters.parentProtocolsOnly))
 		if (filters.subProtocolsOnly !== undefined) params.set('subProtocolsOnly', String(filters.subProtocolsOnly))
+		if (filters.hasVolume !== undefined) params.set('hasVolume', String(filters.hasVolume))
+		if (filters.hasFees !== undefined) params.set('hasFees', String(filters.hasFees))
+		if (filters.hasRevenue !== undefined) params.set('hasRevenue', String(filters.hasRevenue))
+		if (filters.hasMarketCap !== undefined) params.set('hasMarketCap', String(filters.hasMarketCap))
+		if (filters.hasAggregators !== undefined) params.set('hasAggregators', String(filters.hasAggregators))
+		if (filters.hasDerivativesAggregators !== undefined)
+			params.set('hasDerivativesAggregators', String(filters.hasDerivativesAggregators))
+		if (filters.hasBridgedTVL !== undefined) params.set('hasBridgedTVL', String(filters.hasBridgedTVL))
+		if (filters.hasStables !== undefined) params.set('hasStables', String(filters.hasStables))
+		if (filters.hasHolderRevenue !== undefined) params.set('hasHolderRevenue', String(filters.hasHolderRevenue))
+		if (filters.hasTreasuryRevenue !== undefined) params.set('hasTreasuryRevenue', String(filters.hasTreasuryRevenue))
+		if (filters.hasMcapTVLRatio !== undefined) params.set('hasMcapTVLRatio', String(filters.hasMcapTVLRatio))
+		if (filters.isVolumeGrowing !== undefined) params.set('isVolumeGrowing', String(filters.isVolumeGrowing))
+		if (filters.isRevenueGrowing !== undefined) params.set('isRevenueGrowing', String(filters.isRevenueGrowing))
 	}
 
 	return params.toString()

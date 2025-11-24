@@ -184,7 +184,6 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		holderRevenue_7d: holderRevenue7d,
 		holdersRevenue30d: holderRevenue30d,
 		treasuryRevenue_24h: null,
-		supplySideRevenue_24h: null,
 		feesChange_1d: toPercent(row.fees_1d_pct_change),
 		feesChange_7d: toPercent(row.fees_7d_pct_change),
 		feesChange_1m: toPercent(row.fees_30d_pct_change),

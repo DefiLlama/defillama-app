@@ -84,7 +84,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 			'holderRevenue_24h',
 			'holdersRevenue30d',
 			'treasuryRevenue_24h',
-			'supplySideRevenue_24h',
 			'feesChange_1d',
 			'feesChange_7d',
 			'feesChange_1m'

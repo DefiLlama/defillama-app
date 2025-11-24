@@ -469,7 +469,6 @@ export const getUnifiedTableColumns = (strategyType: 'protocols' | 'chains'): Co
 		createUsdMetricColumn('holderRevenue_7d' as MetricKey, '7d Holder Revenue'),
 		createUsdMetricColumn('holdersRevenue30d' as MetricKey, '30d Holder Revenue'),
 		createUsdMetricColumn('treasuryRevenue_24h' as MetricKey, '24h Treasury Revenue'),
-		createUsdMetricColumn('supplySideRevenue_24h' as MetricKey, '24h Supply-Side Revenue'),
 		createPercentChangeColumn('feesChange_1d' as MetricKey, '1d Fees Change'),
 		createPercentChangeColumn('feesChange_7d' as MetricKey, '7d Fees Change'),
 		createPercentChangeColumn('feesChange_1m' as MetricKey, '30d Fees Change')

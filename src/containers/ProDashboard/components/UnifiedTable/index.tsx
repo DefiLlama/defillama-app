@@ -431,7 +431,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 				onClearFilters={canEditFilters ? handleClearFilters : undefined}
 				filtersEditable={canEditFilters}
 				activeFilterCount={activeFilterCount}
-				onFiltersClick={onEdit ? () => onEdit('strategy') : undefined}
+				onFiltersClick={onEdit ? () => onEdit('filters') : undefined}
 				groupingOptions={headerGroupingOptions}
 				selectedGroupingId={selectedGroupingId}
 				onGroupingChange={canEditGrouping ? handleGroupingChange : undefined}
