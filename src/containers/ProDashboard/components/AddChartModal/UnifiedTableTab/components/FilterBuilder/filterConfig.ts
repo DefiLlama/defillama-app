@@ -516,22 +516,6 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 		booleanKey: 'multiChainOnly'
 	},
 	{
-		id: 'parentProtocolsOnly',
-		label: 'Parent Protocols Only',
-		type: 'boolean',
-		category: 'flags',
-		strategies: ['protocols'],
-		booleanKey: 'parentProtocolsOnly'
-	},
-	{
-		id: 'subProtocolsOnly',
-		label: 'Sub-protocols Only',
-		type: 'boolean',
-		category: 'flags',
-		strategies: ['protocols'],
-		booleanKey: 'subProtocolsOnly'
-	},
-	{
 		id: 'hasVolume',
 		label: 'Has Volume',
 		type: 'boolean',
@@ -618,24 +602,6 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 		category: 'flags',
 		strategies: ['protocols'],
 		booleanKey: 'hasMcapTVLRatio'
-	},
-	{
-		id: 'isVolumeGrowing',
-		label: 'Volume Growing',
-		description: 'DEX volume increased over the past 7 days compared to previous 7 days',
-		type: 'boolean',
-		category: 'flags',
-		strategies: ['protocols'],
-		booleanKey: 'isVolumeGrowing'
-	},
-	{
-		id: 'isRevenueGrowing',
-		label: 'Revenue Growing',
-		description: 'Revenue increased over the past 7 days compared to previous 7 days',
-		type: 'boolean',
-		category: 'flags',
-		strategies: ['protocols'],
-		booleanKey: 'isRevenueGrowing'
 	}
 ]
 

@@ -250,8 +250,6 @@ export interface TableFilters {
 	hasOptions?: boolean
 	hasOpenInterest?: boolean
 	multiChainOnly?: boolean
-	parentProtocolsOnly?: boolean
-	subProtocolsOnly?: boolean
 	hasVolume?: boolean
 	hasFees?: boolean
 	hasRevenue?: boolean
@@ -263,8 +261,6 @@ export interface TableFilters {
 	hasHolderRevenue?: boolean
 	hasTreasuryRevenue?: boolean
 	hasMcapTVLRatio?: boolean
-	isVolumeGrowing?: boolean
-	isRevenueGrowing?: boolean
 	protocolCountMin?: number
 	protocolCountMax?: number
 	pfRatioMin?: number

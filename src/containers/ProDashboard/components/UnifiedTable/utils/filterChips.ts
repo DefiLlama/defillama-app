@@ -187,8 +187,6 @@ export const getActiveFilterChips = (filters?: TableFilters): ActiveFilterChip[]
 	)
 
 	addBooleanChip(chips, clones, 'multiChainOnly', 'Multi-chain only')
-	addBooleanChip(chips, clones, 'parentProtocolsOnly', 'Parent protocols only')
-	addBooleanChip(chips, clones, 'subProtocolsOnly', 'Sub-protocols only')
 	addBooleanChip(chips, clones, 'stablesOnly', 'Stablecoin pools only')
 	addBooleanChip(chips, clones, 'activeLending', 'Active lending pools')
 	addBooleanChip(chips, clones, 'hasRewards', 'Rewards enabled')
@@ -206,8 +204,6 @@ export const getActiveFilterChips = (filters?: TableFilters): ActiveFilterChip[]
 	addBooleanChip(chips, clones, 'hasHolderRevenue', 'Has holder revenue')
 	addBooleanChip(chips, clones, 'hasTreasuryRevenue', 'Has treasury revenue')
 	addBooleanChip(chips, clones, 'hasMcapTVLRatio', 'Has MC/TVL ratio')
-	addBooleanChip(chips, clones, 'isVolumeGrowing', 'Volume growing (7d)')
-	addBooleanChip(chips, clones, 'isRevenueGrowing', 'Revenue growing (7d)')
 
 	return chips
 }

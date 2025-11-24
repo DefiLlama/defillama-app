@@ -218,14 +218,6 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		})
 	}
 
-	if (filters.parentProtocolsOnly) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && !row.parentProtocolId)
-	}
-
-	if (filters.subProtocolsOnly) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && Boolean(row.parentProtocolId))
-	}
-
 	if (filters.hasVolume) {
 		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.volume24h ?? 0) > 0)
 	}
@@ -276,14 +268,6 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		filtered = filtered.filter(
 			(row) => row.strategyType === 'protocols' && row.metrics.mcaptvl !== null && row.metrics.mcaptvl !== undefined
 		)
-	}
-
-	if (filters.isVolumeGrowing) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.volumeChange_7d ?? 0) > 0)
-	}
-
-	if (filters.isRevenueGrowing) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.revenueChange_7d ?? 0) > 0)
 	}
 
 	return filtered
