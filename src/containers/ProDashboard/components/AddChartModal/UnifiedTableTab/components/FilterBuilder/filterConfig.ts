@@ -39,7 +39,7 @@ export const FILTER_CATEGORIES: Array<{ key: FilterCategory; label: string }> = 
 	{ key: 'fees', label: 'Fees' },
 	{ key: 'revenue', label: 'Revenue' },
 	{ key: 'changes', label: 'Changes' },
-	{ key: 'dominance', label: 'Dominance' },
+	{ key: 'dominance', label: 'Share' },
 	{ key: 'aggregators', label: 'Aggregators' },
 	{ key: 'chain-metrics', label: 'Chain Metrics' },
 	{ key: 'flags', label: 'Flags' }
@@ -340,7 +340,7 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 	},
 	{
 		id: 'volumeDominance24h',
-		label: 'Volume Dominance (24h)',
+		label: 'Volume Share (24h)',
 		type: 'numeric-range',
 		category: 'dominance',
 		strategies: ['protocols'],
@@ -373,7 +373,7 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 	},
 	{
 		id: 'perpsVolumeDominance24h',
-		label: 'Perps Volume Dominance (24h)',
+		label: 'Perps Volume Share (24h)',
 		type: 'numeric-range',
 		category: 'dominance',
 		strategies: ['protocols'],
@@ -384,7 +384,7 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 	},
 	{
 		id: 'optionsVolumeDominance24h',
-		label: 'Options Volume Dominance (24h)',
+		label: 'Options Volume Share (24h)',
 		type: 'numeric-range',
 		category: 'dominance',
 		strategies: ['protocols'],

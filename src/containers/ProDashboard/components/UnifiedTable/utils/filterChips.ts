@@ -114,7 +114,7 @@ export const getActiveFilterChips = (filters?: TableFilters): ActiveFilterChip[]
 	addRangeChip(chips, clones, 'baseApyMin', 'baseApyMax', 'Base APY', formatPercent)
 	addRangeChip(chips, clones, 'pfRatioMin', 'pfRatioMax', 'P/F Ratio', formatNumber)
 	addRangeChip(chips, clones, 'protocolCountMin', 'protocolCountMax', 'Protocol Count', formatNumber)
-	addRangeChip(chips, clones, 'volumeDominance24hMin', 'volumeDominance24hMax', '24h Volume Dominance', formatPercent)
+	addRangeChip(chips, clones, 'volumeDominance24hMin', 'volumeDominance24hMax', '24h Volume Share', formatPercent)
 	addRangeChip(chips, clones, 'volumeMarketShare7dMin', 'volumeMarketShare7dMax', '7d Volume Share', formatPercent)
 	addRangeChip(chips, clones, 'tvlShareMin', 'tvlShareMax', 'TVL Share', formatPercent)
 	addRangeChip(
@@ -122,7 +122,7 @@ export const getActiveFilterChips = (filters?: TableFilters): ActiveFilterChip[]
 		clones,
 		'perpsVolumeDominance24hMin',
 		'perpsVolumeDominance24hMax',
-		'Perps Volume Dominance 24h',
+		'Perps Volume Share 24h',
 		formatPercent
 	)
 	addRangeChip(
@@ -130,7 +130,7 @@ export const getActiveFilterChips = (filters?: TableFilters): ActiveFilterChip[]
 		clones,
 		'optionsVolumeDominance24hMin',
 		'optionsVolumeDominance24hMax',
-		'Options Volume Dominance 24h',
+		'Options Volume Share 24h',
 		formatPercent
 	)
 	addRangeChip(chips, clones, 'holderRevenue24hMin', 'holderRevenue24hMax', 'Holder Revenue 24h', formatCurrency)
