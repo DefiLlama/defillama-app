@@ -30,6 +30,8 @@ try {
 
 const fetchJson = async (url) => fetch(url).then((res) => res.json())
 
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
+
 async function pullData() {
 	const endAt = Date.now()
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
@@ -209,5 +211,3 @@ if (shouldPullData()) {
 	console.log('Metadata was pulled recently. No need to pull again.')
 	process.exit(0) // Exit successfully
 }
-
-const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
