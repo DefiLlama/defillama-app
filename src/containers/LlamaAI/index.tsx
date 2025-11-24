@@ -1577,7 +1577,7 @@ const PromptInput = memo(function PromptInput({
 				}}
 			>
 				<div className="overflow-hidden">
-					<div className="relative w-full">
+					<div className="relative w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) focus-within:border-(--old-blue) dark:border-[#222324]">
 						<Ariakit.Combobox
 							store={combobox}
 							autoSelect
@@ -1604,7 +1604,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="relative z-[1] block min-h-[48px] w-full resize-none bg-transparent p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1613,7 +1613,7 @@ const PromptInput = memo(function PromptInput({
 							disabled={isPending && !isStreaming}
 						/>
 						<div
-							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
+							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
 							ref={highlightRef}
 						/>
 					</div>
