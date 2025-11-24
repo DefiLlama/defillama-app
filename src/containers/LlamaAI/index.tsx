@@ -1413,9 +1413,14 @@ const PromptInput = memo(function PromptInput({
 				if (checkPos >= entityIndex && checkPos < entityEnd) {
 					event.preventDefault()
 					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
+
+					// Keep internal state and combobox in sync when we programmatically
+					// remove an entity, otherwise stale value can be re-applied on next input.
 					textarea.value = newValue
+					setValue(newValue)
 					setInputSize(promptInputRef, highlightRef)
 					combobox.setValue('')
+					combobox.hide()
 
 					entitiesRef.current.delete(entityName)
 					entitiesMapRef.current.delete(entityName)
