@@ -205,20 +205,11 @@ interface FilterItemEditorProps {
 	onUpdate: (filter: ActiveFilter) => void
 	onRemove: () => void
 	isEditing: boolean
-	isPending: boolean
 	onStartEdit: () => void
 	onEndEdit: () => void
 }
 
-function FilterItemEditor({
-	filter,
-	onUpdate,
-	onRemove,
-	isEditing,
-	isPending,
-	onStartEdit,
-	onEndEdit
-}: FilterItemEditorProps) {
+function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, onEndEdit }: FilterItemEditorProps) {
 	const { config } = filter
 	const [localValue, setLocalValue] = useState(
 		filter.value?.toString() || filter.minValue?.toString() || filter.maxValue?.toString() || ''
@@ -326,11 +317,6 @@ function FilterItemEditor({
 	const displayValue = buildDisplayValue(filter)
 	const hasValue = filter.value !== undefined || filter.minValue !== undefined || filter.maxValue !== undefined
 	const categoryLabel = CATEGORY_LABELS[config.category]
-	const pendingBadge = isPending ? (
-		<span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-amber-200 uppercase">
-			Pending
-		</span>
-	) : null
 	const categoryBadge = (
 		<span className="rounded-full bg-black/30 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-(--text-tertiary) uppercase">
 			{categoryLabel}
@@ -353,7 +339,6 @@ function FilterItemEditor({
 							</Tooltip>
 						)}
 						{categoryBadge}
-						{pendingBadge}
 					</div>
 					<span className="truncate text-[11px] opacity-80">{displayValue}</span>
 				</div>
@@ -383,7 +368,6 @@ function FilterItemEditor({
 								</Tooltip>
 							)}
 							{categoryBadge}
-							{pendingBadge}
 						</div>
 						<span className="truncate text-[11px] opacity-80">{displayValue}</span>
 					</div>
@@ -403,15 +387,14 @@ function FilterItemEditor({
 		return (
 			<div className={`flex flex-col gap-1.5 rounded-md border p-2 ${colorClass} ${editingEmphasis}`}>
 				<div className="flex items-center justify-between gap-2">
-					<div className="flex items-center gap-1.5">
-						<span className="text-xs font-semibold">{config.label}</span>
+					<div className="flex min-w-0 items-center gap-1.5">
+						<span className="truncate text-xs font-semibold">{config.label}</span>
 						{config.description && (
 							<Tooltip content={config.description} placement="top">
 								<Icon name="circle-help" className="h-3 w-3 opacity-50" />
 							</Tooltip>
 						)}
 						{categoryBadge}
-						{pendingBadge}
 					</div>
 					<button type="button" onClick={onRemove} className="rounded p-0.5 opacity-60 hover:opacity-100">
 						<Icon name="x" className="h-3 w-3" />
@@ -445,10 +428,9 @@ function FilterItemEditor({
 	return (
 		<div className={`flex flex-col gap-1.5 rounded-md border p-2 ${colorClass} ${editingEmphasis}`}>
 			<div className="flex items-center justify-between gap-2">
-				<div className="flex items-center gap-1.5">
-					<span className="text-xs font-semibold">{config.label}</span>
+				<div className="flex min-w-0 items-center gap-1.5">
+					<span className="truncate text-xs font-semibold">{config.label}</span>
 					{categoryBadge}
-					{pendingBadge}
 				</div>
 				<button type="button" onClick={onRemove} className="rounded p-0.5 opacity-60 hover:opacity-100">
 					<Icon name="x" className="h-3 w-3" />
@@ -824,11 +806,6 @@ export function FilterBuilder({ strategy, filters, onFiltersChange }: FilterBuil
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-medium text-(--text-secondary)">Active ({allActiveFilters.length})</span>
-						{pendingFilters.length > 0 && (
-							<span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-amber-200 uppercase">
-								{pendingFilters.length} pending
-							</span>
-						)}
 					</div>
 					{allActiveFilters.length > 0 && (
 						<button
@@ -859,7 +836,6 @@ export function FilterBuilder({ strategy, filters, onFiltersChange }: FilterBuil
 									onUpdate={handleUpdateFilter}
 									onRemove={() => handleRemoveFilter(filter.config.id)}
 									isEditing={isEditing}
-									isPending={isPending}
 									onStartEdit={() => setEditingFilterId(filter.config.id)}
 									onEndEdit={() => setEditingFilterId(null)}
 								/>
