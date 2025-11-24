@@ -1321,7 +1321,7 @@ const PromptInput = memo(function PromptInput({
 	initialValue?: string
 	placeholder: string
 }) {
-	const [value, setValue] = useState('')
+	const [value, setValue] = useState(initialValue ?? '')
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
@@ -1343,7 +1343,7 @@ const PromptInput = memo(function PromptInput({
 	// the textarea value have shifted the trigger character.
 	useEffect(() => {
 		combobox.render()
-	}, [combobox, value])
+	}, [combobox])
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -1353,6 +1353,7 @@ const PromptInput = memo(function PromptInput({
 	}, [combobox])
 
 	const getFinalEntities = () => {
+		const currentValue = promptInputRef.current?.value ?? ''
 		return Array.from(entitiesRef.current)
 			.map((name) => {
 				const data = entitiesMapRef.current.get(name)
@@ -1362,7 +1363,7 @@ const PromptInput = memo(function PromptInput({
 					slug: data.id
 				}
 			})
-			.filter((entity) => entity !== null && value.includes(entity.term)) as Array<{
+			.filter((entity) => entity !== null && currentValue.includes(entity.term)) as Array<{
 			term: string
 			slug: string
 		}>
@@ -1372,9 +1373,15 @@ const PromptInput = memo(function PromptInput({
 		setValue('')
 		combobox.setValue('')
 		combobox.hide()
+		const textarea = promptInputRef.current
+		if (textarea) {
+			textarea.value = ''
+			textarea.style.height = ''
+		}
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = ''
 			highlightRef.current.textContent = ''
+			highlightRef.current.style.height = ''
 		}
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
@@ -1406,7 +1413,8 @@ const PromptInput = memo(function PromptInput({
 				if (checkPos >= entityIndex && checkPos < entityEnd) {
 					event.preventDefault()
 					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
-					setValue(newValue)
+					textarea.value = newValue
+					setInputSize(promptInputRef, highlightRef)
 					combobox.setValue('')
 
 					entitiesRef.current.delete(entityName)
@@ -1460,10 +1468,11 @@ const PromptInput = memo(function PromptInput({
 
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		if (promptInputRef.current) {
-			setInputSize(event, promptInputRef, highlightRef)
+			setInputSize(promptInputRef, highlightRef)
 		}
 
 		const currentValue = event.target.value
+		setValue(currentValue)
 
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
@@ -1472,7 +1481,6 @@ const PromptInput = memo(function PromptInput({
 		// Skip trigger logic if this is a programmatic update (e.g., after item selection)
 		if (isProgrammaticUpdateRef.current) {
 			isProgrammaticUpdateRef.current = false
-			setValue(event.target.value)
 			return
 		}
 
@@ -1485,9 +1493,6 @@ const PromptInput = memo(function PromptInput({
 		// Prepend $ to searchValue if trigger is $, so useGetEntities can detect it
 		// Always prepend $ when trigger is $, even if searchValue already starts with $
 		const searchValueWithTrigger = actualTrigger === '$' ? `$${searchValue}` : searchValue
-
-		// Sets our textarea value.
-		setValue(event.target.value)
 
 		// Only show combobox if there's a valid trigger offset (@ is isolated) and search value
 		// This prevents showing combobox in emails like "test@gmail.com"
@@ -1526,12 +1531,16 @@ const PromptInput = memo(function PromptInput({
 				entitiesMapRef.current.set(name, { id, name, type })
 
 				const getNewValue = replaceValue(offset, searchValue, name)
-				const newValue = getNewValue(value)
+				const newValue = getNewValue(textarea.value)
 
 				// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
 				combobox.setValue('')
 				combobox.hide()
 
+				// Mark this as a programmatic update so onChange doesn't re-run trigger logic
+				isProgrammaticUpdateRef.current = true
+				textarea.value = newValue
+				setInputSize(promptInputRef, highlightRef)
 				setValue(newValue)
 
 				if (highlightRef.current) {
@@ -1545,7 +1554,7 @@ const PromptInput = memo(function PromptInput({
 			},
 		// promptInputRef, highlightRef, entitiesRef, entitiesMapRef, isProgrammaticUpdateRef are stable refs
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[combobox, searchValue, value]
+		[combobox, searchValue]
 	)
 
 	return (
@@ -1590,7 +1599,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="block min-h-[48px] w-full resize-none rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -2336,42 +2345,31 @@ function syncHighlightScroll(promptInputRef, highlightRef) {
 	}
 }
 
-function setInputSize(event, promptInputRef, highlightRef) {
+function setInputSize(promptInputRef, highlightRef) {
 	try {
-		// Calculate rows based on newlines and character length
-		const text = event.target.value
-		const textarea = promptInputRef.current
-		const lineBreaks = (text.match(/\n/g) || []).length
+		const textarea = promptInputRef?.current
+		if (!textarea) return
 
-		// Calculate actual characters per line based on container width
+		// Use scrollHeight-based auto-resize with a soft max height (~5 lines)
 		const style = window.getComputedStyle(textarea)
-		const paddingLeft = parseFloat(style.paddingLeft)
-		const paddingRight = parseFloat(style.paddingRight)
-		const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-		const fontSize = parseFloat(style.fontSize)
-		// Average character width is approximately 0.6 of font size for monospace-like text
-		const avgCharWidth = fontSize * 0.5
-		const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+		const lineHeight = parseFloat(style.lineHeight || '') || parseFloat(style.fontSize || '16') * 1.5
+		const paddingTop = parseFloat(style.paddingTop || '0')
+		const paddingBottom = parseFloat(style.paddingBottom || '0')
+		const maxRows = 5
+		const maxHeight = lineHeight * maxRows + paddingTop + paddingBottom
 
-		const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-		const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+		textarea.style.height = 'auto'
+		const nextHeight = Math.min(textarea.scrollHeight, maxHeight)
+		textarea.style.height = `${nextHeight}px`
 
-		// Set rows with minimum 1 and maximum 5
-		promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-
-		// Sync highlightRef height and scroll to match textarea exactly
 		if (highlightRef?.current) {
-			// Use requestAnimationFrame to ensure DOM has updated after rows change
 			requestAnimationFrame(() => {
-				if (textarea && highlightRef.current) {
-					const textareaHeight = textarea.offsetHeight
-					highlightRef.current.style.height = `${textareaHeight}px`
-					// Sync scroll position
-					syncHighlightScroll(promptInputRef, highlightRef)
-				}
+				if (!textarea || !highlightRef.current) return
+				highlightRef.current.style.height = `${textarea.offsetHeight}px`
+				syncHighlightScroll(promptInputRef, highlightRef)
 			})
 		}
 	} catch (error) {
-		console.log('Error calculating rows:', error)
+		console.log('Error calculating size:', error)
 	}
 }
