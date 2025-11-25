@@ -502,11 +502,11 @@ export async function getBridgePageDatanew(bridge: string) {
 				}, [])
 			}
 
-			const tokenDeposits = preparePieChartData({
+			tokenDeposits = preparePieChartData({
 				data: fullTokenDeposits,
 				limit: 15
 			})
-			const tokenWithdrawals = preparePieChartData({
+			tokenWithdrawals = preparePieChartData({
 				data: fullTokenWithdrawals,
 				limit: 15
 			})
