@@ -10,6 +10,20 @@ import {
 	toPercent
 } from './utils'
 
+export interface ChainMetrics {
+	bridgedTvl: number | null
+	stablesMcap: number | null
+	tvlShare: number | null
+	stablesShare: number | null
+	volume24hShare: number | null
+	protocolCount: number | null
+}
+
+export interface ProtocolsTableResult {
+	rows: NormalizedRow[]
+	chainMetrics?: Record<string, ChainMetrics>
+}
+
 type ProtocolAggregateRow = {
 	protocol: string
 	protocol_category: string | null
@@ -113,12 +127,16 @@ const totalsPromise = llamaDb.one<{
 `
 )
 
-export async function fetchProtocolsTable(options: ProtocolQueryOptions): Promise<NormalizedRow[]> {
+export async function fetchProtocolsTable(options: ProtocolQueryOptions): Promise<ProtocolsTableResult> {
 	const chainFilters = extractChainFilters(options.config)
 	const totals = await totalsPromise
 	const shouldExplodeByChain = options.rowHeaders.includes('chain') || chainFilters.length > 0
 	if (shouldExplodeByChain) {
-		return fetchProtocolChainRows(chainFilters, totals)
+		const [rows, chainMetrics] = await Promise.all([
+			fetchProtocolChainRows(chainFilters, totals),
+			fetchChainMetricsForGrouping(chainFilters, totals)
+		])
+		return { rows, chainMetrics }
 	}
 	const [parentRows, childRows] = await Promise.all([
 		fetchProtocolAggregateRows(chainFilters, totals),
@@ -142,7 +160,7 @@ export async function fetchProtocolsTable(options: ProtocolQueryOptions): Promis
 		}
 	}
 
-	return Array.from(uniqueRows.values())
+	return { rows: Array.from(uniqueRows.values()) }
 }
 
 const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof totalsPromise>): NumericMetrics => {
@@ -257,7 +275,6 @@ const buildBaseRow = (
 		parentProtocolId: options.parentSlug ?? null,
 		parentProtocolName: parentDisplayName,
 		parentProtocolLogo: options.parentSlug ? resolveLogoUrl(options.parentSlug) : null,
-		strategyType: 'protocols',
 		metrics,
 		chain: null,
 		original: {
@@ -810,4 +827,72 @@ const fetchSubProtocolsByChain = async (
 			metrics: baseMetricsMapping(row, totals)
 		}
 	})
+}
+
+type ChainMetricsRow = {
+	chain: string
+	protocol_count: number | null
+	tvl_base: number | null
+	volume_dexs_1d: number | null
+	bridged_tvl: number | null
+	stables_mcap: number | null
+}
+
+const fetchChainMetricsForGrouping = async (
+	chainFilters: string[],
+	totals: Awaited<typeof totalsPromise>
+): Promise<Record<string, ChainMetrics>> => {
+	const conditions: string[] = []
+	const values: any[] = []
+
+	if (chainFilters.length) {
+		conditions.push(`lower(mc.chain) = ANY($${values.length + 1})`)
+		values.push(chainFilters)
+	}
+
+	const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+
+	const totalStables = await llamaDb.oneOrNone<{ total: number | null }>(
+		`SELECT SUM(mcap) AS total FROM lens.stablecoin_supply_current`
+	)
+
+	const rows = await llamaDb.any<ChainMetricsRow>(
+		`
+		SELECT
+			mc.chain,
+			mc.protocol_count,
+			mc.tvl_base,
+			mc.volume_dexs_1d,
+			COALESCE(bridged_data.bridged_tvl, NULL) AS bridged_tvl,
+			COALESCE(stables_data.stables_mcap, NULL) AS stables_mcap
+		FROM lens.metrics_chain_current mc
+		LEFT JOIN LATERAL (
+			SELECT SUM(tvl) AS bridged_tvl
+			FROM lens.bridged_token_tvl_current b
+			WHERE b.chain = mc.chain
+		) bridged_data ON TRUE
+		LEFT JOIN LATERAL (
+			SELECT SUM(mcap) AS stables_mcap
+			FROM lens.stablecoin_supply_current s
+			WHERE s.chain = mc.chain
+		) stables_data ON TRUE
+		${whereClause}
+		`,
+		values
+	)
+
+	const result: Record<string, ChainMetrics> = {}
+	for (const row of rows) {
+		const chainSlug = row.chain?.toLowerCase().replace(/\s+/g, '-') ?? 'unknown'
+		result[chainSlug] = {
+			bridgedTvl: row.bridged_tvl ?? null,
+			stablesMcap: row.stables_mcap ?? null,
+			tvlShare: computeShare(row.tvl_base, totals.tvl_base),
+			stablesShare: computeShare(row.stables_mcap, totalStables?.total),
+			volume24hShare: computeShare(row.volume_dexs_1d, totals.volume_dexs_1d),
+			protocolCount: row.protocol_count ?? null
+		}
+	}
+
+	return result
 }

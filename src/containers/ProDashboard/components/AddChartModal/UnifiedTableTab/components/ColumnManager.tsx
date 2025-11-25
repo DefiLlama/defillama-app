@@ -26,7 +26,6 @@ import { isColumnSupported } from '~/containers/ProDashboard/components/UnifiedT
 import type { MetricGroup } from '~/containers/ProDashboard/components/UnifiedTable/types'
 
 interface ColumnManagerProps {
-	strategyType: 'protocols' | 'chains'
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 	onChange: (columnOrder: ColumnOrderState, columnVisibility: VisibilityState) => void
@@ -94,10 +93,9 @@ const getColumnMeta = (id: string): ColumnMeta | null => {
 	}
 }
 
-const buildAllColumns = (strategyType: 'protocols' | 'chains'): ColumnMeta[] => {
+const buildAllColumns = (): ColumnMeta[] => {
 	const dictionaryMetas = UNIFIED_TABLE_COLUMN_DICTIONARY.filter((column) => {
-		if (column.strategies && !column.strategies.includes(strategyType)) return false
-		if (!isColumnSupported(column.id, strategyType)) return false
+		if (!isColumnSupported(column.id)) return false
 		return true
 	})
 		.map(({ id }) => getColumnMeta(id))
@@ -106,7 +104,7 @@ const buildAllColumns = (strategyType: 'protocols' | 'chains'): ColumnMeta[] => 
 	return [NAME_COLUMN, ...dictionaryMetas]
 }
 
-export function ColumnManager({ strategyType, columnOrder, columnVisibility, onChange }: ColumnManagerProps) {
+export function ColumnManager({ columnOrder, columnVisibility, onChange }: ColumnManagerProps) {
 	const [search, setSearch] = useState('')
 	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
 	const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
@@ -115,7 +113,7 @@ export function ColumnManager({ strategyType, columnOrder, columnVisibility, onC
 	const [selectedCheckboxIds, setSelectedCheckboxIds] = useState<Set<string>>(new Set())
 	const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null)
 
-	const allColumns = useMemo(() => buildAllColumns(strategyType), [strategyType])
+	const allColumns = useMemo(() => buildAllColumns(), [])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((column) => column.id)), [allColumns])
 
 	const visibleSet = useMemo(() => {

@@ -170,18 +170,10 @@ export const UnifiedTable = memo(function UnifiedTable({
 	const [sortingState, setSortingState] = useState<SortingState>(normalizeSorting(config.defaultSorting))
 	const hydratingRef = useRef(false)
 	const canEditFilters = !previewMode && !isReadOnly
-	const resolvedRowHeaders = useMemo(
-		() => sanitizeRowHeaders(getDefaultRowHeaders(config), config.strategyType),
-		[config]
-	)
+	const resolvedRowHeaders = useMemo(() => sanitizeRowHeaders(getDefaultRowHeaders(config)), [config])
 	const filterChips = useMemo(() => getActiveFilterChips(config.filters), [config.filters])
 	const activeFilterCount = filterChips.length
-	const groupingOptions = useMemo<RowGroupingOption[]>(() => {
-		if (config.strategyType !== 'protocols') {
-			return []
-		}
-		return PROTOCOL_GROUPING_OPTIONS
-	}, [config.strategyType])
+	const groupingOptions = useMemo<RowGroupingOption[]>(() => PROTOCOL_GROUPING_OPTIONS, [])
 	const canEditGrouping = !previewMode && !isReadOnly && groupingOptions.length > 0
 	const groupingOptionMap = useMemo(() => {
 		return new Map(groupingOptions.map((option) => [option.id, option]))
@@ -217,7 +209,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!previewMode) {
 			setColumnOrderState(getDefaultColumnOrder(config))
 		}
-	}, [config.strategyType, config.columnOrder, previewMode])
+	}, [config.columnOrder, previewMode])
 
 	useEffect(() => {
 		if (!previewMode) {
@@ -348,11 +340,11 @@ export const UnifiedTable = memo(function UnifiedTable({
 			if (!option) {
 				return
 			}
-			const normalizedHeaders = sanitizeRowHeaders(option.headers, config.strategyType)
+			const normalizedHeaders = sanitizeRowHeaders(option.headers)
 			const nextVisibility = applyRowHeaderVisibilityRules(normalizedHeaders, { ...columnVisibilityState })
 			persistConfigChanges({ rowHeaders: normalizedHeaders, columnVisibility: nextVisibility })
 		},
-		[columnVisibilityState, config.strategyType, groupingOptionMap, persistConfigChanges]
+		[columnVisibilityState, groupingOptionMap, persistConfigChanges]
 	)
 
 	const handleExportClick = () => {
@@ -365,7 +357,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 
 		const csvRows = unifiedTable.leafRows.map((row) => leafColumns.map((column) => toCsvValue(column.id, row)))
 
-		downloadCSV(`unified-table-${config.strategyType}.csv`, [headers, ...csvRows])
+		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
 	}
 
 	const handleCsvClick = () => {
@@ -373,27 +365,17 @@ export const UnifiedTable = memo(function UnifiedTable({
 		handleExportClick()
 	}
 
-	const title = useMemo(
-		() => (config.strategyType === 'chains' ? 'Chains overview' : 'Protocols overview'),
-		[config.strategyType]
-	)
+	const title = 'Protocols overview'
 	const scopeDescription = useMemo(() => {
-		if (config.strategyType === 'protocols') {
-			const selectedChains = (config.params?.chains ?? []).filter((value): value is string => Boolean(value))
-			if (!selectedChains.length || selectedChains.includes('All')) {
-				return 'Scope: All chains'
-			}
-			if (selectedChains.length <= 3) {
-				return `Scope: ${selectedChains.join(', ')}`
-			}
-			return `Scope: ${selectedChains.length} chains`
+		const selectedChains = (config.params?.chains ?? []).filter((value): value is string => Boolean(value))
+		if (!selectedChains.length || selectedChains.includes('All')) {
+			return 'Scope: All chains'
 		}
-		const category = config.params?.category
-		if (!category || category === 'All' || category === null) {
-			return 'Scope: All categories'
+		if (selectedChains.length <= 3) {
+			return `Scope: ${selectedChains.join(', ')}`
 		}
-		return `Scope: ${category}`
-	}, [config.params, config.strategyType])
+		return `Scope: ${selectedChains.length} chains`
+	}, [config.params?.chains])
 	const rowHeadersSummary = useMemo(() => {
 		if (!resolvedRowHeaders.length) {
 			return null

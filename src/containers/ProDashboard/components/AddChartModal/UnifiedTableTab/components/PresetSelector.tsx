@@ -1,12 +1,11 @@
 import { useMemo } from 'react'
 import { Tooltip } from '~/components/Tooltip'
-import type { TableFilters, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import type { TableFilters } from '~/containers/ProDashboard/types'
 import type { FilterPreset } from '../presets/filterPresets'
 import { CORE_FILTER_PRESETS } from '../presets/filterPresets'
 
 interface PresetSelectorProps {
 	currentFilters: TableFilters
-	strategyType: UnifiedTableConfig['strategyType']
 	onApplyPreset: (preset: FilterPreset) => void
 }
 
@@ -28,15 +27,15 @@ const filtersEqual = (current: TableFilters, presetFilters: Partial<TableFilters
 	})
 }
 
-export function PresetSelector({ currentFilters, strategyType, onApplyPreset }: PresetSelectorProps) {
+export function PresetSelector({ currentFilters, onApplyPreset }: PresetSelectorProps) {
 	const availablePresets = useMemo(() => {
 		return CORE_FILTER_PRESETS.filter((preset) => {
-			if (preset.strategyType && preset.strategyType !== strategyType && preset.strategyType !== 'both') {
+			if (preset.strategyType && preset.strategyType !== 'protocols' && preset.strategyType !== 'both') {
 				return false
 			}
 			return true
 		})
-	}, [strategyType])
+	}, [])
 
 	if (!availablePresets.length) {
 		return null

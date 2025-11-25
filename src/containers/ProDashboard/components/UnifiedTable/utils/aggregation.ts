@@ -77,16 +77,6 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		;(aggregated as any)[key] = seen[key] ? (totals[key] ?? null) : null
 	}
 
-	const firstChainMcap = rows.length > 0 ? rows[0]?.metrics?.chainMcap : null
-	const allHaveSameChainMcap =
-		firstChainMcap !== null &&
-		firstChainMcap !== undefined &&
-		rows.every((row) => row.metrics?.chainMcap === firstChainMcap)
-
-	if (allHaveSameChainMcap && firstChainMcap !== null) {
-		aggregated.mcap = firstChainMcap
-	}
-
 	type WeightedChange = {
 		changeKey: keyof NumericMetrics
 		weightKey: keyof NumericMetrics

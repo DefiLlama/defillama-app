@@ -326,7 +326,6 @@ export interface ProtocolsTableConfig {
 export interface UnifiedTableConfig {
 	id: string
 	kind: 'unified-table'
-	strategyType: 'protocols' | 'chains'
 	rowHeaders: UnifiedRowHeaderType[]
 	defaultSorting?: Array<{ id: string; desc: boolean }>
 	params?: {

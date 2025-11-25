@@ -3,13 +3,7 @@ import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { sanitizeConfigColumns } from '../config/metricCapabilities'
 import type { UnifiedTablePreset } from '../config/PresetRegistry'
 import { UNIFIED_TABLE_PRESETS_BY_ID } from '../config/PresetRegistry'
-import {
-	DEFAULT_CHAINS_ROW_HEADERS,
-	DEFAULT_COLUMN_VISIBILITY,
-	DEFAULT_PROTOCOLS_ROW_HEADERS,
-	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY,
-	DEFAULT_UNIFIED_TABLE_SORTING
-} from '../constants'
+import { DEFAULT_COLUMN_ORDER, DEFAULT_COLUMN_VISIBILITY, DEFAULT_ROW_HEADERS, DEFAULT_UNIFIED_TABLE_SORTING } from '../constants'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
 
 export function getDefaultColumnOrder(config: UnifiedTableConfig, fallbackPreset?: UnifiedTablePreset): string[] {
@@ -20,15 +14,13 @@ export function getDefaultColumnOrder(config: UnifiedTableConfig, fallbackPreset
 	} else if (fallbackPreset) {
 		order = [...fallbackPreset.columnOrder]
 	} else {
-		const defaults = DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY[config.strategyType]
-		order = [...defaults]
+		order = [...DEFAULT_COLUMN_ORDER]
 	}
 
 	const sanitized = sanitizeConfigColumns({
 		order,
 		visibility: {},
-		sorting: [],
-		strategy: config.strategyType
+		sorting: []
 	})
 
 	return sanitized.order
@@ -54,8 +46,7 @@ export function getDefaultColumnVisibility(
 	const sanitized = sanitizeConfigColumns({
 		order: [],
 		visibility,
-		sorting: [],
-		strategy: config.strategyType
+		sorting: []
 	})
 
 	return sanitized.visibility
@@ -73,7 +64,7 @@ export function getDefaultRowHeaders(
 		return [...(fallbackPreset.rowHeaders as UnifiedRowHeaderType[])]
 	}
 
-	return config.strategyType === 'chains' ? [...DEFAULT_CHAINS_ROW_HEADERS] : [...DEFAULT_PROTOCOLS_ROW_HEADERS]
+	return [...DEFAULT_ROW_HEADERS]
 }
 
 export function normalizeSorting(sorting?: Array<{ id: string; desc?: boolean }>): SortingState {
@@ -109,16 +100,15 @@ export interface ApplyPresetOptions {
 	mergeWithDefaults?: boolean
 }
 
-export function applyPresetToConfig(options: ApplyPresetOptions & { strategyType: 'protocols' | 'chains' }): {
+export function applyPresetToConfig(options: ApplyPresetOptions): {
 	columnOrder: string[]
 	columnVisibility: VisibilityState
 	sorting: SortingState
 	rowHeaders: UnifiedRowHeaderType[]
 } {
-	const { preset, includeRowHeaderRules = true, mergeWithDefaults = true, strategyType } = options
+	const { preset, includeRowHeaderRules = true, mergeWithDefaults = true } = options
 
-	// Sanitize row headers to enforce ordering rules (e.g., protocol last)
-	const rowHeaders = sanitizeRowHeaders([...(preset.rowHeaders as UnifiedRowHeaderType[])], options.strategyType)
+	const rowHeaders = sanitizeRowHeaders([...(preset.rowHeaders as UnifiedRowHeaderType[])])
 
 	let columnVisibility = mergeWithDefaults
 		? { ...DEFAULT_COLUMN_VISIBILITY, ...preset.columnVisibility }
@@ -127,8 +117,7 @@ export function applyPresetToConfig(options: ApplyPresetOptions & { strategyType
 	const sanitized = sanitizeConfigColumns({
 		order: [...preset.columnOrder],
 		visibility: columnVisibility,
-		sorting: normalizeSorting(preset.defaultSorting),
-		strategy: strategyType
+		sorting: normalizeSorting(preset.defaultSorting)
 	})
 
 	if (includeRowHeaderRules) {
@@ -145,7 +134,6 @@ export function applyPresetToConfig(options: ApplyPresetOptions & { strategyType
 
 export interface InitializeConfigOptions {
 	existingConfig?: Partial<UnifiedTableConfig>
-	strategyType: 'protocols' | 'chains'
 	presetId?: string
 	includeDefaults?: boolean
 }
@@ -157,16 +145,15 @@ export function initializeUnifiedTableConfig(options: InitializeConfigOptions): 
 	rowHeaders: UnifiedRowHeaderType[]
 	activePresetId: string
 } {
-	const { existingConfig, strategyType, presetId, includeDefaults = true } = options
+	const { existingConfig, presetId, includeDefaults = true } = options
 
-	const fallbackPresetId = strategyType === 'chains' ? 'chains-essential' : 'essential-protocols'
+	const fallbackPresetId = 'essential-protocols'
 	const resolvedPresetId = presetId || existingConfig?.activePresetId || fallbackPresetId
 	const preset = UNIFIED_TABLE_PRESETS_BY_ID.get(resolvedPresetId) || UNIFIED_TABLE_PRESETS_BY_ID.get(fallbackPresetId)!
 
 	const config: UnifiedTableConfig = {
 		id: existingConfig?.id || '',
 		kind: 'unified-table',
-		strategyType,
 		...existingConfig,
 		rowHeaders: existingConfig?.rowHeaders || []
 	}
@@ -187,8 +174,7 @@ export function initializeUnifiedTableConfig(options: InitializeConfigOptions): 
 	const sanitized = sanitizeConfigColumns({
 		order: columnOrder,
 		visibility: baseVisibility,
-		sorting,
-		strategy: strategyType
+		sorting
 	})
 
 	const columnVisibility = applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility)

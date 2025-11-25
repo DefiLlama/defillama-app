@@ -2,64 +2,55 @@ import type { SortingState, VisibilityState } from '@tanstack/react-table'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './ColumnDictionary'
 
 const ALWAYS_INCLUDE = new Set(['name'])
-const CAPABILITIES_CACHE = new Map<'protocols' | 'chains', Set<string>>()
+let CAPABILITIES_CACHE: Set<string> | null = null
 
-export function getCapabilitiesFromDictionary(strategy: 'protocols' | 'chains'): Set<string> {
-	const cached = CAPABILITIES_CACHE.get(strategy)
-	if (cached) return cached
+export function getCapabilitiesFromDictionary(): Set<string> {
+	if (CAPABILITIES_CACHE) return CAPABILITIES_CACHE
 
-	const ids = UNIFIED_TABLE_COLUMN_DICTIONARY
-		.filter((column) => !column.strategies || column.strategies.includes(strategy))
-		.map((column) => column.id)
-
+	const ids = UNIFIED_TABLE_COLUMN_DICTIONARY.map((column) => column.id)
 	const capabilities = new Set<string>([...ALWAYS_INCLUDE, ...ids])
-	CAPABILITIES_CACHE.set(strategy, capabilities)
+	CAPABILITIES_CACHE = capabilities
 	return capabilities
 }
 
-export function getCapabilities(strategy: 'protocols' | 'chains'): Set<string> {
-	return new Set(getCapabilitiesFromDictionary(strategy))
+export function getCapabilities(): Set<string> {
+	return new Set(getCapabilitiesFromDictionary())
 }
 
-export function isColumnSupported(id: string, strategy: 'protocols' | 'chains'): boolean {
-	return getCapabilitiesFromDictionary(strategy).has(id)
+export function isColumnSupported(id: string): boolean {
+	return getCapabilitiesFromDictionary().has(id)
 }
 
-export function filterByCapabilities(ids: string[], strategy: 'protocols' | 'chains'): string[] {
-	return ids.filter((id) => isColumnSupported(id, strategy))
+export function filterByCapabilities(ids: string[]): string[] {
+	return ids.filter((id) => isColumnSupported(id))
 }
 
-export function pruneVisibility(
-	visibility: VisibilityState | undefined,
-	strategy: 'protocols' | 'chains'
-): VisibilityState {
+export function pruneVisibility(visibility: VisibilityState | undefined): VisibilityState {
 	if (!visibility) return {}
-	return Object.fromEntries(Object.entries(visibility).filter(([key]) => isColumnSupported(key, strategy)))
+	return Object.fromEntries(Object.entries(visibility).filter(([key]) => isColumnSupported(key)))
 }
 
-export function sanitizeSorting(sorting: SortingState | undefined, strategy: 'protocols' | 'chains'): SortingState {
+export function sanitizeSorting(sorting: SortingState | undefined): SortingState {
 	if (!sorting) return []
-	return sorting.filter((sort) => isColumnSupported(sort.id, strategy))
+	return sorting.filter((sort) => isColumnSupported(sort.id))
 }
 
 export function sanitizeConfigColumns({
 	order,
 	visibility,
-	sorting,
-	strategy
+	sorting
 }: {
 	order: string[]
 	visibility?: VisibilityState
 	sorting?: SortingState
-	strategy: 'protocols' | 'chains'
 }): {
 	order: string[]
 	visibility: VisibilityState
 	sorting: SortingState
 } {
 	return {
-		order: filterByCapabilities(order, strategy),
-		visibility: pruneVisibility(visibility, strategy),
-		sorting: sanitizeSorting(sorting, strategy)
+		order: filterByCapabilities(order),
+		visibility: pruneVisibility(visibility),
+		sorting: sanitizeSorting(sorting)
 	}
 }

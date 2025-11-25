@@ -5,9 +5,7 @@ import { useUnifiedTableWizard } from './hooks/useUnifiedTableWizard'
 
 interface WizardContextValue {
 	state: {
-		strategyType: UnifiedTableConfig['strategyType']
 		chains: string[]
-		category: string | null
 		rowHeaders: UnifiedRowHeaderType[]
 		filters: TableFilters
 		activePresetId: string
@@ -23,17 +21,12 @@ const WizardContext = createContext<WizardContextValue | null>(null)
 
 export const UnifiedTableWizardProvider = ({
 	children,
-	initialStrategy,
-	initialPresetId,
 	initialConfig
 }: {
 	children: React.ReactNode
-	initialStrategy?: UnifiedTableConfig['strategyType']
-	initialPresetId?: string
 	initialConfig?: UnifiedTableConfig | null
 }) => {
-	const resolvedStrategy = initialStrategy ?? initialConfig?.strategyType ?? 'protocols'
-	const wizard = useUnifiedTableWizard(resolvedStrategy, initialPresetId, initialConfig ?? undefined)
+	const wizard = useUnifiedTableWizard(initialConfig?.activePresetId, initialConfig ?? undefined)
 
 	return <WizardContext.Provider value={wizard}>{children}</WizardContext.Provider>
 }

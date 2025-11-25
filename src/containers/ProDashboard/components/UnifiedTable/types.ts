@@ -102,7 +102,6 @@ export interface NumericMetrics {
 export interface NormalizedRow {
 	id: string
 	name: string
-	strategyType: UnifiedTableConfig['strategyType']
 	protocolId?: string
 	displayName?: string
 	logo?: string | null

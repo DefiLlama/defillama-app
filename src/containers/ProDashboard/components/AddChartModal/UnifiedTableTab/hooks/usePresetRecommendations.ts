@@ -1,27 +1,18 @@
 import { useMemo } from 'react'
 import { UNIFIED_TABLE_PRESETS_BY_ID } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
-import type { TableFilters, UnifiedTableConfig } from '~/containers/ProDashboard/types'
-
-type StrategyType = UnifiedTableConfig['strategyType']
+import type { TableFilters } from '~/containers/ProDashboard/types'
 
 interface UsePresetRecommendationsProps {
-	strategyType: StrategyType
 	filters: TableFilters
 	chains: string[]
-	category: string | null
 }
 
-export function usePresetRecommendations({
-	strategyType,
-	filters,
-	chains,
-	category
-}: UsePresetRecommendationsProps) {
+export function usePresetRecommendations({ filters, chains }: UsePresetRecommendationsProps) {
 	return useMemo(() => {
 		const ids = new Set<string>()
 		const addPreset = (presetId: string) => {
 			const preset = UNIFIED_TABLE_PRESETS_BY_ID.get(presetId)
-			if (!preset || preset.strategyType !== strategyType) return
+			if (!preset) return
 			ids.add(presetId)
 		}
 
@@ -36,7 +27,6 @@ export function usePresetRecommendations({
 		const normalizedProtocols = protocolFilters.map(normalizeValue)
 
 		const normalizedChains = chains.map(normalizeValue)
-		const selectedCategory = category ? normalizeValue(category) : null
 
 		const hasOracles = Array.isArray(filters.oracles) && filters.oracles.length > 0
 		const hasRewards = Boolean(filters.hasRewards)
@@ -101,91 +91,54 @@ export function usePresetRecommendations({
 			}
 		]
 
-		const CHAIN_KEYWORD_PRESETS: Record<string, string[]> = {
-			evm: ['chains-growth'],
-			'layer 2': ['chains-growth', 'chains-fees'],
-			rollup: ['chains-growth', 'chains-fees'],
-			parachain: ['chains-growth'],
-			cosmos: ['chains-fees']
-		}
+		addPreset('essential-protocols')
+		addPreset('growth-protocols')
+		addPreset('fees-protocols')
+		addPreset('revenue-protocols')
 
-		if (strategyType === 'protocols') {
-			addPreset('essential-protocols')
-			addPreset('growth-protocols')
-			addPreset('fees-protocols')
-			addPreset('revenue-protocols')
-
-			combinedCategories.forEach((categoryValue) => {
-				Object.entries(CATEGORY_PRESET_MAP).forEach(([matchKey, presets]) => {
-					if (categoryValue.includes(matchKey)) {
-						presets.forEach(addPreset)
-					}
-				})
-			})
-
-			PROTOCOL_KEYWORD_PRESETS.forEach(({ keywords, presets }) => {
-				if (keywords.some((keyword) => normalizedProtocols.some((protocol) => protocol.includes(keyword)))) {
+		combinedCategories.forEach((categoryValue) => {
+			Object.entries(CATEGORY_PRESET_MAP).forEach(([matchKey, presets]) => {
+				if (categoryValue.includes(matchKey)) {
 					presets.forEach(addPreset)
 				}
 			})
+		})
 
-			if (normalizedCategorySet.has('dex aggregator')) {
-				addPreset('aggregators-protocols')
+		PROTOCOL_KEYWORD_PRESETS.forEach(({ keywords, presets }) => {
+			if (keywords.some((keyword) => normalizedProtocols.some((protocol) => protocol.includes(keyword)))) {
+				presets.forEach(addPreset)
 			}
+		})
 
-			if (normalizedCategorySet.has('options') || normalizedCategorySet.has('exotic options')) {
-				addPreset('options-protocols')
-			}
+		if (normalizedCategorySet.has('dex aggregator')) {
+			addPreset('aggregators-protocols')
+		}
 
-			if (normalizedCategorySet.has('bridge aggregator')) {
-				addPreset('bridge-aggregators-protocols')
-			}
+		if (normalizedCategorySet.has('options') || normalizedCategorySet.has('exotic options')) {
+			addPreset('options-protocols')
+		}
 
-			if (normalizedCategorySet.has('oracle') || hasOracles) {
-				addPreset('perps-protocols')
-			}
+		if (normalizedCategorySet.has('bridge aggregator')) {
+			addPreset('bridge-aggregators-protocols')
+		}
 
-			if (hasRewards || hasActiveLending) {
-				addPreset('growth-protocols')
-				addPreset('revenue-protocols')
-			}
+		if (normalizedCategorySet.has('oracle') || hasOracles) {
+			addPreset('perps-protocols')
+		}
 
-			if (normalizedChains.some((value) => value !== 'all')) {
-				addPreset('volume-protocols')
-				addPreset('revenue-protocols')
-			}
-		} else {
-			addPreset('chains-essential')
-			addPreset('chains-growth')
-			addPreset('chains-fees')
+		if (hasRewards || hasActiveLending) {
+			addPreset('growth-protocols')
+			addPreset('revenue-protocols')
+		}
 
-			if (selectedCategory && selectedCategory !== 'all') {
-				Object.entries(CHAIN_KEYWORD_PRESETS).forEach(([matchKey, presets]) => {
-					if (selectedCategory.includes(matchKey)) {
-						presets.forEach(addPreset)
-					}
-				})
-			}
-
-			if (chains.length > 0 && !chains.includes('All')) {
-				addPreset('chains-growth')
-			}
+		if (normalizedChains.some((value) => value !== 'all')) {
+			addPreset('volume-protocols')
+			addPreset('revenue-protocols')
 		}
 
 		return Array.from(ids).filter((id) => {
 			const preset = UNIFIED_TABLE_PRESETS_BY_ID.get(id)
-			if (!preset) return false
-			return preset.strategyType === strategyType
+			return Boolean(preset)
 		})
-	}, [
-		strategyType,
-		filters.categories,
-		filters.excludedCategories,
-		filters.protocols,
-		filters.oracles,
-		filters.hasRewards,
-		filters.activeLending,
-		chains,
-		category
-	])
+	}, [filters.categories, filters.excludedCategories, filters.protocols, filters.oracles, filters.hasRewards, filters.activeLending, chains])
 }

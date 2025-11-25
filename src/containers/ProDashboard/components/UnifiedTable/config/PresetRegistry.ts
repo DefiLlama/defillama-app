@@ -1,12 +1,10 @@
 import type { VisibilityState } from '@tanstack/react-table'
-import { DEFAULT_CHAINS_COLUMN_ORDER } from '../constants'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './ColumnDictionary'
 
 export interface UnifiedTablePreset {
 	id: string
 	name: string
 	description?: string
-	strategyType: 'protocols' | 'chains'
 	columnOrder: string[]
 	columnVisibility: VisibilityState
 	rowHeaders: string[]
@@ -29,7 +27,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'essential-protocols',
 		name: 'Essential Protocols',
 		description: 'Core protocol overview with TVL, fees, revenue, volume and ratios.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -69,7 +66,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'fees-protocols',
 		name: 'Fees',
 		description: 'Daily/weekly/monthly fees with holder & treasury splits.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -114,7 +110,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'volume-protocols',
 		name: 'DEXs',
 		description: 'Volume with changes and market share metrics.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -150,7 +145,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'perps-protocols',
 		name: 'Perpetuals',
 		description: 'Perpetual volume, changes and open interest.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -184,7 +178,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'revenue-protocols',
 		name: 'Revenue',
 		description: 'Revenue performance with longer-term trends and efficiency ratios.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -226,7 +219,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'growth-protocols',
 		name: 'Growth',
 		description: 'TVL, volume and fee momentum to spot what is trending.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -274,7 +266,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'aggregators-protocols',
 		name: 'DEX Aggregators',
 		description: 'Aggregator volumes, share and momentum.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -310,7 +301,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'bridge-aggregators-protocols',
 		name: 'Bridge Aggregators',
 		description: 'Bridge flow volumes and market share.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -344,7 +334,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		id: 'options-protocols',
 		name: 'Options',
 		description: 'Options volume with growth and market share.',
-		strategyType: 'protocols',
 		columnOrder: [
 			'name',
 			'category',
@@ -373,90 +362,6 @@ export const UNIFIED_TABLE_PRESETS: UnifiedTablePreset[] = [
 		]),
 		rowHeaders: ['parent-protocol', 'protocol'],
 		defaultSorting: [{ id: 'options_volume_24h', desc: true }]
-	},
-	{
-		id: 'chains-essential',
-		name: 'Essential Chains',
-		description: 'Chain TVL, fees, revenue and volume overview.',
-		strategyType: 'chains',
-		columnOrder: [...DEFAULT_CHAINS_COLUMN_ORDER],
-		columnVisibility: createVisibility([...DEFAULT_CHAINS_COLUMN_ORDER]),
-		rowHeaders: ['chain'],
-		defaultSorting: [{ id: 'tvl', desc: true }]
-	},
-	{
-		id: 'chains-fees',
-		name: 'Chain Fees & Revenue',
-		description: 'Track fee and revenue contribution by chain.',
-		strategyType: 'chains',
-		columnOrder: [
-			'name',
-			'tvl',
-			'change1d',
-			'change7d',
-			'fees24h',
-			'fees_7d',
-			'fees_30d',
-			'revenue24h',
-			'revenue_7d',
-			'volume24h',
-			'volume_7d',
-			'mcaptvl'
-		],
-		columnVisibility: createVisibility([
-			'name',
-			'tvl',
-			'change1d',
-			'change7d',
-			'fees24h',
-			'fees_7d',
-			'fees_30d',
-			'revenue24h',
-			'revenue_7d',
-			'volume24h',
-			'volume_7d',
-			'mcaptvl'
-		]),
-		rowHeaders: ['chain'],
-		defaultSorting: [{ id: 'fees24h', desc: true }]
-	},
-	{
-		id: 'chains-growth',
-		name: 'Chain Growth',
-		description: 'Momentum view across TVL, volume and fees.',
-		strategyType: 'chains',
-		columnOrder: ['name', 'tvl', 'change1d', 'change7d', 'change1m', 'volume24h', 'fees24h', 'revenue24h', 'mcaptvl'],
-		columnVisibility: createVisibility([
-			'name',
-			'tvl',
-			'change1d',
-			'change7d',
-			'change1m',
-			'volume24h',
-			'fees24h',
-			'revenue24h',
-			'mcaptvl'
-		]),
-		rowHeaders: ['chain'],
-		defaultSorting: [{ id: 'change7d', desc: true }]
-	},
-	{
-		id: 'chains-market-share',
-		name: 'Chain Market Share',
-		description: 'Compare chains by TVL, stables and 24h volume share.',
-		strategyType: 'chains',
-		columnOrder: ['name', 'tvl', 'tvlShare', 'stablesMcap', 'stablesShare', 'volume24h', 'volume24hShare'],
-		columnVisibility: createVisibility([
-			'name',
-			'tvl',
-			'tvlShare',
-			'stablesMcap',
-			'stablesShare',
-			'volume24h',
-			'volume24hShare'
-		]),
-		rowHeaders: ['chain'],
-		defaultSorting: [{ id: 'tvlShare', desc: true }]
 	}
 ]
 
