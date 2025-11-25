@@ -1,19 +1,12 @@
 import React from 'react'
 import { useRouter } from 'next/router'
+import { useProtocolCategoryFilter } from '~/hooks/useProtocolCategoryFilter'
 import { SelectWithCombobox } from '../SelectWithCombobox'
 
-export function CategoryFilter({
-	categoryList,
-	queries,
-	selectedCategories
-}: {
-	categoryList: Array<string>
-	queries: {
-		[key: string]: string | string[]
-	}
-	selectedCategories: Array<string>
-}) {
+// using generics to accept IProtocol, IProtocolRow, IFormattedProtocol, etc.
+export function ProtocolCategoryFilter<T extends { category?: string | null }>({ protocols }: { protocols: Array<T> }) {
 	const router = useRouter()
+	const { categoryList, selectedCategories, queries } = useProtocolCategoryFilter(protocols)
 
 	const clearAllCategories = () => {
 		router.push(
@@ -57,7 +50,7 @@ export function CategoryFilter({
 		)
 	}
 
-	const selectCategory = (newCategory) => {
+	const selectCategory = (newCategory: string[]) => {
 		router.push(
 			{
 				pathname: router.pathname,

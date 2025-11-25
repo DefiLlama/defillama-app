@@ -4,6 +4,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { useProtocolCategoryFilter } from '~/hooks/useProtocolCategoryFilter'
 import { getPercentChange } from '~/utils'
 import { airdropsEligibilityCheck } from './airdrops'
 import { RecentlyListedProtocolsTable } from './Table'
@@ -18,20 +19,6 @@ function getSelectedChainFilters(chainQueryParam, allChains) {
 	} else return [...allChains]
 }
 
-function getSelectedCategoryFilters(categoryQueryParam, allCategories) {
-	if (categoryQueryParam) {
-		if (typeof categoryQueryParam === 'string') {
-			return categoryQueryParam === 'All'
-				? [...allCategories]
-				: categoryQueryParam === 'None'
-					? []
-					: [categoryQueryParam]
-		} else {
-			return [...categoryQueryParam]
-		}
-	} else return [...allCategories]
-}
-
 interface IRecentProtocolProps {
 	protocols: any
 	chainList: string[]
@@ -41,20 +28,14 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
-	const { chain, category, hideForks, minTvl, maxTvl, ...queries } = router.query
+	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
+
+	const { selectedCategories, categoryList } = useProtocolCategoryFilter(protocols)
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
-	// unique category list
-	const categoryList = useMemo(() => {
-		return [...new Set(protocols.map((p: any) => p.category).filter(Boolean))].sort((a: string, b: string) =>
-			a.localeCompare(b)
-		) as string[]
-	}, [protocols])
-
-	const { selectedChains, selectedCategories, data } = useMemo(() => {
+	const { selectedChains, data } = useMemo(() => {
 		const selectedChains = getSelectedChainFilters(chain, chainList)
-		const selectedCategories = getSelectedCategoryFilters(category, categoryList)
 
 		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
 		const _categoriesToSelect = selectedCategories.map((c) => c.toLowerCase())
@@ -162,7 +143,17 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 		}
 
 		return { data, selectedChains, selectedCategories }
-	}, [protocols, chain, category, chainList, categoryList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
+	}, [
+		chain,
+		chainList,
+		selectedCategories,
+		minTvl,
+		maxTvl,
+		protocols,
+		toHideForkedProtocols,
+		forkedList,
+		categoryList.length
+	])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
 
@@ -333,9 +324,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				data={protocolsData}
 				queries={queries}
 				selectedChains={selectedChains}
-				selectedCategories={selectedCategories}
 				chainList={chainList}
-				categoryList={categoryList}
 				forkedList={forkedList}
 			/>
 		</>
