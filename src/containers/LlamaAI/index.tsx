@@ -369,6 +369,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		suggestionContext?: any
 		preResolvedEntities?: Array<{ term: string; slug: string }>
 	} | null>(null)
+	const lastInputRef = useRef<{
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null>(null)
+	const [restoreRequest, setRestoreRequest] = useState<{
+		key: number
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -551,6 +560,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setIsStreaming(false)
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
+			lastInputRef.current = null
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -596,11 +606,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			const wasUserStopped = error?.message === 'Request aborted'
 
-			if (wasUserStopped) {
-				setLastFailedRequest(null)
-			}
-
 			if (wasUserStopped && finalContent.trim()) {
+				setLastFailedRequest(null)
+				lastInputRef.current = null
 				setMessages((prev) => [
 					...prev,
 					{
@@ -628,8 +636,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setPrompt('')
 			} else if (wasUserStopped && !finalContent.trim()) {
 				setPrompt(variables.userQuestion)
+				setLastFailedRequest(null)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
+				setLastFailedRequest(null)
+				lastInputRef.current = null
 			}
 
 			setCurrentMessageId(null)
@@ -691,8 +702,18 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			])
 			setPrompt('')
+			lastInputRef.current = null
 		} else {
+			// No content streamed yet – restore the last submitted input
 			setPrompt(prompt)
+			const lastInput = lastInputRef.current
+			if (lastInput && lastInput.text === prompt) {
+				setRestoreRequest((prev) => ({
+					key: (prev?.key ?? 0) + 1,
+					text: lastInput.text,
+					entities: lastInput.entities
+				}))
+			}
 		}
 
 		setStreamingResponse('')
@@ -714,6 +735,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingCitations,
 		currentMessageId,
 		prompt,
+		lastInputRef,
+		setRestoreRequest,
 		setMessages,
 		setStreamingResponse,
 		setStreamingSuggestions,
@@ -743,6 +766,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
+			lastInputRef.current = { text: finalPrompt, entities: preResolved }
 			shouldAutoScrollRef.current = true
 
 			if (sessionId) {
@@ -1093,6 +1117,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isPending={isPending}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
+											restoreRequest={restoreRequest}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
@@ -1290,6 +1315,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isPending={isPending}
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
+										restoreRequest={restoreRequest}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 									/>
 								)}
@@ -1308,7 +1334,8 @@ const PromptInput = memo(function PromptInput({
 	isPending,
 	handleStopRequest,
 	isStreaming,
-	placeholder
+	placeholder,
+	restoreRequest
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
@@ -1316,6 +1343,11 @@ const PromptInput = memo(function PromptInput({
 	handleStopRequest?: () => void
 	isStreaming?: boolean
 	placeholder: string
+	restoreRequest?: {
+		key: number
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1328,7 +1360,7 @@ const PromptInput = memo(function PromptInput({
 	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
-	const combobox = Ariakit.useComboboxStore({})
+	const combobox = Ariakit.useComboboxStore()
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
 	const { data: matches } = useGetEntities(searchValue)
@@ -1340,6 +1372,38 @@ const PromptInput = memo(function PromptInput({
 	useEffect(() => {
 		combobox.render()
 	}, [combobox])
+
+	// Restore text and entities after a cancelled request (before any tokens streamed)
+	useEffect(() => {
+		if (!restoreRequest) return
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		const { text, entities } = restoreRequest
+
+		// Rebuild entity refs from the restore data
+		entitiesRef.current.clear()
+		entitiesMapRef.current.clear()
+		if (entities && entities.length > 0) {
+			for (const { term, slug } of entities) {
+				entitiesRef.current.add(term)
+				entitiesMapRef.current.set(term, { id: slug, name: term, type: '' })
+			}
+		}
+
+		// Programmatic update: avoid re-triggering combobox logic in onChange
+		isProgrammaticUpdateRef.current = true
+		textarea.value = text
+		setValue(text)
+		setInputSize(promptInputRef, highlightRef)
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = highlightWord(text, Array.from(entitiesRef.current))
+		}
+
+		combobox.setValue('')
+		combobox.hide()
+	}, [restoreRequest, combobox, promptInputRef])
 
 	// Cleanup on unmount
 	useEffect(() => {
