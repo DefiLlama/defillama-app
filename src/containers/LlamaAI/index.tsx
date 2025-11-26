@@ -67,6 +67,7 @@ async function fetchPromptResponse({
 			| 'title'
 			| 'message_id'
 			| 'reset'
+			| 'done'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -139,14 +140,47 @@ async function fetchPromptResponse({
 		let chartData = null
 		let citations = null
 		let lineBuffer = ''
+		let lastEventTime = Date.now()
+		let sessionIdForRecovery: string | null = null
+
+		const recoveryInterval = setInterval(async () => {
+			const timeSinceLastEvent = Date.now() - lastEventTime
+			if (timeSinceLastEvent > 60000 && sessionIdForRecovery) {
+				try {
+					const recoveryResponse = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${sessionIdForRecovery}`)
+					if (recoveryResponse.ok) {
+						const sessionData = await recoveryResponse.json()
+						if (sessionData.messages && sessionData.messages.length > 0) {
+							const lastAssistantMessage = [...sessionData.messages].reverse().find(m => m.role === 'assistant')
+							if (lastAssistantMessage?.content) {
+								fullResponse = lastAssistantMessage.content
+								if (onProgress && !abortSignal?.aborted) {
+									onProgress({ type: 'token', content: lastAssistantMessage.content })
+								}
+							}
+						}
+					}
+				} catch (err) {}
+				clearInterval(recoveryInterval)
+				if (reader && !reader.closed) {
+					try { reader.cancel() } catch {}
+				}
+			}
+		}, 10000)
 
 		while (true) {
 			if (abortSignal?.aborted) {
+				clearInterval(recoveryInterval)
 				throw new Error('Request aborted')
 			}
 
 			const { done, value } = await reader.read()
-			if (done) break
+			if (done) {
+				clearInterval(recoveryInterval)
+				break
+			}
+
+			lastEventTime = Date.now()
 
 			const chunk = decoder.decode(value, { stream: true })
 
@@ -166,7 +200,13 @@ async function fetchPromptResponse({
 					try {
 						const data = JSON.parse(jsonStr)
 
-						if (data.type === 'token') {
+						if (data.type === 'done') {
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({ type: 'done', content: '' })
+							}
+							clearInterval(recoveryInterval)
+							break
+						} else if (data.type === 'token') {
 							fullResponse += data.content
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'token', content: data.content })
@@ -180,6 +220,7 @@ async function fetchPromptResponse({
 								onProgress({ type: 'progress', content: data.content, stage: data.stage })
 							}
 						} else if (data.type === 'session') {
+							sessionIdForRecovery = data.sessionId
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'session', content: '', sessionId: data.sessionId })
 							}
@@ -255,12 +296,6 @@ async function fetchPromptResponse({
 			} catch (releaseError) {}
 		}
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
-	} finally {
-		if (reader && !reader.closed) {
-			try {
-				reader.releaseLock()
-			} catch (releaseError) {}
-		}
 	}
 }
 
