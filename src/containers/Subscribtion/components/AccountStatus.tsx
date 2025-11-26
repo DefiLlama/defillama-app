@@ -286,12 +286,14 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 							<div className="flex items-center justify-between border-t border-[#39393E]/30 pt-3">
 								<div>
 									<span className="text-sm text-[#b4b7bc]">Promotional emails</span>
-									<p className="mt-0.5 text-xs text-[#8a8c90]">Receive info about upcoming products</p>
+									<p className="mt-0.5 text-xs text-[#8a8c90]">
+										Receive emails about upcoming DefiLlama products and new releases
+									</p>
 								</div>
 								<button
 									type="button"
 									role="switch"
-									aria-checked={user?.promotionalEmails === 'initial' || user?.promotionalEmails === 'on'}
+									aria-checked={user?.promotionalEmails !== 'off'}
 									disabled={loaders.setPromotionalEmails}
 									onClick={() => {
 										const currentValue = user?.promotionalEmails || 'initial'
