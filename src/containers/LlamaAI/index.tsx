@@ -1093,7 +1093,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isPending={isPending}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
-											initialValue={prompt}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
@@ -1291,7 +1290,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isPending={isPending}
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
-										initialValue={prompt}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 									/>
 								)}
@@ -1310,7 +1308,6 @@ const PromptInput = memo(function PromptInput({
 	isPending,
 	handleStopRequest,
 	isStreaming,
-	initialValue,
 	placeholder
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
@@ -1318,10 +1315,9 @@ const PromptInput = memo(function PromptInput({
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
-	initialValue?: string
 	placeholder: string
 }) {
-	const [value, setValue] = useState(initialValue ?? '')
+	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
@@ -1332,7 +1328,7 @@ const PromptInput = memo(function PromptInput({
 	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
-	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
+	const combobox = Ariakit.useComboboxStore({})
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
 	const { data: matches } = useGetEntities(searchValue)
