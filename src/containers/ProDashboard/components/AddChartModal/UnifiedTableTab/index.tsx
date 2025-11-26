@@ -258,12 +258,13 @@ const TabContent = ({
 		[]
 	)
 
-	const handleRemoveChainValue = useCallback((chainValue: string) => {
-		setChains((prev) => {
-			const nextChains = prev.filter((chain) => chain !== chainValue)
-			return nextChains.length === 0 ? ['All'] : nextChains
-		})
-	}, [])
+	const handleRemoveChainValue = useCallback(
+		(chainValue: string) => {
+			const nextChains = chains.filter((chain) => chain !== chainValue)
+			setChains(nextChains.length === 0 ? ['All'] : nextChains)
+		},
+		[chains, setChains]
+	)
 
 	const arraysEqual = (a: string[], b: string[]) => {
 		if (a.length !== b.length) return false
