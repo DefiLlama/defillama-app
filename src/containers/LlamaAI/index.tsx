@@ -1381,6 +1381,10 @@ const PromptInput = memo(function PromptInput({
 		const textarea = promptInputRef.current
 		if (!textarea) return
 
+		// Only restore if the current input is empty so we don't overwrite
+		// anything the user has typed while a response was streaming.
+		if (textarea.value.trim().length > 0) return
+
 		const { text, entities } = restoreRequest
 
 		// Rebuild entity refs from the restore data
