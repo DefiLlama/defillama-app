@@ -26,12 +26,14 @@ import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
 	data,
+	fullProtocolList,
 	queries,
 	selectedChains,
 	chainList,
 	forkedList
 }: {
 	data: Array<IProtocolRow>
+	fullProtocolList: Array<IProtocolRow>
 	queries: {
 		[key: string]: string | string[]
 	}
@@ -184,7 +186,7 @@ export function RecentlyListedProtocolsTable({
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
-						<ProtocolCategoryFilter protocols={data} />
+						<ProtocolCategoryFilter protocols={fullProtocolList} />
 						<SelectWithCombobox
 							label="Chains"
 							allValues={chainList}
