@@ -249,7 +249,6 @@ export interface TableFilters {
 	hasPerps?: boolean
 	hasOptions?: boolean
 	hasOpenInterest?: boolean
-	multiChainOnly?: boolean
 	hasVolume?: boolean
 	hasFees?: boolean
 	hasRevenue?: boolean

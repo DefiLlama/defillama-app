@@ -506,14 +506,6 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 		booleanKey: 'hasOpenInterest'
 	},
 	{
-		id: 'multiChainOnly',
-		label: 'Multi-chain Only',
-		type: 'boolean',
-		category: 'flags',
-		strategies: ['protocols'],
-		booleanKey: 'multiChainOnly'
-	},
-	{
 		id: 'hasVolume',
 		label: 'Has Volume',
 		type: 'boolean',

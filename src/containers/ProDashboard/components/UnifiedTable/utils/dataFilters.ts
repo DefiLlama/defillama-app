@@ -137,13 +137,6 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		filtered = filtered.filter((row) => (row.metrics.openInterest ?? 0) > 0)
 	}
 
-	if (filters.multiChainOnly) {
-		filtered = filtered.filter((row) => {
-			const chainList = row.allChains ?? row.chains
-			return (chainList?.filter(Boolean).length ?? 0) > 1
-		})
-	}
-
 	if (filters.hasVolume) {
 		filtered = filtered.filter((row) => (row.metrics.volume24h ?? 0) > 0)
 	}

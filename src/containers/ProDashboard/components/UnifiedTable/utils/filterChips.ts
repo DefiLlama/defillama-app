@@ -186,7 +186,6 @@ export const getActiveFilterChips = (filters?: TableFilters): ActiveFilterChip[]
 		formatCurrency
 	)
 
-	addBooleanChip(chips, clones, 'multiChainOnly', 'Multi-chain only')
 	addBooleanChip(chips, clones, 'stablesOnly', 'Stablecoin pools only')
 	addBooleanChip(chips, clones, 'activeLending', 'Active lending pools')
 	addBooleanChip(chips, clones, 'hasRewards', 'Rewards enabled')

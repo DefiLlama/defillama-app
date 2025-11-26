@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
@@ -23,6 +23,7 @@ import { SortingSelector } from './components/SortingSelector'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
 import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
+import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
 
 interface UnifiedTableTabProps {
 	onClose: () => void
@@ -236,30 +237,33 @@ const TabContent = ({
 		setChains(['All'])
 	}
 
-	const handlePanelFiltersChange = (nextFilters: TableFilters) => {
+	const handlePanelFiltersChange = useCallback((nextFilters: TableFilters) => {
 		setFilters(nextFilters ?? {})
-	}
+	}, [])
 
-	const handleRemoveArrayFilterValue = (key: ArrayFilterKey, value: string) => {
-		const next: TableFilters = { ...(filters ?? {}) }
-		const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-		const updated = current.filter((item) => item !== value)
-		if (updated.length > 0) {
-			next[key] = updated
-		} else {
-			delete next[key]
-		}
-		setFilters(next)
-	}
+	const handleRemoveArrayFilterValue = useCallback(
+		(key: ArrayFilterKey, value: string) => {
+			setFilters((prev) => {
+				const next: TableFilters = { ...(prev ?? {}) }
+				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+				const updated = current.filter((item) => item !== value)
+				if (updated.length > 0) {
+					next[key] = updated
+				} else {
+					delete next[key]
+				}
+				return next
+			})
+		},
+		[]
+	)
 
-	const handleRemoveChainValue = (chainValue: string) => {
-		const nextChains = chains.filter((chain) => chain !== chainValue)
-		if (nextChains.length === 0) {
-			setChains(['All'])
-			return
-		}
-		setChains(nextChains)
-	}
+	const handleRemoveChainValue = useCallback((chainValue: string) => {
+		setChains((prev) => {
+			const nextChains = prev.filter((chain) => chain !== chainValue)
+			return nextChains.length === 0 ? ['All'] : nextChains
+		})
+	}, [])
 
 	const arraysEqual = (a: string[], b: string[]) => {
 		if (a.length !== b.length) return false
@@ -329,38 +333,37 @@ const TabContent = ({
 		}
 	}
 
-	const currentFilters = (filters ?? {}) as TableFilters
-	const includeCategories = (currentFilters.categories as string[]) ?? []
-	const excludedCategories = (currentFilters.excludedCategories as string[]) ?? []
-	const protocolFilters = (currentFilters.protocols as string[]) ?? []
-	const oracleFilters = (currentFilters.oracles as string[]) ?? []
+	const activeFilterChips = useMemo(() => getActiveFilterChips(filters), [filters])
 
-	const activeFilterPills: FilterPill[] = []
+	const activeFilterPills: FilterPill[] = useMemo(() => {
+		const pills: FilterPill[] = []
 
-	const addArrayFilterPills = (key: ArrayFilterKey, values: string[], formatter?: (value: string) => string) => {
-		values.forEach((value) => {
-			activeFilterPills.push({
-				id: `${key}-${value}`,
-				label: formatter ? formatter(value) : value,
-				onRemove: () => handleRemoveArrayFilterValue(key, value)
+		chains
+			.filter((chain) => chain !== 'All')
+			.forEach((chain) => {
+				pills.push({
+					id: `chain-${chain}`,
+					label: chainLabelMap.get(chain) ?? chain,
+					onRemove: () => handleRemoveChainValue(chain)
+				})
 			})
-		})
-	}
 
-	chains
-		.filter((chain) => chain !== 'All')
-		.forEach((chain) => {
-			activeFilterPills.push({
-				id: `chain-${chain}`,
-				label: chainLabelMap.get(chain) ?? chain,
-				onRemove: () => handleRemoveChainValue(chain)
+		for (const chip of activeFilterChips) {
+			pills.push({
+				id: chip.id,
+				label: chip.value ? `${chip.label}: ${chip.value}` : chip.label,
+				onRemove: () => {
+					const newFilters = { ...filters }
+					for (const key of chip.clearKeys) {
+						delete newFilters[key]
+					}
+					handlePanelFiltersChange(newFilters)
+				}
 			})
-		})
+		}
 
-	addArrayFilterPills('categories', includeCategories)
-	addArrayFilterPills('excludedCategories', excludedCategories, (value) => `Exclude ${value}`)
-	addArrayFilterPills('protocols', protocolFilters)
-	addArrayFilterPills('oracles', oracleFilters)
+		return pills
+	}, [chains, chainLabelMap, activeFilterChips, filters, handleRemoveChainValue, handlePanelFiltersChange])
 
 	const activeFilterCount = activeFilterPills.length
 
