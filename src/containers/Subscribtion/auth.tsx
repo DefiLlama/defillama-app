@@ -5,6 +5,8 @@ import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
 
+export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
+
 interface User extends AuthModel {
 	subscription_status: string
 	subscription: {
@@ -12,6 +14,7 @@ interface User extends AuthModel {
 		expires_at: string
 		status: string
 	}
+	promotionalEmails?: PromotionalEmailsValue
 }
 interface FetchOptions extends RequestInit {
 	skipAuth?: boolean
@@ -36,6 +39,7 @@ interface AuthContextType {
 		password: string,
 		passwordConfirm: string,
 		turnstileToken: string,
+		promotionalEmails?: boolean,
 		onSuccess?: () => void
 	) => Promise<void>
 	logout: () => void
@@ -47,6 +51,7 @@ interface AuthContextType {
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
 	addEmail: (email: string) => void
+	setPromotionalEmails: (value: boolean) => void
 	isAuthenticated: boolean
 	user: User
 	loaders: {
@@ -60,6 +65,7 @@ interface AuthContextType {
 		changeEmail: boolean
 		resendVerification: boolean
 		addEmail: boolean
+		setPromotionalEmails: boolean
 		userLoading: boolean
 		userFetching: boolean
 		subscriptionError: boolean
@@ -162,12 +168,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			email,
 			password,
 			passwordConfirm,
-			turnstileToken
+			turnstileToken,
+			promotionalEmails
 		}: {
 			email: string
 			password: string
 			passwordConfirm: string
 			turnstileToken: string
+			promotionalEmails?: boolean
 		}) => {
 			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
 				method: 'POST',
@@ -178,7 +186,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					passwordConfirm,
 					auth_method: 'email',
 					source: 'defillama',
-					turnstile_token: turnstileToken
+					turnstile_token: turnstileToken,
+					promotionalEmails
 				})
 			})
 
@@ -218,9 +227,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			password: string,
 			passwordConfirm: string,
 			turnstileToken: string,
+			promotionalEmails?: boolean,
 			onSuccess?: () => void
 		) => {
-			const result = await signupMutation.mutateAsync({ email, password, passwordConfirm, turnstileToken })
+			const result = await signupMutation.mutateAsync({
+				email,
+				password,
+				passwordConfirm,
+				turnstileToken,
+				promotionalEmails
+			})
 			onSuccess?.()
 			return result
 		},
@@ -542,6 +558,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
+	const setPromotionalEmails = useMutation({
+		mutationFn: async (value: boolean) => {
+			const response = await fetch(`${AUTH_SERVER}/user/promotional-emails`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ value })
+			})
+			if (!response.ok) {
+				const data = await response.json()
+				throw new Error(data?.message || 'Failed to update promotional emails preference')
+			}
+
+			return { value }
+		},
+		onSuccess: (data) => {
+			queryClient.setQueryData(['currentUserAuthStatus'], (oldData: any) => {
+				if (!oldData) return oldData
+				return {
+					...oldData,
+					promotionalEmails: data.value ? 'on' : 'off'
+				}
+			})
+			toast.success('Email preferences updated successfully')
+		},
+		onError: (error: any) => {
+			toast.error(error.message || 'Failed to update email preferences')
+		}
+	})
+
 	const contextValue: AuthContextType = {
 		user: currentUserData
 			? ({
@@ -563,7 +611,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					expand: currentUserData.expand,
 					subscription_status: subscription?.status || 'inactive',
 					subscription: subscription || { id: '', expires_at: '', status: 'inactive' },
-					ethereum_email: (currentUserData as any).ethereum_email
+					ethereum_email: (currentUserData as any).ethereum_email,
+					promotionalEmails: (currentUserData as any).promotionalEmails || 'initial'
 				} as User)
 			: null,
 		login,
@@ -577,6 +626,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
 		addEmail: addEmail.mutate,
+		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated: isAuthenticated,
 		loaders: {
 			login: loginMutation.isPending,
@@ -589,6 +639,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
 			addEmail: addEmail.isPending,
+			setPromotionalEmails: setPromotionalEmails.isPending,
 			userLoading: userQueryIsPending,
 			userFetching: userQueryIsFetching,
 			subscriptionError: isSubscriptionError
