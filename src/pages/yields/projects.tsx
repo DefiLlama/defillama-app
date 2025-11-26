@@ -1,5 +1,6 @@
 import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsProjectsTable } from '~/containers/Yields/Tables/Projects'
 import { disclaimer } from '~/containers/Yields/utils'
@@ -57,6 +58,14 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 const pageName = ['Yields: All Projects']
 
 export default function Protocols({ projects }) {
+	const prepareCsv = () => ({
+		filename: 'yields-projects.csv',
+		rows: [
+			['Project', 'Airdrop', 'Category', 'Pools', 'Combined TVL', 'Audits', 'Median APY'],
+			...projects.map((p) => [p.name, p.airdrop ? 'Yes' : 'No', p.category, p.protocols, p.tvl, p.audits ? 'Yes' : 'No', p.medianApy])
+		]
+	})
+
 	return (
 		<Layout
 			title={`Projects - DefiLlama Yield`}
@@ -68,7 +77,10 @@ export default function Protocols({ projects }) {
 			<Announcement>{disclaimer}</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h1 className="p-3 text-xl font-semibold">Projects</h1>
+				<div className="flex items-center justify-between p-3">
+					<h1 className="text-xl font-semibold">Projects</h1>
+					<CSVDownloadButton prepareCsv={prepareCsv} />
+				</div>
 				<YieldsProjectsTable data={projects} />
 			</div>
 		</Layout>
