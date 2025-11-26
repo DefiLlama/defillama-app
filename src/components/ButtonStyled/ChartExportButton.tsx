@@ -177,7 +177,12 @@ export const ChartExportButton = memo(function ChartExportButton({
 					}
 
 					// Legend layout calculations
-					const legendArray = (currentOptions.legend ?? []) as any[]
+					const legendConfig = currentOptions.legend as any
+					const legendArray = Array.isArray(legendConfig)
+						? legendConfig
+						: legendConfig
+							? [legendConfig]
+							: []
 
 					const titleText = title ?? ''
 					const titleFontSize = 28
@@ -193,6 +198,9 @@ export const ChartExportButton = memo(function ChartExportButton({
 					const legendIconWidth = 24
 					const legendItemGap = 20
 
+					// If there is no legend on the original chart, we'll still be adding one
+					// below (scroll legend), so treat "has legend" based on either existing
+					// legend config or presence of series.
 					let legendsWidth = 0
 					legendArray.forEach((legend: any) => {
 						const data = legend?.data ?? []
@@ -203,22 +211,20 @@ export const ChartExportButton = memo(function ChartExportButton({
 						})
 					})
 
-					const totalWidth = titleWidth + legendsWidth
-					const shouldWrapLegend = !!title && legendsWidth > 0 && totalWidth > IMAGE_EXPORT_WIDTH
+					const hasLegend =
+						legendArray.length > 0 ||
+						(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
 
 					const baseTopPadding = 16
 					const titleHeight = title ? 36 : 0
-					const legendHeight = legendsWidth > 0 ? 32 : 0
+					const legendHeight = hasLegend ? 32 : 0
 					const verticalGap = 16
 
-					let legendTop = baseTopPadding
-					let gridTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
-
-					if (shouldWrapLegend) {
-						// Place legend below title and move grid further down
-						legendTop = baseTopPadding + titleHeight + verticalGap
-						gridTop = legendTop + legendHeight + verticalGap
-					}
+					// Always place legend below the title (when present) and then
+					// push the grid below the legend to avoid overlap, even when
+					// the original chart did not define a legend.
+					let legendTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
+					let gridTop = legendTop + (hasLegend ? legendHeight + verticalGap : 0)
 
 					currentOptions.animation = false
 					currentOptions.grid = {
@@ -268,6 +274,8 @@ export const ChartExportButton = memo(function ChartExportButton({
 							itemGap: legendItemGap,
 							top: legendTop,
 							right: 16,
+							type: 'scroll',
+							pageButtonPosition: 'end',
 							padding: [0, 0, 0, 18]
 						}
 					})
