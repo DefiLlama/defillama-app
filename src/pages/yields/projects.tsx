@@ -62,7 +62,15 @@ export default function Protocols({ projects }) {
 		filename: 'yields-projects.csv',
 		rows: [
 			['Project', 'Airdrop', 'Category', 'Pools', 'Combined TVL', 'Audits', 'Median APY'],
-			...projects.map((p) => [p.name, p.airdrop ? 'Yes' : 'No', p.category, p.protocols, p.tvl, p.audits ? 'Yes' : 'No', p.medianApy])
+			...projects.map((p) => [
+				p.name,
+				p.airdrop ? 'Yes' : 'No',
+				p.category,
+				p.protocols,
+				p.tvl,
+				p.audits ? 'Yes' : 'No',
+				p.medianApy
+			])
 		]
 	})
 
@@ -77,8 +85,8 @@ export default function Protocols({ projects }) {
 			<Announcement>{disclaimer}</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex items-center justify-between p-3">
-					<h1 className="text-xl font-semibold">Projects</h1>
+				<div className="flex items-center justify-end p-3">
+					<h1 className="mr-auto text-xl font-semibold">Projects</h1>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 				<YieldsProjectsTable data={projects} />
