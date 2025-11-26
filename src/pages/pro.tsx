@@ -138,7 +138,7 @@ function ProContent({
 						</BasicLink>
 					)}
 				</div>
-				<div className="ml-auto flex flex-wrap justify-end gap-2">
+				<div className="mr-auto md:mr-0 ml-auto flex justify-end gap-2">
 					{
 						<button
 							onClick={
@@ -148,7 +148,7 @@ function ProContent({
 										? () => setShowGenerateDashboardModal(true)
 										: () => subscribeModalStore.show()
 							}
-							className="pro-btn-blue flex items-center gap-1 rounded-md px-4 py-2"
+							className="pro-btn-blue flex items-center gap-1 rounded-md px-4 py-2 text-xs md:text-sm"
 						>
 							<Icon name="sparkles" height={16} width={16} />
 							Generate with LlamaAI
@@ -162,7 +162,7 @@ function ProContent({
 									? createNewDashboard
 									: () => subscribeModalStore.show()
 						}
-						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2"
+						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2 text-xs md:text-sm"
 					>
 						<Icon name="plus" height={16} width={16} />
 						Create New Dashboard
