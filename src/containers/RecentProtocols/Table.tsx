@@ -13,6 +13,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ProtocolCategoryFilter } from '~/components/Filters/ProtocolCategoryFilter'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -183,6 +184,7 @@ export function RecentlyListedProtocolsTable({
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
+						<ProtocolCategoryFilter protocols={data} />
 						<SelectWithCombobox
 							label="Chains"
 							allValues={chainList}

@@ -4,6 +4,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
+import { useProtocolCategoryFilter } from '~/hooks/useProtocolCategoryFilter'
 import { getPercentChange } from '~/utils'
 import { airdropsEligibilityCheck } from './airdrops'
 import { RecentlyListedProtocolsTable } from './Table'
@@ -29,12 +30,15 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 	const router = useRouter()
 	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
 
+	const { selectedCategories, categoryList } = useProtocolCategoryFilter(protocols)
+
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
 	const { selectedChains, data } = useMemo(() => {
 		const selectedChains = getSelectedChainFilters(chain, chainList)
 
 		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
+		const _categoriesToSelect = selectedCategories.map((c) => c.toLowerCase())
 
 		const isValidTvlRange =
 			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
@@ -57,6 +61,19 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				})
 
 				toFilter = toFilter && includesChain
+
+				// filter by category
+				if (_categoriesToSelect.length === 0) {
+					// filter out all protocols if 'None'
+					toFilter = false
+				} else if (_categoriesToSelect.length < categoryList.length) {
+					// apply category if not 'All'
+					if (protocol.category) {
+						toFilter = toFilter && _categoriesToSelect.includes(protocol.category.toLowerCase())
+					} else {
+						toFilter = false
+					}
+				}
 
 				return toFilter
 			})
@@ -122,11 +139,21 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				(protocol) => (minTvl ? protocol.tvl >= minTvl : true) && (maxTvl ? protocol.tvl <= maxTvl : true)
 			)
 
-			return { data: filteredProtocols, selectedChains }
+			return { data: filteredProtocols, selectedChains, selectedCategories }
 		}
 
-		return { data, selectedChains }
-	}, [protocols, chain, chainList, forkedList, toHideForkedProtocols, minTvl, maxTvl])
+		return { data, selectedChains, selectedCategories }
+	}, [
+		chain,
+		chainList,
+		selectedCategories,
+		minTvl,
+		maxTvl,
+		protocols,
+		toHideForkedProtocols,
+		forkedList,
+		categoryList.length
+	])
 
 	const protocolsData = useCalcStakePool2Tvl(data)
 
