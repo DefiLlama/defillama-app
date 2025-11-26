@@ -14,9 +14,10 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
+// kept for potential future use; currently unused after simplifying legend layout
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const approximateTextWidth = (text: string, fontSize: number) => {
 	if (!text) return 0
-	// Rough heuristic: average character width is ~0.6 * font size
 	const averageCharWidthRatio = 0.6
 	return text.length * fontSize * averageCharWidthRatio
 }
@@ -178,39 +179,16 @@ export const ChartExportButton = memo(function ChartExportButton({
 
 					// Legend layout calculations
 					const legendConfig = currentOptions.legend as any
-					const legendArray = Array.isArray(legendConfig)
-						? legendConfig
-						: legendConfig
-							? [legendConfig]
-							: []
+					const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
 
-					const titleText = title ?? ''
-					const titleFontSize = 28
-					let titleWidth = approximateTextWidth(titleText, titleFontSize)
-
-					if (iconBase64) {
-						const iconWidth = 32
-						const iconGap = 8
-						titleWidth += iconWidth + iconGap
-					}
-
-					const legendFontSize = 24
-					const legendIconWidth = 24
 					const legendItemGap = 20
 
 					// If there is no legend on the original chart, we'll still be adding one
 					// below (scroll legend), so treat "has legend" based on either existing
 					// legend config or presence of series.
-					let legendsWidth = 0
-					legendArray.forEach((legend: any) => {
-						const data = legend?.data ?? []
-						data.forEach((item: any) => {
-							const name = typeof item === 'string' ? item : (item?.name ?? '')
-							if (!name) return
-							legendsWidth += approximateTextWidth(name, legendFontSize) + legendIconWidth + legendItemGap
-						})
-					})
-
+					// We previously used legend label widths to decide wrapping; now we
+					// always keep the legend in a single scrollable row, so we don't
+					// need exact width calculations here.
 					const hasLegend =
 						legendArray.length > 0 ||
 						(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
