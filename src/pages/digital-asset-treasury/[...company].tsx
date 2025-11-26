@@ -208,8 +208,8 @@ export const getStaticProps = withPerformanceLogging(
 				priceChange24h: data.priceChange24h,
 				totalCost: data.totalCost,
 				totalUsdValue: data.totalUsdValue,
-				firstAnnouncementDate: data.transactions[data.transactions.length - 1].report_date,
-				lastAnnouncementDate: data.transactions[0].report_date,
+				firstAnnouncementDate: data.transactions[data.transactions.length - 1]?.report_date ?? null,
+				lastAnnouncementDate: data.transactions[0]?.report_date ?? null,
 				realized_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][7] : null,
 				realistic_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][8] : null,
 				max_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][9] : null,
@@ -449,16 +449,20 @@ export default function DigitalAssetTreasury(props: IProps) {
 						)}
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>
-						<SingleSeriesChart
-							chartName={chartData.ticker}
-							chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
-							chartData={chartData.chart}
-							valueSymbol={chartData.ticker}
-							color={CHART_COLORS[0]}
-							chartOptions={chartOptions}
-							symbolOnChart="circle"
-							hideDataZoom={chartData.chart.length < 2}
-						/>
+						{chartData ? (
+							<SingleSeriesChart
+								chartName={chartData.ticker}
+								chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
+								chartData={chartData.chart}
+								valueSymbol={chartData.ticker}
+								color={CHART_COLORS[0]}
+								chartOptions={chartOptions}
+								symbolOnChart="circle"
+								hideDataZoom={chartData.chart.length < 2}
+							/>
+						) : (
+							<div className="h-[360px]" />
+						)}
 					</Suspense>
 				</div>
 			</div>
