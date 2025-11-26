@@ -505,6 +505,19 @@ export const getUnifiedTableColumns = (): ColumnDef<NormalizedRow>[] => {
 				const b = rowB.getValue(columnId) as number | null | undefined
 				return numericSorting(a, b)
 			}
+		},
+		{
+			id: 'fdv',
+			header: 'FDV',
+			accessorFn: (row) => row.metrics.fdv ?? null,
+			meta: { align: 'end' },
+			cell: (ctx) => renderMetricCell(ctx, renderUsd),
+			aggregationFn: createMetricAggregationFn('fdv' as MetricKey),
+			sortingFn: (rowA, rowB, columnId) => {
+				const a = rowA.getValue(columnId) as number | null | undefined
+				const b = rowB.getValue(columnId) as number | null | undefined
+				return numericSorting(a, b)
+			}
 		}
 	]
 

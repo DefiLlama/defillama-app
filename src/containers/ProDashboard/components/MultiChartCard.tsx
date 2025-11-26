@@ -41,6 +41,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	})
 
 	const failedItems = multi.items.filter((cfg) => {
+		if (cfg.isLoading) return false
 		return cfg.hasError || !Array.isArray(cfg.data) || (Array.isArray(cfg.data) && cfg.data.length === 0)
 	})
 
@@ -334,11 +335,24 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				<div className="mr-auto flex items-center gap-2">
 					<h1 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h1>
 					{hasPartialFailures && (
-						<p className="flex items-center gap-1 text-xs text-yellow-500">
-							<Icon name="alert-triangle" height={12} width={12} />
-							<span className="hidden sm:inline">Partial data</span>
-							<span className="sm:hidden">!</span>
-						</p>
+						<Tooltip
+							content={
+								<div className="flex flex-col gap-1">
+									<span className="font-medium">Failed to load:</span>
+									{failedItems.map((cfg, i) => {
+										const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
+										const metricTitle = CHART_TYPES[cfg.type]?.title || cfg.type
+										return <span key={i}>{name} {metricTitle}</span>
+									})}
+								</div>
+							}
+						>
+							<p className="flex items-center gap-1 text-xs text-yellow-500">
+								<Icon name="alert-triangle" height={12} width={12} />
+								<span className="hidden sm:inline">Partial data</span>
+								<span className="sm:hidden">!</span>
+							</p>
+						</Tooltip>
 					)}
 				</div>
 				{!isReadOnly && allChartsGroupable && hasAnyData && (

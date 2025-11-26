@@ -53,7 +53,7 @@ const GROUP_FILTERS: Array<{ id: ColumnGroupId | 'all'; label: string }> = [
 	{ id: 'aggregators', label: 'Aggregators' },
 	{ id: 'derivatives-aggregators', label: 'Derivatives Aggs' },
 	{ id: 'options', label: 'Options' },
-	{ id: 'ratios', label: 'Ratios' }
+	{ id: 'ratios', label: 'Valuation' }
 ]
 
 const GROUP_LABELS: Record<ColumnGroupId | 'all', string> = GROUP_FILTERS.reduce(
@@ -64,15 +64,6 @@ const GROUP_LABELS: Record<ColumnGroupId | 'all', string> = GROUP_FILTERS.reduce
 	{} as Record<ColumnGroupId | 'all', string>
 )
 
-const TAG_FILTERS: Array<{ id: string; label: string }> = [
-	{ id: 'change', label: 'Changes' },
-	{ id: 'dominance', label: 'Market Share' },
-	{ id: 'cumulative', label: 'Cumulative' },
-	{ id: 'distribution', label: 'Fee Breakdown' },
-	{ id: 'derived', label: 'Derived' },
-	{ id: 'advanced', label: 'Advanced' },
-	{ id: 'specialized', label: 'Specialized' }
-]
 
 const NAME_COLUMN: ColumnMeta = {
 	id: 'name',
@@ -107,7 +98,6 @@ const buildAllColumns = (): ColumnMeta[] => {
 export function ColumnManager({ columnOrder, columnVisibility, onChange }: ColumnManagerProps) {
 	const [search, setSearch] = useState('')
 	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
-	const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
 	const [recentlyChangedIds, setRecentlyChangedIds] = useState<Set<string>>(new Set())
 	const [selectedCheckboxIds, setSelectedCheckboxIds] = useState<Set<string>>(new Set())
@@ -161,7 +151,6 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 
 	const filteredAvailableColumns = useMemo(() => {
 		const term = search.trim().toLowerCase()
-		const tagsActive = selectedTags.size > 0
 		return availableColumns.filter((column) => {
 			if (groupFilter !== 'all' && column.group !== groupFilter) {
 				return false
@@ -174,14 +163,9 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 				}
 			}
 
-			if (tagsActive) {
-				const hasMatch = column.tags.some((tag) => selectedTags.has(tag))
-				if (!hasMatch) return false
-			}
-
 			return true
 		})
-	}, [availableColumns, groupFilter, search, selectedTags])
+	}, [availableColumns, groupFilter, search])
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -201,25 +185,12 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 		data: { container: 'selected' }
 	})
 
-	const toggleTag = (tagId: string) => {
-		setSelectedTags((prev) => {
-			const next = new Set(prev)
-			if (next.has(tagId)) {
-				next.delete(tagId)
-			} else {
-				next.add(tagId)
-			}
-			return next
-		})
-	}
-
 	const clearAllFilters = () => {
 		setSearch('')
 		setGroupFilter('all')
-		setSelectedTags(new Set())
 	}
 
-	const hasActiveFilters = search.trim() !== '' || groupFilter !== 'all' || selectedTags.size > 0
+	const hasActiveFilters = search.trim() !== '' || groupFilter !== 'all'
 
 	const applyChanges = (nextSelected: string[], highlightIds?: string[]) => {
 		const remaining = allColumns.map((column) => column.id).filter((id) => id !== 'name' && !nextSelected.includes(id))
@@ -358,8 +329,6 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 		opts: { variant: 'available' | 'selected'; isDragging?: boolean; index?: number }
 	) => {
 		const groupLabel = GROUP_LABELS[column.group] ?? column.group
-		const tagBadges = column.tags.slice(0, 2)
-		const remainingTags = column.tags.length - tagBadges.length
 		const isHighlighted = recentlyChangedIds.has(column.id)
 		const isChecked = selectedCheckboxIds.has(column.id)
 		const isAdded = selectedColumns.includes(column.id)
@@ -406,19 +375,6 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 								<span className="rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/80 px-1.5 py-0.5 text-[9px] leading-none font-semibold tracking-wide text-(--text-tertiary) uppercase">
 									{groupLabel}
 								</span>
-								{tagBadges.map((tag) => (
-									<span
-										key={tag}
-										className="rounded-md bg-(--primary)/8 px-1.5 py-0.5 text-[9px] leading-none font-medium text-(--text-secondary)"
-									>
-										{tag}
-									</span>
-								))}
-								{remainingTags > 0 ? (
-									<span className="rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-1.5 py-0.5 text-[9px] leading-none text-(--text-tertiary)">
-										+{remainingTags}
-									</span>
-								) : null}
 							</div>
 						</div>
 						{!isAdded ? (
@@ -473,19 +429,6 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 						<span className="rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/80 px-1.5 py-0.5 text-[9px] leading-none font-semibold tracking-wide text-(--text-tertiary) uppercase">
 							{groupLabel}
 						</span>
-						{tagBadges.map((tag) => (
-							<span
-								key={tag}
-								className="rounded-md bg-(--primary)/8 px-1.5 py-0.5 text-[9px] leading-none font-medium text-(--text-secondary)"
-							>
-								{tag}
-							</span>
-						))}
-						{remainingTags > 0 ? (
-							<span className="rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-1.5 py-0.5 text-[9px] leading-none text-(--text-tertiary)">
-								+{remainingTags}
-							</span>
-						) : null}
 					</div>
 				</div>
 				<button
@@ -574,28 +517,6 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 									))}
 								</Ariakit.SelectPopover>
 							</Ariakit.SelectProvider>
-						</div>
-					</div>
-
-					<div className="flex flex-col gap-1.5">
-						<div className="flex flex-wrap gap-1.5">
-							{TAG_FILTERS.map((tag) => {
-								const active = selectedTags.has(tag.id)
-								return (
-									<button
-										type="button"
-										key={tag.id}
-										onClick={() => toggleTag(tag.id)}
-										className={`rounded border px-2 py-0.5 text-[10px] font-medium transition ${
-											active
-												? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
-												: 'border-(--cards-border) text-(--text-secondary) hover:border-(--primary)/50 hover:text-(--primary)'
-										}`}
-									>
-										{tag.label}
-									</button>
-								)
-							})}
 						</div>
 					</div>
 				</div>

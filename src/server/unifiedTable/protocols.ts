@@ -86,6 +86,7 @@ type ProtocolAggregateRow = {
 	volume_options_7d_pct_change: number | null
 	volume_options_30d_pct_change: number | null
 	mcap: number | null
+	fdv: number | null
 	chain_mcap?: number | null
 	pf_ratio: number | null
 	ps_ratio: number | null
@@ -241,6 +242,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		options_volume_dominance_24h: computeShare(row.volume_options_1d, totals.volume_options_1d),
 		openInterest: row.open_interest ?? null,
 		mcap: row.mcap ?? null,
+		fdv: row.fdv ?? null,
 		chainMcap: row.chain_mcap ?? null,
 		mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
 		pf: row.pf_ratio ?? null,
@@ -397,6 +399,7 @@ const fetchProtocolAggregateRows = async (
 			mp.volume_options_7d_pct_change,
 			mp.volume_options_30d_pct_change,
 			mp.mcap,
+			mp.fdv,
 			mp.pf_ratio,
 			mp.ps_ratio,
 			oi.open_interest
@@ -520,6 +523,7 @@ const fetchSubProtocolRows = async (
 			msp.volume_options_7d_pct_change,
 			msp.volume_options_30d_pct_change,
 			msp.mcap,
+			msp.fdv,
 			msp.pf_ratio,
 			msp.ps_ratio,
 			NULL AS open_interest
@@ -671,6 +675,7 @@ const fetchParentProtocolsByChain = async (
 			mpc.volume_options_7d_pct_change,
 			mpc.volume_options_30d_pct_change,
 			mpc.mcap,
+			mpc.fdv,
 			cm.mcap AS chain_mcap,
 			mpc.pf_ratio,
 			mpc.ps_ratio,
@@ -795,6 +800,7 @@ const fetchSubProtocolsByChain = async (
 			mspc.volume_options_7d_pct_change,
 			mspc.volume_options_30d_pct_change,
 			mspc.mcap,
+			mspc.fdv,
 			cm.mcap AS chain_mcap,
 			mspc.pf_ratio,
 			mspc.ps_ratio,
