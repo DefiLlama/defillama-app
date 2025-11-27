@@ -10,6 +10,7 @@ import {
 	useFetchProtocolNewUsers,
 	useFetchProtocolTransactions
 } from '~/api/categories/protocols/client'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, formatLineChart, prepareChartCsv } from '~/components/ECharts/utils'
@@ -25,6 +26,7 @@ import {
 	TOKEN_LIQUIDITY_API
 } from '~/constants'
 import { getAdapterProtocolSummary, IAdapterSummary } from '~/containers/DimensionAdapters/queries'
+import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, firstDayOfMonth, lastDayOfWeek, nearestUtcZeroHour, slug, tokenIconUrl } from '~/utils'
@@ -170,6 +172,17 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 	const prepareCsv = useCallback(() => {
 		return prepareChartCsv(finalCharts, `${props.name}.csv`)
 	}, [finalCharts, props.name])
+
+	const { multiChart, unsupportedMetrics } = useMemo(() => {
+		return serializeProtocolChartToMultiChart({
+			protocolId: slug(props.name),
+			protocolName: props.name,
+			geckoId: props.geckoId,
+			toggledMetrics: toggledCharts,
+			chartColors: props.chartColors,
+			groupBy
+		})
+	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -375,6 +388,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 						className="-ml-1 flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60"
 						smol
 					/>
+					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">

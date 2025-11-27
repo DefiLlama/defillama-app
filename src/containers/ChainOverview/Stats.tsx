@@ -4,6 +4,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -16,6 +17,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
+import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -107,6 +109,23 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			toggledCharts,
 			groupBy
 		})
+
+	const { multiChart, unsupportedMetrics } = useMemo(() => {
+		if (!props.metadata?.name) {
+			return { multiChart: null, unsupportedMetrics: [] as ChainChartLabels[] }
+		}
+
+		return serializeChainChartToMultiChart({
+			chainName: props.metadata.name,
+			geckoId: chainGeckoId,
+			toggledMetrics: toggledCharts,
+			chartColors: chainOverviewChartColors,
+			groupBy
+		})
+	}, [props.metadata.name, chainGeckoId, toggledCharts, groupBy])
+
+	const canAddToDashboard =
+		props.metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const updateGroupBy = (newGroupBy) => {
 		router.push(
@@ -830,6 +849,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 							smol
 						/>
+						{canAddToDashboard && <AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />}
 					</div>
 
 					{isFetchingChartData ? (

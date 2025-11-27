@@ -190,7 +190,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
 	useEffect(() => {
-		if (dialogStore.getState().open && typeof window !== 'undefined' && (window as any).umami) {
+		if (dialogStore?.getState()?.open && typeof window !== 'undefined' && (window as any).umami) {
 			;(window as any).umami.track('subscribe-modal-open')
 		}
 	}, [dialogStore])
