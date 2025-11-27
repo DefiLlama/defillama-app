@@ -16,7 +16,14 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import { formattedNum, getPercentChange, preparePieChartData, slug, toNiceCsvDate } from '~/utils'
+import {
+	formattedNum,
+	getPercentChange,
+	preparePieChartData,
+	slug,
+	toNiceCsvDate,
+	toNumberOrNullFromQueryParam
+} from '~/utils'
 import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -43,8 +50,10 @@ export function StablecoinsByChain({
 
 	const [filteredIndexes, setFilteredIndexes] = React.useState([])
 
-	const { query } = useRouter()
-	const { minMcap, maxMcap } = query
+	const router = useRouter()
+
+	const minMcap = toNumberOrNullFromQueryParam(router.query.minMcap)
+	const maxMcap = toNumberOrNullFromQueryParam(router.query.maxMcap)
 
 	const { selectedAttributes, selectedPegTypes, selectedBackings } = useFormatStablecoinQueryParams({
 		stablecoinAttributeOptions,
@@ -89,9 +98,7 @@ export function StablecoinsByChain({
 					})
 					.some((bool) => bool)
 
-			const isValidMcapRange =
-				(minMcap !== undefined && !Number.isNaN(Number(minMcap))) ||
-				(maxMcap !== undefined && !Number.isNaN(Number(maxMcap)))
+			const isValidMcapRange = minMcap != null && maxMcap != null
 
 			if (isValidMcapRange) {
 				toFilter = toFilter && (minMcap ? curr.mcap > minMcap : true) && (maxMcap ? curr.mcap < maxMcap : true)
@@ -129,7 +136,7 @@ export function StablecoinsByChain({
 			})
 		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, selectedChain, doublecountedIds])
 
-	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, query) }))
+	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) }))
 
 	const peggedTotals = useCalcCirculating(peggedAssets)
 

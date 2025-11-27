@@ -1108,15 +1108,9 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 }
 
 interface IDATInflow {
-	dailyFlows: Record<string, Array<[number, number, number, number]>>
-	statsByAsset: Record<
-		string,
-		{
-			totalHoldings: number
-			totalUsdValue: number
-			geckoId: string
-		}
-	>
+	flows: {
+		[asset: string]: Array<[number, number, number, number, number, number]> // [timestamp, net, inflow, outflow, purchasePrice, usdValueOfPurchase]
+	}
 }
 
 function getUTCTimestamp(timestamp: number) {
@@ -1124,16 +1118,20 @@ function getUTCTimestamp(timestamp: number) {
 	const msPerDay = 86400000 // 24 * 60 * 60 * 1000
 	return Math.round(timestamp / msPerDay) * msPerDay
 }
+
 export const getDATInflows = async () => {
 	try {
-		const data: IDATInflow = await fetchJson(`${TRADFI_API}/v1/companies`)
+		const data: IDATInflow = await fetchJson(`${TRADFI_API}/institutions`)
 		const weeklyInflows: Record<number, number> = {}
 
 		let total30d = 0
+		// Only keep inflows for the last 14 weeks (to match the chart window)
+		const fourteenWeeksAgo = Date.now() - 14 * 7 * 24 * 60 * 60 * 1000
 
-		for (const asset in data.dailyFlows) {
-			for (const [date, value, purchasePrice, usdValueOfPurchase] of data.dailyFlows[asset]) {
+		for (const asset in data.flows) {
+			for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of data.flows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
+				if (utcTimestamp < fourteenWeeksAgo) continue
 				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000
 				const usdValue = purchasePrice || usdValueOfPurchase || 0
 				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {

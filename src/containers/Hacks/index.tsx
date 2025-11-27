@@ -18,7 +18,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
 import { HacksFilters } from './filters'
 import { IHacksPageData } from './queries'
 
@@ -214,8 +214,8 @@ export const HacksContainer = ({
 		const timeQLocal = typeof timeQuery === 'string' ? timeQuery : undefined
 
 		const since = getTimeSinceSeconds(timeQLocal)
-		const minLostValLocal = minLostQuery && Number.isNaN(Number(minLostQuery)) ? Number(minLostQuery) : null
-		const maxLostValLocal = maxLostQuery && Number.isNaN(Number(maxLostQuery)) ? Number(maxLostQuery) : null
+		const minLostValLocal = toNumberOrNullFromQueryParam(minLostQuery)
+		const maxLostValLocal = toNumberOrNullFromQueryParam(maxLostQuery)
 
 		const techKeys = new Set(selectedTechniquesLocal)
 		const classKeys = new Set(selectedClassificationsLocal)
@@ -299,8 +299,8 @@ export const HacksContainer = ({
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}, [router])
 
-	const minLostVal = minLost && Number.isNaN(Number(minLost)) ? Number(minLost) : null
-	const maxLostVal = maxLost && Number.isNaN(Number(maxLost)) ? Number(maxLost) : null
+	const minLostVal = toNumberOrNullFromQueryParam(minLost)
+	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
 
 	const clearAllFilters = React.useCallback(() => {
 		const nextQuery: Record<string, any> = { ...router.query }
