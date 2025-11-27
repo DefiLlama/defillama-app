@@ -182,7 +182,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		size: 100,
 		meta: {
 			align: 'end',
-			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs hodling the underlying assets instead. ${uniswapV3}`
+			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs holding the underlying assets instead. ${uniswapV3}`
 		}
 	},
 	{
