@@ -239,7 +239,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 					// Set options on the temporary chart with any modifications you want
 					tempChart.setOption(currentOptions)
 
-					// need to set seperately for some reason
+					// need to set separately for some reason
 					tempChart.setOption({
 						legend: {
 							show: true,
