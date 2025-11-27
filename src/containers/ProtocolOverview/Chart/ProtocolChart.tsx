@@ -385,10 +385,15 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 						filename={overviewImageFilename}
 						title={overviewImageTitle}
 						iconUrl={tokenIconUrl(props.name)}
-						className="-ml-1 flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60"
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-60"
 						smol
 					/>
-					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
+					<AddToDashboardButton
+						chartConfig={multiChart}
+						unsupportedMetrics={unsupportedMetrics}
+						smol
+						className="-ml-1"
+					/>
 				</div>
 			</div>
 			<div className="flex min-h-[360px] flex-col">
