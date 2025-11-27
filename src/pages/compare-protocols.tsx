@@ -13,7 +13,7 @@ import { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import Layout from '~/layout'
-import { getNDistinctColors, slug, tokenIconUrl } from '~/utils'
+import { getNDistinctColors, slug, tokenIconUrl, toNumberOrNullFromQueryParam } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -99,15 +99,8 @@ export default function CompareProtocols({
 
 	const isLoading = results.some((r) => r.isLoading)
 
-	const minTvl =
-		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
-			? +router.query.minTvl
-			: null
-
-	const maxTvl =
-		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
-			? +router.query.maxTvl
-			: null
+	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
+	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
 
 	const { charts } = React.useMemo(() => {
 		const formattedData =

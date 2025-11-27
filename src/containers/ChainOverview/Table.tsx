@@ -27,7 +27,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -56,15 +56,8 @@ export const ChainProtocolsTable = ({
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const minTvl =
-		typeof router.query.minTvl === 'string' && router.query.minTvl !== '' && !Number.isNaN(Number(router.query.minTvl))
-			? +router.query.minTvl
-			: null
-
-	const maxTvl =
-		typeof router.query.maxTvl === 'string' && router.query.maxTvl !== '' && !Number.isNaN(Number(router.query.maxTvl))
-			? +router.query.maxTvl
-			: null
+	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
+	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
 
 	const finalProtocols = useMemo(() => {
 		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })
