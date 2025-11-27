@@ -27,7 +27,14 @@ export const useFormatYieldQueryParams = ({
 		exactToken,
 		attribute,
 		category,
-		token_pair
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
 	} = router.query
 
 	return React.useMemo(() => {
@@ -143,7 +150,14 @@ export const useFormatYieldQueryParams = ({
 			selectedCategories,
 			selectedLendingProtocols,
 			selectedFarmProtocols,
-			pairTokens
+			pairTokens,
+			minTvl: toNumberOrNullFromQueryParam(minTvl),
+			maxTvl: toNumberOrNullFromQueryParam(maxTvl),
+			minApy: toNumberOrNullFromQueryParam(minApy),
+			maxApy: toNumberOrNullFromQueryParam(maxApy),
+			minAvailable: minAvailable ? toNumberOrNullFromQueryParam(minAvailable) : null,
+			maxAvailable: maxAvailable ? toNumberOrNullFromQueryParam(maxAvailable) : null,
+			customLTV: toNumberOrNullFromQueryParam(customLTV)
 		}
 	}, [
 		attribute,
@@ -160,6 +174,19 @@ export const useFormatYieldQueryParams = ({
 		farmProtocols,
 		lendingProtocol,
 		farmProtocol,
-		token_pair
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
 	])
+}
+
+function toNumberOrNullFromQueryParam(value: string | string[] | null) {
+	const finalValue = typeof value === 'string' ? value : (value?.[0] ?? null)
+	if (finalValue == null) return null
+	return Number.isNaN(Number(finalValue)) ? null : Number(finalValue)
 }

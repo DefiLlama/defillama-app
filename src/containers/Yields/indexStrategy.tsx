@@ -19,20 +19,24 @@ const YieldsStrategyPage = ({
 
 	const lend = typeof query.lend === 'string' ? query.lend : null
 	const borrow = typeof query.borrow === 'string' ? query.borrow : null
-	const minTvl = typeof query.minTvl === 'string' ? query.minTvl : null
-	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
-	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
-	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
-	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
 
-	const { selectedChains, selectedAttributes, selectedLendingProtocols, selectedFarmProtocols } =
-		useFormatYieldQueryParams({
-			projectList,
-			chainList,
-			categoryList,
-			lendingProtocols,
-			farmProtocols
-		})
+	const {
+		selectedChains,
+		selectedAttributes,
+		selectedLendingProtocols,
+		selectedFarmProtocols,
+		minTvl,
+		maxTvl,
+		minAvailable,
+		maxAvailable,
+		customLTV
+	} = useFormatYieldQueryParams({
+		projectList,
+		chainList,
+		categoryList,
+		lendingProtocols,
+		farmProtocols
+	})
 
 	// prepare cdp pools
 	const cdpPools = pools
@@ -42,17 +46,28 @@ const YieldsStrategyPage = ({
 	// exclude cdp from lending
 	const lendingPools = pools.filter((p) => p.category !== 'CDP')
 	const poolsData = React.useMemo(() => {
-		let filteredPools = findStrategyPools(lendingPools, lend, borrow, allPools, cdpPools, customLTV).filter((pool) =>
+		const selectedChainsSet = new Set(selectedChains)
+		const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
+		const selectedFarmProtocolsSet = selectedFarmProtocols ? new Set(selectedFarmProtocols) : null
+
+		let filteredPools = findStrategyPools({
+			pools: lendingPools,
+			tokenToLend: lend,
+			tokenToBorrow: borrow,
+			allPools,
+			cdpRoutes: cdpPools,
+			customLTV
+		}).filter((pool) =>
 			filterPool({
 				pool,
-				selectedChains,
+				selectedChainsSet,
 				selectedAttributes,
 				minTvl,
 				maxTvl,
 				minAvailable,
 				maxAvailable,
-				selectedLendingProtocols,
-				selectedFarmProtocols,
+				selectedLendingProtocolsSet,
+				selectedFarmProtocolsSet,
 				customLTV,
 				strategyPage: true
 			})

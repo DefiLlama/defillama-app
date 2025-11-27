@@ -45,8 +45,9 @@ export const getStaticProps = withPerformanceLogging(
 export async function getStaticPaths() {
 	const res = await fetchJson(PROTOCOLS_API)
 	const slugs = new Set()
+	const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
 	for (const protocol of res.protocols) {
-		if (['Bridge', 'Canonical Bridge'].includes(protocol.category)) {
+		if (excludeCategories.has(protocol.category ?? '')) {
 			continue
 		}
 		if (protocol.name.startsWith('Uniswap')) {
