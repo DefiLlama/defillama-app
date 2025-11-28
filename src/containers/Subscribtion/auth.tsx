@@ -51,7 +51,7 @@ interface AuthContextType {
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
 	addEmail: (email: string) => void
-	setPromotionalEmails: (value: boolean) => void
+	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
 	user: User
 	loaders: {
@@ -559,7 +559,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	})
 
 	const setPromotionalEmails = useMutation({
-		mutationFn: async (value: boolean) => {
+		mutationFn: async (value: string) => {
 			const response = await fetch(`${AUTH_SERVER}/user/promotional-emails`, {
 				method: 'POST',
 				headers: {
@@ -580,7 +580,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				if (!oldData) return oldData
 				return {
 					...oldData,
-					promotionalEmails: data.value ? 'on' : 'off'
+					promotionalEmails: data.value
 				}
 			})
 			toast.success('Email preferences updated successfully')

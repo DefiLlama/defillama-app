@@ -297,7 +297,7 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 									disabled={loaders.setPromotionalEmails}
 									onClick={() => {
 										const currentValue = user?.promotionalEmails || 'initial'
-										const newValue = currentValue === 'off' ? true : false
+										const newValue = currentValue === 'off' ? 'on' : 'off'
 										setPromotionalEmails(newValue)
 									}}
 									className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:ring-2 focus:ring-[#5C5CF9] focus:ring-offset-2 focus:ring-offset-[#1a1b1f] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${

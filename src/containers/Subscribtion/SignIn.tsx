@@ -107,7 +107,7 @@ export const SignInForm = ({
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [emailError, setEmailError] = useState('')
-	const [promotionalEmails, setPromotionalEmails] = useState(true)
+	const [promotionalEmails, setPromotionalEmails] = useState('on')
 
 	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, loaders } = useAuthContext()
 	const { signMessageAsync } = useSignMessage()
@@ -468,8 +468,8 @@ export const SignInForm = ({
 						<input
 							type="checkbox"
 							className="mt-0.5 h-4 w-4"
-							checked={promotionalEmails}
-							onChange={(e) => setPromotionalEmails(e.target.checked)}
+							checked={promotionalEmails === 'on'}
+							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
 						<span className="text-sm text-[#b4b7bc]">
 							Receive emails about upcoming DefiLlama products and new releases
