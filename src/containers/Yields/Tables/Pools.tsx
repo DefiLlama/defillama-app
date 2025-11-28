@@ -352,7 +352,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() ? formattedNum(Number(info.getValue()) * 100) + '%' : null}
+					{info.getValue() != null ? formattedNum(Number(info.getValue()) * 100) + '%' : null}
 				</span>
 			)
 		},
