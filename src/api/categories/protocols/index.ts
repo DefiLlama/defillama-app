@@ -1,12 +1,9 @@
 import { fetchCoinPrices } from '~/api'
 import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
-	BRIDGEINFLOWS_API,
 	CATEGORY_COIN_PRICES_API,
 	CATEGORY_INFO_API,
 	CATEGORY_PERFORMANCE_API,
-	CHAIN_ASSETS_FLOWS,
-	CHAINS_ASSETS,
 	COINS_INFO_API,
 	COINS_PRICES_API,
 	ETF_FLOWS_API,
@@ -27,7 +24,6 @@ import {
 	slug
 } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { sluggify } from '~/utils/cache-client'
 import { BasicPropsToKeep, formatProtocolsData } from './utils'
 
 export const getAllProtocolEmissionsWithHistory = async ({

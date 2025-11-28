@@ -22,6 +22,7 @@ export const DEFAULT_COLUMN_ORDER = [
 	'perpsVolume24h',
 	'openInterest',
 	'mcap',
+	'fdv',
 	'mcaptvl'
 ]
 

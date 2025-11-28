@@ -169,7 +169,7 @@ export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
 
-export const TRADFI_API = 'https://tradfi.llama.team'
+export const TRADFI_API = process.env.TRADFI_API
 
 export const removedCategoriesFromChainTvl = [
 	'Chain',

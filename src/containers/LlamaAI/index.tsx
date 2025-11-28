@@ -221,13 +221,18 @@ async function fetchPromptResponse({
 								onProgress({ type: 'title', content: data.content, title: data.content })
 							}
 						} else if (data.type === 'reset') {
+							// Treat "reset" as a progress-style hint from the server instead of
+							// clearing the already streamed content on the client. Clearing here
+							// causes the UI to briefly "reset" even when the server isn't actually
+							// starting over, which is especially noticeable while charts are loading.
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({
 									type: 'reset',
 									content: data.content || 'Retrying...'
 								})
 							}
-							fullResponse = ''
+							// NOTE: We intentionally do NOT reset `fullResponse` anymore so that
+							// previously streamed tokens remain part of the final answer.
 						}
 					} catch (e) {
 						console.log('SSE JSON parse error:', e)
@@ -538,7 +543,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					} else if (data.type === 'title') {
 						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
 					} else if (data.type === 'reset') {
-						setStreamingResponse('')
+						// Don't clear the streaming response on a "reset" hint from the server.
+						// This was causing the visible answer area to blank out mid-stream even
+						// though the backend wasn't actually restarting the whole response.
 						setProgressMessage(data.content || 'Retrying due to output error...')
 					}
 				},
@@ -1380,6 +1387,10 @@ const PromptInput = memo(function PromptInput({
 		if (!restoreRequest) return
 		const textarea = promptInputRef.current
 		if (!textarea) return
+
+		// Only restore if the current input is empty so we don't overwrite
+		// anything the user has typed while a response was streaming.
+		if (textarea.value.trim().length > 0) return
 
 		const { text, entities } = restoreRequest
 

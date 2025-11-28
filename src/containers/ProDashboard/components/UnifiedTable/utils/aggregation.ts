@@ -44,7 +44,8 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'options_volume_24h',
 		'options_volume_7d',
 		'options_volume_30d',
-		'mcap'
+		'mcap',
+		'fdv'
 	]
 
 	const totals: Partial<Record<keyof NumericMetrics, number>> = {}

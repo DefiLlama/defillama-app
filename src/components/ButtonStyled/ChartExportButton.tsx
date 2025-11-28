@@ -14,9 +14,10 @@ import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
+// kept for potential future use; currently unused after simplifying legend layout
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const approximateTextWidth = (text: string, fontSize: number) => {
 	if (!text) return 0
-	// Rough heuristic: average character width is ~0.6 * font size
 	const averageCharWidthRatio = 0.6
 	return text.length * fontSize * averageCharWidthRatio
 }
@@ -177,48 +178,31 @@ export const ChartExportButton = memo(function ChartExportButton({
 					}
 
 					// Legend layout calculations
-					const legendArray = (currentOptions.legend ?? []) as any[]
+					const legendConfig = currentOptions.legend as any
+					const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
 
-					const titleText = title ?? ''
-					const titleFontSize = 28
-					let titleWidth = approximateTextWidth(titleText, titleFontSize)
-
-					if (iconBase64) {
-						const iconWidth = 32
-						const iconGap = 8
-						titleWidth += iconWidth + iconGap
-					}
-
-					const legendFontSize = 24
-					const legendIconWidth = 24
 					const legendItemGap = 20
 
-					let legendsWidth = 0
-					legendArray.forEach((legend: any) => {
-						const data = legend?.data ?? []
-						data.forEach((item: any) => {
-							const name = typeof item === 'string' ? item : (item?.name ?? '')
-							if (!name) return
-							legendsWidth += approximateTextWidth(name, legendFontSize) + legendIconWidth + legendItemGap
-						})
-					})
-
-					const totalWidth = titleWidth + legendsWidth
-					const shouldWrapLegend = !!title && legendsWidth > 0 && totalWidth > IMAGE_EXPORT_WIDTH
+					// If there is no legend on the original chart, we'll still be adding one
+					// below (scroll legend), so treat "has legend" based on either existing
+					// legend config or presence of series.
+					// We previously used legend label widths to decide wrapping; now we
+					// always keep the legend in a single scrollable row, so we don't
+					// need exact width calculations here.
+					const hasLegend =
+						legendArray.length > 0 ||
+						(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
 
 					const baseTopPadding = 16
 					const titleHeight = title ? 36 : 0
-					const legendHeight = legendsWidth > 0 ? 32 : 0
+					const legendHeight = hasLegend ? 32 : 0
 					const verticalGap = 16
 
-					let legendTop = baseTopPadding
-					let gridTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
-
-					if (shouldWrapLegend) {
-						// Place legend below title and move grid further down
-						legendTop = baseTopPadding + titleHeight + verticalGap
-						gridTop = legendTop + legendHeight + verticalGap
-					}
+					// Always place legend below the title (when present) and then
+					// push the grid below the legend to avoid overlap, even when
+					// the original chart did not define a legend.
+					let legendTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
+					let gridTop = legendTop + (hasLegend ? legendHeight + verticalGap : 0)
 
 					currentOptions.animation = false
 					currentOptions.grid = {
@@ -255,7 +239,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 					// Set options on the temporary chart with any modifications you want
 					tempChart.setOption(currentOptions)
 
-					// need to set seperately for some reason
+					// need to set separately for some reason
 					tempChart.setOption({
 						legend: {
 							show: true,
@@ -268,6 +252,8 @@ export const ChartExportButton = memo(function ChartExportButton({
 							itemGap: legendItemGap,
 							top: legendTop,
 							right: 16,
+							type: 'scroll',
+							pageButtonPosition: 'end',
 							padding: [0, 0, 0, 18]
 						}
 					})
