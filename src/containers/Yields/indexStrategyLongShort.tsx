@@ -9,21 +9,21 @@ const YieldsStrategyPageLongShort = ({ filteredPools, perps, tokens, projectList
 	const { query } = useRouter()
 
 	const token = typeof query.token === 'string' || typeof query.token === 'object' ? query.token : null
-	const minTvl = typeof query.minTvl === 'string' ? query.minTvl : null
-	const maxTvl = typeof query.maxTvl === 'string' ? query.maxTvl : null
 
-	const { selectedChains, selectedAttributes } = useFormatYieldQueryParams({
+	const { selectedChains, selectedAttributes, minTvl, maxTvl } = useFormatYieldQueryParams({
 		projectList,
 		chainList,
 		categoryList
 	})
 
 	const poolsData = React.useMemo(() => {
-		const pools = findStrategyPoolsFR(token ? query : null, filteredPools, perps)
+		const selectedChainsSet = new Set(selectedChains)
+
+		const pools = findStrategyPoolsFR({ token: token ? query : null, filteredPools, perps })
 			.filter((pool) =>
 				filterPool({
 					pool,
-					selectedChains,
+					selectedChainsSet,
 					selectedAttributes,
 					minTvl,
 					maxTvl

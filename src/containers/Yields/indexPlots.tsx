@@ -23,8 +23,7 @@ export const PlotsPage = ({
 	tokenSymbolsList,
 	usdPeggedSymbols
 }) => {
-	const { query, pathname } = useRouter()
-	const { minTvl, maxTvl, minApy, maxApy } = query
+	const { pathname } = useRouter()
 
 	const {
 		selectedProjects,
@@ -34,26 +33,34 @@ export const PlotsPage = ({
 		excludeTokens,
 		exactTokens,
 		selectedCategories,
-		pairTokens
+		pairTokens,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
 		const include_tokens = includeTokens.map((token) => token.toLowerCase())
-		const exclude_tokens = excludeTokens.map((token) => token.toLowerCase())
+		const excludeTokensSet = new Set(excludeTokens.map((token) => token.toLowerCase()))
 		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
+
+		const selectedProjectsSet = new Set(selectedProjects)
+		const selectedChainsSet = new Set(selectedChains)
+		const selectedCategoriesSet = new Set(selectedCategories)
 
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
 				curr,
 				pathname,
-				selectedProjects,
-				selectedChains,
+				selectedProjectsSet,
+				selectedChainsSet,
 				selectedAttributes,
 				includeTokens: include_tokens,
-				excludeTokens: exclude_tokens,
+				excludeTokensSet,
 				exactTokens: exact_tokens,
-				selectedCategories,
+				selectedCategoriesSet,
 				minTvl,
 				maxTvl,
 				minApy,
@@ -80,7 +87,8 @@ export const PlotsPage = ({
 		exactTokens,
 		selectedCategories,
 		pathname,
-		pairTokens
+		pairTokens,
+		usdPeggedSymbols
 	])
 
 	return (

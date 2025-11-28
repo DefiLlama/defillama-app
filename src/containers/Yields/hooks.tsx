@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
+import { toNumberOrNullFromQueryParam } from '~/utils'
 
 interface IFormatYieldQueryParams {
 	projectList?: Array<string>
@@ -17,20 +18,28 @@ export const useFormatYieldQueryParams = ({
 	farmProtocols
 }: IFormatYieldQueryParams) => {
 	const router = useRouter()
-	const {
-		project,
-		lendingProtocol,
-		farmProtocol,
-		chain,
-		token,
-		excludeToken,
-		exactToken,
-		attribute,
-		category,
-		token_pair
-	} = router.query
 
 	return React.useMemo(() => {
+		const {
+			project,
+			lendingProtocol,
+			farmProtocol,
+			chain,
+			token,
+			excludeToken,
+			exactToken,
+			attribute,
+			category,
+			token_pair,
+			minTvl,
+			maxTvl,
+			minApy,
+			maxApy,
+			minAvailable,
+			maxAvailable,
+			customLTV
+		} = router.query
+
 		let selectedProjects = [],
 			selectedChains = [],
 			selectedAttributes = [],
@@ -143,23 +152,14 @@ export const useFormatYieldQueryParams = ({
 			selectedCategories,
 			selectedLendingProtocols,
 			selectedFarmProtocols,
-			pairTokens
+			pairTokens,
+			minTvl: toNumberOrNullFromQueryParam(minTvl),
+			maxTvl: toNumberOrNullFromQueryParam(maxTvl),
+			minApy: toNumberOrNullFromQueryParam(minApy),
+			maxApy: toNumberOrNullFromQueryParam(maxApy),
+			minAvailable: minAvailable ? toNumberOrNullFromQueryParam(minAvailable) : null,
+			maxAvailable: maxAvailable ? toNumberOrNullFromQueryParam(maxAvailable) : null,
+			customLTV: toNumberOrNullFromQueryParam(customLTV)
 		}
-	}, [
-		attribute,
-		chain,
-		project,
-		token,
-		excludeToken,
-		exactToken,
-		category,
-		projectList,
-		chainList,
-		categoryList,
-		lendingProtocols,
-		farmProtocols,
-		lendingProtocol,
-		farmProtocol,
-		token_pair
-	])
+	}, [projectList, chainList, categoryList, lendingProtocols, farmProtocols, router.query])
 }

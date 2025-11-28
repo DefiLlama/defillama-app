@@ -28,6 +28,8 @@ export interface IProtocolsWithTokensByChainPageData {
 	type: 'mcap' | 'price' | 'fdv' | 'outstanding-fdv'
 }
 
+const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'])
+
 export async function getProtocolsMarketCapsByChain({
 	chain
 }: {
@@ -50,7 +52,7 @@ export async function getProtocolsMarketCapsByChain({
 	const categories = new Set<string>()
 
 	for (const protocol of protocols) {
-		if (['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'].includes(protocol.category ?? '')) continue
+		if (excludeCategories.has(protocol.category ?? '')) continue
 
 		if (protocol.category) {
 			categories.add(protocol.category)
@@ -129,7 +131,7 @@ export async function getProtocolsFDVsByChain({
 	const categories = new Set<string>()
 
 	for (const protocol of protocols) {
-		if (['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'].includes(protocol.category ?? '')) continue
+		if (excludeCategories.has(protocol.category ?? '')) continue
 
 		const fdv = protocol.geckoId ? tokenList.find((t) => t.id === protocol.geckoId)?.['fully_diluted_valuation'] : null
 
@@ -227,7 +229,7 @@ export async function getProtocolsTokenPricesByChain({
 	const prices = await fetchCoinPrices(Array.from(protocolGeckoIds))
 
 	for (const protocol of protocols) {
-		if (['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'].includes(protocol.category ?? '')) continue
+		if (excludeCategories.has(protocol.category ?? '')) continue
 
 		if (protocol.category) {
 			categories.add(protocol.category)
@@ -338,7 +340,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 	const prices = await fetchCoinPrices(Object.values(emissionProtocolGeckoIds))
 
 	for (const protocol of protocols) {
-		if (['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'].includes(protocol.category ?? '')) continue
+		if (excludeCategories.has(protocol.category ?? '')) continue
 
 		const slugName = slug(protocol.name)
 		const adjustedFDV =
