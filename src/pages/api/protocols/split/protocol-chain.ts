@@ -167,13 +167,26 @@ const normalizeChainKey = (chain: string): string => {
 const toDimensionsChainSlug = (chain: string): string => {
 	if (!chain) return chain
 	const lc = chain.toLowerCase()
-	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'op-mainnet'
+	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'optimism'
 	if (lc === 'bsc' || lc === 'binance smart chain') return 'bsc'
 	if (lc === 'avax' || lc === 'avalanche') return 'avax'
 	if (lc === 'gnosis' || lc === 'xdai') return 'xdai'
 	if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
-		return 'hyperliquid-l1'
-	return lc
+		return 'hyperliquid'
+	if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era' || lc === 'zksync') return 'zksync'
+	if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'polygon_zkevm'
+	if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm' || lc === 'imx') return 'imx'
+	if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'cronos_zkevm'
+	if (lc === 'arbitrum nova' || lc === 'arbitrum-nova' || lc === 'arbitrum_nova') return 'arbitrum_nova'
+	return lc.replace(/\s+/g, '_')
+}
+
+const toOverviewApiSlug = (breakdownSlug: string): string => {
+	if (!breakdownSlug) return breakdownSlug
+	const lc = breakdownSlug.toLowerCase()
+	if (lc === 'zksync') return 'zksync-era'
+	if (lc === 'imx') return 'immutable-zkevm'
+	return lc.replace(/_/g, '-')
 }
 
 const displayChainName = (slug: string): string => {
@@ -182,7 +195,11 @@ const displayChainName = (slug: string): string => {
 	if (lc === 'avax') return 'Avalanche'
 	if (lc === 'bsc') return 'BSC'
 	if (lc === 'xdai') return 'Gnosis'
-	// Normalize underscores to dashes for nicer display words
+	if (lc === 'zksync') return 'zkSync Era'
+	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
+	if (lc === 'imx') return 'Immutable zkEVM'
+	if (lc === 'cronos_zkevm') return 'Cronos zkEVM'
+	if (lc === 'arbitrum_nova') return 'Arbitrum Nova'
 	const norm = lc.replace(/_/g, '-')
 	return norm
 		.split('-')
@@ -1112,7 +1129,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		const chainSeriesPromises = picked.map(async (slug, idx) => {
 			const includeBreakdownParam = hasProtocolCategoryFilter ? 'false' : 'true'
-			const endpointSlug = toDimensionsChainSlug(slug)
+			const endpointSlug = toOverviewApiSlug(slug)
 			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
 			const r = await fetch(url)
