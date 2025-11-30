@@ -9,6 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 import Layout from '~/layout'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { ChartRenderer } from './components/ChartRenderer'
@@ -220,13 +221,18 @@ async function fetchPromptResponse({
 								onProgress({ type: 'title', content: data.content, title: data.content })
 							}
 						} else if (data.type === 'reset') {
+							// Treat "reset" as a progress-style hint from the server instead of
+							// clearing the already streamed content on the client. Clearing here
+							// causes the UI to briefly "reset" even when the server isn't actually
+							// starting over, which is especially noticeable while charts are loading.
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({
 									type: 'reset',
 									content: data.content || 'Retrying...'
 								})
 							}
-							fullResponse = ''
+							// NOTE: We intentionally do NOT reset `fullResponse` anymore so that
+							// previously streamed tokens remain part of the final answer.
 						}
 					} catch (e) {
 						console.log('SSE JSON parse error:', e)
@@ -270,7 +276,7 @@ interface SharedSession {
 		createdAt: string
 		isPublic: boolean
 	}
-	conversationHistory: Array<{
+	messages: Array<{
 		question: string
 		response: {
 			answer: string
@@ -311,7 +317,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const sessionIdRef = useRef<string | null>(null)
 	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
-	const [conversationHistory, setConversationHistory] = useState<
+	const [messages, setMessages] = useState<
 		Array<{
 			role?: string
 			content?: string
@@ -363,6 +369,20 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [lastFailedRequest, setLastFailedRequest] = useState<{
+		userQuestion: string
+		suggestionContext?: any
+		preResolvedEntities?: Array<{ term: string; slug: string }>
+	} | null>(null)
+	const lastInputRef = useRef<{
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null>(null)
+	const [restoreRequest, setRestoreRequest] = useState<{
+		key: number
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -394,7 +414,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			setConversationHistory(sharedSession.conversationHistory)
+			setMessages(sharedSession.messages)
 			setSessionId(sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState])
@@ -406,20 +426,21 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			!sharedSession &&
 			!readOnly &&
 			hasRestoredSession !== sessionId &&
-			!newlyCreatedSessionsRef.current.has(sessionId)
+			!newlyCreatedSessionsRef.current.has(sessionId) &&
+			!isStreaming
 		) {
 			resetScrollState()
 			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
 				.then((result) => {
-					setConversationHistory(result.conversationHistory)
+					setMessages(result.messages)
 					setPaginationState(result.pagination)
 				})
 				.catch((error) => {
 					console.log('Failed to restore session:', error)
 				})
 		}
-	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState])
+	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState, isStreaming])
 
 	const {
 		data: promptResponse,
@@ -505,6 +526,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						newlyCreatedSessionsRef.current.add(data.sessionId)
 						setSessionId(data.sessionId)
 						sessionIdRef.current = data.sessionId
+						// Mark as restored to prevent restoration after streaming completes
+						setHasRestoredSession(data.sessionId)
 					} else if (data.type === 'suggestions') {
 						setStreamingSuggestions(data.suggestions)
 						setIsGeneratingSuggestions(false)
@@ -520,7 +543,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					} else if (data.type === 'title') {
 						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
 					} else if (data.type === 'reset') {
-						setStreamingResponse('')
+						// Don't clear the streaming response on a "reset" hint from the server.
+						// This was causing the visible answer area to blank out mid-stream even
+						// though the backend wasn't actually restarting the whole response.
 						setProgressMessage(data.content || 'Retrying due to output error...')
 					}
 				},
@@ -535,17 +560,21 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			userQuestion: string
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
-		}) => {},
+		}) => {
+			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
+		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
 			abortControllerRef.current = null
+			setLastFailedRequest(null)
+			lastInputRef.current = null
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
 				setStreamingResponse(finalContent)
 			}
 
-			setConversationHistory((prev) => [
+			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
@@ -585,7 +614,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			const wasUserStopped = error?.message === 'Request aborted'
 
 			if (wasUserStopped && finalContent.trim()) {
-				setConversationHistory((prev) => [
+				setLastFailedRequest(null)
+				lastInputRef.current = null
+				setMessages((prev) => [
 					...prev,
 					{
 						role: 'user',
@@ -612,8 +643,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setPrompt('')
 			} else if (wasUserStopped && !finalContent.trim()) {
 				setPrompt(variables.userQuestion)
+				setLastFailedRequest(null)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
+				setLastFailedRequest(null)
+				lastInputRef.current = null
 			}
 
 			setCurrentMessageId(null)
@@ -655,7 +689,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (finalContent.trim()) {
-			setConversationHistory((prev) => [
+			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
@@ -675,8 +709,18 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			])
 			setPrompt('')
+			lastInputRef.current = null
 		} else {
+			// No content streamed yet – restore the last submitted input
 			setPrompt(prompt)
+			const lastInput = lastInputRef.current
+			if (lastInput && lastInput.text === prompt) {
+				setRestoreRequest((prev) => ({
+					key: (prev?.key ?? 0) + 1,
+					text: lastInput.text,
+					entities: lastInput.entities
+				}))
+			}
 		}
 
 		setStreamingResponse('')
@@ -698,7 +742,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingCitations,
 		currentMessageId,
 		prompt,
-		setConversationHistory,
+		lastInputRef,
+		setRestoreRequest,
+		setMessages,
 		setStreamingResponse,
 		setStreamingSuggestions,
 		setStreamingCharts,
@@ -710,13 +756,24 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		authorizedFetch
 	])
 
+	const handleRetry = useCallback(() => {
+		if (lastFailedRequest) {
+			submitPrompt(lastFailedRequest)
+		}
+	}, [lastFailedRequest, submitPrompt])
+
 	const handleSubmit = useCallback(
 		(
 			prompt: string,
 			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
 		) => {
+			if (isStreaming) {
+				return
+			}
+
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
+			lastInputRef.current = { text: finalPrompt, entities: preResolved }
 			shouldAutoScrollRef.current = true
 
 			if (sessionId) {
@@ -728,11 +785,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				preResolvedEntities: preResolved
 			})
 		},
-		[sessionId, moveSessionToTop, submitPrompt]
+		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
 	const handleSubmitWithSuggestion = useCallback(
 		(prompt: string, suggestion: any) => {
+			if (isStreaming) {
+				return
+			}
+
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
 			shouldAutoScrollRef.current = true
@@ -746,14 +807,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				suggestionContext: suggestion
 			})
 		},
-		[sessionId, moveSessionToTop, submitPrompt]
+		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
 	)
 
 	const router = useRouter()
 
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
-			router.push('/ai', undefined, { shallow: true })
+			router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 
@@ -805,16 +866,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setHasChartError(false)
 		setIsGeneratingSuggestions(false)
 		setExpectedChartInfo(null)
-		setConversationHistory([])
+		setMessages([])
 		streamingContentRef.current.reset()
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
 	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
 
-	const handleSessionSelect = async (
-		selectedSessionId: string,
-		data: { conversationHistory: any[]; pagination?: any }
-	) => {
+	const handleSessionSelect = async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
 		resetScrollState()
 
 		if (sessionId && isStreaming) {
@@ -839,7 +897,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		setSessionId(selectedSessionId)
 		setHasRestoredSession(selectedSessionId)
-		setConversationHistory(data.conversationHistory)
+		setMessages(data.messages)
 		setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 		setPrompt('')
 		resetPrompt()
@@ -873,7 +931,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
-			setConversationHistory((prev) => [...result.conversationHistory, ...prev])
+			setMessages((prev) => [...result.messages, ...prev])
 			setPaginationState(result.pagination)
 
 			setTimeout(() => {
@@ -981,14 +1039,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	}, [streamingResponse, isStreaming])
 
 	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current && conversationHistory.length > 0) {
+		if (shouldAutoScrollRef.current && scrollContainerRef.current && messages.length > 0) {
 			requestAnimationFrame(() => {
 				if (scrollContainerRef.current && shouldAutoScrollRef.current) {
 					scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 				}
 			})
 		}
-	}, [conversationHistory.length])
+	}, [messages.length])
 
 	useEffect(() => {
 		return () => {
@@ -1014,7 +1072,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<div className="relative isolate flex max-h-[calc(100dvh-68px)] flex-1 flex-nowrap overflow-hidden max-lg:flex-col lg:max-h-[calc(100dvh-72px)]">
+			<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
 				{!readOnly && (
 					<>
 						{sidebarVisible ? (
@@ -1034,29 +1092,29 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					</>
 				)}
 				<div
-					className={`relative isolate flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.22s_ease-out]' : ''}`}
+					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 				>
-					{conversationHistory.length === 0 &&
-					prompt.length === 0 &&
-					!isRestoringSession &&
-					!isPending &&
-					!isStreaming ? (
+					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
 						initialSessionId ? (
 							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 									<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 										Failed to restore session,{' '}
-										<button onClick={handleNewChat} className="text-(--link-text) underline">
+										<button
+											onClick={handleNewChat}
+											data-umami-event="llamaai-new-chat"
+											className="text-(--link-text) underline"
+										>
 											Start a new chat
 										</button>
 									</p>
 								</div>
 							</div>
 						) : (
-							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
+							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
+								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-									<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
 									<>
@@ -1066,8 +1124,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isPending={isPending}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
-											initialValue={prompt}
-											placeholder="Ask LlamaAI... Type @ to insert a protocol, chain"
+											restoreRequest={restoreRequest}
+											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1078,112 +1136,114 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						<>
 							<div
 								ref={scrollContainerRef}
-								className="thin-scrollbar relative min-h-0 flex-1 overflow-y-auto p-2.5 max-lg:px-0"
+								className="thin-scrollbar relative flex-1 overflow-y-auto p-2.5 max-lg:px-0"
 							>
 								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									{isRestoringSession && conversationHistory.length === 0 ? (
+									{isRestoringSession && messages.length === 0 ? (
 										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 											Loading conversation
 											<LoadingDots />
 										</p>
-									) : conversationHistory.length > 0 || isSubmitted ? (
-										<div className="flex w-full flex-col gap-2 px-2 pb-5">
+									) : messages.length > 0 || isSubmitted ? (
+										<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
 											{paginationState.isLoadingMore && (
 												<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 													Loading more messages
 													<LoadingDots />
 												</p>
 											)}
-											<div className="flex flex-col gap-2.5">
-												{conversationHistory.map((item, index) => {
-													if (item.role === 'user') {
-														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
-													}
-													if (item.role === 'assistant') {
-														return (
-															<div
-																key={`assistant-${item.messageId || item.timestamp}-${index}`}
-																className="flex flex-col gap-2.5"
-															>
-																<MarkdownRenderer content={item.content} citations={item.citations} />
-																{item.charts && item.charts.length > 0 && (
-																	<ChartRenderer
-																		charts={item.charts}
-																		chartData={item.chartData || []}
-																		resizeTrigger={resizeTrigger}
-																	/>
-																)}
-																{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
-																<ResponseControls
-																	messageId={item.messageId}
-																	content={item.content}
-																	initialRating={item.userRating}
-																	sessionId={sessionId}
-																	readOnly={readOnly}
-																/>
-																{!readOnly && item.suggestions && item.suggestions.length > 0 && (
-																	<SuggestedActions
-																		suggestions={item.suggestions}
-																		handleSuggestionClick={handleSuggestionClick}
-																		isPending={isPending}
-																		isStreaming={isStreaming}
-																	/>
-																)}
-																{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
-															</div>
-														)
-													}
-													if (item.question) {
-														return (
-															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
-																<SentPrompt prompt={item.question} />
-																<div className="flex flex-col gap-2.5">
-																	<MarkdownRenderer
-																		content={item.response?.answer || ''}
-																		citations={item.response?.citations || item.citations}
-																	/>
-																	{((item.response?.charts && item.response.charts.length > 0) ||
-																		(item.charts && item.charts.length > 0)) && (
+											{messages.length > 0 && (
+												<div className="flex flex-col gap-2.5">
+													{messages.map((item, index) => {
+														if (item.role === 'user') {
+															return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
+														}
+														if (item.role === 'assistant') {
+															return (
+																<div
+																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
+																	className="flex flex-col gap-2.5"
+																>
+																	<MarkdownRenderer content={item.content} citations={item.citations} />
+																	{item.charts && item.charts.length > 0 && (
 																		<ChartRenderer
-																			charts={item.response?.charts || item.charts || []}
-																			chartData={item.response?.chartData || item.chartData || []}
+																			charts={item.charts}
+																			chartData={item.chartData || []}
 																			resizeTrigger={resizeTrigger}
 																		/>
 																	)}
-																	{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
-																		<InlineSuggestions
-																			text={item.response?.inlineSuggestions || item.inlineSuggestions}
-																		/>
-																	)}
+																	{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
 																	<ResponseControls
 																		messageId={item.messageId}
-																		content={item.response?.answer}
+																		content={item.content}
 																		initialRating={item.userRating}
 																		sessionId={sessionId}
 																		readOnly={readOnly}
 																	/>
-																	{!readOnly &&
-																		((item.response?.suggestions && item.response.suggestions.length > 0) ||
-																			(item.suggestions && item.suggestions.length > 0)) && (
-																			<SuggestedActions
-																				suggestions={item.response?.suggestions || item.suggestions || []}
-																				handleSuggestionClick={handleSuggestionClick}
-																				isPending={isPending}
-																				isStreaming={isStreaming}
+																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
+																		<SuggestedActions
+																			suggestions={item.suggestions}
+																			handleSuggestionClick={handleSuggestionClick}
+																			isPending={isPending}
+																			isStreaming={isStreaming}
+																		/>
+																	)}
+																	{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
+																</div>
+															)
+														}
+														if (item.question) {
+															return (
+																<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
+																	<SentPrompt prompt={item.question} />
+																	<div className="flex flex-col gap-2.5">
+																		<MarkdownRenderer
+																			content={item.response?.answer || ''}
+																			citations={item.response?.citations || item.citations}
+																		/>
+																		{((item.response?.charts && item.response.charts.length > 0) ||
+																			(item.charts && item.charts.length > 0)) && (
+																			<ChartRenderer
+																				charts={item.response?.charts || item.charts || []}
+																				chartData={item.response?.chartData || item.chartData || []}
+																				resizeTrigger={resizeTrigger}
 																			/>
 																		)}
-																	{showDebug && (item.response?.metadata || item.metadata) && (
-																		<QueryMetadata metadata={item.response?.metadata || item.metadata} />
-																	)}
+																		{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
+																			<InlineSuggestions
+																				text={item.response?.inlineSuggestions || item.inlineSuggestions}
+																			/>
+																		)}
+																		<ResponseControls
+																			messageId={item.messageId}
+																			content={item.response?.answer}
+																			initialRating={item.userRating}
+																			sessionId={sessionId}
+																			readOnly={readOnly}
+																		/>
+																		{!readOnly &&
+																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
+																				(item.suggestions && item.suggestions.length > 0)) && (
+																				<SuggestedActions
+																					suggestions={item.response?.suggestions || item.suggestions || []}
+																					handleSuggestionClick={handleSuggestionClick}
+																					isPending={isPending}
+																					isStreaming={isStreaming}
+																				/>
+																			)}
+																		{showDebug && (item.response?.metadata || item.metadata) && (
+																			<QueryMetadata metadata={item.response?.metadata || item.metadata} />
+																		)}
+																	</div>
 																</div>
-															</div>
-														)
-													}
-													return null
-												})}
-											</div>
+															)
+														}
+														return null
+													})}
+												</div>
+											)}
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-106px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
+												<div className="flex min-h-[calc(100dvh-218px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
 													<PromptResponse
 														response={
@@ -1206,6 +1266,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														progressMessage={progressMessage}
 														progressStage={progressStage}
 														onSuggestionClick={handleSuggestionClick}
+														onRetry={handleRetry}
+														canRetry={!!lastFailedRequest}
 														isGeneratingCharts={isGeneratingCharts}
 														isAnalyzingForCharts={isAnalyzingForCharts}
 														hasChartError={hasChartError}
@@ -1221,7 +1283,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
 											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
-											<h1 className="text-2xl font-semibold">What can I help you with ?</h1>
+											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
 								</div>
@@ -1262,8 +1324,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isPending={isPending}
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
-										initialValue={prompt}
-										placeholder="Reply to LlamaAI... Type @ to insert a protocol, chain"
+										restoreRequest={restoreRequest}
+										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 									/>
 								)}
 							</div>
@@ -1281,16 +1343,20 @@ const PromptInput = memo(function PromptInput({
 	isPending,
 	handleStopRequest,
 	isStreaming,
-	initialValue,
-	placeholder
+	placeholder,
+	restoreRequest
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
-	initialValue?: string
 	placeholder: string
+	restoreRequest?: {
+		key: number
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1298,7 +1364,12 @@ const PromptInput = memo(function PromptInput({
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
 	const isProgrammaticUpdateRef = useRef(false)
 
-	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
+	// Use different placeholder for mobile devices
+	const isMobile = useMedia('(max-width: 640px)')
+	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
+	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
+
+	const combobox = Ariakit.useComboboxStore()
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
 	const { data: matches } = useGetEntities(searchValue)
@@ -1309,7 +1380,43 @@ const PromptInput = memo(function PromptInput({
 	// the textarea value have shifted the trigger character.
 	useEffect(() => {
 		combobox.render()
-	}, [combobox, value])
+	}, [combobox])
+
+	// Restore text and entities after a cancelled request (before any tokens streamed)
+	useEffect(() => {
+		if (!restoreRequest) return
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		// Only restore if the current input is empty so we don't overwrite
+		// anything the user has typed while a response was streaming.
+		if (textarea.value.trim().length > 0) return
+
+		const { text, entities } = restoreRequest
+
+		// Rebuild entity refs from the restore data
+		entitiesRef.current.clear()
+		entitiesMapRef.current.clear()
+		if (entities && entities.length > 0) {
+			for (const { term, slug } of entities) {
+				entitiesRef.current.add(term)
+				entitiesMapRef.current.set(term, { id: slug, name: term, type: '' })
+			}
+		}
+
+		// Programmatic update: avoid re-triggering combobox logic in onChange
+		isProgrammaticUpdateRef.current = true
+		textarea.value = text
+		setValue(text)
+		setInputSize(promptInputRef, highlightRef)
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = highlightWord(text, Array.from(entitiesRef.current))
+		}
+
+		combobox.setValue('')
+		combobox.hide()
+	}, [restoreRequest, combobox, promptInputRef])
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -1319,6 +1426,7 @@ const PromptInput = memo(function PromptInput({
 	}, [combobox])
 
 	const getFinalEntities = () => {
+		const currentValue = promptInputRef.current?.value ?? ''
 		return Array.from(entitiesRef.current)
 			.map((name) => {
 				const data = entitiesMapRef.current.get(name)
@@ -1328,7 +1436,7 @@ const PromptInput = memo(function PromptInput({
 					slug: data.id
 				}
 			})
-			.filter((entity) => entity !== null && value.includes(entity.term)) as Array<{
+			.filter((entity) => entity !== null && currentValue.includes(entity.term)) as Array<{
 			term: string
 			slug: string
 		}>
@@ -1338,12 +1446,24 @@ const PromptInput = memo(function PromptInput({
 		setValue('')
 		combobox.setValue('')
 		combobox.hide()
+		const textarea = promptInputRef.current
+		if (textarea) {
+			textarea.value = ''
+			textarea.style.height = ''
+		}
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = ''
 			highlightRef.current.textContent = ''
+			highlightRef.current.style.height = ''
 		}
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
+	}
+
+	const trackSubmit = () => {
+		if (typeof window !== 'undefined' && (window as any).umami) {
+			;(window as any).umami.track('llamaai-prompt-submit')
+		}
 	}
 
 	const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1366,8 +1486,14 @@ const PromptInput = memo(function PromptInput({
 				if (checkPos >= entityIndex && checkPos < entityEnd) {
 					event.preventDefault()
 					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
+
+					// Keep internal state and combobox in sync when we programmatically
+					// remove an entity, otherwise stale value can be re-applied on next input.
+					textarea.value = newValue
 					setValue(newValue)
+					setInputSize(promptInputRef, highlightRef)
 					combobox.setValue('')
+					combobox.hide()
 
 					entitiesRef.current.delete(entityName)
 					entitiesMapRef.current.delete(entityName)
@@ -1398,6 +1524,12 @@ const PromptInput = memo(function PromptInput({
 
 		if (event.key === 'Enter' && !event.shiftKey && combobox.getState().renderedItems.length === 0) {
 			event.preventDefault()
+
+			if (isStreaming) {
+				return
+			}
+
+			trackSubmit()
 			const finalEntities = getFinalEntities()
 			const promptValue = promptInputRef.current?.value ?? ''
 			resetInput()
@@ -1414,10 +1546,11 @@ const PromptInput = memo(function PromptInput({
 
 	const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		if (promptInputRef.current) {
-			setInputSize(event, promptInputRef, highlightRef)
+			setInputSize(promptInputRef, highlightRef)
 		}
 
 		const currentValue = event.target.value
+		setValue(currentValue)
 
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
@@ -1426,29 +1559,42 @@ const PromptInput = memo(function PromptInput({
 		// Skip trigger logic if this is a programmatic update (e.g., after item selection)
 		if (isProgrammaticUpdateRef.current) {
 			isProgrammaticUpdateRef.current = false
-			setValue(event.target.value)
 			return
 		}
 
 		const trigger = getTrigger(event.target)
 		const searchValue = getSearchValue(event.target)
-		// If there's a trigger character, we'll show the combobox popover. This can
-		// be true both when the trigger character has just been typed and when
-		// content has been deleted (e.g., with backspace) and the character right
-		// before the caret is the trigger.
-		if (trigger) {
+		const triggerOffset = getTriggerOffset(event.target)
+		// Get the actual trigger character from the textarea at the trigger offset
+		// This is more reliable than getTrigger which only checks the previous character
+		const actualTrigger = triggerOffset !== -1 ? event.target.value[triggerOffset] : null
+		// Prepend $ to searchValue if trigger is $, so useGetEntities can detect it
+		// Always prepend $ when trigger is $, even if searchValue already starts with $
+		const searchValueWithTrigger = actualTrigger === '$' ? `$${searchValue}` : searchValue
+
+		// Only show combobox if there's a valid trigger offset (@ is isolated) and search value
+		// This prevents showing combobox in emails like "test@gmail.com"
+		if (triggerOffset !== -1 && searchValue.length > 0) {
 			combobox.show()
+			// Sets the combobox value that will be used to search in the list.
+			// Prepend $ if trigger is $ so useGetEntities knows to fetch coins
+			combobox.setValue(searchValueWithTrigger)
 		}
-		// There will be no trigger and no search value if the trigger character has
-		// just been deleted.
-		else if (!searchValue) {
+		// If user just typed @ or $ (trigger exists but no search value yet), don't show combobox
+		else if (trigger && searchValue.length === 0) {
+			// Still set the value with $ prefix if trigger is $, so it's ready when user starts typing
+			if (actualTrigger === '$') {
+				combobox.setValue('$')
+			} else {
+				combobox.setValue('')
+			}
+			combobox.hide()
+		}
+		// If no valid trigger offset, hide and clear
+		else if (triggerOffset === -1) {
 			combobox.setValue('')
 			combobox.hide()
 		}
-		// Sets our textarea value.
-		setValue(event.target.value)
-		// Sets the combobox value that will be used to search in the list.
-		combobox.setValue(searchValue)
 	}
 
 	const onItemClick = useCallback(
@@ -1463,12 +1609,16 @@ const PromptInput = memo(function PromptInput({
 				entitiesMapRef.current.set(name, { id, name, type })
 
 				const getNewValue = replaceValue(offset, searchValue, name)
-				const newValue = getNewValue(value)
+				const newValue = getNewValue(textarea.value)
 
 				// Clear combobox search FIRST to make matches empty and prevent useLayoutEffect from reopening
 				combobox.setValue('')
 				combobox.hide()
 
+				// Mark this as a programmatic update so onChange doesn't re-run trigger logic
+				isProgrammaticUpdateRef.current = true
+				textarea.value = newValue
+				setInputSize(promptInputRef, highlightRef)
 				setValue(newValue)
 
 				if (highlightRef.current) {
@@ -1482,7 +1632,7 @@ const PromptInput = memo(function PromptInput({
 			},
 		// promptInputRef, highlightRef, entitiesRef, entitiesMapRef, isProgrammaticUpdateRef are stable refs
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[combobox, searchValue, value]
+		[combobox, searchValue]
 	)
 
 	return (
@@ -1491,6 +1641,7 @@ const PromptInput = memo(function PromptInput({
 				className="relative w-full"
 				onSubmit={(e) => {
 					e.preventDefault()
+					trackSubmit()
 					const form = e.target as HTMLFormElement
 					const finalEntities = getFinalEntities()
 					const promptValue = form.prompt.value
@@ -1499,7 +1650,7 @@ const PromptInput = memo(function PromptInput({
 				}}
 			>
 				<div className="overflow-hidden">
-					<div className="relative w-full">
+					<div className="relative w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) focus-within:border-(--old-blue) dark:border-[#222324]">
 						<Ariakit.Combobox
 							store={combobox}
 							autoSelect
@@ -1517,7 +1668,7 @@ const PromptInput = memo(function PromptInput({
 									ref={promptInputRef}
 									rows={1}
 									maxLength={2000}
-									placeholder={placeholder}
+									placeholder={finalPlaceholder}
 									// We need to re-calculate the position of the combobox popover
 									// when the textarea contents are scrolled, and sync highlightRef scroll.
 									onScroll={handleScroll}
@@ -1526,7 +1677,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="block min-h-[48px] w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 text-transparent caret-black outline-none placeholder:text-[#666] focus-visible:border-(--old-blue) max-sm:text-base sm:min-h-[72px] dark:border-[#222324] dark:caret-white placeholder:dark:text-[#919296]"
+									className="relative z-[1] block min-h-[48px] w-full resize-none bg-transparent p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:caret-white placeholder:dark:text-[#919296]"
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1535,7 +1686,7 @@ const PromptInput = memo(function PromptInput({
 							disabled={isPending && !isStreaming}
 						/>
 						<div
-							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-[1] overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
 							ref={highlightRef}
 						/>
 					</div>
@@ -1560,7 +1711,7 @@ const PromptInput = memo(function PromptInput({
 								onClick={onItemClick({ id, name, type })}
 								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
 							>
-								<TokenLogo logo={logo} size={20} />
+								{logo && <TokenLogo logo={logo} size={20} />}
 								<span className="flex items-center gap-1.5">
 									<span className="text-sm font-medium">{name}</span>
 									<span
@@ -1582,8 +1733,8 @@ const PromptInput = memo(function PromptInput({
 				{isStreaming ? (
 					<Tooltip
 						content="Stop"
-						render={<button onClick={handleStopRequest} />}
-						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) sm:h-7 sm:w-7"
+						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
+						className="group absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1591,7 +1742,8 @@ const PromptInput = memo(function PromptInput({
 				) : (
 					<button
 						type="submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 sm:h-7 sm:w-7"
+						data-umami-event="llamaai-prompt-submit"
+						className="absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
@@ -1613,6 +1765,8 @@ const PromptResponse = ({
 	progressMessage,
 	progressStage,
 	onSuggestionClick,
+	onRetry,
+	canRetry,
 	isGeneratingCharts = false,
 	isAnalyzingForCharts = false,
 	hasChartError = false,
@@ -1639,6 +1793,8 @@ const PromptResponse = ({
 	progressMessage?: string
 	progressStage?: string
 	onSuggestionClick?: (suggestion: any) => void
+	onRetry?: () => void
+	canRetry?: boolean
 	isGeneratingCharts?: boolean
 	isAnalyzingForCharts?: boolean
 	hasChartError?: boolean
@@ -1648,6 +1804,22 @@ const PromptResponse = ({
 	showMetadata?: boolean
 	readOnly?: boolean
 }) => {
+	if (error && canRetry) {
+		return (
+			<div className="flex flex-col gap-2">
+				<p className="text-(--error)">{error}</p>
+				<button
+					onClick={onRetry}
+					data-umami-event="llamaai-retry-request"
+					className="flex w-fit items-center justify-center gap-2 rounded-lg border border-(--old-blue) bg-(--old-blue)/12 px-4 py-2 text-(--old-blue) hover:bg-(--old-blue) hover:text-white"
+				>
+					<Icon name="repeat" height={16} width={16} />
+					Retry
+				</button>
+			</div>
+		)
+	}
+
 	if (error) {
 		return <p className="text-(--error)">{error}</p>
 	}
@@ -1671,7 +1843,7 @@ const PromptResponse = ({
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
-							{progressStage && <span>({progressStage})</span>}
+							{/* {progressStage && <span>({progressStage})</span>} */}
 						</span>
 					</p>
 				) : (
@@ -1753,10 +1925,11 @@ const SuggestedActions = memo(function SuggestedActions({
 						key={`${suggestion.title}-${suggestion.description}`}
 						onClick={() => handleSuggestionClick(suggestion)}
 						disabled={isPending || isStreaming}
-						className={`group flex items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
+						data-umami-event="llamaai-suggestion-click"
+						className={`group flex touch-pan-y items-center justify-between gap-3 rounded-lg border border-[#e6e6e6] p-2 text-left dark:border-[#222324] ${
 							isPending || isStreaming
 								? 'cursor-not-allowed opacity-60'
-								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12'
+								: 'hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 active:border-(--old-blue) active:bg-(--old-blue)/12'
 						}`}
 					>
 						<span className="flex flex-1 flex-col items-start gap-1">
@@ -1854,7 +2027,7 @@ const ResponseControls = memo(function ResponseControls({
 		},
 		onSuccess: (data) => {
 			if (data.shareToken) {
-				const shareLink = `${window.location.origin}/ai/shared/${data.shareToken}`
+				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
 				navigator.clipboard.writeText(shareLink)
 				setShowShareModal(true)
 			}
@@ -1939,7 +2112,13 @@ const ResponseControls = memo(function ResponseControls({
 				{sessionId && !readOnly && (
 					<Tooltip
 						content="Share"
-						render={<button onClick={() => shareSession()} disabled={isSharing || showShareModal} />}
+						render={
+							<button
+								onClick={() => shareSession()}
+								disabled={isSharing || showShareModal}
+								data-umami-event="llamaai-share-conversation"
+							/>
+						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 					>
 						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
@@ -2036,6 +2215,7 @@ const FeedbackForm = ({
 		onSuccess: (_, variables) => {
 			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
+			toast.success('Thank you for you feedback!')
 		}
 	})
 
@@ -2118,7 +2298,7 @@ const FeedbackForm = ({
 
 const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
 	const [copied, setCopied] = useState(false)
-	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/shared/${shareData.shareToken}` : ''
+	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
 	const handleCopy = async () => {
 		if (!shareLink) return
@@ -2154,6 +2334,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 					/>
 					<button
 						onClick={handleCopy}
+						data-umami-event="llamaai-copy-share-link"
 						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 					>
 						{copied ? <Icon name="check-circle" height={16} width={16} /> : <Icon name="copy" height={16} width={16} />}
@@ -2166,6 +2347,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 				</Ariakit.DialogDismiss>
 				<button
 					onClick={handleShareToX}
+					data-umami-event="llamaai-share-to-x"
 					className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90"
 				>
 					Share to X
@@ -2189,7 +2371,7 @@ const ChatControls = memo(function ChatControls({
 				render={<button onClick={handleSidebarToggle} />}
 				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 			>
-				<Icon name="arrow-right-to-line" height={16} width={16} />
+				<Icon name="panel-left-open" height={16} width={16} />
 				<span className="sr-only">Open Chat History</span>
 			</Tooltip>
 			<Tooltip
@@ -2241,42 +2423,31 @@ function syncHighlightScroll(promptInputRef, highlightRef) {
 	}
 }
 
-function setInputSize(event, promptInputRef, highlightRef) {
+function setInputSize(promptInputRef, highlightRef) {
 	try {
-		// Calculate rows based on newlines and character length
-		const text = event.target.value
-		const textarea = promptInputRef.current
-		const lineBreaks = (text.match(/\n/g) || []).length
+		const textarea = promptInputRef?.current
+		if (!textarea) return
 
-		// Calculate actual characters per line based on container width
+		// Use scrollHeight-based auto-resize with a soft max height (~5 lines)
 		const style = window.getComputedStyle(textarea)
-		const paddingLeft = parseFloat(style.paddingLeft)
-		const paddingRight = parseFloat(style.paddingRight)
-		const availableWidth = textarea.clientWidth - paddingLeft - paddingRight
-		const fontSize = parseFloat(style.fontSize)
-		// Average character width is approximately 0.6 of font size for monospace-like text
-		const avgCharWidth = fontSize * 0.5
-		const charsPerLine = Math.floor(availableWidth / avgCharWidth)
+		const lineHeight = parseFloat(style.lineHeight || '') || parseFloat(style.fontSize || '16') * 1.5
+		const paddingTop = parseFloat(style.paddingTop || '0')
+		const paddingBottom = parseFloat(style.paddingBottom || '0')
+		const maxRows = 5
+		const maxHeight = lineHeight * maxRows + paddingTop + paddingBottom
 
-		const estimatedLines = Math.ceil(text.length / Math.max(charsPerLine, 1))
-		const totalRows = Math.max(lineBreaks + 1, estimatedLines)
+		textarea.style.height = 'auto'
+		const nextHeight = Math.min(textarea.scrollHeight, maxHeight)
+		textarea.style.height = `${nextHeight}px`
 
-		// Set rows with minimum 1 and maximum 5
-		promptInputRef.current.rows = Math.min(Math.max(totalRows, 1), 5)
-
-		// Sync highlightRef height and scroll to match textarea exactly
 		if (highlightRef?.current) {
-			// Use requestAnimationFrame to ensure DOM has updated after rows change
 			requestAnimationFrame(() => {
-				if (textarea && highlightRef.current) {
-					const textareaHeight = textarea.offsetHeight
-					highlightRef.current.style.height = `${textareaHeight}px`
-					// Sync scroll position
-					syncHighlightScroll(promptInputRef, highlightRef)
-				}
+				if (!textarea || !highlightRef.current) return
+				highlightRef.current.style.height = `${textarea.offsetHeight}px`
+				syncHighlightScroll(promptInputRef, highlightRef)
 			})
 		}
 	} catch (error) {
-		console.error('Error calculating rows:', error)
+		console.log('Error calculating size:', error)
 	}
 }

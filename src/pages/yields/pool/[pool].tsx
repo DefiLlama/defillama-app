@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import exponentialLogo from '~/assets/exponential.avif'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -18,6 +19,7 @@ import {
 	useYieldConfigData,
 	useYieldPoolData
 } from '~/containers/Yields/queries/client'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { fetchApi } from '~/utils/async'
@@ -63,6 +65,18 @@ const PageView = (props) => {
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
+
+	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyChartReady } = useChartImageExport()
+	const { chartInstance: supplyApyBarChartInstance, handleChartReady: handleSupplyApyBarChartReady } =
+		useChartImageExport()
+	const { chartInstance: supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dChartReady } =
+		useChartImageExport()
+	const { chartInstance: borrowApyBarChartInstance, handleChartReady: handleBorrowApyBarChartReady } =
+		useChartImageExport()
+	const { chartInstance: netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyChartReady } =
+		useChartImageExport()
+	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityChartReady } =
+		useChartImageExport()
 
 	const riskUrl = poolData?.project
 		? `${YIELD_RISK_API_EXPONENTIAL}?${new URLSearchParams({
@@ -309,7 +323,16 @@ const PageView = (props) => {
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
-				<div className="col-span-2 min-h-[478px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex items-center justify-end p-2">
+						<ChartExportButton
+							chartInstance={tvlApyChartInstance}
+							filename={`${query.pool}-tvl-apy`}
+							title="TVL & APY"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					</div>
 					<Suspense fallback={<></>}>
 						<TVLAPYChart
 							height="468px"
@@ -317,6 +340,7 @@ const PageView = (props) => {
 							stackColors={mainChartStackColors}
 							stacks={mainChartStacks}
 							title=""
+							onReady={handleTvlApyChartReady}
 						/>
 					</Suspense>
 				</div>
@@ -457,6 +481,10 @@ const PageView = (props) => {
 										stacks={barChartStacks}
 										stackColors={barChartColors}
 										valueSymbol={'%'}
+										enableImageExport={true}
+										imageExportFilename={`${query.pool}-supply-apy`}
+										imageExportTitle="Supply APY"
+										onReady={handleSupplyApyBarChartReady}
 									/>
 								</Suspense>
 							</LazyChart>
@@ -469,6 +497,10 @@ const PageView = (props) => {
 										chartData={areaChartData}
 										color={CHART_COLORS[0]}
 										valueSymbol={'%'}
+										enableImageExport={true}
+										imageExportFilename={`${query.pool}-supply-apy-7d-avg`}
+										imageExportTitle="7 day moving average of Supply APY"
+										onReady={handleSupplyApy7dChartReady}
 									/>
 								</Suspense>
 							</LazyChart>
@@ -492,6 +524,10 @@ const PageView = (props) => {
 									stacks={barChartStacks}
 									stackColors={barChartColors}
 									valueSymbol={'%'}
+									enableImageExport={true}
+									imageExportFilename={`${query.pool}-borrow-apy`}
+									imageExportTitle="Borrow APY"
+									onReady={handleBorrowApyBarChartReady}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -504,6 +540,10 @@ const PageView = (props) => {
 									chartData={netBorrowChartData}
 									color={CHART_COLORS[0]}
 									valueSymbol={'%'}
+									enableImageExport={true}
+									imageExportFilename={`${query.pool}-net-borrow-apy`}
+									imageExportTitle="Net Borrow APY"
+									onReady={handleNetBorrowApyChartReady}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -519,6 +559,9 @@ const PageView = (props) => {
 									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
 									valueSymbol="$"
 									stackColors={liquidityChartColors}
+									enableImageExport={true}
+									imageExportFilename={`${query.pool}-pool-liquidity`}
+									imageExportTitle="Pool Liquidity"
 								/>
 							</Suspense>
 						</LazyChart>

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
+import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
 
 interface IPegged {
 	circulating: number
@@ -199,7 +199,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 								bridgedTo,
 								minted,
 								dominance,
-								mcaptvl: mcaptvl !== null ? +mcaptvl.toFixed(2) : null,
+								mcaptvl: mcaptvl !== null ? +formatNum(+mcaptvl) : null,
 								name: parentName,
 								subRows: [...subChains, childData]
 							}

@@ -64,7 +64,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 	})
 
 	const totalHacked = formattedNum(
-		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0) / 1000,
+		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0),
 		true
 	)
 
@@ -72,7 +72,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		data
 			.filter((hack) => hack.target == 'DeFi Protocol')
 			.map((hack) => hack.amount)
-			.reduce((acc, amount) => acc + amount, 0) / 1000,
+			.reduce((acc, amount) => acc + amount, 0),
 		true
 	)
 
@@ -80,7 +80,7 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 		data
 			.filter((hack) => hack.bridge === true)
 			.map((hack) => hack.amount)
-			.reduce((acc, amount) => acc + amount, 0) / 1000,
+			.reduce((acc, amount) => acc + amount, 0),
 		true
 	)
 

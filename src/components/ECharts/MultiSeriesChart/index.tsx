@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useDefaults } from '../useDefaults'
@@ -109,20 +109,26 @@ export default function MultiSeriesChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
+	const updateChartInstance = useCallback(
+		(instance: echarts.ECharts | null) => {
+			chartRef.current = instance
+			if (onReady) {
+				onReady(instance)
+			}
+		},
+		[onReady]
+	)
+
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
-		chartRef.current = chartInstance
 
-		if (onReady && isNewInstance) {
-			onReady(chartInstance)
-		}
+		updateChartInstance(chartInstance)
 
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
@@ -194,7 +200,7 @@ export default function MultiSeriesChart({
 					: tooltip,
 			grid: {
 				left: gridLeftPadding,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -238,8 +244,9 @@ export default function MultiSeriesChart({
 
 		return () => {
 			window.removeEventListener('resize', resize)
+			updateChartInstance(null)
 		}
-	}, [defaultChartSettings, processedSeries, chartOptions, hideDataZoom, alwaysShowTooltip, series, id])
+	}, [defaultChartSettings, processedSeries, chartOptions, hideDataZoom, alwaysShowTooltip, series, id, updateChartInstance])
 
 	useEffect(() => {
 		return () => {
@@ -248,16 +255,11 @@ export default function MultiSeriesChart({
 				const chartInstance = echarts.getInstanceByDom(chartDom)
 				if (chartInstance) {
 					chartInstance.dispose()
-					if (onReady) {
-						onReady(null)
-					}
 				}
 			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
+			updateChartInstance(null)
 		}
-	}, [id])
+	}, [id, updateChartInstance])
 
 	return (
 		<div className="relative">

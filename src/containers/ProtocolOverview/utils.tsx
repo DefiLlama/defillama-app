@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
@@ -27,92 +28,37 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 			}
 		} else {
 			// sum key with staking, ethereum, arbitrum etc but ethereum-staking, arbitrum-vesting
-			if (!Object.keys(extraTvlsEnabled).includes(name)) {
+			if (!(name in extraTvlsEnabled)) {
 				toSumSection = true
 			}
 		}
 
 		if (toSumSection) {
-			historicalChainTvls[section].tvl?.forEach(
-				({ date, totalLiquidityUSD }: { date: number; totalLiquidityUSD: number }) => {
+			const tvl = historicalChainTvls[section].tvl
+			if (tvl) {
+				for (const { date, totalLiquidityUSD } of tvl) {
 					if (!tvlDictionary[date]) {
 						tvlDictionary[date] = { [sectionName]: 0 }
 					}
 
-					tvlDictionary[date] = {
-						...tvlDictionary[date],
-						[sectionName]: (tvlDictionary[date][sectionName] || 0) + totalLiquidityUSD
-					}
-				}
-			)
-		}
-	}
-
-	return Object.entries(tvlDictionary).map(([date, values]) => ({ ...values, date: Number(date) }))
-}
-
-// build unique tokens based on top 10 tokens in usd value on each day
-function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
-	const tokenSet: Set<string> = new Set()
-
-	let othersCategoryExist = false
-
-	for (const section in chainTvls) {
-		const name = section.toLowerCase()
-
-		// skip sum of keys like ethereum-staking, arbitrum-vesting
-		if (!name.includes('-')) {
-			// sum key with staking, ethereum, arbitrum etc
-			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-				chainTvls[section].tokensInUsd?.forEach((dayTokens) => {
-					// filters tokens that have no name or their value is near zero and pick top 10 tokens from the list
-					const topTokens = Object.entries(dayTokens.tokens)
-						.filter((t: [string, number]) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
-						.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-
-					if (topTokens.length > 10) {
-						othersCategoryExist = true
-					}
-
-					topTokens.slice(0, 11).forEach(([symbol]) => tokenSet.add(symbol))
-				})
-
-				// if 'others' exist, add it to the end of unique token list
-				if (othersCategoryExist) {
-					tokenSet.add('Others')
-				}
-			}
-
-			if (tokenSet.size === 0) {
-				if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-					chainTvls[section].tokens?.forEach((dayTokens) => {
-						// filters tokens that have no name or their value is near zero and pick top 10 tokens from the list
-						const topTokens = Object.entries(dayTokens.tokens)
-							.filter((t: [string, number]) => !(t[0].startsWith('UNKNOWN') && t[1] < 1))
-							.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-
-						if (topTokens.length > 10) {
-							othersCategoryExist = true
-						}
-
-						topTokens.slice(0, 11).forEach(([symbol]) => tokenSet.add(symbol))
-					})
-
-					// if 'others' exist, add it to the end of unique token list
-					if (othersCategoryExist) {
-						tokenSet.add('Others')
-					}
+					tvlDictionary[date][sectionName] = (tvlDictionary[date][sectionName] || 0) + totalLiquidityUSD
 				}
 			}
 		}
 	}
 
-	return Array.from(tokenSet)
+	const result = []
+	for (const date in tvlDictionary) {
+		result.push({ ...tvlDictionary[date], date: Number(date) })
+	}
+	result.sort((a, b) => a.date - b.date)
+	return result
 }
 
 function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete }) {
-	const usdInflows = {}
-	const tokenInflows = {}
+	const usdInflows: Record<string, number> = {}
+	const tokenInflows: Record<string, any> = {}
+	const tokensUniqueSet = new Set(tokensUnique)
 
 	let zeroUsdInfows = 0
 	let zeroTokenInfows = 0
@@ -121,79 +67,137 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 		const name = section.toLowerCase()
 
 		// skip sum of keys like ethereum-staking, arbitrum-vesting
-		if (!name.includes('-')) {
-			// sum key with staking, ethereum, arbitrum etc
-			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-				const tokensInUsd = Object.fromEntries(
-					chainTvls[section]?.tokensInUsd?.map(({ date, tokens }) => [date, tokens]) ?? []
-				)
-				const tokens = Object.fromEntries(chainTvls[section]?.tokens?.map(({ date, tokens }) => [date, tokens]) ?? [])
+		if (name.includes('-')) continue
 
-				let prevDate = null
+		const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
+		if (!isEnabled) continue
 
-				for (const date in tokensInUsd) {
-					let dayDifference = 0
-					let tokenDayDifference = {}
+		// Index per-date maps
+		const tokensInUsdByDate: Record<string, Record<string, number>> = {}
+		const tokensByDate: Record<string, Record<string, number>> = {}
+		const dateSet = new Set<string>()
 
-					for (const token in tokensInUsd[date]) {
-						const price = tokens[date]?.[token]
-							? Number((tokensInUsd[date][token] / tokens[date][token]).toFixed(4))
-							: null
+		for (const { date, tokens } of chainTvls[section]?.tokensInUsd ?? []) {
+			tokensInUsdByDate[date] = tokens
+			dateSet.add(String(date))
+		}
+		for (const { date, tokens } of chainTvls[section]?.tokens ?? []) {
+			tokensByDate[date] = tokens
+			dateSet.add(String(date))
+		}
 
-						const diff =
-							tokens[date]?.[token] && prevDate && tokens[prevDate]?.[token]
-								? tokens[date][token] - tokens[prevDate][token]
-								: null
+		const dates: string[] = Array.from(dateSet).sort((a, b) => Number(a) - Number(b))
 
-						const diffUsd = price && diff ? price * diff : null
+		for (let i = 1; i < dates.length; i++) {
+			const currentDate = dates[i]
+			const prevDate = dates[i - 1]
 
-						if (diffUsd && !Number.isNaN(diffUsd) && isFinite(price)) {
-							// Show only top 10 inflow tokens of the day, add remaining inlfows under "Others" category
-							if (tokensUnique.includes(token)) {
-								tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
-							} else {
-								tokenDayDifference['Others'] = (tokenDayDifference['Others'] || 0) + diffUsd
-							}
+			const currentTokens = tokensByDate[currentDate] || {}
+			const oldTokens = tokensByDate[prevDate] || {}
+			const currentUsdTokens = tokensInUsdByDate[currentDate] || {}
+			const oldUsdTokens = tokensInUsdByDate[prevDate] || {}
 
-							dayDifference += diffUsd
-						}
-					}
-
-					if (dayDifference === 0) {
-						zeroUsdInfows++
-					}
-
-					if (Object.keys(tokenDayDifference)?.length === 0) {
-						zeroTokenInfows++
-					}
-
-					usdInflows[date] = (usdInflows[date] || 0) + dayDifference
-
-					if (!tokenInflows[date]) {
-						tokenInflows[date] = { date }
-					}
-
-					for (const token in tokenInflows[date]) {
-						if (token !== 'date') {
-							tokenDayDifference[token] = (tokenDayDifference[token] || 0) + tokenInflows[date][token]
-						}
-					}
-
-					tokenInflows[date] = { ...tokenInflows[date], ...tokenDayDifference }
-
-					prevDate = date
+			// Build price map using larger totalUSD preference
+			const priceMap: Record<string, { value: number; totalUSD: number }> = {}
+			for (const token in currentUsdTokens) {
+				const amount = currentTokens[token]
+				const usd = currentUsdTokens[token]
+				if (amount && amount > 0) {
+					priceMap[token] = { value: usd / amount, totalUSD: usd }
 				}
+			}
+			for (const token in oldUsdTokens) {
+				const amount = oldTokens[token]
+				const usd = oldUsdTokens[token]
+				if (amount && amount > 0) {
+					if (!priceMap[token] || priceMap[token].totalUSD < usd) {
+						priceMap[token] = { value: usd / amount, totalUSD: usd }
+					}
+				}
+			}
+
+			let dayDifference = 0
+			let tokenDayDifference: Record<string, number> = {}
+
+			// Iterate all tokens that changed
+			const allTokens = new Set([...Object.keys(currentTokens), ...Object.keys(oldTokens)])
+
+			for (const token of allTokens) {
+				const currentAmount = currentTokens[token] || 0
+				const prevAmount = oldTokens[token] || 0
+				const diff = currentAmount - prevAmount
+				if (diff === 0) continue
+
+				let priceInfo = priceMap[token]
+				if (!priceInfo) {
+					// Fallback price from whichever side has info
+					if (currentAmount > 0 && currentUsdTokens[token] != null) {
+						priceInfo = { value: currentUsdTokens[token] / currentAmount, totalUSD: currentUsdTokens[token] }
+					} else if (prevAmount > 0 && oldUsdTokens[token] != null) {
+						priceInfo = { value: oldUsdTokens[token] / prevAmount, totalUSD: oldUsdTokens[token] }
+					}
+				}
+
+				if (!priceInfo || !isFinite(priceInfo.value)) continue
+
+				const diffUsd = diff * priceInfo.value
+				// Ignore outliers similar to computeInflowsData
+				if (Math.abs(diffUsd) > 2 * (priceInfo.totalUSD || 0)) continue
+
+				dayDifference += diffUsd
+
+				// Track token inflows only for tokens in tokensUnique
+				if (tokensUniqueSet.has(token)) {
+					tokenDayDifference[token] = (tokenDayDifference[token] || 0) + diffUsd
+				}
+			}
+
+			if (dayDifference === 0) {
+				zeroUsdInfows++
+			}
+
+			let hasTokenDifference = false
+			for (const _ in tokenDayDifference) {
+				hasTokenDifference = true
+				break
+			}
+			if (!hasTokenDifference) {
+				zeroTokenInfows++
+			}
+
+			usdInflows[currentDate] = (usdInflows[currentDate] || 0) + dayDifference
+
+			if (!tokenInflows[currentDate]) {
+				tokenInflows[currentDate] = { date: Number(currentDate) }
+			}
+			// Merge existing values accumulated from other chains before writing
+			for (const token in tokenInflows[currentDate]) {
+				if (token !== 'date') {
+					tokenDayDifference[token] = (tokenDayDifference[token] || 0) + tokenInflows[currentDate][token]
+				}
+			}
+			for (const token in tokenDayDifference) {
+				tokenInflows[currentDate][token] = tokenDayDifference[token]
 			}
 		}
 	}
 
-	datesToDelete.forEach((date) => {
+	for (const date of datesToDelete) {
 		delete usdInflows[date]
 		delete tokenInflows[date]
-	})
+	}
 
-	const usdFlows = Object.entries(usdInflows)
-	const tokenFlows = Object.values(tokenInflows)
+	const usdFlows: Array<[string, number]> = []
+	for (const date in usdInflows) {
+		usdFlows.push([date, usdInflows[date]])
+	}
+	usdFlows.sort((a, b) => Number(a[0]) - Number(b[0]))
+
+	const tokenFlows = []
+	for (const date in tokenInflows) {
+		tokenFlows.push(tokenInflows[date])
+	}
+	tokenFlows.sort((a, b) => a.date - b.date)
 
 	return {
 		usdInflows: (zeroUsdInfows === usdFlows.length ? null : usdFlows) as Array<[string, number]> | null,
@@ -201,21 +205,188 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 	}
 }
 
-function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
+// build unique tokens based on top 10 tokens in usd value on each day
+// also includes tokens with significant flows (outflows/inflows > $100M)
+function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
+	const tokenSet: Set<string> = new Set()
+	const tokenFlows: Map<string, number> = new Map()
+	const SIGNIFICANT_FLOW_THRESHOLD = 100_000_000 // $100M
+
+	// Helper function to get top 10 tokens without full sort (partial sort)
+	// Returns [topTokens, totalTokenCount]
+	const getTop10Tokens = (tokens: Record<string, number>): [Array<[string, number]>, number] => {
+		const validTokens: Array<[string, number]> = []
+		let totalCount = 0
+
+		for (const token in tokens) {
+			totalCount++
+			if (!(token.startsWith('UNKNOWN') && tokens[token] < 1)) {
+				validTokens.push([token, tokens[token]])
+			}
+		}
+
+		if (validTokens.length <= 10) {
+			validTokens.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+			return [validTokens, totalCount]
+		}
+
+		// Partial sort: only sort top 10, more efficient than full sort
+		validTokens.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+		return [validTokens.slice(0, 10), totalCount]
+	}
+
+	for (const section in chainTvls) {
+		const name = section.toLowerCase()
+
+		// skip sum of keys like ethereum-staking, arbitrum-vesting
+		if (name.includes('-')) continue
+
+		// Check if section is enabled
+		const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
+		if (!isEnabled) continue
+
+		const tokensInUsd = chainTvls[section].tokensInUsd ?? []
+		const tokens = chainTvls[section].tokens ?? []
+		let othersCategoryExist = false
+
+		// First pass: collect tokens based on top 10 values
+		if (tokensInUsd.length > 0) {
+			for (const dayTokens of tokensInUsd) {
+				const [topTokens, tokenCount] = getTop10Tokens(dayTokens.tokens)
+
+				if (tokenCount > 10) {
+					othersCategoryExist = true
+				}
+
+				for (let i = 0; i < topTokens.length && i < 10; i++) {
+					tokenSet.add(topTokens[i][0])
+				}
+			}
+		}
+
+		// Second pass: calculate flows to identify tokens with significant flows
+		// Only calculate flows if we have both tokensInUsd and tokens data
+		if (tokensInUsd.length > 0 && tokens.length > 0) {
+			// Build maps more efficiently (single pass)
+			const tokensInUsdMap: Record<string, Record<string, number>> = {}
+			const tokensMap: Record<string, Record<string, number>> = {}
+
+			for (const { date, tokens: tokenData } of tokensInUsd) {
+				tokensInUsdMap[date] = tokenData
+			}
+
+			for (const { date, tokens: tokenData } of tokens) {
+				tokensMap[date] = tokenData
+			}
+
+			// Process dates in order (assuming arrays are already sorted by date)
+			// If not sorted, we'll sort only once
+			const dates: string[] = []
+			for (const { date } of tokensInUsd) {
+				dates.push(String(date))
+			}
+			if (dates.length > 1) {
+				// Check if dates are already sorted
+				let isSorted = true
+				for (let i = 1; i < dates.length; i++) {
+					if (Number(dates[i]) < Number(dates[i - 1])) {
+						isSorted = false
+						break
+					}
+				}
+
+				if (!isSorted) {
+					dates.sort((a, b) => Number(a) - Number(b))
+				}
+
+				let prevDate: string | null = null
+				for (const date of dates) {
+					if (prevDate === null) {
+						prevDate = date
+						continue
+					}
+
+					const currTokensUsd = tokensInUsdMap[date]
+					const currTokens = tokensMap[date]
+					const prevTokens = tokensMap[prevDate]
+
+					if (!currTokensUsd || !currTokens || !prevTokens) {
+						prevDate = date
+						continue
+					}
+
+					for (const token in currTokensUsd) {
+						const currAmount = currTokens[token]
+						const prevAmount = prevTokens[token]
+
+						if (!currAmount || !prevAmount || currAmount === 0) continue
+
+						const price = currTokensUsd[token] / currAmount
+						if (!isFinite(price)) continue
+
+						const diff = currAmount - prevAmount
+						const diffUsd = price * diff
+
+						if (isFinite(diffUsd) && !Number.isNaN(diffUsd)) {
+							const currentFlow = tokenFlows.get(token) || 0
+							tokenFlows.set(token, currentFlow + Math.abs(diffUsd))
+						}
+					}
+
+					prevDate = date
+				}
+			}
+		}
+
+		// if tokensInUsd is empty, build unique tokens from tokens
+		if (tokenSet.size === 0 && tokens.length > 0) {
+			for (const dayTokens of tokens) {
+				const [topTokens, tokenCount] = getTop10Tokens(dayTokens.tokens)
+
+				if (tokenCount > 10) {
+					othersCategoryExist = true
+				}
+
+				for (let i = 0; i < topTokens.length && i < 10; i++) {
+					tokenSet.add(topTokens[i][0])
+				}
+			}
+		}
+
+		// if 'others' exist, add it to the end of unique token list
+		if (othersCategoryExist) {
+			tokenSet.add('Others')
+		}
+	}
+
+	// Add tokens with significant flows (> $100M) to the token set
+	for (const [token, totalFlow] of tokenFlows) {
+		if (totalFlow >= SIGNIFICANT_FLOW_THRESHOLD && !token.startsWith('UNKNOWN')) {
+			tokenSet.add(token)
+		}
+	}
+
+	return Array.from(tokenSet)
+}
+
+function storeTokensBreakdown({ date, tokens, tokensUnique, directory, hideBigTokens = false }) {
 	const tokensOfTheDay = {}
 	// filters tokens that have no name or their value is near zero
 	for (const token in tokens) {
-		if (!(token.startsWith('UNKNOWN') && tokens[token] < 1)) {
-			tokensOfTheDay[token] = tokens[token]
-		}
+		if (token.startsWith('UNKNOWN') || tokens[token] < 1 || (hideBigTokens ? tokens[token] > 100_000_000 : false))
+			continue
+
+		tokensOfTheDay[token] = tokens[token]
 	}
+
+	const tokensUniqueSet = new Set(tokensUnique)
 
 	const tokensToShow = {}
 	let remainingTokensSum = 0
 
 	// split tokens of the day into tokens present in top 10 tokens list and add tvl of remaining tokens into category named 'Others'
 	for (const token in tokensOfTheDay) {
-		if (tokensUnique.includes(token)) {
+		if (tokensUniqueSet.has(token)) {
 			tokensToShow[token] = tokensOfTheDay[token]
 		} else {
 			remainingTokensSum += tokensOfTheDay[token]
@@ -223,7 +394,7 @@ function storeTokensBreakdown({ date, tokens, tokensUnique, directory }) {
 	}
 
 	// add "Others" to tokens list
-	if (tokensUnique.includes('Others') && remainingTokensSum > 0) {
+	if (!hideBigTokens && tokensUniqueSet.has('Others') && remainingTokensSum > 0) {
 		tokensToShow['Others'] = remainingTokensSum
 	}
 
@@ -246,64 +417,92 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 		// skip sum of keys like ethereum-staking, arbitrum-vesting
 		if (!name.includes('-')) {
 			// sum key with staking, ethereum, arbitrum etc
-			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
+			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
+			if (isEnabled) {
 				for (const { date, tokens } of chainTvls[chain].tokensInUsd ?? []) {
 					storeTokensBreakdown({ date, tokens, tokensUnique, directory: tokensInUsd })
 				}
 
 				for (const { date, tokens } of chainTvls[chain].tokens ?? []) {
-					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens })
+					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens, hideBigTokens: true })
 				}
 			}
 		}
 	}
 
-	const tokenBreakdownUSD = Object.values(tokensInUsd)
+	const tokenBreakdownUSD = []
+	for (const date in tokensInUsd) {
+		tokenBreakdownUSD.push(tokensInUsd[date])
+	}
+	tokenBreakdownUSD.sort((a, b) => a.date - b.date)
 
-	const tokenBreakdownPieChart =
-		tokenBreakdownUSD.length > 0
-			? Object.entries(tokenBreakdownUSD[tokenBreakdownUSD.length - 1])
-					.filter((values) => values[0] !== 'date')
-					.map(([name, value]) => ({ name, value }))
-			: []
+	const tokenBreakdownPieChart = []
+	if (tokenBreakdownUSD.length > 0) {
+		const lastEntry = tokenBreakdownUSD[tokenBreakdownUSD.length - 1]
+		for (const name in lastEntry) {
+			if (name !== 'date') {
+				tokenBreakdownPieChart.push({ name, value: lastEntry[name] })
+			}
+		}
+	}
 
 	const pieChartData = preparePieChartData({ data: tokenBreakdownPieChart, limit: 15 })
 
-	return { tokenBreakdownUSD, tokenBreakdownPieChart: pieChartData, tokenBreakdown: Object.values(rawTokens) }
+	const tokenBreakdown = []
+	for (const date in rawTokens) {
+		tokenBreakdown.push(rawTokens[date])
+	}
+	tokenBreakdown.sort((a, b) => a.date - b.date)
+
+	return { tokenBreakdownUSD, tokenBreakdownPieChart: pieChartData, tokenBreakdown }
 }
 
 export const buildProtocolAddlChartsData = ({
 	protocolData,
-	extraTvlsEnabled
+	extraTvlsEnabled,
+	isBorrowed
 }: {
 	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
 	extraTvlsEnabled: Record<string, boolean>
+	isBorrowed?: boolean
 }) => {
+	let chainTvls = protocolData.chainTvls ?? {}
+	if (isBorrowed) {
+		chainTvls = {}
+		for (const chain in protocolData.chainTvls ?? {}) {
+			if (chain.endsWith('-borrowed')) {
+				const chainName = chain.split('-')[0]
+				chainTvls[chainName] = protocolData.chainTvls[chain]
+			}
+		}
+	}
+
 	if (protocolData) {
 		let tokensInUsdExsists = false
 		let tokensExists = false
 
-		Object.values(protocolData.chainTvls ?? {}).forEach((chain) => {
-			if (!tokensInUsdExsists && chain.tokensInUsd && chain.tokensInUsd.length > 0) {
+		for (const chain in chainTvls) {
+			const chainData = chainTvls[chain]
+			if (!tokensInUsdExsists && chainData.tokensInUsd && chainData.tokensInUsd.length > 0) {
 				tokensInUsdExsists = true
 			}
 
-			if (!tokensExists && chain.tokens && chain.tokens.length > 0) {
+			if (!tokensExists && chainData.tokens && chainData.tokens.length > 0) {
 				tokensExists = true
 			}
-		})
+		}
 
 		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			const tokensUnique = getUniqueTokens({ chainTvls: protocolData.chainTvls, extraTvlsEnabled })
+			const tokensUnique = getUniqueTokens({ chainTvls: chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
-				chainTvls: protocolData.chainTvls ?? {},
+				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique
 			})
 
 			const { usdInflows, tokenInflows } = buildInflows({
-				chainTvls: protocolData.chainTvls ?? {},
+				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique,
 				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : []
@@ -356,7 +555,7 @@ export const formatRaisedAmount = (n: number) => {
 	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
-export const useFetchProtocolAddlChartsData = (protocolName) => {
+export const useFetchProtocolAddlChartsData = (protocolName, isBorrowed = false) => {
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -365,14 +564,33 @@ export const useFetchProtocolAddlChartsData = (protocolName) => {
 			'protocols-addl-chart-data',
 			protocolName,
 			addlProtocolData ? true : false,
-			JSON.stringify(extraTvlsEnabled)
+			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled)
 		],
-		queryFn: () => buildProtocolAddlChartsData({ protocolData: addlProtocolData as any, extraTvlsEnabled }),
+		queryFn: () =>
+			buildProtocolAddlChartsData({
+				protocolData: addlProtocolData as any,
+				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
+				isBorrowed
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000
 	})
 
-	return { ...data, historicalChainTvls: addlProtocolData?.chainTvls ?? null, isLoading: data.isLoading || isLoading }
+	const historicalChainTvls = useMemo(() => {
+		if (isBorrowed) {
+			const chainTvls = {}
+			for (const chain in addlProtocolData?.chainTvls ?? {}) {
+				if (chain.endsWith('-borrowed')) {
+					const chainName = chain.split('-')[0]
+					chainTvls[chainName] = addlProtocolData?.chainTvls[chain]
+				}
+			}
+			return chainTvls
+		}
+		return addlProtocolData?.chainTvls ?? null
+	}, [addlProtocolData, isBorrowed])
+
+	return { ...data, historicalChainTvls, isLoading: data.isLoading || isLoading }
 }
 
 export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
@@ -395,19 +613,24 @@ export const getProtocolWarningBanners = (protocolData: IUpdatedProtocol) => {
 		return false
 	}
 
-	const banners = [...(protocolData.warningBanners ?? [])].filter((banner) => {
+	const warningBanners = protocolData.warningBanners ?? []
+	const banners = []
+	for (const banner of warningBanners) {
 		if (!banner.until || banner.until === 'forever') {
-			return true
+			banners.push(banner)
+			continue
 		}
 
 		// Validate date format first
 		if (!isValidDateFormat(banner.until)) {
 			postRuntimeLogs(`Invalid date format for ${protocolData.name} banner`)
-			return false
+			continue
 		}
 
-		return new Date(typeof banner.until === 'number' ? banner.until * 1000 : banner.until) > new Date()
-	})
+		if (new Date(typeof banner.until === 'number' ? banner.until * 1000 : banner.until) > new Date()) {
+			banners.push(banner)
+		}
+	}
 
 	if (protocolData.rugged && protocolData.deadUrl) {
 		banners.push({
@@ -497,34 +720,44 @@ export const buildStablecoinChartsData = async ({
 		return null
 	}
 
-	const stablecoinSymbols = new Set(peggedAssets.map((asset) => asset.symbol))
-	const pegTypeMap = new Map(peggedAssets.map((asset) => [asset.symbol, asset.pegType]))
-	const pegMechanismMap = new Map(peggedAssets.map((asset) => [asset.symbol, asset.pegMechanism]))
+	const stablecoinSymbols = new Set<string>()
+	const pegTypeMap = new Map<string, string>()
+	const pegMechanismMap = new Map<string, string>()
 
-	const stablecoinTokensUnique: string[] = []
+	for (const asset of peggedAssets) {
+		stablecoinSymbols.add(asset.symbol)
+		pegTypeMap.set(asset.symbol, asset.pegType)
+		pegMechanismMap.set(asset.symbol, asset.pegMechanism)
+	}
+
+	const stablecoinTokensUniqueSet = new Set<string>()
 	const pegTypesUnique = new Set<string>()
 	const pegMechanismsUnique = new Set<string>()
 
 	for (const section in chainTvls) {
 		const name = section.toLowerCase()
 		if (!name.includes('-')) {
-			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-				chainTvls[section].tokensInUsd?.forEach((dayTokens) => {
-					for (const token in dayTokens.tokens) {
-						if (stablecoinSymbols.has(token) && !stablecoinTokensUnique.includes(token)) {
-							stablecoinTokensUnique.push(token)
-							const pegType = pegTypeMap.get(token)
-							const pegMechanism = pegMechanismMap.get(token)
-							if (pegType) pegTypesUnique.add(pegType)
-							if (pegMechanism) pegMechanismsUnique.add(pegMechanism)
+			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
+			if (isEnabled) {
+				const tokensInUsd = chainTvls[section].tokensInUsd
+				if (tokensInUsd) {
+					for (const dayTokens of tokensInUsd) {
+						for (const token in dayTokens.tokens) {
+							if (stablecoinSymbols.has(token) && !stablecoinTokensUniqueSet.has(token)) {
+								stablecoinTokensUniqueSet.add(token)
+								const pegType = pegTypeMap.get(token)
+								const pegMechanism = pegMechanismMap.get(token)
+								if (pegType) pegTypesUnique.add(pegType)
+								if (pegMechanism) pegMechanismsUnique.add(pegMechanism)
+							}
 						}
 					}
-				})
+				}
 			}
 		}
 	}
 
-	if (stablecoinTokensUnique.length === 0) {
+	if (stablecoinTokensUniqueSet.size === 0) {
 		return null
 	}
 
@@ -536,63 +769,94 @@ export const buildStablecoinChartsData = async ({
 	for (const section in chainTvls) {
 		const name = section.toLowerCase()
 		if (!name.includes('-')) {
-			if (Object.keys(extraTvlsEnabled).includes(name) ? extraTvlsEnabled[name] : true) {
-				chainTvls[section].tokensInUsd?.forEach(({ date, tokens }) => {
-					const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
-					const groupedByPegMechanism = groupTokensByPegMechanism(stablecoinsOnly, pegMechanismMap)
-					const groupedByPegType = groupTokensByPegType(stablecoinsOnly, pegTypeMap)
+			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
+			if (isEnabled) {
+				const tokensInUsd = chainTvls[section].tokensInUsd
+				if (tokensInUsd) {
+					for (const { date, tokens } of tokensInUsd) {
+						const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
+						const groupedByPegMechanism = groupTokensByPegMechanism(stablecoinsOnly, pegMechanismMap)
+						const groupedByPegType = groupTokensByPegType(stablecoinsOnly, pegTypeMap)
 
-					if (!stablecoinsByPegMechanism[date]) {
-						stablecoinsByPegMechanism[date] = { date }
-					}
-					for (const pegMechanism in groupedByPegMechanism) {
-						stablecoinsByPegMechanism[date][pegMechanism] =
-							(stablecoinsByPegMechanism[date][pegMechanism] || 0) + groupedByPegMechanism[pegMechanism]
-					}
+						if (!stablecoinsByPegMechanism[date]) {
+							stablecoinsByPegMechanism[date] = { date }
+						}
+						for (const pegMechanism in groupedByPegMechanism) {
+							stablecoinsByPegMechanism[date][pegMechanism] =
+								(stablecoinsByPegMechanism[date][pegMechanism] || 0) + groupedByPegMechanism[pegMechanism]
+						}
 
-					if (!stablecoinsByPegType[date]) {
-						stablecoinsByPegType[date] = { date }
-					}
-					for (const pegType in groupedByPegType) {
-						stablecoinsByPegType[date][pegType] = (stablecoinsByPegType[date][pegType] || 0) + groupedByPegType[pegType]
-					}
+						if (!stablecoinsByPegType[date]) {
+							stablecoinsByPegType[date] = { date }
+						}
+						for (const pegType in groupedByPegType) {
+							stablecoinsByPegType[date][pegType] =
+								(stablecoinsByPegType[date][pegType] || 0) + groupedByPegType[pegType]
+						}
 
-					if (!stablecoinsByToken[date]) {
-						stablecoinsByToken[date] = { date }
-					}
-					for (const token in stablecoinsOnly) {
-						stablecoinsByToken[date][token] = (stablecoinsByToken[date][token] || 0) + stablecoinsOnly[token]
-					}
+						if (!stablecoinsByToken[date]) {
+							stablecoinsByToken[date] = { date }
+						}
+						for (const token in stablecoinsOnly) {
+							stablecoinsByToken[date][token] = (stablecoinsByToken[date][token] || 0) + stablecoinsOnly[token]
+						}
 
-					const total = Object.values(stablecoinsOnly).reduce((acc, val) => acc + val, 0)
-					totalStablecoins[date] = (totalStablecoins[date] || 0) + total
-				})
+						let total = 0
+						for (const token in stablecoinsOnly) {
+							total += stablecoinsOnly[token]
+						}
+						totalStablecoins[date] = (totalStablecoins[date] || 0) + total
+					}
+				}
 			}
 		}
 	}
 
-	const stablecoinsByPegMechanismArray = Object.values(stablecoinsByPegMechanism).sort((a, b) => a.date - b.date)
-	const stablecoinsByPegTypeArray = Object.values(stablecoinsByPegType).sort((a, b) => a.date - b.date)
-	const stablecoinsByTokenArray = Object.values(stablecoinsByToken).sort((a, b) => a.date - b.date)
-	const totalStablecoinsArray = Object.entries(totalStablecoins)
-		.map(([date, value]) => ({ date: Number(date), value }))
-		.sort((a, b) => a.date - b.date)
+	const stablecoinsByPegMechanismArray = []
+	for (const date in stablecoinsByPegMechanism) {
+		stablecoinsByPegMechanismArray.push(stablecoinsByPegMechanism[date])
+	}
+	stablecoinsByPegMechanismArray.sort((a, b) => a.date - b.date)
+
+	const stablecoinsByPegTypeArray = []
+	for (const date in stablecoinsByPegType) {
+		stablecoinsByPegTypeArray.push(stablecoinsByPegType[date])
+	}
+	stablecoinsByPegTypeArray.sort((a, b) => a.date - b.date)
+
+	const stablecoinsByTokenArray = []
+	for (const date in stablecoinsByToken) {
+		stablecoinsByTokenArray.push(stablecoinsByToken[date])
+	}
+	stablecoinsByTokenArray.sort((a, b) => a.date - b.date)
+
+	const totalStablecoinsArray = []
+	for (const date in totalStablecoins) {
+		totalStablecoinsArray.push({ date: Number(date), value: totalStablecoins[date] })
+	}
+	totalStablecoinsArray.sort((a, b) => a.date - b.date)
 
 	const latestByPegMechanism = stablecoinsByPegMechanismArray[stablecoinsByPegMechanismArray.length - 1]
-	const pegMechanismPieChart = latestByPegMechanism
-		? Object.entries(latestByPegMechanism)
-				.filter(([key]) => key !== 'date')
-				.map(([name, value]) => ({ name, value }))
-		: []
+	const pegMechanismPieChart = []
+	if (latestByPegMechanism) {
+		for (const name in latestByPegMechanism) {
+			if (name !== 'date') {
+				pegMechanismPieChart.push({ name, value: latestByPegMechanism[name] })
+			}
+		}
+	}
 
 	const pieChartDataByPegMechanism = preparePieChartData({ data: pegMechanismPieChart, limit: 10 })
 
 	const latestByPegType = stablecoinsByPegTypeArray[stablecoinsByPegTypeArray.length - 1]
-	const pegTypePieChart = latestByPegType
-		? Object.entries(latestByPegType)
-				.filter(([key]) => key !== 'date')
-				.map(([name, value]) => ({ name, value }))
-		: []
+	const pegTypePieChart = []
+	if (latestByPegType) {
+		for (const name in latestByPegType) {
+			if (name !== 'date') {
+				pegTypePieChart.push({ name, value: latestByPegType[name] })
+			}
+		}
+	}
 
 	const pieChartDataByPegType = preparePieChartData({ data: pegTypePieChart, limit: 10 })
 
@@ -603,7 +867,7 @@ export const buildStablecoinChartsData = async ({
 		totalStablecoins: totalStablecoinsArray.length > 0 ? totalStablecoinsArray : null,
 		pegMechanismPieChart: pieChartDataByPegMechanism,
 		pegTypePieChart: pieChartDataByPegType,
-		stablecoinTokensUnique,
+		stablecoinTokensUnique: Array.from(stablecoinTokensUniqueSet),
 		pegTypesUnique: Array.from(pegTypesUnique),
 		pegMechanismsUnique: Array.from(pegMechanismsUnique)
 	}

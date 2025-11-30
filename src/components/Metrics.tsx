@@ -59,6 +59,7 @@ export function Metrics({
 	const router = useRouter()
 
 	const currentCategory = useMemo(() => {
+		if (router.pathname === '/') return null
 		return metricsByCategory.find(
 			(category) =>
 				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
@@ -72,7 +73,6 @@ export function Metrics({
 			const el = document.querySelector(`[data-category="${currentCategory}"]`)
 			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
 				requestAnimationFrame(() => {
-					console.log('scrolling to', hasScrolledToCategoryRef.current)
 					hasScrolledToCategoryRef.current = `${currentCategory}-true`
 					el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 				})

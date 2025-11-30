@@ -4,18 +4,28 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { useCalcStakePool2Tvl } from '~/hooks/data'
-import { getPercentChange } from '~/utils'
+import { getPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
 import { airdropsEligibilityCheck } from './airdrops'
 import { RecentlyListedProtocolsTable } from './Table'
 
-function getSelectedChainFilters(chainQueryParam, allChains) {
+function getSelectedChainFilters(chainQueryParam, allChains): string[] {
 	if (chainQueryParam) {
 		if (typeof chainQueryParam === 'string') {
-			return chainQueryParam === 'All' ? [...allChains] : chainQueryParam === 'None' ? [] : [chainQueryParam]
+			return chainQueryParam === 'All' ? allChains : chainQueryParam === 'None' ? [] : [chainQueryParam]
 		} else {
-			return [...chainQueryParam]
+			return Array.isArray(chainQueryParam) ? chainQueryParam : []
 		}
-	} else return [...allChains]
+	} else return allChains
+}
+
+function getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
+	if (categoryQueryParam) {
+		if (typeof categoryQueryParam === 'string') {
+			return categoryQueryParam === 'All' ? allCategories : categoryQueryParam === 'None' ? [] : [categoryQueryParam]
+		} else {
+			return Array.isArray(categoryQueryParam) ? categoryQueryParam : []
+		}
+	} else return allCategories
 }
 
 interface IRecentProtocolProps {
@@ -27,7 +37,10 @@ interface IRecentProtocolProps {
 
 export function RecentProtocols({ protocols, chainList, forkedList, claimableAirdrops }: IRecentProtocolProps) {
 	const router = useRouter()
-	const { chain, hideForks, minTvl, maxTvl, ...queries } = router.query
+	const { chain, hideForks, minTvl: minTvlQuery, maxTvl: maxTvlQuery, ...queries } = router.query
+
+	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
+	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
 
 	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
 
@@ -36,8 +49,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 
 		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
 
-		const isValidTvlRange =
-			(minTvl !== undefined && !Number.isNaN(Number(minTvl))) || (maxTvl !== undefined && !Number.isNaN(Number(maxTvl)))
+		const isValidTvlRange = minTvl != null && maxTvl != null
 
 		const data = protocols
 			.filter((protocol) => {

@@ -1,12 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
-import { useIsClient } from '~/hooks'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { formatValue } from '../../utils'
 import { AVAILABLE_FIELDS, AVAILABLE_FUNCTIONS, replaceAliases } from './customColumnsUtils'
 import { evaluateFormula } from './formula.service'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 interface CustomColumnModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -51,8 +53,7 @@ export function CustomColumnModal({
 	})
 	const inputRef = useRef(null)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const isClient = useIsClient()
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore()
 
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
@@ -171,7 +172,7 @@ export function CustomColumnModal({
 			return
 		}
 		if (!isSubscriptionLoading && subscription?.status !== 'active') {
-			setShowSubscribeModal(true)
+			subscribeModalStore.show()
 			return
 		}
 		setState((prev) => ({ ...prev, error: null }))
@@ -382,7 +383,9 @@ export function CustomColumnModal({
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-			{isClient && <SubscribeProModal isOpen={showSubscribeModal} onClose={() => setShowSubscribeModal(false)} />}
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
 		</>
 	)
 }

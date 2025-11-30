@@ -462,7 +462,8 @@ export function useDefaults({
 		hideOthersInTooltip,
 		tooltipValuesRelative,
 		groupBy,
-		alwaysShowTooltip
+		alwaysShowTooltip,
+		xAxisType
 	])
 
 	return defaults
@@ -508,7 +509,7 @@ export function formatTooltipChartDate(
 					: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 }
 
-function formatChartEmphasisDate(value: number) {
+export function formatChartEmphasisDate(value: number) {
 	const date = new Date(value)
 	return date.toLocaleDateString(undefined, {
 		year: 'numeric',

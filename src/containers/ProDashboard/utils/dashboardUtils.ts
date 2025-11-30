@@ -12,6 +12,8 @@ export function cleanItemsForSaving(items: DashboardItemConfig[]): DashboardItem
 		} else if (item.kind === 'table') {
 			// Table configs don't have runtime data to remove
 			return item as ProtocolsTableConfig
+		} else if (item.kind === 'unified-table') {
+			return item
 		} else if (item.kind === 'text') {
 			// Text configs don't have runtime data to remove
 			return item as TextConfig

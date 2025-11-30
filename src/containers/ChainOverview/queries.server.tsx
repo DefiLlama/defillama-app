@@ -4,6 +4,8 @@ import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHAINS_ASSETS,
 	CHART_API,
+	CONFIG_API,
+	PEGGEDS_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
@@ -24,7 +26,7 @@ import {
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
 import type {
@@ -76,7 +78,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			rwaTvlChartData,
 			upcomingUnlocks,
 			chainIncentives,
-			datInflows
+			datInflows,
+			stablecoinsData,
+			chainStablecoins
 		]: [
 			ILiteChart,
 			{
@@ -119,7 +123,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
 			any,
 			any,
-			Array<[number, number]> | null
+			{ chart: Array<[number, number]>; total30d: number } | null,
+			{ peggedAssets: Array<{ name: string; gecko_id: string; symbol: string }> } | null,
+			Array<string> | null
 		] = await Promise.all([
 			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${metadata.name}`}`, { timeout: 2 * 60 * 1000 }),
 			getProtocolsByChain({ chain, metadata }),
@@ -332,7 +338,13 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getDATInflows() : Promise.resolve(null)
+			chain === 'All' ? getDATInflows() : Promise.resolve(null),
+			chain !== 'All' ? fetchJson(PEGGEDS_API).catch(() => null) : Promise.resolve(null),
+			chain !== 'All'
+				? fetchJson(CONFIG_API)
+						.then((data) => data.chainCoingeckoIds?.[metadata.name]?.stablecoins ?? null)
+						.catch(() => null)
+				: Promise.resolve(null)
 		])
 
 		const {
@@ -626,17 +638,12 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						? `${charts.map((chart) => `${metadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${metadata.name.toLowerCase()}`
 						: '',
 			isDataAvailable,
-			datInflows: datInflows
-				? {
-						chart: datInflows.slice(-14),
-						total30d: datInflows.reduce((acc, curr) => {
-							if (curr[0] >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
-								return (acc += curr[1])
-							}
-							return acc
-						}, 0)
-					}
-				: null
+			datInflows: datInflows ?? null,
+			chainStablecoins:
+				chainStablecoins?.map((coin) => {
+					const coinData = stablecoinsData?.peggedAssets?.find((c) => c.gecko_id === coin)
+					return { name: coinData?.name ?? coin, url: `/stablecoin/${coin}`, symbol: coinData?.symbol ?? null }
+				}) ?? null
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
@@ -871,7 +878,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: protocol.mcap ?? null,
 				mcaptvl:
 					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
-						? +(protocol.mcap / tvls.default.tvl).toFixed(2)
+						? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
 						: null,
 				strikeTvl:
 					protocol.category !== 'Bridge'
@@ -1063,7 +1070,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
 					parentProtocol.mcap && parentTvl?.default?.tvl
-						? +(parentProtocol.mcap / parentTvl.default.tvl).toFixed(2)
+						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
 						: null
 			}
 
@@ -1101,42 +1108,57 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 }
 
 interface IDATInflow {
-	dailyFlows: Record<string, Array<[number, number]>>
-	statsByAsset: Record<
-		string,
-		{
-			totalHoldings: number
-			totalUsdValue: number
-		}
-	>
+	flows: {
+		[asset: string]: Array<[number, number, number, number, number, number]> // [timestamp, net, inflow, outflow, purchasePrice, usdValueOfPurchase]
+	}
 }
+
+function getUTCTimestamp(timestamp: number) {
+	// Round to nearest day boundary (midnight UTC)
+	const msPerDay = 86400000 // 24 * 60 * 60 * 1000
+	return Math.round(timestamp / msPerDay) * msPerDay
+}
+
 export const getDATInflows = async () => {
 	try {
-		const data: IDATInflow = await fetchJson(`${TRADFI_API}/v1/companies`)
-		const inflowsByDate: Record<string, number> = {}
-		const priceOfAssets: Record<string, number> = {}
+		const data: IDATInflow = await fetchJson(`${TRADFI_API}/institutions`)
+		const weeklyInflows: Record<number, number> = {}
 
-		for (const asset in data.statsByAsset) {
-			priceOfAssets[asset] = Number(
-				(data.statsByAsset[asset].totalUsdValue / data.statsByAsset[asset].totalHoldings).toFixed(2)
-			)
-		}
+		let total30d = 0
+		// Only keep inflows for the last 14 weeks (to match the chart window)
+		const fourteenWeeksAgo = Date.now() - 14 * 7 * 24 * 60 * 60 * 1000
 
-		for (const asset in data.dailyFlows) {
-			for (const [date, value] of data.dailyFlows[asset]) {
-				const usdValue = (value || 0) * (priceOfAssets[asset] || 0)
-				inflowsByDate[date] = (inflowsByDate[date] || 0) + usdValue
+		for (const asset in data.flows) {
+			for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of data.flows[asset]) {
+				const utcTimestamp = getUTCTimestamp(date)
+				if (utcTimestamp < fourteenWeeksAgo) continue
+				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000
+				const usdValue = purchasePrice || usdValueOfPurchase || 0
+				if (utcTimestamp >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
+					total30d += usdValue
+				}
+				weeklyInflows[finalDate] = (weeklyInflows[finalDate] || 0) + usdValue
 			}
 		}
 
-		const finalChart = []
-		for (const date in inflowsByDate) {
-			finalChart.push([+date, inflowsByDate[date]])
+		// Always end with the last day of the current week
+		const mostRecentTimestamp = +lastDayOfWeek(Date.now()) * 1000
+		const oneWeekInMs = 7 * 24 * 60 * 60 * 1000
+		const completeChart = []
+
+		// Generate all 14 weekly timestamps ending with current week
+		for (let i = 13; i >= 0; i--) {
+			const timestamp = mostRecentTimestamp - i * oneWeekInMs
+			const value = weeklyInflows[timestamp] ?? 0
+			completeChart.push([timestamp, value])
 		}
 
-		return finalChart.sort((a, b) => a[0] - b[0])
+		return {
+			chart: completeChart,
+			total30d
+		}
 	} catch (error) {
-		console.error('Error fetching DAT inflows:', error)
+		console.log('Error fetching DAT inflows:', error)
 		return null
 	}
 }

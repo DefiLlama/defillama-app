@@ -33,6 +33,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		filterMode: 'include',
 		chains: [],
 		chainCategories: [],
+		protocolCategories: [],
 		categories: [],
 		groupBy: 'protocol',
 		limit: 10,
@@ -106,7 +107,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				} else {
 					setSelectedTableType('protocols')
 				}
-			} else if (editItem.kind === 'text') {
+		} else if (editItem.kind === 'unified-table') {
+			setSelectedMainTab('unified-table')
+		} else if (editItem.kind === 'text') {
 				setSelectedMainTab('text')
 				setTextTitle(editItem.title || '')
 				setTextContent(editItem.content)
@@ -117,6 +120,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setChartBuilder({
 					...editItem.config,
 					mode: editItem.config.mode || 'chains',
+					protocolCategories: editItem.config.protocolCategories || [],
 					seriesColors: editItem.config.seriesColors || {}
 				})
 			} else if (editItem.kind === 'metric') {

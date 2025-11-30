@@ -20,6 +20,7 @@ import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
 import { feesDatasetColumns } from './columns'
 import { useFeesData } from './useFeesData'
+import { TablePagination } from '../../ProTable/TablePagination'
 
 export function FeesDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
@@ -174,21 +175,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 				</div>
 			</div>
 			<TableBody table={instance} />
-			<div className="mt-2 flex w-full items-center justify-between">
-				<TagGroup
-					selectedValue={null}
-					setValue={(val) => (val === 'Next' ? instance.nextPage() : instance.previousPage())}
-					values={['Previous', 'Next']}
-				/>
-				<div className="flex items-center">
-					<div className="mr-2 text-xs">Per page</div>
-					<TagGroup
-						selectedValue={String(pagination.pageSize)}
-						values={['10', '30', '50']}
-						setValue={(val) => setPagination((prev) => ({ ...prev, pageSize: Number(val), pageIndex: 0 }))}
-					/>
-				</div>
-			</div>
+			<TablePagination table={instance} />
 		</div>
 	)
 }

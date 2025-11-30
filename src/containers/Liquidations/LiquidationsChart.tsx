@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect } from 'react'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'

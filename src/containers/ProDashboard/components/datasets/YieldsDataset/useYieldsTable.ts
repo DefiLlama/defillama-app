@@ -58,6 +58,8 @@ export function useYieldsTable({
 
 		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) || []
 
+		const selectedChainsSet = filters.chains && filters.chains.length > 0 ? new Set(filters.chains) : null
+
 		return data.filter((row) => {
 			if (filters.apyMin !== undefined && row.apy < filters.apyMin) return false
 			if (filters.apyMax !== undefined && row.apy > filters.apyMax) return false
@@ -67,8 +69,8 @@ export function useYieldsTable({
 
 			if (filters.tvlMin !== undefined && row.tvl < filters.tvlMin) return false
 			if (filters.tvlMax !== undefined && row.tvl > filters.tvlMax) return false
-			if (filters.chains && filters.chains.length > 0) {
-				const hasMatchingChain = row.chains?.some((chain: string) => filters.chains.includes(chain))
+			if (selectedChainsSet) {
+				const hasMatchingChain = row.chains?.some((chain: string) => selectedChainsSet.has(chain))
 				if (!hasMatchingChain) return false
 			}
 

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ISingleSeriesChartProps } from '../types'
@@ -68,27 +68,63 @@ export default function SingleSeriesChart({
 			},
 			data: chartData.map(([timestamp, value, ...rest]) => [+timestamp * 1e3, value, ...rest]),
 			...(hallmarks && {
-				markLine: {
-					data: hallmarks.map(([date, event], index) => [
-						{
-							name: event,
-							xAxis: +date * 1e3,
-							yAxis: 0,
-							label: {
-								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-								fontFamily: 'sans-serif',
-								fontSize: 14,
-								fontWeight: 500
+				markLine:
+					hallmarks.length > 8
+						? {
+								symbol: 'none',
+								data: hallmarks.map(([date, event]) => [
+									{
+										name: event,
+										xAxis: +date * 1e3,
+										yAxis: 0,
+										label: {
+											show: false,
+											color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+											fontFamily: 'sans-serif',
+											fontSize: 14,
+											fontWeight: 500,
+											position: 'insideEndTop'
+										},
+										emphasis: {
+											label: {
+												show: true, // Show on hover
+												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+												fontFamily: 'sans-serif',
+												fontSize: 14,
+												fontWeight: 500,
+												position: 'insideEndTop'
+											}
+										}
+									},
+									{
+										name: 'end',
+										xAxis: +date * 1e3,
+										yAxis: 'max',
+										y: 0
+									}
+								])
 							}
-						},
-						{
-							name: 'end',
-							xAxis: +date * 1e3,
-							yAxis: 'max',
-							y: Math.max(hallmarks.length * 40 - index * 40, 40)
-						}
-					])
-				}
+						: {
+								data: hallmarks.map(([date, event], index) => [
+									{
+										name: event,
+										xAxis: +date * 1e3,
+										yAxis: 0,
+										label: {
+											color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+											fontFamily: 'sans-serif',
+											fontSize: 14,
+											fontWeight: 500
+										}
+									},
+									{
+										name: 'end',
+										xAxis: +date * 1e3,
+										yAxis: 'max',
+										y: Math.max(hallmarks.length * 40 - index * 40, 40)
+									}
+								])
+							}
 			})
 		}
 
@@ -96,6 +132,16 @@ export default function SingleSeriesChart({
 	}, [chartData, color, hallmarks, isThemeDark, chartType, chartName, symbolOnChart])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	const updateChartInstance = useCallback(
+		(instance: echarts.ECharts | null) => {
+			chartRef.current = instance
+			if (onReady) {
+				onReady(instance)
+			}
+		},
+		[onReady]
+	)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -106,11 +152,8 @@ export default function SingleSeriesChart({
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}
-		chartRef.current = chartInstance
 
-		if (onReady && isNewInstance) {
-			onReady(chartInstance)
-		}
+		updateChartInstance(chartInstance)
 
 		// override default chart settings
 		for (const option in chartOptions) {
@@ -156,8 +199,9 @@ export default function SingleSeriesChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			updateChartInstance(null)
 		}
-	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom])
+	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom, updateChartInstance])
 
 	useEffect(() => {
 		return () => {
@@ -168,14 +212,9 @@ export default function SingleSeriesChart({
 					chartInstance.dispose()
 				}
 			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-			if (onReady) {
-				onReady(null)
-			}
+			updateChartInstance(null)
 		}
-	}, [id])
+	}, [id, updateChartInstance])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
 }

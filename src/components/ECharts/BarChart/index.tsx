@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -26,9 +28,14 @@ export default function BarChart({
 	hideDownloadButton = false,
 	containerClassName,
 	customComponents,
-	onReady
+	onReady,
+	enableImageExport,
+	imageExportFilename,
+	imageExportTitle
 }: IBarChartProps) {
 	const id = useId()
+	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions ? [...customLegendOptions] : [])
 
@@ -124,6 +131,16 @@ export default function BarChart({
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
+	const exportTitle = imageExportTitle || title
+	const updateExportInstance = useCallback(
+		(instance: echarts.ECharts | null) => {
+			if (shouldEnableExport) {
+				handleChartReady(instance)
+			}
+		},
+		[shouldEnableExport, handleChartReady]
+	)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -135,6 +152,7 @@ export default function BarChart({
 			chartInstance = echarts.init(chartDom)
 		}
 		chartRef.current = chartInstance
+		updateExportInstance(chartInstance)
 
 		if (onReady && isNewInstance) {
 			onReady(chartInstance)
@@ -162,7 +180,7 @@ export default function BarChart({
 			},
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -194,8 +212,9 @@ export default function BarChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			updateExportInstance(null)
 		}
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id])
+	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, updateExportInstance])
 
 	useEffect(() => {
 		return () => {
@@ -212,8 +231,9 @@ export default function BarChart({
 			if (onReady) {
 				onReady(null)
 			}
+			updateExportInstance(null)
 		}
-	}, [id])
+	}, [id, onReady, updateExportInstance])
 
 	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
 
@@ -261,7 +281,16 @@ export default function BarChart({
 							portal
 						/>
 					)}
-					{hideDownloadButton ? null : <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					{shouldEnableExport && (
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={exportFilename}
+							title={exportTitle}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					)}
 				</div>
 			) : null}
 			<div

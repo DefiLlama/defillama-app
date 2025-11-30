@@ -2,7 +2,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import { maxAgeForNext } from '~/api'
-import { ISingleSeriesChartProps } from '~/components/ECharts/types'
+import { ICandlestickChartProps, ILineAndBarChartProps, ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -18,58 +18,58 @@ import { withPerformanceLogging } from '~/utils/perf'
 const SingleSeriesChart = lazy(
 	() => import('~/components/ECharts/SingleSeriesChart')
 ) as React.FC<ISingleSeriesChartProps>
+const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
+const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
 
-interface IDigitalAssetTreasuryCompany {
+interface IDATInstitution {
+	institutionId: number
 	ticker: string
 	name: string
 	type: string
-	assets: Array<string>
-	totalAssetsByAsset: {
+	rank: number
+	price: number
+	priceChange24h: number | null
+	volume24h: number
+	totalCost: number
+	totalUsdValue: number
+	assets: {
 		[asset: string]: {
 			amount: number
-			usdValue?: number | null
-			cost?: number | null
-			avgPrice?: number | null
+			avgPrice: number
+			usdValue: number
+			cost: number
 		}
 	}
-	last30dChanges: Array<{
-		date: string
-		asset: string
-		amount: number
-		type: string
-		usd_value: number | null
-	}>
-	totalAssetAmount: number
-	totalCost?: number | null
-	avgPrice?: number | null
-	totalUsdValue?: number | null
-	transactionCount: number
-	firstAnnouncementDate: string
-	lastAnnouncementDate: string
+	assetsMeta: {
+		[asset: string]: {
+			name: string
+			ticker: string
+		}
+	}
+	ohlcv: Array<[number, number, number, number, number, number]> // [timestamp, open, high, low, close, volume]
+	assetValue: Array<[number, number]>
+	stats: Array<[number, number, number, number, number, number, number, number, number, number]> // [timestamp, fd_realized, fd_realistic, fd_maximum, mcap_realized, mcap_realistic, mcap_max, mNAV_realized, mNAV_realistic, mNAV_max]
 	transactions: Array<{
-		ticker: string
+		id: number
 		asset: string
+		amount: string
+		avg_price: string
+		usd_value: string
+		start_date: string
+		end_date: string
+		report_date: string
+		type: string
+		source_type: string
+		source_url: string
+		source_note: string
+		is_approved: boolean
+		reject_reason: string | null
+		last_updated: string
+		ticker: string
 		assetName: string
 		assetTicker: string
-		amount: number // DECIMAL(20, 8)
-		avg_price?: number // DECIMAL(20, 8)
-		usd_value?: number // DECIMAL(20, 2)
-		start_date: string // DATEONLY (YYYY-MM-DD)
-		end_date: string // DATEONLY (YYYY-MM-DD)
-		report_date?: string // DATEONLY (YYYY-MM-DD)
-		type: 'purchase' | 'sale' | 'mined' | 'staking_reward'
-		source_type: 'filing' | 'twitter' | 'press-release' | 'site' | 'other'
-		source_url?: string
-		source_note?: string
-		is_approved?: boolean
-		reject_reason?: string
-		last_updated?: Date
 	}>
-	realized_mNAV?: number | null
-	realistic_mNAV?: number | null
-	max_mNAV?: number | null
-	price?: number | null
-	priceChange24h?: number | null
+	lastUpdated: string
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -79,29 +79,21 @@ export const getStaticProps = withPerformanceLogging(
 			company: [company]
 		}
 	}) => {
-		const data: IDigitalAssetTreasuryCompany | null = await fetchJson(`${TRADFI_API}/v1/companies/${company}`).catch(
-			() => null
-		)
+		const data: IDATInstitution | null = await fetchJson(`${TRADFI_API}/institutions/${company}`).catch(() => null)
 
 		if (!data) {
 			return { notFound: true, props: null }
 		}
 
-		const assetsByNameAndTicker = Object.fromEntries(
-			data.assets.map((asset) => {
-				const assetTx = data.transactions.find((a) => a.asset === asset)
-				return [asset, { name: assetTx?.assetName ?? null, ticker: assetTx?.assetTicker ?? null }]
-			})
-		)
-
-		const chartByAsset = data.assets.map((asset) => {
+		const chartByAsset = Object.keys(data.assets).map((assetKey) => {
 			let totalAmount = 0
+			const assetMeta = data.assetsMeta[assetKey]
 			return {
-				asset,
-				name: assetsByNameAndTicker[asset].name,
-				ticker: assetsByNameAndTicker[asset].ticker,
+				asset: assetKey,
+				name: assetMeta.name,
+				ticker: assetMeta.ticker,
 				chart: data.transactions
-					.filter((item) => item.asset === asset)
+					.filter((item) => item.asset === assetKey)
 					.map((item) => [
 						Math.floor(new Date(item.end_date ?? item.start_date).getTime() / 1000),
 						item.type === 'sale' ? -Number(item.amount) : Number(item.amount),
@@ -119,21 +111,126 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		})
 
+		const mNAVChart: ILineAndBarChartProps['charts'] = {
+			'Realized mNAV': {
+				name: 'Realized mNAV',
+				stack: 'Realized mNAV',
+				type: 'line',
+				color: CHART_COLORS[0],
+				data: []
+			},
+			'Realistic mNAV': {
+				name: 'Realistic mNAV',
+				stack: 'Realistic mNAV',
+				type: 'line',
+				color: CHART_COLORS[1],
+				data: []
+			},
+			'Max mNAV': {
+				name: 'Max mNAV',
+				stack: 'Max mNAV',
+				type: 'line',
+				color: CHART_COLORS[2],
+				data: []
+			}
+		}
+
+		const fdChart: ILineAndBarChartProps['charts'] = {
+			'FD Realized': {
+				name: 'FD Realized',
+				stack: 'FD Realized',
+				type: 'line',
+				color: CHART_COLORS[3],
+				data: []
+			},
+			'FD Realistic': {
+				name: 'FD Realistic',
+				stack: 'FD Realistic',
+				type: 'line',
+				color: CHART_COLORS[4],
+				data: []
+			},
+			'FD Max': {
+				name: 'FD Max',
+				stack: 'FD Max',
+				type: 'line',
+				color: CHART_COLORS[5],
+				data: []
+			}
+		}
+
+		for (const item of data.stats) {
+			const [
+				date,
+				fd_realized,
+				fd_realistic,
+				fd_maximum,
+				mcap_realized,
+				mcap_realistic,
+				mcap_max,
+				mNAV_realized,
+				mNAV_realistic,
+				mNAV_max
+			] = item
+			mNAVChart['Realized mNAV'].data.push([date, mNAV_realized])
+			mNAVChart['Realistic mNAV'].data.push([date, mNAV_realistic])
+			mNAVChart['Max mNAV'].data.push([date, mNAV_max])
+			fdChart['FD Realized'].data.push([date, fd_realized])
+			fdChart['FD Realistic'].data.push([date, fd_realistic])
+			fdChart['FD Max'].data.push([date, fd_maximum])
+		}
+
+		const totalAssetValueChart: ILineAndBarChartProps['charts'] = {
+			'Total Asset Value': {
+				name: 'Total Asset Value',
+				stack: 'Total Asset Value',
+				type: 'line',
+				color: CHART_COLORS[6],
+				data: data.assetValue
+			}
+		}
+
+		const ohlcvChartData = data.ohlcv.map(([date, open, high, low, close, volume]) => [
+			date,
+			open,
+			close,
+			low,
+			high,
+			volume
+		])
+
 		return {
 			props: {
-				...data,
-				assets: data.assets,
-				assetsBreakdown: Object.entries(data.totalAssetsByAsset).map(
-					([asset, { amount, cost, usdValue, avgPrice }]) => ({
-						name: assetsByNameAndTicker[asset].name,
-						ticker: assetsByNameAndTicker[asset].ticker,
+				name: data.name,
+				ticker: data.ticker,
+				transactions: data.transactions,
+				price: data.price,
+				priceChange24h: data.priceChange24h,
+				totalCost: data.totalCost,
+				totalUsdValue: data.totalUsdValue,
+				firstAnnouncementDate: data.transactions[data.transactions.length - 1]?.report_date ?? null,
+				lastAnnouncementDate: data.transactions[0]?.report_date ?? null,
+				realized_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][7] : null,
+				realistic_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][8] : null,
+				max_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][9] : null,
+				assets: Object.entries(data.assets)
+					.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
+					.map(([asset]) => data.assetsMeta[asset].ticker),
+				assetsBreakdown: Object.entries(data.assets)
+					.map(([asset, { amount, cost, usdValue, avgPrice }]) => ({
+						name: data.assetsMeta[asset].name,
+						ticker: data.assetsMeta[asset].ticker,
 						amount: amount,
 						cost: cost ?? null,
 						usdValue: usdValue ?? null,
 						avgPrice: avgPrice ?? null
-					})
-				),
-				chartByAsset
+					}))
+					.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0)),
+				chartByAsset,
+				mNAVChart: data.stats.length > 0 ? mNAVChart : null,
+				fdChart: data.stats.length > 0 ? fdChart : null,
+				totalAssetValueChart: data.assetValue.length > 0 ? totalAssetValueChart : null,
+				ohlcvChartData: data.ohlcv.length > 0 ? ohlcvChartData : null
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -141,12 +238,10 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const data = await fetchJson(`${TRADFI_API}/v1/companies`)
+	const data = await fetchJson(`${TRADFI_API}/institutions`)
 	const tickers = new Set<string>()
-	for (const asset in data.breakdownByAsset) {
-		for (const company of data.breakdownByAsset[asset]) {
-			tickers.add(company.ticker)
-		}
+	for (const institutionId in data.institutionMetadata) {
+		tickers.add(data.institutionMetadata[institutionId].ticker)
 	}
 	const paths = Array.from(tickers).map((ticker) => ({
 		params: { company: [slug(ticker)] }
@@ -154,7 +249,17 @@ export async function getStaticPaths() {
 	return { paths, fallback: false }
 }
 
-interface IProps extends IDigitalAssetTreasuryCompany {
+interface IProps
+	extends Pick<
+		IDATInstitution,
+		'name' | 'ticker' | 'price' | 'priceChange24h' | 'transactions' | 'totalCost' | 'totalUsdValue'
+	> {
+	firstAnnouncementDate: string
+	lastAnnouncementDate: string
+	realized_mNAV: number | null
+	realistic_mNAV: number | null
+	max_mNAV: number | null
+	assets: Array<string>
 	assetsBreakdown: Array<{
 		name: string
 		ticker: string
@@ -169,12 +274,16 @@ interface IProps extends IDigitalAssetTreasuryCompany {
 		ticker: string
 		chart: Array<[number, number, number, number | null, number | null]>
 	}>
+	mNAVChart?: ILineAndBarChartProps['charts']
+	fdChart?: ILineAndBarChartProps['charts']
+	totalAssetValueChart?: ILineAndBarChartProps['charts']
+	ohlcvChartData?: Array<[number, number, number, number, number, number]>
 }
 
 export default function DigitalAssetTreasury(props: IProps) {
 	const [selectedAsset, setSelectedAsset] = useState<string | null>(props.assets[0])
 	const chartData = useMemo(() => {
-		return props.chartByAsset.find((asset) => asset.asset === selectedAsset)
+		return props.chartByAsset.find((asset) => asset.ticker === selectedAsset)
 	}, [selectedAsset, props.chartByAsset])
 
 	return (
@@ -194,25 +303,17 @@ export default function DigitalAssetTreasury(props: IProps) {
 									<span className="text-(--text-label)">Assets in Holdings</span>
 									<span className="font-jetbrains ml-auto">{props.assets.join(', ')}</span>
 								</p>
-								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									<span className="text-(--text-label)">Assets Today's Value (USD)</span>
-									<span className="font-jetbrains ml-auto">
-										{props.totalUsdValue != null ? formattedNum(props.totalUsdValue, true) : null}
-									</span>
-								</p>
+								{props.totalUsdValue != null ? (
+									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+										<span className="text-(--text-label)">Assets Today's Value (USD)</span>
+										<span className="font-jetbrains ml-auto">{formattedNum(props.totalUsdValue, true)}</span>
+									</p>
+								) : null}
 								{props.totalCost != null && (
 									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 										<span className="text-(--text-label)">Assets Cost Basis</span>
 										<span className="font-jetbrains ml-auto">
 											{props.totalCost != null ? formattedNum(props.totalCost, true) : '-'}
-										</span>
-									</p>
-								)}
-								{props.avgPrice != null && (
-									<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-										<span className="text-(--text-label)">Assets Average Price</span>
-										<span className="font-jetbrains ml-auto">
-											{props.avgPrice != null ? formattedNum(props.avgPrice, true) : '-'}
 										</span>
 									</p>
 								)}
@@ -272,7 +373,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 						</p>
 						<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 							<span className="text-(--text-label)">Total Transactions</span>
-							<span className="font-jetbrains ml-auto">{props.transactionCount}</span>
+							<span className="font-jetbrains ml-auto">{props.transactions.length}</span>
 						</p>
 						{props.price != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
@@ -330,7 +431,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 							</p>
 						) : null}
 					</div>
-					<BasicLink href="/report-error" className="mt-auto pt-4 text-left text-(--text-form) underline">
+					<BasicLink href="/report-error" className="mt-auto mr-auto pt-4 text-left text-(--text-form) underline">
 						Report incorrect data
 					</BasicLink>
 				</div>
@@ -348,18 +449,57 @@ export default function DigitalAssetTreasury(props: IProps) {
 						)}
 					</div>
 					<Suspense fallback={<div className="h-[360px]" />}>
-						<SingleSeriesChart
-							chartName={chartData.ticker}
-							chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
-							chartData={chartData.chart}
-							valueSymbol={chartData.ticker}
-							color={CHART_COLORS[0]}
-							chartOptions={chartOptions}
-							symbolOnChart="circle"
-							hideDataZoom={chartData.chart.length < 2}
-						/>
+						{chartData ? (
+							<SingleSeriesChart
+								chartName={chartData.ticker}
+								chartType={chartData.chart.length < 2 ? 'bar' : 'line'}
+								chartData={chartData.chart}
+								valueSymbol={chartData.ticker}
+								color={CHART_COLORS[0]}
+								chartOptions={chartOptions}
+								symbolOnChart="circle"
+								hideDataZoom={chartData.chart.length < 2}
+							/>
+						) : (
+							<div className="h-[360px]" />
+						)}
 					</Suspense>
 				</div>
+			</div>
+			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+				{props.mNAVChart != null && (
+					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="p-2 text-lg font-bold">mNAV</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<LineAndBarChart charts={props.mNAVChart} valueSymbol="" hideDefaultLegend={false} />
+						</Suspense>
+					</div>
+				)}
+				{props.fdChart != null && (
+					<div className="col-span-1 min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<h2 className="p-2 text-lg font-bold">Fully Diluted Shares</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<LineAndBarChart charts={props.fdChart} valueSymbol="" hideDefaultLegend={false} />
+						</Suspense>
+					</div>
+				)}
+				{props.ohlcvChartData != null && (
+					<div className="col-span-full min-h-[480px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<h2 className="p-2 text-lg font-bold">Share Price</h2>
+						<Suspense fallback={<div className="h-[480px]" />}>
+							<CandlestickChart data={props.ohlcvChartData} />
+						</Suspense>
+						<p className="p-2 text-xs text-(--text-disabled)">Source: Yahoo Finance</p>
+					</div>
+				)}
+				{props.totalAssetValueChart != null && (
+					<div className="col-span-full min-h-[360px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
+						<h2 className="p-2 text-lg font-bold">Total Asset Value</h2>
+						<Suspense fallback={<div className="h-[360px]" />}>
+							<LineAndBarChart charts={props.totalAssetValueChart} valueSymbol="$" />
+						</Suspense>
+					</div>
+				)}
 			</div>
 			<TableWithSearch
 				data={props.transactions}
@@ -372,7 +512,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 	)
 }
 
-const columns: ColumnDef<IDigitalAssetTreasuryCompany['transactions'][0]>[] = [
+const columns: ColumnDef<IDATInstitution['transactions'][0]>[] = [
 	{
 		header: 'Asset',
 		accessorKey: 'assetName',

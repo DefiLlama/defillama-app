@@ -245,11 +245,13 @@ export function SmolLineChart({
 export function SmolBarChart({
 	series,
 	name,
-	className
+	className,
+	groupBy
 }: {
 	series: Array<[string, number]>
 	name: string
 	className?: string
+	groupBy?: 'daily' | 'weekly' | 'monthly'
 }) {
 	const id = useId()
 
@@ -298,7 +300,7 @@ export function SmolBarChart({
 				trigger: 'axis',
 				confine: false,
 				formatter: function (params) {
-					let chartdate = formatTooltipChartDate(params[0].value[0], 'daily')
+					let chartdate = formatTooltipChartDate(params[0].value[0], groupBy ?? 'daily')
 
 					return (
 						chartdate +

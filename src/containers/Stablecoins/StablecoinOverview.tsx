@@ -140,6 +140,21 @@ export const PeggedAssetInfo = ({
 		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
 	}, [stackedData, chainsUnique])
 
+	const getImageExportTitle = () => {
+		const chartTypeMap = {
+			'Total Circ': 'Total Circulating',
+			'Pie': 'Distribution by Chain',
+			'Dominance': 'Chain Dominance',
+			'Area': 'Circulating by Chain'
+		}
+		return `${name} - ${chartTypeMap[chartType] || chartType}`
+	}
+
+	const getImageExportFilename = () => {
+		const chartSlug = chartType.toLowerCase().replace(/\s+/g, '-')
+		return `${slug(name)}-${chartSlug}`
+	}
+
 	return (
 		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
@@ -367,6 +382,9 @@ export const PeggedAssetInfo = ({
 								stacks={totalChartTooltipLabel}
 								color={CHART_COLORS[0]}
 								hideDefaultLegend={true}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -378,6 +396,9 @@ export const PeggedAssetInfo = ({
 								stacks={chainsUnique}
 								valueSymbol="$"
 								hideDefaultLegend={true}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
@@ -389,12 +410,20 @@ export const PeggedAssetInfo = ({
 								chartData={dataWithExtraPeggedAndDominanceByDay}
 								stacks={chainsUnique}
 								hideDefaultLegend={true}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
 							/>
 						</React.Suspense>
 					)}
 					{chartType === 'Pie' && (
 						<React.Suspense fallback={<></>}>
-							<PieChart chartData={chainsCirculatingValues} />
+							<PieChart
+								chartData={chainsCirculatingValues}
+								enableImageExport={true}
+								imageExportTitle={getImageExportTitle()}
+								imageExportFilename={getImageExportFilename()}
+							/>
 						</React.Suspense>
 					)}
 				</div>

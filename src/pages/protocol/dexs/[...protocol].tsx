@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -12,6 +13,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -105,6 +107,8 @@ const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 export default function Protocols(props) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+
 	const finalCharts = useMemo(() => {
 		return {
 			'DEX Volume': {
@@ -169,9 +173,16 @@ export default function Protocols(props) {
 							))}
 						</div>
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={`${slug(props.name)}-dex-volume`}
+							title="DEX Volume"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<LineAndBarChart charts={finalCharts} valueSymbol="$" />
+						<LineAndBarChart charts={finalCharts} valueSymbol="$" onReady={handleChartReady} />
 					</Suspense>
 				</div>
 			</div>

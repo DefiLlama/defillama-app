@@ -79,9 +79,19 @@ const getChainFromDerivedKey = (key: string, type: AdjustKey): string | null => 
 const toPairs = (arr: any[] | undefined): [number, number][] => {
 	if (!Array.isArray(arr)) return []
 	const byDay = new Map<number, { ts: number; v: number }>()
+
 	for (const d of arr) {
-		const tsRaw = Number(d?.date)
-		const vRaw = Math.trunc(Number(d?.totalLiquidityUSD) || 0)
+		let tsRaw: number
+		let vRaw: number
+
+		if (Array.isArray(d)) {
+			tsRaw = Number(d[0])
+			vRaw = Math.trunc(Number(d[1]) || 0)
+		} else {
+			tsRaw = Number(d?.date)
+			vRaw = Math.trunc(Number(d?.totalLiquidityUSD) || 0)
+		}
+
 		if (!Number.isFinite(tsRaw) || !Number.isFinite(vRaw)) continue
 		const day = toUtcDay(tsRaw)
 		const prev = byDay.get(day)
@@ -89,9 +99,10 @@ const toPairs = (arr: any[] | undefined): [number, number][] => {
 			byDay.set(day, { ts: tsRaw, v: vRaw })
 		}
 	}
-	return Array.from(byDay.entries())
+	const result = Array.from(byDay.entries())
 		.sort((a, b) => a[0] - b[0])
 		.map(([day, { v }]) => [day, v] as [number, number])
+	return result
 }
 
 const accumulate = (store: Map<number, number>, pairs: [number, number][]) => {

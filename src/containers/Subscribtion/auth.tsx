@@ -134,7 +134,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		onSuccess: () => {
 			setIsAuthenticated(true)
 			queryClient.invalidateQueries()
-			toast.success('Successfully signed in')
+			toast.success('Successfully signed in', { duration: 3000 })
 		},
 		onError: () => {
 			toast.error('Invalid email or password')
@@ -145,9 +145,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (email: string, password: string, onSuccess?: () => void) => {
 			try {
 				await loginMutation.mutateAsync({ email, password })
-				queryClient.invalidateQueries({
-					queryKey: ['subscription', pb.authStore.record?.id]
-				})
+				// queryClient.invalidateQueries({
+				// 	queryKey: ['subscription', pb.authStore.record?.id]
+				// })
 				onSuccess?.()
 			} catch (e) {
 				console.log('Login error:', e)
@@ -188,11 +188,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			}
 
 			const { token } = await response.json()
-
 			pb.authStore.save(token)
 		},
 		onSuccess: () => {
 			setIsAuthenticated(true)
+			sessionStorage.setItem('just_signed_up', 'true')
 			queryClient.invalidateQueries()
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id], {
 				subscription: { status: 'inactive' }
@@ -332,7 +332,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries()
-			queryClient.refetchQueries()
+			// queryClient.refetchQueries()
 
 			setIsAuthenticated(true)
 		},
@@ -376,7 +376,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries()
-			queryClient.refetchQueries()
+			// queryClient.refetchQueries()
 			setIsAuthenticated(true)
 		},
 		onError: (error) => {

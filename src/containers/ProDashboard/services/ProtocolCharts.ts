@@ -3,13 +3,14 @@ import { getAPIUrlSummary } from '~/api/categories/adaptors/client'
 import {
 	CACHE_SERVER,
 	PROTOCOL_API,
+	PROTOCOL_API_MINI,
 	PROTOCOL_EMISSION_API,
 	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
-import { convertToNumberFormat } from '../utils'
+import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
 interface DateTvl {
 	date: number
@@ -17,11 +18,16 @@ interface DateTvl {
 }
 
 interface ChainTvlData {
-	tvl: DateTvl[]
+	tvl: DateTvl[] | [number, number][]
 }
 
 interface ProtocolApiResponse {
 	chainTvls: Record<string, ChainTvlData>
+}
+
+interface ProtocolApiMiniResponse {
+	chainTvls: Record<string, { tvl: [number, number][] }>
+	tvl: [number, number][]
 }
 
 export default class ProtocolCharts {
@@ -30,12 +36,16 @@ export default class ProtocolCharts {
 			return []
 		}
 		try {
-			const response = await fetch(`${PROTOCOL_API}/${protocolId}`)
+			const response = await fetch(`${PROTOCOL_API_MINI}/${protocolId}`)
 			if (!response.ok) {
 				console.log(`Failed to fetch protocol TVL for ${protocolId}: ${response.status}`)
 				return []
 			}
-			const data: ProtocolApiResponse = await response.json()
+			const data: ProtocolApiMiniResponse = await response.json()
+
+			if (Array.isArray(data?.tvl) && data.tvl.length > 0 && Array.isArray(data.tvl[0])) {
+				return data.tvl as [number, number][]
+			}
 
 			const adjusted = processAdjustedProtocolTvl(data?.chainTvls as unknown as ProtocolChainTvls)
 			return adjusted
@@ -132,17 +142,20 @@ export default class ProtocolCharts {
 
 	static async tokenMcap(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return convertToNumberFormat(data.mcaps ?? [], true)
+		const converted = convertToNumberFormat(data.mcaps ?? [], true)
+		return normalizeHourlyToDaily(converted, 'last')
 	}
 
 	static async tokenPrice(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return convertToNumberFormat(data.prices ?? [], true)
+		const converted = convertToNumberFormat(data.prices ?? [], true)
+		return normalizeHourlyToDaily(converted, 'last')
 	}
 
 	static async tokenVolume(_: string, geckoId: string): Promise<[number, number][]> {
 		const data = await this.getTokenData(geckoId)
-		return convertToNumberFormat(data.volumes ?? [], true)
+		const converted = convertToNumberFormat(data.volumes ?? [], true)
+		return normalizeHourlyToDaily(converted, 'sum')
 	}
 
 	static async liquidity(protocol: string): Promise<[number, number][]> {

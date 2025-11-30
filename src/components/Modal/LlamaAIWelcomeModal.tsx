@@ -11,51 +11,47 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && onClose()}>
 			<Ariakit.Dialog
-				className="dialog fixed inset-0 z-50 m-auto h-fit w-full max-w-lg overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-[#0a0b0d] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.2),0_0_75px_25px_rgba(123,123,255,0.15)]"
+				className="dialog fixed inset-0 z-50 m-auto h-fit w-full max-w-lg overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl dark:border-[#39393E] dark:bg-[#222429]"
 				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
 				portal
 				unmountOnHide
 			>
-				<div className="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-transparent via-[#5c5cf9] to-transparent opacity-40"></div>
-				<div className="absolute top-[-60px] right-[-60px] h-[150px] w-[150px] rounded-full bg-[#5c5cf9] opacity-15 blur-3xl"></div>
-
-				<Ariakit.DialogDismiss className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-700/50 hover:text-white">
+				<Ariakit.DialogDismiss
+					data-umami-event="llamaai-welcome-dismiss"
+					className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white"
+				>
 					<Icon name="x" className="h-5 w-5" />
 				</Ariakit.DialogDismiss>
 
 				<div className="relative z-10 px-8 py-10">
 					<div className="mb-6 flex justify-center">
-						<img src="/icons/llama-ai.svg" alt="LlamaAI" className="h-20 w-16 object-contain" />
+						<span className="relative flex flex-col items-center justify-center">
+							<span
+								className="absolute block h-24.5 w-24.5 shrink-0"
+								style={{ background: 'linear-gradient(90deg, #FEE2AD 0%, #FEE2AD 100%)', filter: 'blur(32px)' }}
+							></span>
+							<img src="/icons/llama-ai.svg" alt="LlamaAI" className="z-10 object-contain" width={83} height={99} />
+						</span>
 					</div>
 
-					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-white">Exclusive access to LlamaAI</h2>
-
-					<p className="mb-1 text-center text-base text-[#888]">
-						As one of our longest active subscribers we've given you early access to LlamaAI, our biggest upcoming
-						product
-					</p>
-
-					<p className="mb-6 text-center text-base leading-relaxed text-[#b8b8b8]">
-						You can query our entire database, generate charts and more
-					</p>
-
-					<p className="mb-6 text-center text-sm text-[#888]">
-						<BasicLink
-							href="/ai"
-							className="font-bold text-white underline underline-offset-2 hover:text-[#5C5CF9]"
-							onClick={onClose}
-						>
-							Try it
-						</BasicLink>{' '}
-						to be part of future early access previews
+					<h2 className="mb-4 text-center text-2xl leading-snug font-bold text-black dark:text-white">
+						Introducing LlamaAI 🚀
+					</h2>
+					<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
+						We're upgrading your subscription with LlamaAI. Turn data into deep, flexible analysis in a conversational
+						way.
 					</p>
 
 					<BasicLink
-						href="/ai"
-						className="block w-full rounded-xl bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] px-6 py-3.5 text-center text-base font-semibold text-white shadow-lg shadow-[#5C5CF9]/25 transition-all hover:scale-[1.02] hover:from-[#4A4AF0] hover:to-[#6A6AFF] hover:shadow-xl hover:shadow-[#5C5CF9]/30"
+						href="/ai/chat"
+						data-umami-event="llamaai-welcome-goto-chat"
+						className="llamaai-glow relative mx-auto flex items-center justify-center gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-center text-xl font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)]"
 						onClick={onClose}
 					>
-						Go to LlamaAI
+						<svg className="h-4 w-4 shrink-0">
+							<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+						</svg>
+						<span className="whitespace-nowrap">Try LlamaAI</span>
 					</BasicLink>
 				</div>
 			</Ariakit.Dialog>

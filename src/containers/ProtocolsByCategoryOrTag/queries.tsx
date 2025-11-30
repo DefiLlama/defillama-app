@@ -75,7 +75,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChartBreakdown: true
 				})
 			: null,
-		chainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators'].includes(category)
+		chainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
@@ -91,7 +91,7 @@ export async function getProtocolsByCategoryOrTag({
 					excludeTotalDataChartBreakdown: true
 				})
 			: null,
-		chainMetadata?.perps && category && ['Derivatives'].includes(category)
+		chainMetadata?.perps && category && ['Derivatives', 'Prediction Market'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',

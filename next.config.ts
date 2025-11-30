@@ -575,6 +575,24 @@ const nextConfig: NextConfig = {
 					},
 					{ key: 'Content-Security-Policy', value: 'frame-ancestors *' }
 				]
+			},
+			{
+				source: '/assets/llamaai.mp4',
+				headers: [
+					{
+						key: 'Accept-Ranges',
+						value: 'bytes'
+					},
+					{
+						key: 'Content-Type',
+						value: 'video/mp4'
+					},
+					// Disable compression - video files are already compressed and compression breaks range requests
+					{
+						key: 'Content-Encoding',
+						value: 'identity'
+					}
+				]
 			}
 		]
 	},

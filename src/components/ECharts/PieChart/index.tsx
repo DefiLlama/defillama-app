@@ -3,7 +3,9 @@ import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useMedia } from '~/hooks/useMedia'
 import type { IPieChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
@@ -29,11 +31,17 @@ export default function PieChart({
 	legendPosition,
 	legendTextStyle,
 	customComponents,
+	enableImageExport = false,
+	imageExportFilename,
+	imageExportTitle,
 	...props
 }: IPieChartProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
+	const exportTitle = imageExportTitle || title
 
 	const series = useMemo(() => {
 		const series: Record<string, any> = {
@@ -137,11 +145,14 @@ export default function PieChart({
 			chartInstance.resize()
 		}
 
+		handleChartReady(chartInstance)
+
 		window.addEventListener('resize', resize)
 
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			handleChartReady(null)
 		}
 	}, [
 		createInstance,
@@ -158,13 +169,20 @@ export default function PieChart({
 
 	return (
 		<div className="relative" {...props}>
-			{customComponents ? (
+			{title || customComponents || enableImageExport ? (
 				<div className="mb-2 flex items-center justify-end gap-2 px-2">
-					<>{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}</>
-					<>{customComponents}</>
+					{title ? <h1 className="mr-auto px-2 text-lg font-bold">{title}</h1> : null}
+					{customComponents ?? null}
+					{enableImageExport && (
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={exportFilename}
+							title={exportTitle}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					)}
 				</div>
-			) : title ? (
-				<h1 className="mr-auto px-2 text-lg font-bold">{title}</h1>
 			) : null}
 			<div id={id} className="mx-0 my-auto h-[360px]" style={height ? { height } : undefined}></div>
 		</div>

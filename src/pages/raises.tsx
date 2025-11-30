@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import RaisesContainer from '~/containers/Raises'
+import { getRaisesFiltersList } from '~/containers/Raises/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 

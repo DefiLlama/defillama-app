@@ -1,12 +1,16 @@
+import { useState } from 'react'
 import Head from 'next/head'
+import * as Ariakit from '@ariakit/react'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn } from './SignIn'
+import { SignInModal } from './SignIn'
 
 export function SubscribeLayout({ children }) {
 	const { isAuthenticated, logout } = useAuthContext()
+	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
 	return (
 		<>
@@ -16,28 +20,44 @@ export function SubscribeLayout({ children }) {
 			</Head>
 			<LinkPreviewCard />
 			<div className="col-span-full flex min-h-screen w-full flex-col bg-[#13141a] text-white">
-				<header className="sticky top-0 z-50 border-b border-[#39393E]/40 bg-[#13141a]/80 backdrop-blur-md">
-					<div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 xl:max-w-7xl 2xl:max-w-[1440px]">
-						<BasicLink href="/" className="flex items-center gap-3">
-							<img src="/icons/llama.webp" alt="DefiLlama" width={32} height={32} className="rounded-full" />
-							<span className="hidden text-lg font-bold sm:inline-block">DefiLlama</span>
-						</BasicLink>
+				<header className="sticky top-0 z-50 h-12 bg-transparent">
+					<div className="mx-auto flex h-full max-w-6xl items-center justify-between px-4 xl:max-w-7xl 2xl:max-w-[1440px]">
+						<div className="flex items-center gap-3">
+							<BasicLink href="/" className="flex items-center gap-2 text-[#b4b7bc] transition-colors hover:text-white">
+								<Icon name="chevron-left" height={20} width={20} />
+								<span className="hidden sm:inline-block">Back</span>
+							</BasicLink>
+						</div>
 
-						<div className="flex items-center gap-4">
+						<div className="flex items-center gap-2">
 							{!isAuthenticated ? (
-								<SignIn className="flex items-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2 font-medium text-white shadow-md transition-all duration-200 hover:bg-[#4A4AF0]" />
+								<SignInModal className="rounded-lg bg-[#5C5CF9] px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]" />
 							) : (
-								<BasicLink href="/" className="text-sm font-medium text-[#b4b7bc] transition-colors hover:text-white">
-									Return to Main Page
-								</BasicLink>
-							)}
-							{isAuthenticated && (
-								<button
-									onClick={logout}
-									className="rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-2 font-medium text-white hover:bg-[#4A4AF0] dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
-								>
-									Logout
-								</button>
+								<Ariakit.MenuProvider open={isMenuOpen} setOpen={setIsMenuOpen}>
+									<Ariakit.MenuButton className="flex h-8 w-8 items-center justify-center rounded-lg text-[#b4b7bc] transition-colors hover:bg-[#2a2b30] hover:text-white">
+										<Icon name="menu" height={18} width={18} />
+									</Ariakit.MenuButton>
+									<Ariakit.Menu
+										className="z-50 min-w-[180px] rounded-lg border border-[#39393E] bg-[#1a1b1f] py-2 shadow-xl backdrop-blur-md"
+										gutter={8}
+									>
+										<Ariakit.MenuItem
+											className="flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#2a2b30] focus:bg-[#2a2b30] focus:outline-hidden"
+											render={<BasicLink href="/" />}
+										>
+											<Icon name="arrow-left" height={14} width={14} className="text-[#8a8c90]" />
+											Return to Main Page
+										</Ariakit.MenuItem>
+										<div className="my-1 h-px bg-[#39393E]" />
+										<Ariakit.MenuItem
+											className="flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-white transition-colors hover:bg-[#2a2b30] focus:bg-[#2a2b30] focus:outline-hidden"
+											onClick={logout}
+										>
+											<Icon name="x" height={14} width={14} className="text-red-400" />
+											Logout
+										</Ariakit.MenuItem>
+									</Ariakit.Menu>
+								</Ariakit.MenuProvider>
 							)}
 						</div>
 					</div>

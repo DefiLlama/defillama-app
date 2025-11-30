@@ -151,7 +151,8 @@ export const getProtocolMetrics = ({
 		dev: protocolData.github ? true : false,
 		inflows: inflowsExist,
 		liquidity: metadata.liquidity ? true : false,
-		activeUsers: metadata.activeUsers ? true : false
+		activeUsers: metadata.activeUsers ? true : false,
+		borrowed: metadata.borrowed ? true : false
 	}
 }
 
@@ -312,7 +313,7 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'BribeRevenue' }))
+					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.tokenTax
@@ -819,7 +820,7 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const name = protocolData.name ?? metadata.displayName ?? ''
-	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successfull Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
+	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
 	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
 	if (expenses) {
 		seoDescription += `, Expenses`

@@ -10,6 +10,7 @@ interface IProps extends React.ComponentProps<'div'> {
 	containerClassName?: string
 	buttonClassName?: string
 	label?: string
+	disabledValues?: readonly string[]
 }
 
 export const TagGroup = ({
@@ -22,6 +23,7 @@ export const TagGroup = ({
 	containerClassName,
 	buttonClassName,
 	label,
+	disabledValues,
 	...props
 }: IProps) => {
 	return (
@@ -43,10 +45,11 @@ export const TagGroup = ({
 						className={
 							buttonClassName ||
 							cn(
-								'shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white',
+								'shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white disabled:hover:bg-transparent',
 								triggerClassName
 							)
 						}
+						disabled={disabledValues?.includes(value)}
 						data-active={value === selectedValue}
 						key={value}
 						onClick={() => setValue(value)}

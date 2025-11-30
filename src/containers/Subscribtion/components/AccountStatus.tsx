@@ -236,13 +236,13 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 								</button>
 							</div>
 						) : (
-							<div className="flex items-center justify-between">
+							<div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
 								<p className="text-sm text-[#8a8c90]">
 									Connect your wallet to unlock additional offers and speed up future sign-ins.
 								</p>
 								<button
 									onClick={handleOpenWalletLinkModal}
-									className="group flex items-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-3 py-1.5 text-xs shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
+									className="group flex w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-3 py-1.5 text-xs whitespace-nowrap shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)] sm:w-fit"
 									disabled={loaders.addWallet}
 								>
 									<Icon name="wallet" height={12} width={12} className="text-[#5C5CF9]" />

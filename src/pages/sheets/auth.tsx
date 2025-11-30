@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn } from '~/containers/Subscribtion/SignIn'
+import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 
@@ -26,17 +26,33 @@ function AuthContent() {
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 
 	useEffect(() => {
-		if (isAuthenticated && redirectUrl && !isSubscriptionLoading) {
-			router.push({
-				pathname: redirectUrl as string,
-				query: {
-					...router.query,
-					subscription_id: subscription?.id || '',
-					subscription_status: subscription?.status || '',
-					expires_at: subscription?.expires_at || '',
-					provider: subscription?.provider || ''
-				}
-			})
+		if (isAuthenticated && !isSubscriptionLoading) {
+			// google sheets auth, requiring redirect url
+			if (redirectUrl) {
+				router.push({
+					pathname: redirectUrl as string,
+					query: {
+						...router.query,
+						subscription_id: subscription?.id || '',
+						subscription_status: subscription?.status || '',
+						expires_at: subscription?.expires_at || '',
+						provider: subscription?.provider || ''
+					}
+				})
+			} else if (window.opener) {
+				// ms excel auth, we open auth page with `window.open` and send back the sub data to parent window
+				window.opener.postMessage(
+					{
+						subscription_id: subscription?.id || '',
+						subscription_status: subscription?.status || '',
+						expires_at: subscription?.expires_at || '',
+						provider: subscription?.provider || ''
+					},
+					'*'
+				)
+
+				window.close()
+			}
 		}
 	}, [isAuthenticated, redirectUrl, router, user, isSubscriptionLoading, subscription])
 
@@ -47,7 +63,7 @@ function AuthContent() {
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 				<meta name="robots" content="noindex, nofollow" />
 			</Head>
-			<div className="flex min-h-screen w-full items-center justify-center bg-[#13141a] px-5">
+			<div className="col-span-full flex min-h-screen w-full items-center justify-center bg-[#13141a] px-5">
 				{isAuthenticated ? (
 					<div className="w-full max-w-md rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
 						<div className="mb-6">
@@ -71,7 +87,7 @@ function AuthContent() {
 						</div>
 					</div>
 				) : (
-					<SignIn showOnlyAuthDialog />
+					<SignInModal showOnlyAuthDialog />
 				)}
 				<Toast />
 			</div>

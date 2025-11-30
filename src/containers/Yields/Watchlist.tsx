@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
+import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { Switch } from '~/components/Switch'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
-import { DEFAULT_PORTFOLIO_NAME, useWatchlistManager } from '~/contexts/LocalStorage'
+import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks'
-import { PortfolioDialog } from '../DeFiWatchlist/PortfolioDialog'
+import { useBookmarks } from '~/hooks/useBookmarks'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()
@@ -29,7 +30,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
 
 	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
-		useWatchlistManager('yields')
+		useBookmarks('yields')
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
@@ -88,10 +89,14 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						onItemClick={(value) => setSelectedPortfolio(value)}
 						className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					/>
-					<PortfolioDialog open={open} setOpen={setOpen} addPortfolio={addPortfolio}/>
-					<button
-						onClick={() => setOpen(true)}
-					>
+					<DialogForm
+						title="New Portfolio"
+						description="Enter the name of your new portfolio"
+						open={open}
+						setOpen={setOpen}
+						onSubmit={addPortfolio}
+					/>
+					<button onClick={() => setOpen(true)}>
 						<Icon name="folder-plus" height={24} width={24} />
 					</button>
 					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (

@@ -1,0 +1,184 @@
+import { useCallback, useMemo, useReducer } from 'react'
+import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { sanitizeConfigColumns } from '~/containers/ProDashboard/components/UnifiedTable/config/metricCapabilities'
+import { UNIFIED_TABLE_PRESETS_BY_ID } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
+import {
+	DEFAULT_COLUMN_ORDER,
+	DEFAULT_COLUMN_VISIBILITY
+} from '~/containers/ProDashboard/components/UnifiedTable/constants'
+import {
+	applyRowHeaderVisibilityRules,
+	getDefaultColumnOrder,
+	getDefaultColumnVisibility,
+	getDefaultRowHeaders,
+	normalizeSorting
+} from '~/containers/ProDashboard/components/UnifiedTable/utils/configHelpers'
+import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+
+type WizardAction =
+	| { type: 'SET_CHAINS'; chains: string[] }
+	| { type: 'SET_ROW_HEADERS'; rowHeaders: UnifiedRowHeaderType[] }
+	| { type: 'SET_FILTERS'; filters: TableFilters }
+	| { type: 'SET_PRESET'; presetId: string }
+	| { type: 'SET_COLUMNS'; columnOrder: ColumnOrderState; columnVisibility: VisibilityState }
+	| { type: 'SET_SORTING'; sorting: SortingState }
+
+interface WizardState {
+	chains: string[]
+	rowHeaders: UnifiedRowHeaderType[]
+	filters: TableFilters
+	activePresetId: string
+	columnOrder: ColumnOrderState
+	columnVisibility: VisibilityState
+	sorting: SortingState
+}
+
+const derivePreset = (presetId: string | undefined) => {
+	const fallbackId = 'essential-protocols'
+	const preset = presetId ? UNIFIED_TABLE_PRESETS_BY_ID.get(presetId) : UNIFIED_TABLE_PRESETS_BY_ID.get(fallbackId)
+	return preset ?? UNIFIED_TABLE_PRESETS_BY_ID.get(fallbackId)!
+}
+
+const createStateFromConfig = (config: UnifiedTableConfig, fallbackPresetId?: string): WizardState => {
+	const preset = derivePreset(config.activePresetId ?? fallbackPresetId)
+
+	const rowHeaders = getDefaultRowHeaders(config, preset)
+	const columnOrder = getDefaultColumnOrder(config, preset)
+	const baseVisibility = getDefaultColumnVisibility(config, preset, true)
+
+	const sanitized = sanitizeConfigColumns({
+		order: columnOrder,
+		visibility: baseVisibility,
+		sorting: normalizeSorting(config.defaultSorting)
+	})
+
+	const chains =
+		config.params?.chains && config.params.chains.length ? [...config.params.chains] : ['All']
+
+	return {
+		chains,
+		rowHeaders,
+		filters: { ...(config.filters ?? {}) },
+		activePresetId: config.activePresetId ?? preset.id,
+		columnOrder: sanitized.order,
+		columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
+		sorting: sanitized.sorting
+	}
+}
+
+const defaultState = (presetId?: string, existingConfig?: UnifiedTableConfig): WizardState => {
+	if (existingConfig) {
+		return createStateFromConfig(existingConfig, presetId)
+	}
+
+	const preset = derivePreset(presetId)
+	const rowHeaders = [...(preset.rowHeaders as UnifiedRowHeaderType[])]
+	const baseVisibility = { ...DEFAULT_COLUMN_VISIBILITY, ...preset.columnVisibility }
+
+	const sanitized = sanitizeConfigColumns({
+		order: [...preset.columnOrder],
+		visibility: baseVisibility,
+		sorting: normalizeSorting(preset.defaultSorting)
+	})
+
+	return {
+		chains: ['All'],
+		rowHeaders,
+		filters: {},
+		activePresetId: preset.id,
+		columnOrder: sanitized.order,
+		columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
+		sorting: sanitized.sorting
+	}
+}
+
+const reducer = (state: WizardState, action: WizardAction): WizardState => {
+	switch (action.type) {
+		case 'SET_CHAINS':
+			return { ...state, chains: action.chains }
+		case 'SET_ROW_HEADERS': {
+			return {
+				...state,
+				rowHeaders: action.rowHeaders,
+				columnVisibility: applyRowHeaderVisibilityRules(action.rowHeaders, state.columnVisibility)
+			}
+		}
+		case 'SET_FILTERS':
+			return { ...state, filters: action.filters }
+		case 'SET_PRESET': {
+			const preset = derivePreset(action.presetId)
+			const rowHeaders = preset.rowHeaders as UnifiedRowHeaderType[]
+			const baseVisibility = { ...DEFAULT_COLUMN_VISIBILITY, ...preset.columnVisibility }
+			const sanitized = sanitizeConfigColumns({
+				order: [...preset.columnOrder],
+				visibility: baseVisibility,
+				sorting: normalizeSorting(preset.defaultSorting)
+			})
+			return {
+				...state,
+				activePresetId: preset.id,
+				rowHeaders,
+				columnOrder: sanitized.order,
+				columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
+				sorting: sanitized.sorting
+			}
+		}
+		case 'SET_COLUMNS':
+			return { ...state, columnOrder: action.columnOrder, columnVisibility: action.columnVisibility }
+		case 'SET_SORTING':
+			return { ...state, sorting: action.sorting }
+		default:
+			return state
+	}
+}
+
+export const useUnifiedTableWizard = (presetId?: string, existingConfig?: UnifiedTableConfig) => {
+	const [state, dispatch] = useReducer(reducer, defaultState(presetId, existingConfig))
+
+	const setChains = useCallback((chains: string[]) => dispatch({ type: 'SET_CHAINS', chains }), [])
+	const setRowHeaders = useCallback(
+		(rowHeaders: UnifiedRowHeaderType[]) => dispatch({ type: 'SET_ROW_HEADERS', rowHeaders }),
+		[]
+	)
+	const setFilters = useCallback((filters: TableFilters) => dispatch({ type: 'SET_FILTERS', filters }), [])
+	const setPreset = useCallback((presetId: string) => dispatch({ type: 'SET_PRESET', presetId }), [])
+	const setColumns = useCallback(
+		(columnOrder: ColumnOrderState, columnVisibility: VisibilityState) =>
+			dispatch({ type: 'SET_COLUMNS', columnOrder, columnVisibility }),
+		[]
+	)
+	const setSorting = useCallback((sorting: SortingState) => dispatch({ type: 'SET_SORTING', sorting }), [])
+
+	const draftConfig = useMemo<Partial<UnifiedTableConfig>>(() => {
+		const params = {
+			chains: state.chains.length ? state.chains : ['All']
+		}
+
+		const base: Partial<UnifiedTableConfig> = {
+			rowHeaders: state.rowHeaders,
+			params,
+			filters: state.filters,
+			columnOrder: state.columnOrder.length ? state.columnOrder : DEFAULT_COLUMN_ORDER,
+			columnVisibility: state.columnVisibility,
+			activePresetId: state.activePresetId,
+			defaultSorting: state.sorting.map((item) => ({ ...item }))
+		}
+
+		return base
+	}, [state])
+
+	return {
+		state,
+		actions: {
+			setChains,
+			setRowHeaders,
+			setFilters,
+			setPreset,
+			setColumns,
+			setSorting
+		},
+		derived: {
+			draftConfig
+		}
+	}
+}

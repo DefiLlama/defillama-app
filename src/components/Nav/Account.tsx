@@ -42,14 +42,14 @@ export const Account = memo(function Account() {
 						<div className="flex flex-col gap-1.5">
 							{user && (
 								<BasicLink
-									href="/subscription"
+									href="/account"
 									className="flex items-center gap-1.5 truncate text-sm font-medium text-(--text-label) hover:text-(--link-text) hover:underline"
 								>
 									<Icon name="users" className="h-4 w-4 shrink-0" />
 									{userHandle}
 								</BasicLink>
 							)}
-							{subscription?.status === 'active' ? (
+							{user?.has_active_subscription || subscription?.status === 'active' ? (
 								<span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-500">
 									<Icon name="check-circle" className="h-3.5 w-3.5" />
 									Subscribed

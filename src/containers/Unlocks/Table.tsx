@@ -422,7 +422,7 @@ const columnOptions = [
 	{ name: 'Next Event', key: 'upcomingEvent' }
 ]
 
-// these are mising in emissionsColumns
+// these are missing in emissionsColumns
 // { name: 'Token Symbol', key: 'symbol' },
 // { name: 'Next Unlock Date', key: 'nextUnlockDate' },
 // { name: 'Token Amount', key: 'unlockAmount' },

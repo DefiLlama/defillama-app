@@ -4,18 +4,23 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import toast from 'react-hot-toast'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
+import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
@@ -105,6 +110,23 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			groupBy
 		})
 
+	const { multiChart, unsupportedMetrics } = useMemo(() => {
+		if (!props.metadata?.name) {
+			return { multiChart: null, unsupportedMetrics: [] as ChainChartLabels[] }
+		}
+
+		return serializeChainChartToMultiChart({
+			chainName: props.metadata.name,
+			geckoId: chainGeckoId,
+			toggledMetrics: toggledCharts,
+			chartColors: chainOverviewChartColors,
+			groupBy
+		})
+	}, [props.metadata.name, chainGeckoId, toggledCharts, groupBy])
+
+	const canAddToDashboard =
+		props.metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
+
 	const updateGroupBy = (newGroupBy) => {
 		router.push(
 			{
@@ -121,6 +143,10 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	const prepareCsv = useCallback(() => {
 		return prepareChartCsv(finalCharts, `${props.chain}.csv`)
 	}, [finalCharts, props.chain])
+
+	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
+	const imageExportFilename = slug(props.metadata.name)
+	const imageExportTitle = props.metadata.name === 'All' ? 'All Chains' : props.metadata.name
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {
@@ -249,6 +275,18 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									) : null}
 								</div>
 							</details>
+						) : null}
+						{props.chainStablecoins?.length > 0 ? (
+							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+								<span className="text-(--text-label)">{`Native Stablecoin${props.chainStablecoins.length > 1 ? 's' : ''}`}</span>
+								<span className="font-jetbrains ml-auto">
+									{props.chainStablecoins.map((coin) => (
+										<BasicLink key={`native-stablecoin-${coin.name}`} href={coin.url} className="hover:underline">
+											{coin.symbol ?? coin.name}
+										</BasicLink>
+									))}
+								</span>
+							</p>
 						) : null}
 						{props.chainFees?.total24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
@@ -803,6 +841,22 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						) : null}
 						<EmbedChart />
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ChartExportButton
+							chartInstance={chainChartInstance}
+							filename={imageExportFilename}
+							title={imageExportTitle}
+							iconUrl={props.metadata.name !== 'All' ? chainIconUrl(props.metadata.name) : undefined}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+						{canAddToDashboard && (
+							<AddToDashboardButton
+								chartConfig={multiChart}
+								unsupportedMetrics={unsupportedMetrics}
+								smol
+								className="-ml-2"
+							/>
+						)}
 					</div>
 
 					{isFetchingChartData ? (
@@ -814,7 +868,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						</div>
 					) : (
 						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-							<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={darkMode} groupBy={groupBy} />
+							<ChainChart
+								chartData={finalCharts}
+								valueSymbol={valueSymbol}
+								isThemeDark={darkMode}
+								groupBy={groupBy}
+								onReady={handleChartReady}
+							/>
 						</Suspense>
 					)}
 				</div>

@@ -11,6 +11,7 @@ export interface SubscriptionRequest {
 	cancelUrl: string
 	provider: string
 	subscriptionType: string
+	billingInterval?: 'year' | 'month'
 }
 
 export interface SubscriptionCreateResponse {
@@ -28,6 +29,7 @@ export interface Subscription {
 	started_at?: string
 	type: string
 	provider: string
+	billing_interval?: 'year' | 'month'
 	overage?: boolean
 	metadata?: {
 		is_trial?: boolean
@@ -144,7 +146,9 @@ export const useSubscribe = () => {
 	const handleSubscribe = async (
 		paymentMethod: 'stripe' | 'llamapay',
 		type: 'api' | 'contributor' | 'llamafeed',
-		onSuccess?: (checkoutUrl: string) => void
+		onSuccess?: (checkoutUrl: string) => void,
+		billingInterval: 'year' | 'month' = 'month',
+		useEmbedded: boolean = false
 	) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to subscribe')
@@ -162,13 +166,20 @@ export const useSubscribe = () => {
 				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
 				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 				provider: paymentMethod,
-				subscriptionType: type || 'api'
+				subscriptionType: type || 'api',
+				billingInterval
 			}
 
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
 
+			// For embedded mode, return the result instead of opening a new tab
+			if (useEmbedded) {
+				return result
+			}
+
+			// For legacy redirect mode
 			if (result.checkoutUrl) {
 				onSuccess?.(result.checkoutUrl)
 				window.open(result.checkoutUrl, '_blank')
@@ -205,7 +216,7 @@ export const useSubscribe = () => {
 	} = useSubscription('legacy')
 
 	useEffect(() => {
-		if (router.pathname !== '/subscription') return
+		if (router.pathname !== '/account') return
 		const fetchApiKey = async () => {
 			if (isAuthenticated && apiSubscription?.subscription?.status === 'active') {
 				setIsApiKeyLoading(true)

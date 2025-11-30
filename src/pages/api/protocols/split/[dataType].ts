@@ -732,7 +732,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			})
 		}
 
-		const lastDayData = data.totalDataChartBreakdown[data.totalDataChartBreakdown.length - 1]
+		const lastDayData = data.totalDataChartBreakdown[data.totalDataChartBreakdown.length - 2]
 		if (!lastDayData || !lastDayData[1]) {
 			return res.status(200).json({
 				series: [],

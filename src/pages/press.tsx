@@ -64,7 +64,7 @@ function PressPage() {
 					including TVL, Fees, Revenue, Volume, Stablecoins, Governance, Unlocks, and Yields.
 				</p>
 				<p>
-					DefiLlama’s vision is to aggregate the most accurate, transparent, and neutral data for all blockhains and
+					DefiLlama’s vision is to aggregate the most accurate, transparent, and neutral data for all blockchains and
 					cryptocurrency applications.
 				</p>
 			</div>

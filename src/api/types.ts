@@ -88,6 +88,27 @@ export interface ProtocolTvls {
 	chainTvls: ITvlsWithChangesByChain
 }
 
+export interface ChainMetricSnapshot {
+	chain?: string
+	total24h?: number | null
+	total7d?: number | null
+	total30d?: number | null
+	total1y?: number | null
+	change_1d?: number | null
+	change_7d?: number | null
+	change_1m?: number | null
+	revenue24h?: number | null
+	revenue7d?: number | null
+	revenue30d?: number | null
+	revenue1y?: number | null
+	feesChange_1d?: number | null
+	feesChange_7d?: number | null
+	feesChange_1m?: number | null
+	revenueChange_1d?: number | null
+	revenueChange_7d?: number | null
+	revenueChange_1m?: number | null
+}
+
 export interface IProtocolResponse extends Protocol {
 	otherProtocols?: Array<string>
 	methodology?: string
@@ -260,6 +281,15 @@ export interface IFormattedProtocol extends LiteProtocol {
 	options_volume_change_1d?: number | null
 	options_volume_change_7d?: number | null
 	options_volume_dominance_24h?: number | null
+	volumeByChain?: Record<string, ChainMetricSnapshot>
+	feesByChain?: Record<string, ChainMetricSnapshot>
+	revenueByChain?: Record<string, ChainMetricSnapshot>
+	perpsVolumeByChain?: Record<string, ChainMetricSnapshot>
+	openInterestByChain?: Record<string, ChainMetricSnapshot>
+	earningsByChain?: Record<string, ChainMetricSnapshot>
+	aggregatorsVolumeByChain?: Record<string, ChainMetricSnapshot>
+	bridgeAggregatorsVolumeByChain?: Record<string, ChainMetricSnapshot>
+	optionsVolumeByChain?: Record<string, ChainMetricSnapshot>
 }
 
 export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {

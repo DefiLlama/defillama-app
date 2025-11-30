@@ -10,6 +10,7 @@ import { INFLOWS_API } from '~/constants'
 import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { DateFilter } from './DateFilter'
+import { ICex } from './types'
 
 const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 	let loadingToastId
@@ -55,7 +56,7 @@ const getDateTimestamp = (dateString: string | string[] | undefined): number | n
 	return Number.isNaN(Number(dateString)) ? null : Number(dateString)
 }
 
-export const Cexs = ({ cexs }) => {
+export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	const router = useRouter()
 
 	const startDate = getDateTimestamp(router.query.startDate)
@@ -93,7 +94,7 @@ export const Cexs = ({ cexs }) => {
 	)
 }
 
-const columns: ColumnDef<any>[] = [
+const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -120,15 +121,14 @@ const columns: ColumnDef<any>[] = [
 	},
 	{
 		header: 'Assets',
-		accessorKey: 'tvl',
-		accessorFn: (row) => row.tvl ?? undefined,
+		accessorKey: 'currentTvl',
 		cell: (info) => {
 			if (info.row.original.slug == null) {
 				return (
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
-			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
+			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 		},
 		sortUndefined: 'last',
 		size: 120,
@@ -140,16 +140,17 @@ const columns: ColumnDef<any>[] = [
 	},
 	{
 		header: 'Clean Assets',
-		accessorKey: 'cleanTvl',
-		accessorFn: (row) => row.cleanTvl ?? undefined,
+		accessorKey: 'cleanAssetsTvl',
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
 			if (info.row.original.slug == null) {
-				return <QuestionHelper text="This CEX has not published a list of all hot and cold wallets" />
+				return (
+					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
+				)
 			}
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{info.getValue() ? (
+					{info.getValue() != null ? (
 						<>
 							{coinSymbol === undefined ? (
 								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
@@ -173,8 +174,7 @@ const columns: ColumnDef<any>[] = [
 	},
 	{
 		header: '24h Inflows',
-		accessorKey: '24hInflows',
-		accessorFn: (row) => row['24hInflows'] ?? undefined,
+		accessorKey: 'inflows_24h',
 		size: 120,
 		cell: (info) => (
 			<span
@@ -182,7 +182,7 @@ const columns: ColumnDef<any>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
@@ -192,8 +192,7 @@ const columns: ColumnDef<any>[] = [
 	},
 	{
 		header: '7d Inflows',
-		accessorKey: '7dInflows',
-		accessorFn: (row) => row['7dInflows'] ?? undefined,
+		accessorKey: 'inflows_1w',
 		size: 120,
 		cell: (info) => (
 			<span
@@ -201,7 +200,7 @@ const columns: ColumnDef<any>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
@@ -211,8 +210,7 @@ const columns: ColumnDef<any>[] = [
 	},
 	{
 		header: '1m Inflows',
-		accessorKey: '1mInflows',
-		accessorFn: (row) => row['1mInflows'] ?? undefined,
+		accessorKey: 'inflows_1m',
 		size: 120,
 		cell: (info) => (
 			<span
@@ -220,7 +218,7 @@ const columns: ColumnDef<any>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
@@ -231,8 +229,7 @@ const columns: ColumnDef<any>[] = [
 	{
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
-		accessorFn: (row) => row.spotVolume ?? undefined,
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		sortUndefined: 'last',
 		size: 125,
 		meta: {
@@ -242,8 +239,7 @@ const columns: ColumnDef<any>[] = [
 	{
 		header: '24h Open Interest',
 		accessorKey: 'oi',
-		accessorFn: (row) => row.oi ?? undefined,
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		sortUndefined: 'last',
 		size: 160,
 		meta: {
@@ -253,8 +249,7 @@ const columns: ColumnDef<any>[] = [
 	{
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
-		accessorFn: (row) => row.leverage ?? undefined,
-		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
+		cell: (info) => (info.getValue() != null ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
 		sortUndefined: 'last',
 		size: 130,
 		meta: {
@@ -272,7 +267,7 @@ const columns: ColumnDef<any>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',

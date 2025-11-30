@@ -494,15 +494,19 @@ export const filterPool = ({
 	customLTV,
 	strategyPage
 }: FilterPools) => {
+	const selectedChainsSet = new Set(selectedChains)
+	const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
+	const selectedFarmProtocolsSet = selectedFarmProtocols ? new Set(selectedFarmProtocols) : null
+
 	let toFilter = true
 
-	toFilter = toFilter && selectedChains.includes(pool.chain)
+	toFilter = toFilter && selectedChainsSet.has(pool.chain)
 	// stratey page filters
-	if (selectedLendingProtocols) {
-		toFilter = toFilter && selectedLendingProtocols.includes(pool.projectName)
+	if (selectedLendingProtocolsSet) {
+		toFilter = toFilter && selectedLendingProtocolsSet.has(pool.projectName)
 	}
-	if (selectedFarmProtocols) {
-		toFilter = toFilter && selectedFarmProtocols.includes(pool.farmProjectName)
+	if (selectedFarmProtocolsSet) {
+		toFilter = toFilter && selectedFarmProtocolsSet.has(pool.farmProjectName)
 	}
 	if (selectedAttributes) {
 		selectedAttributes.forEach((attribute) => {

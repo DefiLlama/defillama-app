@@ -181,6 +181,13 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 			payload.protocols.forEach((protocol: any) => {
 				const existing = protocolsMap.get(protocol.name)
 				const change7d = protocol.change_7d ?? protocol.change_7dover7d
+				const chainName = payload.chain
+				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
+				const chainEntry = {
+					...protocol,
+					change_7d: change7d,
+					chain: chainName
+				}
 
 				if (existing) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
@@ -193,9 +200,17 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 					applyWeightedChange(existing, 'change_1m', protocol.total30d, protocol.change_1m)
 
 					if (!existing.chains) existing.chains = []
-					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+					if (chainName && !existing.chains.includes(chainName)) existing.chains.push(chainName)
+					if (normalizedChainKey) {
+						existing.chainBreakdown = existing.chainBreakdown || {}
+						existing.chainBreakdown[normalizedChainKey] = chainEntry
+					}
 				} else {
-					const newEntry = { ...protocol, chains: [payload.chain] }
+					const newEntry: any = {
+						...protocol,
+						chains: chainName ? [chainName] : [],
+						chainBreakdown: normalizedChainKey ? { [normalizedChainKey]: chainEntry } : undefined
+					}
 					applyWeightedChange(newEntry, 'change_1d', protocol.total24h, protocol.change_1d)
 					applyWeightedChange(newEntry, 'change_7d', protocol.total7d, change7d)
 					applyWeightedChange(newEntry, 'change_1m', protocol.total30d, protocol.change_1m)
@@ -237,6 +252,12 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 			payload.protocols.forEach((protocol: any) => {
 				const key = protocol.name
 				const existing = protocolsMap.get(key)
+				const chainName = payload.chain
+				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
+				const chainEntry = {
+					...protocol,
+					chain: chainName
+				}
 
 				if (existing) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
@@ -258,7 +279,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 					applyWeightedChange(existing, 'revenueChange_1m', protocol.revenue30d, protocol.revenueChange_1m)
 
 					if (!existing.chains) existing.chains = []
-					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+					if (chainName && !existing.chains.includes(chainName)) existing.chains.push(chainName)
 					if (existing.feesChange_7dover7d == null && protocol.feesChange_7dover7d != null)
 						existing.feesChange_7dover7d = protocol.feesChange_7dover7d
 					if (existing.feesChange_30dover30d == null && protocol.feesChange_30dover30d != null)
@@ -271,8 +292,16 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 						existing.holdersRevenueChange_7dover7d = protocol.holdersRevenueChange_7dover7d
 					if (existing.holdersRevenueChange_30dover30d == null && protocol.holdersRevenueChange_30dover30d != null)
 						existing.holdersRevenueChange_30dover30d = protocol.holdersRevenueChange_30dover30d
+					if (normalizedChainKey) {
+						existing.chainBreakdown = existing.chainBreakdown || {}
+						existing.chainBreakdown[normalizedChainKey] = chainEntry
+					}
 				} else {
-					const newEntry = { ...protocol, chains: [payload.chain] }
+					const newEntry: any = {
+						...protocol,
+						chains: chainName ? [chainName] : [],
+						chainBreakdown: normalizedChainKey ? { [normalizedChainKey]: chainEntry } : undefined
+					}
 					applyWeightedChange(newEntry, 'feesChange_1d', protocol.total24h, protocol.feesChange_1d)
 					applyWeightedChange(newEntry, 'feesChange_7d', protocol.total7d, protocol.feesChange_7d)
 					applyWeightedChange(newEntry, 'feesChange_1m', protocol.total30d, protocol.feesChange_1m)
@@ -321,6 +350,13 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 			if (!payload?.protocols) return
 			payload.protocols.forEach((protocol: any) => {
 				const existing = protocolsMap.get(protocol.name)
+				const chainName = payload.chain
+				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
+				const chainEntry = {
+					...protocol,
+					chain: chainName
+				}
+
 				if (existing) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 					existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
@@ -330,9 +366,17 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 					applyWeightedChange(existing, 'change_7d', protocol.total7d, protocol.change_7d ?? protocol.change_7dover7d)
 					applyWeightedChange(existing, 'change_1m', protocol.total30d, protocol.change_1m)
 					if (!existing.chains) existing.chains = []
-					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+					if (chainName && !existing.chains.includes(chainName)) existing.chains.push(chainName)
+					if (normalizedChainKey) {
+						existing.chainBreakdown = existing.chainBreakdown || {}
+						existing.chainBreakdown[normalizedChainKey] = chainEntry
+					}
 				} else {
-					const newEntry = { ...protocol, chains: [payload.chain] }
+					const newEntry: any = {
+						...protocol,
+						chains: chainName ? [chainName] : [],
+						chainBreakdown: normalizedChainKey ? { [normalizedChainKey]: chainEntry } : undefined
+					}
 					applyWeightedChange(newEntry, 'change_1d', protocol.total24h, protocol.change_1d)
 					applyWeightedChange(newEntry, 'change_7d', protocol.total7d, protocol.change_7d ?? protocol.change_7dover7d)
 					applyWeightedChange(newEntry, 'change_1m', protocol.total30d, protocol.change_1m)
@@ -373,12 +417,28 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 			if (!payload?.protocols) return
 			payload.protocols.forEach((protocol: any) => {
 				const existing = protocolsMap.get(protocol.name)
+				const chainName = payload.chain
+				const normalizedChainKey = typeof chainName === 'string' ? chainName.trim().toLowerCase() : ''
+				const chainEntry = {
+					...protocol,
+					chain: chainName
+				}
+
 				if (existing) {
 					existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 					if (!existing.chains) existing.chains = []
-					if (!existing.chains.includes(payload.chain)) existing.chains.push(payload.chain)
+					if (chainName && !existing.chains.includes(chainName)) existing.chains.push(chainName)
+					if (normalizedChainKey) {
+						existing.chainBreakdown = existing.chainBreakdown || {}
+						existing.chainBreakdown[normalizedChainKey] = chainEntry
+					}
 				} else {
-					protocolsMap.set(protocol.name, { ...protocol, chains: [payload.chain] })
+					const entry: any = {
+						...protocol,
+						chains: chainName ? [chainName] : [],
+						chainBreakdown: normalizedChainKey ? { [normalizedChainKey]: chainEntry } : undefined
+					}
+					protocolsMap.set(protocol.name, entry)
 				}
 			})
 		})

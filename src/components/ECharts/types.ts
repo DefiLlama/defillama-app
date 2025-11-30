@@ -42,6 +42,9 @@ export interface IChartProps {
 	alwaysShowTooltip?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	customComponents?: React.ReactNode
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
 }
 
 export interface ISingleSeriesChartProps
@@ -56,6 +59,9 @@ export interface ISingleSeriesChartProps
 		| 'tooltipOrderBottomUp'
 		| 'hideDownloadButton'
 		| 'containerClassName'
+		| 'enableImageExport'
+		| 'imageExportFilename'
+		| 'imageExportTitle'
 	> {
 	chartName?: string
 	chartType: 'line' | 'bar'
@@ -77,11 +83,12 @@ export interface ILineAndBarChartProps {
 			name: string
 			stack: string
 			color?: string
+			yAxisIndex?: number
 		}
 	}
 	chartOptions?: {
 		[key: string]: {
-			[key: string]: Value | Array<Value> | ((params: any) => string)
+			[key: string]: Value | Array<Value> | ((params: any) => string | number)
 		}
 	}
 	height?: string
@@ -94,6 +101,47 @@ export interface ILineAndBarChartProps {
 	solidChartAreaStyle?: boolean
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
+	hideDefaultLegend?: boolean
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
+	title?: string
+}
+
+export interface IMultiSeriesChart2Props {
+	charts?: Array<{
+		type: 'line' | 'bar'
+		name: string
+		stack: string
+		encode: {
+			x: number | Array<number>
+			y: number | Array<number>
+		}
+		color?: string
+		yAxisIndex?: number
+	}>
+	selectedCharts?: Set<string>
+	data: Array<[number, ...(number | null)[]]>
+	chartOptions?: {
+		[key: string]: {
+			[key: string]: Value | Array<Value> | ((params: any) => string | number)
+		}
+	}
+	height?: string
+	groupBy?: 'daily' | 'weekly' | 'monthly'
+	hallmarks?: [number, string][]
+	expandTo100Percent?: boolean
+	valueSymbol?: string
+	alwaysShowTooltip?: boolean
+	containerClassName?: string
+	solidChartAreaStyle?: boolean
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	hideDefaultLegend?: boolean
+}
+
+export interface ICandlestickChartProps {
+	data: Array<[number, number, number, number, number, number]>
 }
 
 export interface IMultiSeriesChartProps {
@@ -143,6 +191,9 @@ export interface IPieChartProps {
 	}
 	legendTextStyle?: { color?: string; fontSize?: number; [key: string]: any }
 	customComponents?: React.ReactNode
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
 }
 
 export interface IScatterChartProps {

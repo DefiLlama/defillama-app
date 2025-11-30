@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, prepareChartCsv } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
@@ -15,6 +16,7 @@ import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/q
 import { IProtocolMetadata, IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -221,6 +223,7 @@ export default function Protocols(props) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
 	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
+	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const finalCharts = useMemo(() => {
 		const finalCharts = {}
@@ -345,9 +348,16 @@ export default function Protocols(props) {
 							/>
 						) : null}
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={`${slug(props.name)}-fees-revenue`}
+							title="Fees & Revenue"
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<LineAndBarChart charts={finalCharts} valueSymbol="$" />
+						<LineAndBarChart charts={finalCharts} valueSymbol="$" onReady={handleChartReady} />
 					</Suspense>
 				</div>
 			</div>

@@ -3,6 +3,11 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import {
+	DEFAULT_COLUMN_ORDER,
+	DEFAULT_ROW_HEADERS,
+	DEFAULT_UNIFIED_TABLE_SORTING
+} from './components/UnifiedTable/constants'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { Dashboard } from './services/DashboardAPI'
@@ -19,6 +24,7 @@ import {
 	StoredColSpan,
 	TableFilters,
 	TextConfig,
+	UnifiedTableConfig,
 	YieldsChartConfig
 } from './types'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
@@ -113,6 +119,7 @@ interface ProDashboardContextType {
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
 	handleAddMetric: (config: MetricConfig) => void
+	handleAddUnifiedTable: (config?: Partial<UnifiedTableConfig>) => void
 	handleAddChartBuilder: (
 		name: string | undefined,
 		config: {
@@ -241,6 +248,20 @@ export function ProDashboardAPIProvider({
 	const [dashboardDescription, setDashboardDescription] = useState<string>('')
 	const [showGenerateDashboardModal, setShowGenerateDashboardModal] = useState(false)
 	const [showIterateDashboardModal, setShowIterateDashboardModal] = useState(false)
+	const applyDashboard = useCallback((dashboard: Dashboard) => {
+		if (!dashboard?.data?.items || !Array.isArray(dashboard.data.items)) {
+			return
+		}
+
+		setDashboardId(dashboard.id)
+		setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
+		setItems(dashboard.data.items)
+		setTimePeriodState(dashboard.data.timePeriod || '365d')
+		setCurrentDashboard(dashboard)
+		setDashboardVisibility(dashboard.visibility || 'private')
+		setDashboardTags(dashboard.tags || [])
+		setDashboardDescription(dashboard.description || '')
+	}, [])
 
 	const createDashboardDialogStore = Ariakit.useDialogStore()
 
@@ -314,28 +335,19 @@ export function ProDashboardAPIProvider({
 			return dashboard
 		},
 		staleTime: 1000 * 60 * 5,
+		refetchOnMount: 'always',
 		enabled: !!initialDashboardId
 	})
 
 	useEffect(() => {
 		if (
-			currentDashboard?.id !== currentDashboard2?.id &&
 			currentDashboard2 !== null &&
-			initialDashboardId === currentDashboard2?.id
+			initialDashboardId === currentDashboard2?.id &&
+			currentDashboard?.id !== currentDashboard2?.id
 		) {
-			if (!currentDashboard2?.data?.items || !Array.isArray(currentDashboard2.data.items)) {
-				return
-			}
-			setDashboardId(currentDashboard2.id)
-			setDashboardName(currentDashboard2.data.dashboardName || 'My Dashboard')
-			setItems(currentDashboard2.data.items)
-			setTimePeriodState(currentDashboard2.data.timePeriod || '365d')
-			setCurrentDashboard(currentDashboard2)
-			setDashboardVisibility(currentDashboard2.visibility || 'private')
-			setDashboardTags(currentDashboard2.tags || [])
-			setDashboardDescription(currentDashboard2.description || '')
+			applyDashboard(currentDashboard2)
 		}
-	}, [currentDashboard2, currentDashboard, initialDashboardId])
+	}, [applyDashboard, currentDashboard2, currentDashboard, initialDashboardId])
 
 	// Save dashboard
 	const saveDashboard = useCallback(
@@ -370,10 +382,15 @@ export function ProDashboardAPIProvider({
 			}
 
 			if (dashboardId) {
-				await updateDashboard({ id: dashboardId, data })
+				const savedDashboard = await updateDashboard({ id: dashboardId, data })
+				if (savedDashboard) {
+					applyDashboard(savedDashboard)
+				}
 			} else {
 				const newDashboard = await createDashboard(data)
-				setDashboardId(newDashboard.id)
+				if (newDashboard) {
+					applyDashboard(newDashboard)
+				}
 			}
 		},
 		[
@@ -389,7 +406,8 @@ export function ProDashboardAPIProvider({
 			isReadOnly,
 			updateDashboard,
 			createDashboard,
-			cleanItemsForSaving
+			cleanItemsForSaving,
+			applyDashboard
 		]
 	)
 
@@ -450,7 +468,10 @@ export function ProDashboardAPIProvider({
 				aiGenerated: currentDashboard?.aiGenerated ?? null
 			}
 			try {
-				await updateDashboard({ id: dashboardId, data })
+				const savedDashboard = await updateDashboard({ id: dashboardId, data })
+				if (savedDashboard) {
+					applyDashboard(savedDashboard)
+				}
 			} catch (error) {
 				console.log('Failed to save dashboard name:', error)
 			}
@@ -467,7 +488,8 @@ export function ProDashboardAPIProvider({
 		dashboardDescription,
 		currentDashboard?.aiGenerated,
 		updateDashboard,
-		cleanItemsForSaving
+		cleanItemsForSaving,
+		applyDashboard
 	])
 
 	// Copy dashboard
@@ -963,6 +985,39 @@ export function ProDashboardAPIProvider({
 		[isReadOnly, autoSave]
 	)
 
+	const handleAddUnifiedTable = useCallback(
+		(configOverrides?: Partial<UnifiedTableConfig>) => {
+			if (isReadOnly) {
+				return
+			}
+
+			const resolvedSorting =
+				configOverrides?.defaultSorting && configOverrides.defaultSorting.length
+					? configOverrides.defaultSorting.map((item) => ({ id: item.id, desc: item.desc ?? false }))
+					: DEFAULT_UNIFIED_TABLE_SORTING.map((item) => ({ ...item }))
+
+			const newUnifiedTable: UnifiedTableConfig = {
+				id: generateItemId('unified-table', 'protocols'),
+				kind: 'unified-table',
+				rowHeaders: configOverrides?.rowHeaders ?? [...DEFAULT_ROW_HEADERS],
+				defaultSorting: resolvedSorting,
+				params: configOverrides?.params ?? { chains: ['All'] },
+				filters: configOverrides?.filters,
+				columnOrder: configOverrides?.columnOrder ?? [...DEFAULT_COLUMN_ORDER],
+				columnVisibility: configOverrides?.columnVisibility ?? {},
+				activePresetId: configOverrides?.activePresetId,
+				colSpan: configOverrides?.colSpan ?? 2
+			}
+
+			setItems((prev) => {
+				const newItems = [...prev, newUnifiedTable]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave, isReadOnly]
+	)
+
 	const handleAddMultiChart = useCallback(
 		(chartItems: ChartConfig[], name?: string) => {
 			if (isReadOnly) {
@@ -1124,7 +1179,7 @@ export function ProDashboardAPIProvider({
 			}
 			setTimePeriodState(period)
 			setItems((currentItems) => {
-				autoSave(currentItems)
+				autoSave(currentItems, { timePeriod: period })
 				return currentItems
 			})
 		},
@@ -1405,6 +1460,7 @@ export function ProDashboardAPIProvider({
 			handleAddMultiChart,
 			handleAddText,
 			handleAddMetric,
+			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleEditItem,
 			handleRemoveItem,
@@ -1470,6 +1526,7 @@ export function ProDashboardAPIProvider({
 			handleAddMultiChart,
 			handleAddText,
 			handleAddMetric,
+			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleEditItem,
 			handleRemoveItem,

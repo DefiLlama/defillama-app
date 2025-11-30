@@ -7,7 +7,7 @@ import { download, formattedNum } from '~/utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { YieldsChartConfig } from '../types'
-import { ImageExportButton } from './ProTable/ImageExportButton'
+import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
@@ -43,10 +43,15 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 
 		let filteredData = data
 		if (timePeriod && timePeriod !== 'all') {
-			const tvlPoints: [number, number][] = data.map((el: { date: number; TVL: number; APY: number | null }) => [el.date, el.TVL])
+			const tvlPoints: [number, number][] = data.map((el: { date: number; TVL: number; APY: number | null }) => [
+				el.date,
+				el.TVL
+			])
 			const filtered = filterDataByTimePeriod(tvlPoints, timePeriod)
 			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
-			filteredData = data.filter((el: { date: number; TVL: number; APY: number | null }) => filteredTimestamps.has(el.date))
+			filteredData = data.filter((el: { date: number; TVL: number; APY: number | null }) =>
+				filteredTimestamps.has(el.date)
+			)
 		}
 
 		const latestData = filteredData.length > 0 ? filteredData[filteredData.length - 1] : null
@@ -91,7 +96,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				</div>
 				{finalChartData && finalChartData.length > 0 && (
 					<div className="flex gap-2">
-						<ImageExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+						<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol

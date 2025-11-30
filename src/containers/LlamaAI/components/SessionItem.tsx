@@ -13,17 +13,23 @@ import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 interface SessionItemProps {
 	session: ChatSession
 	isActive: boolean
-	onSessionSelect: (sessionId: string, data: { conversationHistory: any[]; pagination?: any }) => void
+	onSessionSelect: (sessionId: string, data: { messages: any[]; pagination?: any }) => void
+	handleSidebarToggle: () => void
+	style: React.CSSProperties
 }
 
-export function SessionItem({ session, isActive, onSessionSelect }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
-		router.push(`/ai/${sessionId}`, undefined, { shallow: true })
+		router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
+
+		if (document.documentElement.clientWidth < 1024) {
+			handleSidebarToggle()
+		}
 	}
 
 	const [isEditing, setIsEditing] = useState(false)
@@ -90,6 +96,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 				ref={formRef}
 				onSubmit={handleSave}
 				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#222324]"
+				style={style}
 			>
 				<input
 					type="text"
@@ -130,22 +137,23 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 		<div
 			data-active={isActive}
 			className="group relative -mx-1.5 flex items-center rounded-sm text-xs focus-within:bg-[#f7f7f7] hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:focus-within:bg-[#222324] dark:hover:bg-[#222324]"
+			style={style}
 		>
-			<a
-				href={`/ai/${session.sessionId}`}
+			<button
+				type="button"
 				onClick={(e) => {
 					// Allow cmd/ctrl+click to open in new tab
 					if (e.metaKey || e.ctrlKey) {
+						window.open(`/ai/chat/${session.sessionId}`, '_blank')
 						return
 					}
-					e.preventDefault()
 					handleSessionClick(session.sessionId)
 				}}
 				aria-disabled={isEditing || isDeletingSession || isRestoringSession}
 				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.title}
-			</a>
+			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
 					content="Edit Session Title"
@@ -165,13 +173,14 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 						<span className="sr-only">Open menu</span>
 					</Ariakit.MenuButton>
 					<Ariakit.Menu
+						portal
 						unmountOnHide
 						hideOnInteractOutside
 						gutter={8}
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="max-sm:drawer thin-scrollbar z-10 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+						className="max-sm:drawer thin-scrollbar z-50 flex h-[calc(100dvh-80px)] min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) max-sm:rounded-b-none sm:max-h-[60dvh] sm:max-w-md lg:h-full lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
@@ -180,7 +189,7 @@ export function SessionItem({ session, isActive, onSessionSelect }: SessionItemP
 							onClick={() => {
 								try {
 									if (session.isPublic && session.shareToken) {
-										navigator.clipboard.writeText(`${window.location.origin}/ai/shared/${session.shareToken}`)
+										navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
 									}
 								} catch (error) {
 									console.log(error)

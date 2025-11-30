@@ -11,7 +11,8 @@ export interface ChartConfiguration {
 		x: {
 			field: string
 			label: string
-			type: 'time' | 'category'
+			type: 'time' | 'category' | 'value'
+			valueSymbol?: string
 		}
 		yAxes: Array<{
 			id: string
@@ -19,6 +20,7 @@ export interface ChartConfiguration {
 			label: string
 			position: 'left' | 'right'
 			scale?: 'linear' | 'log'
+			valueSymbol?: string
 		}>
 	}
 
@@ -42,6 +44,8 @@ export interface ChartConfiguration {
 		timeField: string
 		metrics: string[]
 	}
+
+	hallmarks?: Array<[number] | [number, string]>
 
 	displayOptions?: {
 		canStack: boolean

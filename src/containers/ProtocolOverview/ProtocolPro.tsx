@@ -3,12 +3,18 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 export function SortableItem(props) {
-	const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: props.id })
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: props.id })
 	const style = {
 		transform: CSS.Translate.toString(transform),
 		transition,
-		cursor: 'pointer',
-		gridColumn: props.isTable ? '1/-1' : 'auto'
+		cursor: isDragging ? 'grabbing' : 'pointer',
+		gridColumn: props.isTable ? '1/-1' : 'auto',
+		zIndex: isDragging ? 50 : 'auto',
+		boxShadow: isDragging ? '0 12px 24px rgba(0, 0, 0, 0.25)' : 'none',
+		scale: isDragging ? '1.02' : '1',
+		opacity: isDragging ? 0.95 : 1,
+		background: isDragging ? 'var(--cards-bg)' : undefined,
+		borderRadius: isDragging ? '6px' : undefined
 	}
 
 	const tableListeners = props.isTable ? { ...listeners, onKeyDown: (e) => e.stopPropagation() } : listeners

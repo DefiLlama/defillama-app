@@ -48,7 +48,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		header: 'Price',
 		accessorKey: 'price',
 		cell: ({ getValue, row }) => {
-			const value = getValue() as number
+			const value = parseFloat(getValue() as string)
 			const pegDeviation = row.original.pegDeviation
 
 			return (

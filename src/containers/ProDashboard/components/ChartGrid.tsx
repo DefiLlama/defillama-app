@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, memo, Suspense, useEffect, useState } from 'react'
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
@@ -6,6 +6,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig, StoredColSpan } from '../types'
+import type { UnifiedTableFocusSection } from './UnifiedTable/types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -33,6 +34,7 @@ const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
 const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
 const MetricCard = lazy(() => import('./MetricCard').then((mod) => ({ default: mod.MetricCard })))
+const UnifiedTable = lazy(() => import('./UnifiedTable'))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -75,10 +77,10 @@ const getNextStoredColSpan = (
 
 interface ChartGridProps {
 	onAddChartClick: () => void
-	onEditItem?: (item: DashboardItemConfig) => void
+	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
 }
 
-export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
+export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const {
 		chartsWithData,
 		handleChartsReordered,
@@ -187,6 +189,18 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 
 		if (item.kind === 'text') {
 			return <TextCard text={item} />
+		}
+
+		if (item.kind === 'unified-table') {
+			return (
+				<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1 md:min-h-[380px]" />}>
+					<UnifiedTable
+						config={item}
+						onEdit={onEditItem ? (focusSection) => onEditItem(item, focusSection) : undefined}
+						onOpenColumnModal={onEditItem ? () => onEditItem(item, 'columns') : undefined}
+					/>
+				</Suspense>
+			)
 		}
 
 		if (item.kind === 'table') {
@@ -411,4 +425,4 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 			/>
 		</>
 	)
-}
+})

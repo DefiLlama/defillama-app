@@ -22,6 +22,8 @@ export default function ChainLineBarChart({
 	unlockTokenSymbol = '',
 	isThemeDark,
 	groupBy,
+	hideDataZoom = false,
+	onReady,
 	...props
 }) {
 	const id = useId()
@@ -119,8 +121,9 @@ export default function ChainLineBarChart({
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
-
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		if (onReady) {
+			onReady(chartInstance)
+		}
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -129,6 +132,8 @@ export default function ChainLineBarChart({
 				defaultChartSettings[option] = { ...chartOptions[option] }
 			}
 		}
+
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		const finalYAxis = []
 
@@ -394,7 +399,7 @@ export default function ChainLineBarChart({
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: 68,
+				bottom: hideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -415,14 +420,17 @@ export default function ChainLineBarChart({
 		return () => {
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
+			if (onReady) {
+				onReady(null)
+			}
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis])
+	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady])
 
 	return (
 		<div
 			id={id}
-			className="min-h-[360px]"
-			style={height || props.style ? { height, ...(props.style ?? {}) } : undefined}
+			className="h-[360px]"
+			style={height || props.style ? { height: height ?? '360px', ...(props.style ?? {}) } : undefined}
 		/>
 	)
 }

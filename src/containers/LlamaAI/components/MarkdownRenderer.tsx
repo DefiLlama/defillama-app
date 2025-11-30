@@ -53,7 +53,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
-			<div className="ml-auto flex flex-nowrap items-center justify-between gap-2" id="ai-table-download">
+			<div className="ml-auto flex flex-nowrap items-center justify-end" id="ai-table-download">
 				{isStreaming ? (
 					<button
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
@@ -173,7 +173,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	}, [processedData.linkMap])
 
 	return (
-		<div className="prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal *:m-0">
+		<div className="prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal">
 			<style jsx>{`
 				:global(.citation-badge) {
 					display: inline-flex;
@@ -197,6 +197,12 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 					background-color: rgba(31, 103, 210, 0.15);
 					border-color: rgba(31, 103, 210, 0.35);
 				}
+				:global(.prose *) {
+					margin: 0;
+				}
+				:global(.prose :is(h1, h2, h3, h4, h5, h6) a) {
+					bottom: 0 !important;
+				}
 			`}</style>
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
@@ -214,9 +220,8 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 							{children}
 						</td>
 					),
-					ul: ({ children }) => <ul className="m-0! grid list-disc gap-1 pl-4">{children}</ul>,
-					ol: ({ children }) => <ol className="m-0! grid list-decimal gap-1 pl-4">{children}</ol>,
-					li: ({ children }) => <li className="m-0!">{children}</li>
+					ul: ({ children }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
+					ol: ({ children }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
 				}}
 			>
 				{processedData.content}

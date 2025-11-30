@@ -33,6 +33,7 @@ export interface IProtocolMetadata {
 	bridge?: boolean
 	stablecoins?: boolean
 	safeHarbor?: boolean
+	borrowed?: boolean
 }
 
 export interface IProtocolPageMetrics {
@@ -63,6 +64,7 @@ export interface IProtocolPageMetrics {
 	inflows: boolean
 	liquidity: boolean
 	activeUsers: boolean
+	borrowed: boolean
 }
 
 export interface IUpdatedProtocol {

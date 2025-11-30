@@ -1,6 +1,6 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { IFormattedProtocol, IParentProtocol } from '~/api/types'
-import { getPercentChange } from '~/utils'
+import { formatNum, getPercentChange } from '~/utils'
 
 function addElement(key: string, curr: IFormattedProtocol, acc: any, hasAtleastOnceValue) {
 	if (curr[key] || curr[key] === 0) {
@@ -174,7 +174,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 
 	let mcaptvl = null
 	if (tvl && finalMcap) {
-		mcaptvl = +(finalMcap / tvl).toFixed(2)
+		mcaptvl = +formatNum(+finalMcap.toFixed(2) / +tvl.toFixed(2))
 	}
 
 	const oracleSet = new Set<string>()

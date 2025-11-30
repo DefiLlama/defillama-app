@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export interface FeatureFlags {
 	llamaai?: boolean
+	is_llama?: boolean
 	[key: string]: boolean | undefined
 }
 
@@ -15,7 +17,7 @@ interface UseFeatureFlagsReturn {
 }
 
 async function fetchFeatureFlags(authorizedFetch: any): Promise<FeatureFlags> {
-	const response = await authorizedFetch('https://auth.llama.fi/user/feature-flags')
+	const response = await authorizedFetch(`${AUTH_SERVER}/user/feature-flags`)
 
 	if (!response) {
 		throw new Error('Failed to fetch feature flags')

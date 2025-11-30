@@ -18,7 +18,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
 import { HacksFilters } from './filters'
 import { IHacksPageData } from './queries'
 
@@ -214,8 +214,8 @@ export const HacksContainer = ({
 		const timeQLocal = typeof timeQuery === 'string' ? timeQuery : undefined
 
 		const since = getTimeSinceSeconds(timeQLocal)
-		const minLostValLocal = minLostQuery && Number.isNaN(Number(minLostQuery)) ? Number(minLostQuery) : null
-		const maxLostValLocal = maxLostQuery && Number.isNaN(Number(maxLostQuery)) ? Number(maxLostQuery) : null
+		const minLostValLocal = toNumberOrNullFromQueryParam(minLostQuery)
+		const maxLostValLocal = toNumberOrNullFromQueryParam(maxLostQuery)
 
 		const techKeys = new Set(selectedTechniquesLocal)
 		const classKeys = new Set(selectedClassificationsLocal)
@@ -299,8 +299,8 @@ export const HacksContainer = ({
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}, [router])
 
-	const minLostVal = minLost && Number.isNaN(Number(minLost)) ? Number(minLost) : null
-	const maxLostVal = maxLost && Number.isNaN(Number(maxLost)) ? Number(maxLost) : null
+	const minLostVal = toNumberOrNullFromQueryParam(minLost)
+	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
 
 	const clearAllFilters = React.useCallback(() => {
 		const nextQuery: Record<string, any> = { ...router.query }
@@ -358,15 +358,15 @@ export const HacksContainer = ({
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalHacked}b</span>
+						<span className="font-jetbrains text-2xl font-semibold">{totalHacked}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in DeFi (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalHackedDefi}b</span>
+						<span className="font-jetbrains text-2xl font-semibold">{totalHackedDefi}</span>
 					</p>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in Bridges (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{totalRugs}b</span>
+						<span className="font-jetbrains text-2xl font-semibold">{totalRugs}</span>
 					</p>
 				</div>
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">

@@ -156,20 +156,20 @@
       "oldName": "All Projects"
     },
     {
-      "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
-      "category": "Yields",
-      "description": "Find 'long-short' strategies across all our tracked pools",
-      "oldCategory": "Yields",
-      "oldName": "Long/Short Strategies"
-    },
-    {
       "name": "Yields: APY Overview",
       "route": "/yields/overview",
       "category": "Yields",
       "description": "Find APY trends, volatility, and other metrics across all our tracked pools",
       "oldCategory": "Yields",
       "oldName": "Trends"
+    },
+    {
+      "name": "Yields: Long/Short Strategies",
+      "route": "/yields/strategyLongShort",
+      "category": "Yields",
+      "description": "Find 'long-short' strategies across all our tracked pools",
+      "oldCategory": "Yields",
+      "oldName": "Long/Short Strategies"
     },
     {
       "name": "Yields: Halal",
@@ -344,16 +344,6 @@
       "oldName": "Perps (Chains)"
     },
     {
-      "name": "Perp Aggregator Volume by Protocol",
-      "route": "/perps-aggregators",
-      "category": "Volume",
-      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
-      "totalTrackedKey": "perpAggregators.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Volume",
-      "oldName": "Perps Aggregators"
-    },
-    {
       "name": "Open Interest by Protocol",
       "route": "/open-interest",
       "category": "Volume",
@@ -362,6 +352,16 @@
       "tab": "Protocols",
       "oldCategory": "Volume",
       "oldName": "Open Interest"
+    },
+    {
+      "name": "Perp Aggregator Volume by Protocol",
+      "route": "/perps-aggregators",
+      "category": "Volume",
+      "description": "Notional volume of all trades in a perp aggregator, includes leverage",
+      "totalTrackedKey": "perpAggregators.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Volume",
+      "oldName": "Perps Aggregators"
     },
     {
       "name": "Options Premium Volume by Protocol",
@@ -451,6 +451,20 @@
       "tab": "Protocols"
     },
     {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -469,38 +483,6 @@
       "tab": "Chains",
       "oldCategory": "Bridges",
       "oldName": "Chains"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
-    },
-    {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
-    },
-    {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
     },
     {
       "name": "Unlocks: Overview",
@@ -526,6 +508,24 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
     },
     {
       "name": "Hacks: Overview",
@@ -691,6 +691,13 @@
       "oldName": "Watchlist"
     },
     {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
+    },
+    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
@@ -699,11 +706,12 @@
       "oldName": "Simple"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
+      "name": "Protocols Website Directory",
+      "route": "/directory",
       "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
+      "description": "Directory of all protocols websites on DefiLlama",
+      "tab": "Protocols",
+      "oldName": "Directory"
     },
     {
       "name": "Token Holder Profit and Loss",
@@ -719,14 +727,6 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
-    },
-    {
-      "name": "Protocols Website Directory",
-      "route": "/directory",
-      "category": "Tools",
-      "description": "Directory of all protocols websites on DefiLlama",
-      "tab": "Protocols",
-      "oldName": "Directory"
     },
     {
       "name": "Transactions by Bridge",

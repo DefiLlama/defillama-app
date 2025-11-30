@@ -8,16 +8,17 @@ interface TabNavigationProps {
 }
 
 export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNavigationProps) {
-	const tabs = [
+	const allTabs = [
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },
 		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
+		{ id: 'unified-table' as const, label: 'ProTable', mobileLabel: 'ProTable' },
 		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (
-		<div className="grid grid-cols-4 gap-0">
-			{tabs.map((tab, index) => (
+		<div className="grid grid-cols-5 gap-0">
+			{allTabs.map((tab) => (
 				<button
 					key={tab.id}
 					className={`-ml-px rounded-none border px-2 py-2.5 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:px-2 md:py-3 md:text-sm ${

@@ -1,5 +1,5 @@
 import { keepNeededProperties } from '~/api/shared'
-import { formattedNum, getPercentChange, slug } from '~/utils'
+import { formatNum, formattedNum, getPercentChange, slug } from '~/utils'
 
 export const getPrevStablecoinTotalFromChart = (chart, daysBefore, issuanceType, pegType = '') => {
 	if (!chart) return null
@@ -351,7 +351,9 @@ export const formatPeggedChainsData = ({
 				}
 			: null
 
-		chainData.mcaptvl = (chainData.mcap && latestChainTVL && chainData.mcap / latestChainTVL) ?? null
+		chainData.mcaptvl =
+			(chainData.mcap && latestChainTVL ? +formatNum(+chainData.mcap.toFixed(2) / +latestChainTVL.toFixed(2)) : null) ??
+			null
 		if (chainData.mcaptvl == 0) {
 			chainData.mcaptvl = null
 		}

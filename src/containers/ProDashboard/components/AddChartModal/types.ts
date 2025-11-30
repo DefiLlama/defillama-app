@@ -1,12 +1,14 @@
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
+import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
 export interface AddChartModalProps {
 	isOpen: boolean
 	onClose: () => void
 	editItem?: DashboardItemConfig | null
+	initialUnifiedFocusSection?: UnifiedTableFocusSection
 }
 
-export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'unified-table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
 export type ChartTabType = 'chain' | 'protocol' | 'yields'
 export type CombinedTableType =
@@ -52,6 +54,7 @@ export interface ChartBuilderConfig {
 	protocol?: string
 	chains: string[]
 	chainCategories?: string[]
+	protocolCategories?: string[]
 	categories: string[]
 	groupBy: 'protocol'
 	limit: number

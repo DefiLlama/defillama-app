@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
+import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
@@ -9,9 +10,6 @@ import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-const NonTimeSeriesBarChart = lazy(
-	() => import('~/components/ECharts/BarChart/NonTimeSeries')
-) as React.FC<IBarChartProps>
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -38,6 +36,7 @@ type ChartState = {
 	percentage: boolean
 	cumulative: boolean
 	grouping: 'day' | 'week' | 'month' | 'quarter'
+	showHallmarks: boolean
 }
 
 type ChartAction =
@@ -45,6 +44,7 @@ type ChartAction =
 	| { type: 'SET_PERCENTAGE'; payload: boolean }
 	| { type: 'SET_CUMULATIVE'; payload: boolean }
 	| { type: 'SET_GROUPING'; payload: 'day' | 'week' | 'month' | 'quarter' }
+	| { type: 'SET_HALLMARKS'; payload: boolean }
 
 const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	switch (action.type) {
@@ -56,6 +56,8 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 			return { ...state, cumulative: action.payload }
 		case 'SET_GROUPING':
 			return { ...state, grouping: action.payload }
+		case 'SET_HALLMARKS':
+			return { ...state, showHallmarks: action.payload }
 		default:
 			return state
 	}
@@ -66,7 +68,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
 		cumulative: false,
-		grouping: 'day' as const
+		grouping: 'day' as const,
+		showHallmarks: true
 	})
 
 	if (!isActive) return null
@@ -125,6 +128,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			props: {
 				...(adaptedChart.props as any),
 				valueSymbol,
+				...(!chartState.showHallmarks && { hallmarks: undefined }),
 				...(chartState.percentage && {
 					chartOptions: {
 						yAxis: {
@@ -137,7 +141,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						grid: {
 							top: 24,
 							right: 12,
-							bottom: 12,
+							bottom: 68,
 							left: 12
 						},
 						tooltip: {
@@ -203,26 +207,59 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			)
 		}
 
-		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}`
+		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}-${chartState.showHallmarks}`
 
 		let chartContent: React.ReactNode
 
 		switch (adaptedChart.chartType) {
 			case 'bar':
 				const isTimeSeriesChart = config.axes.x.type === 'time'
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						{isTimeSeriesChart ? (
+				if (isTimeSeriesChart) {
+					chartContent = (
+						<Suspense fallback={<div className="h-[338px]" />}>
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
-						) : (
-							<NonTimeSeriesBarChart
-								key={chartKey}
-								chartData={adaptedChart.data}
-								{...(adaptedChart.props as IBarChartProps)}
-							/>
-						)}
-					</Suspense>
-				)
+						</Suspense>
+					)
+				} else {
+					const seriesData = (adaptedChart.data as Array<[any, number]>).map(([x, y]) => [x, y])
+					const multiSeriesProps: any = {
+						series: [
+							{
+								data: seriesData,
+								type: 'bar',
+								name: config.series[0]?.name || 'Value',
+								color: config.series[0]?.styling?.color || '#1f77b4'
+							}
+						],
+						title: config.title,
+						valueSymbol: config.valueSymbol || '$',
+						height: '360px',
+						xAxisType: 'category',
+						chartOptions: {
+							grid: {
+								bottom: 68,
+								left: 12,
+								right: 12
+							},
+							tooltip: {
+								formatter: (params: any) => {
+									if (!Array.isArray(params)) return ''
+									const xValue = params[0]?.value?.[0]
+									const yValue = params[0]?.value?.[1]
+									const seriesName = params[0]?.seriesName
+									const valueSymbol = config.valueSymbol || '$'
+									const formattedValue = formatTooltipValue(yValue, valueSymbol)
+									return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
+								}
+							}
+						}
+					}
+					chartContent = (
+						<Suspense fallback={<div className="h-[338px]" />}>
+							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
+						</Suspense>
+					)
+				}
 				break
 
 			case 'line':
@@ -300,10 +337,13 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						cumulative={chartState.cumulative}
 						grouping={chartState.grouping}
 						dataLength={dataLength}
+						showHallmarks={chartState.showHallmarks}
+						hasHallmarks={!!config.hallmarks?.length}
 						onStackedChange={(stacked) => dispatch({ type: 'SET_STACKED', payload: stacked })}
 						onPercentageChange={(percentage) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })}
 						onCumulativeChange={(cumulative) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })}
 						onGroupingChange={(grouping) => dispatch({ type: 'SET_GROUPING', payload: grouping })}
+						onHallmarksChange={(showHallmarks) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })}
 					/>
 				)}
 				{chartContent}
@@ -403,15 +443,15 @@ export const ChartRenderer = memo(function ChartRenderer({
 	return (
 		<div ref={containerRef} className="flex flex-col gap-2 rounded-md border border-(--old-blue) pt-2">
 			{hasMultipleCharts && (
-				<div className="flex border-b border-gray-200 px-2 dark:border-gray-700">
+				<div className="-mt-2 flex border-b border-[#e6e6e6] dark:border-[#222324]">
 					{charts.map((chart, index) => (
 						<button
 							key={`toggle-${chart.id}`}
 							onClick={() => setActiveTab(index)}
-							className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+							className={`border-b-2 px-2 py-1.5 text-sm transition-colors ${
 								activeTabIndex === index
-									? 'border-blue-500 text-blue-600 dark:text-blue-400'
-									: 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+									? 'border-(--old-blue) text-(--old-blue)'
+									: 'border-transparent text-[#666] hover:text-black dark:text-[#919296] dark:hover:text-white'
 							}`}
 						>
 							{chart.title}

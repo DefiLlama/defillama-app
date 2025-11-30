@@ -15,6 +15,7 @@ export const CHART_API = `${SERVER_URL}/lite/charts`
 export const CHAIN_TVL_API = `${SERVER_URL}/v2/chains`
 export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 export const PROTOCOL_API = `${SERVER_URL}/updatedProtocol`
+export const PROTOCOL_API_MINI = `${SERVER_URL}/_fe/updatedProtocol-mini`
 export const CONFIG_API = `${SERVER_URL}/config`
 export const HOURLY_PROTOCOL_API = `${SERVER_URL}/hourly`
 export const LANGS_API = `${SERVER_URL}/langs`
@@ -162,11 +163,12 @@ export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 
 export const AUTH_SERVER = 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
+export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
 
-export const TRADFI_API = 'https://tradfi.llama.team'
+export const TRADFI_API = process.env.TRADFI_API
 
 export const removedCategoriesFromChainTvl = [
 	'Chain',
