@@ -161,6 +161,10 @@ const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 const normalizeChainKey = (chain: string): string => {
 	const lc = chain.toLowerCase()
 	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'OP Mainnet'
+	if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era') return 'ZKsync Era'
+	if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'Polygon zkEVM'
+	if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm') return 'Immutable zkEVM'
+	if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'Cronos zkEVM'
 	return chain
 }
 
@@ -173,7 +177,7 @@ const toDimensionsChainSlug = (chain: string): string => {
 	if (lc === 'gnosis' || lc === 'xdai') return 'xdai'
 	if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
 		return 'hyperliquid'
-	if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era' || lc === 'zksync') return 'zksync'
+	if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era' || lc === 'zksync' || lc === 'era') return 'era'
 	if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'polygon_zkevm'
 	if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm' || lc === 'imx') return 'imx'
 	if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'cronos_zkevm'
@@ -184,8 +188,10 @@ const toDimensionsChainSlug = (chain: string): string => {
 const toOverviewApiSlug = (breakdownSlug: string): string => {
 	if (!breakdownSlug) return breakdownSlug
 	const lc = breakdownSlug.toLowerCase()
-	if (lc === 'zksync') return 'zksync-era'
-	if (lc === 'imx') return 'immutable-zkevm'
+	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
+	if (lc === 'imx') return 'Immutable zkEVM'
+	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
+	if (lc === 'cronos_zkevm') return 'Cronos zkEVM'
 	return lc.replace(/_/g, '-')
 }
 
@@ -195,7 +201,7 @@ const displayChainName = (slug: string): string => {
 	if (lc === 'avax') return 'Avalanche'
 	if (lc === 'bsc') return 'BSC'
 	if (lc === 'xdai') return 'Gnosis'
-	if (lc === 'zksync') return 'zkSync Era'
+	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
 	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
 	if (lc === 'imx') return 'Immutable zkEVM'
 	if (lc === 'cronos_zkevm') return 'Cronos zkEVM'
