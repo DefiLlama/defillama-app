@@ -114,7 +114,8 @@ function App({ Component, pageProps }: AppProps) {
 					console.log('Error fetching user hash:', err)
 					return null
 				}),
-		enabled: !!user?.email
+		enabled: !!user?.email,
+		staleTime: 1000 * 60 * 60 * 24
 	})
 
 	return (
