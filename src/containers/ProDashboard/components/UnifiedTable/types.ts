@@ -92,6 +92,7 @@ export interface NumericMetrics {
 	options_volume_change_7d?: number | null
 	options_volume_dominance_24h?: number | null
 	mcap?: number | null
+	fdv?: number | null
 	chainMcap?: number | null
 	mcaptvl?: number | null
 	pf?: number | null
@@ -102,7 +103,6 @@ export interface NumericMetrics {
 export interface NormalizedRow {
 	id: string
 	name: string
-	strategyType: UnifiedTableConfig['strategyType']
 	protocolId?: string
 	displayName?: string
 	logo?: string | null

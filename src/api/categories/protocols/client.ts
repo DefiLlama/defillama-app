@@ -14,20 +14,10 @@ import {
 } from '~/constants'
 import { fetchAndFormatGovernanceData } from '~/containers/ProtocolOverview/Governance'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
-import { buildProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { getProtocolEmissons } from '.'
 import { formatProtocolsData } from './utils'
-
-export const useFetchProtocolsList = () => {
-	return useQuery({
-		queryKey: [PROTOCOLS_API],
-		queryFn: () => fetchApi(PROTOCOLS_API),
-		staleTime: 60 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000
-	})
-}
 
 export const useFetchProtocol = (protocolName) => {
 	const isEnabled = !!protocolName
@@ -36,24 +26,6 @@ export const useFetchProtocol = (protocolName) => {
 		queryFn: () => getProtocol(protocolName),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000,
-		enabled: isEnabled
-	})
-}
-
-export const useFetchProtocolInfows = (protocolName, extraTvlsEnabled) => {
-	const isEnabled = !!protocolName
-	return useQuery({
-		queryKey: ['updatedProtocolsDataWithInflows', protocolName, JSON.stringify(extraTvlsEnabled), isEnabled],
-		queryFn: isEnabled
-			? () =>
-					getProtocol(protocolName)
-						.then((protocolData) =>
-							buildProtocolAddlChartsData({ protocolData: protocolData as any, extraTvlsEnabled })
-						)
-						.catch(() => null)
-			: () => null,
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
 		enabled: isEnabled
 	})
 }

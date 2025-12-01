@@ -1,7 +1,5 @@
 import type { TableFilters } from '~/containers/ProDashboard/types'
 
-export type StrategyType = 'protocols' | 'chains'
-
 export type FilterType = 'numeric-range' | 'numeric-single' | 'boolean' | 'array'
 export type FilterFormat = 'currency' | 'percent' | 'number'
 export type NumericOperator = '>' | '>=' | '<' | '<=' | 'between'
@@ -12,7 +10,7 @@ export interface FilterConfig {
 	description?: string
 	type: FilterType
 	category: FilterCategory
-	strategies: StrategyType[]
+	strategies: Array<'protocols' | 'chains'>
 	format?: FilterFormat
 	min?: number
 	minKey?: keyof TableFilters
@@ -508,14 +506,6 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 		booleanKey: 'hasOpenInterest'
 	},
 	{
-		id: 'multiChainOnly',
-		label: 'Multi-chain Only',
-		type: 'boolean',
-		category: 'flags',
-		strategies: ['protocols'],
-		booleanKey: 'multiChainOnly'
-	},
-	{
 		id: 'hasVolume',
 		label: 'Has Volume',
 		type: 'boolean',
@@ -605,12 +595,12 @@ export const FILTER_CONFIGS: FilterConfig[] = [
 	}
 ]
 
-export function getFiltersForStrategy(strategy: StrategyType): FilterConfig[] {
-	return FILTER_CONFIGS.filter((config) => config.strategies.includes(strategy))
+export function getFiltersForProtocols(): FilterConfig[] {
+	return FILTER_CONFIGS.filter((config) => config.strategies.includes('protocols'))
 }
 
-export function getFiltersByCategory(strategy: StrategyType): Map<FilterCategory, FilterConfig[]> {
-	const filters = getFiltersForStrategy(strategy)
+export function getFiltersByCategory(): Map<FilterCategory, FilterConfig[]> {
+	const filters = getFiltersForProtocols()
 	const grouped = new Map<FilterCategory, FilterConfig[]>()
 
 	for (const filter of filters) {

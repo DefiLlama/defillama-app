@@ -44,7 +44,8 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'options_volume_24h',
 		'options_volume_7d',
 		'options_volume_30d',
-		'mcap'
+		'mcap',
+		'fdv'
 	]
 
 	const totals: Partial<Record<keyof NumericMetrics, number>> = {}
@@ -75,16 +76,6 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 
 	for (const key of sumKeys) {
 		;(aggregated as any)[key] = seen[key] ? (totals[key] ?? null) : null
-	}
-
-	const firstChainMcap = rows.length > 0 ? rows[0]?.metrics?.chainMcap : null
-	const allHaveSameChainMcap =
-		firstChainMcap !== null &&
-		firstChainMcap !== undefined &&
-		rows.every((row) => row.metrics?.chainMcap === firstChainMcap)
-
-	if (allHaveSameChainMcap && firstChainMcap !== null) {
-		aggregated.mcap = firstChainMcap
 	}
 
 	type WeightedChange = {

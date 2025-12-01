@@ -60,7 +60,6 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		minKey?: keyof TableFilters
 		maxKey?: keyof TableFilters
 		getValue: (row: NormalizedRow) => number | null | undefined
-		strategy?: NormalizedRow['strategyType']
 	}
 
 	const numericRangeFilters: RangeFilterConfig[] = [
@@ -90,104 +89,31 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		{ minKey: 'change7dMin', maxKey: 'change7dMax', getValue: (row) => row.metrics.change7d },
 		{ minKey: 'change1mMin', maxKey: 'change1mMax', getValue: (row) => row.metrics.change1m },
 		{ minKey: 'pfRatioMin', maxKey: 'pfRatioMax', getValue: (row) => row.metrics.pf },
-		{
-			minKey: 'protocolCountMin',
-			maxKey: 'protocolCountMax',
-			getValue: (row) => row.metrics.protocolCount,
-			strategy: 'chains'
-		},
-		{
-			minKey: 'volumeDominance24hMin',
-			maxKey: 'volumeDominance24hMax',
-			getValue: (row) => row.metrics.volumeDominance_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'volumeMarketShare7dMin',
-			maxKey: 'volumeMarketShare7dMax',
-			getValue: (row) => row.metrics.volumeMarketShare7d,
-			strategy: 'protocols'
-		},
-		{ minKey: 'tvlShareMin', maxKey: 'tvlShareMax', getValue: (row) => row.metrics.tvlShare, strategy: 'chains' },
-		{
-			minKey: 'perpsVolumeDominance24hMin',
-			maxKey: 'perpsVolumeDominance24hMax',
-			getValue: (row) => row.metrics.perps_volume_dominance_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'optionsVolumeDominance24hMin',
-			maxKey: 'optionsVolumeDominance24hMax',
-			getValue: (row) => row.metrics.options_volume_dominance_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'holderRevenue24hMin',
-			maxKey: 'holderRevenue24hMax',
-			getValue: (row) => row.metrics.holderRevenue_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'treasuryRevenue24hMin',
-			maxKey: 'treasuryRevenue24hMax',
-			getValue: (row) => row.metrics.treasuryRevenue_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'stablesMcapMin',
-			maxKey: 'stablesMcapMax',
-			getValue: (row) => row.metrics.stablesMcap,
-			strategy: 'chains'
-		},
-		{ minKey: 'bridgedTvlMin', maxKey: 'bridgedTvlMax', getValue: (row) => row.metrics.bridgedTvl, strategy: 'chains' },
-		{
-			minKey: 'aggregatorsVolume24hMin',
-			maxKey: 'aggregatorsVolume24hMax',
-			getValue: (row) => row.metrics.aggregators_volume_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'aggregatorsVolume7dMin',
-			maxKey: 'aggregatorsVolume7dMax',
-			getValue: (row) => row.metrics.aggregators_volume_7d,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'aggregatorsVolume30dMin',
-			maxKey: 'aggregatorsVolume30dMax',
-			getValue: (row) => row.metrics.aggregators_volume_30d,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'derivativesAggregatorsVolume24hMin',
-			maxKey: 'derivativesAggregatorsVolume24hMax',
-			getValue: (row) => row.metrics.derivatives_aggregators_volume_24h,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'derivativesAggregatorsVolume7dMin',
-			maxKey: 'derivativesAggregatorsVolume7dMax',
-			getValue: (row) => row.metrics.derivatives_aggregators_volume_7d,
-			strategy: 'protocols'
-		},
-		{
-			minKey: 'derivativesAggregatorsVolume30dMin',
-			maxKey: 'derivativesAggregatorsVolume30dMax',
-			getValue: (row) => row.metrics.derivatives_aggregators_volume_30d,
-			strategy: 'protocols'
-		}
+		{ minKey: 'protocolCountMin', maxKey: 'protocolCountMax', getValue: (row) => row.metrics.protocolCount },
+		{ minKey: 'volumeDominance24hMin', maxKey: 'volumeDominance24hMax', getValue: (row) => row.metrics.volumeDominance_24h },
+		{ minKey: 'volumeMarketShare7dMin', maxKey: 'volumeMarketShare7dMax', getValue: (row) => row.metrics.volumeMarketShare7d },
+		{ minKey: 'tvlShareMin', maxKey: 'tvlShareMax', getValue: (row) => row.metrics.tvlShare },
+		{ minKey: 'perpsVolumeDominance24hMin', maxKey: 'perpsVolumeDominance24hMax', getValue: (row) => row.metrics.perps_volume_dominance_24h },
+		{ minKey: 'optionsVolumeDominance24hMin', maxKey: 'optionsVolumeDominance24hMax', getValue: (row) => row.metrics.options_volume_dominance_24h },
+		{ minKey: 'holderRevenue24hMin', maxKey: 'holderRevenue24hMax', getValue: (row) => row.metrics.holderRevenue_24h },
+		{ minKey: 'treasuryRevenue24hMin', maxKey: 'treasuryRevenue24hMax', getValue: (row) => row.metrics.treasuryRevenue_24h },
+		{ minKey: 'stablesMcapMin', maxKey: 'stablesMcapMax', getValue: (row) => row.metrics.stablesMcap },
+		{ minKey: 'bridgedTvlMin', maxKey: 'bridgedTvlMax', getValue: (row) => row.metrics.bridgedTvl },
+		{ minKey: 'aggregatorsVolume24hMin', maxKey: 'aggregatorsVolume24hMax', getValue: (row) => row.metrics.aggregators_volume_24h },
+		{ minKey: 'aggregatorsVolume7dMin', maxKey: 'aggregatorsVolume7dMax', getValue: (row) => row.metrics.aggregators_volume_7d },
+		{ minKey: 'aggregatorsVolume30dMin', maxKey: 'aggregatorsVolume30dMax', getValue: (row) => row.metrics.aggregators_volume_30d },
+		{ minKey: 'derivativesAggregatorsVolume24hMin', maxKey: 'derivativesAggregatorsVolume24hMax', getValue: (row) => row.metrics.derivatives_aggregators_volume_24h },
+		{ minKey: 'derivativesAggregatorsVolume7dMin', maxKey: 'derivativesAggregatorsVolume7dMax', getValue: (row) => row.metrics.derivatives_aggregators_volume_7d },
+		{ minKey: 'derivativesAggregatorsVolume30dMin', maxKey: 'derivativesAggregatorsVolume30dMax', getValue: (row) => row.metrics.derivatives_aggregators_volume_30d }
 	]
 
-	numericRangeFilters.forEach(({ minKey, maxKey, getValue, strategy }) => {
+	numericRangeFilters.forEach(({ minKey, maxKey, getValue }) => {
 		const minValue = minKey ? (filters[minKey] as number | undefined) : undefined
 		const maxValue = maxKey ? (filters[maxKey] as number | undefined) : undefined
 		if (minValue === undefined && maxValue === undefined) {
 			return
 		}
 		filtered = filtered.filter((row) => {
-			if (strategy && row.strategyType !== strategy) {
-				return true
-			}
 			const value = getValue(row)
 			if (minValue !== undefined && (value === null || value === undefined || value < minValue)) {
 				return false
@@ -200,74 +126,59 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 	})
 
 	if (filters.hasPerps) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.perpsVolume24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.perpsVolume24h ?? 0) > 0)
 	}
 
 	if (filters.hasOptions) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.options_volume_24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.options_volume_24h ?? 0) > 0)
 	}
 
 	if (filters.hasOpenInterest) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.openInterest ?? 0) > 0)
-	}
-
-	if (filters.multiChainOnly) {
-		filtered = filtered.filter((row) => {
-			const chainList = row.allChains ?? row.chains
-			return row.strategyType === 'protocols' && (chainList?.filter(Boolean).length ?? 0) > 1
-		})
+		filtered = filtered.filter((row) => (row.metrics.openInterest ?? 0) > 0)
 	}
 
 	if (filters.hasVolume) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.volume24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.volume24h ?? 0) > 0)
 	}
 
 	if (filters.hasFees) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.fees24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.fees24h ?? 0) > 0)
 	}
 
 	if (filters.hasRevenue) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.revenue24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.revenue24h ?? 0) > 0)
 	}
 
 	if (filters.hasMarketCap) {
-		filtered = filtered.filter(
-			(row) => row.strategyType === 'protocols' && row.metrics.mcap !== null && row.metrics.mcap !== undefined
-		)
+		filtered = filtered.filter((row) => row.metrics.mcap !== null && row.metrics.mcap !== undefined)
 	}
 
 	if (filters.hasAggregators) {
-		filtered = filtered.filter(
-			(row) => row.strategyType === 'protocols' && (row.metrics.aggregators_volume_24h ?? 0) > 0
-		)
+		filtered = filtered.filter((row) => (row.metrics.aggregators_volume_24h ?? 0) > 0)
 	}
 
 	if (filters.hasDerivativesAggregators) {
-		filtered = filtered.filter(
-			(row) => row.strategyType === 'protocols' && (row.metrics.derivatives_aggregators_volume_24h ?? 0) > 0
-		)
+		filtered = filtered.filter((row) => (row.metrics.derivatives_aggregators_volume_24h ?? 0) > 0)
 	}
 
 	if (filters.hasBridgedTVL) {
-		filtered = filtered.filter((row) => row.strategyType === 'chains' && (row.metrics.bridgedTvl ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.bridgedTvl ?? 0) > 0)
 	}
 
 	if (filters.hasStables) {
-		filtered = filtered.filter((row) => row.strategyType === 'chains' && (row.metrics.stablesMcap ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.stablesMcap ?? 0) > 0)
 	}
 
 	if (filters.hasHolderRevenue) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.holderRevenue_24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.holderRevenue_24h ?? 0) > 0)
 	}
 
 	if (filters.hasTreasuryRevenue) {
-		filtered = filtered.filter((row) => row.strategyType === 'protocols' && (row.metrics.treasuryRevenue_24h ?? 0) > 0)
+		filtered = filtered.filter((row) => (row.metrics.treasuryRevenue_24h ?? 0) > 0)
 	}
 
 	if (filters.hasMcapTVLRatio) {
-		filtered = filtered.filter(
-			(row) => row.strategyType === 'protocols' && row.metrics.mcaptvl !== null && row.metrics.mcaptvl !== undefined
-		)
+		filtered = filtered.filter((row) => row.metrics.mcaptvl !== null && row.metrics.mcaptvl !== undefined)
 	}
 
 	return filtered

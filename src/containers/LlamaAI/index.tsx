@@ -221,13 +221,18 @@ async function fetchPromptResponse({
 								onProgress({ type: 'title', content: data.content, title: data.content })
 							}
 						} else if (data.type === 'reset') {
+							// Treat "reset" as a progress-style hint from the server instead of
+							// clearing the already streamed content on the client. Clearing here
+							// causes the UI to briefly "reset" even when the server isn't actually
+							// starting over, which is especially noticeable while charts are loading.
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({
 									type: 'reset',
 									content: data.content || 'Retrying...'
 								})
 							}
-							fullResponse = ''
+							// NOTE: We intentionally do NOT reset `fullResponse` anymore so that
+							// previously streamed tokens remain part of the final answer.
 						}
 					} catch (e) {
 						console.log('SSE JSON parse error:', e)
@@ -368,6 +373,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		userQuestion: string
 		suggestionContext?: any
 		preResolvedEntities?: Array<{ term: string; slug: string }>
+	} | null>(null)
+	const lastInputRef = useRef<{
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null>(null)
+	const [restoreRequest, setRestoreRequest] = useState<{
+		key: number
+		text: string
+		entities?: Array<{ term: string; slug: string }>
 	} | null>(null)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
@@ -542,7 +556,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					} else if (data.type === 'title') {
 						updateSessionTitle({ sessionId: currentSessionId, title: data.title || data.content })
 					} else if (data.type === 'reset') {
-						setStreamingResponse('')
+						// Don't clear the streaming response on a "reset" hint from the server.
+						// This was causing the visible answer area to blank out mid-stream even
+						// though the backend wasn't actually restarting the whole response.
 						setProgressMessage(data.content || 'Retrying due to output error...')
 					}
 				},
@@ -564,6 +580,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setIsStreaming(false)
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
+			lastInputRef.current = null
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -609,11 +626,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			const wasUserStopped = error?.message === 'Request aborted'
 
-			if (wasUserStopped) {
-				setLastFailedRequest(null)
-			}
-
 			if (wasUserStopped && finalContent.trim()) {
+				setLastFailedRequest(null)
+				lastInputRef.current = null
 				setMessages((prev) => [
 					...prev,
 					{
@@ -641,8 +656,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setPrompt('')
 			} else if (wasUserStopped && !finalContent.trim()) {
 				setPrompt(variables.userQuestion)
+				setLastFailedRequest(null)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
+				setLastFailedRequest(null)
+				lastInputRef.current = null
 			}
 
 			setCurrentMessageId(null)
@@ -704,8 +722,18 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			])
 			setPrompt('')
+			lastInputRef.current = null
 		} else {
+			// No content streamed yet – restore the last submitted input
 			setPrompt(prompt)
+			const lastInput = lastInputRef.current
+			if (lastInput && lastInput.text === prompt) {
+				setRestoreRequest((prev) => ({
+					key: (prev?.key ?? 0) + 1,
+					text: lastInput.text,
+					entities: lastInput.entities
+				}))
+			}
 		}
 
 		setStreamingResponse('')
@@ -727,6 +755,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		streamingCitations,
 		currentMessageId,
 		prompt,
+		lastInputRef,
+		setRestoreRequest,
 		setMessages,
 		setStreamingResponse,
 		setStreamingSuggestions,
@@ -756,6 +786,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			const finalPrompt = prompt.trim()
 			setPrompt(finalPrompt)
+			lastInputRef.current = { text: finalPrompt, entities: preResolved }
 			shouldAutoScrollRef.current = true
 
 			if (sessionId) {
@@ -1106,7 +1137,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isPending={isPending}
 											handleStopRequest={handleStopRequest}
 											isStreaming={isStreaming}
-											initialValue={prompt}
+											restoreRequest={restoreRequest}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
@@ -1127,115 +1158,117 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											<LoadingDots />
 										</p>
 									) : messages.length > 0 || isSubmitted ? (
-										<div className="flex w-full flex-col gap-2 px-2 pb-5">
+										<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
 											{paginationState.isLoadingMore && (
 												<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
 													Loading more messages
 													<LoadingDots />
 												</p>
 											)}
-											<div className="flex flex-col gap-2.5">
-												{messages.map((item, index) => {
-													if (item.role === 'user') {
-														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
-													}
-													if (item.role === 'assistant') {
-														const hasInlineCharts = item.content?.includes('[CHART:')
-														return (
-															<div
-																key={`assistant-${item.messageId || item.timestamp}-${index}`}
-																className="flex flex-col gap-2.5"
-															>
-																<MarkdownRenderer
-																	content={item.content}
-																	citations={item.citations}
-																	charts={hasInlineCharts ? item.charts : undefined}
-																	chartData={hasInlineCharts ? item.chartData : undefined}
-																	renderChart={hasInlineCharts ? renderInlineChart : undefined}
-																/>
-																{!hasInlineCharts && item.charts && item.charts.length > 0 && (
-																	<ChartRenderer
-																		charts={item.charts}
-																		chartData={item.chartData || []}
-																		resizeTrigger={resizeTrigger}
-																	/>
-																)}
-																{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
-																<ResponseControls
-																	messageId={item.messageId}
-																	content={item.content}
-																	initialRating={item.userRating}
-																	sessionId={sessionId}
-																	readOnly={readOnly}
-																/>
-																{!readOnly && item.suggestions && item.suggestions.length > 0 && (
-																	<SuggestedActions
-																		suggestions={item.suggestions}
-																		handleSuggestionClick={handleSuggestionClick}
-																		isPending={isPending}
-																		isStreaming={isStreaming}
-																	/>
-																)}
-																{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
-															</div>
-														)
-													}
-													if (item.question) {
-														const hasInlineCharts = item.response?.answer?.includes('[CHART:')
-														const itemCharts = item.response?.charts || item.charts || []
-														const itemChartData = item.response?.chartData || item.chartData
-														return (
-															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
-																<SentPrompt prompt={item.question} />
-																<div className="flex flex-col gap-2.5">
+											{messages.length > 0 && (
+												<div className="flex flex-col gap-2.5">
+													{messages.map((item, index) => {
+														if (item.role === 'user') {
+															return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
+														}
+														if (item.role === 'assistant') {
+															const hasInlineCharts = item.content?.includes('[CHART:')
+															return (
+																<div
+																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
+																	className="flex flex-col gap-2.5"
+																>
 																	<MarkdownRenderer
-																		content={item.response?.answer || ''}
-																		citations={item.response?.citations || item.citations}
-																		charts={hasInlineCharts ? itemCharts : undefined}
-																		chartData={hasInlineCharts ? itemChartData : undefined}
+																		content={item.content}
+																		citations={item.citations}
+																		charts={hasInlineCharts ? item.charts : undefined}
+																		chartData={hasInlineCharts ? item.chartData : undefined}
 																		renderChart={hasInlineCharts ? renderInlineChart : undefined}
 																	/>
-																	{!hasInlineCharts &&
-																		((item.response?.charts && item.response.charts.length > 0) ||
-																			(item.charts && item.charts.length > 0)) && (
+																	{!hasInlineCharts && item.charts && item.charts.length > 0 && (
 																		<ChartRenderer
-																			charts={itemCharts}
-																			chartData={itemChartData}
+																			charts={item.charts}
+																			chartData={item.chartData || []}
 																			resizeTrigger={resizeTrigger}
 																		/>
 																	)}
-																	{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
-																		<InlineSuggestions
-																			text={item.response?.inlineSuggestions || item.inlineSuggestions}
-																		/>
-																	)}
+																	{item.inlineSuggestions && <InlineSuggestions text={item.inlineSuggestions} />}
 																	<ResponseControls
 																		messageId={item.messageId}
-																		content={item.response?.answer}
+																		content={item.content}
 																		initialRating={item.userRating}
 																		sessionId={sessionId}
 																		readOnly={readOnly}
 																	/>
-																	{!readOnly &&
-																		((item.response?.suggestions && item.response.suggestions.length > 0) ||
-																			(item.suggestions && item.suggestions.length > 0)) && (
-																			<SuggestedActions
-																				suggestions={item.response?.suggestions || item.suggestions || []}
-																				handleSuggestionClick={handleSuggestionClick}
-																				isPending={isPending}
-																				isStreaming={isStreaming}
+																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
+																		<SuggestedActions
+																			suggestions={item.suggestions}
+																			handleSuggestionClick={handleSuggestionClick}
+																			isPending={isPending}
+																			isStreaming={isStreaming}
+																		/>
+																	)}
+																	{showDebug && item.metadata && <QueryMetadata metadata={item.metadata} />}
+																</div>
+															)
+														}
+														if (item.question) {
+															const hasInlineCharts = item.response?.answer?.includes('[CHART:')
+															const itemCharts = item.response?.charts || item.charts || []
+															const itemChartData = item.response?.chartData || item.chartData
+															return (
+																<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
+																	<SentPrompt prompt={item.question} />
+																	<div className="flex flex-col gap-2.5">
+																		<MarkdownRenderer
+																			content={item.response?.answer || ''}
+																			citations={item.response?.citations || item.citations}
+																			charts={hasInlineCharts ? itemCharts : undefined}
+																			chartData={hasInlineCharts ? itemChartData : undefined}
+																			renderChart={hasInlineCharts ? renderInlineChart : undefined}
+																		/>
+																		{!hasInlineCharts &&
+																			((item.response?.charts && item.response.charts.length > 0) ||
+																				(item.charts && item.charts.length > 0)) && (
+																			<ChartRenderer
+																				charts={itemCharts}
+																				chartData={itemChartData}
+																				resizeTrigger={resizeTrigger}
 																			/>
 																		)}
-																	{showDebug && (item.response?.metadata || item.metadata) && (
-																		<QueryMetadata metadata={item.response?.metadata || item.metadata} />
-																	)}
+																		{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
+																			<InlineSuggestions
+																				text={item.response?.inlineSuggestions || item.inlineSuggestions}
+																			/>
+																		)}
+																		<ResponseControls
+																			messageId={item.messageId}
+																			content={item.response?.answer}
+																			initialRating={item.userRating}
+																			sessionId={sessionId}
+																			readOnly={readOnly}
+																		/>
+																		{!readOnly &&
+																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
+																				(item.suggestions && item.suggestions.length > 0)) && (
+																				<SuggestedActions
+																					suggestions={item.response?.suggestions || item.suggestions || []}
+																					handleSuggestionClick={handleSuggestionClick}
+																					isPending={isPending}
+																					isStreaming={isStreaming}
+																				/>
+																			)}
+																		{showDebug && (item.response?.metadata || item.metadata) && (
+																			<QueryMetadata metadata={item.response?.metadata || item.metadata} />
+																		)}
+																	</div>
 																</div>
-															</div>
-														)
-													}
-													return null
-												})}
-											</div>
+															)
+														}
+														return null
+													})}
+												</div>
+											)}
 											{(isPending || isStreaming || promptResponse || error) && (
 												<div className="flex min-h-[calc(100dvh-218px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
@@ -1319,7 +1352,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isPending={isPending}
 										handleStopRequest={handleStopRequest}
 										isStreaming={isStreaming}
-										initialValue={prompt}
+										restoreRequest={restoreRequest}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 									/>
 								)}
@@ -1338,18 +1371,22 @@ const PromptInput = memo(function PromptInput({
 	isPending,
 	handleStopRequest,
 	isStreaming,
-	initialValue,
-	placeholder
+	placeholder,
+	restoreRequest
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
-	initialValue?: string
 	placeholder: string
+	restoreRequest?: {
+		key: number
+		text: string
+		entities?: Array<{ term: string; slug: string }>
+	} | null
 }) {
-	const [value, setValue] = useState(initialValue ?? '')
+	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
@@ -1360,7 +1397,7 @@ const PromptInput = memo(function PromptInput({
 	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 
-	const combobox = Ariakit.useComboboxStore({ defaultValue: initialValue })
+	const combobox = Ariakit.useComboboxStore()
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
 	const { data: matches } = useGetEntities(searchValue)
@@ -1372,6 +1409,42 @@ const PromptInput = memo(function PromptInput({
 	useEffect(() => {
 		combobox.render()
 	}, [combobox])
+
+	// Restore text and entities after a cancelled request (before any tokens streamed)
+	useEffect(() => {
+		if (!restoreRequest) return
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		// Only restore if the current input is empty so we don't overwrite
+		// anything the user has typed while a response was streaming.
+		if (textarea.value.trim().length > 0) return
+
+		const { text, entities } = restoreRequest
+
+		// Rebuild entity refs from the restore data
+		entitiesRef.current.clear()
+		entitiesMapRef.current.clear()
+		if (entities && entities.length > 0) {
+			for (const { term, slug } of entities) {
+				entitiesRef.current.add(term)
+				entitiesMapRef.current.set(term, { id: slug, name: term, type: '' })
+			}
+		}
+
+		// Programmatic update: avoid re-triggering combobox logic in onChange
+		isProgrammaticUpdateRef.current = true
+		textarea.value = text
+		setValue(text)
+		setInputSize(promptInputRef, highlightRef)
+
+		if (highlightRef.current) {
+			highlightRef.current.innerHTML = highlightWord(text, Array.from(entitiesRef.current))
+		}
+
+		combobox.setValue('')
+		combobox.hide()
+	}, [restoreRequest, combobox, promptInputRef])
 
 	// Cleanup on unmount
 	useEffect(() => {

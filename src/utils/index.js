@@ -1038,3 +1038,13 @@ export const formatEthAddress = (address) => {
 	if (!address) return ''
 	return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
+
+/**
+ * @param {string | string[] | null} value
+ * @returns {number | null}
+ */
+export function toNumberOrNullFromQueryParam(value) {
+	const finalValue = value ? (typeof value === 'string' ? value : (value?.[0] ?? null)) : null
+	if (finalValue == null) return null
+	return Number.isNaN(Number(finalValue)) ? null : Number(finalValue)
+}

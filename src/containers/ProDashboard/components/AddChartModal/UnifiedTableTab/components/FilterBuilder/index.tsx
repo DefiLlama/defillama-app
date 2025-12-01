@@ -8,14 +8,13 @@ import {
 	FILTER_CONFIGS,
 	formatFilterValue,
 	getFiltersByCategory,
+	getFiltersForProtocols,
 	type FilterCategory,
 	type FilterConfig,
-	type NumericOperator,
-	type StrategyType
+	type NumericOperator
 } from './filterConfig'
 
 interface FilterBuilderProps {
-	strategy: StrategyType
 	filters: TableFilters | undefined
 	onFiltersChange: (filters: TableFilters) => void
 }
@@ -56,11 +55,11 @@ function parseNumberWithAbbreviation(input: string): number | undefined {
 	return suffix ? base * multipliers[suffix] : base
 }
 
-function filtersToActiveFilters(filters: TableFilters | undefined, strategy: StrategyType): ActiveFilter[] {
+function filtersToActiveFilters(filters: TableFilters | undefined): ActiveFilter[] {
 	if (!filters) return []
 
 	const result: ActiveFilter[] = []
-	const relevantConfigs = FILTER_CONFIGS.filter((c) => c.strategies.includes(strategy))
+	const relevantConfigs = getFiltersForProtocols()
 
 	for (const config of relevantConfigs) {
 		if (config.type === 'boolean' && config.booleanKey) {
@@ -513,29 +512,13 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	)
 }
 
-export function FilterBuilder({ strategy, filters, onFiltersChange }: FilterBuilderProps) {
+export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) {
 	const [search, setSearch] = useState('')
 	const [expandedCategories, setExpandedCategories] = useState<Set<FilterCategory>>(new Set(['metrics', 'flags']))
 	const [pendingFilters, setPendingFilters] = useState<ActiveFilter[]>([])
 	const [editingFilterId, setEditingFilterId] = useState<string | null>(null)
 
-	useEffect(() => {
-		setPendingFilters((prev) => {
-			const validPending = prev.filter((filter) => filter.config.strategies.includes(strategy))
-			if (validPending.length !== prev.length) {
-				setEditingFilterId((currentEditingId) => {
-					if (currentEditingId && !validPending.some((f) => f.config.id === currentEditingId)) {
-						return null
-					}
-					return currentEditingId
-				})
-				return validPending
-			}
-			return prev
-		})
-	}, [strategy])
-
-	const savedFilters = useMemo(() => filtersToActiveFilters(filters, strategy), [filters, strategy])
+	const savedFilters = useMemo(() => filtersToActiveFilters(filters), [filters])
 
 	const allActiveFilters = useMemo(() => {
 		const savedIds = new Set(savedFilters.map((f) => f.config.id))
@@ -544,7 +527,7 @@ export function FilterBuilder({ strategy, filters, onFiltersChange }: FilterBuil
 	}, [savedFilters, pendingFilters])
 
 	const activeFilterIds = useMemo(() => new Set(allActiveFilters.map((f) => f.config.id)), [allActiveFilters])
-	const filtersByCategory = useMemo(() => getFiltersByCategory(strategy), [strategy])
+	const filtersByCategory = useMemo(() => getFiltersByCategory(), [])
 
 	const filteredCategories = useMemo(() => {
 		const searchLower = search.toLowerCase()

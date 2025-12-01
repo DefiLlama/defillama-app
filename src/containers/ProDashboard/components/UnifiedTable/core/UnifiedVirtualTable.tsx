@@ -91,17 +91,15 @@ export function UnifiedVirtualTable({
 										}`}
 									>
 										<span
-											className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
+											className={`relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
 											data-align={
 												meta?.align ??
 												(headerGroup.depth === 0 && table.getHeaderGroups().length > 1 ? 'center' : 'start')
 											}
+											onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 										>
 											{header.isPlaceholder ? null : (
-												<HeaderWithTooltip
-													content={meta?.headerHelperText}
-													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
-												>
+												<HeaderWithTooltip content={meta?.headerHelperText}>
 													{value}
 												</HeaderWithTooltip>
 											)}
@@ -184,18 +182,9 @@ export function UnifiedVirtualTable({
 interface HeaderWithTooltipProps {
 	children: React.ReactNode
 	content?: string
-	onClick?: () => void | null
 }
 
-const HeaderWithTooltip = ({ children, content, onClick }: HeaderWithTooltipProps) => {
-	if (onClick) {
-		if (!content) return <button onClick={onClick}>{children}</button>
-		return (
-			<Tooltip content={content} className="underline decoration-dotted" render={<button />} onClick={onClick}>
-				{children}
-			</Tooltip>
-		)
-	}
+const HeaderWithTooltip = ({ children, content }: HeaderWithTooltipProps) => {
 	if (!content) return <>{children}</>
 	return (
 		<Tooltip content={content} className="underline decoration-dotted">

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnOrderState,
@@ -13,11 +13,13 @@ import {
 	VisibilityState,
 	type Table
 } from '@tanstack/react-table'
+import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import type { NormalizedRow } from '../types'
 import { filterRowsByConfig, filterRowsBySearch } from '../utils/dataFilters'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
+import { setChainMetrics } from './chainMetricsStore'
 import { getGroupingColumnIdsForHeaders } from './grouping'
 import { getRowHeaderFromGroupingColumn, isSelfGroupingValue } from './groupingUtils'
 
@@ -42,31 +44,24 @@ interface UseUnifiedTableResult {
 
 type UnifiedTableApiResponse = {
 	rows: NormalizedRow[]
+	chainMetrics?: Record<string, ChainMetrics>
 }
 
-const buildQueryString = (
-	strategyType: UnifiedTableConfig['strategyType'],
-	config: UnifiedTableConfig,
-	rowHeaders: UnifiedRowHeaderType[]
-): string => {
+const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]): string => {
 	const params = new URLSearchParams()
 
 	rowHeaders.forEach((header) => params.append('rowHeaders[]', header))
 
-	if (strategyType === 'protocols' && config.params?.chains) {
+	if (config.params?.chains) {
 		config.params.chains.forEach((chain) => params.append('chains[]', chain))
 	}
 
 	return params.toString()
 }
 
-const fetchUnifiedTableRows = async (
-	strategyType: UnifiedTableConfig['strategyType'],
-	config: UnifiedTableConfig,
-	rowHeaders: UnifiedRowHeaderType[]
-) => {
-	const queryString = buildQueryString(strategyType, config, rowHeaders)
-	const response = await fetch(`/api/unified-table/${strategyType}?${queryString}`)
+const fetchUnifiedTableRows = async (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]) => {
+	const queryString = buildQueryString(config, rowHeaders)
+	const response = await fetch(`/api/unified-table/protocols?${queryString}`)
 
 	if (!response.ok) {
 		throw new Error('Failed to load ProTable data')
@@ -97,24 +92,23 @@ export function useUnifiedTable({
 		})
 	}
 
-	const sanitizedHeaders = useMemo(
-		() => sanitizeRowHeaders(config.rowHeaders, config.strategyType),
-		[config.rowHeaders, config.strategyType]
-	)
+	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 
-	const paramsKey = useMemo(() => {
-		if (config.strategyType === 'protocols') {
-			return JSON.stringify({ chains: config.params?.chains ?? [] })
-		}
-		return 'no-params'
-	}, [config.params, config.strategyType])
+	const paramsKey = useMemo(
+		() => JSON.stringify({ chains: config.params?.chains ?? [] }),
+		[config.params?.chains]
+	)
 	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unified-table', config.strategyType, paramsKey, headersKey],
-		queryFn: () => fetchUnifiedTableRows(config.strategyType, config, sanitizedHeaders),
+		queryKey: ['unified-table', paramsKey, headersKey],
+		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
 		staleTime: 60 * 1000
 	})
+
+	useEffect(() => {
+		setChainMetrics(data?.chainMetrics)
+	}, [data?.chainMetrics])
 
 	const rows = data?.rows ?? []
 
@@ -123,7 +117,7 @@ export function useUnifiedTable({
 		return filterRowsBySearch(withFilters, searchTerm)
 	}, [rows, config.filters, searchTerm])
 
-	const columns = useMemo(() => getUnifiedTableColumns(config.strategyType), [config.strategyType])
+	const columns = useMemo(() => getUnifiedTableColumns(), [])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
 
 	const groupingColumnSet = useMemo(() => new Set(groupingColumnIds), [groupingColumnIds])

@@ -120,7 +120,7 @@ export function SubscribeProCard({
 				{active ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center font-bold text-green-400">Current Plan</span>
-						{/* {(currentBillingInterval === 'month' || !currentBillingInterval) && (
+						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
 							<div className="flex flex-col gap-2">
 								<button
 									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
@@ -131,7 +131,7 @@ export function SubscribeProCard({
 								</button>
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
-						)} */}
+						)}
 						{onCancelSubscription && (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#222429] px-4 py-2 text-white transition-colors hover:bg-[#39393E]"
@@ -190,7 +190,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
 	useEffect(() => {
-		if (dialogStore.getState().open && typeof window !== 'undefined' && (window as any).umami) {
+		if (dialogStore?.getState()?.open && typeof window !== 'undefined' && (window as any).umami) {
 			;(window as any).umami.track('subscribe-modal-open')
 		}
 	}, [dialogStore])

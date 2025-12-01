@@ -454,7 +454,7 @@ export function useModalActions(
 					title: state.textTitle.trim() || undefined,
 					content: state.textContent.trim()
 				} as TextConfig
-			} else if (state.chartMode === 'builder') {
+			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'builder') {
 				newItem = {
 					...editItem,
 					kind: 'builder',
@@ -608,7 +608,7 @@ export function useModalActions(
 						colSpan: 0.5 as StoredColSpan
 					} as any)
 				}
-			} else if (state.chartMode === 'builder') {
+			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'builder') {
 				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
 			}
 		}

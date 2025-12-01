@@ -1,15 +1,33 @@
 import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
+interface IToFilterPool {
+	curr: YieldsData['props']['pools'][number]
+	selectedProjectsSet: Set<string>
+	selectedChainsSet: Set<string>
+	selectedAttributes: string[]
+	includeTokens: string[]
+	exactTokens: string[]
+	selectedCategoriesSet: Set<string>
+	excludeTokensSet: Set<string>
+	pathname: string
+	minTvl: number | null
+	maxTvl: number | null
+	minApy: number | null
+	maxApy: number | null
+	pairTokens: string[]
+	usdPeggedSymbols: string[]
+}
+
 export function toFilterPool({
 	curr,
-	selectedProjects,
-	selectedChains,
+	selectedProjectsSet,
+	selectedChainsSet,
 	selectedAttributes,
 	includeTokens,
-	excludeTokens,
+	excludeTokensSet,
 	exactTokens,
-	selectedCategories,
+	selectedCategoriesSet,
 	pathname,
 	minTvl,
 	maxTvl,
@@ -17,7 +35,13 @@ export function toFilterPool({
 	maxApy,
 	pairTokens,
 	usdPeggedSymbols
-}) {
+}: IToFilterPool) {
+	const tokensInPoolArray = curr.symbol
+		.split('(')[0]
+		.split('-')
+		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
+	const tokensInPoolSet = new Set<string>(tokensInPoolArray)
+
 	let toFilter = true
 
 	// used in pages like /yields/stablecoins to filter some pools by default
@@ -41,20 +65,17 @@ export function toFilterPool({
 		}
 	})
 
-	toFilter = toFilter && selectedProjects.includes(curr.projectName)
+	toFilter = toFilter && selectedProjectsSet.has(curr.projectName)
 
-	toFilter = toFilter && selectedCategories.includes(curr.category)
+	toFilter = toFilter && selectedCategoriesSet.has(curr.category)
 
-	const tokensInPool: Array<string> = curr.symbol
-		.split('(')[0]
-		.split('-')
-		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
+	const tokensInPool: string[] = tokensInPoolArray
 
 	if (pairTokens.length > 0) {
 		let atLeastOnePairToken = false
 		for (const pairToken of pairTokens) {
 			const pt = pairToken.split('-')
-			if (tokensInPool.length === pt.length && pt.every((token) => tokensInPool.includes(token))) {
+			if (tokensInPool.length === pt.length && pt.every((token) => tokensInPoolSet.has(token))) {
 				atLeastOnePairToken = true
 				break
 			}
@@ -84,26 +105,25 @@ export function toFilterPool({
 					})
 				: true
 
-		const excludeToken = !excludeTokens.find((token) => tokensInPool.includes(token))
+		// Check if any excludeToken exists in tokensInPoolSet using Set intersection
+		const excludeToken = !Array.from(excludeTokensSet).some((token: string) => tokensInPoolSet.has(token))
 
-		toFilter = toFilter && selectedChains.includes(curr.chain) && includeToken && excludeToken
+		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && excludeToken
 	} else {
 		const exactToken = exactTokens.find((token) => {
-			if (tokensInPool.some((x) => x === token)) {
+			if (tokensInPoolSet.has(token)) {
 				return true
 			} else if (token === 'eth') {
 				return tokensInPool.find((x) => x.includes('weth') && x === token)
 			} else return false
 		})
 
-		toFilter = toFilter && selectedChains.includes(curr.chain) && exactToken
+		toFilter = toFilter && (selectedChainsSet.has(curr.chain) && exactToken ? true : false)
 	}
 
-	const isValidTvlRange =
-		(minTvl != null && !Number.isNaN(Number(minTvl))) || (maxTvl != null && !Number.isNaN(Number(maxTvl)))
+	const isValidTvlRange = minTvl != null || maxTvl != null
 
-	const isValidApyRange =
-		(minApy != null && !Number.isNaN(Number(minApy))) || (maxApy != null && !Number.isNaN(Number(maxApy)))
+	const isValidApyRange = minApy != null || maxApy != null
 
 	if (isValidTvlRange) {
 		toFilter = toFilter && (minTvl ? curr.tvlUsd >= minTvl : true) && (maxTvl ? curr.tvlUsd <= maxTvl : true)
@@ -196,7 +216,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 
 export const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
-export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV) => {
+export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV }) => {
 	// prepare leveraged lending (loop) pools
 	const loopPools = calculateLoopAPY(pools, 10, customLTV)
 
@@ -369,7 +389,7 @@ export const findStrategyPools = (pools, tokenToLend, tokenToBorrow, allPools, c
 	return finalPools
 }
 
-export const formatOptimizerPool = (pool, customLTV) => {
+export const formatOptimizerPool = ({ pool, customLTV }) => {
 	const ltv = customLTV ? customLTV / 100 : pool.ltv
 
 	const lendingReward = (pool.apyBase || 0) + (pool.apyReward || 0)
@@ -389,7 +409,7 @@ export const formatOptimizerPool = (pool, customLTV) => {
 	}
 }
 
-export const findStrategyPoolsFR = (token, filteredPools, perps) => {
+export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 	let tokensToInclude = token?.token
 	tokensToInclude = typeof tokensToInclude === 'string' ? [tokensToInclude] : tokensToInclude
 	let tokensToExclude = token?.excludeToken
@@ -468,25 +488,25 @@ export const findStrategyPoolsFR = (token, filteredPools, perps) => {
 }
 
 interface FilterPools {
-	selectedChains: Array<string>
+	selectedChainsSet: Set<string>
 	selectedAttributes?: Array<string>
-	selectedLendingProtocols?: Array<string>
-	selectedFarmProtocols?: Array<string>
+	selectedLendingProtocolsSet?: Set<string> | null
+	selectedFarmProtocolsSet?: Set<string> | null
 	pool: YieldsData['props']['pools'][number]
-	minTvl?: string
-	maxTvl?: string
-	minAvailable?: string
-	maxAvailable?: string
-	customLTV?: string
+	minTvl?: number | null
+	maxTvl?: number | null
+	minAvailable?: number | null
+	maxAvailable?: number | null
+	customLTV?: number | null
 	strategyPage?: boolean
 }
 
 export const filterPool = ({
 	pool,
-	selectedChains,
+	selectedChainsSet,
 	selectedAttributes,
-	selectedLendingProtocols,
-	selectedFarmProtocols,
+	selectedLendingProtocolsSet,
+	selectedFarmProtocolsSet,
 	minTvl,
 	maxTvl,
 	minAvailable,
@@ -494,10 +514,6 @@ export const filterPool = ({
 	customLTV,
 	strategyPage
 }: FilterPools) => {
-	const selectedChainsSet = new Set(selectedChains)
-	const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
-	const selectedFarmProtocolsSet = selectedFarmProtocols ? new Set(selectedFarmProtocols) : null
-
 	let toFilter = true
 
 	toFilter = toFilter && selectedChainsSet.has(pool.chain)
@@ -518,16 +534,13 @@ export const filterPool = ({
 		})
 	}
 
-	const isValidTvlRange =
-		(minTvl != null && !Number.isNaN(Number(minTvl))) || (maxTvl != null && !Number.isNaN(Number(maxTvl)))
+	const isValidTvlRange = minTvl != null || maxTvl != null
 
 	if (isValidTvlRange) {
 		toFilter = toFilter && (minTvl ? pool.farmTvlUsd >= minTvl : true) && (maxTvl ? pool.tvlUsd <= maxTvl : true)
 	}
 
-	const isValidAvailableRange =
-		(minAvailable != null && !Number.isNaN(Number(minAvailable))) ||
-		(maxAvailable != null && !Number.isNaN(Number(maxAvailable)))
+	const isValidAvailableRange = minAvailable != null || maxAvailable != null
 
 	if (isValidAvailableRange) {
 		toFilter =
@@ -536,17 +549,15 @@ export const filterPool = ({
 			(maxAvailable ? +(pool.borrow.totalAvailableUsd || 0) <= +maxAvailable : true)
 	}
 
-	const isValidLtvValue = customLTV != null && !Number.isNaN(Number(customLTV))
+	const isValidLtvValue = customLTV != null
 
 	if (isValidLtvValue && strategyPage) {
-		toFilter = toFilter && (customLTV ? Number(customLTV) > 0 && Number(customLTV) <= 100 : true)
+		toFilter = toFilter && (customLTV ? customLTV > 0 && customLTV <= 100 : true)
 	}
 
 	// on optimizer the filter includes a check against customLTV
 	if (isValidLtvValue && !strategyPage) {
-		toFilter =
-			toFilter &&
-			(customLTV ? Number(customLTV) > 0 && Number(customLTV) < 100 && Number(customLTV) / 100 <= pool.ltv : true)
+		toFilter = toFilter && (customLTV ? customLTV > 0 && customLTV < 100 && customLTV / 100 <= pool.ltv : true)
 	}
 
 	return toFilter

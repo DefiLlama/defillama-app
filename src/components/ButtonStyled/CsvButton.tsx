@@ -49,6 +49,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 	prepareCsv
 }: CSVDownloadButtonPropsUnion) {
 	const [staticLoading, setStaticLoading] = useState(false)
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const { loaders } = useAuthContext()
 	const isLoading = loaders.userLoading || isSubscriptionLoading || loading || staticLoading ? true : false
@@ -97,6 +98,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 							}
 						}
 					} else if (!isLoading) {
+						// mount modal lazily to avoid rendering WalletProvider/RainbowKit
+						// wrappers next to every CSV button by default
+						if (!shouldRenderModal) {
+							setShouldRenderModal(true)
+						}
 						subscribeModalStore.show()
 					}
 				}}
@@ -111,9 +117,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
 			</button>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal && (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			)}
 		</>
 	)
 })

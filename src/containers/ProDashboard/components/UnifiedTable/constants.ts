@@ -1,10 +1,9 @@
 import type { UnifiedRowHeaderType } from '../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './config/ColumnDictionary'
 
-export const DEFAULT_PROTOCOLS_ROW_HEADERS: UnifiedRowHeaderType[] = ['parent-protocol', 'protocol']
-export const DEFAULT_CHAINS_ROW_HEADERS: UnifiedRowHeaderType[] = ['chain']
+export const DEFAULT_ROW_HEADERS: UnifiedRowHeaderType[] = ['parent-protocol', 'protocol']
 
-export const DEFAULT_PROTOCOLS_COLUMN_ORDER = [
+export const DEFAULT_COLUMN_ORDER = [
 	'name',
 	'category',
 	'chains',
@@ -23,30 +22,9 @@ export const DEFAULT_PROTOCOLS_COLUMN_ORDER = [
 	'perpsVolume24h',
 	'openInterest',
 	'mcap',
+	'fdv',
 	'mcaptvl'
 ]
-
-export const DEFAULT_CHAINS_COLUMN_ORDER = [
-	'name',
-	'tvl',
-	'change1d',
-	'change7d',
-	'change1m',
-	'bridgedTvl',
-	'stablesMcap',
-	'fees24h',
-	'fees_7d',
-	'revenue24h',
-	'revenue_7d',
-	'volume24h',
-	'volume_7d',
-	'mcap'
-]
-
-export const DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY = {
-	protocols: DEFAULT_PROTOCOLS_COLUMN_ORDER,
-	chains: DEFAULT_CHAINS_COLUMN_ORDER
-} as const
 
 export const DEFAULT_UNIFIED_TABLE_SORTING: Array<{ id: string; desc: boolean }> = [{ id: 'tvl', desc: true }]
 

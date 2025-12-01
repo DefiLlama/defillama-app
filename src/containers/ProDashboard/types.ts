@@ -249,7 +249,6 @@ export interface TableFilters {
 	hasPerps?: boolean
 	hasOptions?: boolean
 	hasOpenInterest?: boolean
-	multiChainOnly?: boolean
 	hasVolume?: boolean
 	hasFees?: boolean
 	hasRevenue?: boolean
@@ -326,7 +325,6 @@ export interface ProtocolsTableConfig {
 export interface UnifiedTableConfig {
 	id: string
 	kind: 'unified-table'
-	strategyType: 'protocols' | 'chains'
 	rowHeaders: UnifiedRowHeaderType[]
 	defaultSorting?: Array<{ id: string; desc: boolean }>
 	params?: {

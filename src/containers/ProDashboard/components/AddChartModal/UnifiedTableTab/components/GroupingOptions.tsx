@@ -1,12 +1,10 @@
 import { useMemo, type ComponentProps } from 'react'
 import { Icon } from '~/components/Icon'
-import type { UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import type { UnifiedRowHeaderType } from '~/containers/ProDashboard/types'
 
-type StrategyType = UnifiedTableConfig['strategyType']
 type IconName = ComponentProps<typeof Icon>['name']
 
 const PROTOCOL_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol']
-const CHAIN_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain']
 
 const GROUPING_ICON_BY_KEY: Partial<Record<UnifiedRowHeaderType, IconName>> = {
 	chain: 'chain',
@@ -15,12 +13,11 @@ const GROUPING_ICON_BY_KEY: Partial<Record<UnifiedRowHeaderType, IconName>> = {
 }
 
 interface GroupingOptionsProps {
-	strategyType: StrategyType
 	rowHeaders: UnifiedRowHeaderType[]
 	onToggleRowHeader: (header: UnifiedRowHeaderType) => void
 }
 
-export function GroupingOptions({ strategyType, rowHeaders, onToggleRowHeader }: GroupingOptionsProps) {
+export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptionsProps) {
 	const formatGroupingLabel = (header: UnifiedRowHeaderType) => {
 		if (header === 'parent-protocol') {
 			return 'Protocol'
@@ -33,9 +30,7 @@ export function GroupingOptions({ strategyType, rowHeaders, onToggleRowHeader }:
 	}
 
 	const groupingOptions = useMemo(() => {
-		const baseOrder = strategyType === 'protocols' ? PROTOCOL_ROW_HEADER_ORDER : CHAIN_ROW_HEADER_ORDER
-
-		return baseOrder.map((header) => ({
+		return PROTOCOL_ROW_HEADER_ORDER.map((header) => ({
 			value: header,
 			label: formatGroupingLabel(header),
 			icon: GROUPING_ICON_BY_KEY[header],
@@ -46,14 +41,13 @@ export function GroupingOptions({ strategyType, rowHeaders, onToggleRowHeader }:
 						? 'Break protocols down by sector classification.'
 						: 'Combine child protocols under their parent project.'
 		}))
-	}, [strategyType])
+	}, [])
 
 	const groupingSummary = useMemo(() => {
-		const labels =
-			strategyType === 'chains' ? CHAIN_ROW_HEADER_ORDER : rowHeaders.length ? rowHeaders : PROTOCOL_ROW_HEADER_ORDER
+		const labels = rowHeaders.length ? rowHeaders : PROTOCOL_ROW_HEADER_ORDER
 
 		return labels.map((header) => formatGroupingLabel(header)).join(' → ')
-	}, [rowHeaders, strategyType])
+	}, [rowHeaders])
 
 	return (
 		<>
@@ -63,19 +57,17 @@ export function GroupingOptions({ strategyType, rowHeaders, onToggleRowHeader }:
 			<div className="grid gap-2 border-t border-(--cards-border)/70 pt-2 sm:grid-cols-2">
 				{groupingOptions.map((option) => {
 					const active = rowHeaders.includes(option.value)
-					const disabled = strategyType === 'chains'
 					return (
 						<button
 							key={option.value}
 							type="button"
-							onClick={() => !disabled && onToggleRowHeader(option.value)}
+							onClick={() => onToggleRowHeader(option.value)}
 							aria-pressed={active}
-							disabled={disabled}
 							className={`group flex h-full flex-col gap-1 rounded-lg border p-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary) ${
 								active
 									? 'border-(--primary) bg-(--primary)/12 shadow-[0_2px_6px_rgba(91,133,255,0.1)]'
 									: 'border-(--cards-border) hover:border-(--primary) hover:bg-(--primary)/6'
-							} ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
+							}`}
 						>
 							<span className="flex items-center gap-1.5">
 								{option.icon && (

@@ -1,32 +1,23 @@
 import { useMemo, useState } from 'react'
-import { AriakitSelect } from '~/containers/ProDashboard/components/AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '~/containers/ProDashboard/components/AriakitVirtualizedMultiSelect'
 import { useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import type { TableFilters, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import type { TableFilters } from '~/containers/ProDashboard/types'
 import { getItemIconUrl } from '~/containers/ProDashboard/utils'
 import { buildProtocolOptions } from '~/containers/ProDashboard/utils/buildProtocolOptions'
 
-type StrategyType = UnifiedTableConfig['strategyType']
-
 interface FiltersPanelProps {
-	strategyType: StrategyType
 	chains: string[]
-	category: string | null
 	filters: TableFilters
 	availableChains: Array<{ label: string; value: string }>
 	onChainsChange: (chains: string[]) => void
-	onCategoryChange: (category: string | null) => void
 	onFiltersChange: (filters: TableFilters) => void
 }
 
 export function FiltersPanel({
-	strategyType,
 	chains,
-	category,
 	filters,
 	availableChains,
 	onChainsChange,
-	onCategoryChange,
 	onFiltersChange
 }: FiltersPanelProps) {
 	const { protocols } = useProDashboard()
@@ -40,19 +31,6 @@ export function FiltersPanel({
 		return [{ value: 'All', label: 'All Chains' }, ...availableChains]
 	}, [availableChains])
 
-	const chainCategoryOptions = useMemo(
-		() => [
-			{ value: 'All', label: 'All Chains' },
-			{ value: 'EVM', label: 'EVM Chains' },
-			{ value: 'non-EVM', label: 'Non-EVM Chains' },
-			{ value: 'Layer 2', label: 'Layer 2' },
-			{ value: 'Rollup', label: 'Rollups' },
-			{ value: 'Parachain', label: 'Parachains' },
-			{ value: 'Cosmos', label: 'Cosmos' }
-		],
-		[]
-	)
-
 	const selectedChainValues = useMemo<string[]>(() => {
 		if (chains.includes('All')) {
 			return ['All']
@@ -60,8 +38,6 @@ export function FiltersPanel({
 
 		return chains
 	}, [chains])
-
-	const selectedCategoryValue = category ?? 'All'
 
 	const categoryOptions = useMemo(() => {
 		if (!protocols || protocols.length === 0) return []
@@ -169,24 +145,14 @@ export function FiltersPanel({
 		<div className="thin-scrollbar max-h-[350px] overflow-y-auto">
 			<div className="grid gap-3 md:grid-cols-2">
 				<div className="flex flex-col gap-1.5">
-					{strategyType === 'protocols' ? (
-						<AriakitVirtualizedMultiSelect
-							label="Chains"
-							options={chainSelectOptions}
-							selectedValues={selectedChainValues}
-							onChange={handleChainMultiSelectChange}
-							placeholder="All chains..."
-							renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
-						/>
-					) : (
-						<AriakitSelect
-							label="Chain Category"
-							options={chainCategoryOptions}
-							selectedValue={selectedCategoryValue}
-							onChange={(option) => onCategoryChange(option.value === 'All' ? null : option.value)}
-							placeholder="All categories..."
-						/>
-					)}
+					<AriakitVirtualizedMultiSelect
+						label="Chains"
+						options={chainSelectOptions}
+						selectedValues={selectedChainValues}
+						onChange={handleChainMultiSelectChange}
+						placeholder="All chains..."
+						renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
+					/>
 				</div>
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 md:col-span-2">
 					<div className="mb-2 flex flex-wrap items-center justify-between gap-2">

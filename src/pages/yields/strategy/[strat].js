@@ -31,7 +31,10 @@ const PageView = () => {
 	const { data: farmHistory, isLoading: fetchingFarmData } = useYieldChartData(farmToken)
 	const { data: configData, isLoading: fetchingConfigData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
 
-	const project = configData?.data?.find((p) => p.config_id === lendToken)?.project
+	const configsMap = useMemo(() => {
+		return configData?.data ? new Map(configData.data.map((p) => [p.config_id, p])) : new Map()
+	}, [configData])
+	const project = configsMap?.get(lendToken)?.project
 
 	const { data: config, isLoading: fetchingConfig } = useYieldConfigData(project ?? '')
 	const lendProjectCategory = config?.category
@@ -68,6 +71,10 @@ const PageView = () => {
 			timestamp: parseTimestamp(t.timestamp)
 		}))
 
+		const lendDataMap = new Map(lendData.map((item) => [item.timestamp, item]))
+		const borrowDataMap = new Map(borrowData.map((item) => [item.timestamp, item]))
+		const farmDataMap = new Map(farmData.map((item) => [item.timestamp, item]))
+
 		const uniqueDates = [
 			...new Set(
 				lendData
@@ -81,9 +88,9 @@ const PageView = () => {
 		uniqueDates.forEach((d) => {
 			merged.push({
 				timestamp: d,
-				lendData: lendData.find((i) => i.timestamp === d),
-				borrowData: borrowData.find((i) => i.timestamp === d),
-				farmData: farmData.find((i) => i.timestamp === d)
+				lendData: lendDataMap.get(d),
+				borrowData: borrowDataMap.get(d),
+				farmData: farmDataMap.get(d)
 			})
 		})
 		merged = merged.filter((t) => !Object.values(t).includes(undefined))
@@ -92,9 +99,7 @@ const PageView = () => {
 			(t) => t.lendData.apy !== null && t.borrowData.apyBaseBorrow !== null && t.farmData.apy !== null
 		)
 
-		const configs = configData?.data || []
-
-		const ltv = configs?.find((p) => p.config_id === lendToken)?.ltv || 0
+		const ltv = configsMap?.get(lendToken)?.ltv || 0
 
 		merged = merged.map((t) => ({
 			...t,
@@ -163,7 +168,7 @@ const PageView = () => {
 			farmTVL,
 			borrowAvailable
 		}
-	}, [lendHistory, borrowHistory, farmHistory, configData, lendToken, borrowToken, lendProjectCategory])
+	}, [lendHistory, borrowHistory, farmHistory, configsMap, lendToken, borrowToken, lendProjectCategory])
 
 	const isLoading = fetchingLendData || fetchingBorrowData || fetchingFarmData || fetchingConfigData || fetchingConfig
 
@@ -228,47 +233,42 @@ const PageView = () => {
 				<h3 className="font-bold">Steps</h3>
 				<p className="flex items-center gap-2">
 					<span>1.</span>
-					Lend {configData?.data.find((c) => c.config_id === lendToken)?.symbol} as collateral on{' '}
-					{configData?.data.find((c) => c.config_id === lendToken)?.project} which earns a Supply APY of{' '}
-					{lendApy?.toFixed(2)}%.
+					Lend {configsMap.get(lendToken)?.symbol} as collateral on {configsMap.get(lendToken)?.project} which earns a
+					Supply APY of {lendApy?.toFixed(2)}%.
 				</p>
 				<p className="flex items-center gap-2">
 					<span>2.</span>
 					Borrow{' '}
 					{lendProjectCategory !== 'CDP'
-						? configData?.data.find((c) => c.config_id === borrowToken)?.symbol
-						: configData?.data.find((c) => c.config_id === borrowToken)?.mintedCoin}{' '}
-					against your {configData?.data.find((c) => c.config_id === lendToken)?.symbol} collateral with a max LTV of{' '}
-					{(ltv * 100).toFixed()}% and a borrow APY of {borrowApy?.toFixed(2)}% (
+						? configsMap.get(borrowToken)?.symbol
+						: configsMap.get(borrowToken)?.mintedCoin}{' '}
+					against your {configsMap.get(lendToken)?.symbol} collateral with a max LTV of {(ltv * 100).toFixed()}% and a
+					borrow APY of {borrowApy?.toFixed(2)}% (
 					{borrowApy > 0 ? 'You get paid by borrowing' : 'The interest you need to pay'}).
 				</p>
 
-				{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
-					configData?.data.find((c) => c.config_id === farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
+				{configsMap.get(borrowToken)?.symbol !== configsMap.get(farmToken)?.symbol && lendProjectCategory !== 'CDP' ? (
 					<p className="flex items-center gap-2">
 						<span>3.</span>
-						Swap borrowed {configData?.data.find((c) => c.config_id === borrowToken)?.symbol} for{' '}
-						{configData?.data.find((c) => c.config_id === farmToken)?.symbol}
+						Swap borrowed {configsMap.get(borrowToken)?.symbol} for {configsMap.get(farmToken)?.symbol}
 					</p>
 				) : null}
 
 				<p className="flex items-center gap-2">
-					{configData?.data.find((c) => c.config_id === borrowToken)?.symbol !==
-					configData?.data.find((c) => c.config_id === farmToken)?.symbol ? (
+					{configsMap.get(borrowToken)?.symbol !== configsMap.get(farmToken)?.symbol ? (
 						<span>4.</span>
 					) : (
 						<span>3.</span>
 					)}
-					Farm with {configData?.data.find((c) => c.config_id === farmToken)?.symbol} on{' '}
-					{configData?.data.find((c) => c.config_id === farmToken)?.project} which earns {farmApy?.toFixed(2)}%.
+					Farm with {configsMap.get(farmToken)?.symbol} on {configsMap.get(farmToken)?.project} which earns{' '}
+					{farmApy?.toFixed(2)}%.
 				</p>
 
-				{configData?.data.find((c) => c.config_id === lendToken)?.symbol ===
-				configData?.data.find((c) => c.config_id === borrowToken)?.symbol ? (
+				{configsMap.get(lendToken)?.symbol === configsMap.get(borrowToken)?.symbol ? (
 					// loop strategies
 					<p className="flex items-center gap-2">
-						Strategy APY = Recursively lend and borrow {configData?.data.find((c) => c.config_id === lendToken)?.symbol}{' '}
-						up to n-times (Strategy APY is calculated assuming 10 loops)
+						Strategy APY = Recursively lend and borrow {configsMap.get(lendToken)?.symbol} up to n-times (Strategy APY
+						is calculated assuming 10 loops)
 					</p>
 				) : (
 					// non loop strategies

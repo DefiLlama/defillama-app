@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
+import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
@@ -10,6 +11,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { getDATOverviewData, IDATOverviewPageProps } from '~/containers/DAT/queries'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
 import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -181,6 +183,8 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 		return dailyFlowsByAsset
 	}, [dailyFlowsByAsset, groupBy])
 
+	const { chartInstance, handleChartReady } = useChartImageExport()
+
 	return (
 		<Layout
 			title={`Digital Asset Treasuries - DefiLlama`}
@@ -200,9 +204,16 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 						className="ml-auto"
 					/>
 					<CSVDownloadButton prepareCsv={() => prepareDailyFlowsCsv(charts)} smol />
+					<ChartExportButton
+						chartInstance={chartInstance}
+						filename="digital-asset-treasuries-inflows-by-asset"
+						title="DAT Inflows by Asset"
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+						smol
+					/>
 				</div>
 				<Suspense fallback={<></>}>
-					<LineAndBarChart charts={charts} valueSymbol="$" chartOptions={chartOptions} />
+					<LineAndBarChart charts={charts} valueSymbol="$" chartOptions={chartOptions} onReady={handleChartReady} />
 				</Suspense>
 			</div>
 			<TableWithSearch

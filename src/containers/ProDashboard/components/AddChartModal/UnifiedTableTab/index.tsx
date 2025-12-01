@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
@@ -20,10 +20,10 @@ import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
 import { SortingSelector } from './components/SortingSelector'
-import { StrategySelector } from './components/StrategySelector'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
 import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
+import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
 
 interface UnifiedTableTabProps {
 	onClose: () => void
@@ -34,9 +34,6 @@ interface UnifiedTableTabProps {
 }
 
 const PROTOCOL_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol']
-const CHAIN_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain']
-
-type StrategyType = UnifiedTableConfig['strategyType']
 
 type ArrayFilterKey = 'categories' | 'excludedCategories' | 'protocols' | 'oracles'
 
@@ -71,18 +68,8 @@ const TabContent = ({
 }: UnifiedTableTabProps) => {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
 	const {
-		state: {
-			strategyType,
-			chains,
-			category,
-			rowHeaders,
-			filters,
-			activePresetId,
-			columnOrder,
-			columnVisibility,
-			sorting
-		},
-		actions: { setStrategy, setChains, setCategory, setRowHeaders, setFilters, setPreset, setColumns, setSorting },
+		state: { chains, rowHeaders, filters, activePresetId, columnOrder, columnVisibility, sorting },
+		actions: { setChains, setRowHeaders, setFilters, setPreset, setColumns, setSorting },
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
 	const isEditing = Boolean(editItem)
@@ -118,23 +105,19 @@ const TabContent = ({
 
 	const activePreset = useMemo(() => UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId), [activePresetId])
 
-	const allColumnsForStrategy = useMemo(() => {
+	const allColumns = useMemo(() => {
 		return [
 			'name',
-			...UNIFIED_TABLE_COLUMN_DICTIONARY.filter((column) => {
-				if (column.strategies && !column.strategies.includes(strategyType)) return false
-				return column.id !== 'name'
-			}).map((column) => column.id)
+			...UNIFIED_TABLE_COLUMN_DICTIONARY.filter((column) => column.id !== 'name').map((column) => column.id)
 		]
-	}, [strategyType])
+	}, [])
 
 	const presetDefaults = useMemo(() => {
 		if (activePreset) {
 			const presetConfig = applyPresetToConfig({
 				preset: activePreset,
 				includeRowHeaderRules: true,
-				mergeWithDefaults: true,
-				strategyType
+				mergeWithDefaults: true
 			})
 			return {
 				order: presetConfig.columnOrder,
@@ -142,8 +125,8 @@ const TabContent = ({
 				sorting: presetConfig.sorting
 			}
 		}
-		const baseOrder = [allColumnsForStrategy[0], ...allColumnsForStrategy.slice(1)]
-		const baseVisibility = allColumnsForStrategy.reduce<VisibilityState>((acc, id) => {
+		const baseOrder = [allColumns[0], ...allColumns.slice(1)]
+		const baseVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
 			acc[id] = id === 'name'
 			return acc
 		}, {})
@@ -152,17 +135,15 @@ const TabContent = ({
 			visibility: baseVisibility,
 			sorting: [] as SortingState
 		}
-	}, [activePreset, allColumnsForStrategy, strategyType])
+	}, [activePreset, allColumns])
 
 	const presetSortingFallback = useMemo<SortingState>(() => {
 		return normalizeSorting(activePreset?.defaultSorting)
 	}, [activePreset])
 
 	const recommendedPresetIds = usePresetRecommendations({
-		strategyType,
 		filters,
-		chains,
-		category
+		chains
 	})
 
 	const recommendedPresetSet = useMemo(() => new Set(recommendedPresetIds), [recommendedPresetIds])
@@ -173,11 +154,8 @@ const TabContent = ({
 	)
 
 	const otherPresets = useMemo(
-		() =>
-			UNIFIED_TABLE_PRESETS.filter(
-				(preset) => preset.strategyType === strategyType && !recommendedPresetSet.has(preset.id)
-			),
-		[strategyType, recommendedPresetSet]
+		() => UNIFIED_TABLE_PRESETS.filter((preset) => !recommendedPresetSet.has(preset.id)),
+		[recommendedPresetSet]
 	)
 
 	const chainLabelMap = useMemo(() => {
@@ -189,11 +167,6 @@ const TabContent = ({
 	}, [chainOptions])
 
 	const handleToggleRowHeader = (header: UnifiedRowHeaderType) => {
-		if (strategyType === 'chains') {
-			setRowHeaders([...CHAIN_ROW_HEADER_ORDER])
-			return
-		}
-
 		const currentlySelected = new Set(rowHeaders)
 
 		if (currentlySelected.has(header)) {
@@ -218,8 +191,7 @@ const TabContent = ({
 			const presetConfig = applyPresetToConfig({
 				preset,
 				includeRowHeaderRules: true,
-				mergeWithDefaults: true,
-				strategyType
+				mergeWithDefaults: true
 			})
 			setLocalOrder(presetConfig.columnOrder)
 			setLocalVisibility(presetConfig.columnVisibility)
@@ -235,7 +207,7 @@ const TabContent = ({
 	}
 
 	const handleClearColumns = () => {
-		const nextVisibility = allColumnsForStrategy.reduce<VisibilityState>((acc, id) => {
+		const nextVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
 			acc[id] = id === 'name'
 			return acc
 		}, {})
@@ -262,38 +234,37 @@ const TabContent = ({
 
 	const handleClearFilters = () => {
 		setFilters({})
-		if (strategyType === 'protocols') {
-			setChains(['All'])
-		} else {
-			setChains([])
-		}
-		setCategory(null)
+		setChains(['All'])
 	}
 
-	const handlePanelFiltersChange = (nextFilters: TableFilters) => {
+	const handlePanelFiltersChange = useCallback((nextFilters: TableFilters) => {
 		setFilters(nextFilters ?? {})
-	}
+	}, [])
 
-	const handleRemoveArrayFilterValue = (key: ArrayFilterKey, value: string) => {
-		const next: TableFilters = { ...(filters ?? {}) }
-		const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-		const updated = current.filter((item) => item !== value)
-		if (updated.length > 0) {
-			next[key] = updated
-		} else {
-			delete next[key]
-		}
-		setFilters(next)
-	}
+	const handleRemoveArrayFilterValue = useCallback(
+		(key: ArrayFilterKey, value: string) => {
+			setFilters((prev) => {
+				const next: TableFilters = { ...(prev ?? {}) }
+				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+				const updated = current.filter((item) => item !== value)
+				if (updated.length > 0) {
+					next[key] = updated
+				} else {
+					delete next[key]
+				}
+				return next
+			})
+		},
+		[]
+	)
 
-	const handleRemoveChainValue = (chainValue: string) => {
-		const nextChains = chains.filter((chain) => chain !== chainValue)
-		if (nextChains.length === 0) {
-			setChains(['All'])
-			return
-		}
-		setChains(nextChains)
-	}
+	const handleRemoveChainValue = useCallback(
+		(chainValue: string) => {
+			const nextChains = chains.filter((chain) => chain !== chainValue)
+			setChains(nextChains.length === 0 ? ['All'] : nextChains)
+		},
+		[chains, setChains]
+	)
 
 	const arraysEqual = (a: string[], b: string[]) => {
 		if (a.length !== b.length) return false
@@ -344,7 +315,7 @@ const TabContent = ({
 
 	const handleApplyPreset = (preset: FilterPreset) => {
 		setFilters(preset.filters ?? {})
-		if (preset.filters?.categories && preset.filters.categories.length && strategyType === 'protocols') {
+		if (preset.filters?.categories && preset.filters.categories.length) {
 			setChains(['All'])
 		}
 		if (preset.sortBy) {
@@ -363,55 +334,43 @@ const TabContent = ({
 		}
 	}
 
-	const currentFilters = (filters ?? {}) as TableFilters
-	const includeCategories = (currentFilters.categories as string[]) ?? []
-	const excludedCategories = (currentFilters.excludedCategories as string[]) ?? []
-	const protocolFilters = (currentFilters.protocols as string[]) ?? []
-	const oracleFilters = (currentFilters.oracles as string[]) ?? []
+	const activeFilterChips = useMemo(() => getActiveFilterChips(filters), [filters])
 
-	const activeFilterPills: FilterPill[] = []
+	const activeFilterPills: FilterPill[] = useMemo(() => {
+		const pills: FilterPill[] = []
 
-	const addArrayFilterPills = (key: ArrayFilterKey, values: string[], formatter?: (value: string) => string) => {
-		values.forEach((value) => {
-			activeFilterPills.push({
-				id: `${key}-${value}`,
-				label: formatter ? formatter(value) : value,
-				onRemove: () => handleRemoveArrayFilterValue(key, value)
-			})
-		})
-	}
-
-	if (strategyType === 'protocols') {
 		chains
 			.filter((chain) => chain !== 'All')
 			.forEach((chain) => {
-				activeFilterPills.push({
+				pills.push({
 					id: `chain-${chain}`,
 					label: chainLabelMap.get(chain) ?? chain,
 					onRemove: () => handleRemoveChainValue(chain)
 				})
 			})
-	} else if (category) {
-		activeFilterPills.push({
-			id: `category-${category}`,
-			label: `Category: ${category}`,
-			onRemove: () => setCategory(null)
-		})
-	}
 
-	addArrayFilterPills('categories', includeCategories)
-	addArrayFilterPills('excludedCategories', excludedCategories, (value) => `Exclude ${value}`)
-	addArrayFilterPills('protocols', protocolFilters)
-	addArrayFilterPills('oracles', oracleFilters)
+		for (const chip of activeFilterChips) {
+			pills.push({
+				id: chip.id,
+				label: chip.value ? `${chip.label}: ${chip.value}` : chip.label,
+				onRemove: () => {
+					const newFilters = { ...filters }
+					for (const key of chip.clearKeys) {
+						delete newFilters[key]
+					}
+					handlePanelFiltersChange(newFilters)
+				}
+			})
+		}
+
+		return pills
+	}, [chains, chainLabelMap, activeFilterChips, filters, handleRemoveChainValue, handlePanelFiltersChange])
 
 	const activeFilterCount = activeFilterPills.length
 
 	const scopeCount = useMemo(() => {
-		if (strategyType === 'protocols') {
-			return chains.includes('All') ? 0 : 1
-		}
-		return category ? 1 : 0
-	}, [strategyType, chains, category])
+		return chains.includes('All') ? 0 : 1
+	}, [chains])
 
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
@@ -430,16 +389,15 @@ const TabContent = ({
 				: 'Pick a tab to configure setup, columns, or filters.'
 
 	const setupBadge = useMemo(() => {
-		const strategyLabel = strategyType === 'protocols' ? 'Protocols' : 'Chains'
-		if (activePreset?.name) return `${strategyLabel} · ${activePreset.name}`
-		return strategyLabel
-	}, [strategyType, activePreset])
+		if (activePreset?.name) return `Protocols · ${activePreset.name}`
+		return 'Protocols'
+	}, [activePreset])
 
 	const tabOptions = useMemo(
 		() => [
 			{
 				key: 'setup' as const,
-				label: 'Strategy & Views',
+				label: 'Grouping & Views',
 				badge: setupBadge
 			},
 			{
@@ -474,24 +432,11 @@ const TabContent = ({
 	const tabContent: Record<TabKey, React.ReactNode> = {
 		setup: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection
-					title="Strategy & Grouping"
-					isDefaultExpanded
-					badge={strategyType === 'protocols' ? 'Protocols' : 'Chains'}
-					className="shadow-sm"
-				>
+				<CollapsibleSection title="Grouping" isDefaultExpanded badge="Protocols" className="shadow-sm">
 					<div className="flex flex-col gap-3">
 						<div>
-							<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Select Strategy</h4>
-							<StrategySelector strategyType={strategyType} onStrategyChange={setStrategy} />
-						</div>
-						<div>
 							<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Configure Grouping</h4>
-							<GroupingOptions
-								strategyType={strategyType}
-								rowHeaders={rowHeaders}
-								onToggleRowHeader={handleToggleRowHeader}
-							/>
+							<GroupingOptions rowHeaders={rowHeaders} onToggleRowHeader={handleToggleRowHeader} />
 						</div>
 					</div>
 				</CollapsibleSection>
@@ -505,7 +450,6 @@ const TabContent = ({
 									<p className="text-[10px] text-(--text-tertiary)">Based on your filters</p>
 								</div>
 								<PresetPicker
-									strategyType={strategyType}
 									activePresetId={activePresetId}
 									onSelect={handlePresetSelect}
 									presets={recommendedPresets}
@@ -515,12 +459,7 @@ const TabContent = ({
 						<div className="flex flex-col gap-2">
 							<h4 className="text-xs font-semibold text-(--text-secondary)">All Data Views</h4>
 							{otherPresets.length > 0 ? (
-								<PresetPicker
-									strategyType={strategyType}
-									activePresetId={activePresetId}
-									onSelect={handlePresetSelect}
-									presets={otherPresets}
-								/>
+								<PresetPicker activePresetId={activePresetId} onSelect={handlePresetSelect} presets={otherPresets} />
 							) : (
 								<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-xs text-(--text-tertiary)">
 									All available data views are shown above.
@@ -580,7 +519,6 @@ const TabContent = ({
 							</div>
 						</div>
 						<ColumnManager
-							strategyType={strategyType}
 							columnOrder={localOrder}
 							columnVisibility={localVisibility}
 							onChange={handleColumnChange}
@@ -605,15 +543,9 @@ const TabContent = ({
 					<div className="space-y-2">
 						<div>
 							<h5 className="text-xs font-semibold text-(--text-secondary)">Filter presets</h5>
-							<p className="text-[11px] text-(--text-tertiary)">
-								Start from curated combinations tailored for each strategy.
-							</p>
+							<p className="text-[11px] text-(--text-tertiary)">Start from curated combinations.</p>
 						</div>
-						<PresetSelector
-							currentFilters={filters ?? {}}
-							strategyType={strategyType}
-							onApplyPreset={handleApplyPreset}
-						/>
+						<PresetSelector currentFilters={filters ?? {}} onApplyPreset={handleApplyPreset} />
 					</div>
 
 					<div className="space-y-2">
@@ -624,13 +556,10 @@ const TabContent = ({
 							</p>
 						</div>
 						<FiltersPanel
-							strategyType={strategyType}
 							chains={chains}
-							category={category}
 							filters={filters ?? {}}
 							availableChains={chainOptions}
 							onChainsChange={setChains}
-							onCategoryChange={setCategory}
 							onFiltersChange={handlePanelFiltersChange}
 						/>
 					</div>
@@ -642,7 +571,7 @@ const TabContent = ({
 								Add filters for TVL, volume, fees, revenue, and other metrics.
 							</p>
 						</div>
-						<FilterBuilder strategy={strategyType} filters={filters} onFiltersChange={handlePanelFiltersChange} />
+						<FilterBuilder filters={filters} onFiltersChange={handlePanelFiltersChange} />
 					</div>
 				</div>
 			</CollapsibleSection>
@@ -722,11 +651,7 @@ const TabContent = ({
 export function UnifiedTableTab(props: UnifiedTableTabProps) {
 	const { editItem, focusedSectionOnly, ...rest } = props
 	return (
-		<UnifiedTableWizardProvider
-			initialStrategy={editItem?.strategyType}
-			initialPresetId={editItem?.activePresetId}
-			initialConfig={editItem}
-		>
+		<UnifiedTableWizardProvider initialConfig={editItem}>
 			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
 		</UnifiedTableWizardProvider>
 	)
