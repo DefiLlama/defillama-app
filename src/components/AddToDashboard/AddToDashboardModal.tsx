@@ -21,6 +21,9 @@ function getConfigName(config: DashboardChartConfig): string {
 	if (config.kind === 'multi') {
 		return config.name || ''
 	}
+	if (config.kind === 'yields') {
+		return config.poolName || ''
+	}
 	return config.name || ''
 }
 
