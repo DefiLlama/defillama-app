@@ -9,6 +9,7 @@ import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
+import { AUTH_SERVER } from '~/constants'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
@@ -98,9 +99,21 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
+	const { authorizedFetch } = useAuthContext()
 	const { data: userHash } = useQuery({
 		queryKey: ['user-hash-front', user?.email],
-		queryFn: () => fetch(`/api/user-hash-front?email=${user?.email}`).then((res) => res.text()),
+		queryFn: () =>
+			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
+				.then((res) => {
+					if (!res.ok) {
+						throw new Error('Failed to fetch user hash')
+					}
+					return res.json()
+				})
+				.catch((err) => {
+					console.log('Error fetching user hash:', err)
+					return null
+				}),
 		enabled: !!user?.email
 	})
 
