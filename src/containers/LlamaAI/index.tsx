@@ -385,6 +385,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		isAutoScrollingRef.current = true
 	}, [])
 
+	const renderInlineChart = useCallback(
+		(chart: any, data: any) => (
+			<ChartRenderer
+				charts={[chart]}
+				chartData={data}
+				isLoading={false}
+				isAnalyzing={false}
+				resizeTrigger={resizeTrigger}
+			/>
+		),
+		[resizeTrigger]
+	)
+
 	useEffect(() => {
 		sessionIdRef.current = sessionId
 	}, [sessionId])
@@ -1127,13 +1140,20 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
 													}
 													if (item.role === 'assistant') {
+														const hasInlineCharts = item.content?.includes('[CHART:')
 														return (
 															<div
 																key={`assistant-${item.messageId || item.timestamp}-${index}`}
 																className="flex flex-col gap-2.5"
 															>
-																<MarkdownRenderer content={item.content} citations={item.citations} />
-																{item.charts && item.charts.length > 0 && (
+																<MarkdownRenderer
+																	content={item.content}
+																	citations={item.citations}
+																	charts={hasInlineCharts ? item.charts : undefined}
+																	chartData={hasInlineCharts ? item.chartData : undefined}
+																	renderChart={hasInlineCharts ? renderInlineChart : undefined}
+																/>
+																{!hasInlineCharts && item.charts && item.charts.length > 0 && (
 																	<ChartRenderer
 																		charts={item.charts}
 																		chartData={item.chartData || []}
@@ -1161,6 +1181,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														)
 													}
 													if (item.question) {
+														const hasInlineCharts = item.response?.answer?.includes('[CHART:')
+														const itemCharts = item.response?.charts || item.charts || []
+														const itemChartData = item.response?.chartData || item.chartData
 														return (
 															<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
 																<SentPrompt prompt={item.question} />
@@ -1168,12 +1191,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																	<MarkdownRenderer
 																		content={item.response?.answer || ''}
 																		citations={item.response?.citations || item.citations}
+																		charts={hasInlineCharts ? itemCharts : undefined}
+																		chartData={hasInlineCharts ? itemChartData : undefined}
+																		renderChart={hasInlineCharts ? renderInlineChart : undefined}
 																	/>
-																	{((item.response?.charts && item.response.charts.length > 0) ||
-																		(item.charts && item.charts.length > 0)) && (
+																	{!hasInlineCharts &&
+																		((item.response?.charts && item.response.charts.length > 0) ||
+																			(item.charts && item.charts.length > 0)) && (
 																		<ChartRenderer
-																			charts={item.response?.charts || item.charts || []}
-																			chartData={item.response?.chartData || item.chartData || []}
+																			charts={itemCharts}
+																			chartData={itemChartData}
 																			resizeTrigger={resizeTrigger}
 																		/>
 																	)}
@@ -1243,6 +1270,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
 														readOnly={readOnly}
+														renderChart={renderInlineChart}
 													/>
 												</div>
 											)}
@@ -1661,7 +1689,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="Stop"
 						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-						className="group absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="group absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1670,7 +1698,7 @@ const PromptInput = memo(function PromptInput({
 					<button
 						type="submit"
 						data-umami-event="llamaai-prompt-submit"
-						className="absolute right-2 bottom-3 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
@@ -1701,7 +1729,8 @@ const PromptResponse = ({
 	expectedChartInfo,
 	resizeTrigger = 0,
 	showMetadata = false,
-	readOnly = false
+	readOnly = false,
+	renderChart
 }: {
 	response?: {
 		answer: string
@@ -1730,6 +1759,7 @@ const PromptResponse = ({
 	resizeTrigger?: number
 	showMetadata?: boolean
 	readOnly?: boolean
+	renderChart?: (chart: any, data: any) => React.ReactNode
 }) => {
 	if (error && canRetry) {
 		return (
@@ -1756,7 +1786,14 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer content={streamingResponse} citations={response?.citations} isStreaming={true} />
+					<MarkdownRenderer
+						content={streamingResponse}
+						citations={response?.citations}
+						isStreaming={isStreaming}
+						charts={response?.charts}
+						chartData={response?.chartData}
+						renderChart={renderChart}
+					/>
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
@@ -1779,18 +1816,19 @@ const PromptResponse = ({
 						<LoadingDots />
 					</p>
 				)}
-				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) && (
-					<ChartRenderer
-						charts={[]}
-						chartData={[]}
-						isLoading={isAnalyzingForCharts || isGeneratingCharts}
-						isAnalyzing={isAnalyzingForCharts}
-						hasError={hasChartError}
-						expectedChartCount={expectedChartInfo?.count}
-						chartTypes={expectedChartInfo?.types}
-						resizeTrigger={resizeTrigger}
-					/>
-				)}
+				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) &&
+					!streamingResponse?.includes('[CHART:') && (
+						<ChartRenderer
+							charts={[]}
+							chartData={[]}
+							isLoading={isAnalyzingForCharts || isGeneratingCharts}
+							isAnalyzing={isAnalyzingForCharts}
+							hasError={hasChartError}
+							expectedChartCount={expectedChartInfo?.count}
+							chartTypes={expectedChartInfo?.types}
+							resizeTrigger={resizeTrigger}
+						/>
+					)}
 				{!readOnly && isGeneratingSuggestions && (
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
@@ -1804,13 +1842,37 @@ const PromptResponse = ({
 		)
 	}
 
+	const remainingCharts = (() => {
+		if (!response?.charts?.length) return null
+		const inlineIds = new Set<string>()
+		const pattern = /\[CHART:([^\]]+)\]/g
+		let match: RegExpExecArray | null
+		while ((match = pattern.exec(response.answer || '')) !== null) {
+			inlineIds.add(match[1])
+		}
+		const filtered = response.charts.filter((c: any) => !inlineIds.has(c.id))
+		if (!filtered.length) return null
+		const data = Array.isArray(response.chartData)
+			? response.chartData
+			: filtered.flatMap((c: any) => response.chartData?.[c.id] || [])
+		return { charts: filtered, data }
+	})()
+
 	return (
 		<>
-			{response?.answer && <MarkdownRenderer content={response.answer} citations={response.citations} />}
-			{response?.charts && response.charts.length > 0 && (
-				<ChartRenderer
+			{response?.answer && (
+				<MarkdownRenderer
+					content={response.answer}
+					citations={response.citations}
 					charts={response.charts}
-					chartData={response.chartData || []}
+					chartData={response.chartData}
+					renderChart={renderChart}
+				/>
+			)}
+			{remainingCharts && (
+				<ChartRenderer
+					charts={remainingCharts.charts}
+					chartData={remainingCharts.data}
 					isLoading={false}
 					isAnalyzing={false}
 					expectedChartCount={expectedChartInfo?.count}
