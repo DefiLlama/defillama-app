@@ -20,20 +20,18 @@ export const BorrowAggregatorAdvanced = ({
 		[unboundedDebtCeilingProjects]
 	)
 	const { pathname, query } = useRouter()
-	const customLTV = typeof query.customLTV === 'string' ? query.customLTV : null
-	const minAvailable = typeof query.minAvailable === 'string' ? query.minAvailable : null
-	const maxAvailable = typeof query.maxAvailable === 'string' ? query.maxAvailable : null
 
 	const lendAmount = query.lendAmount ? +query.lendAmount : 0
 	const borrowAmount = query.borrowAmount ? +query.borrowAmount : 0
 
 	const { lend, borrow } = query
-	const { selectedChains, selectedAttributes, selectedLendingProtocols } = useFormatYieldQueryParams({
-		projectList,
-		chainList,
-		lendingProtocols,
-		categoryList
-	})
+	const { selectedChains, selectedAttributes, selectedLendingProtocols, customLTV, minAvailable, maxAvailable } =
+		useFormatYieldQueryParams({
+			projectList,
+			chainList,
+			lendingProtocols,
+			categoryList
+		})
 
 	// get cdp collateral -> debt token route
 	const cdpPools = pools
@@ -47,6 +45,9 @@ export const BorrowAggregatorAdvanced = ({
 		} else if (lend === undefined || borrow === undefined) {
 			return []
 		}
+		const selectedChainsSet = new Set(selectedChains)
+		const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
+
 		let filteredPools = findOptimizerPools({
 			pools: lendingPools,
 			tokenToLend: lend,
@@ -76,20 +77,20 @@ export const BorrowAggregatorAdvanced = ({
 						? {
 								...pool,
 								borrow: { ...pool.borrow, totalAvailableUsd: Number.POSITIVE_INFINITY }
-						  }
+							}
 						: pool
 
 				return filterPool({
 					pool: poolForFilter,
-					selectedChains,
+					selectedChainsSet,
 					selectedAttributes,
 					minAvailable,
 					maxAvailable,
-					selectedLendingProtocols,
+					selectedLendingProtocolsSet,
 					customLTV
 				})
 			})
-			.map((p) => formatOptimizerPool(p, customLTV))
+			.map((p) => formatOptimizerPool({ pool: p, customLTV }))
 			.sort((a, b) => b.totalReward - a.totalReward)
 
 		return filteredPools
@@ -105,7 +106,7 @@ export const BorrowAggregatorAdvanced = ({
 		selectedLendingProtocols,
 		customLTV,
 		pathname,
-		unboundedDebtCeilingProjects
+		unlimitedDebtProjects
 	])
 
 	const tokens = React.useMemo(() => {
