@@ -7,10 +7,19 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getEntityUrl } from '../utils/entityLinks'
 
+interface ChartConfig {
+	id: string
+	type: string
+	[key: string]: any
+}
+
 interface MarkdownRendererProps {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
+	charts?: ChartConfig[]
+	chartData?: any[] | Record<string, any[]>
+	renderChart?: (chart: ChartConfig, data: any[]) => React.ReactNode
 }
 
 interface EntityLinkProps {
@@ -109,57 +118,79 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 export const MarkdownRenderer = memo(function MarkdownRenderer({
 	content,
 	citations,
-	isStreaming = false
+	isStreaming = false,
+	charts,
+	chartData,
+	renderChart
 }: MarkdownRendererProps) {
+	const { contentParts, inlineChartIds } = useMemo(() => {
+		const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
+		const parts: Array<{ type: 'text' | 'chart'; content: string; chartId?: string }> = []
+		const foundChartIds = new Set<string>()
+		let lastIndex = 0
+		let match: RegExpExecArray | null
+
+		while ((match = chartPlaceholderPattern.exec(content)) !== null) {
+			if (match.index > lastIndex) {
+				parts.push({ type: 'text', content: content.slice(lastIndex, match.index) })
+			}
+			const chartId = match[1]
+			parts.push({ type: 'chart', content: '', chartId })
+			foundChartIds.add(chartId)
+			lastIndex = match.index + match[0].length
+		}
+
+		if (lastIndex < content.length) {
+			parts.push({ type: 'text', content: content.slice(lastIndex) })
+		}
+
+		if (parts.length === 0) {
+			parts.push({ type: 'text', content })
+		}
+
+		return { contentParts: parts, inlineChartIds: foundChartIds }
+	}, [content])
+
+	const processCitations = useMemo(() => {
+		return (text: string): string => {
+			if (!citations || citations.length === 0) {
+				return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
+			}
+			return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (_, nums) => {
+				const parts = nums.split(',').map((p: string) => p.trim())
+				const expandedNums: number[] = []
+				parts.forEach((part: string) => {
+					if (part.includes('-')) {
+						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
+						if (!isNaN(start) && !isNaN(end) && start <= end) {
+							for (let i = start; i <= end; i++) expandedNums.push(i)
+						}
+					} else {
+						const num = parseInt(part.trim())
+						if (!isNaN(num)) expandedNums.push(num)
+					}
+				})
+				return expandedNums
+					.map((num) => {
+						const idx = num - 1
+						return citations[idx]
+							? `<a href="${citations[idx]}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
+							: `<span class="citation-badge">${num}</span>`
+					})
+					.join('')
+			})
+		}
+	}, [citations])
+
 	const processedData = useMemo(() => {
 		const linkMap = new Map<string, string>()
-
 		const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/[^)]*)\)/g
 		let match: RegExpExecArray | null
 		while ((match = llamaLinkPattern.exec(content)) !== null) {
 			linkMap.set(match[1], match[2])
 		}
-
-		let processedContent = content
-
-		if (!citations || citations.length === 0) {
-			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
-		} else {
-			processedContent = content.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (match, nums) => {
-				const parts = nums.split(',').map((p: string) => p.trim())
-				const expandedNums: number[] = []
-
-				parts.forEach((part: string) => {
-					if (part.includes('-')) {
-						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
-						if (!isNaN(start) && !isNaN(end) && start <= end) {
-							for (let i = start; i <= end; i++) {
-								expandedNums.push(i)
-							}
-						}
-					} else {
-						const num = parseInt(part.trim())
-						if (!isNaN(num)) {
-							expandedNums.push(num)
-						}
-					}
-				})
-
-				const badges = expandedNums
-					.map((num: number) => {
-						const idx = num - 1
-						if (citations[idx]) {
-							return `<a href="${citations[idx]}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
-						}
-						return `<span class="citation-badge">${num}</span>`
-					})
-					.join('')
-				return badges
-			})
-		}
-
-		return { content: processedContent, linkMap }
-	}, [content, citations])
+		return { content: processCitations(content), linkMap }
+	}, [content, processCitations])
 
 	const LinkRenderer = useMemo(() => {
 		return (props: any) => {
@@ -171,6 +202,32 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 			return EntityLinkRenderer(props)
 		}
 	}, [processedData.linkMap])
+
+	const renderMarkdownSection = (markdownContent: string, key: string) => (
+		<ReactMarkdown
+			key={key}
+			remarkPlugins={[remarkGfm]}
+			rehypePlugins={[rehypeRaw]}
+			components={{
+				a: LinkRenderer,
+				table: ({ children }) => <TableWrapper isStreaming={isStreaming}>{children}</TableWrapper>,
+				th: ({ children }) => (
+					<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
+						{children}
+					</th>
+				),
+				td: ({ children }) => (
+					<td className="border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C]">
+						{children}
+					</td>
+				),
+				ul: ({ children }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
+				ol: ({ children }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
+			}}
+		>
+			{markdownContent}
+		</ReactMarkdown>
+	)
 
 	return (
 		<div className="prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal">
@@ -204,28 +261,38 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 					bottom: 0 !important;
 				}
 			`}</style>
-			<ReactMarkdown
-				remarkPlugins={[remarkGfm]}
-				rehypePlugins={[rehypeRaw]}
-				components={{
-					a: LinkRenderer,
-					table: ({ children }) => <TableWrapper isStreaming={isStreaming}>{children}</TableWrapper>,
-					th: ({ children }) => (
-						<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
-							{children}
-						</th>
-					),
-					td: ({ children }) => (
-						<td className="border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C]">
-							{children}
-						</td>
-					),
-					ul: ({ children }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
-					ol: ({ children }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
-				}}
-			>
-				{processedData.content}
-			</ReactMarkdown>
+			{inlineChartIds.size > 0 ? (
+				contentParts.map((part, index) => {
+					if (part.type === 'chart' && part.chartId) {
+						const chart = charts?.find((c) => c.id === part.chartId)
+						if (chart && renderChart) {
+							const data = !chartData ? [] : Array.isArray(chartData) ? chartData : (chartData[part.chartId] || [])
+							return (
+								<div key={`chart-${part.chartId}-${index}`} className="my-4">
+									{renderChart(chart, data)}
+								</div>
+							)
+						}
+						if (isStreaming || !charts || charts.length === 0) {
+							return (
+								<div
+									key={`chart-loading-${part.chartId}-${index}`}
+									className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+								>
+									<span className="text-gray-500">Loading chart...</span>
+								</div>
+							)
+						}
+						return null
+					}
+					if (part.content.trim()) {
+						return renderMarkdownSection(processCitations(part.content), `text-${index}`)
+					}
+					return null
+				})
+			) : (
+				renderMarkdownSection(processedData.content, 'content')
+			)}
 			{citations && citations.length > 0 && (
 				<details className="flex flex-col text-sm">
 					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
