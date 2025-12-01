@@ -32,7 +32,7 @@ const PageView = () => {
 	const { data: configData, isLoading: fetchingConfigData } = useConfigPool(tokens?.length ? tokens.join(',') : '')
 
 	const configsMap = useMemo(() => {
-		return configData?.data ? new Map(configData.data.map((p) => [p.config_id, p])) : null
+		return configData?.data ? new Map(configData.data.map((p) => [p.config_id, p])) : new Map()
 	}, [configData])
 	const project = configsMap?.get(lendToken)?.project
 
