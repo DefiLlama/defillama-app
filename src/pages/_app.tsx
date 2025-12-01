@@ -1,4 +1,5 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import Script from 'next/script'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import '~/tailwind.css'
@@ -51,6 +52,8 @@ function LlamaAIWelcomeWrapper() {
 function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
 
+	const { user } = useAuthContext()
+
 	useEffect(() => {
 		const handleRouteChange = () => {
 			NProgress.start()
@@ -95,18 +98,52 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
+	const { data: userHash } = useQuery({
+		queryKey: ['user-hash-front', user?.email],
+		queryFn: () => fetch(`/api/user-hash-front?email=${user?.email}`).then((res) => res.text()),
+		enabled: !!user?.email
+	})
+
 	return (
-		<QueryClientProvider client={client}>
-			<AuthProvider>
-				<UserSettingsSync />
-				<FeatureFlagsProvider>
-					<Component {...pageProps} />
-					<LlamaAIWelcomeWrapper />
-				</FeatureFlagsProvider>
-			</AuthProvider>
-			<ReactQueryDevtools initialIsOpen={false} />
-		</QueryClientProvider>
+		<>
+			{userHash ? (
+				<Script
+					src="/front-chat.js"
+					strategy="afterInteractive"
+					onLoad={() => {
+						if (typeof window !== 'undefined' && (window as any).FrontChat) {
+							;(window as any).FrontChat('init', {
+								chatId: '623911979437ffab2baa1ecd42c9e27f',
+								useDefaultLauncher: true,
+								email: user.email,
+								name: user.name,
+								userHash
+							})
+						}
+					}}
+				/>
+			) : null}
+
+			<Component {...pageProps} />
+		</>
 	)
 }
 
-export default App
+const AppWrapper = (props: AppProps) => {
+	return (
+		<>
+			<QueryClientProvider client={client}>
+				<AuthProvider>
+					<UserSettingsSync />
+					<FeatureFlagsProvider>
+						<App {...props} />
+						<LlamaAIWelcomeWrapper />
+					</FeatureFlagsProvider>
+				</AuthProvider>
+				<ReactQueryDevtools initialIsOpen={false} />
+			</QueryClientProvider>
+		</>
+	)
+}
+
+export default AppWrapper
