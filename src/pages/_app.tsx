@@ -110,6 +110,7 @@ function App({ Component, pageProps }: AppProps) {
 					}
 					return res.json()
 				})
+				.then((data) => data.userHash)
 				.catch((err) => {
 					console.log('Error fetching user hash:', err)
 					return null
@@ -132,7 +133,6 @@ function App({ Component, pageProps }: AppProps) {
 								chatId: '623911979437ffab2baa1ecd42c9e27f',
 								useDefaultLauncher: true,
 								email: user.email,
-								name: user.name,
 								userHash
 							})
 						}
