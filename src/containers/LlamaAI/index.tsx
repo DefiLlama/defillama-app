@@ -1762,7 +1762,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="Stop"
 						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-						className="group absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="group absolute right-2 bottom-2 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1771,7 +1771,7 @@ const PromptInput = memo(function PromptInput({
 					<button
 						type="submit"
 						data-umami-event="llamaai-prompt-submit"
-						className="absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="absolute right-2 bottom-2 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
