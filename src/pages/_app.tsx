@@ -101,7 +101,7 @@ function App({ Component, pageProps }: AppProps) {
 
 	const { authorizedFetch } = useAuthContext()
 	const { data: userHash } = useQuery({
-		queryKey: ['user-hash-front', user?.email],
+		queryKey: ['user-hash-front', user?.id],
 		queryFn: () =>
 			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
 				.then((res) => {
@@ -114,8 +114,10 @@ function App({ Component, pageProps }: AppProps) {
 					console.log('Error fetching user hash:', err)
 					return null
 				}),
-		enabled: !!user?.email,
-		staleTime: 1000 * 60 * 60 * 24
+		enabled: !!user?.id,
+		staleTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		retry: 3
 	})
 
 	return (
