@@ -1,6 +1,36 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
 import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
+
+const CUMULATIVE_METRIC_TYPES = new Set([
+	'volume',
+	'fees',
+	'revenue',
+	'perps',
+	'aggregators',
+	'bridgeAggregators',
+	'perpsAggregators',
+	'bribes',
+	'tokenTax',
+	'holdersRevenue',
+	'optionsPremium',
+	'optionsNotional',
+	'tokenVolume',
+	'users',
+	'txs',
+	'activeUsers',
+	'newUsers',
+	'gasUsed',
+	'stablecoinInflows',
+	'chainFees',
+	'chainRevenue',
+	'incentives',
+	'options'
+])
+
+function getDefaultAggregator(metricType: string): MetricAggregator {
+	return CUMULATIVE_METRIC_TYPES.has(metricType) ? 'sum' : 'latest'
+}
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('charts')
@@ -46,9 +76,17 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
 	const [metricChain, setMetricChain] = useState<string | null>(null)
 	const [metricProtocol, setMetricProtocol] = useState<string | null>(null)
-	const [metricType, setMetricType] = useState<string>('tvl')
+	const [metricType, setMetricTypeInternal] = useState<string>('tvl')
 	const [metricAggregator, setMetricAggregator] = useState<MetricAggregator>('latest')
 	const [metricWindow, setMetricWindow] = useState<'7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'>('30d')
+
+	const setMetricType = useCallback(
+		(type: string) => {
+			setMetricTypeInternal(type)
+			setMetricAggregator(getDefaultAggregator(type))
+		},
+		[setMetricTypeInternal, setMetricAggregator]
+	)
 	const [metricLabel, setMetricLabel] = useState<string>('')
 	const [metricShowSparkline, setMetricShowSparkline] = useState<boolean>(true)
 	const [selectedYieldPool, setSelectedYieldPool] = useState<{
@@ -128,7 +166,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setMetricSubjectType(editItem.subject.itemType)
 				setMetricChain(editItem.subject.chain || null)
 				setMetricProtocol(editItem.subject.protocol || null)
-				setMetricType(editItem.type)
+				setMetricTypeInternal(editItem.type)
 				setMetricAggregator(editItem.aggregator)
 				setMetricWindow(editItem.window)
 				setMetricLabel(editItem.label || '')
