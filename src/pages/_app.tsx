@@ -12,7 +12,6 @@ import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AUTH_SERVER } from '~/constants'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 
@@ -23,10 +22,13 @@ const client = new QueryClient()
 function LlamaAIWelcomeWrapper() {
 	const [shown, setShown] = useLlamaAIWelcome()
 	const isClient = useIsClient()
-	const { hasFeature, loading } = useFeatureFlagsContext()
+
 	const { subscription } = useSubscribe()
 	const router = useRouter()
 	const [showModal, setShowModal] = useState(false)
+	const { user } = useAuthContext()
+
+	const hasFeatureLlamaAI = user?.flags?.llamaai ?? false
 
 	useEffect(() => {
 		if (shown) return
@@ -35,10 +37,10 @@ function LlamaAIWelcomeWrapper() {
 		const pathname = router.pathname
 		if (pathname.startsWith('/ai') || pathname.startsWith('/subscription')) return
 
-		if (isClient && !loading && hasFeature('llamaai')) {
+		if (isClient && hasFeatureLlamaAI) {
 			setShowModal(true)
 		}
-	}, [shown, isClient, loading, hasFeature, subscription, router.pathname])
+	}, [shown, isClient, hasFeatureLlamaAI, subscription, router.pathname])
 
 	const handleClose = () => {
 		setShowModal(false)
@@ -152,10 +154,8 @@ const AppWrapper = (props: AppProps) => {
 			<QueryClientProvider client={client}>
 				<AuthProvider>
 					<UserSettingsSync />
-					<FeatureFlagsProvider>
-						<App {...props} />
-						<LlamaAIWelcomeWrapper />
-					</FeatureFlagsProvider>
+					<App {...props} />
+					<LlamaAIWelcomeWrapper />
 				</AuthProvider>
 				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
 			</QueryClientProvider>

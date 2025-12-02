@@ -3,25 +3,21 @@ import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import Layout from '~/layout'
 
 export default function SessionPage() {
 	const router = useRouter()
 	const { sessionId } = router.query
-	const { hasFeature } = useFeatureFlagsContext()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders } = useAuthContext()
+	const { user, loaders, hasActiveSubscription } = useAuthContext()
 
-	const isLoading = isSubscriptionLoading || loaders.userLoading
+	const isLoading = loaders.userLoading
 
 	useEffect(() => {
 		if (isLoading) return
-		if (subscription?.status !== 'active') {
+		if (!hasActiveSubscription) {
 			router.push('/ai')
 		}
-	}, [subscription, isLoading, router])
+	}, [isLoading, hasActiveSubscription, router])
 
 	if (isLoading) {
 		return (
@@ -39,14 +35,14 @@ export default function SessionPage() {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
+	if (!hasActiveSubscription) {
 		return null
 	}
 
 	return (
 		<LlamaAI
 			initialSessionId={sessionId as string}
-			showDebug={hasFeature('llama-ai-debug')}
+			showDebug={user?.flags?.['llama-ai-debug'] ?? false}
 			key={`llamai-session-page-${sessionId}`}
 		/>
 	)
