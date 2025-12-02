@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 import { AUTH_SERVER } from '../constants'
 
@@ -46,7 +47,7 @@ interface Credits {
 	maxCredits: number
 	monthKey: string
 }
-const defaultInactiveSubscription = {
+const defaultInactiveSubscription: SubscriptionResponse = {
 	subscription: {
 		status: 'inactive',
 		id: '',
@@ -59,41 +60,60 @@ const defaultInactiveSubscription = {
 	}
 }
 
+const API_KEY_LOCAL_STORAGE_KEY = 'pro_apikey'
+const API_KEY_LISTENER_KEY = 'apiKeyChange'
+
+function subscribeToApiKeyInLocalStorage(callback: () => void) {
+	window.addEventListener(API_KEY_LISTENER_KEY, callback)
+
+	return () => {
+		window.removeEventListener(API_KEY_LISTENER_KEY, callback)
+	}
+}
+
+async function fetchSubscription({
+	type,
+	isAuthenticated
+}: {
+	type: 'api' | 'llamafeed' | 'legacy'
+	isAuthenticated: boolean
+}): Promise<SubscriptionResponse> {
+	if (!isAuthenticated) {
+		return defaultInactiveSubscription
+	}
+
+	try {
+		const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${pb.authStore.token}`
+			},
+			body: JSON.stringify({ subscriptionType: type })
+		})
+
+		if (!response.ok) {
+			return defaultInactiveSubscription
+		}
+
+		const data = await response.json()
+		if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
+			return defaultInactiveSubscription
+		}
+
+		return data
+	} catch (error) {
+		console.log('Error fetching subscription:', error)
+		return defaultInactiveSubscription
+	}
+}
+
 const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 	const { isAuthenticated } = useAuthContext()!
 
 	const data = useQuery<SubscriptionResponse>({
 		queryKey: ['subscription', pb.authStore.record?.id, type],
-		queryFn: async () => {
-			if (!isAuthenticated) {
-				return defaultInactiveSubscription
-			}
-
-			try {
-				const response = await fetch(`${AUTH_SERVER}/subscription/status`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ subscriptionType: type })
-				})
-
-				if (!response.ok) {
-					return defaultInactiveSubscription
-				}
-
-				const data = await response.json()
-				if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
-					return defaultInactiveSubscription
-				}
-
-				return data
-			} catch (error) {
-				console.log('Error fetching subscription:', error)
-				return defaultInactiveSubscription
-			}
-		},
+		queryFn: () => fetchSubscription({ type, isAuthenticated }),
 		placeholderData: defaultInactiveSubscription,
 		retry: false,
 		refetchOnWindowFocus: false,
@@ -110,8 +130,6 @@ export const useSubscribe = () => {
 	const queryClient = useQueryClient()
 	const [isStripeLoading, setIsStripeLoading] = useState(false)
 	const [isLlamaLoading, setIsLlamaLoading] = useState(false)
-	const [apiKey, setApiKey] = useState<string | null>(null)
-	const [isApiKeyLoading, setIsApiKeyLoading] = useState(false)
 	const isAuthenticated = !!pb.authStore.token
 
 	const createSubscription = useMutation<SubscriptionCreateResponse, Error, SubscriptionRequest>({
@@ -213,49 +231,55 @@ export const useSubscribe = () => {
 		isError: isLegacySubscriptionError
 	} = useSubscription('legacy')
 
-	useEffect(() => {
-		if (router.pathname !== '/account') return
-		const fetchApiKey = async () => {
-			if (isAuthenticated && apiSubscription?.subscription?.status === 'active') {
-				setIsApiKeyLoading(true)
-				try {
-					const response = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
-
-					if (response?.ok) {
-						const data = await response.json()
-						setApiKey(data.apiKey.api_key || null)
-						window.localStorage.setItem('pro_apikey', data.apiKey.api_key)
-					}
-				} catch (error) {
-					console.log('Error fetching API key:', error)
-				} finally {
-					setIsApiKeyLoading(false)
+	const apiKeyQuery = useQuery({
+		queryKey: ['apiKey', pb.authStore.record?.id],
+		queryFn: async () => {
+			try {
+				const data: { apiKey: { api_key: string } } = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+				const newApiKey = data.apiKey?.api_key ?? null
+				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
+				if (newApiKey !== currentApiKey) {
+					window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					window.dispatchEvent(new Event(API_KEY_LISTENER_KEY))
 				}
+				return newApiKey
+			} catch (error) {
+				throw new Error(error instanceof Error ? error.message : 'Failed to fetch API key')
+			}
+		},
+		staleTime: 24 * 60 * 60 * 1000, // 24 hours
+		refetchOnWindowFocus: false,
+		enabled: isAuthenticated && apiSubscription?.subscription?.status === 'active' && router.pathname === '/account'
+	})
+
+	const generateNewKeyMutation = useMutation({
+		mutationFn: async () => {
+			try {
+				const data: { apiKey: string } = await authorizedFetch(`${AUTH_SERVER}/auth/generate-api-key`, {
+					method: 'POST'
+				})
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+				const newApiKey = data.apiKey ?? null
+				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
+				if (newApiKey !== currentApiKey) {
+					window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					window.dispatchEvent(new Event(API_KEY_LISTENER_KEY))
+				}
+				return newApiKey
+			} catch (error) {
+				throw new Error(error instanceof Error ? error.message : 'Failed to generate API key')
 			}
 		}
+	})
 
-		fetchApiKey()
-	}, [isAuthenticated, apiSubscription?.subscription?.status, authorizedFetch, router.pathname])
-
-	const generateNewKey = async () => {
-		setIsApiKeyLoading(true)
-		try {
-			const response = await authorizedFetch(`${AUTH_SERVER}/auth/generate-api-key`, {
-				method: 'POST'
-			})
-
-			if (response?.ok) {
-				const data = await response.json()
-				console.log({ data })
-				setApiKey(data.apiKey || null)
-				window.localStorage.setItem('pro_apikey', data.apiKey)
-			}
-		} catch (error) {
-			console.log('Error generating API key:', error)
-		} finally {
-			setIsApiKeyLoading(false)
-		}
-	}
+	const apiKey = useSyncExternalStore(
+		subscribeToApiKeyInLocalStorage,
+		() => localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY) ?? null,
+		() => null
+	)
 
 	const subscriptionData =
 		[apiSubscription?.subscription, llamafeedSubscription?.subscription, legacySubscription?.subscription].find(
@@ -267,7 +291,7 @@ export const useSubscribe = () => {
 		isLoading: isCreditsLoading,
 		refetch: refetchCredits
 	} = useQuery<Credits>({
-		queryKey: ['credits', pb.authStore.record?.id],
+		queryKey: ['credits', pb.authStore.record?.id, apiKey],
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
@@ -291,12 +315,6 @@ export const useSubscribe = () => {
 		staleTime: 1000 * 60 * 5,
 		retry: false
 	})
-
-	useEffect(() => {
-		if (apiKey) {
-			refetchCredits()
-		}
-	}, [apiKey])
 
 	const createPortalSessionMutation = useMutation({
 		mutationFn: async (subscriptionType?: string) => {
@@ -437,8 +455,8 @@ export const useSubscribe = () => {
 		isSubscriptionError:
 			isAuthenticated && (isApiSubscriptionError || isLlamafeedSubscriptionError || isLegacySubscriptionError),
 		apiKey,
-		isApiKeyLoading,
-		generateNewKey,
+		isApiKeyLoading: apiKey === null && apiKeyQuery.isLoading,
+		generateNewKeyMutation,
 		credits: credits?.credits,
 		isCreditsLoading,
 		refetchCredits,

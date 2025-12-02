@@ -17,9 +17,6 @@ export const AccountInfo = () => {
 
 	const {
 		subscription,
-		apiKey,
-		isApiKeyLoading,
-		generateNewKey,
 		credits,
 		isCreditsLoading,
 		createPortalSession,
@@ -147,9 +144,6 @@ export const AccountInfo = () => {
 				)}
 
 				<SubscriberContent
-					apiKey={apiKey}
-					isApiKeyLoading={isApiKeyLoading}
-					generateNewKey={generateNewKey}
 					credits={credits}
 					isCreditsLoading={isCreditsLoading}
 					subscription={subscription}

@@ -9,9 +9,6 @@ import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { Subscription, useSubscribe } from '~/hooks/useSubscribe'
 
 interface SubscriberContentProps {
-	apiKey: string | null
-	isApiKeyLoading: boolean
-	generateNewKey: () => void
 	credits: number | null
 	isCreditsLoading: boolean
 	subscription: Subscription
@@ -25,9 +22,6 @@ interface SubscriberContentProps {
 }
 
 export const SubscriberContent = ({
-	apiKey,
-	isApiKeyLoading,
-	generateNewKey,
 	credits,
 	isCreditsLoading,
 	subscription,
@@ -42,7 +36,7 @@ export const SubscriberContent = ({
 	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
 	const isLegacy = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
-	const { loading } = useSubscribe()
+	const { loading, apiKey, isApiKeyLoading, generateNewKeyMutation } = useSubscribe()
 
 	const currentSubscription = isLlamaFeed ? llamafeedSubscription : isPro ? apiSubscription : null
 	const currentBillingInterval = currentSubscription?.billing_interval
@@ -199,16 +193,20 @@ export const SubscriberContent = ({
 												/>
 											</button>
 											<button
-												onClick={generateNewKey}
+												onClick={() => generateNewKeyMutation.mutate()}
 												className="group flex items-center gap-1.5 rounded-lg p-2 text-sm text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/5 hover:text-[#4A4AF0]"
-												disabled={isApiKeyLoading}
+												disabled={generateNewKeyMutation.isPending}
 												aria-label="Regenerate API key"
 											>
 												<Icon
 													name="repeat"
 													height={14}
 													width={14}
-													className={isApiKeyLoading ? 'animate-spin' : 'transition-transform group-hover:rotate-90'}
+													className={
+														generateNewKeyMutation.isPending
+															? 'animate-spin'
+															: 'transition-transform group-hover:rotate-90'
+													}
 												/>
 												<span>Regenerate</span>
 											</button>
@@ -327,11 +325,11 @@ export const SubscriberContent = ({
 								</div>
 
 								<button
-									onClick={generateNewKey}
+									onClick={() => generateNewKeyMutation.mutate()}
 									className="group relative mx-auto flex items-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#5842C3] px-6 py-3.5 font-medium text-white shadow-lg transition-colors hover:from-[#4A4AF0] hover:to-[#4335A8]"
-									disabled={isApiKeyLoading}
+									disabled={generateNewKeyMutation.isPending}
 								>
-									{isApiKeyLoading ? (
+									{generateNewKeyMutation.isPending ? (
 										<>
 											<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
 											<span>Generating...</span>
