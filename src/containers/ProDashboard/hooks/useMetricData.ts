@@ -226,9 +226,9 @@ export function useMetricData(metric: MetricConfig) {
 			if (aggregator === 'latest') {
 				if (finiteValues.length >= 2) {
 					const curr = finiteValues[finiteValues.length - 1]
-					const prev = finiteValues[finiteValues.length - 2]
-					delta = curr - prev
-					deltaPct = prev !== 0 ? (delta / prev) * 100 : null
+					const first = finiteValues[0]
+					delta = curr - first
+					deltaPct = first !== 0 ? (delta / first) * 100 : null
 				}
 			} else if (value !== null && previousValue !== null) {
 				delta = value - previousValue
