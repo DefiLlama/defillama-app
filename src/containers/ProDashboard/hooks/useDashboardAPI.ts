@@ -59,7 +59,7 @@ export function useGetLiteDashboards() {
 export function useDashboardAPI() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
 	// Query for fetching dashboards list
 	const {
@@ -67,7 +67,7 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards', isAuthenticated],
+		queryKey: ['dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
@@ -78,7 +78,7 @@ export function useDashboardAPI() {
 			}
 		},
 		staleTime: 1000 * 60 * 5,
-		enabled: isAuthenticated
+		enabled: isAuthenticated && !!user?.id
 	})
 
 	const createDashboardMutation = useMutation({
