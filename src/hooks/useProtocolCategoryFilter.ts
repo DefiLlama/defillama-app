@@ -55,7 +55,7 @@ export function useProtocolCategoryFilter<T extends { category?: string | null; 
 
 	const filterProtocolsByCategory = useCallback(
 		(protocolList: Array<T>): T[] => {
-			const isInFilter = (protocol: any) => protocol.category && selectedCategories.includes(protocol.category)
+			const isInFilter = (protocol: T) => protocol.category && selectedCategories.includes(protocol.category)
 
 			// create a local list with child protocols removed that aren't in the filter
 			const formattedProtocolList = protocolList.map((protocol) => {
