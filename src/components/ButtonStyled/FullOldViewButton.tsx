@@ -13,8 +13,7 @@ const SubscribeProModal = lazy(() =>
 
 export const FullOldViewButton = () => {
 	const { createDashboardWithDataset, isLoading } = useDashboardCreation()
-	const { user, loaders, isAuthenticated } = useAuthContext()
-	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const { loaders, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 

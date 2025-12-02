@@ -43,8 +43,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 	expandLegend
 }: ChartExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
-	const { user, isAuthenticated, loaders } = useAuthContext()
-	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const router = useRouter()
 	const isClient = useIsClient()

@@ -49,8 +49,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 }: CSVDownloadButtonPropsUnion) {
 	const [staticLoading, setStaticLoading] = useState(false)
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const { user, isAuthenticated, loaders } = useAuthContext()
-	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 	const isLoading = loaders.userLoading || loading || staticLoading ? true : false
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()

@@ -30,21 +30,17 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 }: AddToDashboardButtonProps) {
 	const dashboardDialogStore = Ariakit.useDialogStore()
 	const subscribeDialogStore = Ariakit.useDialogStore()
-	const { user, loaders, isAuthenticated } = useAuthContext()
+	const { loaders, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
 
 	const config = chartConfig ?? multiChart
 
-	const isLoading = loaders.userLoading
-
-	const hasActiveSubscription = user?.has_active_subscription ?? false
-
 	const handleClick = () => {
 		if (!config || disabled) return
 
-		if (!isLoading && hasActiveSubscription && isAuthenticated) {
+		if (hasActiveSubscription && isAuthenticated) {
 			dashboardDialogStore.show()
-		} else if (!isLoading) {
+		} else {
 			subscribeDialogStore.show()
 		}
 	}
@@ -55,7 +51,7 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 	const button = (
 		<button
 			onClick={handleClick}
-			disabled={isLoading || disabled || !config}
+			disabled={loaders.userLoading || disabled || !config}
 			className={baseClassName}
 			data-umami-event="add-to-dashboard-click"
 			title="Add to Pro Dashboard"

@@ -48,8 +48,7 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { user, isAuthenticated } = useAuthContext()
-	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const { user, isAuthenticated, hasActiveSubscription } = useAuthContext()
 
 	const hasEthWallet = Boolean(user?.walletAddress)
 	const hasSeenWalletPrompt =

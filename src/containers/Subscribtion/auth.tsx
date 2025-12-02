@@ -88,6 +88,7 @@ interface AuthContextType {
 	addEmail: (email: string) => void
 	isAuthenticated: boolean
 	user: AuthModel
+	hasActiveSubscription: boolean
 	loaders: {
 		login: boolean
 		signup: boolean
@@ -537,6 +538,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const userData = useMemo(() => {
 		if (!authStoreState?.record) return null
+
 		return {
 			id: authStoreState.record.id,
 			collectionId: authStoreState.record.collectionId,
@@ -572,6 +574,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		resendVerification: resendVerification.mutate,
 		addEmail: addEmail.mutate,
 		isAuthenticated,
+		hasActiveSubscription: userData?.hasActiveSubscription ?? false,
 		loaders: {
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,

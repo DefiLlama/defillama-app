@@ -59,8 +59,7 @@ const hideLlamaAI = new Set(['/ai'])
 export const MobileSearch = () => {
 	const router = useRouter()
 
-	const { user } = useAuthContext()
-	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const { hasActiveSubscription } = useAuthContext()
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
@@ -159,8 +158,7 @@ export const MobileSearch = () => {
 export const DesktopSearch = () => {
 	const router = useRouter()
 
-	const { user } = useAuthContext()
-	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const { hasActiveSubscription } = useAuthContext()
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)

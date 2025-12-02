@@ -29,7 +29,7 @@ function getConfigName(config: DashboardChartConfig): string {
 export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetrics = [] }: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
+	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const { data: dashboards = [], isLoading: isLoadingDashboards } = useGetLiteDashboards()
 
 	const [search, setSearch] = useState('')
@@ -39,7 +39,6 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	const [chartName, setChartName] = useState(getConfigName(chartConfig))
 	const [isAdding, setIsAdding] = useState(false)
 
-	const hasActiveSubscription = user?.has_active_subscription ?? false
 	const isOpen = dialogStore.getState().open
 
 	const filteredDashboards = useMemo(() => {
