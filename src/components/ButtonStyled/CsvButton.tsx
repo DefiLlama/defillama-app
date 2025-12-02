@@ -60,6 +60,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 			<button
 				data-umami-event="csv-download"
 				data-umami-event-page={router.pathname}
+				data-umami-event-subscribed={subscription?.status === 'active'}
 				className={
 					replaceClassName
 						? className
@@ -88,6 +89,13 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 								}
 
 								download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+
+								if (typeof window !== 'undefined' && (window as any).umami) {
+									;(window as any).umami.track('csv-downloaded', {
+										filename,
+										page: router.pathname
+									})
+								}
 							} catch (error) {
 								toast.error('Failed to download CSV')
 								console.log(error)
