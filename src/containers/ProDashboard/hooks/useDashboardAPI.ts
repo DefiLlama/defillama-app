@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -7,23 +7,53 @@ import { TimePeriod } from '../ProDashboardAPIContext'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
+function subscribeToLiteDashboardsChange(callback: () => void) {
+	window.addEventListener('liteDashboardsChange', callback)
+	return () => {
+		window.removeEventListener('liteDashboardsChange', callback)
+	}
+}
+
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
-	return useQuery({
+	const liteDashboardsInStorage = useSyncExternalStore(
+		subscribeToLiteDashboardsChange,
+		() => window.localStorage.getItem('lite-dashboards') ?? '[]',
+		() => '[]'
+	)
+
+	const liteDashboards = useMemo(() => {
+		return JSON.parse(liteDashboardsInStorage)
+	}, [liteDashboardsInStorage])
+
+	const { isLoading, error } = useQuery({
 		queryKey: ['lite-dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
-				return await dashboardAPI.listLiteDashboards(authorizedFetch)
+				const data = await dashboardAPI.listLiteDashboards(authorizedFetch)
+				window.localStorage.setItem('lite-dashboards', JSON.stringify(data))
+				return data
 			} catch (error) {
 				console.log('Failed to load lite dashboards:', error)
+				window.localStorage.setItem('lite-dashboards', '[]')
+
 				return []
+			} finally {
+				window.dispatchEvent(new Event('liteDashboardsChange'))
 			}
 		},
-		staleTime: 1000 * 60 * 5,
+		staleTime: 24 * 60 * 60 * 1000, // 24 hours
+		refetchOnWindowFocus: false,
 		enabled: isAuthenticated && !!user?.id
 	})
+
+	return {
+		data: liteDashboards,
+		isLoading: liteDashboards.length === 0 && isLoading,
+		error: error as Error | null
+	}
 }
 
 export function useDashboardAPI() {
@@ -65,6 +95,7 @@ export function useDashboardAPI() {
 		onSuccess: (dashboard) => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
 			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: any) => {
@@ -94,6 +125,7 @@ export function useDashboardAPI() {
 			queryClient.setQueriesData({ queryKey: ['dashboard', variables.id], exact: false }, dashboard)
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
 			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
@@ -108,6 +140,7 @@ export function useDashboardAPI() {
 		onSuccess: (_, deletedId) => {
 			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
 			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
