@@ -104,7 +104,7 @@ export default function SharedConversationPage() {
 			sharedSession={session}
 			isPublicView={true}
 			readOnly={true}
-			showDebug={user?.flags?.['llama-ai-debug'] ?? false}
+			showDebug={user?.flags?.['is_llama'] ?? false}
 		/>
 	)
 }

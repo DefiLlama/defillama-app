@@ -47,5 +47,5 @@ export default function LlamaAIPage() {
 		return null
 	}
 
-	return <LlamaAI showDebug={user?.flags?.['llama-ai-debug'] ?? false} />
+	return <LlamaAI showDebug={user?.flags?.['is_llama'] ?? false} />
 }
