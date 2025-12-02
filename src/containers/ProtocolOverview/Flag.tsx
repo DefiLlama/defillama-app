@@ -125,7 +125,7 @@ export function Flag({
 								<option value="Governance">Governance</option>
 								<option value="Bridge Volume">Bridge Volume</option>
 								<option value="Events">Events</option>
-								<option value="Raises">Events</option>
+								<option value="Raises">Raises</option>
 							</select>
 						)}
 					</label>
