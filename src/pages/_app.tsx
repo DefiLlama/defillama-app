@@ -11,7 +11,6 @@ import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AUTH_SERVER } from '~/constants'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 
@@ -23,16 +22,15 @@ function LlamaAIWelcomeWrapper() {
 	const [shown, setShown] = useLlamaAIWelcome()
 	const isClient = useIsClient()
 
-	const { subscription } = useSubscribe()
 	const router = useRouter()
 	const [showModal, setShowModal] = useState(false)
-	const { user } = useAuthContext()
+	const { user, hasActiveSubscription } = useAuthContext()
 
 	const hasFeatureLlamaAI = user?.flags?.llamaai ?? false
 
 	useEffect(() => {
 		if (shown) return
-		if (!subscription || subscription.status !== 'active') return
+		if (!hasActiveSubscription) return
 
 		const pathname = router.pathname
 		if (pathname.startsWith('/ai') || pathname.startsWith('/subscription')) return
@@ -40,7 +38,7 @@ function LlamaAIWelcomeWrapper() {
 		if (isClient && hasFeatureLlamaAI) {
 			setShowModal(true)
 		}
-	}, [shown, isClient, hasFeatureLlamaAI, subscription, router.pathname])
+	}, [shown, isClient, hasFeatureLlamaAI, hasActiveSubscription, router.pathname])
 
 	const handleClose = () => {
 		setShowModal(false)
@@ -101,8 +99,8 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
-	const { authorizedFetch } = useAuthContext()
-	const { hasActiveSubscription } = useSubscribe()
+	const { authorizedFetch, hasActiveSubscription } = useAuthContext()
+
 	const { data: userHash } = useQuery({
 		queryKey: ['user-hash-front', user?.id, hasActiveSubscription],
 		queryFn: () =>
