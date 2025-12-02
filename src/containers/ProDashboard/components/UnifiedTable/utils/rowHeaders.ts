@@ -1,18 +1,11 @@
 import type { UnifiedRowHeaderType } from '../../../types'
-import { DEFAULT_CHAINS_ROW_HEADERS, DEFAULT_PROTOCOLS_ROW_HEADERS } from '../constants'
+import { DEFAULT_ROW_HEADERS } from '../constants'
 
 const ALLOWED_HEADERS: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol', 'protocol']
 
-export function sanitizeRowHeaders(
-	rowHeaders: UnifiedRowHeaderType[] | undefined,
-	strategyType: 'protocols' | 'chains'
-): UnifiedRowHeaderType[] {
-	if (strategyType === 'chains') {
-		return [...DEFAULT_CHAINS_ROW_HEADERS]
-	}
-
+export function sanitizeRowHeaders(rowHeaders: UnifiedRowHeaderType[] | undefined): UnifiedRowHeaderType[] {
 	const unique: UnifiedRowHeaderType[] = []
-	const provided = rowHeaders && rowHeaders.length ? rowHeaders : DEFAULT_PROTOCOLS_ROW_HEADERS
+	const provided = rowHeaders && rowHeaders.length ? rowHeaders : DEFAULT_ROW_HEADERS
 
 	for (const header of provided) {
 		if (!ALLOWED_HEADERS.includes(header)) continue
@@ -20,7 +13,6 @@ export function sanitizeRowHeaders(
 		unique.push(header)
 	}
 
-	// Ensure protocol is always last and parent-protocol (if present) comes right before it
 	const protocolIndex = unique.indexOf('protocol')
 	if (protocolIndex !== -1) {
 		unique.splice(protocolIndex, 1)

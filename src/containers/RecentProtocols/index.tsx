@@ -322,6 +322,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 
 			<RecentlyListedProtocolsTable
 				data={protocolsData}
+				fullProtocolList={protocols}
 				queries={queries}
 				selectedChains={selectedChains}
 				chainList={chainList}

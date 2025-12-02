@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnOrderState,
@@ -13,11 +13,13 @@ import {
 	VisibilityState,
 	type Table
 } from '@tanstack/react-table'
-import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
+import type { ChainMetrics } from '~/server/unifiedTable/protocols'
+import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import type { NormalizedRow } from '../types'
 import { filterRowsByConfig, filterRowsBySearch } from '../utils/dataFilters'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
+import { setChainMetrics } from './chainMetricsStore'
 import { getGroupingColumnIdsForHeaders } from './grouping'
 import { getRowHeaderFromGroupingColumn, isSelfGroupingValue } from './groupingUtils'
 
@@ -42,37 +44,11 @@ interface UseUnifiedTableResult {
 
 type UnifiedTableApiResponse = {
 	rows: NormalizedRow[]
+	chainMetrics?: Record<string, ChainMetrics>
 }
 
-const createFiltersKey = (filters: TableFilters | undefined): string => {
-	if (!filters) return 'no-filters'
-	const entries = Object.entries(filters).filter(([, value]) => {
-		if (value === undefined || value === null) return false
-		if (Array.isArray(value)) {
-			return value.length > 0
-		}
-		return true
-	})
-	if (entries.length === 0) return 'no-filters'
-	const normalized = entries
-		.map(([key, value]) => {
-			if (Array.isArray(value)) {
-				return [key, [...value].sort()]
-			}
-			return [key, value]
-		})
-		.sort((a, b) => a[0].localeCompare(b[0]))
-	return JSON.stringify(normalized)
-}
-
-const buildQueryString = (
-	strategyType: UnifiedTableConfig['strategyType'],
-	config: UnifiedTableConfig,
-	rowHeaders: UnifiedRowHeaderType[]
-): string => {
+const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]): string => {
 	const params = new URLSearchParams()
-
-	params.set('strategy', strategyType)
 
 	rowHeaders.forEach((header) => params.append('rowHeaders[]', header))
 
@@ -80,62 +56,12 @@ const buildQueryString = (
 		config.params.chains.forEach((chain) => params.append('chains[]', chain))
 	}
 
-	if (config.params?.category) {
-		params.set('category', config.params.category)
-	}
-
-	if (config.filters) {
-		const filters = config.filters
-
-		if (filters.protocols) filters.protocols.forEach((p) => params.append('protocols[]', p))
-		if (filters.categories) filters.categories.forEach((c) => params.append('categories[]', c))
-		if (filters.excludedCategories)
-			filters.excludedCategories.forEach((c) => params.append('excludedCategories[]', c))
-		if (filters.oracles) filters.oracles.forEach((o) => params.append('oracles[]', o))
-		if (filters.chains) filters.chains.forEach((c) => params.append('chains[]', c))
-		if (filters.poolTypes) filters.poolTypes.forEach((p) => params.append('poolTypes[]', p))
-
-		if (filters.apyMin !== undefined) params.set('apyMin', String(filters.apyMin))
-		if (filters.apyMax !== undefined) params.set('apyMax', String(filters.apyMax))
-		if (filters.tvlMin !== undefined) params.set('tvlMin', String(filters.tvlMin))
-		if (filters.tvlMax !== undefined) params.set('tvlMax', String(filters.tvlMax))
-		if (filters.baseApyMin !== undefined) params.set('baseApyMin', String(filters.baseApyMin))
-		if (filters.baseApyMax !== undefined) params.set('baseApyMax', String(filters.baseApyMax))
-		if (filters.mcapMin !== undefined) params.set('mcapMin', String(filters.mcapMin))
-		if (filters.mcapMax !== undefined) params.set('mcapMax', String(filters.mcapMax))
-		if (filters.volumeDex24hMin !== undefined) params.set('volumeDex24hMin', String(filters.volumeDex24hMin))
-		if (filters.volumeDex24hMax !== undefined) params.set('volumeDex24hMax', String(filters.volumeDex24hMax))
-		if (filters.fees24hMin !== undefined) params.set('fees24hMin', String(filters.fees24hMin))
-		if (filters.fees24hMax !== undefined) params.set('fees24hMax', String(filters.fees24hMax))
-		if (filters.revenue24hMin !== undefined) params.set('revenue24hMin', String(filters.revenue24hMin))
-		if (filters.revenue24hMax !== undefined) params.set('revenue24hMax', String(filters.revenue24hMax))
-		if (filters.protocolCountMin !== undefined) params.set('protocolCountMin', String(filters.protocolCountMin))
-		if (filters.protocolCountMax !== undefined) params.set('protocolCountMax', String(filters.protocolCountMax))
-		if (filters.pfRatioMin !== undefined) params.set('pfRatioMin', String(filters.pfRatioMin))
-		if (filters.pfRatioMax !== undefined) params.set('pfRatioMax', String(filters.pfRatioMax))
-
-		if (filters.hasRewards !== undefined) params.set('hasRewards', String(filters.hasRewards))
-		if (filters.stablesOnly !== undefined) params.set('stablesOnly', String(filters.stablesOnly))
-		if (filters.activeLending !== undefined) params.set('activeLending', String(filters.activeLending))
-		if (filters.hasPerps !== undefined) params.set('hasPerps', String(filters.hasPerps))
-		if (filters.hasOptions !== undefined) params.set('hasOptions', String(filters.hasOptions))
-		if (filters.hasOpenInterest !== undefined) params.set('hasOpenInterest', String(filters.hasOpenInterest))
-		if (filters.multiChainOnly !== undefined) params.set('multiChainOnly', String(filters.multiChainOnly))
-		if (filters.parentProtocolsOnly !== undefined)
-			params.set('parentProtocolsOnly', String(filters.parentProtocolsOnly))
-		if (filters.subProtocolsOnly !== undefined) params.set('subProtocolsOnly', String(filters.subProtocolsOnly))
-	}
-
 	return params.toString()
 }
 
-const fetchUnifiedTableRows = async (
-	strategyType: UnifiedTableConfig['strategyType'],
-	config: UnifiedTableConfig,
-	rowHeaders: UnifiedRowHeaderType[]
-) => {
-	const queryString = buildQueryString(strategyType, config, rowHeaders)
-	const response = await fetch(`/api/unified-table/${strategyType}?${queryString}`)
+const fetchUnifiedTableRows = async (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]) => {
+	const queryString = buildQueryString(config, rowHeaders)
+	const response = await fetch(`/api/unified-table/protocols?${queryString}`)
 
 	if (!response.ok) {
 		throw new Error('Failed to load ProTable data')
@@ -166,20 +92,23 @@ export function useUnifiedTable({
 		})
 	}
 
-	const sanitizedHeaders = useMemo(
-		() => sanitizeRowHeaders(config.rowHeaders, config.strategyType),
-		[config.rowHeaders, config.strategyType]
-	)
+	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 
-	const paramsKey = useMemo(() => JSON.stringify(config.params ?? {}), [config.params])
+	const paramsKey = useMemo(
+		() => JSON.stringify({ chains: config.params?.chains ?? [] }),
+		[config.params?.chains]
+	)
 	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
-	const filtersKey = useMemo(() => createFiltersKey(config.filters), [config.filters])
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unified-table', config.strategyType, paramsKey, headersKey, filtersKey],
-		queryFn: () => fetchUnifiedTableRows(config.strategyType, config, sanitizedHeaders),
+		queryKey: ['unified-table', paramsKey, headersKey],
+		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
 		staleTime: 60 * 1000
 	})
+
+	useEffect(() => {
+		setChainMetrics(data?.chainMetrics)
+	}, [data?.chainMetrics])
 
 	const rows = data?.rows ?? []
 
@@ -188,7 +117,7 @@ export function useUnifiedTable({
 		return filterRowsBySearch(withFilters, searchTerm)
 	}, [rows, config.filters, searchTerm])
 
-	const columns = useMemo(() => getUnifiedTableColumns(config.strategyType), [config.strategyType])
+	const columns = useMemo(() => getUnifiedTableColumns(), [])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
 
 	const groupingColumnSet = useMemo(() => new Set(groupingColumnIds), [groupingColumnIds])

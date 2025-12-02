@@ -57,8 +57,8 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
 	const { chartInstance: overviewChartInstance, handleChartReady: handleOverviewChartReady } = useChartImageExport()
-	const overviewImageFilename = slug(props.name || 'protocol') || 'protocol'
-	const overviewImageTitle = props.name ? `${props.name} Overview` : 'Protocol Overview'
+	const overviewImageFilename = slug(props.name)
+	const overviewImageTitle = props.name
 
 	const queryParamsString = useMemo(() => {
 		const { tvl, ...rest } = router.query ?? {}

@@ -176,12 +176,90 @@ export interface TableFilters {
 	fees24hMax?: number
 	revenue24hMin?: number
 	revenue24hMax?: number
+	volume7dMin?: number
+	volume7dMax?: number
+	volume30dMin?: number
+	volume30dMax?: number
+	fees7dMin?: number
+	fees7dMax?: number
+	fees30dMin?: number
+	fees30dMax?: number
+	fees1yMin?: number
+	fees1yMax?: number
+	revenue7dMin?: number
+	revenue7dMax?: number
+	revenue30dMin?: number
+	revenue30dMax?: number
+	revenue1yMin?: number
+	revenue1yMax?: number
+	change1dMin?: number
+	change1dMax?: number
+	change7dMin?: number
+	change7dMax?: number
+	change1mMin?: number
+	change1mMax?: number
+	volumeChange1dMin?: number
+	volumeChange1dMax?: number
+	volumeChange7dMin?: number
+	volumeChange7dMax?: number
+	volumeChange1mMin?: number
+	volumeChange1mMax?: number
+	feesChange1dMin?: number
+	feesChange1dMax?: number
+	feesChange7dMin?: number
+	feesChange7dMax?: number
+	feesChange1mMin?: number
+	feesChange1mMax?: number
+	revenueChange1dMin?: number
+	revenueChange1dMax?: number
+	revenueChange7dMin?: number
+	revenueChange7dMax?: number
+	revenueChange1mMin?: number
+	revenueChange1mMax?: number
+	volumeDominance24hMin?: number
+	volumeDominance24hMax?: number
+	volumeMarketShare7dMin?: number
+	volumeMarketShare7dMax?: number
+	tvlShareMin?: number
+	tvlShareMax?: number
+	perpsVolumeDominance24hMin?: number
+	perpsVolumeDominance24hMax?: number
+	optionsVolumeDominance24hMin?: number
+	optionsVolumeDominance24hMax?: number
+	holderRevenue24hMin?: number
+	holderRevenue24hMax?: number
+	treasuryRevenue24hMin?: number
+	treasuryRevenue24hMax?: number
+	stablesMcapMin?: number
+	stablesMcapMax?: number
+	bridgedTvlMin?: number
+	bridgedTvlMax?: number
+	aggregatorsVolume24hMin?: number
+	aggregatorsVolume24hMax?: number
+	aggregatorsVolume7dMin?: number
+	aggregatorsVolume7dMax?: number
+	aggregatorsVolume30dMin?: number
+	aggregatorsVolume30dMax?: number
+	derivativesAggregatorsVolume24hMin?: number
+	derivativesAggregatorsVolume24hMax?: number
+	derivativesAggregatorsVolume7dMin?: number
+	derivativesAggregatorsVolume7dMax?: number
+	derivativesAggregatorsVolume30dMin?: number
+	derivativesAggregatorsVolume30dMax?: number
 	hasPerps?: boolean
 	hasOptions?: boolean
 	hasOpenInterest?: boolean
-	multiChainOnly?: boolean
-	parentProtocolsOnly?: boolean
-	subProtocolsOnly?: boolean
+	hasVolume?: boolean
+	hasFees?: boolean
+	hasRevenue?: boolean
+	hasMarketCap?: boolean
+	hasAggregators?: boolean
+	hasDerivativesAggregators?: boolean
+	hasBridgedTVL?: boolean
+	hasStables?: boolean
+	hasHolderRevenue?: boolean
+	hasTreasuryRevenue?: boolean
+	hasMcapTVLRatio?: boolean
 	protocolCountMin?: number
 	protocolCountMax?: number
 	pfRatioMin?: number
@@ -247,7 +325,6 @@ export interface ProtocolsTableConfig {
 export interface UnifiedTableConfig {
 	id: string
 	kind: 'unified-table'
-	strategyType: 'protocols' | 'chains'
 	rowHeaders: UnifiedRowHeaderType[]
 	defaultSorting?: Array<{ id: string; desc: boolean }>
 	params?: {

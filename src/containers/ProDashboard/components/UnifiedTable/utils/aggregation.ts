@@ -26,7 +26,6 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 		'holderRevenue_7d',
 		'holdersRevenue30d',
 		'treasuryRevenue_24h',
-		'supplySideRevenue_24h',
 		'revenue24h',
 		'revenue_7d',
 		'revenue_30d',
@@ -75,17 +74,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	const aggregated: NumericMetrics = {}
 
 	for (const key of sumKeys) {
-		;(aggregated as any)[key] = seen[key] ? totals[key] ?? null : null
-	}
-
-	const firstChainMcap = rows.length > 0 ? rows[0]?.metrics?.chainMcap : null
-	const allHaveSameChainMcap =
-		firstChainMcap !== null &&
-		firstChainMcap !== undefined &&
-		rows.every((row) => row.metrics?.chainMcap === firstChainMcap)
-
-	if (allHaveSameChainMcap && firstChainMcap !== null) {
-		aggregated.mcap = firstChainMcap
+		;(aggregated as any)[key] = seen[key] ? (totals[key] ?? null) : null
 	}
 
 	type WeightedChange = {

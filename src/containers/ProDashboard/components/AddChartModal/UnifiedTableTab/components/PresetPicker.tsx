@@ -2,17 +2,15 @@ import type { UnifiedTablePreset } from '~/containers/ProDashboard/components/Un
 import { UNIFIED_TABLE_PRESETS } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
 
 export function PresetPicker({
-	strategyType,
 	activePresetId,
 	onSelect,
 	presets
 }: {
-	strategyType: 'protocols' | 'chains'
 	activePresetId: string
 	onSelect: (presetId: string) => void
 	presets?: UnifiedTablePreset[]
 }) {
-	const presetList = (presets ?? UNIFIED_TABLE_PRESETS).filter((preset) => preset.strategyType === strategyType)
+	const presetList = presets ?? UNIFIED_TABLE_PRESETS
 
 	if (presetList.length === 0) {
 		return null

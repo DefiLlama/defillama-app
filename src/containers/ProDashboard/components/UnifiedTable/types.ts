@@ -1,7 +1,7 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import type { UnifiedTableConfig } from '../../types'
 
-export type UnifiedTableFocusSection = 'strategy' | 'columns' | 'preview'
+export type UnifiedTableFocusSection = 'strategy' | 'columns' | 'filters' | 'preview'
 
 export interface UnifiedTableProps {
 	config: UnifiedTableConfig
@@ -102,7 +102,6 @@ export interface NumericMetrics {
 export interface NormalizedRow {
 	id: string
 	name: string
-	strategyType: UnifiedTableConfig['strategyType']
 	protocolId?: string
 	displayName?: string
 	logo?: string | null

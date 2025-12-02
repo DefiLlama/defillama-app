@@ -4,9 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import {
-	DEFAULT_CHAINS_ROW_HEADERS,
-	DEFAULT_PROTOCOLS_ROW_HEADERS,
-	DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY,
+	DEFAULT_COLUMN_ORDER,
+	DEFAULT_ROW_HEADERS,
 	DEFAULT_UNIFIED_TABLE_SORTING
 } from './components/UnifiedTable/constants'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
@@ -991,33 +990,19 @@ export function ProDashboardAPIProvider({
 				return
 			}
 
-			const strategyType = configOverrides?.strategyType ?? 'protocols'
-			const defaultColumnOrder =
-				DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY[strategyType] ??
-				DEFAULT_UNIFIED_TABLE_COLUMN_ORDER_BY_STRATEGY.protocols
-			const defaultRowHeaders = strategyType === 'chains' ? DEFAULT_CHAINS_ROW_HEADERS : DEFAULT_PROTOCOLS_ROW_HEADERS
 			const resolvedSorting =
 				configOverrides?.defaultSorting && configOverrides.defaultSorting.length
 					? configOverrides.defaultSorting.map((item) => ({ id: item.id, desc: item.desc ?? false }))
 					: DEFAULT_UNIFIED_TABLE_SORTING.map((item) => ({ ...item }))
 
 			const newUnifiedTable: UnifiedTableConfig = {
-				id: generateItemId('unified-table', strategyType),
+				id: generateItemId('unified-table', 'protocols'),
 				kind: 'unified-table',
-				strategyType,
-				rowHeaders: configOverrides?.rowHeaders ?? [...defaultRowHeaders],
+				rowHeaders: configOverrides?.rowHeaders ?? [...DEFAULT_ROW_HEADERS],
 				defaultSorting: resolvedSorting,
-				params:
-					configOverrides?.params ??
-					(strategyType === 'protocols'
-						? {
-								chains: ['All']
-							}
-						: {
-								category: null
-							}),
+				params: configOverrides?.params ?? { chains: ['All'] },
 				filters: configOverrides?.filters,
-				columnOrder: configOverrides?.columnOrder ?? [...defaultColumnOrder],
+				columnOrder: configOverrides?.columnOrder ?? [...DEFAULT_COLUMN_ORDER],
 				columnVisibility: configOverrides?.columnVisibility ?? {},
 				activePresetId: configOverrides?.activePresetId,
 				colSpan: configOverrides?.colSpan ?? 2
