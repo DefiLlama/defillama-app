@@ -112,12 +112,10 @@ async function fetchSubscription({
 
 export const useSubscribe = () => {
 	const router = useRouter()
-	const { authorizedFetch } = useAuthContext()!
+	const { user, isAuthenticated, authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
 	const [isPayingWithStripe, setIsPayingWithStripe] = useState(false)
 	const [isPayingWithLlamapay, setIsPayingWithLlamapay] = useState(false)
-
-	const isAuthenticated = !!pb.authStore.token
 
 	const createSubscription = useMutation<SubscriptionCreateResponse, Error, SubscriptionRequest>({
 		mutationFn: async (subscriptionData) => {
@@ -173,7 +171,7 @@ export const useSubscribe = () => {
 				billingInterval
 			}
 
-			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)
+			queryClient.setQueryData(['subscription', user?.id, type], defaultInactiveSubscription)
 			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
@@ -199,7 +197,7 @@ export const useSubscribe = () => {
 
 	const subscriptionsQueries = useQueries({
 		queries: SUBSCRIPTION_TYPES.map((type) => ({
-			queryKey: ['subscription', pb.authStore.record?.id, type],
+			queryKey: ['subscription', user?.id, type],
 			queryFn: () => fetchSubscription({ type, isAuthenticated }),
 			retry: false,
 			refetchOnWindowFocus: false,
@@ -225,7 +223,7 @@ export const useSubscribe = () => {
 	const isSubscriptionError = subscriptionsQueries.some((query) => query.isError) && !subscriptionData ? true : false
 
 	const apiKeyQuery = useQuery({
-		queryKey: ['apiKey', pb.authStore.record?.id],
+		queryKey: ['apiKey', user?.id],
 		queryFn: async () => {
 			try {
 				const data: { apiKey: { api_key: string } } = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
@@ -279,7 +277,7 @@ export const useSubscribe = () => {
 		isLoading: isCreditsLoading,
 		refetch: refetchCredits
 	} = useQuery<Credits>({
-		queryKey: ['credits', pb.authStore.record?.id, apiKey],
+		queryKey: ['credits', user?.id, apiKey],
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
@@ -380,7 +378,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: () => {
 			toast.success('Overage has been enabled successfully')
-			queryClient.invalidateQueries({ queryKey: ['subscription', pb.authStore.record?.id, 'api'] })
+			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id, 'api'] })
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
