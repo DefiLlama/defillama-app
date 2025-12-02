@@ -599,3 +599,55 @@ export const useAuthContext = () => {
 	}
 	return context
 }
+
+function subscribeToUserHash(callback: () => void) {
+	window.addEventListener('userHashChange', callback)
+	return () => {
+		window.removeEventListener('userHashChange', callback)
+	}
+}
+
+export const useUserHash = () => {
+	const { user, hasActiveSubscription, authorizedFetch } = useAuthContext()
+
+	const userHash = useSyncExternalStore(
+		subscribeToUserHash,
+		() => localStorage.getItem('userHash') ?? null,
+		() => null
+	)
+
+	useQuery({
+		queryKey: ['user-hash-front', user?.email, hasActiveSubscription],
+		queryFn: () =>
+			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
+				.then((res) => {
+					if (!res.ok) {
+						throw new Error('Failed to fetch user hash')
+					}
+					return res.json()
+				})
+				.then((data) => {
+					const currentUserHash = localStorage.getItem('userHash')
+					localStorage.setItem('userHash', data.userHash)
+					if (currentUserHash !== data.userHash) {
+						window.dispatchEvent(new Event('userHashChange'))
+					}
+					return data.userHash
+				})
+				.catch((err) => {
+					console.log('Error fetching user hash:', err)
+					const currentUserHash = localStorage.getItem('userHash')
+					localStorage.removeItem('userHash')
+					if (currentUserHash !== null) {
+						window.dispatchEvent(new Event('userHashChange'))
+					}
+					return null
+				}),
+		enabled: user?.email && hasActiveSubscription ? true : false,
+		staleTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		retry: 3
+	})
+
+	return userHash
+}

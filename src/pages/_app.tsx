@@ -1,5 +1,5 @@
 import Script from 'next/script'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import '~/tailwind.css'
@@ -8,8 +8,7 @@ import { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AUTH_SERVER } from '~/constants'
-import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
+import { AuthProvider, useAuthContext, useUserHash } from '~/containers/Subscribtion/auth'
 
 NProgress.configure({ showSpinner: false })
 
@@ -64,28 +63,7 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
-	const { authorizedFetch, hasActiveSubscription } = useAuthContext()
-
-	const { data: userHash } = useQuery({
-		queryKey: ['user-hash-front', user?.id, hasActiveSubscription],
-		queryFn: () =>
-			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
-				.then((res) => {
-					if (!res.ok) {
-						throw new Error('Failed to fetch user hash')
-					}
-					return res.json()
-				})
-				.then((data) => data.userHash)
-				.catch((err) => {
-					console.log('Error fetching user hash:', err)
-					return null
-				}),
-		enabled: user?.id && hasActiveSubscription ? true : false,
-		staleTime: 1000 * 60 * 60 * 24,
-		refetchOnWindowFocus: false,
-		retry: 3
-	})
+	const userHash = useUserHash()
 
 	return (
 		<>
