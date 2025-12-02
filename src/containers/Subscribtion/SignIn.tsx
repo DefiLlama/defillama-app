@@ -28,7 +28,7 @@ export const SignInModal = ({
 
 	const { isAuthenticated, loaders } = useAuthContext()
 
-	if (loaders.userLoading || loaders.userFetching) {
+	if (loaders.userLoading) {
 		if (hideLoader) {
 			return null
 		}

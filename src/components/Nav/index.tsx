@@ -49,8 +49,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { user, isAuthenticated } = useAuthContext()
-	const { subscription } = useSubscribe()
-	const hasActiveSubscription = subscription?.status === 'active'
+	const hasActiveSubscription = user?.has_active_subscription ?? false
 
 	const hasEthWallet = Boolean(user?.walletAddress)
 	const hasSeenWalletPrompt =

@@ -8,7 +8,6 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { downloadDataURL } from '~/utils'
@@ -44,20 +43,20 @@ export const ChartExportButton = memo(function ChartExportButton({
 	expandLegend
 }: ChartExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders } = useAuthContext()
+	const { user, isAuthenticated, loaders } = useAuthContext()
+	const hasActiveSubscription = user?.has_active_subscription ?? false
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const router = useRouter()
 	const isClient = useIsClient()
 
 	const [isDark] = useDarkModeManager()
 
-	const loading = loaders.userLoading || isSubscriptionLoading || isLoading
+	const loading = loaders.userLoading || isLoading
 
 	const handleImageExport = async () => {
 		if (loading || !chartInstance) return
 
-		if (!loaders.userLoading && subscription?.status === 'active') {
+		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
 			try {
 				setIsLoading(true)
 

@@ -4,7 +4,6 @@ import { Icon } from '~/components/Icon'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { ChartBuilderConfig, MultiChartConfig, YieldsChartConfig } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
@@ -31,15 +30,14 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 }: AddToDashboardButtonProps) {
 	const dashboardDialogStore = Ariakit.useDialogStore()
 	const subscribeDialogStore = Ariakit.useDialogStore()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders, isAuthenticated } = useAuthContext()
+	const { user, loaders, isAuthenticated } = useAuthContext()
 	const isClient = useIsClient()
 
 	const config = chartConfig ?? multiChart
 
-	const isLoading = loaders.userLoading || isSubscriptionLoading
+	const isLoading = loaders.userLoading
 
-	const hasActiveSubscription = subscription?.status === 'active'
+	const hasActiveSubscription = user?.has_active_subscription ?? false
 
 	const handleClick = () => {
 		if (!config || disabled) return

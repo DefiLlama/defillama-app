@@ -8,7 +8,6 @@ import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboa
 import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { DashboardChartConfig } from './AddToDashboardButton'
 
 interface AddToDashboardModalProps {
@@ -30,8 +29,7 @@ function getConfigName(config: DashboardChartConfig): string {
 export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetrics = [] }: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const { subscription } = useSubscribe()
+	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const { data: dashboards = [], isLoading: isLoadingDashboards } = useGetLiteDashboards()
 
 	const [search, setSearch] = useState('')
@@ -41,8 +39,8 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	const [chartName, setChartName] = useState(getConfigName(chartConfig))
 	const [isAdding, setIsAdding] = useState(false)
 
-	const hasActiveSubscription = subscription?.status === 'active'
-	const isOpen = dialogStore.useState('open')
+	const hasActiveSubscription = user?.has_active_subscription ?? false
+	const isOpen = dialogStore.getState().open
 
 	const filteredDashboards = useMemo(() => {
 		if (!search.trim()) return dashboards

@@ -2,11 +2,11 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { Account } from '../Account'
 import { ThemeSwitch } from '../ThemeSwitch'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { LinkToPage } from './shared'
 
+const Account = React.lazy(() => import('../Account').then((mod) => ({ default: mod.Account })))
 const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
 
 export const DesktopNav = React.memo(function DesktopNav({
@@ -122,7 +122,9 @@ export const DesktopNav = React.memo(function DesktopNav({
 
 				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
 					<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
-					<Account />
+					<React.Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
+						<Account />
+					</React.Suspense>
 					<ThemeSwitch />
 				</div>
 			</nav>

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { LoadingDots } from '~/components/Loaders'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useDebounce } from '~/hooks/useDebounce'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
@@ -59,8 +59,8 @@ const hideLlamaAI = new Set(['/ai'])
 export const MobileSearch = () => {
 	const router = useRouter()
 
-	const { subscription } = useSubscribe()
-	const hasActiveSubscription = subscription?.status === 'active'
+	const { user } = useAuthContext()
+	const hasActiveSubscription = user?.has_active_subscription ?? false
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
@@ -159,8 +159,8 @@ export const MobileSearch = () => {
 export const DesktopSearch = () => {
 	const router = useRouter()
 
-	const { subscription } = useSubscribe()
-	const hasActiveSubscription = subscription?.status === 'active'
+	const { user } = useAuthContext()
+	const hasActiveSubscription = user?.has_active_subscription ?? false
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
