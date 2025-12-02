@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getRaisesFiltersList } from '~/api/categories/raises'
 import { RAISES_API } from '~/constants'
 import { InvestorContainer } from '~/containers/Raises/Investor'
+import { getRaisesFiltersList } from '~/containers/Raises/utils'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -20,27 +20,27 @@ export const getStaticProps = withPerformanceLogging(
 
 		let investorName = null
 
-		data.raises.forEach((r) => {
+		for (const raise of data.raises) {
 			let isInvestor = false
 
-			r.leadInvestors?.forEach((l) => {
-				if (slug(l.toLowerCase()) === name) {
-					investorName = l
+			for (const leadInvestor of raise.leadInvestors ?? []) {
+				if (slug(leadInvestor.toLowerCase()) === name) {
+					investorName = leadInvestor
 					isInvestor = true
 				}
-			})
+			}
 
-			r.otherInvestors?.forEach((l) => {
-				if (slug(l.toLowerCase()) === name) {
-					investorName = l
+			for (const otherInvestor of raise.otherInvestors ?? []) {
+				if (slug(otherInvestor.toLowerCase()) === name) {
+					investorName = otherInvestor
 					isInvestor = true
 				}
-			})
+			}
 
 			if (isInvestor) {
-				raises.push(r)
+				raises.push(raise)
 			}
-		})
+		}
 
 		if (raises.length === 0) {
 			return {

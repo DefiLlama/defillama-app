@@ -413,6 +413,7 @@ const optionsColumns: ColumnDictionaryItem[] = [
 
 const ratioColumns: ColumnDictionaryItem[] = [
 	{ id: 'mcap', header: 'Market Cap', group: 'ratios', render: 'usd' },
+	{ id: 'fdv', header: 'FDV', group: 'ratios', render: 'usd' },
 	{
 		id: 'mcaptvl',
 		header: 'Mcap / TVL',

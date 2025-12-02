@@ -2,7 +2,7 @@ import { FormEvent, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { AccountHeader } from './components/AccountHeader'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailChangeModal } from './components/EmailChangeModal'
@@ -17,9 +17,6 @@ export const AccountInfo = () => {
 
 	const {
 		subscription,
-		apiKey,
-		isApiKeyLoading,
-		generateNewKey,
 		credits,
 		isCreditsLoading,
 		createPortalSession,
@@ -60,9 +57,9 @@ export const AccountInfo = () => {
 		}
 	}
 
-	if (loaders.userLoading || loaders.userFetching) {
+	if (loaders.userLoading) {
 		return (
-			<div className="flex h-[40dvh] items-center justify-center">
+			<div className="grid h-full w-full items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
@@ -70,7 +67,7 @@ export const AccountInfo = () => {
 
 	if (!isAuthenticated || !user) {
 		return (
-			<div className="group relative overflow-hidden rounded-xl border border-[#39393E]/40 bg-[#1a1b1f] p-6 shadow-xl backdrop-blur-md backdrop-filter transition-all duration-300 hover:shadow-[0_8px_30px_rgba(92,92,249,0.15)] sm:rounded-2xl sm:p-10">
+			<div className="group relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-xl border border-[#39393E]/40 bg-[#1a1b1f] p-6 shadow-xl backdrop-blur-md backdrop-filter transition-all duration-300 hover:shadow-[0_8px_30px_rgba(92,92,249,0.15)] sm:rounded-2xl sm:p-10">
 				<div className="absolute -inset-1 -z-10 bg-linear-to-r from-[#5C5EFC]/10 to-[#462A92]/10 opacity-70 blur-[80px] transition-opacity group-hover:opacity-100"></div>
 				<div className="mx-auto mb-4 flex h-12 w-12 transform items-center justify-center rounded-full bg-linear-to-br from-[#2a2b30] to-[#222429] shadow-lg transition-all duration-300 group-hover:scale-110 sm:mb-6 sm:h-16 sm:w-16">
 					<Icon
@@ -147,9 +144,6 @@ export const AccountInfo = () => {
 				)}
 
 				<SubscriberContent
-					apiKey={apiKey}
-					isApiKeyLoading={isApiKeyLoading}
-					generateNewKey={generateNewKey}
 					credits={credits}
 					isCreditsLoading={isCreditsLoading}
 					subscription={subscription}

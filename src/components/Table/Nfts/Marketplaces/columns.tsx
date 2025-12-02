@@ -28,7 +28,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Volume change',
 		accessorKey: 'weeklyChange',
 		size: 160,
-		cell: (info) => <>{info.getValue() ? formattedPercent(info.getValue()) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? formattedPercent(info.getValue()) : null}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change of last 7d volume over the previous 7d volume'
@@ -40,7 +40,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		size: 130,
 		cell: (info) => (
 			<>
-				{info.getValue() ? (
+				{info.getValue() != null ? (
 					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{(+info.getValue()).toFixed(2)}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
@@ -64,7 +64,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		size: 130,
 		cell: (info) => (
 			<>
-				{info.getValue() ? (
+				{info.getValue() != null ? (
 					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{(+info.getValue()).toFixed(2)}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
@@ -86,7 +86,7 @@ export const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Market Share',
 		accessorKey: 'pctOfTotal',
 		size: 150,
-		cell: (info) => <>{info.getValue() ? (+info.getValue()).toFixed(2) + '%' : null}</>,
+		cell: (info) => <>{info.getValue() != null ? (+info.getValue()).toFixed(2) + '%' : null}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'based on Volume 1d'

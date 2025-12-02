@@ -1,8 +1,8 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -48,9 +48,7 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { user, isAuthenticated } = useAuthContext()
-	const { subscription } = useSubscribe()
-	const hasActiveSubscription = subscription?.status === 'active'
+	const { user, isAuthenticated, hasActiveSubscription } = useAuthContext()
 
 	const hasEthWallet = Boolean(user?.walletAddress)
 	const hasSeenWalletPrompt =

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import debounce from 'lodash/debounce'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
-import { slug } from '~/utils'
 import { useUserConfig } from './useUserConfig'
 
 const SYNC_DEBOUNCE_MS = 1000

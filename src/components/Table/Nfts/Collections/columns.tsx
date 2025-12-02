@@ -30,7 +30,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 		size: 120,
 		cell: (info) => (
 			<>
-				{info.getValue() ? (
+				{info.getValue() != null ? (
 					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
@@ -72,7 +72,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 		size: 120,
 		cell: (info) => (
 			<>
-				{info.getValue() ? (
+				{info.getValue() != null ? (
 					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">
@@ -96,7 +96,7 @@ export const columns: ColumnDef<INftCollection>[] = [
 		size: 120,
 		cell: (info) => (
 			<>
-				{info.getValue() ? (
+				{info.getValue() != null ? (
 					<span className="flex flex-nowrap items-center justify-end gap-1">
 						<span>{info.getValue() as string}</span>
 						<svg fill="#777E91" height={12} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 9">

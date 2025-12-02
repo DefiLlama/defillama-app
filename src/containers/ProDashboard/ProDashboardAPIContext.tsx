@@ -335,6 +335,7 @@ export function ProDashboardAPIProvider({
 			return dashboard
 		},
 		staleTime: 1000 * 60 * 5,
+		refetchOnMount: 'always',
 		enabled: !!initialDashboardId
 	})
 

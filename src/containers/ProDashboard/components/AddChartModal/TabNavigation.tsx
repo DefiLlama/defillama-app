@@ -1,4 +1,3 @@
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { DashboardItemConfig } from '../../types'
 import { MainTabType } from './types'
 
@@ -9,9 +8,6 @@ interface TabNavigationProps {
 }
 
 export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNavigationProps) {
-	const { hasFeature } = useFeatureFlagsContext()
-	const isLlamaEnabled = hasFeature('is_llama')
-
 	const allTabs = [
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },
@@ -20,12 +16,9 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
-	const tabs = isLlamaEnabled ? allTabs : allTabs.filter((tab) => tab.id !== 'unified-table')
-	const gridColsClass = tabs.length === 5 ? 'grid-cols-5' : 'grid-cols-4'
-
 	return (
-		<div className={`grid ${gridColsClass} gap-0`}>
-			{tabs.map((tab, index) => (
+		<div className="grid grid-cols-5 gap-0">
+			{allTabs.map((tab) => (
 				<button
 					key={tab.id}
 					className={`-ml-px rounded-none border px-2 py-2.5 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:px-2 md:py-3 md:text-sm ${

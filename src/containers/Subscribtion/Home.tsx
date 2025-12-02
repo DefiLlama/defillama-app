@@ -8,7 +8,7 @@ import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
@@ -20,7 +20,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	const { isAuthenticated, loaders, user, resendVerification } = useAuthContext()
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
-	const { subscription, isSubscriptionFetching, apiSubscription, llamafeedSubscription } = useSubscribe()
+	const { subscription, isSubscriptionLoading, apiSubscription, llamafeedSubscription } = useSubscribe()
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
@@ -63,10 +63,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 		}
 	}
 
-	if (
-		loaders &&
-		(loaders.userLoading || loaders.userFetching || (isClient && (isSubscriptionFetching || !subscription)))
-	) {
+	if (loaders && (loaders.userLoading || (isClient && (isSubscriptionLoading || !subscription)))) {
 		return (
 			<div className="flex h-[60dvh] items-center justify-center">
 				<LocalLoader />
@@ -97,7 +94,8 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 				{!isSubscribed && (
 					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
 						<p className="text-center text-[#919296]">
-							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and more.
+							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
+							more.
 						</p>
 						{isAuthenticated ? (
 							<div className="mx-auto w-full max-w-[400px]">

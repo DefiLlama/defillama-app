@@ -5,8 +5,7 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useIsClient } from '~/hooks'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useIsClient } from '~/hooks/useIsClient'
 import { download } from '~/utils'
 
 const SubscribeProModal = lazy(() =>
@@ -49,9 +48,9 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 	prepareCsv
 }: CSVDownloadButtonPropsUnion) {
 	const [staticLoading, setStaticLoading] = useState(false)
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders } = useAuthContext()
-	const isLoading = loaders.userLoading || isSubscriptionLoading || loading || staticLoading ? true : false
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
+	const isLoading = loaders.userLoading || loading || staticLoading ? true : false
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 	const router = useRouter()
@@ -71,7 +70,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				onClick={async () => {
 					if (isLoading) return
 
-					if (!loaders.userLoading && subscription?.status === 'active') {
+					if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
 						if (onClick) {
 							onClick()
 						} else {
@@ -97,6 +96,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 							}
 						}
 					} else if (!isLoading) {
+						// mount modal lazily to avoid rendering WalletProvider/RainbowKit
+						// wrappers next to every CSV button by default
+						if (!shouldRenderModal) {
+							setShouldRenderModal(true)
+						}
 						subscribeModalStore.show()
 					}
 				}}
@@ -111,9 +115,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
 			</button>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal && (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			)}
 		</>
 	)
 })

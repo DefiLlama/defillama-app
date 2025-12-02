@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
@@ -7,6 +8,9 @@ import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import { MultiChartConfig } from '~/containers/ProDashboard/types'
+import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
+import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
@@ -119,6 +123,39 @@ export const AdapterByChainChart = ({
 		}
 	}, [chartData, chartInterval, chartName])
 
+	const dashboardChartType = getAdapterDashboardType(adapterType)
+
+	const multiChart = React.useMemo<MultiChartConfig | null>(() => {
+		if (!dashboardChartType) return null
+
+		const grouping =
+			chartInterval === 'Daily'
+				? 'day'
+				: chartInterval === 'Weekly'
+					? 'week'
+					: chartInterval === 'Monthly'
+						? 'month'
+						: 'day'
+
+		return {
+			id: generateItemId('multi', `${chain}-${adapterType}`),
+			kind: 'multi',
+			name: `${chain} – ${chartName}`,
+			items: [
+				{
+					id: generateItemId('chart', `${chain}-${dashboardChartType}`),
+					kind: 'chart',
+					chain: chain,
+					type: dashboardChartType,
+					grouping,
+					color: CHART_COLORS[0]
+				}
+			],
+			grouping,
+			showCumulative: chartInterval === 'Cumulative'
+		}
+	}, [chain, adapterType, dashboardChartType, chartInterval, chartName])
+
 	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
 		mutationFn: downloadBreakdownChart
 	})
@@ -160,6 +197,7 @@ export const AdapterByChainChart = ({
 					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 					smol
 				/>
+				{chain && <AddToDashboardButton chartConfig={multiChart} smol className="-ml-2" />}
 			</div>
 			<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 				<LineAndBarChart

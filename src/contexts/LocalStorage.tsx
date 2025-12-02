@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars*/
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
 

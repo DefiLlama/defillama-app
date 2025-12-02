@@ -1,10 +1,29 @@
 import { useCallback, useContext, useEffect } from 'react'
 import * as echarts from 'echarts/core'
+import { BarChart } from 'echarts/charts'
+import {
+	DataZoomComponent,
+	GraphicComponent,
+	GridComponent,
+	LegendComponent,
+	TooltipComponent
+} from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import { getOption, useStackBy } from './utils'
+
+echarts.use([
+	CanvasRenderer,
+	BarChart,
+	TooltipComponent,
+	GridComponent,
+	DataZoomComponent,
+	GraphicComponent,
+	LegendComponent
+])
 
 export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartData; uid: string; bobo: boolean }) => {
 	const { setSelectedSeries } = useContext(LiquidationsContext)

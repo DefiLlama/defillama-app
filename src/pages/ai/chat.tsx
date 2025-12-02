@@ -4,8 +4,6 @@ import { maxAgeForNext } from '~/api'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -17,19 +15,17 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 })
 
 export default function LlamaAIPage() {
-	const { hasFeature } = useFeatureFlagsContext()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders } = useAuthContext()
+	const { user, loaders, hasActiveSubscription } = useAuthContext()
 	const router = useRouter()
 
-	const isLoading = isSubscriptionLoading || loaders.userLoading
+	const isLoading = loaders.userLoading
 
 	useEffect(() => {
 		if (isLoading) return
-		if (subscription?.status !== 'active') {
+		if (!hasActiveSubscription) {
 			router.push('/ai')
 		}
-	}, [subscription, isLoading, router])
+	}, [isLoading, hasActiveSubscription, router])
 
 	if (isLoading) {
 		return (
@@ -47,9 +43,9 @@ export default function LlamaAIPage() {
 		)
 	}
 
-	if (subscription?.status !== 'active') {
+	if (!hasActiveSubscription) {
 		return null
 	}
 
-	return <LlamaAI showDebug={hasFeature('llama-ai-debug')} />
+	return <LlamaAI showDebug={user?.flags?.['is_llama'] ?? false} />
 }

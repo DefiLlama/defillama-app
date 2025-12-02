@@ -1,13 +1,16 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { CHART_COLORS } from '~/constants/colors'
+import { ChartBuilderConfig } from '~/containers/ProDashboard/types'
+import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
+import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_TYPES } from './constants'
@@ -65,6 +68,7 @@ export const DimensionProtocolChartByType = ({
 			title={title}
 			chartType={chartType}
 			protocolName={protocolName}
+			adapterType={adapterType}
 		/>
 	)
 }
@@ -74,17 +78,52 @@ const ChartByType = ({
 	title,
 	allTypes,
 	chartType,
-	protocolName
+	protocolName,
+	adapterType
 }: {
 	totalDataChartBreakdown: any
 	title?: string
 	allTypes: string[]
 	chartType: 'chain' | 'version'
 	protocolName: string
+	adapterType: string
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+
+	const builderMetric = getAdapterBuilderMetric(adapterType)
+
+	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
+		if (!builderMetric || chartType === 'version') return null
+
+		const grouping =
+			chartInterval === 'Daily'
+				? 'day'
+				: chartInterval === 'Weekly'
+					? 'week'
+					: chartInterval === 'Monthly'
+						? 'month'
+						: 'day'
+
+		return {
+			id: generateItemId('builder', `${protocolName}-${adapterType}`),
+			kind: 'builder',
+			name: title || `${protocolName} – ${adapterType}`,
+			config: {
+				metric: builderMetric,
+				mode: 'protocol',
+				protocol: slug(protocolName),
+				chains: [],
+				categories: [],
+				groupBy: 'protocol',
+				limit: 10,
+				chartType: 'stackedBar',
+				displayAs: 'timeSeries'
+			},
+			grouping
+		}
+	}, [protocolName, adapterType, builderMetric, chartInterval, title, chartType])
 
 	const mainChartData = React.useMemo(() => {
 		const chartData = {}
@@ -272,6 +311,7 @@ const ChartByType = ({
 					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 					smol
 				/>
+				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
 			</div>
 			<React.Suspense fallback={<></>}>
 				<LineAndBarChart

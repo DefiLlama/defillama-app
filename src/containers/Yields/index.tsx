@@ -2,7 +2,6 @@ import * as React from 'react'
 import { useRouter } from 'next/router'
 import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/Loaders'
-import { download } from '~/utils'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
 import { YieldsPoolsTable } from './Tables/Pools'
@@ -10,7 +9,7 @@ import { toFilterPool } from './utils'
 
 const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols }) => {
 	const { query, pathname, push } = useRouter()
-	const { minTvl, maxTvl, minApy, maxApy } = query
+
 	const [loading, setLoading] = React.useState(true)
 
 	const {
@@ -21,7 +20,11 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		excludeTokens,
 		exactTokens,
 		selectedCategories,
-		pairTokens
+		pairTokens,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
 
 	React.useEffect(() => {
@@ -31,38 +34,45 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 
 	React.useEffect(() => {
 		setLoading(true)
-
 		const timer = setTimeout(() => setLoading(false), 500)
 		return () => clearTimeout(timer)
 	}, [
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
 		selectedProjects,
+		selectedCategories,
 		selectedChains,
 		selectedAttributes,
 		includeTokens,
 		excludeTokens,
 		exactTokens,
-		selectedCategories,
-		pools,
+		pathname,
 		pairTokens
 	])
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
 		const include_tokens = includeTokens.map((token) => token.toLowerCase())
-		const exclude_tokens = excludeTokens.map((token) => token.toLowerCase())
+		const excludeTokensSet = new Set(excludeTokens.map((token) => token.toLowerCase()))
 		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
+
+		const selectedProjectsSet = new Set(selectedProjects)
+		const selectedChainsSet = new Set(selectedChains)
+		const selectedCategoriesSet = new Set(selectedCategories)
 
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
 				curr,
 				pathname,
-				selectedProjects,
-				selectedChains,
+				selectedProjectsSet,
+				selectedChainsSet,
 				selectedAttributes,
 				includeTokens: include_tokens,
-				excludeTokens: exclude_tokens,
+				excludeTokensSet,
 				exactTokens: exact_tokens,
-				selectedCategories,
+				selectedCategoriesSet,
 				minTvl,
 				maxTvl,
 				minApy,
@@ -126,7 +136,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		excludeTokens,
 		exactTokens,
 		pathname,
-		pairTokens
+		pairTokens,
+		usdPeggedSymbols
 	])
 	const prepareCsv = React.useCallback(() => {
 		const headers = [

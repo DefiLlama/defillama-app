@@ -3,7 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { cn } from '~/utils/cn'
 
 const FEATURE_SECTIONS = [
@@ -31,7 +31,7 @@ const SubscribeProModal = lazy(() =>
 export default function LlamaAIGetStarted() {
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const [activeFeature, setActiveFeature] = useState(0)
-	const { subscription } = useSubscribe()
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 
 	return (
 		<>
@@ -77,7 +77,7 @@ export default function LlamaAIGetStarted() {
 					<p className="text-center text-lg leading-6 text-[#666] dark:text-[#919296]">
 						Your conversational interface to DefiLlama’s data for deep, flexible analysis.
 					</p>
-					{subscription?.status === 'active' ? (
+					{isAuthenticated && hasActiveSubscription ? (
 						<BasicLink
 							href="/ai/chat"
 							data-umami-event="llamaai-landing-cta-subscribed"
@@ -380,7 +380,7 @@ export default function LlamaAIGetStarted() {
 						</p>
 
 						<div className="mt-5 flex items-center justify-center">
-							{subscription?.status === 'active' ? (
+							{isAuthenticated && hasActiveSubscription ? (
 								<BasicLink
 									href="/ai/chat"
 									data-umami-event="llamaai-landing-cta-bottom-subscribed"

@@ -18,40 +18,40 @@ export interface FilterPreset {
 
 const SIZE_PRESETS: FilterPreset[] = [
 	{
-		id: 'size-blue-chip',
-		name: 'Blue Chip',
-		description: 'Large, established protocols',
+		id: 'size-large',
+		name: 'Large',
+		description: 'Protocols with $1B+ TVL',
 		category: 'size',
 		filters: {
-			tvlMin: 100_000_000
+			tvlMin: 1_000_000_000
 		},
-		tooltip: 'TVL ≥ $100M',
+		tooltip: 'TVL ≥ $1B',
 		sortBy: { field: 'tvl', direction: 'desc' },
 		strategyType: 'protocols'
 	},
 	{
-		id: 'size-large-cap',
-		name: 'Large Cap',
-		description: 'Protocols between $100M and $1B TVL',
+		id: 'size-mid',
+		name: 'Mid',
+		description: 'Protocols with $100M-$1B TVL',
 		category: 'size',
 		filters: {
 			tvlMin: 100_000_000,
 			tvlMax: 1_000_000_000
 		},
-		tooltip: '$100M ≤ TVL ≤ $1B',
+		tooltip: '$100M ≤ TVL < $1B',
 		sortBy: { field: 'tvl', direction: 'desc' },
 		strategyType: 'protocols'
 	},
 	{
-		id: 'size-mid-cap',
-		name: 'Mid Cap',
-		description: 'Growing protocols in the $10M–$100M range',
+		id: 'size-small',
+		name: 'Small',
+		description: 'Protocols with $10M-$100M TVL',
 		category: 'size',
 		filters: {
 			tvlMin: 10_000_000,
 			tvlMax: 100_000_000
 		},
-		tooltip: '$10M ≤ TVL ≤ $100M',
+		tooltip: '$10M ≤ TVL < $100M',
 		sortBy: { field: 'tvl', direction: 'desc' },
 		strategyType: 'protocols'
 	}
@@ -91,12 +91,13 @@ const INVESTMENT_PRESETS: FilterPreset[] = [
 	{
 		id: 'institutional-grade',
 		name: 'Institutional Grade',
-		description: 'Large protocols trusted by institutions',
+		description: 'Large protocols with $1B+ TVL and $10M+ annual revenue',
 		category: 'investment',
 		filters: {
-			tvlMin: 500_000_000
+			tvlMin: 1_000_000_000,
+			revenue1yMin: 10_000_000
 		},
-		tooltip: 'TVL ≥ $500M',
+		tooltip: 'TVL ≥ $1B, Annualized Revenue ≥ $10M',
 		sortBy: { field: 'tvl', direction: 'desc' },
 		strategyType: 'protocols'
 	}
@@ -136,14 +137,14 @@ const QUICK_PRESETS: FilterPreset[] = [
 	{
 		id: 'active-protocols',
 		name: 'Active Protocols',
-		description: 'Protocols with recent volume and fees',
+		description: 'Protocols with TVL and fee generation',
 		category: 'quick',
 		filters: {
-			hasVolume: true,
+			tvlMin: 1,
 			hasFees: true
 		},
-		tooltip: 'Has volume and fees in 24h',
-		sortBy: { field: 'volume24h', direction: 'desc' },
+		tooltip: 'Has TVL and fees',
+		sortBy: { field: 'tvl', direction: 'desc' },
 		strategyType: 'protocols'
 	},
 	{

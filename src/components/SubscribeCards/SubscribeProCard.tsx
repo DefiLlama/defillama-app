@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
 import { StripeCheckoutModal } from '../StripeCheckoutModal'
@@ -190,7 +190,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
 	useEffect(() => {
-		if (dialogStore.getState().open && typeof window !== 'undefined' && (window as any).umami) {
+		if (dialogStore?.getState()?.open && typeof window !== 'undefined' && (window as any).umami) {
 			;(window as any).umami.track('subscribe-modal-open')
 		}
 	}, [dialogStore])

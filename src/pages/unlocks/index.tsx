@@ -5,6 +5,8 @@ import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'
 import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpact'
 import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
 import { UnlocksTable } from '~/containers/Unlocks/Table'
@@ -115,6 +117,13 @@ export default function Protocols({ data, unlockStats }) {
 						<span className="text-(--text-label)">Upcoming Unlocks (30d)</span>
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(upcomingUnlocks30dValue, true)}</span>
 					</p>
+					<BasicLink
+						href="/unlocks/calendar"
+						className="mt-auto flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+					>
+						<span>View unlocks calendar</span>
+						<Icon name="arrow-right" className="h-4 w-4" />
+					</BasicLink>
 				</div>
 				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					<UpcomingUnlockVolumeChart protocols={data} />

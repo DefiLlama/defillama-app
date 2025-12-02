@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useAuthContext } from '../Subscribtion/auth'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -36,10 +36,10 @@ const dataPoints = [
 
 export default function SheetsContainer() {
 	const subscribeModalStore = Ariakit.useDialogStore()
-	const { subscription } = useSubscribe()
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 
 	const onGoogleSheetsButtonClick = () => {
-		if (!subscription || subscription.status !== 'active') {
+		if (!isAuthenticated || !hasActiveSubscription) {
 			subscribeModalStore.show()
 			return
 		}

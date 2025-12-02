@@ -128,7 +128,7 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
-			return <>{info.getValue() ? formattedNum(info.getValue(), true) : null}</>
+			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
 		},
 		sortUndefined: 'last',
 		size: 120,
@@ -150,7 +150,7 @@ const columns: ColumnDef<ICex>[] = [
 			}
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{info.getValue() ? (
+					{info.getValue() != null ? (
 						<>
 							{coinSymbol === undefined ? (
 								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
@@ -182,7 +182,7 @@ const columns: ColumnDef<ICex>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
@@ -200,7 +200,7 @@ const columns: ColumnDef<ICex>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
@@ -218,7 +218,7 @@ const columns: ColumnDef<ICex>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
@@ -229,7 +229,7 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Spot Volume',
 		accessorKey: 'spotVolume',
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		sortUndefined: 'last',
 		size: 125,
 		meta: {
@@ -239,7 +239,7 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: '24h Open Interest',
 		accessorKey: 'oi',
-		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		sortUndefined: 'last',
 		size: 160,
 		meta: {
@@ -249,7 +249,7 @@ const columns: ColumnDef<ICex>[] = [
 	{
 		header: 'Avg Leverage',
 		accessorKey: 'leverage',
-		cell: (info) => (info.getValue() ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
+		cell: (info) => (info.getValue() != null ? Number(Number(info.getValue()).toFixed(2)) + 'x' : null),
 		sortUndefined: 'last',
 		size: 130,
 		meta: {
@@ -267,7 +267,7 @@ const columns: ColumnDef<ICex>[] = [
 					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
 				}`}
 			>
-				{info.getValue() ? formattedNum(info.getValue(), true) : ''}
+				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
 		sortUndefined: 'last',
