@@ -574,7 +574,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		resendVerification: resendVerification.mutate,
 		addEmail: addEmail.mutate,
 		isAuthenticated,
-		hasActiveSubscription: userData?.hasActiveSubscription ?? false,
+		hasActiveSubscription: userData?.has_active_subscription ?? false,
 		loaders: {
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,
