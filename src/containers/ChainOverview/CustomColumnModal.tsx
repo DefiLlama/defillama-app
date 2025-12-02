@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { formatValue } from '../../utils'
 import { AVAILABLE_FIELDS, AVAILABLE_FUNCTIONS, replaceAliases } from './customColumnsUtils'
 import { evaluateFormula } from './formula.service'

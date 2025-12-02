@@ -3,8 +3,8 @@ import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 
 export default function SessionPage() {

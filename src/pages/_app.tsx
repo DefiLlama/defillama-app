@@ -11,10 +11,10 @@ import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AUTH_SERVER } from '~/constants'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
-import { useSubscribe } from '~/hooks/useSubscribe'
 
 NProgress.configure({ showSpinner: false })
 

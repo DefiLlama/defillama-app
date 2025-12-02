@@ -5,8 +5,8 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { download } from '~/utils'
 
 const SubscribeProModal = lazy(() =>

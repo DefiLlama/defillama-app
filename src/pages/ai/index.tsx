@@ -3,7 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { cn } from '~/utils/cn'
 
 const FEATURE_SECTIONS = [

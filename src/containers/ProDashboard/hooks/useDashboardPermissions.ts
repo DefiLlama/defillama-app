@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { Dashboard } from '../services/DashboardAPI'
 
 interface DashboardPermissions {

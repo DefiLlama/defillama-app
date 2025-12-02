@@ -6,7 +6,7 @@ import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
-import { Subscription, useSubscribe } from '~/hooks/useSubscribe'
+import { Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 
 interface SubscriberContentProps {
 	credits: number | null

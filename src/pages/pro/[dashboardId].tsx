@@ -7,7 +7,7 @@ import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDash
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import Layout from '~/layout'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
@@ -111,9 +111,9 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 					<title>{`${dashboardName} - DefiLlama`}</title>
 				</Head>
 				<Suspense
-				fallback={
-					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
-				}
+					fallback={
+						<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+					}
 				>
 					<ProDashboard />
 				</Suspense>

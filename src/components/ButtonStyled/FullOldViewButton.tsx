@@ -4,8 +4,8 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useDashboardCreation } from '~/containers/ProDashboard/hooks/useDashboardCreation'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
-import { useSubscribe } from '~/hooks/useSubscribe'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))

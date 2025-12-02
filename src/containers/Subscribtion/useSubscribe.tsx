@@ -2,10 +2,10 @@ import { useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
-import { AUTH_SERVER } from '../constants'
 
 export interface SubscriptionRequest {
 	redirectUrl: string

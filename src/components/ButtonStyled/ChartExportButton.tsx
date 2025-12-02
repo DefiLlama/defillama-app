@@ -8,9 +8,9 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280

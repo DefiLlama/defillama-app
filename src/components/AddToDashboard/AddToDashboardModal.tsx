@@ -8,7 +8,7 @@ import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboa
 import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { DashboardChartConfig } from './AddToDashboardButton'
 
 interface AddToDashboardModalProps {

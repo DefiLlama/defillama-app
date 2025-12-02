@@ -4,8 +4,8 @@ import { Icon } from '~/components/Icon'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { ChartBuilderConfig, MultiChartConfig, YieldsChartConfig } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
 export type DashboardChartConfig = MultiChartConfig | ChartBuilderConfig | YieldsChartConfig
