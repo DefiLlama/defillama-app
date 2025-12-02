@@ -186,11 +186,7 @@ export function RecentlyListedProtocolsTable({
 
 				<div className="flex items-start gap-2 max-sm:w-full max-sm:flex-col sm:items-center">
 					<div className="flex w-full items-center gap-2 sm:w-auto">
-<<<<<<< HEAD
-						<ProtocolCategoryFilter protocols={data} />
-=======
 						<ProtocolCategoryFilter protocols={fullProtocolList} />
->>>>>>> fix/category-filter-hotfix
 						<SelectWithCombobox
 							label="Chains"
 							allValues={chainList}

@@ -16,10 +16,9 @@ function getSelectedCategoryFilters(categoryQueryParam: string | string[] | unde
 }
 
 // using generics to accept IProtocol, IProtocolRow, IFormattedProtocol, etc.
-export function useProtocolCategoryFilter<T extends { category?: string | null }>(
+export function useProtocolCategoryFilter<T extends { category?: string | null; childProtocols?: Array<T> }>(
 	protocols: Array<T>
 ): {
-	filteredProtocols: T[]
 	categoryList: string[]
 	selectedCategories: string[]
 	queries: {
@@ -32,29 +31,62 @@ export function useProtocolCategoryFilter<T extends { category?: string | null }
 
 	// get a unique list of protocols
 	const categoryList = useMemo(() => {
-		return [...new Set(protocols.map((p) => p.category).filter(Boolean))].sort((a: string, b: string) =>
-			a.localeCompare(b)
-		) as string[]
+		const categories = new Set<string>()
+		protocols.forEach((protocol) => {
+			// get categories for top level protocols
+			if (protocol.category) {
+				categories.add(protocol.category)
+			}
+			// get categories for child protocols
+			if (protocol.childProtocols && protocol.childProtocols.length > 0) {
+				protocol.childProtocols.forEach((childProtocol) => {
+					if (childProtocol.category) {
+						categories.add(childProtocol.category)
+					}
+				})
+			}
+		})
+		return Array.from(categories)
 	}, [protocols])
 
 	// get selected categories from url
 	const selectedCategories = useMemo(() => getSelectedCategoryFilters(category, categoryList), [category, categoryList])
 
-	// filter protocols by selected categories
-	const filteredProtocols = useMemo(() => {
-		return protocols.filter((protocol) => protocol.category && selectedCategories.includes(protocol.category))
-	}, [protocols, selectedCategories])
-
-	// utility method to filter protocols by selected categories
 	const filterProtocolsByCategory = useCallback(
 		(protocolList: Array<T>): T[] => {
-			return protocolList.filter((protocol) => protocol.category && selectedCategories.includes(protocol.category))
+			const isInFilter = (protocol: any) => protocol.category && selectedCategories.includes(protocol.category)
+
+			// create a local list with child protocols removed that aren't in the filter
+			const formattedProtocolList = protocolList.map((protocol) => {
+				if (protocol.childProtocols && protocol.childProtocols.length > 0) {
+					// create a copy of the original protocol entry
+					const newProtocolEntry = {
+						...protocol,
+						// add new list of child protocols (excluding child protocols that aren't in the filter)
+						childProtocols: protocol.childProtocols.filter((childProtocol) => isInFilter(childProtocol))
+					}
+					return newProtocolEntry
+				} else {
+					return protocol
+				}
+			})
+
+			return formattedProtocolList.filter((protocol) => {
+				// check if top level protcol is in filter
+				if (isInFilter(protocol)) {
+					return true
+				}
+				// check if any child protocols are in filter
+				if (protocol.childProtocols && Array.isArray(protocol.childProtocols)) {
+					return protocol.childProtocols.some((childProtocol) => isInFilter(childProtocol))
+				}
+				return false
+			})
 		},
 		[selectedCategories]
 	)
 
 	return {
-		filteredProtocols,
 		categoryList,
 		selectedCategories,
 		queries,
