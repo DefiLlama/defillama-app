@@ -57,7 +57,7 @@ export const AccountInfo = () => {
 		}
 	}
 
-	if (loaders.userLoading || loaders.userFetching) {
+	if (loaders.userLoading) {
 		return (
 			<div className="grid h-full w-full items-center justify-center">
 				<LocalLoader />

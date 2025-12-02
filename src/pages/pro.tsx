@@ -8,8 +8,6 @@ import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDash
 import { useMyDashboards } from '~/containers/ProDashboard/hooks'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import Layout from '~/layout'
 
 const SubscribeProModal = lazy(() =>
@@ -31,12 +29,9 @@ const GenerateDashboardModal = lazy(() =>
 )
 
 function ProPageContent() {
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { isAuthenticated, loaders } = useAuthContext()
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 
-	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
-
-	if (isAccountLoading) {
+	if (loaders.userLoading) {
 		return (
 			<Layout
 				title="DefiLlama - Pro Dashboard"
@@ -56,7 +51,7 @@ function ProPageContent() {
 			keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
 			canonicalUrl={`/pro`}
 		>
-			<ProContent hasActiveSubscription={subscription?.status === 'active'} isAuthenticated={isAuthenticated} />
+			<ProContent hasActiveSubscription={hasActiveSubscription} isAuthenticated={isAuthenticated} />
 		</Layout>
 	)
 }
@@ -80,7 +75,7 @@ function ProContent({
 				: 'discover'
 
 	const subscribeModalStore = Ariakit.useDialogStore()
-	const { hasFeature, loading: featureFlagsLoading } = useFeatureFlagsContext()
+
 	const {
 		createNewDashboard,
 		deleteDashboard,

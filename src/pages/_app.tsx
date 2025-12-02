@@ -4,51 +4,16 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import '~/tailwind.css'
 import '~/nprogress.css'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AUTH_SERVER } from '~/constants'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
-import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks/useIsClient'
 
 NProgress.configure({ showSpinner: false })
 
 const client = new QueryClient()
-
-function LlamaAIWelcomeWrapper() {
-	const [shown, setShown] = useLlamaAIWelcome()
-	const isClient = useIsClient()
-	const { hasFeature, loading } = useFeatureFlagsContext()
-	const { subscription } = useSubscribe()
-	const router = useRouter()
-	const [showModal, setShowModal] = useState(false)
-
-	useEffect(() => {
-		if (shown) return
-		if (!subscription || subscription.status !== 'active') return
-
-		const pathname = router.pathname
-		if (pathname.startsWith('/ai') || pathname.startsWith('/subscription')) return
-
-		if (isClient && !loading && hasFeature('llamaai')) {
-			setShowModal(true)
-		}
-	}, [shown, isClient, loading, hasFeature, subscription, router.pathname])
-
-	const handleClose = () => {
-		setShowModal(false)
-		setShown()
-	}
-
-	if (shown) return null
-
-	return <LlamaAIWelcomeModal isOpen={showModal} onClose={handleClose} />
-}
 
 function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
@@ -99,8 +64,8 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
-	const { authorizedFetch } = useAuthContext()
-	const { hasActiveSubscription } = useSubscribe()
+	const { authorizedFetch, hasActiveSubscription } = useAuthContext()
+
 	const { data: userHash } = useQuery({
 		queryKey: ['user-hash-front', user?.id, hasActiveSubscription],
 		queryFn: () =>
@@ -152,10 +117,7 @@ const AppWrapper = (props: AppProps) => {
 			<QueryClientProvider client={client}>
 				<AuthProvider>
 					<UserSettingsSync />
-					<FeatureFlagsProvider>
-						<App {...props} />
-						<LlamaAIWelcomeWrapper />
-					</FeatureFlagsProvider>
+					<App {...props} />
 				</AuthProvider>
 				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
 			</QueryClientProvider>

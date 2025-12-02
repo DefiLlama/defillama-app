@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
 import { download } from '~/utils'
 
@@ -50,9 +49,8 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 }: CSVDownloadButtonPropsUnion) {
 	const [staticLoading, setStaticLoading] = useState(false)
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders } = useAuthContext()
-	const isLoading = loaders.userLoading || isSubscriptionLoading || loading || staticLoading ? true : false
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
+	const isLoading = loaders.userLoading || loading || staticLoading ? true : false
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 	const router = useRouter()
@@ -72,7 +70,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				onClick={async () => {
 					if (isLoading) return
 
-					if (!loaders.userLoading && subscription?.status === 'active') {
+					if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
 						if (onClick) {
 							onClick()
 						} else {

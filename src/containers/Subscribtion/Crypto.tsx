@@ -77,7 +77,7 @@ export const PaymentButton = ({
 
 export const ProApiKey = () => {
 	const { isAuthenticated, loaders, authorizedFetch } = useAuthContext()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { subscription } = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 
 	const [apiKey, setApiKey] = useState<string | null>(null)

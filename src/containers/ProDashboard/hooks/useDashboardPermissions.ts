@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { Dashboard } from '../services/DashboardAPI'
 
 interface DashboardPermissions {
@@ -10,8 +9,8 @@ interface DashboardPermissions {
 }
 
 export function useDashboardPermissions(dashboard: Dashboard | null): DashboardPermissions {
-	const { user, isAuthenticated } = useAuthContext()
-	const { subscription } = useSubscribe()
+	const { user, isAuthenticated, hasActiveSubscription } = useAuthContext()
+
 	const [permissions, setPermissions] = useState<DashboardPermissions>({
 		isReadOnly: true,
 		isOwner: false,
@@ -21,7 +20,7 @@ export function useDashboardPermissions(dashboard: Dashboard | null): DashboardP
 	useEffect(() => {
 		if (!dashboard) {
 			// For new dashboards, non-subscribers are in readonly mode
-			const hasActiveSubscription = subscription?.status === 'active'
+
 			setPermissions({
 				isReadOnly: !hasActiveSubscription,
 				isOwner: hasActiveSubscription,
@@ -32,7 +31,6 @@ export function useDashboardPermissions(dashboard: Dashboard | null): DashboardP
 
 		if (dashboard.visibility === 'public') {
 			const isOwner = isAuthenticated && user?.id === dashboard.user
-			const hasActiveSubscription = subscription?.status === 'active'
 
 			setPermissions({
 				isReadOnly: !isOwner,
@@ -43,7 +41,6 @@ export function useDashboardPermissions(dashboard: Dashboard | null): DashboardP
 		}
 
 		const isOwner = isAuthenticated && user?.id === dashboard.user
-		const hasActiveSubscription = subscription?.status === 'active'
 
 		const isReadOnly = !isOwner || !hasActiveSubscription
 
@@ -52,7 +49,7 @@ export function useDashboardPermissions(dashboard: Dashboard | null): DashboardP
 			isOwner: isOwner && hasActiveSubscription,
 			dashboardOwnerId: dashboard.user
 		})
-	}, [dashboard, user?.id, subscription?.status, isAuthenticated])
+	}, [dashboard, user?.id, hasActiveSubscription, isAuthenticated])
 
 	return permissions
 }

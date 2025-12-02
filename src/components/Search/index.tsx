@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { LoadingDots } from '~/components/Loaders'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 import { useDebounce } from '~/hooks/useDebounce'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
@@ -59,8 +59,7 @@ const hideLlamaAI = new Set(['/ai'])
 export const MobileSearch = () => {
 	const router = useRouter()
 
-	const { subscription } = useSubscribe()
-	const hasActiveSubscription = subscription?.status === 'active'
+	const { hasActiveSubscription } = useAuthContext()
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
@@ -159,8 +158,7 @@ export const MobileSearch = () => {
 export const DesktopSearch = () => {
 	const router = useRouter()
 
-	const { subscription } = useSubscribe()
-	const hasActiveSubscription = subscription?.status === 'active'
+	const { hasActiveSubscription } = useAuthContext()
 
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
@@ -343,8 +341,7 @@ const useDefaultSearchList = () => {
 		queryFn: getDefaultSearchList,
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: false,
-		refetchOnWindowFocus: false,
-		gcTime: 1000 * 60 * 60
+		refetchOnWindowFocus: false
 	})
 
 	const recentSearch = useSyncExternalStore(

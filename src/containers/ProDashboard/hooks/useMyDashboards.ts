@@ -11,11 +11,11 @@ interface UseMyDashboardsParams {
 }
 
 export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboardsParams) {
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
+	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 	const router = useRouter()
 
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ['my-dashboards', page, limit],
+		queryKey: ['my-dashboards', user?.id, page, limit],
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				return {
