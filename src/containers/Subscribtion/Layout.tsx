@@ -31,7 +31,10 @@ export function SubscribeLayout({ children }) {
 
 						<div className="flex items-center gap-2">
 							{!isAuthenticated ? (
-								<SignInModal className="rounded-lg bg-[#5C5CF9] px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]" />
+								<SignInModal
+									className="rounded-lg bg-[#5C5CF9] px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]"
+									hideLoader
+								/>
 							) : (
 								<Ariakit.MenuProvider open={isMenuOpen} setOpen={setIsMenuOpen}>
 									<Ariakit.MenuButton className="flex h-8 w-8 items-center justify-center rounded-lg text-[#b4b7bc] transition-colors hover:bg-[#2a2b30] hover:text-white">
@@ -63,7 +66,7 @@ export function SubscribeLayout({ children }) {
 					</div>
 				</header>
 
-				<main className="grow py-8">{children}</main>
+				<main className="grid grow py-8">{children}</main>
 
 				<footer className="mt-auto border-t border-[#39393E]/40 px-5 py-8">
 					<div className="mx-auto max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px]">

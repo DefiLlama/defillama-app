@@ -41,7 +41,7 @@ export default function Account() {
 	return (
 		<WalletProvider>
 			<SubscribeLayout>
-				<div className="mx-auto w-full max-w-[1200px] px-5 pb-[64px]">
+				<div className="mx-auto w-full max-w-[1200px] px-5">
 					<AccountInfo />
 				</div>
 

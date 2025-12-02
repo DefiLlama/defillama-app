@@ -14,24 +14,25 @@ export const SignInModal = ({
 	className,
 	showOnlyAuthDialog = false,
 	pendingActionMessage,
-	defaultFlow = 'signin'
+	defaultFlow = 'signin',
+	hideLoader = false
 }: {
 	text?: string
 	className?: string
 	showOnlyAuthDialog?: boolean
 	pendingActionMessage?: string
 	defaultFlow?: 'signin' | 'signup' | 'forgot'
+	hideLoader?: boolean
 }) => {
 	const dialogStore = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
 
 	const { isAuthenticated, loaders } = useAuthContext()
 
 	if (loaders.userLoading || loaders.userFetching) {
-		return (
-			<div className="flex items-center justify-center py-3">
-				<LocalLoader />
-			</div>
-		)
+		if (hideLoader) {
+			return null
+		}
+		return <LocalLoader />
 	}
 
 	if (isAuthenticated) {
