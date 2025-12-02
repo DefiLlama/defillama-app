@@ -100,8 +100,9 @@ function App({ Component, pageProps }: AppProps) {
 	}, [router])
 
 	const { authorizedFetch } = useAuthContext()
+	const { hasActiveSubscription } = useSubscribe()
 	const { data: userHash } = useQuery({
-		queryKey: ['user-hash-front', user?.id, user?.subscription_status],
+		queryKey: ['user-hash-front', user?.id, hasActiveSubscription],
 		queryFn: () =>
 			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
 				.then((res) => {
@@ -115,7 +116,7 @@ function App({ Component, pageProps }: AppProps) {
 					console.log('Error fetching user hash:', err)
 					return null
 				}),
-		enabled: user?.id && user?.subscription_status === 'active' ? true : false,
+		enabled: user?.id && hasActiveSubscription ? true : false,
 		staleTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		retry: 3

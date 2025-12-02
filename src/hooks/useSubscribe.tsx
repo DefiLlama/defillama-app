@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import pb from '~/utils/pocketbase'
-import { AUTH_SERVER, POCKETBASE_URL } from '../constants'
+import { AUTH_SERVER } from '../constants'
 
 export interface SubscriptionRequest {
 	redirectUrl: string
@@ -65,7 +65,6 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 	const data = useQuery<SubscriptionResponse>({
 		queryKey: ['subscription', pb.authStore.record?.id, type],
 		queryFn: async () => {
-			console.log('isAuthenticated', isAuthenticated, type)
 			if (!isAuthenticated) {
 				return defaultInactiveSubscription
 			}
@@ -81,7 +80,6 @@ const useSubscription = (type: 'api' | 'llamafeed' | 'legacy') => {
 				})
 
 				if (!response.ok) {
-					console.log(`Subscription status error: ${response.status}`)
 					return defaultInactiveSubscription
 				}
 
