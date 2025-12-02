@@ -46,7 +46,8 @@ export function useProtocolCategoryFilter<T extends { category?: string | null; 
 				})
 			}
 		})
-		return Array.from(categories)
+		// turn set into alphabetically sorted array
+		return Array.from(categories).sort((a: string, b: string) => a.localeCompare(b))
 	}, [protocols])
 
 	// get selected categories from url
