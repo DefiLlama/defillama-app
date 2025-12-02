@@ -47,11 +47,14 @@ const subscribeToAuthStore = (callback: () => void) => {
 
 const getAuthStoreSnapshot = () => authStoreSnapshot
 
-const getServerSnapshot = () => ({
+// Cache the server snapshot to avoid infinite loop in useSyncExternalStore
+const serverSnapshot = {
 	token: '',
 	record: null,
 	isValid: false
-})
+}
+
+const getServerSnapshot = () => serverSnapshot
 
 interface FetchOptions extends RequestInit {
 	skipAuth?: boolean
@@ -164,10 +167,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	// Show loading state when:
-	// 1. The auth refresh query is loading, OR
-	// 2. We have a token but haven't confirmed it yet (initial hydration)
-	const userLoading = userQueryIsLoading || (authStoreState.token && !authStoreState.record)
+	// Show loading state only when we have a token and are validating it
+	// Don't show loading if there's no token (user is logged out)
+	const userLoading = authStoreState.token && (userQueryIsLoading || !authStoreState.record)
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {

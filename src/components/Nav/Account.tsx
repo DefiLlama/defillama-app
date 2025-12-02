@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 import { formatEthAddress } from '~/utils'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
@@ -21,10 +22,15 @@ const resolveUserHandle = (user: any): string => {
 export const Account = memo(function Account() {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
+	const isClient = useIsClient()
 
 	const isAccountLoading = loaders?.userLoading
 
 	const userHandle = resolveUserHandle(user)
+
+	if (!isClient) {
+		return <div className="flex min-h-7 w-full items-center justify-center" />
+	}
 
 	return (
 		<>
