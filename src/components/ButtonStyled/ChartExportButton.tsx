@@ -9,7 +9,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { downloadDataURL } from '~/utils'
 

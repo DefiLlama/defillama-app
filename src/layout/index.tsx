@@ -7,7 +7,7 @@ import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select'
 import { ISEOProps, SEO } from '~/components/SEO'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
 

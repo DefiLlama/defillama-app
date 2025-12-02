@@ -3,8 +3,8 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { useIsClient } from '~/hooks'
-import { useDashboardCreation } from '~/hooks/useDashboardCreation'
+import { useDashboardCreation } from '~/containers/ProDashboard/hooks/useDashboardCreation'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 const SubscribeProModal = lazy(() =>

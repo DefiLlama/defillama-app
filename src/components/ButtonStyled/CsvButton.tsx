@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { download } from '~/utils'
 

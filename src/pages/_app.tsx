@@ -13,7 +13,7 @@ import { AUTH_SERVER } from '~/constants'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useSubscribe } from '~/hooks/useSubscribe'
 
 NProgress.configure({ showSpinner: false })

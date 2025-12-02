@@ -7,7 +7,7 @@ import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOve
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))

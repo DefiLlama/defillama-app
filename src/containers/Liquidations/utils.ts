@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars*/
 import { useRouter } from 'next/router'
 import { ECBasicOption } from 'echarts/types/dist/shared'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
