@@ -394,7 +394,7 @@ export const useSubscribe = () => {
 			return
 		}
 
-		if (apiSubscription?.subscription?.status !== 'active') {
+		if (apiSubscription ? apiSubscription.subscription.status !== 'active' : true) {
 			toast.error('No active API subscription found')
 			return
 		}
