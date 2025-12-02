@@ -24,7 +24,7 @@ export const Account = memo(function Account() {
 	const { isAuthenticated, user, logout, loaders } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 
-	const isAccountLoading = loaders?.userLoading || (isAuthenticated && isSubscriptionLoading)
+	const isAccountLoading = loaders?.userLoading || loaders?.userFetching || isSubscriptionLoading
 
 	const userHandle = resolveUserHandle(user)
 

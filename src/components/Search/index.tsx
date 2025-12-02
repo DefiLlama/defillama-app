@@ -1,16 +1,14 @@
-import { memo, startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { LoadingDots } from '~/components/Loaders'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
 import { useDebounce } from '~/hooks/useDebounce'
 import { useSubscribe } from '~/hooks/useSubscribe'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
-import { SearchFallback } from './Fallback'
 
 async function getDefaultSearchList() {
 	try {

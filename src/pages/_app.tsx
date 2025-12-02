@@ -157,7 +157,7 @@ const AppWrapper = (props: AppProps) => {
 						<LlamaAIWelcomeWrapper />
 					</FeatureFlagsProvider>
 				</AuthProvider>
-				<ReactQueryDevtools initialIsOpen={false} />
+				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
 			</QueryClientProvider>
 		</>
 	)
