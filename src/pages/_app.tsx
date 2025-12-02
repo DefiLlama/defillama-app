@@ -96,7 +96,7 @@ function App({ Component, pageProps }: AppProps) {
 					onLoad={() => {
 						if (typeof window !== 'undefined' && (window as any).FrontChat) {
 							;(window as any).FrontChat('init', {
-								chatId: '623911979437ffab2baa1ecd42c9e27f',
+								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
 								useDefaultLauncher: true,
 								email: user.email,
 								userHash
