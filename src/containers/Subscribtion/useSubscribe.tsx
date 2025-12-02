@@ -174,6 +174,7 @@ export const useSubscribe = () => {
 			}
 
 			queryClient.setQueryData(['subscription', pb.authStore.record?.id, type], defaultInactiveSubscription)
+			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
 

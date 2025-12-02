@@ -167,9 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	// Show loading state only when we have a token but no record yet (initial page load)
-	// Once we have both token and record, we're authenticated - no need to wait for query
-	const userLoading = Boolean(authStoreState.token && !authStoreState.record)
+	const userLoading = Boolean(!authStoreState.token || !authStoreState.record) ? userQueryIsLoading : false
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {
