@@ -53,15 +53,8 @@ export default class ChainCharts {
 	private static toDimensionsApiChain(chain: string): string {
 		if (!chain) return chain
 		const lc = chain.toLowerCase()
-		if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'OP Mainnet'
-		if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era' || lc === 'zksync' || lc === 'era')
-			return 'era'
-		if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'polygon_zkevm'
-		if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm' || lc === 'imx') return 'imx'
-		if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'cronos_zkevm'
-		if (lc === 'arbitrum nova' || lc === 'arbitrum-nova' || lc === 'arbitrum_nova') return 'arbitrum_nova'
-		if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
-			return 'Hyperliquid'
+		if (lc === 'optimism') return 'OP Mainnet'
+		if (lc === 'binance') return 'BSC'
 		return chain
 	}
 

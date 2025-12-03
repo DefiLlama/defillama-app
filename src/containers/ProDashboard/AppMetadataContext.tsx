@@ -37,14 +37,13 @@ type AppMetadataContextType = {
 const AppMetadataContext = createContext<AppMetadataContextType | undefined>(undefined)
 
 const CHAIN_NAME_ALIASES: Record<string, string[]> = {
-	'OP Mainnet': ['Optimism', 'optimism', 'op mainnet', 'op-mainnet'],
-	Optimism: ['OP Mainnet', 'op mainnet', 'op-mainnet'],
-	'ZKsync Era': ['zksync era', 'zksync-era', 'zksync_era', 'zksync', 'era'],
-	'Polygon zkEVM': ['polygon zkevm', 'polygon-zkevm', 'polygon_zkevm'],
-	'Immutable zkEVM': ['immutable zkevm', 'immutable-zkevm', 'immutable_zkevm', 'imx'],
-	'Cronos zkEVM': ['cronos zkevm', 'cronos-zkevm', 'cronos_zkevm'],
-	'Arbitrum Nova': ['arbitrum nova', 'arbitrum-nova', 'arbitrum_nova'],
-	Hyperliquid: ['hyperliquid l1', 'hyperliquid_l1', 'hyperliquid-l1']
+	'OP Mainnet': ['Optimism'],
+	BSC: ['Binance'],
+	Hyperliquid: ['Hyperliquid L1'],
+	Gnosis: ['xDai'],
+	CosmosHub: ['Cosmos'],
+	PulseChain: ['Pulse'],
+	'EOS EVM': ['EOS']
 }
 
 const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags> = {
