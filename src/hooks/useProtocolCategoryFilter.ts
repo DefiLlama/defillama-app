@@ -55,34 +55,32 @@ export function useProtocolCategoryFilter<T extends { category?: string | null; 
 
 	const filterProtocolsByCategory = useCallback(
 		(protocolList: Array<T>): T[] => {
-			const isInFilter = (protocol: T) => protocol.category && selectedCategories.includes(protocol.category)
+			const final: T[] = []
 
-			// create a local list with child protocols removed that aren't in the filter
-			const formattedProtocolList = protocolList.map((protocol) => {
-				if (protocol.childProtocols && protocol.childProtocols.length > 0) {
-					// create a copy of the original protocol entry
-					const newProtocolEntry = {
-						...protocol,
-						// add new list of child protocols (excluding child protocols that aren't in the filter)
-						childProtocols: protocol.childProtocols.filter((childProtocol) => isInFilter(childProtocol))
+			for (const protocol of protocolList) {
+				if (protocol.childProtocols) {
+					const childProtocols = protocol.childProtocols.filter(
+						(childProtocol) => childProtocol.category && selectedCategories.includes(childProtocol.category)
+					)
+
+					if (childProtocols.length === protocol.childProtocols.length) {
+						final.push(protocol)
+					} else {
+						for (const childProtocol of childProtocols) {
+							final.push(childProtocol)
+						}
 					}
-					return newProtocolEntry
-				} else {
-					return protocol
-				}
-			})
 
-			return formattedProtocolList.filter((protocol) => {
-				// check if top level protcol is in filter
-				if (isInFilter(protocol)) {
-					return true
+					continue
 				}
-				// check if any child protocols are in filter
-				if (protocol.childProtocols && Array.isArray(protocol.childProtocols)) {
-					return protocol.childProtocols.some((childProtocol) => isInFilter(childProtocol))
+
+				if (protocol.category && selectedCategories.includes(protocol.category)) {
+					final.push(protocol)
+					continue
 				}
-				return false
-			})
+			}
+
+			return final
 		},
 		[selectedCategories]
 	)
