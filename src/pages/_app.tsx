@@ -65,12 +65,10 @@ function App({ Component, pageProps }: AppProps) {
 
 	const userHash = useUserHash()
 
-	const email =
-		user && user.email
-			? user.email.startsWith('0x') && user.email.endsWith('@defillama.com')
-				? user.ethereum_email || null
-				: user.email
-			: null
+	let email = user?.email ?? null
+	if (user && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
+		email = user.ethereum_email
+	}
 
 	return (
 		<>
@@ -83,7 +81,8 @@ function App({ Component, pageProps }: AppProps) {
 							;(window as any).FrontChat('init', {
 								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
 								useDefaultLauncher: true,
-								...(email ? { email, userHash } : {})
+								email,
+								userHash
 							})
 						}
 					}}
