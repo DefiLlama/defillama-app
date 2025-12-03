@@ -65,13 +65,12 @@ function App({ Component, pageProps }: AppProps) {
 
 	const userHash = useUserHash()
 
-	const noEmail =
-		user &&
-		user.walletAddress &&
-		user.email &&
-		`${user.walletAddress}@defillama.com`.toLowerCase() === user.email.toLowerCase()
-			? true
-			: false
+	const email =
+		user && user.email
+			? user.email.startsWith('0x') && user.email.endsWith('@defillama.com')
+				? user.ethereum_email || null
+				: user.email
+			: null
 
 	return (
 		<>
@@ -84,7 +83,7 @@ function App({ Component, pageProps }: AppProps) {
 							;(window as any).FrontChat('init', {
 								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
 								useDefaultLauncher: true,
-								...(noEmail ? {} : { email: user.email, userHash })
+								...(email ? { email, userHash } : {})
 							})
 						}
 					}}
