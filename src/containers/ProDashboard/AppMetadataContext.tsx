@@ -36,6 +36,17 @@ type AppMetadataContextType = {
 
 const AppMetadataContext = createContext<AppMetadataContextType | undefined>(undefined)
 
+const CHAIN_NAME_ALIASES: Record<string, string[]> = {
+	'OP Mainnet': ['Optimism', 'optimism', 'op mainnet', 'op-mainnet'],
+	Optimism: ['OP Mainnet', 'op mainnet', 'op-mainnet'],
+	'ZKsync Era': ['zksync era', 'zksync-era', 'zksync_era', 'zksync', 'era'],
+	'Polygon zkEVM': ['polygon zkevm', 'polygon-zkevm', 'polygon_zkevm'],
+	'Immutable zkEVM': ['immutable zkevm', 'immutable-zkevm', 'immutable_zkevm', 'imx'],
+	'Cronos zkEVM': ['cronos zkevm', 'cronos-zkevm', 'cronos_zkevm'],
+	'Arbitrum Nova': ['arbitrum nova', 'arbitrum-nova', 'arbitrum_nova'],
+	Hyperliquid: ['hyperliquid l1', 'hyperliquid_l1', 'hyperliquid-l1']
+}
+
 const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags> = {
 	tvl: 'tvl',
 	fees: 'fees',
@@ -151,13 +162,21 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 				if (!item || typeof item !== 'object') continue
 				const name: string | undefined = item.name
 				if (!name) continue
-				chainsByName.set(name, {
+				const record: ChainRecord = {
 					name,
 					id: item.id,
 					gecko_id: item.gecko_id,
 					tokenSymbol: item.tokenSymbol,
 					flags: item
-				})
+				}
+				chainsByName.set(name, record)
+				chainsByName.set(name.toLowerCase(), record)
+				const aliases = CHAIN_NAME_ALIASES[name]
+				if (aliases) {
+					for (const alias of aliases) {
+						chainsByName.set(alias, record)
+					}
+				}
 			}
 		}
 

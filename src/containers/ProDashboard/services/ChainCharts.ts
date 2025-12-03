@@ -50,6 +50,21 @@ export default class ChainCharts {
 		optimism: 'OP Mainnet'
 	}
 
+	private static toDimensionsApiChain(chain: string): string {
+		if (!chain) return chain
+		const lc = chain.toLowerCase()
+		if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'OP Mainnet'
+		if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era' || lc === 'zksync' || lc === 'era')
+			return 'era'
+		if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'polygon_zkevm'
+		if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm' || lc === 'imx') return 'imx'
+		if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'cronos_zkevm'
+		if (lc === 'arbitrum nova' || lc === 'arbitrum-nova' || lc === 'arbitrum_nova') return 'arbitrum_nova'
+		if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
+			return 'Hyperliquid'
+		return chain
+	}
+
 	private static async fetchAndMergeChains(
 		chains: string[],
 		fetchUrl: (chainName: string) => string,
@@ -97,9 +112,11 @@ export default class ChainCharts {
 
 	private static async dimensionsData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
-			? `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${chain}?dataType=${dataType}`
-			: `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${chain}`
+			? `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
+			: `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${encodedChain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
@@ -107,7 +124,9 @@ export default class ChainCharts {
 
 	private static async userMetrics(chain: string, api: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const response = await fetch(`${api}/chain$${chain}`)
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
+		const response = await fetch(`${api}/chain$${encodedChain}`)
 		const data = await response.json()
 		return convertToNumberFormat(data ?? [])
 	}
@@ -136,7 +155,9 @@ export default class ChainCharts {
 
 	private static async stablecoinsData(chain: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const response = await fetch(`${PEGGEDCHART_API}/${chain}`)
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
+		const response = await fetch(`${PEGGEDCHART_API}/${encodedChain}`)
 		const data = await response.json()
 
 		if (!data.aggregated || !Array.isArray(data.aggregated)) return []
@@ -155,9 +176,11 @@ export default class ChainCharts {
 
 	private static async protocolData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
-			? `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}?dataType=${dataType}`
-			: `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${chain}`
+			? `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
+			: `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${encodedChain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
@@ -211,7 +234,7 @@ export default class ChainCharts {
 		return data
 	}
 
-	private static async chainMcapData(chain: string, geckoId?: string): Promise<[number, number][]> {
+	private static async chainMcapData(_chain: string, geckoId?: string): Promise<[number, number][]> {
 		if (!geckoId) return []
 		const data = await this.getTokenData(geckoId)
 		if (!data) return []
@@ -219,7 +242,7 @@ export default class ChainCharts {
 		return normalizeHourlyToDaily(converted, 'last')
 	}
 
-	private static async chainPriceData(chain: string, geckoId?: string): Promise<[number, number][]> {
+	private static async chainPriceData(_chain: string, geckoId?: string): Promise<[number, number][]> {
 		if (!geckoId) return []
 		const data = await this.getTokenData(geckoId)
 		if (!data) return []
