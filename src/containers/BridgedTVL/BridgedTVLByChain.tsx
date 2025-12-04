@@ -7,7 +7,6 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, preparePieChartData } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -61,69 +60,24 @@ export function BridgedTVLByChain({ chainData, chains, chain, inflows, tokenInfl
 					</p>
 
 					<p className="flex items-center justify-between gap-1 text-base">
-						<Tooltip
-							content="Assets minted natively on the chain"
-							className="text-(--text-label) underline decoration-dotted"
-						>
-							Native
-						</Tooltip>
+						<span className="text-(--text-label)">Canonical</span>
+						<span className="font-jetbrains">{formattedNum(chainData?.canonical?.total, true)}</span>
+					</p>
+
+					<p className="flex items-center justify-between gap-1 text-base">
+						<span className="text-(--text-label)">Native</span>
 						<span className="font-jetbrains">{formattedNum(chainData?.native?.total, true)}</span>
 					</p>
 
 					<p className="flex items-center justify-between gap-1 text-base">
-						<Tooltip
-							content="Assets bridged through the official canonical bridge"
-							className="text-(--text-label) underline decoration-dotted"
-						>
-							Canonical
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(chainData?.canonical?.total, true)}</span>
+						<span className="text-(--text-label)">Third Party</span>
+						<span className="font-jetbrains">{formattedNum(chainData?.thirdParty?.total, true)}</span>
 					</p>
 
 					{chainData?.ownTokens?.total ? (
 						<p className="flex items-center justify-between gap-1 text-base">
-							<Tooltip
-								content="The chains own token, either for gas or for governance"
-								className="text-(--text-label) underline decoration-dotted"
-							>
-								Own Tokens
-							</Tooltip>
+							<span className="text-(--text-label)">Own Tokens</span>
 							<span className="font-jetbrains">{formattedNum(chainData?.ownTokens.total, true)}</span>
-						</p>
-					) : null}
-
-					<p className="flex items-center justify-between gap-1 text-base">
-						<Tooltip
-							content="Assets bridged through bridges that aren’t the canonical bridge"
-							className="text-(--text-label) underline decoration-dotted"
-						>
-							Third Party
-						</Tooltip>
-						<span className="font-jetbrains">{formattedNum(chainData?.thirdParty?.total, true)}</span>
-					</p>
-
-					{chainData?.rwa?.total ? (
-						<p className="flex items-center justify-between gap-1 text-base">
-							<Tooltip content="Real World Assets" className="text-(--text-label) underline decoration-dotted">
-								RWA
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(chainData?.rwa.total, true)}</span>
-						</p>
-					) : null}
-					{chainData?.lst?.total ? (
-						<p className="flex items-center justify-between gap-1 text-base">
-							<Tooltip content="Liquid Staking Tokens" className="text-(--text-label) underline decoration-dotted">
-								LST
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(chainData?.lst.total, true)}</span>
-						</p>
-					) : null}
-					{chainData?.stablecoins?.total ? (
-						<p className="flex items-center justify-between gap-1 text-base">
-							<Tooltip content="Stablecoins" className="text-(--text-label) underline decoration-dotted">
-								Stablecoins
-							</Tooltip>
-							<span className="font-jetbrains">{formattedNum(chainData?.stablecoins.total, true)}</span>
 						</p>
 					) : null}
 				</div>

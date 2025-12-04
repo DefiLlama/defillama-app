@@ -66,9 +66,6 @@ interface IBridgedRow {
 	canonical?: { total?: string }
 	ownTokens?: { total?: string }
 	native?: { total?: string }
-	rwa?: { total?: string }
-	lst?: { total?: string }
-	stablecoins?: { total?: string }
 	change_24h: number
 }
 
@@ -141,7 +138,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return <>${formattedNum(value)}</>
 		},
 		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance' }
+		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance ' }
 	},
 	{
 		header: 'Third Party',
@@ -154,41 +151,5 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		},
 		sortUndefined: 'last',
 		meta: { align: 'end', headerHelperText: 'Assets bridged through bridges that aren’t the canonical bridge' }
-	},
-	{
-		header: 'RWA',
-		accessorKey: 'rwa',
-		accessorFn: (row) => row.rwa?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Real World Assets' }
-	},
-	{
-		header: 'LST',
-		accessorKey: 'lst',
-		accessorFn: (row) => row.lst?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end', headerHelperText: 'Liquid Staking Tokens' }
-	},
-	{
-		header: 'Stablecoins',
-		accessorKey: 'stablecoins',
-		accessorFn: (row) => row.stablecoins?.total ?? undefined,
-		cell: (info) => {
-			const value = info.getValue()
-			if (!value) return <></>
-			return <>${formattedNum(value)}</>
-		},
-		sortUndefined: 'last',
-		meta: { align: 'end' }
 	}
 ]
