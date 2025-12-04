@@ -17,7 +17,10 @@ export default function SessionPage() {
 	useEffect(() => {
 		if (isLoading) return
 		if (!hasActiveSubscription) {
-			router.push('/ai')
+			const timeout = setTimeout(() => {
+				router.push('/ai')
+			}, 1500)
+			return () => clearTimeout(timeout)
 		}
 	}, [isLoading, hasActiveSubscription, router])
 
