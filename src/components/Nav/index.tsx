@@ -62,7 +62,8 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			...(hasActiveSubscription
 				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
-				: [{ name: 'LlamaAI', route: '/ai', icon: '' }])
+				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
+			{ name: 'Support', route: '/support', icon: 'support' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
 	}, [showAttentionIcon, hasActiveSubscription])

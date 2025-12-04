@@ -145,6 +145,10 @@ function Support() {
 						{error && <small className="text-center text-red-500">{error.message}</small>}
 					</form>
 				)}
+
+				<p className="text-center">
+					Contacting us via these channels ensures a much faster response compared to discord
+				</p>
 			</div>
 		</Layout>
 	)
