@@ -43,5 +43,25 @@ export const chainCoingeckoIdsForGasNotMcap = {
 		geckoId: 'ethereum',
 		symbol: 'ETH',
 		cmcId: '1027'
+	},
+	Linea: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	Scroll: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	Blast: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
+	},
+	Mode: {
+		geckoId: 'ethereum',
+		symbol: 'ETH',
+		cmcId: '1027'
 	}
 }
