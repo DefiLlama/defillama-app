@@ -667,7 +667,7 @@ export const formatProtocolsList2 = ({
 
 	const final = []
 	for (const protocol of protocols) {
-		if (!protocol.tvl) {
+		if (protocol.tvl == null) {
 			if (minTvl === null && maxTvl === null) {
 				final.push({ ...protocol })
 			}

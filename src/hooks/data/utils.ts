@@ -77,10 +77,23 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 					}
 				})
 			}
+			// For protocols with TVL but null historical values, use current TVL as historical value
+			for (const key of ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const) {
+				let value = curr[key]
+				if (value == null && curr.tvl != null) {
+					value = curr.tvl
+				}
+				if (value || value === 0) {
+					hasAtleastOnceValue[key] = true
+					acc[key] = (acc[key] ?? 0) + value
+				} else {
+					if (!hasAtleastOnceValue[key]) {
+						acc[key] = undefined
+					}
+				}
+			}
+
 			for (const key of [
-				'tvlPrevDay',
-				'tvlPrevWeek',
-				'tvlPrevMonth',
 				'volume_24h',
 				'volume_7d',
 				'volume_30d',
@@ -111,12 +124,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				acc.mcap = acc.mcap + curr.mcap
 			}
 
-			if (curr.volume_7d && curr.volumeChange_7d !== undefined && curr.volumeChange_7d !== null) {
+			if (curr.volume_7d && curr.volumeChange_7d != null) {
 				weightedVolumeChange += curr.volumeChange_7d * curr.volume_7d
 				totalVolumeWeight += curr.volume_7d
 			}
 
-			if (curr.perps_volume_7d && curr.perps_volume_change_7d !== undefined && curr.perps_volume_change_7d !== null) {
+			if (curr.perps_volume_7d && curr.perps_volume_change_7d != null) {
 				weightedPerpsVolumeChange += curr.perps_volume_change_7d * curr.perps_volume_7d
 				totalPerpsVolumeWeight += curr.perps_volume_7d
 			}
