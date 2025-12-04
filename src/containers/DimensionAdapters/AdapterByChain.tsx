@@ -400,7 +400,7 @@ export function AdapterByChain(props: IProps) {
 							{props.openInterest ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<Tooltip
-										content="Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC"
+										content="Total notional value of all outstanding perpetual futures positions"
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Open Interest
@@ -709,8 +709,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Total fees paid by users when using the protocol in the last 24 hours, updated daily at 00:00 UTC'
+					headerHelperText: 'Total fees paid by users when using the protocol in the last 24 hours'
 				},
 				size: 128
 			},
@@ -784,7 +783,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by the protocol in the last 24 hours, updated daily at 00:00 UTC'
+					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
 				},
 				size: 128
 			},
@@ -858,8 +857,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Revenue earned by token holders of the protocol in the last 24 hours, updated daily at 00:00 UTC'
+					headerHelperText: 'Revenue earned by token holders of the protocol in the last 24 hours'
 				},
 				size: 180
 			},
@@ -901,8 +899,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of value paid buying and selling options on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 24 hours'
 				},
 				size: 180
 			},
@@ -945,7 +942,7 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText:
-						'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours, updated daily at 00:00 UTC'
+						'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours'
 				},
 				size: 180
 			},
@@ -999,7 +996,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours, updated daily at 00:00 UTC'
+					headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours'
 				},
 				size: 152
 			},
@@ -1088,7 +1085,7 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText:
-						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours'
 				},
 				size: 160
 			},
@@ -1101,8 +1098,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+					headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
 				},
 				size: 160
 			},
@@ -1196,8 +1192,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+					headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
 				},
 				size: 160
 			}
@@ -1219,7 +1214,7 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText:
-						'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+						'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours'
 				},
 				size: 160
 			},
@@ -1274,7 +1269,7 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText:
-						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours, updated daily at 00:00 UTC'
+						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours'
 				},
 				size: 160
 			},
@@ -1328,8 +1323,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Volume of spot token swaps on the DEX aggregator in the last 24 hours, updated daily at 00:00 UTC'
+					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 24 hours'
 				},
 				size: 160
 			},

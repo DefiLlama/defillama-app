@@ -879,7 +879,7 @@ function OpenInterest(props: IKeyMetricsProps) {
 	if (props.openInterest.total24h != null) {
 		metrics.push({
 			name: 'Open Interest',
-			tooltipContent: 'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC',
+			tooltipContent: 'Total notional value of all outstanding perpetual futures positions',
 			value: props.openInterest.total24h
 		})
 	}
