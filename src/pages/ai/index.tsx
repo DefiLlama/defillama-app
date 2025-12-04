@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { cn } from '~/utils/cn'
 
 const FEATURE_SECTIONS = [
@@ -31,7 +32,8 @@ const SubscribeProModal = lazy(() =>
 export default function LlamaAIGetStarted() {
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const [activeFeature, setActiveFeature] = useState(0)
-	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated } = useAuthContext()
+	const { hasActiveSubscription } = useSubscribe()
 
 	return (
 		<>

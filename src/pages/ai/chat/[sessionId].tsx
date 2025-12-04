@@ -3,14 +3,16 @@ import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import Layout from '~/layout'
 
 export default function SessionPage() {
 	const router = useRouter()
 	const { sessionId } = router.query
-	const { user, loaders, hasActiveSubscription } = useAuthContext()
+	const { user, loaders } = useAuthContext()
+	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 
-	const isLoading = loaders.userLoading
+	const isLoading = loaders.userLoading || isSubscriptionLoading
 
 	useEffect(() => {
 		if (isLoading) return

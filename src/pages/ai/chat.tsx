@@ -4,6 +4,7 @@ import { maxAgeForNext } from '~/api'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -15,10 +16,11 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 })
 
 export default function LlamaAIPage() {
-	const { user, loaders, hasActiveSubscription } = useAuthContext()
+	const { user, loaders } = useAuthContext()
+	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 	const router = useRouter()
 
-	const isLoading = loaders.userLoading
+	const isLoading = loaders.userLoading || isSubscriptionLoading
 
 	useEffect(() => {
 		if (isLoading) return
