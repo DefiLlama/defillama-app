@@ -122,7 +122,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
 
 	const { isLoading: userQueryIsLoading } = useQuery({
-		queryKey: ['currentUserAuthStatus', authStoreState.record?.id ?? null],
+		queryKey: ['currentUserAuthStatus', pb.authStore.record?.id ?? null],
 		queryFn: async () => {
 			if (!pb.authStore.token) {
 				return null
@@ -145,12 +145,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					clearUserSession()
 				}
 
-				throw error
+				throw new Error('Failed to refresh auth')
 			}
 		},
-		enabled: true,
+		enabled: authStoreState.record?.id != null,
 		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
 		refetchOnMount: true,
 		refetchOnWindowFocus: false,
 		retry: 3,
