@@ -67,7 +67,7 @@ function App({ Component, pageProps }: AppProps) {
 		<>
 			{userHash && typeof window !== 'undefined' && !(window as any).FrontChat && window.innerWidth > 768 ? (
 				<Script
-					src="/front-chat.js"
+					src="/assets/front-chat.js"
 					strategy="afterInteractive"
 					onLoad={() => {
 						if (typeof window !== 'undefined' && (window as any).FrontChat) {

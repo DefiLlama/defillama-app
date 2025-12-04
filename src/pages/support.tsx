@@ -60,7 +60,7 @@ function Support() {
 		>
 			{userHash ? (
 				<Script
-					src="/front-chat.js"
+					src="/assets/front-chat.js"
 					onLoad={() => {
 						if (typeof window !== 'undefined' && (window as any).FrontChat) {
 							;(window as any).FrontChat('init', {
