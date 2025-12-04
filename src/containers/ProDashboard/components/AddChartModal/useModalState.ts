@@ -101,6 +101,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedYieldTokens, setSelectedYieldTokens] = useState<string[]>([])
 	const [minTvl, setMinTvl] = useState<number | null>(null)
 	const [maxTvl, setMaxTvl] = useState<number | null>(null)
+	const [selectedStablecoinChain, setSelectedStablecoinChain] = useState<string>('All')
+	const [selectedStablecoinChartType, setSelectedStablecoinChartType] = useState<string>('totalMcap')
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -181,6 +183,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 					project: editItem.project,
 					chain: editItem.chain
 				})
+			} else if (editItem.kind === 'stablecoins') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('stablecoins')
+				setSelectedStablecoinChain(editItem.chain)
+				setSelectedStablecoinChartType(editItem.chartType)
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -232,6 +240,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldTokens([])
 			setMinTvl(null)
 			setMaxTvl(null)
+			setSelectedStablecoinChain('All')
+			setSelectedStablecoinChartType('totalMcap')
 		}
 	}, [editItem, isOpen])
 
@@ -283,6 +293,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedYieldTokens([])
 		setMinTvl(null)
 		setMaxTvl(null)
+		setSelectedStablecoinChain('All')
+		setSelectedStablecoinChartType('totalMcap')
 	}
 
 	const state: ModalState = {
@@ -321,7 +333,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedYieldCategories,
 		selectedYieldTokens,
 		minTvl,
-		maxTvl
+		maxTvl,
+		selectedStablecoinChain,
+		selectedStablecoinChartType
 	}
 
 	const actionsObj = useMemo(
@@ -361,7 +375,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldCategories,
 			setSelectedYieldTokens,
 			setMinTvl,
-			setMaxTvl
+			setMaxTvl,
+			setSelectedStablecoinChain,
+			setSelectedStablecoinChartType
 		}),
 		[
 			setSelectedMainTab,
@@ -398,7 +414,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldCategories,
 			setSelectedYieldTokens,
 			setMinTvl,
-			setMaxTvl
+			setMaxTvl,
+			setSelectedStablecoinChain,
+			setSelectedStablecoinChartType
 		]
 	)
 

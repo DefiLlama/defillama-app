@@ -89,7 +89,12 @@ function ProDashboardContent() {
 	]
 
 	const hasChartItems = items?.some(
-		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder' || item?.kind === 'yields'
+		(item) =>
+			item?.kind === 'chart' ||
+			item?.kind === 'multi' ||
+			item?.kind === 'builder' ||
+			item?.kind === 'yields' ||
+			item?.kind === 'stablecoins'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()

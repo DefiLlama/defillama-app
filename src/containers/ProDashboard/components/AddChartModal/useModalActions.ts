@@ -26,6 +26,7 @@ export function useModalActions(
 		timePeriod,
 		handleAddChart,
 		handleAddYieldChart,
+		handleAddStablecoinsChart,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -494,6 +495,13 @@ export function useModalActions(
 					project: state.selectedYieldPool.project,
 					chain: state.selectedYieldPool.chain
 				} as any
+			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'stablecoins') {
+				newItem = {
+					...editItem,
+					kind: 'stablecoins',
+					chain: state.selectedStablecoinChain,
+					chartType: state.selectedStablecoinChartType
+				} as any
 			}
 
 			if (newItem) {
@@ -512,6 +520,12 @@ export function useModalActions(
 					state.selectedYieldPool.project,
 					state.selectedYieldPool.chain
 				)
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'stablecoins'
+			) {
+				handleAddStablecoinsChart(state.selectedStablecoinChain, state.selectedStablecoinChartType)
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
@@ -625,6 +639,7 @@ export function useModalActions(
 		handleAddMultiChart,
 		handleAddChart,
 		handleAddYieldChart,
+		handleAddStablecoinsChart,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,

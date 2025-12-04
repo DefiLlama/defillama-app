@@ -23,6 +23,8 @@ interface SubmitButtonProps {
 	metricChain?: string | null
 	metricProtocol?: string | null
 	metricType?: string
+	selectedStablecoinChain?: string
+	selectedStablecoinChartType?: string
 	onSubmit: () => void
 }
 
@@ -48,6 +50,8 @@ export function SubmitButton({
 	metricChain,
 	metricProtocol,
 	metricType,
+	selectedStablecoinChain,
+	selectedStablecoinChartType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isDisabled =
@@ -55,7 +59,12 @@ export function SubmitButton({
 		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'yields' && !selectedYieldPool) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
+			selectedChartTab === 'stablecoins' &&
+			(!selectedStablecoinChain || !selectedStablecoinChartType)) ||
+		(selectedMainTab === 'charts' &&
+			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
+			selectedChartTab !== 'stablecoins' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' &&
@@ -82,6 +91,9 @@ export function SubmitButton({
 				return 'Add Metric'
 			case 'charts':
 				if (chartMode === 'builder') {
+					return 'Add Chart'
+				}
+				if (selectedChartTab === 'yields' || selectedChartTab === 'stablecoins') {
 					return 'Add Chart'
 				}
 				if (chartCreationMode === 'combined') {

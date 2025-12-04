@@ -332,7 +332,7 @@ export function YieldsChartTab({
 			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
 				<div className="flex h-full flex-col p-3">
 					<div className="mb-3 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
-						<div className="grid grid-cols-2 gap-1">
+						<div className="grid grid-cols-3 gap-1">
 							<button
 								type="button"
 								onClick={() => onChartTabChange('chain')}
@@ -355,6 +355,21 @@ export function YieldsChartTab({
 								<div className="flex items-center justify-center gap-2">
 									<Icon name="percent" width={14} height={14} className="text-(--primary)" />
 									<span>Yields</span>
+								</div>
+							</button>
+							<button
+								type="button"
+								onClick={() => onChartTabChange('stablecoins')}
+								className="group rounded-md px-3 py-2.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--cards-bg) hover:text-(--text-primary)"
+							>
+								<div className="flex items-center justify-center gap-2">
+									<Icon
+										name="dollar-sign"
+										width={14}
+										height={14}
+										className="text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)"
+									/>
+									<span>Stablecoins</span>
 								</div>
 							</button>
 						</div>

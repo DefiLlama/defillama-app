@@ -23,6 +23,18 @@ function getConfigName(config: DashboardChartConfig): string {
 	if (config.kind === 'yields') {
 		return config.poolName || ''
 	}
+	if (config.kind === 'stablecoins') {
+		const chartTypeLabels: Record<string, string> = {
+			totalMcap: 'Total Market Cap',
+			tokenMcaps: 'Token Market Caps',
+			pie: 'Pie',
+			dominance: 'Dominance',
+			usdInflows: 'USD Inflows',
+			tokenInflows: 'Token Inflows'
+		}
+		const label = chartTypeLabels[config.chartType] || config.chartType
+		return config.chain === 'All' ? `Stablecoins ${label}` : `${config.chain} Stablecoins ${label}`
+	}
 	return config.name || ''
 }
 

@@ -39,6 +39,10 @@ interface ChartTabProps {
 	onSelectedYieldTokensChange?: (tokens: string[]) => void
 	onMinTvlChange?: (tvl: number | null) => void
 	onMaxTvlChange?: (tvl: number | null) => void
+	selectedStablecoinChain?: string
+	selectedStablecoinChartType?: string
+	onSelectedStablecoinChainChange?: (chain: string) => void
+	onSelectedStablecoinChartTypeChange?: (chartType: string) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -122,6 +126,10 @@ export function ChartTab(props: ChartTabProps) {
 					onSelectedYieldTokensChange={props.onSelectedYieldTokensChange}
 					onMinTvlChange={props.onMinTvlChange}
 					onMaxTvlChange={props.onMaxTvlChange}
+					selectedStablecoinChain={props.selectedStablecoinChain}
+					selectedStablecoinChartType={props.selectedStablecoinChartType}
+					onSelectedStablecoinChainChange={props.onSelectedStablecoinChainChange}
+					onSelectedStablecoinChartTypeChange={props.onSelectedStablecoinChartTypeChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
 					onComposerItemColorChange={props.onComposerItemColorChange}

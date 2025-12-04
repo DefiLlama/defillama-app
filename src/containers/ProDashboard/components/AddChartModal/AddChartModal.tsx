@@ -105,6 +105,10 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedYieldTokensChange={actions.setSelectedYieldTokens}
 							onMinTvlChange={actions.setMinTvl}
 							onMaxTvlChange={actions.setMaxTvl}
+							selectedStablecoinChain={state.selectedStablecoinChain}
+							selectedStablecoinChartType={state.selectedStablecoinChartType}
+							onSelectedStablecoinChainChange={actions.setSelectedStablecoinChain}
+							onSelectedStablecoinChartTypeChange={actions.setSelectedStablecoinChartType}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -202,6 +206,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							metricChain={state.metricChain}
 							metricProtocol={state.metricProtocol}
 							metricType={state.metricType}
+							selectedStablecoinChain={state.selectedStablecoinChain}
+							selectedStablecoinChartType={state.selectedStablecoinChartType}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

@@ -10,7 +10,7 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'charts' | 'metric' | 'table' | 'unified-table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
-export type ChartTabType = 'chain' | 'protocol' | 'yields'
+export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins'
 export type CombinedTableType =
 	| 'protocols'
 	| 'cex'
@@ -103,6 +103,8 @@ export interface ModalState {
 	selectedYieldTokens: string[]
 	minTvl: number | null
 	maxTvl: number | null
+	selectedStablecoinChain: string
+	selectedStablecoinChartType: string
 }
 
 export interface ModalActions {
@@ -154,4 +156,6 @@ export interface ModalActions {
 	setSelectedYieldTokens: (tokens: string[]) => void
 	setMinTvl: (tvl: number | null) => void
 	setMaxTvl: (tvl: number | null) => void
+	setSelectedStablecoinChain: (chain: string) => void
+	setSelectedStablecoinChartType: (chartType: string) => void
 }

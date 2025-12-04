@@ -123,6 +123,16 @@ export interface YieldsChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type StablecoinChartType = 'totalMcap' | 'tokenMcaps' | 'pie' | 'dominance' | 'usdInflows' | 'tokenInflows'
+
+export interface StablecoinsChartConfig {
+	id: string
+	kind: 'stablecoins'
+	chain: string
+	chartType: StablecoinChartType
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -133,6 +143,7 @@ export type DashboardItemConfig =
 	| MetricConfig
 	| ChartBuilderConfig
 	| YieldsChartConfig
+	| StablecoinsChartConfig
 	| UnifiedTableConfig
 
 export interface ChartConfig {

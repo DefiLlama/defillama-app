@@ -2,12 +2,17 @@ import { memo } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
-import { ChartBuilderConfig, MultiChartConfig, YieldsChartConfig } from '~/containers/ProDashboard/types'
+import {
+	ChartBuilderConfig,
+	MultiChartConfig,
+	StablecoinsChartConfig,
+	YieldsChartConfig
+} from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
-export type DashboardChartConfig = MultiChartConfig | ChartBuilderConfig | YieldsChartConfig
+export type DashboardChartConfig = MultiChartConfig | ChartBuilderConfig | YieldsChartConfig | StablecoinsChartConfig
 
 interface AddToDashboardButtonProps {
 	chartConfig: DashboardChartConfig | null
