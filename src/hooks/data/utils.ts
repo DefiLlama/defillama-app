@@ -77,19 +77,16 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 					}
 				})
 			}
-			// For protocols with TVL but null historical values, use current TVL as historical value
+			// for protocols with null historical values, propagate null to parent
 			for (const key of ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const) {
+				// Skip if accumulator is already null (don't override)
+				if (acc[key] === null) continue
+
 				let value = curr[key]
-				if (value == null && curr.tvl != null) {
-					value = curr.tvl
-				}
-				if (value || value === 0) {
-					hasAtleastOnceValue[key] = true
-					acc[key] = (acc[key] ?? 0) + value
+				if (value == null) {
+					acc[key] = null
 				} else {
-					if (!hasAtleastOnceValue[key]) {
-						acc[key] = undefined
-					}
+					acc[key] = (acc[key] ?? 0) + value
 				}
 			}
 

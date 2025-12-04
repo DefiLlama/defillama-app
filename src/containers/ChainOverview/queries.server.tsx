@@ -949,21 +949,18 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 								}
 								for (const currentOrPreviousTvlKey in curr.tvl[chainOrExtraTvlKey]) {
 									let currValue = curr.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
-									// For deprecated protocols with TVL but null historical values, use current TVL as historical value
-									// This ensures 0% change instead of incorrect calculations
-									if (
-										currValue === null &&
-										curr.tvl[chainOrExtraTvlKey]?.tvl != null &&
-										['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].includes(currentOrPreviousTvlKey)
-									) {
-										currValue = curr.tvl[chainOrExtraTvlKey].tvl
+
+									// Skip if accumulator is already null (don't override)
+									if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] === null) {
+										continue
 									}
-									// If current value is still null, propagate null to parent (important for accurate percent change calculations)
-									if (currValue === null) {
-										if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] !== null) {
+
+									if (currValue == null) {
+										// If current value is null, propagate null to parent only for these keys
+										if (['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].includes(currentOrPreviousTvlKey)) {
 											acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
 										}
-									} else if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] !== null) {
+									} else {
 										acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
 											(acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
 									}
