@@ -220,9 +220,9 @@ export const useSubscribe = () => {
 
 	useEffect(() => {
 		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
-			pb.collection('users').authRefresh().catch(() => {})
+			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
 		}
-	}, [subscriptionData?.status, user?.has_active_subscription])
+	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
 	const isSubscriptionLoading =
 		subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null ? true : false

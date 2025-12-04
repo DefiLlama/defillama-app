@@ -150,6 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		},
 		enabled: true,
 		staleTime: 5 * 60 * 1000,
+		refetchInterval: 5 * 60 * 1000,
 		refetchOnMount: true,
 		refetchOnWindowFocus: false,
 		retry: 3,

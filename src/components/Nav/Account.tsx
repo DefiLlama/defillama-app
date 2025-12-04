@@ -21,7 +21,7 @@ const resolveUserHandle = (user: any): string => {
 
 export const Account = memo(function Account() {
 	const { asPath } = useRouter()
-	const { isAuthenticated, user, logout, loaders } = useAuthContext()
+	const { isAuthenticated, user, logout, loaders, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
 
 	const isAccountLoading = loaders?.userLoading
@@ -52,7 +52,7 @@ export const Account = memo(function Account() {
 								<Icon name="users" className="h-4 w-4 shrink-0" />
 								{userHandle}
 							</BasicLink>
-							{user.has_active_subscription ? (
+							{hasActiveSubscription ? (
 								<span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-500">
 									<Icon name="check-circle" className="h-3.5 w-3.5" />
 									Subscribed
