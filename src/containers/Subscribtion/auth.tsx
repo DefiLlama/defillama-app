@@ -625,7 +625,7 @@ export const useUserHash = () => {
 
 	const userHash = useSyncExternalStore(
 		subscribeToUserHash,
-		() => (email ? (localStorage.getItem('userHash') ?? null) : null),
+		() => (email && hasActiveSubscription ? (localStorage.getItem('userHash') ?? null) : null),
 		() => null
 	)
 

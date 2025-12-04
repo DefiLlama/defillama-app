@@ -65,10 +65,7 @@ function App({ Component, pageProps }: AppProps) {
 
 	return (
 		<>
-			{userHash &&
-			typeof window !== 'undefined' &&
-			!(window as any).FrontChat &&
-			(window.innerWidth > 768 || router.pathname === '/support' || router.pathname === '/report-error') ? (
+			{userHash && typeof window !== 'undefined' && !(window as any).FrontChat && window.innerWidth > 768 ? (
 				<Script
 					src="/front-chat.js"
 					strategy="afterInteractive"
