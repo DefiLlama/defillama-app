@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -35,6 +35,16 @@ function getConfigName(config: DashboardChartConfig): string {
 		const label = chartTypeLabels[config.chartType] || config.chartType
 		return config.chain === 'All' ? `Stablecoins ${label}` : `${config.chain} Stablecoins ${label}`
 	}
+	if (config.kind === 'stablecoin-asset') {
+		const chartTypeLabels: Record<string, string> = {
+			totalCirc: 'Total Circulating',
+			chainMcaps: 'By Chain',
+			chainPie: 'Pie',
+			chainDominance: 'Chain Dominance'
+		}
+		const label = chartTypeLabels[config.chartType] || config.chartType
+		return `${config.stablecoin} ${label}`
+	}
 	return config.name || ''
 }
 
@@ -51,8 +61,6 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	const [chartName, setChartName] = useState(getConfigName(chartConfig))
 	const [isAdding, setIsAdding] = useState(false)
 
-	const isOpen = dialogStore.getState().open
-
 	const filteredDashboards = useMemo(() => {
 		if (!search.trim()) return dashboards
 		const q = search.toLowerCase()
@@ -60,15 +68,20 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	}, [dashboards, search])
 
 	const configName = getConfigName(chartConfig)
+	const prevOpenRef = useRef(false)
+
+	const isOpen = dialogStore.useState('open')
 
 	useEffect(() => {
-		if (!isOpen) return
-		setSearch('')
-		setSelectedDashboardId(null)
-		setIsCreatingNew(false)
-		setNewDashboardName('')
-		setChartName(configName)
-		setIsAdding(false)
+		if (isOpen && !prevOpenRef.current) {
+			setSearch('')
+			setSelectedDashboardId(null)
+			setIsCreatingNew(false)
+			setNewDashboardName('')
+			setChartName(configName)
+			setIsAdding(false)
+		}
+		prevOpenRef.current = isOpen
 	}, [isOpen, configName])
 
 	const handleSelectDashboard = (id: string) => {

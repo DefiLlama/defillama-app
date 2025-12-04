@@ -133,6 +133,17 @@ export interface StablecoinsChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type StablecoinAssetChartType = 'totalCirc' | 'chainMcaps' | 'chainPie' | 'chainDominance'
+
+export interface StablecoinAssetChartConfig {
+	id: string
+	kind: 'stablecoin-asset'
+	stablecoin: string
+	stablecoinId: string
+	chartType: StablecoinAssetChartType
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -144,6 +155,7 @@ export type DashboardItemConfig =
 	| ChartBuilderConfig
 	| YieldsChartConfig
 	| StablecoinsChartConfig
+	| StablecoinAssetChartConfig
 	| UnifiedTableConfig
 
 export interface ChartConfig {

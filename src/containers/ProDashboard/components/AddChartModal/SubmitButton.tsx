@@ -25,6 +25,10 @@ interface SubmitButtonProps {
 	metricType?: string
 	selectedStablecoinChain?: string
 	selectedStablecoinChartType?: string
+	stablecoinMode?: 'chain' | 'asset'
+	selectedStablecoinAsset?: string | null
+	selectedStablecoinAssetId?: string | null
+	selectedStablecoinAssetChartType?: string
 	onSubmit: () => void
 }
 
@@ -52,15 +56,24 @@ export function SubmitButton({
 	metricType,
 	selectedStablecoinChain,
 	selectedStablecoinChartType,
+	stablecoinMode = 'chain',
+	selectedStablecoinAsset,
+	selectedStablecoinAssetId,
+	selectedStablecoinAssetChartType,
 	onSubmit
 }: SubmitButtonProps) {
+	const isStablecoinChainModeInvalid =
+		stablecoinMode === 'chain' && (!selectedStablecoinChain || !selectedStablecoinChartType)
+	const isStablecoinAssetModeInvalid =
+		stablecoinMode === 'asset' && (!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
+
 	const isDisabled =
 		chartTypesLoading ||
 		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'yields' && !selectedYieldPool) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab === 'stablecoins' &&
-			(!selectedStablecoinChain || !selectedStablecoinChartType)) ||
+			(isStablecoinChainModeInvalid || isStablecoinAssetModeInvalid)) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&

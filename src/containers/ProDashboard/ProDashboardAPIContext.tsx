@@ -21,6 +21,8 @@ import {
 	MultiChartConfig,
 	Protocol,
 	ProtocolsTableConfig,
+	StablecoinAssetChartConfig,
+	StablecoinAssetChartType,
 	StablecoinChartType,
 	StablecoinsChartConfig,
 	StoredColSpan,
@@ -95,6 +97,7 @@ interface ProDashboardContextType {
 	) => void
 	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddStablecoinsChart: (chain: string, chartType: string) => void
+	handleAddStablecoinAssetChart: (stablecoin: string, stablecoinId: string, chartType: string) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -953,6 +956,28 @@ export function ProDashboardAPIProvider({
 		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
 	)
 
+	const handleAddStablecoinAssetChart = useCallback(
+		(stablecoin: string, stablecoinId: string, chartType: string) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newStablecoinAssetChart: StablecoinAssetChartConfig = {
+				id: generateItemId('stablecoin-asset', `${stablecoin}-${chartType}`),
+				kind: 'stablecoin-asset',
+				stablecoin,
+				stablecoinId,
+				chartType: chartType as StablecoinAssetChartType,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newStablecoinAssetChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
+
 	const handleAddTable = useCallback(
 		(
 			chains: string[],
@@ -1481,6 +1506,7 @@ export function ProDashboardAPIProvider({
 			handleAddChart,
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
+			handleAddStablecoinAssetChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1548,6 +1574,7 @@ export function ProDashboardAPIProvider({
 			handleAddChart,
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
+			handleAddStablecoinAssetChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,

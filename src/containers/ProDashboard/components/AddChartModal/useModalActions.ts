@@ -27,6 +27,7 @@ export function useModalActions(
 		handleAddChart,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
+		handleAddStablecoinAssetChart,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -496,12 +497,22 @@ export function useModalActions(
 					chain: state.selectedYieldPool.chain
 				} as any
 			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'stablecoins') {
-				newItem = {
-					...editItem,
-					kind: 'stablecoins',
-					chain: state.selectedStablecoinChain,
-					chartType: state.selectedStablecoinChartType
-				} as any
+				if (state.stablecoinMode === 'asset' && state.selectedStablecoinAsset && state.selectedStablecoinAssetId) {
+					newItem = {
+						...editItem,
+						kind: 'stablecoin-asset',
+						stablecoin: state.selectedStablecoinAsset,
+						stablecoinId: state.selectedStablecoinAssetId,
+						chartType: state.selectedStablecoinAssetChartType
+					} as any
+				} else {
+					newItem = {
+						...editItem,
+						kind: 'stablecoins',
+						chain: state.selectedStablecoinChain,
+						chartType: state.selectedStablecoinChartType
+					} as any
+				}
 			}
 
 			if (newItem) {
@@ -525,7 +536,15 @@ export function useModalActions(
 				state.chartMode === 'manual' &&
 				state.selectedChartTab === 'stablecoins'
 			) {
-				handleAddStablecoinsChart(state.selectedStablecoinChain, state.selectedStablecoinChartType)
+				if (state.stablecoinMode === 'asset' && state.selectedStablecoinAsset && state.selectedStablecoinAssetId) {
+					handleAddStablecoinAssetChart(
+						state.selectedStablecoinAsset,
+						state.selectedStablecoinAssetId,
+						state.selectedStablecoinAssetChartType
+					)
+				} else {
+					handleAddStablecoinsChart(state.selectedStablecoinChain, state.selectedStablecoinChartType)
+				}
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
@@ -640,6 +659,7 @@ export function useModalActions(
 		handleAddChart,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
+		handleAddStablecoinAssetChart,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,

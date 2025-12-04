@@ -107,8 +107,16 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onMaxTvlChange={actions.setMaxTvl}
 							selectedStablecoinChain={state.selectedStablecoinChain}
 							selectedStablecoinChartType={state.selectedStablecoinChartType}
+							stablecoinMode={state.stablecoinMode}
+							selectedStablecoinAsset={state.selectedStablecoinAsset}
+							selectedStablecoinAssetId={state.selectedStablecoinAssetId}
+							selectedStablecoinAssetChartType={state.selectedStablecoinAssetChartType}
 							onSelectedStablecoinChainChange={actions.setSelectedStablecoinChain}
 							onSelectedStablecoinChartTypeChange={actions.setSelectedStablecoinChartType}
+							onStablecoinModeChange={actions.setStablecoinMode}
+							onSelectedStablecoinAssetChange={actions.setSelectedStablecoinAsset}
+							onSelectedStablecoinAssetIdChange={actions.setSelectedStablecoinAssetId}
+							onSelectedStablecoinAssetChartTypeChange={actions.setSelectedStablecoinAssetChartType}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -208,6 +216,10 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							metricType={state.metricType}
 							selectedStablecoinChain={state.selectedStablecoinChain}
 							selectedStablecoinChartType={state.selectedStablecoinChartType}
+							stablecoinMode={state.stablecoinMode}
+							selectedStablecoinAsset={state.selectedStablecoinAsset}
+							selectedStablecoinAssetId={state.selectedStablecoinAssetId}
+							selectedStablecoinAssetChartType={state.selectedStablecoinAssetChartType}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

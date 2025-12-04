@@ -13,6 +13,7 @@ export interface VirtualizedSelectOption {
 	isChild?: boolean
 	icon?: string
 	description?: string
+	extra?: string
 }
 
 interface AriakitVirtualizedSelectProps {

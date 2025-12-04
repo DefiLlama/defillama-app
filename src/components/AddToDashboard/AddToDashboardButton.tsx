@@ -5,6 +5,7 @@ import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import {
 	ChartBuilderConfig,
 	MultiChartConfig,
+	StablecoinAssetChartConfig,
 	StablecoinsChartConfig,
 	YieldsChartConfig
 } from '~/containers/ProDashboard/types'
@@ -12,7 +13,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
-export type DashboardChartConfig = MultiChartConfig | ChartBuilderConfig | YieldsChartConfig | StablecoinsChartConfig
+export type DashboardChartConfig = MultiChartConfig | ChartBuilderConfig | YieldsChartConfig | StablecoinsChartConfig | StablecoinAssetChartConfig
 
 interface AddToDashboardButtonProps {
 	chartConfig: DashboardChartConfig | null

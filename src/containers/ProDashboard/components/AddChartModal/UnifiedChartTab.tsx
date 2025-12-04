@@ -7,8 +7,8 @@ import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } f
 import { AriakitSelect } from '../AriakitSelect'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
-import { SubjectMultiPanel } from './SubjectMultiPanel'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
+import { SubjectMultiPanel } from './SubjectMultiPanel'
 import { ChartTabType } from './types'
 import { YieldsChartTab } from './YieldsChartTab'
 
@@ -57,8 +57,16 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onMaxTvlChange?: (tvl: number | null) => void
 	selectedStablecoinChain?: string
 	selectedStablecoinChartType?: string
+	stablecoinMode?: 'chain' | 'asset'
+	selectedStablecoinAsset?: string | null
+	selectedStablecoinAssetId?: string | null
+	selectedStablecoinAssetChartType?: string
 	onSelectedStablecoinChainChange?: (chain: string) => void
 	onSelectedStablecoinChartTypeChange?: (chartType: string) => void
+	onStablecoinModeChange?: (mode: 'chain' | 'asset') => void
+	onSelectedStablecoinAssetChange?: (asset: string | null) => void
+	onSelectedStablecoinAssetIdChange?: (id: string | null) => void
+	onSelectedStablecoinAssetChartTypeChange?: (chartType: string) => void
 }
 
 export function UnifiedChartTab({
@@ -103,8 +111,16 @@ export function UnifiedChartTab({
 	onMaxTvlChange,
 	selectedStablecoinChain = 'All',
 	selectedStablecoinChartType = 'totalMcap',
+	stablecoinMode = 'chain',
+	selectedStablecoinAsset = null,
+	selectedStablecoinAssetId = null,
+	selectedStablecoinAssetChartType = 'totalCirc',
 	onSelectedStablecoinChainChange,
-	onSelectedStablecoinChartTypeChange
+	onSelectedStablecoinChartTypeChange,
+	onStablecoinModeChange,
+	onSelectedStablecoinAssetChange,
+	onSelectedStablecoinAssetIdChange,
+	onSelectedStablecoinAssetChartTypeChange
 }: UnifiedChartTabPropsExtended) {
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
@@ -208,8 +224,16 @@ export function UnifiedChartTab({
 			<StablecoinsChartTab
 				selectedStablecoinChain={selectedStablecoinChain}
 				selectedStablecoinChartType={selectedStablecoinChartType}
+				stablecoinMode={stablecoinMode}
+				selectedStablecoinAsset={selectedStablecoinAsset}
+				selectedStablecoinAssetId={selectedStablecoinAssetId}
+				selectedStablecoinAssetChartType={selectedStablecoinAssetChartType}
 				onSelectedStablecoinChainChange={onSelectedStablecoinChainChange || (() => {})}
 				onSelectedStablecoinChartTypeChange={onSelectedStablecoinChartTypeChange || (() => {})}
+				onStablecoinModeChange={onStablecoinModeChange || (() => {})}
+				onSelectedStablecoinAssetChange={onSelectedStablecoinAssetChange || (() => {})}
+				onSelectedStablecoinAssetIdChange={onSelectedStablecoinAssetIdChange || (() => {})}
+				onSelectedStablecoinAssetChartTypeChange={onSelectedStablecoinAssetChartTypeChange || (() => {})}
 				onChartTabChange={onChartTabChange}
 			/>
 		)
@@ -219,49 +243,17 @@ export function UnifiedChartTab({
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
 			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
 				<div className="flex h-full flex-col p-3">
-					<div className="mb-3 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
-						<div className="grid grid-cols-3 gap-1">
-							<button
-								type="button"
-								className="group rounded-md bg-(--primary)/10 px-3 py-2.5 text-xs font-semibold text-(--primary) shadow-sm transition-all"
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon name="bar-chart-2" width={14} height={14} className="text-(--primary)" />
-									<span>Protocols/Chains</span>
-								</div>
-							</button>
-							<button
-								type="button"
-								onClick={() => onChartTabChange('yields')}
-								className="group rounded-md px-3 py-2.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--cards-bg) hover:text-(--text-primary)"
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon
-										name="percent"
-										width={14}
-										height={14}
-										className="text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)"
-									/>
-									<span>Yields</span>
-								</div>
-							</button>
-							<button
-								type="button"
-								onClick={() => onChartTabChange('stablecoins')}
-								className="group rounded-md px-3 py-2.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--cards-bg) hover:text-(--text-primary)"
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon
-										name="dollar-sign"
-										width={14}
-										height={14}
-										className="text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)"
-									/>
-									<span>Stablecoins</span>
-								</div>
-							</button>
-						</div>
-					</div>
+					<AriakitSelect
+						label="Category"
+						options={[
+							{ value: 'chain', label: 'Protocols/Chains' },
+							{ value: 'yields', label: 'Yields' },
+							{ value: 'stablecoins', label: 'Stablecoins' }
+						]}
+						selectedValue={selectedChartTab === 'protocol' ? 'chain' : selectedChartTab}
+						onChange={(option) => onChartTabChange(option.value as ChartTabType)}
+						className="mb-3"
+					/>
 					{chartCreationMode === 'combined' && (
 						<div className="mb-2 flex-shrink-0">
 							<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>

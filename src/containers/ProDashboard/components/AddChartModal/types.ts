@@ -105,6 +105,10 @@ export interface ModalState {
 	maxTvl: number | null
 	selectedStablecoinChain: string
 	selectedStablecoinChartType: string
+	stablecoinMode: 'chain' | 'asset'
+	selectedStablecoinAsset: string | null
+	selectedStablecoinAssetId: string | null
+	selectedStablecoinAssetChartType: string
 }
 
 export interface ModalActions {
@@ -158,4 +162,8 @@ export interface ModalActions {
 	setMaxTvl: (tvl: number | null) => void
 	setSelectedStablecoinChain: (chain: string) => void
 	setSelectedStablecoinChartType: (chartType: string) => void
+	setStablecoinMode: (mode: 'chain' | 'asset') => void
+	setSelectedStablecoinAsset: (asset: string | null) => void
+	setSelectedStablecoinAssetId: (id: string | null) => void
+	setSelectedStablecoinAssetChartType: (chartType: string) => void
 }

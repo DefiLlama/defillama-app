@@ -103,6 +103,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [maxTvl, setMaxTvl] = useState<number | null>(null)
 	const [selectedStablecoinChain, setSelectedStablecoinChain] = useState<string>('All')
 	const [selectedStablecoinChartType, setSelectedStablecoinChartType] = useState<string>('totalMcap')
+	const [stablecoinMode, setStablecoinMode] = useState<'chain' | 'asset'>('chain')
+	const [selectedStablecoinAsset, setSelectedStablecoinAsset] = useState<string | null>(null)
+	const [selectedStablecoinAssetId, setSelectedStablecoinAssetId] = useState<string | null>(null)
+	const [selectedStablecoinAssetChartType, setSelectedStablecoinAssetChartType] = useState<string>('totalCirc')
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -187,8 +191,17 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setSelectedMainTab('charts')
 				setChartMode('manual')
 				setSelectedChartTab('stablecoins')
+				setStablecoinMode('chain')
 				setSelectedStablecoinChain(editItem.chain)
 				setSelectedStablecoinChartType(editItem.chartType)
+			} else if (editItem.kind === 'stablecoin-asset') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('stablecoins')
+				setStablecoinMode('asset')
+				setSelectedStablecoinAsset(editItem.stablecoin)
+				setSelectedStablecoinAssetId(editItem.stablecoinId)
+				setSelectedStablecoinAssetChartType(editItem.chartType)
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -242,6 +255,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMaxTvl(null)
 			setSelectedStablecoinChain('All')
 			setSelectedStablecoinChartType('totalMcap')
+			setStablecoinMode('chain')
+			setSelectedStablecoinAsset(null)
+			setSelectedStablecoinAssetId(null)
+			setSelectedStablecoinAssetChartType('totalCirc')
 		}
 	}, [editItem, isOpen])
 
@@ -295,6 +312,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setMaxTvl(null)
 		setSelectedStablecoinChain('All')
 		setSelectedStablecoinChartType('totalMcap')
+		setStablecoinMode('chain')
+		setSelectedStablecoinAsset(null)
+		setSelectedStablecoinAssetId(null)
+		setSelectedStablecoinAssetChartType('totalCirc')
 	}
 
 	const state: ModalState = {
@@ -335,7 +356,11 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		minTvl,
 		maxTvl,
 		selectedStablecoinChain,
-		selectedStablecoinChartType
+		selectedStablecoinChartType,
+		stablecoinMode,
+		selectedStablecoinAsset,
+		selectedStablecoinAssetId,
+		selectedStablecoinAssetChartType
 	}
 
 	const actionsObj = useMemo(
@@ -377,7 +402,11 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMinTvl,
 			setMaxTvl,
 			setSelectedStablecoinChain,
-			setSelectedStablecoinChartType
+			setSelectedStablecoinChartType,
+			setStablecoinMode,
+			setSelectedStablecoinAsset,
+			setSelectedStablecoinAssetId,
+			setSelectedStablecoinAssetChartType
 		}),
 		[
 			setSelectedMainTab,
@@ -416,7 +445,11 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMinTvl,
 			setMaxTvl,
 			setSelectedStablecoinChain,
-			setSelectedStablecoinChartType
+			setSelectedStablecoinChartType,
+			setStablecoinMode,
+			setSelectedStablecoinAsset,
+			setSelectedStablecoinAssetId,
+			setSelectedStablecoinAssetChartType
 		]
 	)
 

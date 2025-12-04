@@ -38,6 +38,9 @@ const UnifiedTable = lazy(() => import('./UnifiedTable'))
 const StablecoinsChartCard = lazy(() =>
 	import('./StablecoinsChartCard').then((mod) => ({ default: mod.StablecoinsChartCard }))
 )
+const StablecoinAssetChartCard = lazy(() =>
+	import('./StablecoinAssetChartCard').then((mod) => ({ default: mod.StablecoinAssetChartCard }))
+)
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -194,6 +197,14 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 			return (
 				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
 					<StablecoinsChartCard config={item} />
+				</Suspense>
+			)
+		}
+
+		if (item.kind === 'stablecoin-asset') {
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<StablecoinAssetChartCard config={item} />
 				</Suspense>
 			)
 		}

@@ -94,7 +94,8 @@ function ProDashboardContent() {
 			item?.kind === 'multi' ||
 			item?.kind === 'builder' ||
 			item?.kind === 'yields' ||
-			item?.kind === 'stablecoins'
+			item?.kind === 'stablecoins' ||
+			item?.kind === 'stablecoin-asset'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()

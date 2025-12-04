@@ -10,6 +10,7 @@ import { useYieldChartData } from '~/containers/Yields/queries/client'
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
+import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
 import { ChartTabType } from './types'
 
@@ -235,13 +236,7 @@ export function YieldsChartTab({
 				const tokensInPool = (pool.pool || '')
 					.split('(')[0]
 					.split('-')
-					.map((token: string) =>
-						token
-							.toLowerCase()
-							.trim()
-							.replace('₮0', 't')
-							.replace('₮', 't')
-					)
+					.map((token: string) => token.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
 					.filter(Boolean)
 
 				const matchesToken = normalizedSelectedTokens.some((token) => {
@@ -331,49 +326,17 @@ export function YieldsChartTab({
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
 			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
 				<div className="flex h-full flex-col p-3">
-					<div className="mb-3 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
-						<div className="grid grid-cols-3 gap-1">
-							<button
-								type="button"
-								onClick={() => onChartTabChange('chain')}
-								className="group rounded-md px-3 py-2.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--cards-bg) hover:text-(--text-primary)"
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon
-										name="bar-chart-2"
-										width={14}
-										height={14}
-										className="text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)"
-									/>
-									<span>Protocols/Chains</span>
-								</div>
-							</button>
-							<button
-								type="button"
-								className="group rounded-md bg-(--primary)/10 px-3 py-2.5 text-xs font-semibold text-(--primary) shadow-sm transition-all"
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon name="percent" width={14} height={14} className="text-(--primary)" />
-									<span>Yields</span>
-								</div>
-							</button>
-							<button
-								type="button"
-								onClick={() => onChartTabChange('stablecoins')}
-								className="group rounded-md px-3 py-2.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--cards-bg) hover:text-(--text-primary)"
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon
-										name="dollar-sign"
-										width={14}
-										height={14}
-										className="text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)"
-									/>
-									<span>Stablecoins</span>
-								</div>
-							</button>
-						</div>
-					</div>
+					<AriakitSelect
+						label="Category"
+						options={[
+							{ value: 'chain', label: 'Protocols/Chains' },
+							{ value: 'yields', label: 'Yields' },
+							{ value: 'stablecoins', label: 'Stablecoins' }
+						]}
+						selectedValue="yields"
+						onChange={(option) => onChartTabChange(option.value as ChartTabType)}
+						className="mb-3"
+					/>
 
 					{yieldsLoading ? (
 						<div className="flex flex-1 items-center justify-center">
