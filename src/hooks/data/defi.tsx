@@ -296,8 +296,7 @@ export const formatProtocolsList = ({
 		Object.entries(incoming).forEach(([key, rawValue]) => {
 			if (!rawValue) return
 			const value = rawValue as ChainMetricSnapshot & { chain?: string }
-			const chainLabel =
-				typeof value.chain === 'string' && value.chain.trim().length ? value.chain : key
+			const chainLabel = typeof value.chain === 'string' && value.chain.trim().length ? value.chain : key
 			const normalizedKey =
 				typeof chainLabel === 'string' && chainLabel.trim().length
 					? chainLabel.trim().toLowerCase()
@@ -310,8 +309,7 @@ export const formatProtocolsList = ({
 		return next
 	}
 
-	const getChainBreakdown = (item: any) =>
-		item?.chainBreakdown as Record<string, ChainMetricSnapshot> | undefined
+	const getChainBreakdown = (item: any) => item?.chainBreakdown as Record<string, ChainMetricSnapshot> | undefined
 
 	const allProtocols: Record<string, IFormattedProtocol> = {}
 
@@ -469,8 +467,7 @@ export const formatProtocolsList = ({
 			perps_volume_7d: protocol.total7d ?? undefined,
 			perps_volume_30d: protocol.total30d ?? undefined,
 			perps_volume_change_1d: protocol.change_1d ?? previous.perps_volume_change_1d,
-			perps_volume_change_7d:
-				protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.perps_volume_change_7d,
+			perps_volume_change_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.perps_volume_change_7d,
 			perps_volume_change_1m: protocol.change_1m ?? previous.perps_volume_change_1m,
 			perpsVolumeByChain: mergeChainBreakdown(previous.perpsVolumeByChain, getChainBreakdown(protocol))
 		}

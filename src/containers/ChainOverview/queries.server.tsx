@@ -943,12 +943,30 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
-							for (const key1 in curr.tvl ?? {}) {
-								if (!acc[key1]) {
-									acc[key1] = {}
+							for (const chainOrExtraTvlKey in curr.tvl ?? {}) {
+								if (!acc[chainOrExtraTvlKey]) {
+									acc[chainOrExtraTvlKey] = {}
 								}
-								for (const key2 in curr.tvl[key1]) {
-									acc[key1][key2] = (acc[key1][key2] ?? 0) + curr.tvl[key1][key2]
+								for (const currentOrPreviousTvlKey in curr.tvl[chainOrExtraTvlKey]) {
+									let currValue = curr.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
+									// For deprecated protocols with TVL but null historical values, use current TVL as historical value
+									// This ensures 0% change instead of incorrect calculations
+									if (
+										currValue === null &&
+										curr.tvl[chainOrExtraTvlKey]?.tvl != null &&
+										['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].includes(currentOrPreviousTvlKey)
+									) {
+										currValue = curr.tvl[chainOrExtraTvlKey].tvl
+									}
+									// If current value is still null, propagate null to parent (important for accurate percent change calculations)
+									if (currValue === null) {
+										if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] !== null) {
+											acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
+										}
+									} else if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] !== null) {
+										acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
+											(acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
+									}
 								}
 							}
 							return acc
