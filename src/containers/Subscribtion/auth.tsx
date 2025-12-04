@@ -68,6 +68,14 @@ const getNonce = async (address: string) => {
 	return response.json()
 }
 
+const clearUserSession = () => {
+	pb.authStore.clear()
+	localStorage.removeItem('userHash')
+	if (typeof window !== 'undefined' && (window as any).FrontChat) {
+		;(window as any).FrontChat('shutdown', { clearSession: true })
+	}
+}
+
 interface AuthContextType {
 	login: (email: string, password: string, onSuccess?: () => void) => Promise<void>
 	signup: (
@@ -127,14 +135,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					if (pb.authStore.isValid && pb.authStore.record) {
 						return { ...pb.authStore.record }
 					}
-					pb.authStore.clear()
+					clearUserSession()
 					return null
 				}
 
 				console.log('Error refreshing auth:', error)
 
 				if (error?.status === 401 || error?.code === 401) {
-					pb.authStore.clear()
+					clearUserSession()
 				}
 
 				throw error
@@ -249,7 +257,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
-			pb.authStore.clear()
+			clearUserSession()
 			return true
 		}
 	})
@@ -610,14 +618,19 @@ function subscribeToUserHash(callback: () => void) {
 export const useUserHash = () => {
 	const { user, hasActiveSubscription, authorizedFetch } = useAuthContext()
 
+	let email = user?.email ?? null
+	if (user && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
+		email = user.ethereum_email
+	}
+
 	const userHash = useSyncExternalStore(
 		subscribeToUserHash,
-		() => localStorage.getItem('userHash') ?? null,
+		() => (email ? (localStorage.getItem('userHash') ?? null) : null),
 		() => null
 	)
 
 	useQuery({
-		queryKey: ['user-hash-front', user?.email, hasActiveSubscription],
+		queryKey: ['user-hash-front', email, hasActiveSubscription],
 		queryFn: () =>
 			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
 				.then((res) => {
@@ -643,11 +656,11 @@ export const useUserHash = () => {
 					}
 					return null
 				}),
-		enabled: user?.email && hasActiveSubscription ? true : false,
+		enabled: email && hasActiveSubscription ? true : false,
 		staleTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		retry: 3
 	})
 
-	return userHash
+	return { userHash, email }
 }

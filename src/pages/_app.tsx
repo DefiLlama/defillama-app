@@ -8,7 +8,7 @@ import { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useAuthContext, useUserHash } from '~/containers/Subscribtion/auth'
+import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
 
 NProgress.configure({ showSpinner: false })
 
@@ -16,8 +16,6 @@ const client = new QueryClient()
 
 function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
-
-	const { user } = useAuthContext()
 
 	useEffect(() => {
 		const handleRouteChange = () => {
@@ -63,12 +61,7 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
-	const userHash = useUserHash()
-
-	let email = user?.email ?? null
-	if (user && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
-		email = user.ethereum_email
-	}
+	const { userHash, email } = useUserHash()
 
 	return (
 		<>
