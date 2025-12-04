@@ -79,41 +79,73 @@ export function formatDataWithExtraTvls({
 		// 	console.log(['off', 'off', initialTvl - doublecounted - liquidstaking + overlap])
 		// }
 
-		Object.entries(extraTvl).forEach(([prop, propValues]) => {
-			const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
+		for (const prop in extraTvl) {
+			const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = extraTvl[prop] ?? {}
 
 			if (applyLqAndDc && prop === 'doublecounted' && !extraTvlsEnabled['doublecounted']) {
-				tvl && (finalTvl = (finalTvl || 0) - tvl)
-				tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
-				tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
-				tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+				if (tvl != null) {
+					finalTvl = (finalTvl || 0) - tvl
+				}
+				if (tvlPrevDay != null) {
+					finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay
+				}
+				if (tvlPrevWeek != null) {
+					finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek
+				}
+				if (tvlPrevMonth != null) {
+					finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth
+				}
 			}
 
 			if (applyLqAndDc && prop === 'liquidstaking' && !extraTvlsEnabled['liquidstaking']) {
-				tvl && (finalTvl = (finalTvl || 0) - tvl)
-				tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay)
-				tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek)
-				tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth)
+				if (tvl != null) {
+					finalTvl = (finalTvl || 0) - tvl
+				}
+				if (tvlPrevDay != null) {
+					finalTvlPrevDay = (finalTvlPrevDay || 0) - tvlPrevDay
+				}
+				if (tvlPrevWeek != null) {
+					finalTvlPrevWeek = (finalTvlPrevWeek || 0) - tvlPrevWeek
+				}
+				if (tvlPrevMonth != null) {
+					finalTvlPrevMonth = (finalTvlPrevMonth || 0) - tvlPrevMonth
+				}
 			}
 
 			if (applyLqAndDc && prop.toLowerCase() === 'dcandlsoverlap') {
 				if (!extraTvlsEnabled['doublecounted'] || !extraTvlsEnabled['liquidstaking']) {
-					tvl && (finalTvl = (finalTvl || 0) + tvl)
-					tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-					tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-					tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+					if (tvl != null) {
+						finalTvl = (finalTvl || 0) + tvl
+					}
+					if (tvlPrevDay != null) {
+						finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay
+					}
+					if (tvlPrevWeek != null) {
+						finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek
+					}
+					if (tvlPrevMonth != null) {
+						finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth
+					}
 				}
 			}
 
 			// convert to lowercase as server response is not consistent in extra-tvl names
 			if (extraTvlsEnabled[prop.toLowerCase()] && prop !== 'doublecounted' && prop !== 'liquidstaking') {
 				// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
-				tvl && (finalTvl = (finalTvl || 0) + tvl)
-				tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-				tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-				tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+				if (tvl != null) {
+					finalTvl = (finalTvl || 0) + tvl
+				}
+				if (tvlPrevDay != null) {
+					finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay
+				}
+				if (tvlPrevWeek != null) {
+					finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek
+				}
+				if (tvlPrevMonth != null) {
+					finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth
+				}
 			}
-		})
+		}
 
 		let change1d: number | null = getPercentChange(finalTvl, finalTvlPrevDay)
 		let change7d: number | null = getPercentChange(finalTvl, finalTvlPrevWeek)
@@ -333,8 +365,8 @@ export const formatProtocolsList = ({
 				strikeTvl = true
 			}
 
-			Object.entries(extraTvl).forEach(([prop, propValues]) => {
-				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = propValues
+			for (const prop in extraTvl) {
+				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = extraTvl[prop] ?? {}
 				if (
 					prop === 'doublecounted' &&
 					!extraTvlsEnabled['doublecounted'] &&
@@ -349,13 +381,21 @@ export const formatProtocolsList = ({
 						prop.toLowerCase() !== 'liquidstaking'
 					) {
 						// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
-						tvl && (finalTvl = (finalTvl || 0) + tvl)
-						tvlPrevDay && (finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay)
-						tvlPrevWeek && (finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek)
-						tvlPrevMonth && (finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth)
+						if (tvl != null) {
+							finalTvl = (finalTvl || 0) + tvl
+						}
+						if (tvlPrevDay != null) {
+							finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay
+						}
+						if (tvlPrevWeek != null) {
+							finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek
+						}
+						if (tvlPrevMonth != null) {
+							finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth
+						}
 					}
 				}
-			})
+			}
 		}
 
 		let change1d: number | null = getPercentChange(finalTvl, finalTvlPrevDay)
@@ -444,7 +484,7 @@ export const formatProtocolsList = ({
 			volume_7d: protocol.total7d ?? undefined,
 			volume_30d: protocol.total30d ?? undefined,
 			volumeChange_1d: protocol.change_1d ?? previous.volumeChange_1d,
-			volumeChange_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.volumeChange_7d,
+			volumeChange_7d: protocol.change_7d ?? previous.volumeChange_7d,
 			volumeChange_1m: protocol.change_1m ?? previous.volumeChange_1m,
 			cumulativeVolume: protocol.totalAllTime ?? previous.cumulativeVolume,
 			volumeByChain: mergeChainBreakdown(previous.volumeByChain, getChainBreakdown(protocol))
@@ -467,7 +507,7 @@ export const formatProtocolsList = ({
 			perps_volume_7d: protocol.total7d ?? undefined,
 			perps_volume_30d: protocol.total30d ?? undefined,
 			perps_volume_change_1d: protocol.change_1d ?? previous.perps_volume_change_1d,
-			perps_volume_change_7d: protocol.change_7d ?? protocol['change_7dover7d'] ?? previous.perps_volume_change_7d,
+			perps_volume_change_7d: protocol.change_7d ?? previous.perps_volume_change_7d,
 			perps_volume_change_1m: protocol.change_1m ?? previous.perps_volume_change_1m,
 			perpsVolumeByChain: mergeChainBreakdown(previous.perpsVolumeByChain, getChainBreakdown(protocol))
 		}
