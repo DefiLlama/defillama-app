@@ -5,13 +5,10 @@ import Layout from '~/layout'
 
 async function submitSupportRequest(formData: FormData) {
 	try {
-		const data = await fetch(
-			'https://api.llama.fi/reportSupport',
-			{
-				method: 'POST',
-				body: formData
-			}
-		).then((res) => res.json())
+		const data = await fetch('https://api.llama.fi/reportSupport', {
+			method: 'POST',
+			body: formData
+		}).then((res) => res.json())
 		return data
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to report')
@@ -21,7 +18,7 @@ async function submitSupportRequest(formData: FormData) {
 function Support() {
 	const { mutateAsync, isPending, error } = useMutation({ mutationFn: submitSupportRequest })
 	const [isSubmitted, setIsSubmitted] = React.useState(false)
-	
+
 	const onSubmit = async (e) => {
 		e.preventDefault()
 
@@ -60,12 +57,7 @@ function Support() {
 					viewBox="0 0 24 24"
 					xmlns="http://www.w3.org/2000/svg"
 				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth={2}
-						d="M5 13l4 4L19 7"
-					/>
+					<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
 				</svg>
 			</div>
 			<h1 className="text-2xl font-semibold text-green-600 dark:text-green-400">Success!</h1>
@@ -88,7 +80,7 @@ function Support() {
 			keywords={`defillama support, support from defillama`}
 			canonicalUrl={`/support`}
 		>
-			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11">
+			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11 xl:ml-[calc(228px-16px)]">
 				{isSubmitted ? (
 					<SuccessScreen />
 				) : (
@@ -97,6 +89,20 @@ function Support() {
 						className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 					>
 						<h1 className="mb-3 text-center text-xl font-semibold">Support</h1>
+
+						<p className="text-center">For a faster response, email us directly</p>
+						<a
+							href="mailto:support@defillama.com"
+							className="rounded-md bg-(--link-active-bg) p-3 text-center text-white"
+						>
+							Email Us
+						</a>
+
+						<p className="mt-4 text-center">
+							Don't want to share your email? Use the form below to submit a support request
+						</p>
+						<hr className="border-black/20 dark:border-white/20" />
+
 						<label className="flex flex-col gap-1">
 							<span>Name</span>
 							<input
@@ -129,7 +135,7 @@ function Support() {
 						<button
 							name="submit-btn"
 							disabled={isPending}
-							className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
+							className="mt-3 rounded-md bg-(--link-bg) p-3 text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:opacity-50"
 						>
 							{isPending ? 'Submitting...' : 'Submit'}
 						</button>
