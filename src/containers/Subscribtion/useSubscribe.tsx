@@ -1,4 +1,4 @@
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -217,6 +217,12 @@ export const useSubscribe = () => {
 			)?.subscription ?? null
 		)
 	}, [apiSubscription, llamafeedSubscription, legacySubscription])
+
+	useEffect(() => {
+		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
+			pb.collection('users').authRefresh().catch(() => {})
+		}
+	}, [subscriptionData?.status, user?.has_active_subscription])
 
 	const isSubscriptionLoading =
 		subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null ? true : false
