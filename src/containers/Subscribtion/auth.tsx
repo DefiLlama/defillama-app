@@ -1,9 +1,11 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
+
+export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
 
 // Custom event name for auth store changes
 const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
@@ -83,6 +85,7 @@ interface AuthContextType {
 		password: string,
 		passwordConfirm: string,
 		turnstileToken: string,
+		promotionalEmails?: PromotionalEmailsValue,
 		onSuccess?: () => void
 	) => Promise<void>
 	logout: () => void
@@ -94,6 +97,7 @@ interface AuthContextType {
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
 	addEmail: (email: string) => void
+	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
 	user: AuthModel
 	hasActiveSubscription: boolean
@@ -108,6 +112,7 @@ interface AuthContextType {
 		changeEmail: boolean
 		resendVerification: boolean
 		addEmail: boolean
+		setPromotionalEmails: boolean
 		userLoading: boolean
 	}
 }
@@ -120,6 +125,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	// Derive isAuthenticated from authStoreState
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
+
+	const queryClient = useQueryClient()
 
 	const { isLoading: userQueryIsLoading } = useQuery({
 		queryKey: ['currentUserAuthStatus', pb.authStore.record?.id ?? null],
@@ -195,12 +202,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			email,
 			password,
 			passwordConfirm,
-			turnstileToken
+			turnstileToken,
+			promotionalEmails
 		}: {
 			email: string
 			password: string
 			passwordConfirm: string
 			turnstileToken: string
+			promotionalEmails?: PromotionalEmailsValue
 		}) => {
 			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
 				method: 'POST',
@@ -211,7 +220,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					passwordConfirm,
 					auth_method: 'email',
 					source: 'defillama',
-					turnstile_token: turnstileToken
+					turnstile_token: turnstileToken,
+					promotionalEmails
 				})
 			})
 
@@ -246,9 +256,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			password: string,
 			passwordConfirm: string,
 			turnstileToken: string,
+			promotionalEmails?: PromotionalEmailsValue,
 			onSuccess?: () => void
 		) => {
-			const result = await signupMutation.mutateAsync({ email, password, passwordConfirm, turnstileToken })
+			const result = await signupMutation.mutateAsync({
+				email,
+				password,
+				passwordConfirm,
+				turnstileToken,
+				promotionalEmails
+			})
 			onSuccess?.()
 			return result
 		},
@@ -543,6 +560,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
+	const setPromotionalEmails = useMutation({
+		mutationFn: async (value: string) => {
+			const response = await fetch(`${AUTH_SERVER}/user/promotional-emails`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ value })
+			})
+			if (!response.ok) {
+				const data = await response.json()
+				throw new Error(data?.message || 'Failed to update promotional emails preference')
+			}
+
+			return { value }
+		},
+		onSuccess: (data) => {
+			queryClient.setQueryData(['currentUserAuthStatus'], (oldData: any) => {
+				if (!oldData) return oldData
+				return {
+					...oldData,
+					promotionalEmails: data.value
+				}
+			})
+			toast.success('Email preferences updated successfully')
+		},
+		onError: (error: any) => {
+			toast.error(error.message || 'Failed to update email preferences')
+		}
+	})
+
 	const userData = useMemo(() => {
 		if (!authStoreState?.record) return null
 
@@ -580,6 +629,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
 		addEmail: addEmail.mutate,
+		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
 		loaders: {
@@ -593,6 +643,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
 			addEmail: addEmail.isPending,
+			setPromotionalEmails: setPromotionalEmails.isPending,
 			userLoading
 		}
 	}

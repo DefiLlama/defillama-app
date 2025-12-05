@@ -7,7 +7,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const SignInModal = ({
 	text,
@@ -108,6 +108,7 @@ export const SignInForm = ({
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [emailError, setEmailError] = useState('')
+	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('on')
 
 	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, loaders } = useAuthContext()
 	const { signMessageAsync } = useSignMessage()
@@ -162,7 +163,7 @@ export const SignInForm = ({
 		}
 
 		try {
-			await signup(email, password, confirmPassword, turnstileToken)
+			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails)
 			setTurnstileToken('')
 
 			if (returnUrl) {
@@ -465,6 +466,18 @@ export const SignInForm = ({
 							>
 								Privacy Policy
 							</BasicLink>
+						</span>
+					</label>
+
+					<label className="flex items-start gap-2">
+						<input
+							type="checkbox"
+							className="mt-0.5 h-4 w-4 shrink-0"
+							checked={promotionalEmails === 'on'}
+							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
+						/>
+						<span className="text-sm text-[#b4b7bc]">
+							Receive emails about upcoming DefiLlama products and new releases
 						</span>
 					</label>
 
