@@ -11,7 +11,7 @@ const dataType = ADAPTER_DATA_TYPES.DAILY_PREMIUM_VOLUME
 const type = 'Options Premium Volume'
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByAdapterPageData({ adapterType, dataType, route: 'options/premium-volume' })
+	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {
 		props: data,

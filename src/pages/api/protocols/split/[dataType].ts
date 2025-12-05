@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { CATEGORY_CHART_API, CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
+import { CATEGORY_CHART_API, CHART_API, DIMENSIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
 
@@ -590,8 +590,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 			let apiUrl =
 				apiChain && apiChain !== 'all'
-					? `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
-					: `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
+					? `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
+					: `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 
 			if (config.dataType) {
 				apiUrl += `&dataType=${config.dataType}`
@@ -634,7 +634,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		if (fm === 'exclude') {
 			const config = METRIC_CONFIG[metric]
-			let allUrl = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
+			let allUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 			if (config.dataType) allUrl += `&dataType=${config.dataType}`
 			const allResp = await fetch(allUrl)
 			const allJson = await allResp.json()
@@ -651,7 +651,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					.filter((c) => c.toLowerCase() !== 'all')
 					.map(async (singleChain) => {
 						let apiChain = mapChainForDimensions(singleChain)
-						let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
+						let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
 						if (config.dataType) url += `&dataType=${config.dataType}`
 						try {
 							const r = await fetch(url)
