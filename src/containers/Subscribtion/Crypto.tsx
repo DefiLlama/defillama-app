@@ -6,7 +6,7 @@ import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignInModal } from '~/containers/Subscribtion/SignIn'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 
 export const PaymentButton = ({
 	paymentMethod,
@@ -77,7 +77,7 @@ export const PaymentButton = ({
 
 export const ProApiKey = () => {
 	const { isAuthenticated, loaders, authorizedFetch } = useAuthContext()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { subscription } = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 
 	const [apiKey, setApiKey] = useState<string | null>(null)

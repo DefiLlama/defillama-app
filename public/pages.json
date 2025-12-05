@@ -714,19 +714,19 @@
       "oldName": "Directory"
     },
     {
-      "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl",
-      "category": "Tools",
-      "description": "Calculate the percentage change in token price between two dates",
-      "oldName": "Token PnL"
-    },
-    {
       "name": "Borrow Aggregator: Advanced",
       "route": "/borrow/advanced",
       "category": "Borrow Aggregator",
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
+    },
+    {
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl",
+      "category": "Tools",
+      "description": "Calculate the percentage change in token price between two dates",
+      "oldName": "Token PnL"
     },
     {
       "name": "Transactions by Bridge",

@@ -12,7 +12,18 @@ export interface LensTotals {
 
 const MAX_CHAIN_FILTERS = 100
 const MAX_CHAIN_NAME_LENGTH = 200
-const ALLOWED_CHAIN_PATTERN = /^[a-z0-9-]+$/i
+const ALLOWED_CHAIN_PATTERN = /^[a-z0-9- ]+$/i
+
+const CHAIN_SLUG_ALIASES: Record<string, string> = {
+	optimism: 'op-mainnet',
+	binance: 'bsc',
+	xdai: 'gnosis',
+	cosmos: 'cosmoshub',
+	pulse: 'pulsechain',
+	hyperliquid: 'hyperliquid-l1',
+	zksync: 'zksync-era',
+	'zksync era': 'zksync-era'
+}
 
 export const toPercent = (value: number | null | undefined): number | null => {
 	if (value === null || value === undefined) return null
@@ -68,11 +79,12 @@ export const normalizeChainList = (chains?: string[] | null): string[] => {
 
 			if (!ALLOWED_CHAIN_PATTERN.test(trimmed)) {
 				throw new Error(
-					`Chain name at index ${index} contains invalid characters. Only alphanumeric characters and hyphens are allowed.`
+					`Chain name at index ${index} contains invalid characters. Only alphanumeric characters, hyphens and spaces are allowed.`
 				)
 			}
 
-			return trimmed.toLowerCase()
+			const lc = trimmed.toLowerCase()
+			return CHAIN_SLUG_ALIASES[lc] ?? lc
 		})
 		.filter((chain): chain is string => chain !== null)
 

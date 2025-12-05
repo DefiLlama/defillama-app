@@ -9,8 +9,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useIsClient } from '~/hooks/useIsClient'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
@@ -29,6 +28,7 @@ interface ChartExportButtonProps {
 	title?: string
 	filename?: string
 	iconUrl?: string
+	expandLegend?: boolean
 }
 
 echarts.use([LegendComponent])
@@ -39,23 +39,23 @@ export const ChartExportButton = memo(function ChartExportButton({
 	smol,
 	title,
 	filename,
-	iconUrl
+	iconUrl,
+	expandLegend
 }: ChartExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders } = useAuthContext()
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const router = useRouter()
 	const isClient = useIsClient()
 
 	const [isDark] = useDarkModeManager()
 
-	const loading = loaders.userLoading || isSubscriptionLoading || isLoading
+	const loading = loaders.userLoading || isLoading
 
 	const handleImageExport = async () => {
 		if (loading || !chartInstance) return
 
-		if (!loaders.userLoading && subscription?.status === 'active') {
+		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
 			try {
 				setIsLoading(true)
 
@@ -182,7 +182,8 @@ export const ChartExportButton = memo(function ChartExportButton({
 					const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
 
 					const legendItemGap = 20
-
+					const legendFontSize = 24
+					const legendItemWidth = 48
 					// If there is no legend on the original chart, we'll still be adding one
 					// below (scroll legend), so treat "has legend" based on either existing
 					// legend config or presence of series.
@@ -193,21 +194,35 @@ export const ChartExportButton = memo(function ChartExportButton({
 						legendArray.length > 0 ||
 						(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
 
+					const availableWidth = IMAGE_EXPORT_WIDTH - 32
+					let legendRows = 1
+
+					if (expandLegend) {
+						const seriesNames: string[] = Array.isArray(currentOptions.series)
+							? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
+							: []
+
+						let totalLegendWidth = 0
+						for (const name of seriesNames) {
+							totalLegendWidth += approximateTextWidth(name, legendFontSize) + legendItemWidth + legendItemGap
+						}
+
+						legendRows = Math.max(1, Math.ceil(totalLegendWidth / availableWidth))
+					}
+
 					const baseTopPadding = 16
 					const titleHeight = title ? 36 : 0
-					const legendHeight = hasLegend ? 32 : 0
+					const singleRowHeight = 32
+					const legendHeight = hasLegend ? singleRowHeight * legendRows : 0
 					const verticalGap = 16
 
-					// Always place legend below the title (when present) and then
-					// push the grid below the legend to avoid overlap, even when
-					// the original chart did not define a legend.
 					let legendTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
 					let gridTop = legendTop + (hasLegend ? legendHeight + verticalGap : 0)
 
 					currentOptions.animation = false
 					currentOptions.grid = {
 						left: 16,
-						bottom: 16,
+						bottom: expandLegend ? 32 : 16,
 						top: gridTop,
 						right: 16,
 						outerBoundsMode: 'same',
@@ -239,23 +254,39 @@ export const ChartExportButton = memo(function ChartExportButton({
 					// Set options on the temporary chart with any modifications you want
 					tempChart.setOption(currentOptions)
 
-					// need to set separately for some reason
 					tempChart.setOption({
-						legend: {
-							show: true,
-							textStyle: {
-								fontSize: 24,
-								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-							},
-							itemHeight: 24,
-							itemWidth: 48,
-							itemGap: legendItemGap,
-							top: legendTop,
-							right: 16,
-							type: 'scroll',
-							pageButtonPosition: 'end',
-							padding: [0, 0, 0, 18]
-						}
+						legend: expandLegend
+							? {
+									show: true,
+									textStyle: {
+										fontSize: legendFontSize,
+										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+									},
+									itemHeight: 24,
+									itemWidth: legendItemWidth,
+									itemGap: legendItemGap,
+									top: legendTop,
+									left: 80,
+									right: 16,
+									type: 'plain',
+									width: availableWidth - 64,
+									padding: 0
+								}
+							: {
+									show: true,
+									textStyle: {
+										fontSize: 24,
+										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+									},
+									itemHeight: 24,
+									itemWidth: 48,
+									itemGap: legendItemGap,
+									top: legendTop,
+									right: 16,
+									type: 'scroll',
+									pageButtonPosition: 'end',
+									padding: [0, 0, 0, 18]
+								}
 					})
 
 					// Wait for the chart (including async image loading) to finish rendering.

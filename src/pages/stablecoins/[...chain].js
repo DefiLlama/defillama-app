@@ -25,9 +25,7 @@ export const getStaticProps = withPerformanceLogging(
 		const props = await getPeggedOverviewPageData(metadata.name)
 
 		if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
-			return {
-				notFound: true
-			}
+			throw new Error(`[getStaticProps] [${metadata.name}] no filteredPeggedAssets`)
 		}
 
 		return {

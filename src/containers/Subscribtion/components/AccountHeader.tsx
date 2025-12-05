@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { Subscription } from '~/hooks/useSubscribe'
+import { Subscription } from '~/containers/Subscribtion/useSubscribe'
 
 interface AccountHeaderProps {
 	isSubscribed: boolean

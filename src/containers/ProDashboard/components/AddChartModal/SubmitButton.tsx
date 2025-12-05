@@ -23,6 +23,12 @@ interface SubmitButtonProps {
 	metricChain?: string | null
 	metricProtocol?: string | null
 	metricType?: string
+	selectedStablecoinChain?: string
+	selectedStablecoinChartType?: string
+	stablecoinMode?: 'chain' | 'asset'
+	selectedStablecoinAsset?: string | null
+	selectedStablecoinAssetId?: string | null
+	selectedStablecoinAssetChartType?: string
 	onSubmit: () => void
 }
 
@@ -48,14 +54,30 @@ export function SubmitButton({
 	metricChain,
 	metricProtocol,
 	metricType,
+	selectedStablecoinChain,
+	selectedStablecoinChartType,
+	stablecoinMode = 'chain',
+	selectedStablecoinAsset,
+	selectedStablecoinAssetId,
+	selectedStablecoinAssetChartType,
 	onSubmit
 }: SubmitButtonProps) {
+	const isStablecoinChainModeInvalid =
+		stablecoinMode === 'chain' && (!selectedStablecoinChain || !selectedStablecoinChartType)
+	const isStablecoinAssetModeInvalid =
+		stablecoinMode === 'asset' && (!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
+
 	const isDisabled =
 		chartTypesLoading ||
 		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'yields' && !selectedYieldPool) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
+			selectedChartTab === 'stablecoins' &&
+			(isStablecoinChainModeInvalid || isStablecoinAssetModeInvalid)) ||
+		(selectedMainTab === 'charts' &&
+			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
+			selectedChartTab !== 'stablecoins' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' &&
@@ -82,6 +104,9 @@ export function SubmitButton({
 				return 'Add Metric'
 			case 'charts':
 				if (chartMode === 'builder') {
+					return 'Add Chart'
+				}
+				if (selectedChartTab === 'yields' || selectedChartTab === 'stablecoins') {
 					return 'Add Chart'
 				}
 				if (chartCreationMode === 'combined') {

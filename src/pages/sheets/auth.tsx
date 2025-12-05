@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignInModal } from '~/containers/Subscribtion/SignIn'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function AuthPage() {

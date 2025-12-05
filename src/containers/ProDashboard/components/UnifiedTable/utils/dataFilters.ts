@@ -3,6 +3,25 @@ import type { NormalizedRow } from '../types'
 
 const normalize = (value: string | null | undefined) => value?.toLowerCase().trim()
 
+const CHAIN_SLUG_ALIASES: Record<string, string> = {
+	optimism: 'op-mainnet',
+	'op mainnet': 'op-mainnet',
+	binance: 'bsc',
+	xdai: 'gnosis',
+	cosmos: 'cosmoshub',
+	pulse: 'pulsechain',
+	hyperliquid: 'hyperliquid-l1',
+	'hyperliquid l1': 'hyperliquid-l1',
+	zksync: 'zksync-era',
+	'zksync era': 'zksync-era'
+}
+
+const normalizeChainSlug = (chain: string | null | undefined): string | null => {
+	if (!chain) return null
+	const slug = chain.toLowerCase().trim().replace(/\s+/g, '-')
+	return CHAIN_SLUG_ALIASES[slug] ?? CHAIN_SLUG_ALIASES[chain.toLowerCase().trim()] ?? slug
+}
+
 export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters): NormalizedRow[] {
 	if (!filters) {
 		return rows
@@ -36,9 +55,9 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 	}
 
 	if (filters.chains?.length) {
-		const chainSet = new Set(filters.chains.map((c) => normalize(c)))
+		const chainSet = new Set(filters.chains.map((c) => normalizeChainSlug(c)))
 		filtered = filtered.filter((row) => {
-			const chain = normalize(row.chain)
+			const chain = normalizeChainSlug(row.chain)
 			return chain ? chainSet.has(chain) : true
 		})
 	}

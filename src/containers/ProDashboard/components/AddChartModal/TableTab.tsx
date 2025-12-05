@@ -190,7 +190,10 @@ export function TableTab({
 	}, [legacyTableTypes])
 
 	const trendingChainOptions = useMemo(
-		() => chainOptions.filter((opt) => ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'].includes(opt.label)),
+		() =>
+			chainOptions.filter((opt) =>
+				['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'OP Mainnet', 'Base'].includes(opt.label)
+			),
 		[chainOptions]
 	)
 

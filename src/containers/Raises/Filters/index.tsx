@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { NestedMenu } from '~/components/NestedMenu'
 import { RaisesSearch } from '~/containers/Raises/Search'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
 import { RaisesFilterDropdowns } from './Dropdowns'
 import { IDropdownMenusProps } from './types'

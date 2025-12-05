@@ -9,7 +9,7 @@ import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolPageMetrics } from './types'
 
-const tabs: Record<string, { id: string; name: string; route: string }> = {
+const tabs = {
 	information: { id: 'information', name: 'Information', route: '/protocol' },
 	assets: { id: 'assets', name: 'Assets', route: '/protocol/assets' },
 	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },

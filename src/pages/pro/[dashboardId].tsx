@@ -7,7 +7,6 @@ import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDash
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import Layout from '~/layout'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
@@ -37,8 +36,8 @@ export default function DashboardPage() {
 
 function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 	const router = useRouter()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { isAuthenticated, loaders } = useAuthContext()
+
+	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 	const { isLoadingDashboard, dashboardVisibility, currentDashboard, dashboardName } = useProDashboard()
 	const [isValidating, setIsValidating] = useState(true)
 	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
@@ -68,7 +67,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 		}
 	}, [dashboardId, dashboardVisibility, isLoadingDashboard, trackView])
 
-	const isAccountLoading = loaders.userLoading || (isAuthenticated && isSubscriptionLoading)
+	const isAccountLoading = loaders.userLoading
 	const isLoading = isAccountLoading || isValidating || isLoadingDashboard
 
 	if (isLoading) {
@@ -111,9 +110,9 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 					<title>{`${dashboardName} - DefiLlama`}</title>
 				</Head>
 				<Suspense
-				fallback={
-					<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
-				}
+					fallback={
+						<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1" />
+					}
 				>
 					<ProDashboard />
 				</Suspense>
@@ -136,7 +135,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 		)
 	}
 
-	if (subscription?.status !== 'active' && dashboardVisibility !== 'public') {
+	if (!hasActiveSubscription && dashboardVisibility !== 'public') {
 		return (
 			<div className="flex flex-1 flex-col items-center justify-center gap-8 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 				<h1 className="text-3xl font-bold">Pro Dashboard Access</h1>

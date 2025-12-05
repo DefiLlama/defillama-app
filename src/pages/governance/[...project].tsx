@@ -207,7 +207,7 @@ export default function Protocol({ data, governanceType }) {
 							className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2 py-1 text-xs whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"
-							href={`https://twitter.com/${data.metadata.twitter}`}
+							href={`https://x.com/${data.metadata.twitter}`}
 						>
 							<span>Twitter</span> <Icon name="arrow-up-right" height={14} width={14} />
 						</a>

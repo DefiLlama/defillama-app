@@ -1,6 +1,36 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
 import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
+
+const CUMULATIVE_METRIC_TYPES = new Set([
+	'volume',
+	'fees',
+	'revenue',
+	'perps',
+	'aggregators',
+	'bridgeAggregators',
+	'perpsAggregators',
+	'bribes',
+	'tokenTax',
+	'holdersRevenue',
+	'optionsPremium',
+	'optionsNotional',
+	'tokenVolume',
+	'users',
+	'txs',
+	'activeUsers',
+	'newUsers',
+	'gasUsed',
+	'stablecoinInflows',
+	'chainFees',
+	'chainRevenue',
+	'incentives',
+	'options'
+])
+
+function getDefaultAggregator(metricType: string): MetricAggregator {
+	return CUMULATIVE_METRIC_TYPES.has(metricType) ? 'sum' : 'latest'
+}
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('charts')
@@ -46,9 +76,17 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
 	const [metricChain, setMetricChain] = useState<string | null>(null)
 	const [metricProtocol, setMetricProtocol] = useState<string | null>(null)
-	const [metricType, setMetricType] = useState<string>('tvl')
+	const [metricType, setMetricTypeInternal] = useState<string>('tvl')
 	const [metricAggregator, setMetricAggregator] = useState<MetricAggregator>('latest')
 	const [metricWindow, setMetricWindow] = useState<'7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'>('30d')
+
+	const setMetricType = useCallback(
+		(type: string) => {
+			setMetricTypeInternal(type)
+			setMetricAggregator(getDefaultAggregator(type))
+		},
+		[setMetricTypeInternal, setMetricAggregator]
+	)
 	const [metricLabel, setMetricLabel] = useState<string>('')
 	const [metricShowSparkline, setMetricShowSparkline] = useState<boolean>(true)
 	const [selectedYieldPool, setSelectedYieldPool] = useState<{
@@ -63,6 +101,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedYieldTokens, setSelectedYieldTokens] = useState<string[]>([])
 	const [minTvl, setMinTvl] = useState<number | null>(null)
 	const [maxTvl, setMaxTvl] = useState<number | null>(null)
+	const [selectedStablecoinChain, setSelectedStablecoinChain] = useState<string>('All')
+	const [selectedStablecoinChartType, setSelectedStablecoinChartType] = useState<string>('totalMcap')
+	const [stablecoinMode, setStablecoinMode] = useState<'chain' | 'asset'>('chain')
+	const [selectedStablecoinAsset, setSelectedStablecoinAsset] = useState<string | null>(null)
+	const [selectedStablecoinAssetId, setSelectedStablecoinAssetId] = useState<string | null>(null)
+	const [selectedStablecoinAssetChartType, setSelectedStablecoinAssetChartType] = useState<string>('totalCirc')
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -128,7 +172,7 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setMetricSubjectType(editItem.subject.itemType)
 				setMetricChain(editItem.subject.chain || null)
 				setMetricProtocol(editItem.subject.protocol || null)
-				setMetricType(editItem.type)
+				setMetricTypeInternal(editItem.type)
 				setMetricAggregator(editItem.aggregator)
 				setMetricWindow(editItem.window)
 				setMetricLabel(editItem.label || '')
@@ -143,6 +187,21 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 					project: editItem.project,
 					chain: editItem.chain
 				})
+			} else if (editItem.kind === 'stablecoins') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('stablecoins')
+				setStablecoinMode('chain')
+				setSelectedStablecoinChain(editItem.chain)
+				setSelectedStablecoinChartType(editItem.chartType)
+			} else if (editItem.kind === 'stablecoin-asset') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('stablecoins')
+				setStablecoinMode('asset')
+				setSelectedStablecoinAsset(editItem.stablecoin)
+				setSelectedStablecoinAssetId(editItem.stablecoinId)
+				setSelectedStablecoinAssetChartType(editItem.chartType)
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -194,6 +253,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldTokens([])
 			setMinTvl(null)
 			setMaxTvl(null)
+			setSelectedStablecoinChain('All')
+			setSelectedStablecoinChartType('totalMcap')
+			setStablecoinMode('chain')
+			setSelectedStablecoinAsset(null)
+			setSelectedStablecoinAssetId(null)
+			setSelectedStablecoinAssetChartType('totalCirc')
 		}
 	}, [editItem, isOpen])
 
@@ -245,6 +310,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedYieldTokens([])
 		setMinTvl(null)
 		setMaxTvl(null)
+		setSelectedStablecoinChain('All')
+		setSelectedStablecoinChartType('totalMcap')
+		setStablecoinMode('chain')
+		setSelectedStablecoinAsset(null)
+		setSelectedStablecoinAssetId(null)
+		setSelectedStablecoinAssetChartType('totalCirc')
 	}
 
 	const state: ModalState = {
@@ -283,7 +354,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		selectedYieldCategories,
 		selectedYieldTokens,
 		minTvl,
-		maxTvl
+		maxTvl,
+		selectedStablecoinChain,
+		selectedStablecoinChartType,
+		stablecoinMode,
+		selectedStablecoinAsset,
+		selectedStablecoinAssetId,
+		selectedStablecoinAssetChartType
 	}
 
 	const actionsObj = useMemo(
@@ -323,7 +400,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldCategories,
 			setSelectedYieldTokens,
 			setMinTvl,
-			setMaxTvl
+			setMaxTvl,
+			setSelectedStablecoinChain,
+			setSelectedStablecoinChartType,
+			setStablecoinMode,
+			setSelectedStablecoinAsset,
+			setSelectedStablecoinAssetId,
+			setSelectedStablecoinAssetChartType
 		}),
 		[
 			setSelectedMainTab,
@@ -360,7 +443,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedYieldCategories,
 			setSelectedYieldTokens,
 			setMinTvl,
-			setMaxTvl
+			setMaxTvl,
+			setSelectedStablecoinChain,
+			setSelectedStablecoinChartType,
+			setStablecoinMode,
+			setSelectedStablecoinAsset,
+			setSelectedStablecoinAssetId,
+			setSelectedStablecoinAssetChartType
 		]
 	)
 

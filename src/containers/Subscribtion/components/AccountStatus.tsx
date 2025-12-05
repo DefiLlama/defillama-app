@@ -9,19 +9,8 @@ import { WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import { formatEthAddress } from '~/utils'
 import { AuthModel } from '~/utils/pocketbase'
 
-interface User extends AuthModel {
-	subscription_status: string
-	subscription: {
-		id: string
-		expires_at: string
-		status: string
-	}
-	walletAddress?: string
-	promotionalEmails?: PromotionalEmailsValue
-}
-
 interface AccountStatusProps {
-	user: User
+	user: AuthModel
 	isVerified: boolean
 	isSubscribed: boolean
 	onEmailChange: () => void

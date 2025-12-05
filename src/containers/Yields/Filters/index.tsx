@@ -4,8 +4,9 @@ import * as Ariakit from '@ariakit/react'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
+import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 import { useYieldFilters } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
@@ -13,7 +14,6 @@ import { YieldFilterDropdowns } from './Dropdowns'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
 import type { IYieldFiltersProps } from './types'
-import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 
 function SavedFilters({ currentFilters }) {
 	const { savedFilters, saveFilter, deleteFilter } = useYieldFilters()

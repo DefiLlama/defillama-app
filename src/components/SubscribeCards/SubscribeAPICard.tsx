@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInModal } from '~/containers/Subscribtion/SignIn'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { StripeCheckoutModal } from '../StripeCheckoutModal'
 
 export function SubscribeAPICard({

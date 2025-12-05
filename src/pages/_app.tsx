@@ -1,52 +1,18 @@
+import Script from 'next/script'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import NProgress from 'nprogress'
 import '~/tailwind.css'
 import '~/nprogress.css'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-import { LlamaAIWelcomeModal } from '~/components/Modal/LlamaAIWelcomeModal'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
-import { FeatureFlagsProvider, useFeatureFlagsContext } from '~/contexts/FeatureFlagsContext'
-import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
 
 NProgress.configure({ showSpinner: false })
 
 const client = new QueryClient()
-
-function LlamaAIWelcomeWrapper() {
-	const [shown, setShown] = useLlamaAIWelcome()
-	const isClient = useIsClient()
-	const { hasFeature, loading } = useFeatureFlagsContext()
-	const { subscription } = useSubscribe()
-	const router = useRouter()
-	const [showModal, setShowModal] = useState(false)
-
-	useEffect(() => {
-		if (shown) return
-		if (!subscription || subscription.status !== 'active') return
-
-		const pathname = router.pathname
-		if (pathname.startsWith('/ai') || pathname.startsWith('/subscription')) return
-
-		if (isClient && !loading && hasFeature('llamaai')) {
-			setShowModal(true)
-		}
-	}, [shown, isClient, loading, hasFeature, subscription, router.pathname])
-
-	const handleClose = () => {
-		setShowModal(false)
-		setShown()
-	}
-
-	if (shown) return null
-
-	return <LlamaAIWelcomeModal isOpen={showModal} onClose={handleClose} />
-}
 
 function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
@@ -95,18 +61,44 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
+	const { userHash, email } = useUserHash()
+
 	return (
-		<QueryClientProvider client={client}>
-			<AuthProvider>
-				<UserSettingsSync />
-				<FeatureFlagsProvider>
-					<Component {...pageProps} />
-					<LlamaAIWelcomeWrapper />
-				</FeatureFlagsProvider>
-			</AuthProvider>
-			<ReactQueryDevtools initialIsOpen={false} />
-		</QueryClientProvider>
+		<>
+			{userHash && typeof window !== 'undefined' && !(window as any).FrontChat && window.innerWidth > 768 ? (
+				<Script
+					src="/assets/front-chat.js"
+					strategy="afterInteractive"
+					onLoad={() => {
+						if (typeof window !== 'undefined' && (window as any).FrontChat) {
+							;(window as any).FrontChat('init', {
+								chatId: '6fec3ab74da2261df3f3748a50dd3d6a',
+								useDefaultLauncher: true,
+								email,
+								userHash
+							})
+						}
+					}}
+				/>
+			) : null}
+
+			<Component {...pageProps} />
+		</>
 	)
 }
 
-export default App
+const AppWrapper = (props: AppProps) => {
+	return (
+		<>
+			<QueryClientProvider client={client}>
+				<AuthProvider>
+					<UserSettingsSync />
+					<App {...props} />
+				</AuthProvider>
+				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+			</QueryClientProvider>
+		</>
+	)
+}
+
+export default AppWrapper

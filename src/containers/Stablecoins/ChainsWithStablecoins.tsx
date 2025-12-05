@@ -1,8 +1,10 @@
 import * as React from 'react'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
@@ -16,6 +18,19 @@ const LineAndBarChart = React.lazy(
 ) as React.FC<ILineAndBarChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
+	const mapping: Record<string, StablecoinChartType> = {
+		'Total Market Cap': 'totalMcap',
+		'Token Market Caps': 'tokenMcaps',
+		'Chain Market Caps': 'tokenMcaps',
+		Pie: 'pie',
+		Dominance: 'dominance',
+		'USD Inflows': 'usdInflows',
+		'Token Inflows': 'tokenInflows'
+	}
+	return mapping[displayType] || 'totalMcap'
+}
 
 export function ChainsWithStablecoins({
 	chainCirculatings,
@@ -73,6 +88,16 @@ export function ChainsWithStablecoins({
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: groupedChains, sliceIdentifier: 'name', sliceValue: 'mcap', limit: 10 })
 	}, [groupedChains])
+
+	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
+		() => ({
+			id: `stablecoins-All-${mapChartTypeToConfig(chartType)}`,
+			kind: 'stablecoins',
+			chain: 'All',
+			chartType: mapChartTypeToConfig(chartType)
+		}),
+		[chartType]
+	)
 
 	return (
 		<>
@@ -139,8 +164,9 @@ export function ChainsWithStablecoins({
 				<div className="col-span-2 flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
 					{chartType === 'Total Market Cap' && (
 						<React.Suspense fallback={<></>}>
-							<div className="px-2">
+							<div className="flex items-center gap-2 px-2">
 								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
 							</div>
 							<LineAndBarChart charts={peggedAreaTotalData} valueSymbol="$" />
 						</React.Suspense>
@@ -156,7 +182,10 @@ export function ChainsWithStablecoins({
 								hideGradient={true}
 								chartOptions={chartOptions}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 							/>
 						</React.Suspense>
@@ -173,7 +202,10 @@ export function ChainsWithStablecoins({
 								expandTo100Percent={true}
 								chartOptions={chartOptions}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 							/>
 						</React.Suspense>
@@ -183,7 +215,10 @@ export function ChainsWithStablecoins({
 							<PieChart
 								chartData={chainsCirculatingValues}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-3" />
+									</>
 								}
 							/>
 						</React.Suspense>

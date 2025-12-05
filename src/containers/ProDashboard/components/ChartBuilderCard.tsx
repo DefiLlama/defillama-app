@@ -462,6 +462,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								filename={builder.name || config.metric}
 								title={builder.name || `${config.metric} by Protocol`}
 								smol
+								expandLegend
 							/>
 							<ProTableCSVButton
 								onClick={handleCsvExport}

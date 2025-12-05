@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -8,7 +8,6 @@ import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboa
 import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { DashboardChartConfig } from './AddToDashboardButton'
 
 interface AddToDashboardModalProps {
@@ -21,14 +20,38 @@ function getConfigName(config: DashboardChartConfig): string {
 	if (config.kind === 'multi') {
 		return config.name || ''
 	}
+	if (config.kind === 'yields') {
+		return config.poolName || ''
+	}
+	if (config.kind === 'stablecoins') {
+		const chartTypeLabels: Record<string, string> = {
+			totalMcap: 'Total Market Cap',
+			tokenMcaps: 'Token Market Caps',
+			pie: 'Pie',
+			dominance: 'Dominance',
+			usdInflows: 'USD Inflows',
+			tokenInflows: 'Token Inflows'
+		}
+		const label = chartTypeLabels[config.chartType] || config.chartType
+		return config.chain === 'All' ? `Stablecoins ${label}` : `${config.chain} Stablecoins ${label}`
+	}
+	if (config.kind === 'stablecoin-asset') {
+		const chartTypeLabels: Record<string, string> = {
+			totalCirc: 'Total Circulating',
+			chainMcaps: 'By Chain',
+			chainPie: 'Pie',
+			chainDominance: 'Chain Dominance'
+		}
+		const label = chartTypeLabels[config.chartType] || config.chartType
+		return `${config.stablecoin} ${label}`
+	}
 	return config.name || ''
 }
 
 export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetrics = [] }: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const { subscription } = useSubscribe()
+	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const { data: dashboards = [], isLoading: isLoadingDashboards } = useGetLiteDashboards()
 
 	const [search, setSearch] = useState('')
@@ -38,9 +61,6 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	const [chartName, setChartName] = useState(getConfigName(chartConfig))
 	const [isAdding, setIsAdding] = useState(false)
 
-	const hasActiveSubscription = subscription?.status === 'active'
-	const isOpen = dialogStore.useState('open')
-
 	const filteredDashboards = useMemo(() => {
 		if (!search.trim()) return dashboards
 		const q = search.toLowerCase()
@@ -48,15 +68,20 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	}, [dashboards, search])
 
 	const configName = getConfigName(chartConfig)
+	const prevOpenRef = useRef(false)
+
+	const isOpen = dialogStore.useState('open')
 
 	useEffect(() => {
-		if (!isOpen) return
-		setSearch('')
-		setSelectedDashboardId(null)
-		setIsCreatingNew(false)
-		setNewDashboardName('')
-		setChartName(configName)
-		setIsAdding(false)
+		if (isOpen && !prevOpenRef.current) {
+			setSearch('')
+			setSelectedDashboardId(null)
+			setIsCreatingNew(false)
+			setNewDashboardName('')
+			setChartName(configName)
+			setIsAdding(false)
+		}
+		prevOpenRef.current = isOpen
 	}, [isOpen, configName])
 
 	const handleSelectDashboard = (id: string) => {

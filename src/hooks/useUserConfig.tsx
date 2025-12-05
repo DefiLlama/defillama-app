@@ -88,7 +88,6 @@ export function useUserConfig() {
 		queryFn: fetchConfig,
 		enabled: isAuthenticated,
 		staleTime: 5 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: true
 	})
 

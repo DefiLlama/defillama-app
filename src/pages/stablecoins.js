@@ -7,7 +7,13 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('stablecoins', async () => {
 	const props = await getPeggedOverviewPageData(null)
 
-	props.filteredPeggedAssets = props.filteredPeggedAssets || []
+	if (!props) {
+		throw new Error('getPeggedOverviewPageData() broken')
+	}
+
+	if (!props.filteredPeggedAssets || props.filteredPeggedAssets?.length === 0) {
+		throw new Error('getPeggedOverviewPageData() no filteredPeggedAssets')
+	}
 
 	return {
 		props,

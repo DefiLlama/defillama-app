@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
@@ -11,6 +12,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
@@ -143,9 +145,9 @@ export const PeggedAssetInfo = ({
 	const getImageExportTitle = () => {
 		const chartTypeMap = {
 			'Total Circ': 'Total Circulating',
-			'Pie': 'Distribution by Chain',
-			'Dominance': 'Chain Dominance',
-			'Area': 'Circulating by Chain'
+			Pie: 'Distribution by Chain',
+			Dominance: 'Chain Dominance',
+			Area: 'Circulating by Chain'
 		}
 		return `${name} - ${chartTypeMap[chartType] || chartType}`
 	}
@@ -154,6 +156,25 @@ export const PeggedAssetInfo = ({
 		const chartSlug = chartType.toLowerCase().replace(/\s+/g, '-')
 		return `${slug(name)}-${chartSlug}`
 	}
+
+	const chartTypeToApiType: Record<string, StablecoinAssetChartType> = {
+		'Total Circ': 'totalCirc',
+		Pie: 'chainPie',
+		Dominance: 'chainDominance',
+		Area: 'chainMcaps'
+	}
+
+	const dashboardChartConfig: StablecoinAssetChartConfig = React.useMemo(
+		() => ({
+			id: `stablecoin-asset-${slug(name)}-${chartTypeToApiType[chartType]}`,
+			kind: 'stablecoin-asset',
+			stablecoin: name,
+			stablecoinId: slug(name),
+			chartType: chartTypeToApiType[chartType],
+			colSpan: 1
+		}),
+		[name, chartType]
+	)
 
 	return (
 		<>
@@ -385,6 +406,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
 							/>
 						</React.Suspense>
 					)}
@@ -399,6 +421,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
 							/>
 						</React.Suspense>
 					)}
@@ -413,6 +436,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
 							/>
 						</React.Suspense>
 					)}
@@ -423,6 +447,7 @@ export const PeggedAssetInfo = ({
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
 								imageExportFilename={getImageExportFilename()}
+								customComponents={<AddToDashboardButton chartConfig={dashboardChartConfig} smol className="-mr-2" />}
 							/>
 						</React.Suspense>
 					)}

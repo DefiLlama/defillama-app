@@ -123,6 +123,27 @@ export interface YieldsChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type StablecoinChartType = 'totalMcap' | 'tokenMcaps' | 'pie' | 'dominance' | 'usdInflows' | 'tokenInflows'
+
+export interface StablecoinsChartConfig {
+	id: string
+	kind: 'stablecoins'
+	chain: string
+	chartType: StablecoinChartType
+	colSpan?: StoredColSpan
+}
+
+export type StablecoinAssetChartType = 'totalCirc' | 'chainMcaps' | 'chainPie' | 'chainDominance'
+
+export interface StablecoinAssetChartConfig {
+	id: string
+	kind: 'stablecoin-asset'
+	stablecoin: string
+	stablecoinId: string
+	chartType: StablecoinAssetChartType
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -133,6 +154,8 @@ export type DashboardItemConfig =
 	| MetricConfig
 	| ChartBuilderConfig
 	| YieldsChartConfig
+	| StablecoinsChartConfig
+	| StablecoinAssetChartConfig
 	| UnifiedTableConfig
 
 export interface ChartConfig {
@@ -424,8 +447,8 @@ export const CHART_TYPES = {
 	chainFees: { id: 'chainFees', title: 'Chain Fees', chartType: 'bar', color: '#F59E0B', groupable: true },
 	chainRevenue: { id: 'chainRevenue', title: 'Chain Revenue', chartType: 'bar', color: '#F59E0B', groupable: true },
 	bridgedTvl: { id: 'bridgedTvl', title: 'Bridged TVL', chartType: 'area', color: '#9333EA' },
-	chainMcap: { id: 'chainMcap', title: 'Token MCap', chartType: 'area', color: '#2563EB' },
-	chainPrice: { id: 'chainPrice', title: 'Token Price', chartType: 'area', color: '#16A34A' }
+	chainMcap: { id: 'chainMcap', title: 'Native Token Market Cap', chartType: 'area', color: '#2563EB' },
+	chainPrice: { id: 'chainPrice', title: 'Native Token Price', chartType: 'area', color: '#16A34A' }
 }
 
 // Helper functions to extract chart types from CHART_TYPES

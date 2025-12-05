@@ -8,16 +8,16 @@ import { Menu } from '~/components/Menu'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useIsClient } from '~/hooks/useIsClient'
 import { toNumberOrNullFromQueryParam } from '~/utils'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
 import { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
+import { useAuthContext } from '../Subscribtion/auth'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { chainMetrics, protocolMetrics } from './constants'
 
@@ -227,7 +227,7 @@ function PortfolioNotifications({
 }) {
 	const dialogStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
-	const { subscription } = useSubscribe()
+	const { loaders, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const {
 		preferences,
 		isLoading,
@@ -248,14 +248,14 @@ function PortfolioNotifications({
 	})
 
 	const handleNotificationsButtonClick = () => {
-		if (!isClient) return
+		if (!isClient || loaders.userLoading) return
 
 		if (filteredProtocols.length === 0 && filteredChains.length === 0) {
 			toast.error('Please add protocols or chains to your watchlist first')
 			return
 		}
 
-		if (subscription?.status !== 'active') {
+		if (!isAuthenticated || !hasActiveSubscription) {
 			subscribeModalStore.show()
 		} else {
 			dialogStore.toggle()
@@ -411,7 +411,7 @@ function PortfolioNotifications({
 				<div className="flex items-center gap-2">
 					<button
 						onClick={handleNotificationsButtonClick}
-						disabled={isLoading}
+						disabled={loaders.userLoading || isLoading}
 						className="flex items-center gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm text-(--text-primary) transition-colors hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						<Icon name="mail" height={16} width={16} />
@@ -423,7 +423,7 @@ function PortfolioNotifications({
 							{preferences.active && (
 								<button
 									onClick={handleDisableNotifications}
-									disabled={isUpdatingStatus}
+									disabled={loaders.userLoading || isUpdatingStatus}
 									className="flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-gray-100 focus-visible:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:focus-visible:bg-gray-800"
 									title="Temporarily disable notifications"
 								>
@@ -434,7 +434,7 @@ function PortfolioNotifications({
 							{!preferences.active && (
 								<button
 									onClick={() => updateStatus({ portfolioName: selectedPortfolio, active: true })}
-									disabled={isUpdatingStatus}
+									disabled={loaders.userLoading || isUpdatingStatus}
 									className="flex items-center gap-2 rounded-md border border-green-200 px-3 py-2 text-sm text-green-600 transition-colors hover:bg-green-50 focus-visible:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 dark:focus-visible:bg-green-900/20"
 									title="Re-enable notifications"
 								>
@@ -444,7 +444,7 @@ function PortfolioNotifications({
 							)}
 							<button
 								onClick={handleDeleteNotifications}
-								disabled={isDeleting}
+								disabled={loaders.userLoading || isDeleting}
 								className="flex items-center gap-2 rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
 								title="Permanently delete notification preferences"
 							>

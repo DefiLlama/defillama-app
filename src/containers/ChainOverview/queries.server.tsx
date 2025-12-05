@@ -943,12 +943,27 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			const parentTvl = parentStore[parentProtocol.id].some((child) => child.tvl !== null)
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
-							for (const key1 in curr.tvl ?? {}) {
-								if (!acc[key1]) {
-									acc[key1] = {}
+							for (const chainOrExtraTvlKey in curr.tvl ?? {}) {
+								if (!acc[chainOrExtraTvlKey]) {
+									acc[chainOrExtraTvlKey] = {}
 								}
-								for (const key2 in curr.tvl[key1]) {
-									acc[key1][key2] = (acc[key1][key2] ?? 0) + curr.tvl[key1][key2]
+								for (const currentOrPreviousTvlKey in curr.tvl[chainOrExtraTvlKey]) {
+									let currValue = curr.tvl[chainOrExtraTvlKey][currentOrPreviousTvlKey]
+
+									// Skip if accumulator is already null (don't override)
+									if (acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] === null) {
+										continue
+									}
+
+									if (currValue == null) {
+										// If current value is null, propagate null to parent only for these keys
+										if (['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].includes(currentOrPreviousTvlKey)) {
+											acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] = null
+										}
+									} else {
+										acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] =
+											(acc[chainOrExtraTvlKey][currentOrPreviousTvlKey] ?? 0) + currValue
+									}
 								}
 							}
 							return acc

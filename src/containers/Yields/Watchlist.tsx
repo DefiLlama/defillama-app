@@ -7,8 +7,8 @@ import { Menu } from '~/components/Menu'
 import { Switch } from '~/components/Switch'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks'
 import { useBookmarks } from '~/hooks/useBookmarks'
+import { useIsClient } from '~/hooks/useIsClient'
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const { query, pathname, push } = useRouter()

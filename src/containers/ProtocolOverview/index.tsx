@@ -879,7 +879,7 @@ function OpenInterest(props: IKeyMetricsProps) {
 	if (props.openInterest.total24h != null) {
 		metrics.push({
 			name: 'Open Interest',
-			tooltipContent: 'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC',
+			tooltipContent: 'Total notional value of all outstanding perpetual futures positions',
 			value: props.openInterest.total24h
 		})
 	}
@@ -1752,7 +1752,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 					: null}
 				{props.twitter ? (
 					<a
-						href={`https://twitter.com/${props.twitter}`}
+						href={`https://x.com/${props.twitter}`}
 						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						target="_blank"
 						rel="noopener noreferrer"
