@@ -1,4 +1,4 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -2451,9 +2451,11 @@ const ChatControls = memo(function ChatControls({
 	sessionId: string | null
 	messages: any[]
 }) {
-	const allCharts = messages
-		.filter((m) => m.role === 'assistant' && m.charts?.length > 0)
-		.flatMap((m) => m.charts.map((c: any) => ({ id: c.id, title: c.title })))
+	const allCharts = useMemo(() => {
+		return messages
+			.filter((m) => m.role === 'assistant' && m.charts?.length > 0)
+			.flatMap((m) => m.charts.map((c: any) => ({ id: c.id, title: c.title })))
+	}, [messages])
 
 	return (
 		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">

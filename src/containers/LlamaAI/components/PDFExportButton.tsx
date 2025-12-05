@@ -116,7 +116,7 @@ export const PDFExportButton = memo(function PDFExportButton({
 					onClick={handlePDFExport}
 					disabled={loading}
 				>
-					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
+					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={16} width={16} />}
 				</button>
 			</Tooltip>
 			<Suspense fallback={<></>}>
