@@ -619,7 +619,7 @@ export const useUserHash = () => {
 	const { user, hasActiveSubscription, authorizedFetch } = useAuthContext()
 
 	let email = user?.email ?? null
-	if (user && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
+	if (user?.email && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
 		email = user.ethereum_email
 	}
 
