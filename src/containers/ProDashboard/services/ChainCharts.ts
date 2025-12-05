@@ -3,6 +3,7 @@ import {
 	CHAINS_ASSETS_CHART,
 	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
+	DIMENSIONS_SUMMARY_API,
 	PEGGEDCHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
@@ -171,8 +172,8 @@ export default class ChainCharts {
 		const apiChain = this.toDimensionsApiChain(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
-			? `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
-			: `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}`
+			? `${DIMENSIONS_SUMMARY_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
+			: `${DIMENSIONS_SUMMARY_API}/${endpoint}/${encodedChain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
