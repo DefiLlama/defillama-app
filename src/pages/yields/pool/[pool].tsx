@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
 import exponentialLogo from '~/assets/exponential.avif'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { IBarChartProps, IChartProps } from '~/components/ECharts/types'
@@ -13,6 +14,7 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
+import type { YieldsChartConfig } from '~/containers/ProDashboard/types'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -140,6 +142,17 @@ const PageView = (props) => {
 	const category = config?.category ?? ''
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
+
+	const yieldsChartConfig: YieldsChartConfig | null = query.pool
+		? {
+				id: `yields-${query.pool}`,
+				kind: 'yields',
+				poolConfigId: query.pool as string,
+				poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
+				project: config?.name ?? poolData.project ?? '',
+				chain: poolData.chain ?? ''
+			}
+		: null
 
 	const {
 		finalChartData = [],
@@ -324,7 +337,7 @@ const PageView = (props) => {
 				</div>
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center justify-end p-2">
+					<div className="flex items-center justify-end gap-1 p-2">
 						<ChartExportButton
 							chartInstance={tvlApyChartInstance}
 							filename={`${query.pool}-tvl-apy`}
@@ -332,6 +345,7 @@ const PageView = (props) => {
 							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 							smol
 						/>
+						<AddToDashboardButton chartConfig={yieldsChartConfig} smol />
 					</div>
 					<Suspense fallback={<></>}>
 						<TVLAPYChart
@@ -628,7 +642,7 @@ const PageView = (props) => {
 						: null}
 					{config?.twitter ? (
 						<a
-							href={`https://twitter.com/${config.twitter}`}
+							href={`https://x.com/${config.twitter}`}
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 							target="_blank"
 							rel="noopener noreferrer"

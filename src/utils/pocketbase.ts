@@ -11,6 +11,8 @@ export interface AuthModel extends RecordModel {
 	avatar?: string
 	created: string
 	updated: string
+	has_active_subscription: boolean
+	flags: Record<string, boolean>
 }
 
 export default pb

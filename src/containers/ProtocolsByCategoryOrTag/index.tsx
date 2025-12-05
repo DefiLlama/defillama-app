@@ -176,7 +176,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						{props.openInterest != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC`}
+									content={`Total notional value of all outstanding perpetual futures positions`}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Open Interest
@@ -377,8 +377,7 @@ const columns = (
 								sortingFn: 'alphanumericFalsyLast' as any,
 								meta: {
 									align: 'end',
-									headerHelperText:
-										'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+									headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
 								},
 								size: 160
 							}

@@ -291,7 +291,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainFees?.total24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Total fees paid by users when using the chain"
+									content="Total fees paid by users when using the chain. Updates daily at 00:00 UTC"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Chain Fees (24h)
@@ -302,7 +302,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainRevenue?.total24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Subset of fees that the chain collects for itself"
+									content="Subset of fees that the chain collects for itself. Updates daily at 00:00 UTC"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Chain Revenue (24h)
@@ -313,7 +313,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainFees?.totalREV24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="REV is the sum of chain fees and MEV tips"
+									content="REV is the sum of chain fees and MEV tips. Updates daily at 00:00 UTC"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Chain REV (24h)
@@ -324,7 +324,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainIncentives?.emissions24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms."
+									content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms. Updates daily at 00:00 UTC"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Token Incentives (24h)
@@ -338,7 +338,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content={
-										'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
+										'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.\nUpdates daily at 00:00 UTC'
 									}
 									className="text-(--text-label) underline decoration-dotted"
 								>
@@ -351,7 +351,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
 									content={
-										'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.'
+										'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.\nUpdates daily at 00:00 UTC'
 									}
 									className="text-(--text-label) underline decoration-dotted"
 								>
@@ -366,8 +366,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									<Tooltip
 										content={
 											props.metadata.name === 'All'
-												? 'Sum of volume on all DEXs on all chains'
-												: 'Sum of volume on all DEXs on the chain'
+												? 'Sum of volume on all DEXs on all chains. Updates daily at 00:00 UTC'
+												: 'Sum of volume on all DEXs on the chain. Updates daily at 00:00 UTC'
 										}
 										className="text-(--text-label) underline decoration-dotted"
 									>
@@ -413,7 +413,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
-										content="Sum of volume on all perpetual exchanges on the chain"
+										content="Sum of volume on all perpetual exchanges on the chain. Updates daily at 00:00 UTC"
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Perps Volume (24h)
@@ -451,7 +451,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.inflows?.netInflows != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Net money bridged to the chain within the last 24h"
+									content="Net money bridged to the chain within the last 24h. Updates daily at 00:00 UTC"
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Inflows (24h)
@@ -472,6 +472,9 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 												<br />
 												The reasoning for this is that this is meant to help measure stickiness/loyalty of users, and
 												users that are interacting with the protocol through another product aren't likely to be sticky.
+												<br />
+												<br />
+												Updates daily at 00:00 UTC
 											</p>
 										}
 										className="text-(--text-label) underline decoration-dotted"

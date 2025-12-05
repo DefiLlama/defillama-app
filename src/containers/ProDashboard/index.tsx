@@ -5,7 +5,6 @@ import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
 import { EmptyState } from './components/EmptyState'
@@ -41,8 +40,7 @@ function ProDashboardContent() {
 	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
 	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
-	const { subscription, isLoading: isSubLoading } = useSubscribe()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const {
 		items,
@@ -91,7 +89,13 @@ function ProDashboardContent() {
 	]
 
 	const hasChartItems = items?.some(
-		(item) => item?.kind === 'chart' || item?.kind === 'multi' || item?.kind === 'builder' || item?.kind === 'yields'
+		(item) =>
+			item?.kind === 'chart' ||
+			item?.kind === 'multi' ||
+			item?.kind === 'builder' ||
+			item?.kind === 'yields' ||
+			item?.kind === 'stablecoins' ||
+			item?.kind === 'stablecoin-asset'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()
@@ -122,7 +126,7 @@ function ProDashboardContent() {
 		}
 	}
 
-	if (!isAuthenticated && subscription?.status !== 'active' && dashboardVisibility !== 'public') {
+	if (!isAuthenticated && !hasActiveSubscription && dashboardVisibility !== 'public') {
 		return (
 			<Suspense
 				fallback={
@@ -191,7 +195,7 @@ function ProDashboardContent() {
 								{isReadOnly ? (
 									<button
 										onClick={() => {
-											if (subscription?.status === 'active') {
+											if (hasActiveSubscription) {
 												copyDashboard()
 											} else {
 												subscribeModalStore.show()

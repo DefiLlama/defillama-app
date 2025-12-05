@@ -328,7 +328,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		}
 
 		return (
-			<div className="flex flex-col">
+			<div className="flex flex-col" data-chart-id={config.id}>
 				{config.displayOptions && !['pie', 'scatter'].includes(adaptedChart.chartType) && (
 					<ChartControls
 						displayOptions={config.displayOptions}
@@ -463,7 +463,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 				<SingleChart
 					key={chart.id}
 					config={chart}
-					data={chartData}
+					data={Array.isArray(chartData) ? chartData : (chartData?.[chart.id] || [])}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 				/>
 			))}

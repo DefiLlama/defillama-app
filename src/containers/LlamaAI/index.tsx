@@ -1,4 +1,4 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -16,6 +16,7 @@ import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
+import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
@@ -67,6 +68,7 @@ async function fetchPromptResponse({
 			| 'title'
 			| 'message_id'
 			| 'reset'
+			| 'csv_export'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -77,6 +79,7 @@ async function fetchPromptResponse({
 		citations?: string[]
 		title?: string
 		messageId?: string
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 	}) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
@@ -138,6 +141,7 @@ async function fetchPromptResponse({
 		let charts = null
 		let chartData = null
 		let citations = null
+		let csvExports = null
 		let lineBuffer = ''
 
 		while (true) {
@@ -212,6 +216,15 @@ async function fetchPromptResponse({
 									citations: data.citations
 								})
 							}
+						} else if (data.type === 'csv_export') {
+							csvExports = data.exports
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'csv_export',
+									content: `Generated ${data.exports?.length || 0} CSV export(s)`,
+									csvExports: data.exports
+								})
+							}
 						} else if (data.type === 'error') {
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'error', content: data.content })
@@ -250,7 +263,8 @@ async function fetchPromptResponse({
 				suggestions,
 				charts,
 				chartData,
-				citations
+				citations,
+				csvExports
 			}
 		}
 	} catch (error) {
@@ -285,6 +299,7 @@ interface SharedSession {
 			charts?: any[]
 			chartData?: any[]
 			citations?: string[]
+			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 		}
 		messageId?: string
 		timestamp: number
@@ -330,6 +345,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				chartData?: any[]
 				citations?: string[]
 				inlineSuggestions?: string
+				csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 			}
 			timestamp: number
 			messageId?: string
@@ -340,6 +356,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			chartData?: any[]
 			citations?: string[]
 			inlineSuggestions?: string
+			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -359,6 +376,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
 	const [streamingCitations, setStreamingCitations] = useState<string[] | null>(null)
+	const [streamingCsvExports, setStreamingCsvExports] = useState<Array<{
+		id: string
+		title: string
+		url: string
+		rowCount: number
+		filename: string
+	}> | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
@@ -398,6 +422,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		shouldAutoScrollRef.current = true
 		isAutoScrollingRef.current = true
 	}, [])
+
+	const renderInlineChart = useCallback(
+		(chart: any, data: any) => (
+			<ChartRenderer
+				charts={[chart]}
+				chartData={data}
+				isLoading={false}
+				isAnalyzing={false}
+				resizeTrigger={resizeTrigger}
+			/>
+		),
+		[resizeTrigger]
+	)
 
 	useEffect(() => {
 		sessionIdRef.current = sessionId
@@ -481,6 +518,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setStreamingCharts(null)
 			setStreamingChartData(null)
 			setStreamingCitations(null)
+			setStreamingCsvExports(null)
 			setIsGeneratingCharts(false)
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
@@ -538,6 +576,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setIsAnalyzingForCharts(false)
 					} else if (data.type === 'citations') {
 						setStreamingCitations(data.citations)
+					} else if (data.type === 'csv_export') {
+						setStreamingCsvExports(data.csvExports || null)
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
@@ -590,6 +630,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					charts: data?.response?.charts,
 					chartData: data?.response?.chartData,
 					citations: data?.response?.citations,
+					csvExports: data?.response?.csvExports,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
@@ -1087,7 +1128,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								<div className="flex min-h-11 lg:hidden" />
 							</>
 						) : (
-							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+							<ChatControls
+								handleSidebarToggle={handleSidebarToggle}
+								handleNewChat={handleNewChat}
+								sessionId={sessionId}
+								messages={messages}
+							/>
 						)}
 					</>
 				)}
@@ -1159,13 +1205,21 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
 														}
 														if (item.role === 'assistant') {
+															const hasInlineCharts = item.content?.includes('[CHART:')
 															return (
 																<div
 																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
 																	className="flex flex-col gap-2.5"
 																>
-																	<MarkdownRenderer content={item.content} citations={item.citations} />
-																	{item.charts && item.charts.length > 0 && (
+																	<MarkdownRenderer
+																		content={item.content}
+																		citations={item.citations}
+																		charts={hasInlineCharts ? item.charts : undefined}
+																		chartData={hasInlineCharts ? item.chartData : undefined}
+																		renderChart={hasInlineCharts ? renderInlineChart : undefined}
+																		csvExports={item.csvExports}
+																	/>
+																	{!hasInlineCharts && item.charts && item.charts.length > 0 && (
 																		<ChartRenderer
 																			charts={item.charts}
 																			chartData={item.chartData || []}
@@ -1179,6 +1233,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		initialRating={item.userRating}
 																		sessionId={sessionId}
 																		readOnly={readOnly}
+																		charts={item.charts?.map((c: any) => ({ id: c.id, title: c.title }))}
 																	/>
 																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
 																		<SuggestedActions
@@ -1193,6 +1248,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															)
 														}
 														if (item.question) {
+															const hasInlineCharts = item.response?.answer?.includes('[CHART:')
+															const itemCharts = item.response?.charts || item.charts || []
+															const itemChartData = item.response?.chartData || item.chartData
 															return (
 																<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
 																	<SentPrompt prompt={item.question} />
@@ -1200,15 +1258,20 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		<MarkdownRenderer
 																			content={item.response?.answer || ''}
 																			citations={item.response?.citations || item.citations}
+																			charts={hasInlineCharts ? itemCharts : undefined}
+																			chartData={hasInlineCharts ? itemChartData : undefined}
+																			renderChart={hasInlineCharts ? renderInlineChart : undefined}
+																			csvExports={item.response?.csvExports || item.csvExports}
 																		/>
-																		{((item.response?.charts && item.response.charts.length > 0) ||
-																			(item.charts && item.charts.length > 0)) && (
-																			<ChartRenderer
-																				charts={item.response?.charts || item.charts || []}
-																				chartData={item.response?.chartData || item.chartData || []}
-																				resizeTrigger={resizeTrigger}
-																			/>
-																		)}
+																		{!hasInlineCharts &&
+																			((item.response?.charts && item.response.charts.length > 0) ||
+																				(item.charts && item.charts.length > 0)) && (
+																				<ChartRenderer
+																					charts={itemCharts}
+																					chartData={itemChartData}
+																					resizeTrigger={resizeTrigger}
+																				/>
+																			)}
 																		{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
 																			<InlineSuggestions
 																				text={item.response?.inlineSuggestions || item.inlineSuggestions}
@@ -1220,6 +1283,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			initialRating={item.userRating}
 																			sessionId={sessionId}
 																			readOnly={readOnly}
+																			charts={(item.response?.charts || item.charts)?.map((c: any) => ({
+																				id: c.id,
+																				title: c.title
+																			}))}
 																		/>
 																		{!readOnly &&
 																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
@@ -1276,6 +1343,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
 														readOnly={readOnly}
+														renderChart={renderInlineChart}
+														streamingCsvExports={streamingCsvExports}
 													/>
 												</div>
 											)}
@@ -1734,7 +1803,7 @@ const PromptInput = memo(function PromptInput({
 					<Tooltip
 						content="Stop"
 						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-						className="group absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="group absolute right-2 bottom-2 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 					>
 						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 						<span className="sr-only">Stop</span>
@@ -1743,7 +1812,7 @@ const PromptInput = memo(function PromptInput({
 					<button
 						type="submit"
 						data-umami-event="llamaai-prompt-submit"
-						className="absolute right-2 bottom-3 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						className="absolute right-2 bottom-2 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 						disabled={isPending || isStreaming}
 					>
 						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
@@ -1774,7 +1843,9 @@ const PromptResponse = ({
 	expectedChartInfo,
 	resizeTrigger = 0,
 	showMetadata = false,
-	readOnly = false
+	readOnly = false,
+	renderChart,
+	streamingCsvExports
 }: {
 	response?: {
 		answer: string
@@ -1784,6 +1855,7 @@ const PromptResponse = ({
 		chartData?: any[]
 		citations?: string[]
 		inlineSuggestions?: string
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 	}
 	error?: string
 	streamingError?: string
@@ -1803,6 +1875,8 @@ const PromptResponse = ({
 	resizeTrigger?: number
 	showMetadata?: boolean
 	readOnly?: boolean
+	renderChart?: (chart: any, data: any) => React.ReactNode
+	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
 }) => {
 	if (error && canRetry) {
 		return (
@@ -1829,7 +1903,15 @@ const PromptResponse = ({
 				{streamingError ? (
 					<div className="text-(--error)">{streamingError}</div>
 				) : isStreaming && streamingResponse ? (
-					<MarkdownRenderer content={streamingResponse} citations={response?.citations} isStreaming={true} />
+					<MarkdownRenderer
+						content={streamingResponse}
+						citations={response?.citations}
+						isStreaming={isStreaming}
+						charts={response?.charts}
+						chartData={response?.chartData}
+						renderChart={renderChart}
+						csvExports={streamingCsvExports || undefined}
+					/>
 				) : isStreaming && progressMessage ? (
 					<p
 						className={`flex items-center justify-start gap-2 py-2 ${
@@ -1852,7 +1934,7 @@ const PromptResponse = ({
 						<LoadingDots />
 					</p>
 				)}
-				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) && (
+				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) && !streamingResponse?.includes('[CHART:') && (
 					<ChartRenderer
 						charts={[]}
 						chartData={[]}
@@ -1877,13 +1959,38 @@ const PromptResponse = ({
 		)
 	}
 
+	const remainingCharts = (() => {
+		if (!response?.charts?.length) return null
+		const inlineIds = new Set<string>()
+		const pattern = /\[CHART:([^\]]+)\]/g
+		let match: RegExpExecArray | null
+		while ((match = pattern.exec(response.answer || '')) !== null) {
+			inlineIds.add(match[1])
+		}
+		const filtered = response.charts.filter((c: any) => !inlineIds.has(c.id))
+		if (!filtered.length) return null
+		const data = Array.isArray(response.chartData)
+			? response.chartData
+			: filtered.flatMap((c: any) => response.chartData?.[c.id] || [])
+		return { charts: filtered, data }
+	})()
+
 	return (
 		<>
-			{response?.answer && <MarkdownRenderer content={response.answer} citations={response.citations} />}
-			{response?.charts && response.charts.length > 0 && (
-				<ChartRenderer
+			{response?.answer && (
+				<MarkdownRenderer
+					content={response.answer}
+					citations={response.citations}
 					charts={response.charts}
-					chartData={response.chartData || []}
+					chartData={response.chartData}
+					renderChart={renderChart}
+					csvExports={response.csvExports}
+				/>
+			)}
+			{remainingCharts && (
+				<ChartRenderer
+					charts={remainingCharts.charts}
+					chartData={remainingCharts.data}
 					isLoading={false}
 					isAnalyzing={false}
 					expectedChartCount={expectedChartInfo?.count}
@@ -1996,13 +2103,15 @@ const ResponseControls = memo(function ResponseControls({
 	content,
 	initialRating,
 	sessionId,
-	readOnly = false
+	readOnly = false,
+	charts = []
 }: {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
 	readOnly?: boolean
+	charts?: Array<{ id: string; title: string }>
 }) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
@@ -2072,6 +2181,15 @@ const ResponseControls = memo(function ResponseControls({
 							<Icon name="clipboard" height={14} width={14} />
 						)}
 					</Tooltip>
+				)}
+				{content && sessionId && !readOnly && (
+					<PDFExportButton
+						sessionId={sessionId}
+						messageId={messageId}
+						charts={charts}
+						exportType="single_message"
+						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+					/>
 				)}
 				{!readOnly && (
 					<>
@@ -2215,7 +2333,7 @@ const FeedbackForm = ({
 		onSuccess: (_, variables) => {
 			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
-			toast.success('Thank you for you feedback!')
+			toast.success('Thank you for your feedback!')
 		}
 	})
 
@@ -2359,11 +2477,21 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat
+	handleNewChat,
+	sessionId,
+	messages
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
+	sessionId: string | null
+	messages: any[]
 }) {
+	const allCharts = useMemo(() => {
+		return messages
+			.filter((m) => m.role === 'assistant' && m.charts?.length > 0)
+			.flatMap((m) => m.charts.map((c: any) => ({ id: c.id, title: c.title })))
+	}, [messages])
+
 	return (
 		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
 			<Tooltip
@@ -2382,6 +2510,14 @@ const ChatControls = memo(function ChatControls({
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>
 			</Tooltip>
+			{sessionId && messages.length > 0 && (
+				<PDFExportButton
+					sessionId={sessionId}
+					charts={allCharts}
+					exportType="full_conversation"
+					className="flex h-6 items-center justify-center gap-1 rounded-sm bg-(--old-blue)/12 px-1.5 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				/>
+			)}
 		</div>
 	)
 })

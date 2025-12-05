@@ -77,10 +77,20 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 					}
 				})
 			}
+			// for protocols with null historical values, propagate null to parent
+			for (const key of ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const) {
+				// Skip if accumulator is already null (don't override)
+				if (acc[key] === null) continue
+
+				let value = curr[key]
+				if (value == null) {
+					acc[key] = null
+				} else {
+					acc[key] = (acc[key] ?? 0) + value
+				}
+			}
+
 			for (const key of [
-				'tvlPrevDay',
-				'tvlPrevWeek',
-				'tvlPrevMonth',
 				'volume_24h',
 				'volume_7d',
 				'volume_30d',
@@ -111,12 +121,12 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 				acc.mcap = acc.mcap + curr.mcap
 			}
 
-			if (curr.volume_7d && curr.volumeChange_7d !== undefined && curr.volumeChange_7d !== null) {
+			if (curr.volume_7d && curr.volumeChange_7d != null) {
 				weightedVolumeChange += curr.volumeChange_7d * curr.volume_7d
 				totalVolumeWeight += curr.volume_7d
 			}
 
-			if (curr.perps_volume_7d && curr.perps_volume_change_7d !== undefined && curr.perps_volume_change_7d !== null) {
+			if (curr.perps_volume_7d && curr.perps_volume_change_7d != null) {
 				weightedPerpsVolumeChange += curr.perps_volume_change_7d * curr.perps_volume_7d
 				totalPerpsVolumeWeight += curr.perps_volume_7d
 			}

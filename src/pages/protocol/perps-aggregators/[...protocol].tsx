@@ -136,7 +136,7 @@ export default function Protocols(props) {
 			category={props.category}
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
-			tab="perps-aggregators"
+			tab="perpsAggregators"
 			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>

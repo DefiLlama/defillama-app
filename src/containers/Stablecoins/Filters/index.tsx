@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { NestedMenu } from '~/components/NestedMenu'
-import { useIsClient } from '~/hooks'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
 import { PeggedFiltersDropdowns } from './Dropdowns'
 

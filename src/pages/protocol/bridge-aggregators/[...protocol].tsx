@@ -137,7 +137,7 @@ export default function Protocols(props) {
 			category={props.category}
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
-			tab="bridge-aggregators"
+			tab="bridgeAggregators"
 			warningBanners={props.warningBanners}
 			toggleOptions={[]}
 		>

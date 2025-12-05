@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SubscribeLayout } from '~/containers/Subscribtion/Layout'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function Account() {
@@ -41,7 +41,7 @@ export default function Account() {
 	return (
 		<WalletProvider>
 			<SubscribeLayout>
-				<div className="mx-auto w-full max-w-[1200px] px-5 pb-[64px]">
+				<div className="mx-auto w-full max-w-[1200px] px-5">
 					<AccountInfo />
 				</div>
 

@@ -3,7 +3,6 @@ import {
 	CHAINS_ASSETS_CHART,
 	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
-	DIMENSIONS_SUMMARY_API,
 	PEGGEDCHART_API,
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
@@ -48,6 +47,14 @@ const CHART_METADATA = {
 export default class ChainCharts {
 	private static readonly CHAIN_MIGRATIONS: Record<string, string> = {
 		optimism: 'OP Mainnet'
+	}
+
+	private static toDimensionsApiChain(chain: string): string {
+		if (!chain) return chain
+		const lc = chain.toLowerCase()
+		if (lc === 'optimism') return 'OP Mainnet'
+		if (lc === 'binance') return 'BSC'
+		return chain
 	}
 
 	private static async fetchAndMergeChains(
@@ -97,9 +104,11 @@ export default class ChainCharts {
 
 	private static async dimensionsData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
-			? `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${chain}?dataType=${dataType}`
-			: `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${chain}`
+			? `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
+			: `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
@@ -107,7 +116,9 @@ export default class ChainCharts {
 
 	private static async userMetrics(chain: string, api: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const response = await fetch(`${api}/chain$${chain}`)
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
+		const response = await fetch(`${api}/chain$${encodedChain}`)
 		const data = await response.json()
 		return convertToNumberFormat(data ?? [])
 	}
@@ -136,7 +147,9 @@ export default class ChainCharts {
 
 	private static async stablecoinsData(chain: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const response = await fetch(`${PEGGEDCHART_API}/${chain}`)
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
+		const response = await fetch(`${PEGGEDCHART_API}/${encodedChain}`)
 		const data = await response.json()
 
 		if (!data.aggregated || !Array.isArray(data.aggregated)) return []
@@ -155,9 +168,11 @@ export default class ChainCharts {
 
 	private static async protocolData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
+		const apiChain = this.toDimensionsApiChain(chain)
+		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
-			? `${DIMENSIONS_SUMMARY_API}/${endpoint}/${chain}?dataType=${dataType}`
-			: `${DIMENSIONS_SUMMARY_API}/${endpoint}/${chain}`
+			? `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
+			: `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}`
 		const response = await fetch(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
@@ -211,7 +226,7 @@ export default class ChainCharts {
 		return data
 	}
 
-	private static async chainMcapData(chain: string, geckoId?: string): Promise<[number, number][]> {
+	private static async chainMcapData(_chain: string, geckoId?: string): Promise<[number, number][]> {
 		if (!geckoId) return []
 		const data = await this.getTokenData(geckoId)
 		if (!data) return []
@@ -219,7 +234,7 @@ export default class ChainCharts {
 		return normalizeHourlyToDaily(converted, 'last')
 	}
 
-	private static async chainPriceData(chain: string, geckoId?: string): Promise<[number, number][]> {
+	private static async chainPriceData(_chain: string, geckoId?: string): Promise<[number, number][]> {
 		if (!geckoId) return []
 		const data = await this.getTokenData(geckoId)
 		if (!data) return []

@@ -194,7 +194,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 						<SparklineChart data={sparklineSeries} color={sparklineColor} height={64} smooth />
 					</div>
 				)}
-				{deltaText && (
+				{deltaText && metric.aggregator !== 'growth' && (
 					<div
 						className={`text-xs font-semibold tracking-wide uppercase ${
 							deltaPositive ? 'text-(--success)' : deltaNegative ? 'text-(--error)' : 'text-(--text-form)'
@@ -213,6 +213,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 		displayValue,
 		isError,
 		isLoading,
+		metric.aggregator,
 		sparklineSeries,
 		sparklineColor,
 		summaryText

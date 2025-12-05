@@ -78,7 +78,7 @@ export async function getPeggedOverviewPageData(chain) {
 	const chainData = await fetchJson(`${PEGGEDCHART_API}/${chainLabel}`)
 	const breakdown = chainData?.breakdown
 	if (!breakdown) {
-		return { notFound: true }
+		throw new Error(`[getPeggedOverviewPageData] [${chainLabel}] no breakdown`)
 	}
 
 	const priceData = await getPeggedPrices()

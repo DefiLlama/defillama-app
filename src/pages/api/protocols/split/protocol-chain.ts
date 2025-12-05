@@ -188,6 +188,9 @@ const toDimensionsChainSlug = (chain: string): string => {
 const toOverviewApiSlug = (breakdownSlug: string): string => {
 	if (!breakdownSlug) return breakdownSlug
 	const lc = breakdownSlug.toLowerCase()
+	if (lc === 'optimism') return 'OP Mainnet'
+	if (lc === 'hyperliquid') return 'Hyperliquid L1'
+	if (lc === 'xdai') return 'Gnosis'
 	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
 	if (lc === 'imx') return 'Immutable zkEVM'
 	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
@@ -198,6 +201,7 @@ const toOverviewApiSlug = (breakdownSlug: string): string => {
 const displayChainName = (slug: string): string => {
 	const lc = slug.toLowerCase()
 	if (lc === 'op-mainnet' || lc === 'optimism') return 'OP Mainnet'
+	if (lc === 'hyperliquid') return 'Hyperliquid L1'
 	if (lc === 'avax') return 'Avalanche'
 	if (lc === 'bsc') return 'BSC'
 	if (lc === 'xdai') return 'Gnosis'
@@ -475,10 +479,11 @@ async function getDimensionsProtocolChainData(
 				}
 
 				if (allowSlugsFromCategories && allowSlugsFromCategories.size > 0) {
+					const chainSlug = toDimensionsChainSlug(chain)
 					if (filterMode === 'include') {
-						if (!allowSlugsFromCategories.has(chain)) return
+						if (!allowSlugsFromCategories.has(chainSlug)) return
 					} else {
-						if (allowSlugsFromCategories.has(chain)) return
+						if (allowSlugsFromCategories.has(chainSlug)) return
 					}
 				}
 
@@ -1117,6 +1122,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 		if (chainCategories && chainCategories.length > 0) {
 			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
 		}
+
 		let ranked = Array.from(chainTotals.entries())
 			.filter(([slug, v]) => v > 0)
 			.filter(([slug]) => {
@@ -1126,8 +1132,13 @@ async function getAllProtocolsTopChainsDimensionsData(
 			})
 			.filter(([slug]) => {
 				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
-				if (filterMode === 'include') return allowSlugsFromCategories.has(slug)
-				return !allowSlugsFromCategories.has(slug)
+				const normalizedSlug = toDimensionsChainSlug(slug)
+				const result =
+					filterMode === 'include'
+						? allowSlugsFromCategories.has(normalizedSlug)
+						: !allowSlugsFromCategories.has(normalizedSlug)
+
+				return result
 			})
 			.sort((a, b) => b[1] - a[1])
 
@@ -1324,6 +1335,9 @@ async function resolveAllowedChainNamesFromCategories(categories: string[]): Pro
 async function resolveAllowedChainSlugsFromCategories(categories: string[]): Promise<Set<string>> {
 	const names = await resolveAllowedChainNamesFromCategories(categories)
 	const slugs = new Set<string>()
-	for (const name of names) slugs.add(toDimensionsChainSlug(name))
+	for (const name of names) {
+		const slug = toDimensionsChainSlug(name)
+		slugs.add(slug)
+	}
 	return slugs
 }

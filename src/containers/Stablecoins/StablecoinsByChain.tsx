@@ -1,10 +1,12 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { PeggedFilters } from '~/containers/Stablecoins/Filters'
 import { stablecoinAttributeOptions } from '~/containers/Stablecoins/Filters/Attribute'
@@ -31,6 +33,19 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as 
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
+	const mapping: Record<string, StablecoinChartType> = {
+		'Total Market Cap': 'totalMcap',
+		'Token Market Caps': 'tokenMcaps',
+		'Chain Market Caps': 'tokenMcaps',
+		Pie: 'pie',
+		Dominance: 'dominance',
+		'USD Inflows': 'usdInflows',
+		'Token Inflows': 'tokenInflows'
+	}
+	return mapping[displayType] || 'totalMcap'
+}
 
 export function StablecoinsByChain({
 	selectedChain = 'All',
@@ -225,6 +240,16 @@ export function StablecoinsByChain({
 
 	const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
 
+	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
+		() => ({
+			id: `stablecoins-${selectedChain}-${mapChartTypeToConfig(chartType)}`,
+			kind: 'stablecoins',
+			chain: selectedChain,
+			chartType: mapChartTypeToConfig(chartType)
+		}),
+		[selectedChain, chartType]
+	)
+
 	const totalMcapLabel = ['Mcap']
 
 	const path = selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`
@@ -318,7 +343,10 @@ export function StablecoinsByChain({
 								hallmarks={[]}
 								color={CHART_COLORS[0]}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 								chartOptions={chartOptions}
 								enableImageExport={true}
@@ -338,7 +366,10 @@ export function StablecoinsByChain({
 								hideGradient={true}
 								stackColors={tokenColors}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 								chartOptions={chartOptions}
 								enableImageExport={true}
@@ -359,7 +390,10 @@ export function StablecoinsByChain({
 								expandTo100Percent={true}
 								stackColors={tokenColors}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 								chartOptions={chartOptions}
 								enableImageExport={true}
@@ -374,7 +408,10 @@ export function StablecoinsByChain({
 								chartData={chainsCirculatingValues}
 								stackColors={tokenColors}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
@@ -394,7 +431,10 @@ export function StablecoinsByChain({
 								chartOptions={inflowsChartOptions}
 								stackColors={tokenColors}
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}
@@ -409,7 +449,10 @@ export function StablecoinsByChain({
 								color={CHART_COLORS[0]}
 								title=""
 								customComponents={
-									<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+									<>
+										<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
+										<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol className="-mr-2" />
+									</>
 								}
 								enableImageExport={true}
 								imageExportTitle={getImageExportTitle()}

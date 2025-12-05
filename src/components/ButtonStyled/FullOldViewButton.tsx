@@ -3,24 +3,24 @@ import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { useIsClient } from '~/hooks'
-import { useDashboardCreation } from '~/hooks/useDashboardCreation'
-import { useSubscribe } from '~/hooks/useSubscribe'
+import { useDashboardCreation } from '~/containers/ProDashboard/hooks/useDashboardCreation'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
 export const FullOldViewButton = () => {
-	const { createDashboardWithDataset, isAuthenticated, isLoading } = useDashboardCreation()
-	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { createDashboardWithDataset, isLoading } = useDashboardCreation()
+	const { loaders, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const isClient = useIsClient()
 
 	const handleClick = () => {
-		if (isLoading || isSubscriptionLoading) return
+		if (isLoading || loaders.userLoading) return
 
-		if (isAuthenticated && subscription?.status === 'active') {
+		if (isAuthenticated && hasActiveSubscription) {
 			createDashboardWithDataset()
 		} else {
 			subscribeModalStore.show()
@@ -47,14 +47,10 @@ export const FullOldViewButton = () => {
 		<>
 			<Tooltip
 				content={tooltipContent}
-				render={<button onClick={handleClick} disabled={isLoading || isSubscriptionLoading} />}
+				render={<button onClick={handleClick} disabled={isLoading} />}
 				className="flex cursor-pointer items-center gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-50"
 			>
-				{isClient && (isLoading || isSubscriptionLoading) ? (
-					<LoadingSpinner size={14} />
-				) : (
-					<Icon name="plus" height={14} width={14} />
-				)}
+				{isClient && isLoading ? <LoadingSpinner size={14} /> : <Icon name="plus" height={14} width={14} />}
 				<span>Open in Dashboard</span>
 			</Tooltip>
 			<Suspense fallback={<></>}>

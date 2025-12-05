@@ -1,6 +1,6 @@
 # DefiLlama
 
-[DefiLlama](https://defillama.com) is the leading DeFi analytics and insights platform, providing comprehensive data on total value locked (TVL), yields, stablecoins, and more across all blockchain ecosystems.
+[DefiLlama](https://defillama.com) is the leading DeFi analytics and insights platform, providing comprehensive data on total value locked (TVL), yields, stablecoins, and more across all blockchain ecosystems
 
 Check it out live at: https://defillama.com
 
@@ -60,7 +60,7 @@ Before opening a PR:
 
 Join the conversation and stay up to date:
 
-- [X/Twitter](https://twitter.com/DefiLlama)
+- [X/Twitter](https://x.com/DefiLlama)
 - [Discord](https://discord.defillama.com/)
 - [Documentation](https://docs.llama.fi/)
 

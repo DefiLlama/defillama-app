@@ -205,35 +205,111 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 	}
 }
 
+// Helper: get top 10 non-UNKNOWN, non-near-zero tokens by absolute value.
+// Returns [topTokens, totalTokenCount]
+function getTop10Tokens(tokens: Record<string, number>): [Array<[string, number]>, number] {
+	const validTokens: Array<[string, number]> = []
+	let totalCount = 0
+
+	for (const token in tokens) {
+		totalCount++
+		if (token.startsWith('UNKNOWN') || tokens[token] < 1) continue
+		validTokens.push([token, tokens[token]])
+	}
+
+	if (validTokens.length <= 10) {
+		validTokens.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+		return [validTokens, totalCount]
+	}
+
+	// Partial sort: only sort top 10, more efficient than full sort
+	validTokens.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+	return [validTokens.slice(0, 10), totalCount]
+}
+
+// Helper: accumulate per-token USD flows between consecutive dates into `tokenFlows`.
+function accumulateTokenFlows({
+	tokensInUsd,
+	tokens,
+	tokenFlows
+}: {
+	tokensInUsd: Array<{ date: number; tokens: Record<string, number> }>
+	tokens: Array<{ date: number; tokens: Record<string, number> }>
+	tokenFlows: Map<string, number>
+}) {
+	if (tokensInUsd.length === 0 || tokens.length === 0) return
+
+	const tokensInUsdMap: Record<string, Record<string, number>> = {}
+	const tokensMap: Record<string, Record<string, number>> = {}
+
+	for (const { date, tokens: tokenData } of tokensInUsd) {
+		tokensInUsdMap[date] = tokenData
+	}
+
+	for (const { date, tokens: tokenData } of tokens) {
+		tokensMap[date] = tokenData
+	}
+
+	// Process dates in order (assuming arrays are already sorted by date)
+	const dates: string[] = tokensInUsd.map(({ date }) => String(date))
+	if (dates.length <= 1) return
+
+	let isSorted = true
+	for (let i = 1; i < dates.length; i++) {
+		if (Number(dates[i]) < Number(dates[i - 1])) {
+			isSorted = false
+			break
+		}
+	}
+
+	if (!isSorted) {
+		dates.sort((a, b) => Number(a) - Number(b))
+	}
+
+	let prevDate: string | null = null
+	for (const date of dates) {
+		if (prevDate === null) {
+			prevDate = date
+			continue
+		}
+
+		const currTokensUsd = tokensInUsdMap[date]
+		const currTokens = tokensMap[date]
+		const prevTokens = tokensMap[prevDate]
+
+		if (!currTokensUsd || !currTokens || !prevTokens) {
+			prevDate = date
+			continue
+		}
+
+		for (const token in currTokensUsd) {
+			const currAmount = currTokens[token]
+			const prevAmount = prevTokens[token]
+
+			if (!currAmount || !prevAmount || currAmount === 0) continue
+
+			const price = currTokensUsd[token] / currAmount
+			if (!isFinite(price)) continue
+
+			const diff = currAmount - prevAmount
+			const diffUsd = price * diff
+
+			if (isFinite(diffUsd) && !Number.isNaN(diffUsd)) {
+				const currentFlow = tokenFlows.get(token) || 0
+				tokenFlows.set(token, currentFlow + Math.abs(diffUsd))
+			}
+		}
+
+		prevDate = date
+	}
+}
+
 // build unique tokens based on top 10 tokens in usd value on each day
 // also includes tokens with significant flows (outflows/inflows > $100M)
 function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 	const tokenSet: Set<string> = new Set()
 	const tokenFlows: Map<string, number> = new Map()
 	const SIGNIFICANT_FLOW_THRESHOLD = 100_000_000 // $100M
-
-	// Helper function to get top 10 tokens without full sort (partial sort)
-	// Returns [topTokens, totalTokenCount]
-	const getTop10Tokens = (tokens: Record<string, number>): [Array<[string, number]>, number] => {
-		const validTokens: Array<[string, number]> = []
-		let totalCount = 0
-
-		for (const token in tokens) {
-			totalCount++
-			if (!(token.startsWith('UNKNOWN') && tokens[token] < 1)) {
-				validTokens.push([token, tokens[token]])
-			}
-		}
-
-		if (validTokens.length <= 10) {
-			validTokens.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-			return [validTokens, totalCount]
-		}
-
-		// Partial sort: only sort top 10, more efficient than full sort
-		validTokens.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-		return [validTokens.slice(0, 10), totalCount]
-	}
 
 	for (const section in chainTvls) {
 		const name = section.toLowerCase()
@@ -245,13 +321,13 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 		const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
 		if (!isEnabled) continue
 
-		const tokensInUsd = chainTvls[section].tokensInUsd ?? []
-		const tokens = chainTvls[section].tokens ?? []
+		const sectionTokensInUsd = chainTvls[section].tokensInUsd ?? []
+		const sectionTokens = chainTvls[section].tokens ?? []
 		let othersCategoryExist = false
 
-		// First pass: collect tokens based on top 10 values
-		if (tokensInUsd.length > 0) {
-			for (const dayTokens of tokensInUsd) {
+		// First pass: collect tokens based on top 10 USD values per day
+		if (sectionTokensInUsd.length > 0) {
+			for (const dayTokens of sectionTokensInUsd) {
 				const [topTokens, tokenCount] = getTop10Tokens(dayTokens.tokens)
 
 				if (tokenCount > 10) {
@@ -265,82 +341,17 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 		}
 
 		// Second pass: calculate flows to identify tokens with significant flows
-		// Only calculate flows if we have both tokensInUsd and tokens data
-		if (tokensInUsd.length > 0 && tokens.length > 0) {
-			// Build maps more efficiently (single pass)
-			const tokensInUsdMap: Record<string, Record<string, number>> = {}
-			const tokensMap: Record<string, Record<string, number>> = {}
-
-			for (const { date, tokens: tokenData } of tokensInUsd) {
-				tokensInUsdMap[date] = tokenData
-			}
-
-			for (const { date, tokens: tokenData } of tokens) {
-				tokensMap[date] = tokenData
-			}
-
-			// Process dates in order (assuming arrays are already sorted by date)
-			// If not sorted, we'll sort only once
-			const dates: string[] = []
-			for (const { date } of tokensInUsd) {
-				dates.push(String(date))
-			}
-			if (dates.length > 1) {
-				// Check if dates are already sorted
-				let isSorted = true
-				for (let i = 1; i < dates.length; i++) {
-					if (Number(dates[i]) < Number(dates[i - 1])) {
-						isSorted = false
-						break
-					}
-				}
-
-				if (!isSorted) {
-					dates.sort((a, b) => Number(a) - Number(b))
-				}
-
-				let prevDate: string | null = null
-				for (const date of dates) {
-					if (prevDate === null) {
-						prevDate = date
-						continue
-					}
-
-					const currTokensUsd = tokensInUsdMap[date]
-					const currTokens = tokensMap[date]
-					const prevTokens = tokensMap[prevDate]
-
-					if (!currTokensUsd || !currTokens || !prevTokens) {
-						prevDate = date
-						continue
-					}
-
-					for (const token in currTokensUsd) {
-						const currAmount = currTokens[token]
-						const prevAmount = prevTokens[token]
-
-						if (!currAmount || !prevAmount || currAmount === 0) continue
-
-						const price = currTokensUsd[token] / currAmount
-						if (!isFinite(price)) continue
-
-						const diff = currAmount - prevAmount
-						const diffUsd = price * diff
-
-						if (isFinite(diffUsd) && !Number.isNaN(diffUsd)) {
-							const currentFlow = tokenFlows.get(token) || 0
-							tokenFlows.set(token, currentFlow + Math.abs(diffUsd))
-						}
-					}
-
-					prevDate = date
-				}
-			}
+		if (sectionTokensInUsd.length > 0 && sectionTokens.length > 0) {
+			accumulateTokenFlows({
+				tokensInUsd: sectionTokensInUsd,
+				tokens: sectionTokens,
+				tokenFlows
+			})
 		}
 
-		// if tokensInUsd is empty, build unique tokens from tokens
-		if (tokenSet.size === 0 && tokens.length > 0) {
-			for (const dayTokens of tokens) {
+		// Fallback: if tokensInUsd is empty, build unique tokens from raw tokens
+		if (tokenSet.size === 0 && sectionTokens.length > 0) {
+			for (const dayTokens of sectionTokens) {
 				const [topTokens, tokenCount] = getTop10Tokens(dayTokens.tokens)
 
 				if (tokenCount > 10) {
@@ -369,17 +380,43 @@ function getUniqueTokens({ chainTvls, extraTvlsEnabled }) {
 	return Array.from(tokenSet)
 }
 
-function storeTokensBreakdown({ date, tokens, tokensUnique, directory, hideBigTokens = false }) {
+// Helper to aggregate token balances for a given day into the provided directory.
+// When `dateToTokensInUsd` is provided, `tokens` are interpreted as raw quantities
+// and we can optionally filter out tokens whose raw size is huge but USD value is tiny.
+function storeTokensBreakdown({
+	date,
+	tokens,
+	tokensUniqueSet,
+	directory,
+	hideBigTokens = false,
+	dateToTokensInUsd = null as Map<number, Record<string, number>> | null
+}) {
 	const tokensOfTheDay = {}
 	// filters tokens that have no name or their value is near zero
 	for (const token in tokens) {
-		if (token.startsWith('UNKNOWN') || tokens[token] < 1 || (hideBigTokens ? tokens[token] > 100_000_000 : false))
-			continue
+		if (token.startsWith('UNKNOWN') || tokens[token] < 1) continue
+
+		// If we have both raw quantities and USD values (i.e. building the raw-quantity chart),
+		// drop tokens where the raw balance is enormous but the USD value is very small or missing.
+		// This avoids tokens with silly scales (e.g. 1T units but < $1M) from blowing up the raw chart.
+		if (dateToTokensInUsd) {
+			const usdForDate = dateToTokensInUsd.get(date)
+
+			// If we have raw data but no USD snapshot for this date, skip this token
+			// from the raw-quantity chart to avoid nonsense spikes.
+			if (!usdForDate) continue
+
+			const usdValue = usdForDate[token]
+
+			// If this token has no USD value at this date, also skip it.
+			if (usdValue === undefined) continue
+
+			// If the raw balance is enormous but the USD value is tiny, drop it.
+			if (tokens[token] > 100_000_000 && usdValue < 1_000_000) continue
+		}
 
 		tokensOfTheDay[token] = tokens[token]
 	}
-
-	const tokensUniqueSet = new Set(tokensUnique)
 
 	const tokensToShow = {}
 	let remainingTokensSum = 0
@@ -410,6 +447,7 @@ function storeTokensBreakdown({ date, tokens, tokensUnique, directory, hideBigTo
 function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 	const tokensInUsd = {}
 	const rawTokens = {}
+	const tokensUniqueSet = new Set(tokensUnique)
 
 	for (const chain in chainTvls) {
 		const name = chain.toLowerCase()
@@ -418,14 +456,39 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 		if (!name.includes('-')) {
 			// sum key with staking, ethereum, arbitrum etc
 			const isEnabled = name in extraTvlsEnabled ? extraTvlsEnabled[name] : true
-			if (isEnabled) {
-				for (const { date, tokens } of chainTvls[chain].tokensInUsd ?? []) {
-					storeTokensBreakdown({ date, tokens, tokensUnique, directory: tokensInUsd })
-				}
+			if (!isEnabled) continue
 
-				for (const { date, tokens } of chainTvls[chain].tokens ?? []) {
-					storeTokensBreakdown({ date, tokens, tokensUnique, directory: rawTokens, hideBigTokens: true })
+			// Build a per-chain map from date -> tokensInUsd so we can:
+			// - aggregate the USD chart without any extra filtering
+			// - when building the raw-quantity chart, filter out tokens with huge raw but tiny USD
+			let dateToTokensInUsd: Map<number, Record<string, number>> | null = null
+
+			const chainTokensInUsd = chainTvls[chain].tokensInUsd ?? []
+			if (chainTokensInUsd.length > 0) {
+				dateToTokensInUsd = new Map<number, Record<string, number>>()
+				for (const { date, tokens } of chainTokensInUsd) {
+					dateToTokensInUsd.set(date, tokens)
+					// For the USD chart, values in `tokens` are already in USD, so we don't pass the map.
+					storeTokensBreakdown({
+						date,
+						tokens,
+						tokensUniqueSet,
+						directory: tokensInUsd
+					})
 				}
+			}
+
+			// For the raw-quantity chart, we pass `dateToTokensInUsd` (when available) so that
+			// `storeTokensBreakdown` can drop tokens where raw is huge but USD is very small.
+			for (const { date, tokens } of chainTvls[chain].tokens ?? []) {
+				storeTokensBreakdown({
+					date,
+					tokens,
+					tokensUniqueSet,
+					directory: rawTokens,
+					hideBigTokens: true,
+					dateToTokensInUsd
+				})
 			}
 		}
 	}
@@ -493,7 +556,7 @@ export const buildProtocolAddlChartsData = ({
 		}
 
 		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			const tokensUnique = getUniqueTokens({ chainTvls: chainTvls, extraTvlsEnabled })
+			const tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
 				chainTvls: chainTvls,

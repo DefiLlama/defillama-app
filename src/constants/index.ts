@@ -161,7 +161,7 @@ export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 
 export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 
-export const AUTH_SERVER = 'https://auth.llama.fi'
+export const AUTH_SERVER = process.env.NEXT_PUBLIC_AUTH_SERVER_URL ?? 'https://auth.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 

@@ -4,23 +4,13 @@ import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { resolveUserEmail } from '~/components/Nav/Account'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 import { WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import { formatEthAddress } from '~/utils'
 import { AuthModel } from '~/utils/pocketbase'
 
-interface User extends AuthModel {
-	subscription_status: string
-	subscription: {
-		id: string
-		expires_at: string
-		status: string
-	}
-	walletAddress?: string
-}
-
 interface AccountStatusProps {
-	user: User
+	user: AuthModel
 	isVerified: boolean
 	isSubscribed: boolean
 	onEmailChange: () => void
@@ -38,7 +28,7 @@ const getSeenWalletPrompt = () => {
 }
 
 export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, subscription }: AccountStatusProps) => {
-	const { addWallet, loaders } = useAuthContext()
+	const { addWallet, loaders, setPromotionalEmails } = useAuthContext()
 	const { address } = useAccount()
 	const { signMessageAsync } = useSignMessage()
 	const { openConnectModal } = useConnectModal()
@@ -252,6 +242,69 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 								</button>
 							</div>
 						)}
+					</div>
+
+					<div className="group mt-4 rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+						<div className="mb-2 flex items-center justify-between">
+							<span className="text-xs text-[#8a8c90]">Email</span>
+							{hasEmail && isVerified && (
+								<span className="flex items-center gap-1 text-xs text-green-400">
+									<Icon name="check" height={8} width={8} />
+									<span>Verified</span>
+								</span>
+							)}
+						</div>
+						<div className="space-y-3">
+							<div className="flex items-center justify-between">
+								<p className="truncate text-sm text-[#b4b7bc]">{resolvedEmail || 'No email linked'}</p>
+								<button
+									onClick={onEmailChange}
+									className="group flex items-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-4 py-2 text-sm shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
+								>
+									<Icon
+										name="mail"
+										height={14}
+										width={14}
+										className="text-[#5C5CF9] transition-transform group-hover:scale-110"
+									/>
+									<span className="hidden bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-transparent transition-colors group-hover:from-white group-hover:to-white sm:inline">
+										Change Email
+									</span>
+								</button>
+							</div>
+							<div className="flex items-center justify-between border-t border-[#39393E]/30 pt-3">
+								<div>
+									<span className="text-sm text-[#b4b7bc]">Promotional emails</span>
+									<p className="mt-0.5 text-xs text-[#8a8c90]">
+										Receive emails about upcoming DefiLlama products and new releases
+									</p>
+								</div>
+								<button
+									type="button"
+									role="switch"
+									aria-checked={user?.promotionalEmails !== 'off'}
+									disabled={loaders.setPromotionalEmails}
+									onClick={() => {
+										const currentValue = user?.promotionalEmails || 'initial'
+										const newValue = currentValue === 'off' ? 'on' : 'off'
+										setPromotionalEmails(newValue)
+									}}
+									className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:ring-2 focus:ring-[#5C5CF9] focus:ring-offset-2 focus:ring-offset-[#1a1b1f] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+										user?.promotionalEmails === 'initial' || user?.promotionalEmails === 'on'
+											? 'bg-[#5C5CF9]'
+											: 'bg-[#39393E]'
+									}`}
+								>
+									<span
+										className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ${
+											user?.promotionalEmails === 'initial' || user?.promotionalEmails === 'on'
+												? 'translate-x-5'
+												: 'translate-x-1'
+										}`}
+									/>
+								</button>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

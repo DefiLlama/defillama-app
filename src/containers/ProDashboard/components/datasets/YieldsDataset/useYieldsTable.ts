@@ -17,6 +17,24 @@ import { downloadCSV } from '~/utils'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
+const CHAIN_SLUG_ALIASES: Record<string, string> = {
+	optimism: 'op-mainnet',
+	'op mainnet': 'op-mainnet',
+	binance: 'bsc',
+	xdai: 'gnosis',
+	cosmos: 'cosmoshub',
+	pulse: 'pulsechain',
+	hyperliquid: 'hyperliquid-l1',
+	'hyperliquid l1': 'hyperliquid-l1',
+	zksync: 'zksync-era',
+	'zksync era': 'zksync-era'
+}
+
+const normalizeChainSlug = (chain: string): string => {
+	const slug = chain.toLowerCase().trim().replace(/\s+/g, '-')
+	return CHAIN_SLUG_ALIASES[slug] ?? CHAIN_SLUG_ALIASES[chain.toLowerCase().trim()] ?? slug
+}
+
 interface UseYieldsTableOptions {
 	data: any[]
 	isLoading: boolean
@@ -58,7 +76,8 @@ export function useYieldsTable({
 
 		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) || []
 
-		const selectedChainsSet = filters.chains && filters.chains.length > 0 ? new Set(filters.chains) : null
+		const selectedChainsSet =
+			filters.chains && filters.chains.length > 0 ? new Set(filters.chains.map(normalizeChainSlug)) : null
 
 		return data.filter((row) => {
 			if (filters.apyMin !== undefined && row.apy < filters.apyMin) return false
@@ -70,7 +89,7 @@ export function useYieldsTable({
 			if (filters.tvlMin !== undefined && row.tvl < filters.tvlMin) return false
 			if (filters.tvlMax !== undefined && row.tvl > filters.tvlMax) return false
 			if (selectedChainsSet) {
-				const hasMatchingChain = row.chains?.some((chain: string) => selectedChainsSet.has(chain))
+				const hasMatchingChain = row.chains?.some((chain: string) => selectedChainsSet.has(normalizeChainSlug(chain)))
 				if (!hasMatchingChain) return false
 			}
 

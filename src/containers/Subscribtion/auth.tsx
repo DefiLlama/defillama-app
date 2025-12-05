@@ -1,24 +1,65 @@
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react'
+import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
 import pb, { AuthModel } from '~/utils/pocketbase'
 
-interface User extends AuthModel {
-	subscription_status: string
-	subscription: {
-		id: string
-		expires_at: string
-		status: string
-	}
-}
-interface FetchOptions extends RequestInit {
-	skipAuth?: boolean
+export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
+
+// Custom event name for auth store changes
+const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
+
+// Store for tracking auth state changes
+let authStoreSnapshot = {
+	token: pb.authStore.token,
+	record: pb.authStore.record ? { ...pb.authStore.record } : null,
+	isValid: pb.authStore.isValid
 }
 
-export function getFieldError(error: any, key: string) {
-	return error?.data?.[key]?.message
+// Subscribe to PocketBase authStore changes and dispatch window events
+const subscribeToAuthStore = (callback: () => void) => {
+	const unsubscribe = pb.authStore.onChange((token, record) => {
+		const hasTokenChanged = authStoreSnapshot.token !== token
+		const hasRecordChanged = JSON.stringify(authStoreSnapshot.record) !== JSON.stringify(record)
+		const hasValidChanged = authStoreSnapshot.isValid !== pb.authStore.isValid
+
+		if (hasTokenChanged || hasRecordChanged || hasValidChanged) {
+			authStoreSnapshot = {
+				token,
+				record: record ? { ...record } : null,
+				isValid: pb.authStore.isValid
+			}
+			window.dispatchEvent(
+				new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
+			)
+			callback()
+		}
+	})
+
+	// Also listen to the custom event for external triggers
+	const handleAuthStoreChange = () => callback()
+	window.addEventListener(AUTH_STORE_CHANGE_EVENT, handleAuthStoreChange)
+
+	return () => {
+		unsubscribe()
+		window.removeEventListener(AUTH_STORE_CHANGE_EVENT, handleAuthStoreChange)
+	}
+}
+
+const getAuthStoreSnapshot = () => authStoreSnapshot
+
+// Cache the server snapshot to avoid infinite loop in useSyncExternalStore
+const serverSnapshot = {
+	token: '',
+	record: null,
+	isValid: false
+}
+
+const getServerSnapshot = () => serverSnapshot
+
+interface FetchOptions extends RequestInit {
+	skipAuth?: boolean
 }
 
 const getNonce = async (address: string) => {
@@ -29,6 +70,14 @@ const getNonce = async (address: string) => {
 	return response.json()
 }
 
+const clearUserSession = () => {
+	pb.authStore.clear()
+	localStorage.removeItem('userHash')
+	if (typeof window !== 'undefined' && (window as any).FrontChat) {
+		;(window as any).FrontChat('shutdown', { clearSession: true })
+	}
+}
+
 interface AuthContextType {
 	login: (email: string, password: string, onSuccess?: () => void) => Promise<void>
 	signup: (
@@ -36,6 +85,7 @@ interface AuthContextType {
 		password: string,
 		passwordConfirm: string,
 		turnstileToken: string,
+		promotionalEmails?: PromotionalEmailsValue,
 		onSuccess?: () => void
 	) => Promise<void>
 	logout: () => void
@@ -47,8 +97,10 @@ interface AuthContextType {
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
 	addEmail: (email: string) => void
+	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
-	user: User
+	user: AuthModel
+	hasActiveSubscription: boolean
 	loaders: {
 		login: boolean
 		signup: boolean
@@ -60,62 +112,53 @@ interface AuthContextType {
 		changeEmail: boolean
 		resendVerification: boolean
 		addEmail: boolean
+		setPromotionalEmails: boolean
 		userLoading: boolean
-		userFetching: boolean
-		subscriptionError: boolean
 	}
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-	const queryClient = useQueryClient()
-	const [isAuthenticated, setIsAuthenticated] = useState(false)
-	const [subscription, setSubscription] = useState<any>(null)
-	const [isSubscriptionError, setIsSubscriptionError] = useState(false)
+	// Use useSyncExternalStore to listen to authStore changes
+	const authStoreState = useSyncExternalStore(subscribeToAuthStore, getAuthStoreSnapshot, getServerSnapshot)
 
-	const {
-		data: currentUserData,
-		isPending: userQueryIsPending,
-		isFetching: userQueryIsFetching
-	} = useQuery({
-		queryKey: ['currentUserAuthStatus'],
+	// Derive isAuthenticated from authStoreState
+	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
+
+	const queryClient = useQueryClient()
+
+	const { isLoading: userQueryIsLoading } = useQuery({
+		queryKey: ['currentUserAuthStatus', pb.authStore.record?.id ?? null],
 		queryFn: async () => {
 			if (!pb.authStore.token) {
-				setIsAuthenticated(false)
 				return null
 			}
 			try {
 				const refreshResult = await pb.collection('users').authRefresh()
-				setIsAuthenticated(true)
 				return { ...refreshResult.record }
 			} catch (error: any) {
 				if (error?.isAbort || error?.message?.includes('autocancelled')) {
 					if (pb.authStore.isValid && pb.authStore.record) {
-						setIsAuthenticated(true)
 						return { ...pb.authStore.record }
 					}
-					setIsAuthenticated(false)
+					clearUserSession()
 					return null
 				}
 
 				console.log('Error refreshing auth:', error)
 
 				if (error?.status === 401 || error?.code === 401) {
-					pb.authStore.clear()
-					setIsAuthenticated(false)
-				} else {
-					setIsAuthenticated(!!pb.authStore.token)
+					clearUserSession()
 				}
 
-				throw error
+				throw new Error('Failed to refresh auth')
 			}
 		},
-		enabled: true,
+		enabled: authStoreState.record?.id != null,
 		staleTime: 5 * 60 * 1000,
 		refetchOnMount: true,
 		refetchOnWindowFocus: false,
-		gcTime: 10 * 60 * 1000,
 		retry: 3,
 		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
 	})
@@ -132,8 +175,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			}
 		},
 		onSuccess: () => {
-			setIsAuthenticated(true)
-			queryClient.invalidateQueries()
 			toast.success('Successfully signed in', { duration: 3000 })
 		},
 		onError: () => {
@@ -141,20 +182,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
+	const userLoading = Boolean(!authStoreState.token || !authStoreState.record) ? userQueryIsLoading : false
+
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {
 			try {
 				await loginMutation.mutateAsync({ email, password })
-				// queryClient.invalidateQueries({
-				// 	queryKey: ['subscription', pb.authStore.record?.id]
-				// })
 				onSuccess?.()
 			} catch (e) {
 				console.log('Login error:', e)
 				throw e
 			}
 		},
-		[loginMutation, queryClient]
+		[loginMutation]
 	)
 
 	const signupMutation = useMutation({
@@ -162,12 +202,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			email,
 			password,
 			passwordConfirm,
-			turnstileToken
+			turnstileToken,
+			promotionalEmails
 		}: {
 			email: string
 			password: string
 			passwordConfirm: string
 			turnstileToken: string
+			promotionalEmails?: PromotionalEmailsValue
 		}) => {
 			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
 				method: 'POST',
@@ -178,7 +220,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					passwordConfirm,
 					auth_method: 'email',
 					source: 'defillama',
-					turnstile_token: turnstileToken
+					turnstile_token: turnstileToken,
+					promotionalEmails
 				})
 			})
 
@@ -191,12 +234,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			pb.authStore.save(token)
 		},
 		onSuccess: () => {
-			setIsAuthenticated(true)
 			sessionStorage.setItem('just_signed_up', 'true')
-			queryClient.invalidateQueries()
-			queryClient.setQueryData(['subscription', pb.authStore.record?.id], {
-				subscription: { status: 'inactive' }
-			})
 			toast.success('Account created! Please check your email to verify your account.', { duration: 5000 })
 		},
 		onError: (error: any) => {
@@ -218,9 +256,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			password: string,
 			passwordConfirm: string,
 			turnstileToken: string,
+			promotionalEmails?: PromotionalEmailsValue,
 			onSuccess?: () => void
 		) => {
-			const result = await signupMutation.mutateAsync({ email, password, passwordConfirm, turnstileToken })
+			const result = await signupMutation.mutateAsync({
+				email,
+				password,
+				passwordConfirm,
+				turnstileToken,
+				promotionalEmails
+			})
 			onSuccess?.()
 			return result
 		},
@@ -229,13 +274,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
-			pb.authStore.clear()
+			clearUserSession()
 			return true
-		},
-		onSuccess: () => {
-			setIsAuthenticated(false)
-			queryClient.removeQueries({ queryKey: ['userWithSubscription'] })
-			queryClient.clear()
 		}
 	})
 
@@ -330,12 +370,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('Failed to sign in with Ethereum')
 			}
 		},
-		onSuccess: () => {
-			queryClient.invalidateQueries()
-			// queryClient.refetchQueries()
-
-			setIsAuthenticated(true)
-		},
 		onError: (error) => {
 			const message = error instanceof Error ? error.message : 'Failed to connect wallet'
 
@@ -347,9 +381,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
 				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction })
-				queryClient.invalidateQueries({
-					queryKey: ['subscription', pb.authStore.record?.id]
-				})
 				onSuccess?.()
 				return Promise.resolve()
 			} catch (error) {
@@ -357,7 +388,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				return Promise.reject(error)
 			}
 		},
-		[signInWithEthereumMutation, queryClient]
+		[signInWithEthereumMutation]
 	)
 
 	const signInWithGithubMutation = useMutation({
@@ -374,11 +405,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('Failed to sign in with GitHub')
 			}
 		},
-		onSuccess: () => {
-			queryClient.invalidateQueries()
-			// queryClient.refetchQueries()
-			setIsAuthenticated(true)
-		},
 		onError: (error) => {
 			const message = error instanceof Error ? error.message : 'Failed to connect with GitHub'
 			toast.error(message)
@@ -389,9 +415,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (onSuccess?: () => void) => {
 			try {
 				await signInWithGithubMutation.mutateAsync()
-				queryClient.invalidateQueries({
-					queryKey: ['subscription', pb.authStore.record?.id]
-				})
 				onSuccess?.()
 				toast.success('Successfully signed in with GitHub')
 				return Promise.resolve()
@@ -400,7 +423,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				return Promise.reject(error)
 			}
 		},
-		[signInWithGithubMutation, queryClient]
+		[signInWithGithubMutation]
 	)
 
 	const addWalletMutation = useMutation({
@@ -463,8 +486,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
 				await addWalletMutation.mutateAsync({ address, signMessageFunction })
-				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-				queryClient.invalidateQueries({ queryKey: ['subscription', pb.authStore.record?.id] })
 				onSuccess?.()
 				return Promise.resolve()
 			} catch (error) {
@@ -472,7 +493,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				return Promise.reject(error)
 			}
 		},
-		[addWalletMutation, queryClient]
+		[addWalletMutation]
 	)
 
 	const resetPassword = useMutation({
@@ -514,9 +535,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		},
 		onError: (error) => {
 			toast.error('Failed to send verification email. Please try again.')
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ['userWithSubscription'] })
 		}
 	})
 
@@ -542,30 +560,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
+	const setPromotionalEmails = useMutation({
+		mutationFn: async (value: string) => {
+			const response = await fetch(`${AUTH_SERVER}/user/promotional-emails`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ value })
+			})
+			if (!response.ok) {
+				const data = await response.json()
+				throw new Error(data?.message || 'Failed to update promotional emails preference')
+			}
+
+			return { value }
+		},
+		onSuccess: (data) => {
+			queryClient.setQueryData(['currentUserAuthStatus'], (oldData: any) => {
+				if (!oldData) return oldData
+				return {
+					...oldData,
+					promotionalEmails: data.value
+				}
+			})
+			toast.success('Email preferences updated successfully')
+		},
+		onError: (error: any) => {
+			toast.error(error.message || 'Failed to update email preferences')
+		}
+	})
+
+	const userData = useMemo(() => {
+		if (!authStoreState?.record) return null
+
+		return {
+			id: authStoreState.record.id,
+			collectionId: authStoreState.record.collectionId,
+			collectionName: authStoreState.record.collectionName,
+			walletAddress: authStoreState.record.address,
+			authMethod: authStoreState.record.auth_method,
+			created: authStoreState.record.created,
+			updated: authStoreState.record.updated,
+			email: authStoreState.record.email,
+			name: authStoreState.record.name,
+			avatar: authStoreState.record.avatar,
+			username: authStoreState.record.username,
+			verified: authStoreState.record.email?.includes('@defillama.com') ? true : authStoreState.record.verified,
+			emailVisibility: authStoreState.record.emailVisibility,
+			expand: authStoreState.record.expand,
+			has_active_subscription: authStoreState.record.has_active_subscription,
+			flags: authStoreState.record.flags ?? {},
+			ethereum_email: authStoreState.record.ethereum_email
+		} as AuthModel
+	}, [authStoreState])
+
 	const contextValue: AuthContextType = {
-		user: currentUserData
-			? ({
-					id: currentUserData.id!,
-					collectionId: currentUserData.collectionId!,
-					collectionName: currentUserData.collectionName!,
-					walletAddress: pb.authStore.record?.address || '',
-					authMethod: pb.authStore.record?.auth_method || 'email',
-					created: currentUserData.created!,
-					updated: currentUserData.updated!,
-					email: (currentUserData as any).email,
-					name: (currentUserData as any).name,
-					avatar: (currentUserData as any).avatar,
-					username: (currentUserData as any).username,
-					verified: (currentUserData as any).email?.includes('@defillama.com')
-						? true
-						: (currentUserData as any).verified,
-					emailVisibility: (currentUserData as any).emailVisibility,
-					expand: currentUserData.expand,
-					subscription_status: subscription?.status || 'inactive',
-					subscription: subscription || { id: '', expires_at: '', status: 'inactive' },
-					ethereum_email: (currentUserData as any).ethereum_email
-				} as User)
-			: null,
+		user: userData,
 		login,
 		signup,
 		logout,
@@ -577,7 +629,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
 		addEmail: addEmail.mutate,
-		isAuthenticated: isAuthenticated,
+		setPromotionalEmails: setPromotionalEmails.mutate,
+		isAuthenticated,
+		hasActiveSubscription: userData?.has_active_subscription ?? false,
 		loaders: {
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,
@@ -589,9 +643,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
 			addEmail: addEmail.isPending,
-			userLoading: userQueryIsPending,
-			userFetching: userQueryIsFetching,
-			subscriptionError: isSubscriptionError
+			setPromotionalEmails: setPromotionalEmails.isPending,
+			userLoading
 		}
 	}
 
@@ -604,4 +657,61 @@ export const useAuthContext = () => {
 		throw new Error('useAuth must be used within an AuthProvider')
 	}
 	return context
+}
+
+function subscribeToUserHash(callback: () => void) {
+	window.addEventListener('userHashChange', callback)
+	return () => {
+		window.removeEventListener('userHashChange', callback)
+	}
+}
+
+export const useUserHash = () => {
+	const { user, hasActiveSubscription, authorizedFetch } = useAuthContext()
+
+	let email = user?.email ?? null
+	if (user?.email && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
+		email = user.ethereum_email
+	}
+
+	const userHash = useSyncExternalStore(
+		subscribeToUserHash,
+		() => (email && hasActiveSubscription ? (localStorage.getItem('userHash') ?? null) : null),
+		() => null
+	)
+
+	useQuery({
+		queryKey: ['user-hash-front', email, hasActiveSubscription],
+		queryFn: () =>
+			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
+				.then((res) => {
+					if (!res.ok) {
+						throw new Error('Failed to fetch user hash')
+					}
+					return res.json()
+				})
+				.then((data) => {
+					const currentUserHash = localStorage.getItem('userHash')
+					localStorage.setItem('userHash', data.userHash)
+					if (currentUserHash !== data.userHash) {
+						window.dispatchEvent(new Event('userHashChange'))
+					}
+					return data.userHash
+				})
+				.catch((err) => {
+					console.log('Error fetching user hash:', err)
+					const currentUserHash = localStorage.getItem('userHash')
+					localStorage.removeItem('userHash')
+					if (currentUserHash !== null) {
+						window.dispatchEvent(new Event('userHashChange'))
+					}
+					return null
+				}),
+		enabled: email && hasActiveSubscription ? true : false,
+		staleTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		retry: 3
+	})
+
+	return { userHash, email }
 }

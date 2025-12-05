@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { formatValue } from '../../utils'
+import { useAuthContext } from '../Subscribtion/auth'
 import { AVAILABLE_FIELDS, AVAILABLE_FUNCTIONS, replaceAliases } from './customColumnsUtils'
 import { evaluateFormula } from './formula.service'
 
@@ -52,7 +52,7 @@ export function CustomColumnModal({
 		fieldWarning: null
 	})
 	const inputRef = useRef(null)
-	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
@@ -171,7 +171,7 @@ export function CustomColumnModal({
 			setState((prev) => ({ ...prev, error: 'Invalid formula: ' + result.error }))
 			return
 		}
-		if (!isSubscriptionLoading && subscription?.status !== 'active') {
+		if (!isAuthenticated || !hasActiveSubscription) {
 			subscribeModalStore.show()
 			return
 		}

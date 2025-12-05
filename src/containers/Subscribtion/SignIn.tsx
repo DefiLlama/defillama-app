@@ -7,31 +7,32 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const SignInModal = ({
 	text,
 	className,
 	showOnlyAuthDialog = false,
 	pendingActionMessage,
-	defaultFlow = 'signin'
+	defaultFlow = 'signin',
+	hideLoader = false
 }: {
 	text?: string
 	className?: string
 	showOnlyAuthDialog?: boolean
 	pendingActionMessage?: string
 	defaultFlow?: 'signin' | 'signup' | 'forgot'
+	hideLoader?: boolean
 }) => {
 	const dialogStore = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
 
 	const { isAuthenticated, loaders } = useAuthContext()
 
-	if (loaders.userLoading || loaders.userFetching) {
-		return (
-			<div className="flex items-center justify-center py-3">
-				<LocalLoader />
-			</div>
-		)
+	if (loaders.userLoading) {
+		if (hideLoader) {
+			return null
+		}
+		return <LocalLoader />
 	}
 
 	if (isAuthenticated) {
@@ -107,6 +108,7 @@ export const SignInForm = ({
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [emailError, setEmailError] = useState('')
+	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('on')
 
 	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, loaders } = useAuthContext()
 	const { signMessageAsync } = useSignMessage()
@@ -161,7 +163,7 @@ export const SignInForm = ({
 		}
 
 		try {
-			await signup(email, password, confirmPassword, turnstileToken)
+			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails)
 			setTurnstileToken('')
 
 			if (returnUrl) {
@@ -241,31 +243,35 @@ export const SignInForm = ({
 				</div>
 			)}
 
-			<div className="flex w-full flex-col gap-2 sm:gap-3">
-				<button
-					className="relative flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-					onClick={handleWalletSignIn}
-					disabled={loaders.signInWithEthereum}
-				>
-					<Icon name="wallet" height={16} width={16} />
-					{loaders.signInWithEthereum ? 'Connecting...' : 'Sign in with Wallet'}
-				</button>
+			{flow === 'signin' ? (
+				<>
+					<div className="flex w-full flex-col gap-2 sm:gap-3">
+						<button
+							className="relative flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
+							onClick={handleWalletSignIn}
+							disabled={loaders.signInWithEthereum}
+						>
+							<Icon name="wallet" height={16} width={16} />
+							{loaders.signInWithEthereum ? 'Connecting...' : 'Sign in with Wallet'}
+						</button>
 
-				<button
-					className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-					onClick={() => signInWithGithub(() => dialogStore.hide())}
-					disabled={loaders.signInWithGithub}
-				>
-					<Icon name="github" height={16} width={16} />
-					{loaders.signInWithGithub ? 'Connecting...' : 'Sign in with GitHub'}
-				</button>
-			</div>
+						<button
+							className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
+							onClick={() => signInWithGithub(() => dialogStore.hide())}
+							disabled={loaders.signInWithGithub}
+						>
+							<Icon name="github" height={16} width={16} />
+							{loaders.signInWithGithub ? 'Connecting...' : 'Sign in with GitHub'}
+						</button>
+					</div>
 
-			<div className="relative my-2 flex items-center sm:my-3">
-				<div className="grow border-t border-[#39393E]"></div>
-				<span className="mx-3 shrink text-xs text-[#9a9da1] sm:mx-4 sm:text-sm">or continue with email</span>
-				<div className="grow border-t border-[#39393E]"></div>
-			</div>
+					<div className="relative my-2 flex items-center sm:my-3">
+						<div className="grow border-t border-[#39393E]"></div>
+						<span className="mx-3 shrink text-xs text-[#9a9da1] sm:mx-4 sm:text-sm">or continue with email</span>
+						<div className="grow border-t border-[#39393E]"></div>
+					</div>
+				</>
+			) : null}
 
 			{flow === 'signin' ? (
 				<form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleEmailSignIn}>
@@ -460,6 +466,18 @@ export const SignInForm = ({
 							>
 								Privacy Policy
 							</BasicLink>
+						</span>
+					</label>
+
+					<label className="flex items-start gap-2">
+						<input
+							type="checkbox"
+							className="mt-0.5 h-4 w-4 shrink-0"
+							checked={promotionalEmails === 'on'}
+							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
+						/>
+						<span className="text-sm text-[#b4b7bc]">
+							Receive emails about upcoming DefiLlama products and new releases
 						</span>
 					</label>
 
