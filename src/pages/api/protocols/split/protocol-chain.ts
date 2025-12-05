@@ -189,6 +189,7 @@ const toOverviewApiSlug = (breakdownSlug: string): string => {
 	if (!breakdownSlug) return breakdownSlug
 	const lc = breakdownSlug.toLowerCase()
 	if (lc === 'optimism') return 'OP Mainnet'
+	if (lc === 'hyperliquid') return 'Hyperliquid L1'
 	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
 	if (lc === 'imx') return 'Immutable zkEVM'
 	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
@@ -199,6 +200,7 @@ const toOverviewApiSlug = (breakdownSlug: string): string => {
 const displayChainName = (slug: string): string => {
 	const lc = slug.toLowerCase()
 	if (lc === 'op-mainnet' || lc === 'optimism') return 'OP Mainnet'
+	if (lc === 'hyperliquid') return 'Hyperliquid L1'
 	if (lc === 'avax') return 'Avalanche'
 	if (lc === 'bsc') return 'BSC'
 	if (lc === 'xdai') return 'Gnosis'
