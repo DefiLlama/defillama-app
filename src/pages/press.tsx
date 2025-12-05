@@ -87,7 +87,7 @@ function PressPage() {
 						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://twitter.com/defillama"
+						href="https://x.com/defillama"
 					>
 						Twitter
 					</a>{' '}
@@ -107,7 +107,7 @@ function PressPage() {
 						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://twitter.com/llamacorporg"
+						href="https://x.com/llamacorporg"
 					>
 						Llama Corp
 					</a>

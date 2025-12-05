@@ -80,7 +80,7 @@ export function SubscribeLayout({ children }) {
 								<a href="https://discord.defillama.com" className="transition-colors hover:text-white">
 									Discord
 								</a>
-								<a href="https://twitter.com/DefiLlama" className="transition-colors hover:text-white">
+								<a href="https://x.com/DefiLlama" className="transition-colors hover:text-white">
 									Twitter
 								</a>
 								<a href="https://github.com/DefiLlama" className="transition-colors hover:text-white">
