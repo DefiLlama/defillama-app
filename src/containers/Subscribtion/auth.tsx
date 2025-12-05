@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
@@ -125,6 +125,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	// Derive isAuthenticated from authStoreState
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
+
+	const queryClient = useQueryClient()
 
 	const { isLoading: userQueryIsLoading } = useQuery({
 		queryKey: ['currentUserAuthStatus', pb.authStore.record?.id ?? null],
