@@ -190,6 +190,7 @@ const toOverviewApiSlug = (breakdownSlug: string): string => {
 	const lc = breakdownSlug.toLowerCase()
 	if (lc === 'optimism') return 'OP Mainnet'
 	if (lc === 'hyperliquid') return 'Hyperliquid L1'
+	if (lc === 'xdai') return 'Gnosis'
 	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
 	if (lc === 'imx') return 'Immutable zkEVM'
 	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'

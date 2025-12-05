@@ -407,10 +407,12 @@ export function useProtocolsAndChains() {
 			const protocolsData = await protocolsResponse.json()
 			const chainsData = await chainsResponse.json()
 
-			const transformedChains = chainsData.map((chain) => ({
-				...chain,
-				name: chain.name === 'Binance' ? 'BSC' : chain.name
-			}))
+			const transformedChains = chainsData.map((chain) => {
+				let name = chain.name
+				if (name === 'Binance') name = 'BSC'
+				if (name.toLowerCase() === 'xdai') name = 'Gnosis'
+				return { ...chain, name }
+			})
 			const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
 
 			const baseProtocols = (protocolsData.protocols || []).map((p) => ({
