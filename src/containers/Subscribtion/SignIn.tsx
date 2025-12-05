@@ -7,7 +7,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const SignInModal = ({
 	text,
@@ -108,7 +108,7 @@ export const SignInForm = ({
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [emailError, setEmailError] = useState('')
-	const [promotionalEmails, setPromotionalEmails] = useState('on')
+	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('on')
 
 	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, loaders } = useAuthContext()
 	const { signMessageAsync } = useSignMessage()

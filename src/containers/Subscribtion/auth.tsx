@@ -85,7 +85,7 @@ interface AuthContextType {
 		password: string,
 		passwordConfirm: string,
 		turnstileToken: string,
-		promotionalEmails?: boolean,
+		promotionalEmails?: PromotionalEmailsValue,
 		onSuccess?: () => void
 	) => Promise<void>
 	logout: () => void
@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			password: string
 			passwordConfirm: string
 			turnstileToken: string
-			promotionalEmails?: boolean
+			promotionalEmails?: PromotionalEmailsValue
 		}) => {
 			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
 				method: 'POST',
@@ -256,7 +256,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			password: string,
 			passwordConfirm: string,
 			turnstileToken: string,
-			promotionalEmails?: boolean,
+			promotionalEmails?: PromotionalEmailsValue,
 			onSuccess?: () => void
 		) => {
 			const result = await signupMutation.mutateAsync({
