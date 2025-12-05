@@ -73,6 +73,7 @@ const getNonce = async (address: string) => {
 const clearUserSession = () => {
 	pb.authStore.clear()
 	localStorage.removeItem('userHash')
+	localStorage.removeItem('lite-dashboards')
 	if (typeof window !== 'undefined' && (window as any).FrontChat) {
 		;(window as any).FrontChat('shutdown', { clearSession: true })
 	}
