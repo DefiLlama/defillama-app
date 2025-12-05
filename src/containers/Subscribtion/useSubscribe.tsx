@@ -289,7 +289,7 @@ export const useSubscribe = () => {
 				throw new Error('Not authenticated')
 			}
 
-			if (router.pathname !== '/subscription') {
+			if (router.pathname !== '/account') {
 				return { credits: 0, maxCredits: 0, monthKey: '' }
 			}
 
@@ -301,7 +301,7 @@ export const useSubscribe = () => {
 
 			return data
 		},
-		enabled: isAuthenticated && router.pathname === '/subscription',
+		enabled: isAuthenticated && router.pathname === '/account',
 		staleTime: 1000 * 60 * 5,
 		refetchOnWindowFocus: false,
 		retry: false
