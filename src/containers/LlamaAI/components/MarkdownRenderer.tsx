@@ -6,6 +6,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getEntityUrl } from '../utils/entityLinks'
+import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
 interface ChartConfig {
 	id: string
@@ -20,6 +21,7 @@ interface MarkdownRendererProps {
 	charts?: ChartConfig[]
 	chartData?: any[] | Record<string, any[]>
 	renderChart?: (chart: ChartConfig, data: any[]) => React.ReactNode
+	csvExports?: CSVExport[]
 }
 
 interface EntityLinkProps {
@@ -121,23 +123,41 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	isStreaming = false,
 	charts,
 	chartData,
-	renderChart
+	renderChart,
+	csvExports
 }: MarkdownRendererProps) {
-	const { contentParts, inlineChartIds } = useMemo(() => {
+	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
 		const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
-		const parts: Array<{ type: 'text' | 'chart'; content: string; chartId?: string }> = []
+		const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
+		const parts: Array<{ type: 'text' | 'chart' | 'csv'; content: string; chartId?: string; csvId?: string }> = []
 		const foundChartIds = new Set<string>()
-		let lastIndex = 0
-		let match: RegExpExecArray | null
+		const foundCsvIds = new Set<string>()
 
+		const allMatches: Array<{ index: number; length: number; type: 'chart' | 'csv'; id: string }> = []
+
+		let match: RegExpExecArray | null
 		while ((match = chartPlaceholderPattern.exec(content)) !== null) {
-			if (match.index > lastIndex) {
-				parts.push({ type: 'text', content: content.slice(lastIndex, match.index) })
+			allMatches.push({ index: match.index, length: match[0].length, type: 'chart', id: match[1] })
+			foundChartIds.add(match[1])
+		}
+		while ((match = csvPlaceholderPattern.exec(content)) !== null) {
+			allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
+			foundCsvIds.add(match[1])
+		}
+
+		allMatches.sort((a, b) => a.index - b.index)
+
+		let lastIndex = 0
+		for (const m of allMatches) {
+			if (m.index > lastIndex) {
+				parts.push({ type: 'text', content: content.slice(lastIndex, m.index) })
 			}
-			const chartId = match[1]
-			parts.push({ type: 'chart', content: '', chartId })
-			foundChartIds.add(chartId)
-			lastIndex = match.index + match[0].length
+			if (m.type === 'chart') {
+				parts.push({ type: 'chart', content: '', chartId: m.id })
+			} else {
+				parts.push({ type: 'csv', content: '', csvId: m.id })
+			}
+			lastIndex = m.index + m.length
 		}
 
 		if (lastIndex < content.length) {
@@ -148,7 +168,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 			parts.push({ type: 'text', content })
 		}
 
-		return { contentParts: parts, inlineChartIds: foundChartIds }
+		return { contentParts: parts, inlineChartIds: foundChartIds, inlineCsvIds: foundCsvIds }
 	}, [content])
 
 	const processCitations = useMemo(() => {
@@ -261,7 +281,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 					bottom: 0 !important;
 				}
 			`}</style>
-			{inlineChartIds.size > 0 ? (
+			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 ? (
 				contentParts.map((part, index) => {
 					if (part.type === 'chart' && part.chartId) {
 						const chart = charts?.find((c) => c.id === part.chartId)
@@ -282,6 +302,16 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 									<span className="text-gray-500">Loading chart...</span>
 								</div>
 							)
+						}
+						return null
+					}
+					if (part.type === 'csv' && part.csvId) {
+						const csvExport = csvExports?.find((e) => e.id === part.csvId)
+						if (csvExport) {
+							return <CSVExportArtifact key={`csv-${part.csvId}-${index}`} csvExport={csvExport} />
+						}
+						if (isStreaming || !csvExports) {
+							return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
 						}
 						return null
 					}

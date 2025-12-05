@@ -67,6 +67,7 @@ async function fetchPromptResponse({
 			| 'title'
 			| 'message_id'
 			| 'reset'
+			| 'csv_export'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -77,6 +78,7 @@ async function fetchPromptResponse({
 		citations?: string[]
 		title?: string
 		messageId?: string
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 	}) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
@@ -138,6 +140,7 @@ async function fetchPromptResponse({
 		let charts = null
 		let chartData = null
 		let citations = null
+		let csvExports = null
 		let lineBuffer = ''
 
 		while (true) {
@@ -212,6 +215,15 @@ async function fetchPromptResponse({
 									citations: data.citations
 								})
 							}
+						} else if (data.type === 'csv_export') {
+							csvExports = data.exports
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'csv_export',
+									content: `Generated ${data.exports?.length || 0} CSV export(s)`,
+									csvExports: data.exports
+								})
+							}
 						} else if (data.type === 'error') {
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'error', content: data.content })
@@ -250,7 +262,8 @@ async function fetchPromptResponse({
 				suggestions,
 				charts,
 				chartData,
-				citations
+				citations,
+				csvExports
 			}
 		}
 	} catch (error) {
@@ -285,6 +298,7 @@ interface SharedSession {
 			charts?: any[]
 			chartData?: any[]
 			citations?: string[]
+			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 		}
 		messageId?: string
 		timestamp: number
@@ -330,6 +344,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				chartData?: any[]
 				citations?: string[]
 				inlineSuggestions?: string
+				csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 			}
 			timestamp: number
 			messageId?: string
@@ -340,6 +355,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			chartData?: any[]
 			citations?: string[]
 			inlineSuggestions?: string
+			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -359,6 +375,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
 	const [streamingCitations, setStreamingCitations] = useState<string[] | null>(null)
+	const [streamingCsvExports, setStreamingCsvExports] = useState<Array<{
+		id: string
+		title: string
+		url: string
+		rowCount: number
+		filename: string
+	}> | null>(null)
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
@@ -494,6 +517,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setStreamingCharts(null)
 			setStreamingChartData(null)
 			setStreamingCitations(null)
+			setStreamingCsvExports(null)
 			setIsGeneratingCharts(false)
 			setIsAnalyzingForCharts(false)
 			setHasChartError(false)
@@ -551,6 +575,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setIsAnalyzingForCharts(false)
 					} else if (data.type === 'citations') {
 						setStreamingCitations(data.citations)
+					} else if (data.type === 'csv_export') {
+						setStreamingCsvExports(data.csvExports || null)
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
@@ -603,6 +629,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					charts: data?.response?.charts,
 					chartData: data?.response?.chartData,
 					citations: data?.response?.citations,
+					csvExports: data?.response?.csvExports,
 					messageId: currentMessageId,
 					timestamp: Date.now()
 				}
@@ -1184,6 +1211,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		charts={hasInlineCharts ? item.charts : undefined}
 																		chartData={hasInlineCharts ? item.chartData : undefined}
 																		renderChart={hasInlineCharts ? renderInlineChart : undefined}
+																		csvExports={item.csvExports}
 																	/>
 																	{!hasInlineCharts && item.charts && item.charts.length > 0 && (
 																		<ChartRenderer
@@ -1226,16 +1254,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			charts={hasInlineCharts ? itemCharts : undefined}
 																			chartData={hasInlineCharts ? itemChartData : undefined}
 																			renderChart={hasInlineCharts ? renderInlineChart : undefined}
+																			csvExports={item.response?.csvExports || item.csvExports}
 																		/>
 																		{!hasInlineCharts &&
 																			((item.response?.charts && item.response.charts.length > 0) ||
 																				(item.charts && item.charts.length > 0)) && (
-																			<ChartRenderer
-																				charts={itemCharts}
-																				chartData={itemChartData}
-																				resizeTrigger={resizeTrigger}
-																			/>
-																		)}
+																				<ChartRenderer
+																					charts={itemCharts}
+																					chartData={itemChartData}
+																					resizeTrigger={resizeTrigger}
+																				/>
+																			)}
 																		{(item.response?.inlineSuggestions || item.inlineSuggestions) && (
 																			<InlineSuggestions
 																				text={item.response?.inlineSuggestions || item.inlineSuggestions}
@@ -1304,6 +1333,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														showMetadata={showDebug}
 														readOnly={readOnly}
 														renderChart={renderInlineChart}
+														streamingCsvExports={streamingCsvExports}
 													/>
 												</div>
 											)}
@@ -1803,7 +1833,8 @@ const PromptResponse = ({
 	resizeTrigger = 0,
 	showMetadata = false,
 	readOnly = false,
-	renderChart
+	renderChart,
+	streamingCsvExports
 }: {
 	response?: {
 		answer: string
@@ -1813,6 +1844,7 @@ const PromptResponse = ({
 		chartData?: any[]
 		citations?: string[]
 		inlineSuggestions?: string
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
 	}
 	error?: string
 	streamingError?: string
@@ -1833,6 +1865,7 @@ const PromptResponse = ({
 	showMetadata?: boolean
 	readOnly?: boolean
 	renderChart?: (chart: any, data: any) => React.ReactNode
+	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
 }) => {
 	if (error && canRetry) {
 		return (
@@ -1866,6 +1899,7 @@ const PromptResponse = ({
 						charts={response?.charts}
 						chartData={response?.chartData}
 						renderChart={renderChart}
+						csvExports={streamingCsvExports || undefined}
 					/>
 				) : isStreaming && progressMessage ? (
 					<p
@@ -1889,19 +1923,18 @@ const PromptResponse = ({
 						<LoadingDots />
 					</p>
 				)}
-				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) &&
-					!streamingResponse?.includes('[CHART:') && (
-						<ChartRenderer
-							charts={[]}
-							chartData={[]}
-							isLoading={isAnalyzingForCharts || isGeneratingCharts}
-							isAnalyzing={isAnalyzingForCharts}
-							hasError={hasChartError}
-							expectedChartCount={expectedChartInfo?.count}
-							chartTypes={expectedChartInfo?.types}
-							resizeTrigger={resizeTrigger}
-						/>
-					)}
+				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) && !streamingResponse?.includes('[CHART:') && (
+					<ChartRenderer
+						charts={[]}
+						chartData={[]}
+						isLoading={isAnalyzingForCharts || isGeneratingCharts}
+						isAnalyzing={isAnalyzingForCharts}
+						hasError={hasChartError}
+						expectedChartCount={expectedChartInfo?.count}
+						chartTypes={expectedChartInfo?.types}
+						resizeTrigger={resizeTrigger}
+					/>
+				)}
 				{!readOnly && isGeneratingSuggestions && (
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
@@ -1940,6 +1973,7 @@ const PromptResponse = ({
 					charts={response.charts}
 					chartData={response.chartData}
 					renderChart={renderChart}
+					csvExports={response.csvExports}
 				/>
 			)}
 			{remainingCharts && (
