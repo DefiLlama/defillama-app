@@ -7,8 +7,8 @@ import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useSubscribe } from '~/hooks/useSubscribe'
 import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
 interface PDFExportButtonProps {
