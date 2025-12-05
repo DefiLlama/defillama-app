@@ -472,7 +472,7 @@ export const SignInForm = ({
 					<label className="flex items-start gap-2">
 						<input
 							type="checkbox"
-							className="mt-0.5 h-4 w-4"
+							className="mt-0.5 h-4 w-4 shrink-0"
 							checked={promotionalEmails === 'on'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
