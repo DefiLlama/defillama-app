@@ -1040,8 +1040,6 @@ export const getChainsByAdapterPageData = async ({
 			}
 		}
 
-		console.log({ adapterType, openInterestData })
-
 		for (const chain in openInterestData) {
 			openInterestByChain[chain] = openInterestData[chain]?.['24h'] ?? null
 		}
