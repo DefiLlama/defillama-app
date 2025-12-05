@@ -56,12 +56,7 @@
 <symbol id="credit-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></symbol>
 <symbol id="star" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></symbol>
 <symbol id="plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-5"></path><path d="M9 8V2"></path><path d="M15 8V2"></path><path d="M18 8v4a6 6 0 0 1-6 6v0a6 6 0 0 1-6-6V8"></path></symbol>
-<symbol id="download-paper" viewBox="0 0 16 16" fill="none">
-  <path d="M9.99999 1.3335H3.99999C3.64637 1.3335 3.30723 1.47397 3.05718 1.72402C2.80713 1.97407 2.66666 2.31321 2.66666 2.66683V13.3335C2.66666 13.6871 2.80713 14.0263 3.05718 14.2763C3.30723 14.5264 3.64637 14.6668 3.99999 14.6668H12C12.3536 14.6668 12.6928 14.5264 12.9428 14.2763C13.1928 14.0263 13.3333 13.6871 13.3333 13.3335V4.66683L9.99999 1.3335Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M9.33334 1.3335V4.00016C9.33334 4.35378 9.47382 4.69292 9.72387 4.94297C9.97392 5.19302 10.3131 5.3335 10.6667 5.3335H13.3333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 12V8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M6 10L8 12L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</symbol>
+<symbol id="download-paper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></symbol>
 <symbol id="arrow-up-right-2" viewBox="0 0 24 24" fill="none">
   <path d="M7 7H17V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
   <path d="M7 17L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
