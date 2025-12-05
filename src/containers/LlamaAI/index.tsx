@@ -1,4 +1,4 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -16,6 +16,7 @@ import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
+import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
@@ -1127,7 +1128,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								<div className="flex min-h-11 lg:hidden" />
 							</>
 						) : (
-							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+							<ChatControls
+								handleSidebarToggle={handleSidebarToggle}
+								handleNewChat={handleNewChat}
+								sessionId={sessionId}
+								messages={messages}
+							/>
 						)}
 					</>
 				)}
@@ -1227,6 +1233,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		initialRating={item.userRating}
 																		sessionId={sessionId}
 																		readOnly={readOnly}
+																		charts={item.charts?.map((c: any) => ({ id: c.id, title: c.title }))}
 																	/>
 																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
 																		<SuggestedActions
@@ -1276,6 +1283,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			initialRating={item.userRating}
 																			sessionId={sessionId}
 																			readOnly={readOnly}
+																			charts={(item.response?.charts || item.charts)?.map((c: any) => ({
+																				id: c.id,
+																				title: c.title
+																			}))}
 																		/>
 																		{!readOnly &&
 																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
@@ -2092,13 +2103,15 @@ const ResponseControls = memo(function ResponseControls({
 	content,
 	initialRating,
 	sessionId,
-	readOnly = false
+	readOnly = false,
+	charts = []
 }: {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
 	readOnly?: boolean
+	charts?: Array<{ id: string; title: string }>
 }) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
@@ -2168,6 +2181,15 @@ const ResponseControls = memo(function ResponseControls({
 							<Icon name="clipboard" height={14} width={14} />
 						)}
 					</Tooltip>
+				)}
+				{content && sessionId && !readOnly && (
+					<PDFExportButton
+						sessionId={sessionId}
+						messageId={messageId}
+						charts={charts}
+						exportType="single_message"
+						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+					/>
 				)}
 				{!readOnly && (
 					<>
@@ -2455,11 +2477,21 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat
+	handleNewChat,
+	sessionId,
+	messages
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
+	sessionId: string | null
+	messages: any[]
 }) {
+	const allCharts = useMemo(() => {
+		return messages
+			.filter((m) => m.role === 'assistant' && m.charts?.length > 0)
+			.flatMap((m) => m.charts.map((c: any) => ({ id: c.id, title: c.title })))
+	}, [messages])
+
 	return (
 		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
 			<Tooltip
@@ -2478,6 +2510,14 @@ const ChatControls = memo(function ChatControls({
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>
 			</Tooltip>
+			{sessionId && messages.length > 0 && (
+				<PDFExportButton
+					sessionId={sessionId}
+					charts={allCharts}
+					exportType="full_conversation"
+					className="flex h-6 items-center justify-center gap-1 rounded-sm bg-(--old-blue)/12 px-1.5 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				/>
+			)}
 		</div>
 	)
 })
