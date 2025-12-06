@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useMyDashboards } from '~/containers/ProDashboard/hooks'
@@ -13,8 +14,10 @@ import Layout from '~/layout'
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
-const CreateDashboardModal = lazy(() =>
-	import('~/containers/ProDashboard/components/CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
+const CreateDashboardPicker = lazy(() =>
+	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
+		default: m.CreateDashboardPicker
+	}))
 )
 const DashboardDiscovery = lazy(() =>
 	import('~/containers/ProDashboard/components/DashboardDiscovery').then((m) => ({ default: m.DashboardDiscovery }))
@@ -75,9 +78,7 @@ function ProContent({
 				: 'discover'
 
 	const subscribeModalStore = Ariakit.useDialogStore()
-
 	const {
-		createNewDashboard,
 		deleteDashboard,
 		handleCreateDashboard,
 		createDashboardDialogStore,
@@ -154,7 +155,7 @@ function ProContent({
 							!isAuthenticated
 								? () => router.push('/pro/preview')
 								: hasActiveSubscription
-									? createNewDashboard
+									? () => createDashboardDialogStore.show()
 									: () => subscribeModalStore.show()
 						}
 						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2"
@@ -177,7 +178,7 @@ function ProContent({
 						<DashboardList
 							dashboards={myDashboards}
 							isLoading={isLoadingMyDashboards}
-							onCreateNew={createNewDashboard}
+							onCreateNew={() => createDashboardDialogStore.show()}
 							onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
 						/>
 
@@ -254,7 +255,7 @@ function ProContent({
 			)}
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardModal dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
+				<CreateDashboardPicker dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
 			</Suspense>
 
 			<Suspense fallback={<></>}>
@@ -274,8 +275,10 @@ function ProContent({
 
 export default function HomePage() {
 	return (
-		<ProDashboardAPIProvider>
-			<ProPageContent />
-		</ProDashboardAPIProvider>
+		<AppMetadataProvider>
+			<ProDashboardAPIProvider>
+				<ProPageContent />
+			</ProDashboardAPIProvider>
+		</AppMetadataProvider>
 	)
 }

@@ -20,8 +20,8 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 const AddChartModal = lazy(() => import('./components/AddChartModal').then((m) => ({ default: m.AddChartModal })))
-const CreateDashboardModal = lazy(() =>
-	import('./components/CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
+const CreateDashboardPicker = lazy(() =>
+	import('./components/CreateDashboardPicker').then((m) => ({ default: m.CreateDashboardPicker }))
 )
 const DashboardSettingsModal = lazy(() =>
 	import('./components/DashboardSettingsModal').then((m) => ({ default: m.DashboardSettingsModal }))
@@ -209,7 +209,7 @@ function ProDashboardContent() {
 								) : null}
 								<button
 									onClick={() => {
-										createNewDashboard()
+										createDashboardDialogStore.show()
 									}}
 									className="pro-btn-purple-outline flex items-center gap-1 rounded-md px-4 py-1"
 								>
@@ -361,7 +361,7 @@ function ProDashboardContent() {
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardModal dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
+				<CreateDashboardPicker dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
 			</Suspense>
 
 			<Suspense fallback={<></>}>

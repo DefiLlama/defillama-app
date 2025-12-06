@@ -450,24 +450,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 			</div>
 
-			{/* Status info for failures */}
-			{(failedItems.length > 0 || loadingItems.length > 0) && (
-				<div className="px-1 text-xs text-(--text-form) md:px-3">
-					{loadingItems.length > 0 && (
-						<p>
-							Loading: {loadingItems.length} chart{loadingItems.length > 1 ? 's' : ''}
-						</p>
-					)}
-					{failedItems.length > 0 && (
-						<p>
-							Failed: {failedItems.length} chart{failedItems.length > 1 ? 's' : ''}
-						</p>
-					)}
-					{hasAnyData && (
-						<p>
-							Showing: {validItems.length} chart{validItems.length > 1 ? 's' : ''}
-						</p>
-					)}
+			{loadingItems.length > 0 && (
+				<div className="flex items-center gap-1.5 px-1 text-xs text-(--text-form) md:px-3">
+					<div className="h-3 w-3 animate-spin rounded-full border-2 border-(--text-form) border-t-transparent" />
+					<span>{validItems.length}/{multi.items.length}</span>
 				</div>
 			)}
 
