@@ -1055,19 +1055,32 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			}
 
 			if (parentTvl?.excludeParent) {
-				parentTvl.default.tvl -= parentTvl.excludeParent.tvl ?? 0
-				parentTvl.default.tvlPrevDay -= parentTvl.excludeParent.tvlPrevDay ?? 0
-				parentTvl.default.tvlPrevWeek -= parentTvl.excludeParent.tvlPrevWeek ?? 0
-				parentTvl.default.tvlPrevMonth -= parentTvl.excludeParent.tvlPrevMonth ?? 0
+				parentTvl.default.tvl = (parentTvl.default.tvl ?? 0) - (parentTvl.excludeParent.tvl ?? 0)
+				parentTvl.default.tvlPrevDay = (parentTvl.default.tvlPrevDay ?? 0) - (parentTvl.excludeParent.tvlPrevDay ?? 0)
+				parentTvl.default.tvlPrevWeek =
+					(parentTvl.default.tvlPrevWeek ?? 0) - (parentTvl.excludeParent.tvlPrevWeek ?? 0)
+				parentTvl.default.tvlPrevMonth =
+					(parentTvl.default.tvlPrevMonth ?? 0) - (parentTvl.excludeParent.tvlPrevMonth ?? 0)
 			}
 
-			const parentTvlChange = parentTvl?.default?.tvl
-				? {
-						change1d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevDay),
-						change7d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevWeek),
-						change1m: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevMonth)
-					}
-				: null
+			const parentHasMissingPrev = parentStore[parentProtocol.id].some((child) =>
+				['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].some((key) => child.tvl?.default?.[key] == null)
+			)
+
+			if (parentHasMissingPrev && parentTvl?.default) {
+				parentTvl.default.tvlPrevDay = null
+				parentTvl.default.tvlPrevWeek = null
+				parentTvl.default.tvlPrevMonth = null
+			}
+
+			const parentTvlChange =
+				parentTvl?.default?.tvl != null && !parentHasMissingPrev
+					? {
+							change1d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevDay),
+							change7d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevWeek),
+							change1m: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevMonth)
+						}
+					: null
 
 			const chilsProtocolCategories = Array.from(
 				new Set(parentStore[parentProtocol.id].filter((p) => p.category).map((p) => p.category))
