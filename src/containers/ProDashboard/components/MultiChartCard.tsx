@@ -295,11 +295,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		download(fileName, csvContent)
 	}, [series, multi.name])
 
-	const dataHash = series.length > 0 && showPercentage ? series[0].data[0]?.[1]?.toFixed(0) || '0' : 'abs'
-
 	const hasAnyData = validItems.length > 0
 	const isAllLoading = loadingItems.length === multi.items.length
-	const hasPartialFailures = failedItems.length > 0 && validItems.length > 0
 
 	const uniqueMetricTypes = new Set(validItems.map((item) => item.type))
 	const percentMetricTypes = new Set(['medianApy'])
@@ -336,26 +333,6 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-2">
 					<h1 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h1>
-					{hasPartialFailures && (
-						<Tooltip
-							content={
-								<div className="flex flex-col gap-1">
-									<span className="font-medium">Failed to load:</span>
-									{failedItems.map((cfg, i) => {
-										const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
-										const metricTitle = CHART_TYPES[cfg.type]?.title || cfg.type
-										return <span key={i}>{name} {metricTitle}</span>
-									})}
-								</div>
-							}
-						>
-							<p className="flex items-center gap-1 text-xs text-yellow-500">
-								<Icon name="alert-triangle" height={12} width={12} />
-								<span className="hidden sm:inline">Partial data</span>
-								<span className="sm:hidden">!</span>
-							</p>
-						</Tooltip>
-					)}
 				</div>
 				{!isReadOnly && allChartsGroupable && hasAnyData && (
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
@@ -453,7 +430,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			{loadingItems.length > 0 && (
 				<div className="flex items-center gap-1.5 px-1 text-xs text-(--text-form) md:px-3">
 					<div className="h-3 w-3 animate-spin rounded-full border-2 border-(--text-form) border-t-transparent" />
-					<span>{validItems.length}/{multi.items.length}</span>
+					<span>
+						{validItems.length}/{multi.items.length}
+					</span>
 				</div>
 			)}
 
