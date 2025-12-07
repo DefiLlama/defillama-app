@@ -882,13 +882,13 @@ export const getChainsByFeesAdapterPageData = async ({
 }): Promise<IChainsByAdapterPageData> => {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const allChains: Array<string> = []
+		const allChainsSet = new Set<string>()
 
 		for (const chain in metadataCache.chainMetadata) {
 			const chainMetadata = metadataCache.chainMetadata[chain]
 			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
 			if (sType && chainMetadata[sType]) {
-				allChains.push(chainMetadata.name)
+				allChainsSet.add(chainMetadata.name)
 			}
 		}
 
@@ -899,21 +899,21 @@ export const getChainsByFeesAdapterPageData = async ({
 				chain: 'All',
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
 			getAdapterChainOverview({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
 				chain: 'All',
-				excludeTotalDataChart: false,
+				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
 			getAdapterChainOverview({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
 				chain: 'All',
-				excludeTotalDataChart: false,
+				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
 		])
 
 		const bribesByChain = {}
