@@ -154,32 +154,38 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${V2_SERVER_URL}/${adapterType}${
-			chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''
-		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let overviewUrl = `${V2_SERVER_URL}/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+		let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 		if (dataType) {
-			url += `&dataType=${dataType}`
+			overviewUrl += `&dataType=${dataType}`
+			totalDataChartUrl += `&dataType=${dataType}`
 		}
 
-		const data = await fetchJson(url, { timeout: 30_000 })
+		const [overviewData, totalDataChart] = await Promise.all([
+			fetchJson(overviewUrl, { timeout: 30_000 }),
+			excludeTotalDataChart ? Promise.resolve([]) : fetchJson(totalDataChartUrl, { timeout: 30_000 })
+		])
 
-		return { ...data, totalDataChart: [], totalDataChartBreakdown: [] } as IAdapterOverview
+		return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${V2_SERVER_URL}/${adapterType}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let overviewUrl = `${V2_SERVER_URL}/${adapterType}`
+		let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}`
 
 		if (dataType) {
-			url += `&dataType=dailyRevenue`
+			overviewUrl += `&dataType=dailyRevenue`
+			totalDataChartUrl += `&dataType=dailyRevenue`
 		}
 
-		const [data, emissionsData, chainMapping] = await Promise.all([
-			fetchJson(url),
+		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
+			fetchJson(overviewUrl),
+			excludeTotalDataChart ? Promise.resolve([]) : fetchJson(totalDataChartUrl),
 			getEmissionsData(),
 			getChainMapping()
 		])
 
-		const earningsData = processEarningsData(data, emissionsData)
+		const earningsData = processEarningsData(overviewData, emissionsData)
 
 		let filteredEarningsData = earningsData
 		let chainSpecificTotal24h = 0
@@ -261,8 +267,8 @@ export async function getAdapterChainOverview({
 		}
 
 		return {
-			...data,
-			totalDataChart: [],
+			...overviewData,
+			totalDataChart,
 			totalDataChartBreakdown: [],
 			chain,
 			total24h: chainSpecificTotal24h,
@@ -289,15 +295,20 @@ export async function getAdapterProtocolSummary({
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
-	let url = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	let overviewUrl = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}`
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
-		url += `&dataType=${dataType}`
+		overviewUrl += `&dataType=${dataType}`
+		totalDataChartUrl += `&dataType=${dataType}`
 	}
 
-	const data = await fetchJson(url)
+	const [overviewData, totalDataChart] = await Promise.all([
+		fetchJson(overviewUrl),
+		excludeTotalDataChart ? Promise.resolve([]) : fetchJson(totalDataChartUrl)
+	])
 
-	return data as IAdapterSummary
+	return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterSummary
 }
 
 export async function getCexVolume() {
