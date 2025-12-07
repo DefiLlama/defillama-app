@@ -518,7 +518,7 @@ export const getAdapterByChainPageData = async ({
 			adapterType,
 			chain,
 			dataType,
-			excludeTotalDataChart: false,
+			excludeTotalDataChart: adapterType === 'fees' ? true : false,
 			excludeTotalDataChartBreakdown: true
 		}),
 		fetchJson(PROTOCOLS_API),
@@ -527,7 +527,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyBribesRevenue',
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			: Promise.resolve(null),
@@ -536,7 +536,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyTokenTaxes',
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			: Promise.resolve(null),
@@ -545,7 +545,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType: 'open-interest',
 					chain,
 					dataType: 'openInterestAtEnd',
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			: Promise.resolve(null)
@@ -873,6 +873,7 @@ export const getAdapterByChainPageData = async ({
 	}
 }
 
+// only returns fees paid by users when using the chain (gas ?), not the fees paid by users when using the protocols on chain
 export const getChainsByFeesAdapterPageData = async ({
 	adapterType,
 	dataType
@@ -959,6 +960,7 @@ export const getChainsByFeesAdapterPageData = async ({
 	}
 }
 
+// returns combined metrics of all protocols by chain
 export const getChainsByAdapterPageData = async ({
 	adapterType,
 	dataType
@@ -1090,7 +1092,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 				getAdapterChainOverview({
 					adapterType: 'fees',
 					chain,
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			)
