@@ -1,5 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
+import { PROTOCOLS_API, REV_PROTOCOLS, SERVER_URL, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -140,6 +140,51 @@ function getInternalChainName(displayChain: string, chainMapping: Record<string,
 	return slug(displayChain)
 }
 
+export async function getAdapterChainChartData({
+	adapterType,
+	chain,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+}) {
+	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+
+	if (dataType === 'dailyEarnings') {
+		//earnings we don't need to filter by chain, instead we filter it later on
+		totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}`
+	}
+
+	if (dataType) {
+		totalDataChartUrl += `&dataType=${dataType}`
+	}
+
+	const totalDataChart = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return totalDataChart
+}
+
+export async function getAdapterProtocolChartData({
+	adapterType,
+	protocol,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+}) {
+	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}/protocol/${slug(protocol)}`
+
+	if (dataType) {
+		totalDataChartUrl += `&dataType=${dataType}`
+	}
+
+	const totalDataChart = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return totalDataChart
+}
+
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -154,33 +199,31 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let overviewUrl = `${V2_SERVER_URL}/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
-		let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+		let summaryUrl = `${V2_SERVER_URL}/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 		if (dataType) {
-			overviewUrl += `&dataType=${dataType}`
-			totalDataChartUrl += `&dataType=${dataType}`
+			summaryUrl += `&dataType=${dataType}`
 		}
 
 		const [overviewData, totalDataChart] = await Promise.all([
-			fetchJson(overviewUrl, { timeout: 30_000 }),
-			excludeTotalDataChart ? Promise.resolve([]) : fetchJson(totalDataChartUrl, { timeout: 30_000 })
+			fetchJson(summaryUrl, { timeout: 30_000 }),
+			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
 		])
 
 		return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let overviewUrl = `${V2_SERVER_URL}/${adapterType}`
-		let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}`
+		let summaryUrl = `${V2_SERVER_URL}/${adapterType}`
 
 		if (dataType) {
-			overviewUrl += `&dataType=dailyRevenue`
-			totalDataChartUrl += `&dataType=dailyRevenue`
+			summaryUrl += `&dataType=dailyRevenue`
 		}
 
 		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
-			fetchJson(overviewUrl),
-			excludeTotalDataChart ? Promise.resolve([]) : fetchJson(totalDataChartUrl),
+			fetchJson(summaryUrl),
+			excludeTotalDataChart
+				? Promise.resolve([])
+				: getAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' }),
 			getEmissionsData(),
 			getChainMapping()
 		])
@@ -295,17 +338,15 @@ export async function getAdapterProtocolSummary({
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
-	let overviewUrl = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}`
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol/${slug(protocol)}`
+	let summaryUrl = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
-		overviewUrl += `&dataType=${dataType}`
-		totalDataChartUrl += `&dataType=${dataType}`
+		summaryUrl += `&dataType=${dataType}`
 	}
 
 	const [overviewData, totalDataChart] = await Promise.all([
-		fetchJson(overviewUrl),
-		excludeTotalDataChart ? Promise.resolve([]) : fetchJson(totalDataChartUrl)
+		fetchJson(summaryUrl),
+		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
 	])
 
 	return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterSummary
