@@ -59,11 +59,14 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
 			{ name: 'Pricing', route: '/subscription', icon: 'user', attention: showAttentionIcon },
+			{ name: 'Chains', route: '/chains', icon: 'globe' },
+			{ name: 'Yields', route: '/yields', icon: 'percent' },
+			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			...(hasActiveSubscription
 				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
 				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
-			{ name: 'Support', route: '/support', icon: 'support' }
+			{ name: 'Support', route: '/support', icon: 'headset' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
 	}, [showAttentionIcon, hasActiveSubscription])

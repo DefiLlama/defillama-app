@@ -377,6 +377,12 @@ export function useChartData(
 
 export { generateChartKey, getChartQueryKey, getChartQueryFn }
 
+const CHAIN_NAME_OVERRIDES: Record<string, string> = {
+	Binance: 'BSC',
+	Optimism: 'OP Mainnet',
+	xDai: 'Gnosis'
+}
+
 export function useChains() {
 	return useQuery({
 		queryKey: ['chains'],
@@ -385,7 +391,7 @@ export function useChains() {
 			const data = await response.json()
 			const transformedData = data.map((chain) => ({
 				...chain,
-				name: chain.name === 'Binance' ? 'BSC' : chain.name
+				name: CHAIN_NAME_OVERRIDES[chain.name] ?? chain.name
 			}))
 			return transformedData.sort((a, b) => b.tvl - a.tvl)
 		},
@@ -407,12 +413,10 @@ export function useProtocolsAndChains() {
 			const protocolsData = await protocolsResponse.json()
 			const chainsData = await chainsResponse.json()
 
-			const transformedChains = chainsData.map((chain) => {
-				let name = chain.name
-				if (name === 'Binance') name = 'BSC'
-				if (name.toLowerCase() === 'xdai') name = 'Gnosis'
-				return { ...chain, name }
-			})
+			const transformedChains = chainsData.map((chain) => ({
+				...chain,
+				name: CHAIN_NAME_OVERRIDES[chain.name] ?? chain.name
+			}))
 			const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
 
 			const baseProtocols = (protocolsData.protocols || []).map((p) => ({
