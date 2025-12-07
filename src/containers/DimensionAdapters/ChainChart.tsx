@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useMutation } from '@tanstack/react-query'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -12,9 +11,7 @@ import { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
-import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
-import { getAdapterChainOverview } from './queries'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
@@ -24,39 +21,39 @@ const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
 ) as React.FC<ILineAndBarChartProps>
 
-const downloadBreakdownChart = async ({
-	adapterType,
-	dataType,
-	chain
-}: {
-	adapterType: string
-	dataType?: `${ADAPTER_DATA_TYPES}`
-	chain: string
-}) => {
-	const data = await getAdapterChainOverview({
-		adapterType: adapterType as `${ADAPTER_TYPES}`,
-		chain,
-		excludeTotalDataChart: true,
-		excludeTotalDataChartBreakdown: false,
-		dataType
-	})
-	const rows: any = [['Timestamp', 'Date', ...data.protocols.map((protocol) => protocol.name)]]
+// const downloadBreakdownChart = async ({
+// 	adapterType,
+// 	dataType,
+// 	chain
+// }: {
+// 	adapterType: string
+// 	dataType?: `${ADAPTER_DATA_TYPES}`
+// 	chain: string
+// }) => {
+// 	const data = await getAdapterChainOverview({
+// 		adapterType: adapterType as `${ADAPTER_TYPES}`,
+// 		chain,
+// 		excludeTotalDataChart: true,
+// 		excludeTotalDataChartBreakdown: false,
+// 		dataType
+// 	})
+// 	const rows: any = [['Timestamp', 'Date', ...data.protocols.map((protocol) => protocol.name)]]
 
-	for (const item of data.totalDataChartBreakdown) {
-		const row = [item[0], toNiceCsvDate(item[0])]
-		for (const protocol of data.protocols) {
-			row.push(item[1][protocol.name] ?? '')
-		}
-		rows.push(row)
-	}
+// 	for (const item of data.totalDataChartBreakdown) {
+// 		const row = [item[0], toNiceCsvDate(item[0])]
+// 		for (const protocol of data.protocols) {
+// 			row.push(item[1][protocol.name] ?? '')
+// 		}
+// 		rows.push(row)
+// 	}
 
-	download(
-		`${slug(chain)}-${adapterType}-${new Date().toISOString().split('T')[0]}.csv`,
-		rows.map((r) => r.join(',')).join('\n')
-	)
+// 	download(
+// 		`${slug(chain)}-${adapterType}-${new Date().toISOString().split('T')[0]}.csv`,
+// 		rows.map((r) => r.join(',')).join('\n')
+// 	)
 
-	return null
-}
+// 	return null
+// }
 
 const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
@@ -156,9 +153,13 @@ export const AdapterByChainChart = ({
 		}
 	}, [chain, adapterType, dashboardChartType, chartInterval, chartName])
 
-	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
-		mutationFn: downloadBreakdownChart
-	})
+	const prepareCsv = React.useCallback(() => {
+		const rows: any = [['Timestamp', 'Date', `${chartName} (USD)`]]
+		for (const [date, value] of chartData) {
+			rows.push([date, toNiceCsvDate(date / 1e3), value ?? ''])
+		}
+		return { filename: `${slug(chain)}-${adapterType}-${chartName}.csv`, rows }
+	}, [chartData, chain, adapterType, chartName])
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -179,17 +180,7 @@ export const AdapterByChainChart = ({
 								</Tooltip>
 							))}
 				</div>
-				<CSVDownloadButton
-					onClick={() => {
-						downloadBreakdownChartMutation({
-							adapterType,
-							chain,
-							dataType
-						})
-					}}
-					isLoading={isDownloadingBreakdownChart}
-					smol
-				/>
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(chain)}-${adapterType}-${chartName}`}
