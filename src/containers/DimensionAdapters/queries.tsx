@@ -154,8 +154,8 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${V2_SERVER_URL}/${adapterType}/overview${
-			chain && chain !== 'All' ? `/${slug(chain)}` : ''
+		let url = `${V2_SERVER_URL}/${adapterType}${
+			chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 		if (dataType) {
@@ -164,10 +164,10 @@ export async function getAdapterChainOverview({
 
 		const data = await fetchJson(url, { timeout: 30_000 })
 
-		return data as IAdapterOverview
+		return { ...data, totalDataChart: [], totalDataChartBreakdown: [] } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${V2_SERVER_URL}/${adapterType}/overview?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let url = `${V2_SERVER_URL}/${adapterType}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 
 		if (dataType) {
 			url += `&dataType=dailyRevenue`
@@ -262,6 +262,8 @@ export async function getAdapterChainOverview({
 
 		return {
 			...data,
+			totalDataChart: [],
+			totalDataChartBreakdown: [],
 			chain,
 			total24h: chainSpecificTotal24h,
 			total7d: chainSpecificTotal7d,
