@@ -1,7 +1,18 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
+import { CHAINS_API_V2 } from '~/constants'
 import type { MultiChartConfig } from '../types'
+import { CHART_TYPES } from '../types'
+import {
+	DASHBOARD_TEMPLATES,
+	generateTemplateCharts,
+	type ChainCategoryData,
+	type DashboardTemplate
+} from '../templates'
+import { useProDashboard } from '../ProDashboardAPIContext'
+import { useAppMetadata } from '../AppMetadataContext'
 
 const CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
@@ -25,6 +36,39 @@ interface CreateDashboardPickerProps {
 export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
 	const isOpen = dialogStore.useState('open')
+	const { protocols, chains } = useProDashboard()
+	const { protocolsBySlug } = useAppMetadata()
+
+	const { data: chainCategoriesData } = useQuery({
+		queryKey: ['chain-categories-for-templates'],
+		queryFn: async () => {
+			const categoriesToFetch = ['Rollup']
+			const results = await Promise.all(
+				categoriesToFetch.map(async (cat) => {
+					try {
+						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
+						if (!res.ok) return { category: cat, chains: [] as string[] }
+						const data = await res.json()
+						return { category: cat, chains: (data?.chainsUnique as string[]) || [] }
+					} catch {
+						return { category: cat, chains: [] as string[] }
+					}
+				})
+			)
+			return results
+		},
+		staleTime: 60 * 60 * 1000
+	})
+
+	const chainCategoryData = useMemo<ChainCategoryData>(() => {
+		const chainsInCategory = new Map<string, Set<string>>()
+		if (chainCategoriesData) {
+			for (const { category, chains } of chainCategoriesData) {
+				chainsInCategory.set(category, new Set(chains))
+			}
+		}
+		return { chainsInCategory }
+	}, [chainCategoriesData])
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -61,6 +105,26 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 
 	const handleBackToPicker = () => {
 		setMode('picker')
+	}
+
+	const handleCreateFromTemplate = (template: DashboardTemplate) => {
+		const items = generateTemplateCharts(
+			template,
+			protocols,
+			chains,
+			protocolsBySlug,
+			CHART_TYPES,
+			chainCategoryData
+		)
+
+		onCreate({
+			dashboardName: template.name,
+			visibility: 'private',
+			tags: [],
+			description: template.description,
+			items
+		})
+		dialogStore.toggle()
 	}
 
 	if (mode === 'scratch') {
@@ -132,7 +196,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 	return (
 		<Ariakit.Dialog
 			store={dialogStore}
-			className="pro-dashboard dialog w-full max-w-lg gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
+			className="pro-dashboard dialog w-full max-w-3xl gap-0 border border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl"
 		>
 			<div className="mb-6 flex items-center justify-between">
 				<h2 className="text-xl font-semibold text-(--text-primary)">Create New Dashboard</h2>
@@ -172,6 +236,23 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 						<p className="mt-1 text-sm text-(--text-tertiary)">Compare chains or protocols with pre-built charts</p>
 					</div>
 				</button>
+			</div>
+
+			<div className="mt-6 border-t border-(--cards-border) pt-6">
+				<h3 className="mb-3 text-sm font-medium text-(--text-secondary)">Or use a template</h3>
+				<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+					{DASHBOARD_TEMPLATES.map((template) => (
+						<button
+							key={template.id}
+							type="button"
+							onClick={() => handleCreateFromTemplate(template)}
+							className="rounded-lg border border-(--cards-border) p-2.5 text-left transition-colors hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
+						>
+							<div className="text-sm font-medium text-(--text-primary)">{template.name}</div>
+							<div className="mt-0.5 text-xs text-(--text-tertiary) line-clamp-1">{template.description}</div>
+						</button>
+					))}
+				</div>
 			</div>
 		</Ariakit.Dialog>
 	)

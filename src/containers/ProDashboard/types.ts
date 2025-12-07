@@ -370,6 +370,7 @@ export interface Protocol {
 	tvl: number
 	geckoId?: string | null
 	parentProtocol?: string | null
+	category?: string
 }
 
 export const CHART_TYPES = {
