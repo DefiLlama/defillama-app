@@ -4,6 +4,7 @@ import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,9 +17,10 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
 
 export default function LlamaAIPage() {
 	const router = useRouter()
+	const isClient = useIsClient()
 	const { user, loaders, hasActiveSubscription } = useAuthContext()
 
-	if (loaders.userLoading) {
+	if (!isClient || loaders.userLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"

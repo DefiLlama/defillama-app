@@ -3,14 +3,16 @@ import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
 
 export default function SessionPage() {
 	const router = useRouter()
 	const { sessionId } = router.query
+	const isClient = useIsClient()
 	const { user, loaders, hasActiveSubscription } = useAuthContext()
 
-	if (loaders.userLoading) {
+	if (!isClient || loaders.userLoading) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"
