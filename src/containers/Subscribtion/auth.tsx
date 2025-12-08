@@ -130,18 +130,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const queryClient = useQueryClient()
 
 	const { isLoading: userQueryIsLoading } = useQuery({
-		queryKey: ['currentUserAuthStatus', pb.authStore.record?.id ?? null],
+		queryKey: ['currentUserAuthStatus', authStoreState?.record?.id ?? null],
 		queryFn: async () => {
-			if (!pb.authStore.token) {
+			if (!authStoreState.token) {
+				clearUserSession()
 				return null
 			}
 			try {
 				const refreshResult = await pb.collection('users').authRefresh()
-				return { ...refreshResult.record }
+				return refreshResult.record
 			} catch (error: any) {
 				if (error?.isAbort || error?.message?.includes('autocancelled')) {
-					if (pb.authStore.isValid && pb.authStore.record) {
-						return { ...pb.authStore.record }
+					if (authStoreState.isValid && authStoreState.record) {
+						return authStoreState.record
 					}
 					clearUserSession()
 					return null
@@ -158,7 +159,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		},
 		enabled: authStoreState.record?.id != null,
 		staleTime: 5 * 60 * 1000,
-		refetchOnMount: true,
 		refetchOnWindowFocus: false,
 		retry: 3,
 		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
