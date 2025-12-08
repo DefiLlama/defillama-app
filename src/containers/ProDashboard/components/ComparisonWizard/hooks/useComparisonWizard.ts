@@ -5,6 +5,7 @@ import type {
 	ComparisonWizardState,
 	DisplayMode,
 	GroupingInterval,
+	MetricSettings,
 	WizardAction,
 	WizardStep
 } from '../types'
@@ -15,12 +16,20 @@ const initialState: ComparisonWizardState = {
 	comparisonType: null,
 	selectedItems: [],
 	selectedMetrics: [],
+	metricsForCards: [],
 	dashboardName: '',
 	visibility: 'public',
 	tags: [],
 	description: '',
 	grouping: 'day',
-	displayMode: 'default'
+	displayMode: 'default',
+	metricSettings: {
+		aggregator: 'latest',
+		window: '30d',
+		compareMode: 'previous_value',
+		showSparkline: true
+	},
+	includeTable: true
 }
 
 function reducer(state: ComparisonWizardState, action: WizardAction): ComparisonWizardState {
@@ -38,18 +47,33 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 			return {
 				...state,
 				selectedItems: action.items,
-				selectedMetrics: []
+				selectedMetrics: [],
+				metricsForCards: []
 			}
 		case 'TOGGLE_METRIC': {
-			const metrics = state.selectedMetrics.includes(action.metric)
+			const isRemoving = state.selectedMetrics.includes(action.metric)
+			const metrics = isRemoving
 				? state.selectedMetrics.filter((m) => m !== action.metric)
 				: [...state.selectedMetrics, action.metric]
-			return { ...state, selectedMetrics: metrics }
+			const metricsForCards = isRemoving
+				? state.metricsForCards.filter((m) => m !== action.metric)
+				: state.metricsForCards
+			return { ...state, selectedMetrics: metrics, metricsForCards }
 		}
 		case 'CLEAR_METRICS':
-			return { ...state, selectedMetrics: [] }
+			return { ...state, selectedMetrics: [], metricsForCards: [] }
 		case 'SELECT_ALL_METRICS':
 			return { ...state, selectedMetrics: action.metrics }
+		case 'TOGGLE_METRIC_FOR_CARD': {
+			const metricsForCards = state.metricsForCards.includes(action.metric)
+				? state.metricsForCards.filter((m) => m !== action.metric)
+				: [...state.metricsForCards, action.metric]
+			return { ...state, metricsForCards }
+		}
+		case 'SET_METRICS_FOR_CARDS':
+			return { ...state, metricsForCards: action.metrics }
+		case 'SET_METRIC_SETTINGS':
+			return { ...state, metricSettings: { ...state.metricSettings, ...action.settings } }
 		case 'SET_DASHBOARD_NAME':
 			return { ...state, dashboardName: action.name }
 		case 'SET_VISIBILITY':
@@ -62,6 +86,8 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 			return { ...state, grouping: action.grouping }
 		case 'SET_DISPLAY_MODE':
 			return { ...state, displayMode: action.displayMode }
+		case 'SET_INCLUDE_TABLE':
+			return { ...state, includeTable: action.include }
 		case 'RESET':
 			return initialState
 		default:
@@ -88,6 +114,18 @@ export function useComparisonWizard() {
 
 	const selectAllMetrics = useCallback((metrics: string[]) => dispatch({ type: 'SELECT_ALL_METRICS', metrics }), [])
 
+	const toggleMetricForCard = useCallback((metric: string) => dispatch({ type: 'TOGGLE_METRIC_FOR_CARD', metric }), [])
+
+	const setMetricsForCards = useCallback(
+		(metrics: string[]) => dispatch({ type: 'SET_METRICS_FOR_CARDS', metrics }),
+		[]
+	)
+
+	const setMetricSettings = useCallback(
+		(settings: Partial<MetricSettings>) => dispatch({ type: 'SET_METRIC_SETTINGS', settings }),
+		[]
+	)
+
 	const setDashboardName = useCallback((name: string) => dispatch({ type: 'SET_DASHBOARD_NAME', name }), [])
 
 	const setVisibility = useCallback(
@@ -105,6 +143,8 @@ export function useComparisonWizard() {
 		(displayMode: DisplayMode) => dispatch({ type: 'SET_DISPLAY_MODE', displayMode }),
 		[]
 	)
+
+	const setIncludeTable = useCallback((include: boolean) => dispatch({ type: 'SET_INCLUDE_TABLE', include }), [])
 
 	const reset = useCallback(() => dispatch({ type: 'RESET' }), [])
 
@@ -169,12 +209,16 @@ export function useComparisonWizard() {
 			toggleMetric,
 			clearMetrics,
 			selectAllMetrics,
+			toggleMetricForCard,
+			setMetricsForCards,
+			setMetricSettings,
 			setDashboardName,
 			setVisibility,
 			setTags,
 			setDescription,
 			setGrouping,
 			setDisplayMode,
+			setIncludeTable,
 			reset,
 			goToNextStep,
 			goToPrevStep

@@ -11,7 +11,7 @@ export interface SelectOption {
 }
 
 interface AriakitSelectProps {
-	label: string
+	label?: string
 	options: SelectOption[]
 	selectedValue: string | null
 	onChange: (option: SelectOption) => void
@@ -39,7 +39,7 @@ export function AriakitSelect({
 
 	return (
 		<div className={className}>
-			<label className="pro-text2 mb-1 block text-[11px] font-medium">{label}</label>
+			{label && <label className="pro-text2 mb-1 block text-[11px] font-medium">{label}</label>}
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
 					<LoadingSpinner size="sm" />

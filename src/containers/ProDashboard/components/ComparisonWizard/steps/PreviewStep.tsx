@@ -1,30 +1,47 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
-import { CHART_TYPES } from '../../../types'
+import { CHART_TYPES, MetricAggregator, MetricWindow } from '../../../types'
+import { AriakitCheckbox } from '../../AriakitCheckbox'
+import { AriakitSelect, SelectOption } from '../../AriakitSelect'
 import { useComparisonWizardContext } from '../ComparisonWizardContext'
 import type { DisplayMode, GroupingInterval } from '../types'
 
-const GROUPING_OPTIONS: { value: GroupingInterval; label: string }[] = [
+const GROUPING_OPTIONS: SelectOption[] = [
 	{ value: 'day', label: 'Day' },
 	{ value: 'week', label: 'Week' },
 	{ value: 'month', label: 'Month' },
 	{ value: 'quarter', label: 'Quarter' }
 ]
 
-const DISPLAY_OPTIONS: { value: DisplayMode; label: string }[] = [
+const DISPLAY_OPTIONS: SelectOption[] = [
 	{ value: 'default', label: 'Default' },
 	{ value: 'stacked', label: 'Stacked' },
 	{ value: 'cumulative', label: 'Cumulative' },
 	{ value: 'percentage', label: 'Percentage' }
 ]
 
+const AGGREGATOR_OPTIONS: SelectOption[] = [
+	{ value: 'latest', label: 'Latest' },
+	{ value: 'avg', label: 'Average' },
+	{ value: 'sum', label: 'Total' },
+	{ value: 'max', label: 'Max' },
+	{ value: 'min', label: 'Min' },
+	{ value: 'growth', label: 'Growth' }
+]
+
+const WINDOW_OPTIONS: SelectOption[] = [
+	{ value: '7d', label: '7d' },
+	{ value: '30d', label: '30d' },
+	{ value: '90d', label: '90d' },
+	{ value: '365d', label: '1y' },
+	{ value: 'all', label: 'All' }
+]
+
 export function PreviewStep() {
 	const { state, actions } = useComparisonWizardContext()
 	const { getProtocolInfo } = useProDashboard()
 	const [tagInput, setTagInput] = useState('')
-
-	const typeLabel = state.comparisonType === 'chains' ? 'chains' : 'protocols'
 
 	const selectedItemLabels = useMemo(() => {
 		return state.selectedItems.map((item) => {
@@ -34,13 +51,6 @@ export function PreviewStep() {
 			return getProtocolInfo(item)?.name || item
 		})
 	}, [state.selectedItems, state.comparisonType, getProtocolInfo])
-
-	const selectedMetricLabels = useMemo(() => {
-		return state.selectedMetrics.map((metric) => {
-			const info = CHART_TYPES[metric as keyof typeof CHART_TYPES]
-			return info?.title || metric
-		})
-	}, [state.selectedMetrics])
 
 	const handleAddTag = () => {
 		const tag = tagInput.trim()
@@ -61,11 +71,13 @@ export function PreviewStep() {
 		}
 	}
 
+	const metricCardsCount = state.metricsForCards.length * state.selectedItems.length
+
 	return (
-		<div className="grid grid-cols-2 gap-6">
-			<div className="flex flex-col gap-4">
+		<div className="grid grid-cols-2 items-start gap-5">
+			<div className="flex flex-col gap-3">
 				<div>
-					<label className="mb-1.5 block text-sm font-medium text-(--text-primary)">
+					<label className="mb-1 block text-sm font-medium text-(--text-primary)">
 						Dashboard Name <span className="text-red-500">*</span>
 					</label>
 					<input
@@ -73,73 +85,79 @@ export function PreviewStep() {
 						value={state.dashboardName}
 						onChange={(e) => actions.setDashboardName(e.target.value)}
 						placeholder="Enter dashboard name"
-						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-1.5 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 				</div>
 
-				<div>
-					<label className="mb-1.5 block text-sm font-medium text-(--text-primary)">Visibility</label>
-					<div className="flex gap-2">
-						<button
-							type="button"
-							onClick={() => actions.setVisibility('public')}
-							className={`flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-								state.visibility === 'public'
-									? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
-									: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
-							}`}
-						>
-							<Icon name="earth" height={14} width={14} />
-							Public
-						</button>
-						<button
-							type="button"
-							onClick={() => actions.setVisibility('private')}
-							className={`flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-								state.visibility === 'private'
-									? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
-									: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
-							}`}
-						>
-							<Icon name="key" height={14} width={14} />
-							Private
-						</button>
+				<div className="flex items-center gap-3">
+					<div className="flex-1">
+						<label className="mb-1 block text-sm font-medium text-(--text-primary)">Visibility</label>
+						<div className="flex gap-1.5">
+							<button
+								type="button"
+								onClick={() => actions.setVisibility('public')}
+								className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
+									state.visibility === 'public'
+										? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
+										: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
+								}`}
+							>
+								<Icon name="earth" height={12} width={12} />
+								Public
+							</button>
+							<button
+								type="button"
+								onClick={() => actions.setVisibility('private')}
+								className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
+									state.visibility === 'private'
+										? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
+										: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
+								}`}
+							>
+								<Icon name="key" height={12} width={12} />
+								Private
+							</button>
+						</div>
 					</div>
 				</div>
 
-				<div>
-					<label className="mb-1.5 block text-sm font-medium text-(--text-primary)">Description</label>
-					<textarea
-						value={state.description}
-						onChange={(e) => actions.setDescription(e.target.value)}
-						placeholder="Describe your dashboard..."
-						rows={2}
-						className="w-full resize-none rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+				<div className="grid grid-cols-2 gap-2">
+					<AriakitSelect
+						label="Grouping"
+						options={GROUPING_OPTIONS}
+						selectedValue={state.grouping}
+						onChange={(opt) => actions.setGrouping(opt.value as GroupingInterval)}
+					/>
+					<AriakitSelect
+						label="Display"
+						options={DISPLAY_OPTIONS}
+						selectedValue={state.displayMode}
+						onChange={(opt) => actions.setDisplayMode(opt.value as DisplayMode)}
 					/>
 				</div>
 
 				<div>
-					<label className="mb-1.5 block text-sm font-medium text-(--text-primary)">Tags</label>
-					<div className="flex gap-2">
+					<label className="mb-1 block text-sm font-medium text-(--text-primary)">Tags</label>
+					<div className="flex gap-1.5">
 						<input
 							type="text"
 							value={tagInput}
 							onChange={(e) => setTagInput(e.target.value)}
 							onKeyDown={handleTagKeyDown}
 							placeholder="Add tags..."
-							className="flex-1 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							className="flex-1 rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>
 						<button
 							type="button"
 							onClick={handleAddTag}
 							disabled={!tagInput.trim()}
-							className="rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 disabled:cursor-not-allowed disabled:opacity-50"
+							className="rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							Add
 						</button>
 					</div>
 					{state.tags.length > 0 && (
-						<div className="mt-2 flex flex-wrap gap-1.5">
+						<div className="mt-1.5 flex flex-wrap gap-1">
 							{state.tags.map((tag) => (
 								<span
 									key={tag}
@@ -159,109 +177,105 @@ export function PreviewStep() {
 					)}
 				</div>
 
-				<div className="grid grid-cols-2 gap-3">
-					<div>
-						<label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-(--text-primary)">
-							<Icon name="calendar" height={14} width={14} />
-							Grouping
-						</label>
-						<select
-							value={state.grouping}
-							onChange={(e) => actions.setGrouping(e.target.value as GroupingInterval)}
-							className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-						>
-							{GROUPING_OPTIONS.map((option) => (
-								<option key={option.value} value={option.value}>
-									{option.label}
-								</option>
-							))}
-						</select>
-					</div>
-
-					<div>
-						<label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-(--text-primary)">
-							<Icon name="layers" height={14} width={14} />
-							Display
-						</label>
-						<select
-							value={state.displayMode}
-							onChange={(e) => actions.setDisplayMode(e.target.value as DisplayMode)}
-							className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-						>
-							{DISPLAY_OPTIONS.map((option) => (
-								<option key={option.value} value={option.value}>
-									{option.label}
-								</option>
-							))}
-						</select>
-					</div>
+				<div>
+					<label className="mb-1 block text-sm font-medium text-(--text-primary)">
+						Description <span className="text-xs font-normal text-(--text-tertiary)">(optional)</span>
+					</label>
+					<input
+						type="text"
+						value={state.description}
+						onChange={(e) => actions.setDescription(e.target.value)}
+						placeholder="Brief description..."
+						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-1.5 text-sm placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					/>
 				</div>
 			</div>
 
-			<div className="flex flex-col gap-4">
-				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-4">
-					<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-(--text-primary)">
-						<Icon name="file-text" height={16} width={16} />
-						Preview
-					</h3>
-					<div className="space-y-2.5 text-sm">
-						<div className="flex items-center justify-between gap-4">
-							<span className="text-(--text-tertiary)">
-								{state.selectedItems.length === 1 ? 'Dashboard for' : 'Comparing'}
-							</span>
-							<span className="font-medium text-(--text-primary)">
-								{state.selectedItems.length === 1
-									? selectedItemLabels[0]
-									: `${state.selectedItems.length} ${typeLabel}`}
-							</span>
-						</div>
-						{state.selectedItems.length > 1 && (
-							<div className="flex items-start justify-between gap-4">
-								<span className="text-(--text-tertiary)">{typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}</span>
-								<span
-									className="max-w-[180px] truncate text-right text-(--text-secondary)"
-									title={selectedItemLabels.join(', ')}
-								>
-									{selectedItemLabels.join(', ')}
-								</span>
-							</div>
-						)}
-						<div className="flex items-start justify-between gap-4">
-							<span className="text-(--text-tertiary)">Metrics</span>
-							<span
-								className="max-w-[180px] truncate text-right text-(--text-secondary)"
-								title={selectedMetricLabels.join(', ')}
-							>
-								{selectedMetricLabels.join(', ')}
-							</span>
-						</div>
-						<div className="flex items-center justify-between gap-4">
-							<span className="text-(--text-tertiary)">Charts</span>
-							<span className="font-medium text-(--primary)">
-								{state.selectedMetrics.length} chart{state.selectedMetrics.length !== 1 ? 's' : ''}
-							</span>
-						</div>
-						<div className="flex items-center justify-between gap-4">
-							<span className="text-(--text-tertiary)">Grouping</span>
-							<span className="text-(--text-secondary)">{state.grouping}</span>
-						</div>
-						<div className="flex items-center justify-between gap-4">
-							<span className="text-(--text-tertiary)">Display</span>
-							<span className="text-(--text-secondary)">{state.displayMode}</span>
-						</div>
+			<div className="flex flex-col gap-3">
+				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-3">
+					<div className="mb-2 flex items-center justify-between">
+						<h3 className="flex items-center gap-1.5 text-sm font-semibold text-(--text-primary)">
+							<Icon name="activity" height={14} width={14} />
+							Add Metric Cards
+						</h3>
+						<span className="text-xs text-(--text-tertiary)">Optional</span>
 					</div>
+					<div className="flex flex-wrap gap-1.5">
+						{state.selectedMetrics.map((metric) => {
+							const info = CHART_TYPES[metric as keyof typeof CHART_TYPES]
+							const label = info?.title || metric
+							const isSelected = state.metricsForCards.includes(metric)
+							return (
+								<label
+									key={metric}
+									className={`flex cursor-pointer items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${
+										isSelected
+											? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
+											: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
+									}`}
+								>
+									<input
+										type="checkbox"
+										checked={isSelected}
+										onChange={() => actions.toggleMetricForCard(metric)}
+										className="sr-only"
+									/>
+									{isSelected && <Icon name="check" height={10} width={10} />}
+									{label}
+								</label>
+							)
+						})}
+					</div>
+					{state.metricsForCards.length > 0 && (
+						<div className="mt-2 flex items-center gap-2 border-t border-(--cards-border) pt-2">
+							<AriakitSelect
+								options={AGGREGATOR_OPTIONS}
+								selectedValue={state.metricSettings.aggregator}
+								onChange={(opt) => actions.setMetricSettings({ aggregator: opt.value as MetricAggregator })}
+								className="min-w-[80px]"
+							/>
+							<AriakitSelect
+								options={WINDOW_OPTIONS}
+								selectedValue={state.metricSettings.window}
+								onChange={(opt) => actions.setMetricSettings({ window: opt.value as MetricWindow })}
+								className="min-w-[60px]"
+							/>
+						</div>
+					)}
 				</div>
 
-				<div className="flex-1 rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/10 p-4">
-					<div className="flex h-full flex-col items-center justify-center text-center">
-						<Icon name="bar-chart" height={32} width={32} className="mb-2 text-(--text-tertiary)" />
-						<p className="text-sm font-medium text-(--text-secondary)">
-							{state.selectedMetrics.length} chart{state.selectedMetrics.length !== 1 ? 's' : ''} will be created
-						</p>
-						<p className="mt-1 text-xs text-(--text-tertiary)">
-							Comparing {selectedItemLabels.slice(0, 3).join(', ')}
-							{selectedItemLabels.length > 3 && ` +${selectedItemLabels.length - 3} more`}
-						</p>
+				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-3">
+					<AriakitCheckbox
+						checked={state.includeTable}
+						onChange={(checked) => actions.setIncludeTable(checked)}
+						label={
+							<span className="flex items-center gap-1.5 text-sm font-medium text-(--text-primary)">
+								<Icon name="layout-grid" height={14} width={14} />
+								Include Comparison Table
+							</span>
+						}
+						description="Adds a data table showing detailed metrics for all compared items"
+					/>
+				</div>
+
+				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-3">
+					<h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-(--text-primary)">
+						<Icon name="file-text" height={14} width={14} />
+						Summary
+					</h3>
+					<div className="space-y-1.5 text-xs">
+						<div className="flex items-center justify-between">
+							<span className="text-(--text-tertiary)">Comparing</span>
+							<span className="font-medium text-(--text-primary)">{selectedItemLabels.join(', ')}</span>
+						</div>
+						<div className="flex items-center justify-between">
+							<span className="text-(--text-tertiary)">Output</span>
+							<span className="font-medium text-(--primary)">
+								{metricCardsCount > 0 && `${metricCardsCount} cards + `}
+								{state.selectedMetrics.length} charts
+								{state.includeTable && ' + 1 table'}
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>

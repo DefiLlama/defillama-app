@@ -1,10 +1,24 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
+import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { sanitizeConfigColumns } from '../config/metricCapabilities'
 import type { UnifiedTablePreset } from '../config/PresetRegistry'
 import { UNIFIED_TABLE_PRESETS_BY_ID } from '../config/PresetRegistry'
-import { DEFAULT_COLUMN_ORDER, DEFAULT_COLUMN_VISIBILITY, DEFAULT_ROW_HEADERS, DEFAULT_UNIFIED_TABLE_SORTING } from '../constants'
+import {
+	DEFAULT_COLUMN_ORDER,
+	DEFAULT_COLUMN_VISIBILITY,
+	DEFAULT_ROW_HEADERS,
+	DEFAULT_UNIFIED_TABLE_SORTING
+} from '../constants'
 import { sanitizeRowHeaders } from '../utils/rowHeaders'
+
+const ALL_COLUMNS_HIDDEN: Record<string, boolean> = UNIFIED_TABLE_COLUMN_DICTIONARY.reduce<Record<string, boolean>>(
+	(acc, column) => {
+		acc[column.id] = false
+		return acc
+	},
+	{ name: false }
+)
 
 export function getDefaultColumnOrder(config: UnifiedTableConfig, fallbackPreset?: UnifiedTablePreset): string[] {
 	let order: string[]
@@ -39,8 +53,13 @@ export function getDefaultColumnVisibility(
 			...(fallbackPreset?.columnVisibility ?? {}),
 			...(config.columnVisibility ?? {})
 		}
+	} else if (config.columnVisibility && Object.keys(config.columnVisibility).length > 0) {
+		visibility = {
+			...ALL_COLUMNS_HIDDEN,
+			...config.columnVisibility
+		}
 	} else {
-		visibility = config.columnVisibility ? { ...config.columnVisibility } : {}
+		visibility = {}
 	}
 
 	const sanitized = sanitizeConfigColumns({
