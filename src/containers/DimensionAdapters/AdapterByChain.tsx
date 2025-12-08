@@ -61,6 +61,12 @@ const SUPPORTED_OLD_VIEWS: TPageType[] = [
 	'Bridge Aggregator Volume'
 ]
 
+const defaultSortingByType: Partial<Record<TPageType, SortingState>> & { default: SortingState } = {
+	'P/F': [{ desc: true, id: 'pf' }],
+	'P/S': [{ desc: true, id: 'ps' }],
+	default: [{ desc: true, id: 'total24h' }]
+}
+
 const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
 	const final = []
 
@@ -194,9 +200,7 @@ export function AdapterByChain(props: IProps) {
 		}
 	}, [router.query, props, enabledSettings])
 
-	const [sorting, setSorting] = useState<SortingState>([
-		{ desc: true, id: ['pf', 'ps'].includes(props.type) ? props.type : 'total24h' }
-	])
+	const [sorting, setSorting] = useState<SortingState>(defaultSortingByType[props.type] ?? defaultSortingByType.default)
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
