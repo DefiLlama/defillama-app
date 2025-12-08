@@ -323,7 +323,7 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 						</span>
 					</div>
 
-					{isAuthenticated && !isSubscribed && (
+					{isAuthenticated && user && !isSubscribed && (
 						<div className="relative z-10 mt-8 w-full">
 							<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
 								<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />

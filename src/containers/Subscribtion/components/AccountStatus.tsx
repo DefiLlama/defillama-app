@@ -82,12 +82,12 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<div className="group relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-[#5C5CF9] to-[#4335A8] text-base font-medium text-white shadow-[0_4px_12px_rgba(92,92,249,0.25)]">
-								{hasWallet ? <Icon name="ethereum" height={20} width={20} /> : resolvedEmail.charAt(0).toUpperCase()}
+								{hasWallet ? <Icon name="ethereum" height={20} width={20} /> : resolvedEmail?.charAt(0)?.toUpperCase()}
 							</div>
 							<div>
 								<div className="flex items-center gap-2">
 									<h2 className="bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-xl font-bold text-transparent">
-										{resolvedEmail ? resolvedEmail.split('@')[0] : user?.walletAddress}
+										{resolvedEmail ? resolvedEmail?.split('@')[0] : user?.walletAddress}
 									</h2>
 									{isVerified && (
 										<span className="flex h-5 w-5 transform items-center justify-center rounded-full bg-green-400/10 text-green-400 transition-transform hover:scale-110">
