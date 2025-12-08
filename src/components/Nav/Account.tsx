@@ -24,8 +24,6 @@ export const Account = memo(function Account() {
 	const { isAuthenticated, user, logout, loaders, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
 
-	const isAccountLoading = loaders?.userLoading
-
 	const userHandle = resolveUserHandle(user)
 
 	if (!isClient) {
@@ -34,7 +32,7 @@ export const Account = memo(function Account() {
 
 	return (
 		<>
-			{isAccountLoading ? (
+			{loaders?.userLoading ? (
 				<div className="flex min-h-7 w-full items-center justify-center">
 					<p className="flex items-center gap-1">
 						Loading

@@ -7,7 +7,6 @@ import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
@@ -27,17 +26,16 @@ export const PDFExportButton = memo(function PDFExportButton({
 	className
 }: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
-	const { subscription, isSubscriptionLoading } = useSubscribe()
-	const { loaders, authorizedFetch } = useAuthContext()
+	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const [isDark] = useDarkModeManager()
 
-	const loading = loaders.userLoading || isSubscriptionLoading || isLoading
+	const loading = loaders.userLoading || isLoading
 
 	const handlePDFExport = async () => {
 		if (loading || !sessionId) return
 
-		if (!loaders.userLoading && subscription?.status === 'active') {
+		if (!loaders.userLoading && hasActiveSubscription) {
 			try {
 				setIsLoading(true)
 

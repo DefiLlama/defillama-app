@@ -210,16 +210,6 @@
       "oldName": "Holders Revenue"
     },
     {
-      "name": "Earnings by Protocol",
-      "route": "/earnings",
-      "category": "Fees & Revenue",
-      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself",
-      "totalTrackedKey": "revenue.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Fees & Revenue",
-      "oldName": "Earnings"
-    },
-    {
       "name": "Fees by Chain",
       "route": "/fees/chains",
       "category": "Fees & Revenue",
@@ -228,6 +218,16 @@
       "tab": "Chains",
       "oldCategory": "Fees & Revenue",
       "oldName": "Fees (Chains)"
+    },
+    {
+      "name": "Earnings by Protocol",
+      "route": "/earnings",
+      "category": "Fees & Revenue",
+      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself",
+      "totalTrackedKey": "revenue.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "Earnings"
     },
     {
       "name": "Revenue by Chain",
