@@ -177,6 +177,14 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 			const metricCards = generateComparisonMetrics()
 			const charts = generateComparisonCharts()
 			const table = generateComparisonTable()
+
+			const totalEffectiveCols = metricCards.length * 1 + charts.length * 2
+			const remainder = totalEffectiveCols % 4
+
+			if (remainder === 2 && charts.length > 0) {
+				charts[charts.length - 1].colSpan = 2
+			}
+
 			onComplete({
 				dashboardName: state.dashboardName.trim(),
 				visibility: state.visibility,

@@ -38,7 +38,8 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 			excludeChainCategory: 'Rollup'
 		},
 		count: 4,
-		grouping: 'day'
+		displayMode: 'stacked',
+		grouping: 'week'
 	},
 	{
 		id: 'l2-ecosystem',
@@ -50,7 +51,8 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 			chainCategory: 'Rollup'
 		},
 		count: 4,
-		grouping: 'day'
+		displayMode: 'stacked',
+		grouping: 'week'
 	},
 	{
 		id: 'dex-leaders',
@@ -61,7 +63,7 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		filter: { metadataFlag: 'dexs' },
 		count: 4,
 		displayMode: 'stacked',
-		grouping: 'day'
+		grouping: 'week'
 	},
 	{
 		id: 'lending-protocols',
@@ -71,7 +73,8 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		metrics: ['tvl', 'fees', 'revenue'],
 		filter: { category: 'Lending' },
 		count: 4,
-		grouping: 'day'
+		displayMode: 'stacked',
+		grouping: 'week'
 	},
 	{
 		id: 'liquid-staking',
@@ -81,7 +84,8 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		metrics: ['tvl', 'fees', 'revenue'],
 		filter: { category: 'Liquid Staking' },
 		count: 4,
-		grouping: 'day'
+		displayMode: 'stacked',
+		grouping: 'week'
 	},
 	{
 		id: 'perps-protocols',
@@ -92,48 +96,40 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		filter: { metadataFlag: 'perps' },
 		count: 4,
 		displayMode: 'stacked',
-		grouping: 'day'
-	},
-	{
-		id: 'bridge-protocols',
-		name: 'Bridges',
-		description: 'Compare top cross-chain bridge protocols',
-		type: 'protocols',
-		metrics: ['volume', 'fees', 'revenue', 'tvl'],
-		filter: { category: 'Bridge' },
-		count: 4,
-		displayMode: 'stacked',
-		grouping: 'day'
-	},
-	{
-		id: 'cdp-protocols',
-		name: 'CDP & Stablecoins',
-		description: 'Compare collateralized debt position protocols',
-		type: 'protocols',
-		metrics: ['tvl', 'fees', 'revenue'],
-		filter: { category: 'CDP' },
-		count: 4,
-		grouping: 'day'
-	},
-	{
-		id: 'yield-protocols',
-		name: 'Yield Aggregators',
-		description: 'Compare yield optimization protocols',
-		type: 'protocols',
-		metrics: ['tvl', 'fees', 'revenue'],
-		filter: { category: 'Yield Aggregator' },
-		count: 4,
 		grouping: 'week'
 	},
 	{
-		id: 'restaking-protocols',
-		name: 'Restaking',
-		description: 'Compare restaking and shared security protocols',
+		id: 'prediction-market-protocols',
+		name: 'Prediction Markets',
+		description: 'Compare top prediction market protocols',
 		type: 'protocols',
 		metrics: ['tvl', 'fees', 'revenue'],
-		filter: { category: 'Restaking' },
+		filter: { category: 'Prediction Market' },
 		count: 4,
-		grouping: 'day'
+		displayMode: 'stacked',
+		grouping: 'week'
+	},
+	{
+		id: 'yield-farming-protocols',
+		name: 'Yield Protocols',
+		description: 'Compare top yield farming and optimization protocols',
+		type: 'protocols',
+		metrics: ['tvl', 'fees', 'revenue'],
+		filter: { category: 'Yield' },
+		count: 4,
+		displayMode: 'stacked',
+		grouping: 'week'
+	},
+	{
+		id: 'risk-curators-protocols',
+		name: 'Risk Curators',
+		description: 'Compare top risk curator and vault management protocols',
+		type: 'protocols',
+		metrics: ['tvl', 'fees', 'revenue'],
+		filter: { category: 'Risk Curators' },
+		count: 4,
+		displayMode: 'stacked',
+		grouping: 'week'
 	},
 	{
 		id: 'dex-aggregators',
@@ -144,7 +140,7 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		filter: { metadataFlag: 'dexAggregators' },
 		count: 4,
 		displayMode: 'stacked',
-		grouping: 'day'
+		grouping: 'week'
 	},
 	{
 		id: 'derivatives-protocols',
@@ -155,7 +151,7 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		filter: { category: 'Derivatives' },
 		count: 4,
 		displayMode: 'stacked',
-		grouping: 'day'
+		grouping: 'week'
 	}
 ]
 
@@ -184,19 +180,15 @@ const TEMPLATE_TABLE_COLUMNS: Record<string, { columns: string[]; sortBy: string
 		columns: ['name', 'tvl', 'perpsVolume24h', 'perpsVolume7d', 'openInterest', 'fees24h', 'revenue24h'],
 		sortBy: 'perpsVolume24h'
 	},
-	'bridge-protocols': {
-		columns: ['name', 'tvl', 'volume24h', 'volume_7d', 'fees24h', 'revenue24h'],
-		sortBy: 'volume24h'
-	},
-	'cdp-protocols': {
+	'prediction-market-protocols': {
 		columns: ['name', 'tvl', 'change7d', 'fees24h', 'revenue24h'],
 		sortBy: 'tvl'
 	},
-	'yield-protocols': {
+	'yield-farming-protocols': {
 		columns: ['name', 'tvl', 'change7d', 'fees24h', 'revenue24h'],
 		sortBy: 'tvl'
 	},
-	'restaking-protocols': {
+	'risk-curators-protocols': {
 		columns: ['name', 'tvl', 'change7d', 'fees24h', 'revenue24h'],
 		sortBy: 'tvl'
 	},
@@ -381,6 +373,13 @@ export function generateTemplateCharts(
 	const metricCards = generateTemplateMetrics(template, selectedItems)
 	const multiCharts = generateTemplateMultiCharts(template, selectedItems, chartTypes)
 	const table = generateTemplateTable(template, selectedItems)
+
+	const totalEffectiveCols = metricCards.length * 1 + multiCharts.length * 2
+	const remainder = totalEffectiveCols % 4
+
+	if (remainder === 2 && multiCharts.length > 0) {
+		multiCharts[multiCharts.length - 1].colSpan = 2
+	}
 
 	return [...metricCards, ...multiCharts, table]
 }

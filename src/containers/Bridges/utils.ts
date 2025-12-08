@@ -96,7 +96,7 @@ export const formatBridgesData = ({
 
 		return keepNeededProperties(bridge, bridgeProps)
 	})
-	const messagingProtocols = ['layerzero', 'wormhole', 'circle', 'hyperlane', 'ccip']
+	const messagingProtocols = ['layerzero', 'wormhole', 'circle', 'hyperlane', 'ccip', 'hyperbridge']
 	const regularBridges = filteredBridges.filter((bridge) => !messagingProtocols.includes(bridge.name?.toLowerCase()))
 	const messagingProtocolsBridges = filteredBridges.filter((bridge) =>
 		messagingProtocols.includes(bridge.name?.toLowerCase())

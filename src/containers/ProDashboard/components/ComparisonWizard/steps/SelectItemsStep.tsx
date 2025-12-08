@@ -1,7 +1,10 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Icon } from '~/components/Icon'
+import { CHAINS_API_V2 } from '~/constants'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { AriakitMultiSelect } from '../../AriakitMultiSelect'
 import { useComparisonWizardContext } from '../ComparisonWizardContext'
 
 interface Option {
@@ -16,7 +19,45 @@ export function SelectItemsStep() {
 	const { state, actions } = useComparisonWizardContext()
 	const { protocols, chains, protocolsLoading } = useProDashboard()
 	const [search, setSearch] = useState('')
+	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 	const listRef = useRef<HTMLDivElement>(null)
+
+	const { data: chainCategoriesList } = useQuery({
+		queryKey: ['chains2-categories'],
+		queryFn: async () => {
+			const res = await fetch(CHAINS_API_V2)
+			const data = await res.json()
+			return (data?.categories as string[]) || []
+		},
+		staleTime: 60 * 60 * 1000,
+		enabled: state.comparisonType === 'chains'
+	})
+
+	const { data: chainCategoryData } = useQuery({
+		queryKey: ['chains-by-category', chainCategoriesList],
+		queryFn: async () => {
+			if (!chainCategoriesList) return new Map<string, Set<string>>()
+			const results = await Promise.all(
+				chainCategoriesList.map(async (cat) => {
+					try {
+						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
+						if (!res.ok) return { category: cat, chains: [] as string[] }
+						const data = await res.json()
+						return { category: cat, chains: (data?.chainsUnique as string[]) || [] }
+					} catch {
+						return { category: cat, chains: [] as string[] }
+					}
+				})
+			)
+			const chainsInCategory = new Map<string, Set<string>>()
+			for (const { category, chains } of results) {
+				chainsInCategory.set(category, new Set(chains))
+			}
+			return chainsInCategory
+		},
+		staleTime: 60 * 60 * 1000,
+		enabled: state.comparisonType === 'chains' && !!chainCategoriesList?.length
+	})
 
 	const options: Option[] = useMemo(() => {
 		if (state.comparisonType === 'chains') {
@@ -71,11 +112,46 @@ export function SelectItemsStep() {
 		return result
 	}, [state.comparisonType, chains, protocols])
 
+	const protocolCategoryOptions = useMemo(() => {
+		const categoriesSet = new Set<string>()
+		protocols.forEach((protocol) => {
+			if (protocol.category) {
+				categoriesSet.add(protocol.category)
+			}
+		})
+		return Array.from(categoriesSet)
+			.sort()
+			.map((cat) => ({ value: cat, label: cat }))
+	}, [protocols])
+
 	const filteredOptions = useMemo(() => {
-		if (!search.trim()) return options
-		const searchLower = search.toLowerCase()
-		return options.filter((o) => o.label.toLowerCase().includes(searchLower))
-	}, [options, search])
+		let filtered: Option[] = options
+
+		if (selectedCategories.length > 0) {
+			if (state.comparisonType === 'chains') {
+				filtered = filtered.filter((o) => {
+					return selectedCategories.some((cat) => chainCategoryData?.get(cat)?.has(o.value))
+				})
+			} else {
+				const matchingProtocols = protocols
+					.filter((p) => p.category && selectedCategories.includes(p.category))
+					.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
+
+				filtered = matchingProtocols.map((protocol) => ({
+					value: protocol.slug,
+					label: protocol.name,
+					logo: protocol.logo || `https://icons.llamao.fi/icons/protocols/${protocol.slug}?w=48&h=48`
+				}))
+			}
+		}
+
+		if (search.trim()) {
+			const searchLower = search.toLowerCase()
+			filtered = filtered.filter((o) => o.label.toLowerCase().includes(searchLower))
+		}
+
+		return filtered
+	}, [options, search, selectedCategories, state.comparisonType, chainCategoryData, protocols])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
@@ -105,13 +181,15 @@ export function SelectItemsStep() {
 		})
 	}, [state.selectedItems, options])
 
+	useEffect(() => {
+		setSelectedCategories([])
+	}, [state.comparisonType])
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div className="text-center">
 				<h2 className="text-lg font-semibold text-(--text-primary)">Select {typeLabel}</h2>
-				<p className="mt-1 text-sm text-(--text-secondary)">
-					Choose 1-10 {typeLabel.toLowerCase()} for your dashboard
-				</p>
+				<p className="mt-1 text-sm text-(--text-secondary)">Choose 1-10 {typeLabel.toLowerCase()} for your dashboard</p>
 			</div>
 
 			<div className="flex flex-col gap-2">
@@ -169,6 +247,20 @@ export function SelectItemsStep() {
 
 			<div className="flex flex-col overflow-hidden rounded-lg border border-(--cards-border)">
 				<div className="border-b border-(--cards-border) bg-(--cards-bg-alt)/30 p-2">
+					<div className="mb-2">
+						<AriakitMultiSelect
+							label="Filter by Category"
+							options={
+								state.comparisonType === 'chains'
+									? (chainCategoriesList || []).map((c) => ({ value: c, label: c }))
+									: protocolCategoryOptions
+							}
+							selectedValues={selectedCategories}
+							onChange={setSelectedCategories}
+							placeholder="All categories"
+							maxSelections={5}
+						/>
+					</div>
 					<div className="relative">
 						<Icon
 							name="search"
@@ -261,11 +353,6 @@ export function SelectItemsStep() {
 											>
 												{option.label}
 											</span>
-											{option.isChild && (
-												<span className="ml-2 text-[10px] text-(--text-tertiary)">
-													{isDisabledByParent ? 'Included in parent' : 'Child protocol'}
-												</span>
-											)}
 										</div>
 									</button>
 								)
