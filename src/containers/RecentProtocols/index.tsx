@@ -90,7 +90,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							? sectionName.split('-')[1]?.toLowerCase()
 							: sectionName.toLowerCase()
 
-						// add only if chainsToSelect includes sanitisedChainName and chainName equalt sanitisedChainName
+						// add only if chainsToSelect includes sanitisedChainName and chainName equals sanitisedChainName
 						if (_chainsToSelect.includes(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
 							const _values = p.chainTvls[sectionName]
 
