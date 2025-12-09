@@ -223,6 +223,8 @@ export default function MultiSeriesChart2({
 			}
 		}
 
+		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
+
 		chartInstance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
@@ -257,7 +259,7 @@ export default function MultiSeriesChart2({
 			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -271,7 +273,7 @@ export default function MultiSeriesChart2({
 							...yAxis,
 							...(expandTo100Percent ? { max: 100, min: 0 } : {})
 						},
-			...(!hideDataZoom ? { dataZoom } : {}),
+			...(shouldHideDataZoom ? {} : { dataZoom }),
 			series,
 			dataset: {
 				source: data,

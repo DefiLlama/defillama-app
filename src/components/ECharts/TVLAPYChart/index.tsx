@@ -118,6 +118,8 @@ export default function AreaChart({
 
 		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
+		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
+
 		chartInstance.setOption({
 			graphic: { ...graphic },
 			tooltip: alwaysShowTooltip
@@ -149,7 +151,7 @@ export default function AreaChart({
 					}),
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: hideLegend ? 12 : 32,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -187,7 +189,7 @@ export default function AreaChart({
 								}
 							}
 						],
-			dataZoom,
+			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
 

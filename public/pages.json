@@ -139,14 +139,6 @@
       "oldName": "Delta Neutral Strategies"
     },
     {
-      "name": "Yields: Leveraged Lending",
-      "route": "/yields/loop",
-      "category": "Yields",
-      "description": "Pools by leveraged lending APY values",
-      "oldCategory": "Yields",
-      "oldName": "Leveraged Lending"
-    },
-    {
       "name": "Yields: All Projects",
       "route": "/yields/projects",
       "category": "Yields",
@@ -154,6 +146,14 @@
       "totalTrackedKey": "yields.protocols",
       "oldCategory": "Yields",
       "oldName": "All Projects"
+    },
+    {
+      "name": "Yields: Leveraged Lending",
+      "route": "/yields/loop",
+      "category": "Yields",
+      "description": "Pools by leveraged lending APY values",
+      "oldCategory": "Yields",
+      "oldName": "Leveraged Lending"
     },
     {
       "name": "Yields: APY Overview",
