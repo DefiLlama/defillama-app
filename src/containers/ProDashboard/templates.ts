@@ -92,7 +92,7 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		name: 'Perps Protocols',
 		description: 'Compare perpetual futures trading platforms',
 		type: 'protocols',
-		metrics: ['perps', 'openInterest', 'fees', 'revenue', 'tvl'],
+		metrics: ['perps', 'openInterest', 'fees', 'revenue'],
 		filter: { metadataFlag: 'perps' },
 		count: 4,
 		displayMode: 'stacked',
@@ -136,19 +136,8 @@ export const DASHBOARD_TEMPLATES: DashboardTemplate[] = [
 		name: 'DEX Aggregators',
 		description: 'Compare DEX aggregator protocols by volume',
 		type: 'protocols',
-		metrics: ['aggregators', 'fees', 'revenue', 'tvl'],
+		metrics: ['aggregators', 'fees', 'revenue'],
 		filter: { metadataFlag: 'dexAggregators' },
-		count: 4,
-		displayMode: 'stacked',
-		grouping: 'week'
-	},
-	{
-		id: 'derivatives-protocols',
-		name: 'Derivatives',
-		description: 'Compare options and derivatives protocols',
-		type: 'protocols',
-		metrics: ['optionsPremium', 'optionsNotional', 'fees', 'revenue', 'tvl'],
-		filter: { category: 'Derivatives' },
 		count: 4,
 		displayMode: 'stacked',
 		grouping: 'week'
@@ -219,14 +208,40 @@ interface SelectedItem {
 	name: string
 }
 
+export interface DimensionProtocol {
+	name: string
+	slug: string
+	displayName?: string
+	defillamaId?: string
+	total24h?: number
+}
+
+export interface DimensionProtocols {
+	perps?: DimensionProtocol[]
+	dexs?: DimensionProtocol[]
+	dexAggregators?: DimensionProtocol[]
+}
+
 function getSelectedItems(
 	template: DashboardTemplate,
 	protocols: Protocol[],
 	chains: Chain[],
 	protocolMetadata: Map<string, ProtocolMetadata>,
-	chainCategoryData?: ChainCategoryData
+	chainCategoryData?: ChainCategoryData,
+	dimensionProtocols?: DimensionProtocols
 ): SelectedItem[] {
 	if (template.type === 'protocols') {
+		if (template.filter.metadataFlag && dimensionProtocols) {
+			const dimensionKey = template.filter.metadataFlag as keyof DimensionProtocols
+			const dimensionData = dimensionProtocols[dimensionKey]
+			if (dimensionData && dimensionData.length > 0) {
+				return dimensionData.slice(0, template.count).map((p) => ({
+					slug: p.slug,
+					name: p.displayName || p.name
+				}))
+			}
+		}
+
 		let filtered = protocols
 
 		if (template.filter.category) {
@@ -241,7 +256,7 @@ function getSelectedItems(
 		}
 
 		return filtered
-			.filter((p) => !p.parentProtocol)
+			.filter((p) => template.filter.metadataFlag || !p.parentProtocol)
 			.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 			.slice(0, template.count)
 			.map((p) => ({ slug: p.slug, name: p.name }))
@@ -306,15 +321,15 @@ function generateTemplateTable(template: DashboardTemplate, selectedItems: Selec
 		columnVisibility[col] = true
 	}
 
-	const itemNames = selectedItems.map((item) => item.name)
+	const itemSlugs = selectedItems.map((item) => item.slug)
 
 	return {
 		id: generateId('unified-table', `template-${template.id}`),
 		kind: 'unified-table' as const,
 		rowHeaders: template.type === 'chains' ? ['chain'] : ['protocol'],
 		filters: {
-			protocols: template.type === 'protocols' ? itemNames : undefined,
-			chains: template.type === 'chains' ? itemNames : undefined
+			protocols: template.type === 'protocols' ? itemSlugs : undefined,
+			chains: template.type === 'chains' ? itemSlugs : undefined
 		},
 		columnOrder: tableConfig.columns,
 		columnVisibility,
@@ -362,9 +377,17 @@ export function generateTemplateCharts(
 	chains: Chain[],
 	protocolMetadata: Map<string, ProtocolMetadata>,
 	chartTypes: typeof CHART_TYPES,
-	chainCategoryData?: ChainCategoryData
+	chainCategoryData?: ChainCategoryData,
+	dimensionProtocols?: DimensionProtocols
 ): DashboardItemConfig[] {
-	const selectedItems = getSelectedItems(template, protocols, chains, protocolMetadata, chainCategoryData)
+	const selectedItems = getSelectedItems(
+		template,
+		protocols,
+		chains,
+		protocolMetadata,
+		chainCategoryData,
+		dimensionProtocols
+	)
 
 	if (selectedItems.length === 0) {
 		return []
