@@ -78,6 +78,23 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		const isMultiSeries = config.series && config.series.length > 1
 		let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
 
+		if (config.type === 'pie' && chartState.percentage) {
+			const pieData = (adaptedChart.props as any).chartData || []
+			const total = pieData.reduce((sum: number, item: any) => sum + item.value, 0)
+			const percentageData = pieData.map((item: any) => ({
+				...item,
+				value: total > 0 ? (item.value / total) * 100 : 0
+			}))
+			adaptedChart = {
+				...adaptedChart,
+				props: {
+					...(adaptedChart.props as any),
+					chartData: percentageData,
+					valueSymbol: '%'
+				}
+			}
+		}
+
 		const dataLength = isMultiSeries
 			? (adaptedChart.props as any).series?.[0]?.data?.length || 0
 			: adaptedChart.data?.length || data?.length || 0
@@ -329,7 +346,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 		return (
 			<div className="flex flex-col" data-chart-id={config.id}>
-				{config.displayOptions && !['pie', 'scatter'].includes(adaptedChart.chartType) && (
+				{config.displayOptions && !['scatter'].includes(adaptedChart.chartType) && (
 					<ChartControls
 						displayOptions={config.displayOptions}
 						stacked={chartState.stacked}
