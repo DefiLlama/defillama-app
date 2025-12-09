@@ -37,15 +37,6 @@ export async function captureChartById(chartId: string, title: string, isDark: b
 		const currentOptions: any = existingChart.getOption()
 
 		currentOptions.animation = false
-		currentOptions.title = {
-			text: title,
-			textStyle: {
-				fontSize: 24,
-				fontWeight: 600,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-			},
-			left: 14
-		}
 
 		if (currentOptions.xAxis) {
 			currentOptions.xAxis = currentOptions.xAxis.map((xAxis) => ({
