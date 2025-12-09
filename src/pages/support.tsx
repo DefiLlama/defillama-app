@@ -27,6 +27,10 @@ function Support() {
 		const form = e.target as HTMLFormElement
 		const formData = new FormData(form)
 
+		if (!formData.get('email')) {
+			formData.set('email', 'anon@defillama.com')
+		}
+
 		// Remove the file field if no file is selected
 		const fileInput = form.querySelector('input[type="file"]') as HTMLInputElement
 		if (fileInput && (!fileInput.files || fileInput.files.length === 0)) {
