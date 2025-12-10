@@ -35,7 +35,7 @@ export const DimensionProtocolChartByType = ({
 	dataType?: `${ADAPTER_DATA_TYPES}`
 	chartType: 'chain' | 'version'
 	breakdownNames: string[]
-	metadata?: { revenue?: boolean; bribeRevenue?: boolean; tokenTax?: boolean }
+	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 	title: string
 }) => {
 	const { data, isLoading, error } = useQuery({
