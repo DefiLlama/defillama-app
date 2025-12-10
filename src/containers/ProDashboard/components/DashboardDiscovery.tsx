@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
+import { DashboardBrowse } from './DashboardBrowse'
 import { DashboardCard } from './DashboardCard'
 import { DashboardSearch } from './DashboardSearch'
 
@@ -18,15 +19,31 @@ const itemsPerPageOptions = [
 const sortOptions = [
 	{ key: 'popular', name: 'Most Popular' },
 	{ key: 'recent', name: 'Recently Created' },
-	{ key: 'likes', name: 'Most Liked' }
+	{ key: 'likes', name: 'Most Liked' },
+	{ key: 'trending', name: 'Trending' }
 ] as const
 type SortOption = (typeof sortOptions)[number]
+const timeFrameOptions = [
+	{ key: '1d', name: 'Last 24 hours' },
+	{ key: '7d', name: 'Last 7 days' },
+	{ key: '30d', name: 'Last 30 days' }
+] as const
+type TimeFrameOption = (typeof timeFrameOptions)[number]
 
 export function DashboardDiscovery() {
 	const router = useRouter()
 
-	const { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage, itemsPerPage } = useMemo(() => {
-		const { view, tag, sortBy, query, page, limit } = router.query
+	const {
+		isBrowseMode,
+		viewMode,
+		selectedTags,
+		selectedSortBy,
+		selectedTimeFrame,
+		searchQuery,
+		selectedPage,
+		itemsPerPage
+	} = useMemo(() => {
+		const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
 
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
 		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
@@ -34,6 +51,10 @@ export function DashboardDiscovery() {
 			typeof sortBy === 'string'
 				? (sortOptions.find((option) => option.key === sortBy) ?? sortOptions[0])
 				: sortOptions[0]
+		const selectedTimeFrame =
+			typeof timeFrame === 'string'
+				? (timeFrameOptions.find((option) => option.key === timeFrame) ?? timeFrameOptions[1])
+				: timeFrameOptions[1]
 		const searchQuery = typeof query === 'string' ? query : ''
 		const selectedPage = typeof page === 'string' && !Number.isNaN(Number(page)) ? parseInt(page) : 1
 
@@ -45,14 +66,26 @@ export function DashboardDiscovery() {
 			}
 		}
 
-		return { viewMode, selectedTags, selectedSortBy, searchQuery, selectedPage, itemsPerPage }
+		const isBrowseMode = !query && !tag && !sortBy && !page
+
+		return {
+			isBrowseMode,
+			viewMode,
+			selectedTags,
+			selectedSortBy,
+			selectedTimeFrame,
+			searchQuery,
+			selectedPage,
+			itemsPerPage
+		}
 	}, [router.query])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
 		query: searchQuery,
 		tags: selectedTags,
 		visibility: 'public',
-		sortBy: selectedSortBy.key,
+		sortBy: selectedSortBy.key as 'popular' | 'recent' | 'likes' | 'trending',
+		timeFrame: selectedSortBy.key === 'trending' ? (selectedTimeFrame.key as '1d' | '7d' | '30d') : undefined,
 		page: selectedPage,
 		limit: itemsPerPage
 	})
@@ -95,117 +128,173 @@ export function DashboardDiscovery() {
 		let pages: number[]
 		if (selectedPage === 1) {
 			pages = [1, 2, 3]
-		}
-		else if (selectedPage === totalPages) {
+		} else if (selectedPage === totalPages) {
 			pages = [totalPages - 2, totalPages - 1, totalPages]
-		}
-		else {
+		} else {
 			pages = [selectedPage - 1, selectedPage, selectedPage + 1]
 		}
-		return pages.filter(page => page > 0 && page <= totalPages)
+		return pages.filter((page) => page > 0 && page <= totalPages)
 	}, [totalPages, selectedPage])
 
 	return (
 		<>
 			<div className="flex flex-col gap-1">
-				<h1 className="text-wrap text-(--text-label)">Explore public dashboards created by the community</h1>
-
-				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-					<DashboardSearch defaultValue={searchQuery} />
-
-					<div className="ml-auto flex flex-wrap items-center gap-4">
-						<Select
-							allValues={itemsPerPageOptions}
-							selectedValues={itemsPerPage.toString()}
-							setSelectedValues={handleItemsPerPageChange}
-							label={
-								<>
-									<span className="text-(--text-label)">Items per page:</span>
-									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{itemsPerPage}</span>
-								</>
-							}
-							labelType="none"
-							triggerProps={{
-								className:
-									'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
-							}}
-							aria-label="Items per page"
-						/>
-						<Select
-							allValues={sortOptions}
-							selectedValues={selectedSortBy.key}
-							setSelectedValues={(value) => {
-								const { page, ...queryWithoutPage } = router.query
+				{!isBrowseMode && (
+					<nav className="flex items-center gap-1 text-sm">
+						<button
+							onClick={() => {
 								router.push(
 									{
 										pathname: '/pro',
-										query: { ...queryWithoutPage, sortBy: value as SortOption['key'] }
+										query: { tab: 'discover' }
 									},
 									undefined,
 									{ shallow: true }
 								)
 							}}
-							label={
-								<>
-									<span className="text-(--text-label)">Sort by:</span>
-									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{selectedSortBy.name}</span>
-								</>
-							}
-							labelType="none"
-							triggerProps={{
-								className:
-									'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
-							}}
-							aria-label="Sort by"
-						/>
+							className="text-(--old-blue) hover:underline"
+						>
+							Discover
+						</button>
+						<Icon name="chevron-right" height={14} width={14} className="text-(--text-label)" />
+						<span className="text-(--text-label)">
+							{selectedSortBy.name}
+							{selectedSortBy.key === 'trending' ? ` (${selectedTimeFrame.name})` : ''}
+						</span>
+					</nav>
+				)}
 
-						<div className="flex items-center rounded-md border border-(--form-control-border)">
-							<button
-								onClick={() => {
+				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+					<DashboardSearch defaultValue={searchQuery} />
+
+					{!isBrowseMode && (
+						<div className="ml-auto flex flex-wrap items-center gap-4">
+							<Select
+								allValues={itemsPerPageOptions}
+								selectedValues={itemsPerPage.toString()}
+								setSelectedValues={handleItemsPerPageChange}
+								label={
+									<>
+										<span className="text-(--text-label)">Items per page:</span>
+										<span className="overflow-hidden text-ellipsis whitespace-nowrap">{itemsPerPage}</span>
+									</>
+								}
+								labelType="none"
+								triggerProps={{
+									className:
+										'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+								}}
+								aria-label="Items per page"
+							/>
+							<Select
+								allValues={sortOptions}
+								selectedValues={selectedSortBy.key}
+								setSelectedValues={(value) => {
+									const { ...queryWithoutPage } = router.query
+									const newQuery: Record<string, any> = { ...queryWithoutPage, sortBy: value as SortOption['key'] }
+									if (value === 'trending') {
+										newQuery.timeFrame = '7d'
+									}
 									router.push(
 										{
 											pathname: '/pro',
-											query: {
-												...router.query,
-												view: 'grid'
-											}
+											query: newQuery
 										},
 										undefined,
-										{
-											shallow: true
-										}
+										{ shallow: true }
 									)
 								}}
-								data-active={viewMode === 'grid'}
-								className="rounded-l-md border-r border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							>
-								<Icon name="layers" height={16} width={16} />
-								<span className="sr-only">View as grid</span>
-							</button>
-							<button
-								onClick={() => {
-									router.push(
-										{
-											pathname: '/pro',
-											query: {
-												...router.query,
-												view: 'list'
+								label={
+									<>
+										<span className="text-(--text-label)">Sort by:</span>
+										<span className="overflow-hidden text-ellipsis whitespace-nowrap">{selectedSortBy.name}</span>
+									</>
+								}
+								labelType="none"
+								triggerProps={{
+									className:
+										'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+								}}
+								aria-label="Sort by"
+							/>
+							{selectedSortBy.key === 'trending' && (
+								<Select
+									allValues={timeFrameOptions}
+									selectedValues={selectedTimeFrame.key}
+									setSelectedValues={(value) => {
+										const { page, ...queryWithoutPage } = router.query
+										router.push(
+											{
+												pathname: '/pro',
+												query: { ...queryWithoutPage, timeFrame: value as TimeFrameOption['key'] }
+											},
+											undefined,
+											{ shallow: true }
+										)
+									}}
+									label={
+										<>
+											<span className="text-(--text-label)">Time:</span>
+											<span className="overflow-hidden text-ellipsis whitespace-nowrap">{selectedTimeFrame.name}</span>
+										</>
+									}
+									labelType="none"
+									triggerProps={{
+										className:
+											'rounded-md flex items-center gap-1 flex items-center justify-between rounded-md border border-(--form-control-border) px-2 py-1.5'
+									}}
+									aria-label="Time frame"
+								/>
+							)}
+
+							<div className="flex items-center rounded-md border border-(--form-control-border)">
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: {
+													...router.query,
+													view: 'grid'
+												}
+											},
+											undefined,
+											{
+												shallow: true
 											}
-										},
-										undefined,
-										{
-											shallow: true
-										}
-									)
-								}}
-								data-active={viewMode === 'list'}
-								className="rounded-r-md border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							>
-								<Icon name="align-left" height={16} width={16} />
-								<span className="sr-only">View as list</span>
-							</button>
+										)
+									}}
+									data-active={viewMode === 'grid'}
+									className="rounded-l-md border-r border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								>
+									<Icon name="layers" height={16} width={16} />
+									<span className="sr-only">View as grid</span>
+								</button>
+								<button
+									onClick={() => {
+										router.push(
+											{
+												pathname: '/pro',
+												query: {
+													...router.query,
+													view: 'list'
+												}
+											},
+											undefined,
+											{
+												shallow: true
+											}
+										)
+									}}
+									data-active={viewMode === 'list'}
+									className="rounded-r-md border-(--form-control-border) p-2 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								>
+									<Icon name="align-left" height={16} width={16} />
+									<span className="sr-only">View as list</span>
+								</button>
+							</div>
 						</div>
-					</div>
+					)}
 				</div>
 
 				{selectedTags.length > 0 && (
@@ -269,7 +358,9 @@ export function DashboardDiscovery() {
 				)}
 			</div>
 
-			{isLoading ? (
+			{isBrowseMode ? (
+				<DashboardBrowse onTagClick={handleTagClick} />
+			) : isLoading ? (
 				<>
 					<p className="-mb-2 text-xs text-(--text-label)">Loading dashboards…</p>
 					<LoadingSkeleton viewMode={viewMode} items={DEFAULT_PAGE_LIMIT} />
@@ -316,7 +407,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage < 3}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
 								>
 									<Icon name="chevrons-left" height={16} width={16} />
 								</button>
@@ -332,7 +423,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage === 1}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
 								>
 									<Icon name="chevron-left" height={16} width={16} />
 								</button>
@@ -352,7 +443,7 @@ export function DashboardDiscovery() {
 												)
 											}}
 											data-active={isActive}
-											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white hover:bg-(--btn-bg) transition-colors"
+											className="h-[32px] min-w-[32px] flex-shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										>
 											{pageNum}
 										</button>
@@ -370,7 +461,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage === totalPages}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
 								>
 									<Icon name="chevron-right" height={16} width={16} />
 								</button>
@@ -386,7 +477,7 @@ export function DashboardDiscovery() {
 										)
 									}}
 									disabled={selectedPage > totalPages - 2}
-									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) disabled:hidden hover:bg-(--btn-bg) transition-colors"
+									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
 								>
 									<Icon name="chevrons-right" height={16} width={16} />
 								</button>

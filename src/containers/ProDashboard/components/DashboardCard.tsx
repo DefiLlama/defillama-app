@@ -16,7 +16,6 @@ interface DashboardCardProps {
 
 export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'grid' }: DashboardCardProps) {
 	const [isDeleting, setIsDeleting] = useState<boolean>(false)
-
 	const handleDelete = async (dashboardId: string, e: React.MouseEvent) => {
 		e.stopPropagation()
 		if (!onDelete) return
@@ -142,10 +141,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 				<p
 					className="flex items-center gap-1 text-xs text-(--text-form)"
-					title={new Date(dashboard.updated).toLocaleString()}
+					title={new Date(dashboard.editedAt || dashboard.updated).toLocaleString()}
 				>
 					<Icon name="clock" height={12} width={12} />
-					<span>Updated {new Date(dashboard.updated).toLocaleDateString()}</span>
+					<span>Updated {new Date(dashboard.editedAt || dashboard.updated).toLocaleDateString()}</span>
 				</p>
 			</div>
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">

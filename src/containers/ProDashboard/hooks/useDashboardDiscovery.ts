@@ -7,7 +7,8 @@ interface SearchParams {
 	query?: string
 	tags?: string[]
 	visibility?: 'public' | 'private'
-	sortBy?: 'popular' | 'recent' | 'likes'
+	sortBy?: 'popular' | 'recent' | 'likes' | 'trending'
+	timeFrame?: '1d' | '7d' | '30d'
 	page?: number
 	limit?: number
 }
@@ -19,7 +20,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 	const isSearchMode = params.query || params.tags?.length > 0 ? true : false
 
 	const discoverQuery = useQuery({
-		queryKey: ['dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy],
+		queryKey: ['dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy, params.timeFrame],
 		queryFn: async () => {
 			if (isSearchMode) return null
 
@@ -28,6 +29,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 					{
 						visibility: 'public',
 						sortBy: params.sortBy,
+						timeFrame: params.timeFrame,
 						page: params.page || 1,
 						limit: params.limit || 20
 					},

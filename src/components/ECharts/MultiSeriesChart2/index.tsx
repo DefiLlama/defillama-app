@@ -223,7 +223,7 @@ export default function MultiSeriesChart2({
 			}
 		}
 
-		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
+		const shouldHideDataZoom = data.length < 2 || hideDataZoom
 
 		chartInstance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
