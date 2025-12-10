@@ -157,7 +157,7 @@ export async function getAdapterChainChartData({
 	}
 
 	if (dataType) {
-		totalDataChartUrl += `&dataType=${dataType}`
+		totalDataChartUrl += `?dataType=${dataType}`
 	}
 
 	const totalDataChart = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
@@ -177,7 +177,7 @@ export async function getAdapterProtocolChartData({
 	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
-		totalDataChartUrl += `&dataType=${dataType}`
+		totalDataChartUrl += `?dataType=${dataType}`
 	}
 
 	const totalDataChart = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
@@ -202,7 +202,7 @@ export async function getAdapterChainOverview({
 		let summaryUrl = `${V2_SERVER_URL}/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 		if (dataType) {
-			summaryUrl += `&dataType=${dataType}`
+			summaryUrl += `?dataType=${dataType}`
 		}
 
 		const [overviewData, totalDataChart] = await Promise.all([
@@ -216,7 +216,7 @@ export async function getAdapterChainOverview({
 		let summaryUrl = `${V2_SERVER_URL}/${adapterType}`
 
 		if (dataType) {
-			summaryUrl += `&dataType=dailyRevenue`
+			summaryUrl += `?dataType=dailyRevenue`
 		}
 
 		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
@@ -341,7 +341,7 @@ export async function getAdapterProtocolSummary({
 	let summaryUrl = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
-		summaryUrl += `&dataType=${dataType}`
+		summaryUrl += `?dataType=${dataType}`
 	}
 
 	const [overviewData, totalDataChart] = await Promise.all([
