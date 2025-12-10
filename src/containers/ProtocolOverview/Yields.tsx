@@ -33,7 +33,9 @@ export function ProtocolPools({ protocol, data, parentProtocol, otherProtocols }
 							projectslug: i.project
 						})) ?? null
 			),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	return (

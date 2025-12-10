@@ -15,7 +15,9 @@ export const usePriceCharts = (geckoIds = []) => {
 					return { data: res }
 				}
 			},
-			staleTime: 10 * 60 * 1000
+			staleTime: 10 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0
 		}))
 	})
 	return {

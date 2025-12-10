@@ -421,7 +421,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			) ?? null
 
 		const topProtocolsByFeesChart =
-			fees?.totalDataChartBreakdown?.length > 0
+			fees?.protocols?.length > 0
 				? (protocols
 						.sort((a, b) => (b.fees?.total24h ?? 0) - (a.fees?.total24h ?? 0))
 						.filter((a) => (a.fees?.total24h ? true : false))
@@ -430,9 +430,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				: null
 
 		const feesGenerated24h =
-			fees?.totalDataChartBreakdown?.length > 0
-				? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0)
-				: null
+			fees?.protocols?.length > 0 ? fees.protocols.reduce((acc, curr) => (acc += curr.total24h || 0), 0) : null
 
 		const uniqueUnlockTokens = new Set<string>()
 		let total14dUnlocks = 0
@@ -567,7 +565,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			chainFees: {
 				total24h: chainFees?.total24h ?? null,
 				feesGenerated24h: feesGenerated24h,
-				topProtocolsChart: topProtocolsByFeesChart,
+				topProtocolsChart: topProtocolsByFeesChart?.length > 0 ? topProtocolsByFeesChart : null,
 				totalREV24h: chainREV
 			},
 			chainRevenue: { total24h: chainRevenue?.total24h ?? null },
@@ -668,7 +666,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					adapterType: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: false
+					excludeTotalDataChartBreakdown: true
 				}).catch((err) => {
 					console.log(err)
 					return null

@@ -30,7 +30,8 @@ export default function Tokens() {
 	const { data: protocols, isLoading } = useQuery({
 		queryKey: ['protocols-by-token', tokenSymbol],
 		queryFn: () => fetchProtocols(tokenSymbol),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false
 	})
 
 	const filteredProtocols = useMemo(() => {

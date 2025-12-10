@@ -1,5 +1,4 @@
 import { fetchCoinPrices } from '~/api'
-import type { IFusedProtocolData, IProtocolResponse } from '~/api/types'
 import {
 	CATEGORY_COIN_PRICES_API,
 	CATEGORY_INFO_API,
@@ -398,35 +397,6 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		console.log(e)
 
 		return { chartData: { documented: [], realtime: [] }, categories: { documented: [], realtime: [] } }
-	}
-}
-
-export const fuseProtocolData = (protocolData: IProtocolResponse): IFusedProtocolData => {
-	const tvlBreakdowns = protocolData?.currentChainTvls ?? {}
-
-	const historicalChainTvls = protocolData?.chainTvls ?? {}
-
-	const tvlByChain =
-		Object.entries(protocolData?.currentChainTvls ?? {})?.sort(
-			(a: [string, number], b: [string, number]) => b[1] - a[1]
-		) ?? []
-
-	const onlyChains = tvlByChain.filter((c) => {
-		const name = c[0]
-
-		if (name[0] === name[0]?.toLowerCase() || name.includes('-')) {
-			return false
-		} else return true
-	})
-
-	const chains = onlyChains.length === 0 ? (protocolData?.chains ?? []) : [onlyChains[0][0]]
-
-	return {
-		...protocolData,
-		tvlBreakdowns,
-		tvlByChain,
-		chains,
-		historicalChainTvls
 	}
 }
 

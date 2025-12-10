@@ -10,12 +10,7 @@ import {
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
-import {
-	getAdapterChainOverview,
-	getAdapterProtocolSummary,
-	IAdapterOverview,
-	IAdapterSummary
-} from '~/containers/DimensionAdapters/queries'
+import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { getPercentChange, getPrevTvlFromChart, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -72,111 +67,108 @@ export const useFetchChainChartData = ({
 				return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
 			}),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: denominationGeckoId ? true : false
 	})
 
 	const isChainFeesEnabled = toggledCharts.includes('Chain Fees') ? true : false
-	const { data: chainFeesData = null, isLoading: fetchingChainFees } = useQuery<IAdapterSummary>({
+	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainFees', selectedChain, isChainFeesEnabled],
 		queryFn: () =>
 			isChainFeesEnabled
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolChartData({
 						adapterType: 'fees',
-						protocol: selectedChain,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
+						protocol: selectedChain
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainFeesEnabled
 	})
 
 	const isChainRevenueEnabled = toggledCharts.includes('Chain Revenue') ? true : false
-	const { data: chainRevenueData = null, isLoading: fetchingChainRevenue } = useQuery<IAdapterSummary>({
+	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainRevenue', selectedChain, isChainRevenueEnabled],
 		queryFn: () =>
 			isChainRevenueEnabled
-				? getAdapterProtocolSummary({
+				? getAdapterProtocolChartData({
 						adapterType: 'fees',
 						protocol: selectedChain,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainRevenueEnabled
 	})
 
 	const isDexVolumeEnabled = toggledCharts.includes('DEXs Volume') ? true : false
-	const { data: dexVolumeData = null, isLoading: fetchingDexVolume } = useQuery<IAdapterOverview>({
+	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['dexVolume', selectedChain, isDexVolumeEnabled],
 		queryFn: () =>
 			isDexVolumeEnabled
-				? getAdapterChainOverview({
+				? getAdapterChainChartData({
 						chain: selectedChain,
-						adapterType: 'dexs',
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
+						adapterType: 'dexs'
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isDexVolumeEnabled
 	})
 
 	const isPerpsVolumeEnabled = toggledCharts.includes('Perps Volume') ? true : false
-	const { data: perpsVolumeData = null, isLoading: fetchingPerpVolume } = useQuery<IAdapterOverview>({
+	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['perpVolume', selectedChain, isPerpsVolumeEnabled],
 		queryFn: () =>
 			isPerpsVolumeEnabled
-				? getAdapterChainOverview({
+				? getAdapterChainChartData({
 						chain: selectedChain,
-						adapterType: 'derivatives',
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
+						adapterType: 'derivatives'
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isPerpsVolumeEnabled
 	})
 
 	const isChainAppFeesEnabled = toggledCharts.includes('App Fees') ? true : false
-	const { data: chainAppFeesData = null, isLoading: fetchingChainAppFees } = useQuery<IAdapterOverview>({
+	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainAppFees', selectedChain, isChainAppFeesEnabled],
 		queryFn: () =>
 			isChainAppFeesEnabled
-				? getAdapterChainOverview({
+				? getAdapterChainChartData({
 						adapterType: 'fees',
 						chain: selectedChain,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppFees'
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainAppFeesEnabled
 	})
 
 	const isChainAppRevenueEnabled = toggledCharts.includes('App Revenue') ? true : false
-	const { data: chainAppRevenueData = null, isLoading: fetchingChainAppRevenue } = useQuery<IAdapterOverview>({
+	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
+		Array<[number, number]>
+	>({
 		queryKey: ['chainAppRevenue', selectedChain, isChainAppRevenueEnabled],
 		queryFn: () =>
 			isChainAppRevenueEnabled
-				? getAdapterChainOverview({
+				? getAdapterChainChartData({
 						adapterType: 'fees',
 						chain: selectedChain,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppRevenue'
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainAppRevenueEnabled
 	})
@@ -203,6 +195,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
 		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isBridgedTvlEnabled
 	})
@@ -228,6 +221,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isRaisesEnabled
 	})
@@ -247,6 +241,7 @@ export const useFetchChainChartData = ({
 						.catch(() => null)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainIncentivesEnabled
 	})
@@ -375,55 +370,55 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (chainFeesData) {
+		if (chainFeesDataChart) {
 			const chartName: ChainChartLabels = 'Chain Fees' as const
 			charts[chartName] = formatBarChart({
-				data: chainFeesData.totalDataChart,
+				data: chainFeesDataChart,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
-		if (chainRevenueData) {
+		if (chainRevenueDataChart) {
 			const chartName: ChainChartLabels = 'Chain Revenue' as const
 			charts[chartName] = formatBarChart({
-				data: chainRevenueData.totalDataChart,
+				data: chainRevenueDataChart,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
-		if (dexVolumeData) {
+		if (dexVolumeDataChart) {
 			const chartName: ChainChartLabels = 'DEXs Volume' as const
 			charts[chartName] = formatBarChart({
-				data: dexVolumeData.totalDataChart,
+				data: dexVolumeDataChart,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
-		if (perpsVolumeData) {
+		if (perpsVolumeDataChart) {
 			const chartName: ChainChartLabels = 'Perps Volume' as const
 			charts[chartName] = formatBarChart({
-				data: perpsVolumeData.totalDataChart,
+				data: perpsVolumeDataChart,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
-		if (chainAppFeesData) {
+		if (chainAppFeesDataChart) {
 			const chartName: ChainChartLabels = 'App Fees' as const
 			charts[chartName] = formatBarChart({
-				data: chainAppFeesData.totalDataChart,
+				data: chainAppFeesDataChart,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
 		}
 
-		if (chainAppRevenueData) {
+		if (chainAppRevenueDataChart) {
 			const chartName: ChainChartLabels = 'App Revenue' as const
 			charts[chartName] = formatBarChart({
-				data: chainAppRevenueData.totalDataChart,
+				data: chainAppRevenueDataChart,
 				groupBy,
 				denominationPriceHistory: isDenominationEnabled ? denominationPriceHistory?.prices : null
 			})
@@ -570,17 +565,17 @@ export const useFetchChainChartData = ({
 		isDenominationEnabled,
 		denominationPriceHistory,
 		fetchingChainFees,
-		chainFeesData,
+		chainFeesDataChart,
 		fetchingChainRevenue,
-		chainRevenueData,
+		chainRevenueDataChart,
 		fetchingDexVolume,
-		dexVolumeData,
+		dexVolumeDataChart,
 		fetchingPerpVolume,
-		perpsVolumeData,
+		perpsVolumeDataChart,
 		fetchingChainAppFees,
-		chainAppFeesData,
+		chainAppFeesDataChart,
 		fetchingChainAppRevenue,
-		chainAppRevenueData,
+		chainAppRevenueDataChart,
 		isTokenPriceEnabled,
 		isTokenMcapEnabled,
 		isTokenVolumeEnabled,

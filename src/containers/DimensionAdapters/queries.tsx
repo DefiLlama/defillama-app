@@ -1,11 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import {
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
-	PROTOCOLS_API,
-	REV_PROTOCOLS,
-	ZERO_FEE_PERPS
-} from '~/constants'
+import { PROTOCOLS_API, REV_PROTOCOLS, SERVER_URL, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -108,14 +102,18 @@ export interface IAdapterSummary {
 	totalDataChartBreakdown: Array<[number, Record<string, Record<string, number>>]>
 	totalDataChart: Array<[number, number]>
 	linkedProtocols?: string[]
+	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	doublecounted?: boolean
+	hasLabelBreakdown?: boolean
+	breakdownMethodology?: Record<string, Record<string, string>>
 	childProtocols?: Array<{
+		name: string
 		defillamaId: string
 		displayName: string
 		methodologyURL: string
 		methodology: Record<string, string>
+		breakdownMethodology: Record<string, Record<string, string>>
 	}>
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
-	doublecounted?: boolean
 }
 
 //breakdown is using chain internal name so we need to map it
@@ -142,6 +140,73 @@ function getInternalChainName(displayChain: string, chainMapping: Record<string,
 	return slug(displayChain)
 }
 
+export async function getAdapterChainChartData({
+	adapterType,
+	chain,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+}) {
+	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+
+	if (dataType === 'dailyEarnings') {
+		//earnings we don't need to filter by chain, instead we filter it later on
+		totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}`
+	}
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return data
+}
+
+export async function getAdapterProtocolChartData({
+	adapterType,
+	protocol,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+}) {
+	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}/protocol/${slug(protocol)}`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return data
+}
+
+export async function getAdapterProtocolChartDataByType({
+	adapterType,
+	protocol,
+	dataType,
+	type
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	type: 'chain' | 'version'
+}) {
+	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${type}-breakdown/${adapterType}/protocol/${slug(protocol)}`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return data as Array<[number, Record<string, number>]>
+}
+
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -156,32 +221,36 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}${
-			chain && chain !== 'All' ? `/${slug(chain)}` : ''
-		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let summaryUrl = `${V2_SERVER_URL}/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 		if (dataType) {
-			url += `&dataType=${dataType}`
+			summaryUrl += `?dataType=${dataType}`
 		}
 
-		const data = await fetchJson(url, { timeout: 30_000 })
+		const [overviewData, totalDataChart] = await Promise.all([
+			fetchJson(summaryUrl, { timeout: 30_000 }),
+			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
+		])
 
-		return data as IAdapterOverview
+		return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let url = `${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		let summaryUrl = `${V2_SERVER_URL}/${adapterType}`
 
 		if (dataType) {
-			url += `&dataType=dailyRevenue`
+			summaryUrl += `?dataType=dailyRevenue`
 		}
 
-		const [data, emissionsData, chainMapping] = await Promise.all([
-			fetchJson(url),
+		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
+			fetchJson(summaryUrl),
+			excludeTotalDataChart
+				? Promise.resolve([])
+				: getAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' }),
 			getEmissionsData(),
 			getChainMapping()
 		])
 
-		const earningsData = processEarningsData(data, emissionsData)
+		const earningsData = processEarningsData(overviewData, emissionsData)
 
 		let filteredEarningsData = earningsData
 		let chainSpecificTotal24h = 0
@@ -263,7 +332,9 @@ export async function getAdapterChainOverview({
 		}
 
 		return {
-			...data,
+			...overviewData,
+			totalDataChart,
+			totalDataChartBreakdown: [],
 			chain,
 			total24h: chainSpecificTotal24h,
 			total7d: chainSpecificTotal7d,
@@ -287,17 +358,20 @@ export async function getAdapterProtocolSummary({
 	excludeTotalDataChartBreakdown: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
-	let url = `${DIMENISIONS_SUMMARY_BASE_API}/${adapterType}${
-		protocol && protocol !== 'All' ? `/${slug(protocol)}` : ''
-	}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+	if (protocol == 'All') throw new Error('Protocol cannot be All')
+
+	let summaryUrl = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
-		url += `&dataType=${dataType}`
+		summaryUrl += `?dataType=${dataType}`
 	}
 
-	const data = await fetchJson(url)
+	const [overviewData, totalDataChart] = await Promise.all([
+		fetchJson(summaryUrl),
+		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
+	])
 
-	return data as IAdapterSummary
+	return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterSummary
 }
 
 export async function getCexVolume() {
@@ -518,7 +592,7 @@ export const getAdapterByChainPageData = async ({
 			adapterType,
 			chain,
 			dataType,
-			excludeTotalDataChart: false,
+			excludeTotalDataChart: adapterType === 'fees' ? true : false,
 			excludeTotalDataChartBreakdown: true
 		}),
 		fetchJson(PROTOCOLS_API),
@@ -527,7 +601,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyBribesRevenue',
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			: Promise.resolve(null),
@@ -536,7 +610,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyTokenTaxes',
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			: Promise.resolve(null),
@@ -545,7 +619,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType: 'open-interest',
 					chain,
 					dataType: 'openInterestAtEnd',
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			: Promise.resolve(null)
@@ -873,6 +947,7 @@ export const getAdapterByChainPageData = async ({
 	}
 }
 
+// only returns fees paid by users when using the chain (gas ?), not the fees paid by users when using the protocols on chain
 export const getChainsByFeesAdapterPageData = async ({
 	adapterType,
 	dataType
@@ -882,13 +957,13 @@ export const getChainsByFeesAdapterPageData = async ({
 }): Promise<IChainsByAdapterPageData> => {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const allChains: Array<string> = []
+		const allChainsSet = new Set<string>()
 
 		for (const chain in metadataCache.chainMetadata) {
 			const chainMetadata = metadataCache.chainMetadata[chain]
 			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
 			if (sType && chainMetadata[sType]) {
-				allChains.push(chainMetadata.name)
+				allChainsSet.add(chainMetadata.name)
 			}
 		}
 
@@ -899,21 +974,21 @@ export const getChainsByFeesAdapterPageData = async ({
 				chain: 'All',
 				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
 			getAdapterChainOverview({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
 				chain: 'All',
-				excludeTotalDataChart: false,
+				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name))),
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
 			getAdapterChainOverview({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
 				chain: 'All',
-				excludeTotalDataChart: false,
+				excludeTotalDataChart: true,
 				excludeTotalDataChartBreakdown: true
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChains.includes(p.name)))
+			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
 		])
 
 		const bribesByChain = {}
@@ -959,119 +1034,102 @@ export const getChainsByFeesAdapterPageData = async ({
 	}
 }
 
+// returns combined metrics of all protocols by chain
 export const getChainsByAdapterPageData = async ({
 	adapterType,
-	dataType,
-	route
+	dataType
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
-	route: string
 }): Promise<IChainsByAdapterPageData> => {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const allChains = []
+		const allChains: Array<string> = []
 
 		for (const chain in metadataCache.chainMetadata) {
 			const chainMetadata = metadataCache.chainMetadata[chain]
 			const sType =
-				adapterType === 'fees' && dataType === 'dailyRevenue'
-					? 'chainRevenue'
+				adapterType === 'fees'
+					? dataType === 'dailyRevenue'
+						? 'chainRevenue'
+						: 'chainFees'
 					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
 			if (sType && chainMetadata[sType]) {
 				allChains.push(chainMetadata.name)
 			}
 		}
 
-		const chainsData = (
-			await Promise.allSettled(
-				allChains.map(async (chain) =>
-					getAdapterChainOverview({
+		const [chainsData, chartData, bribesData, tokenTaxesData, openInterestData]: [
+			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
+			Array<[number, Record<string, number>]>,
+			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
+			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
+			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>
+		] = await Promise.all([
+			getDimensionAdapterOverviewOfAllChains({
+				adapterType,
+				dataType
+			}),
+			adapterType === 'fees' ? Promise.resolve([]) : fetchJson(`${V2_SERVER_URL}/chart/chain-breakdown/${adapterType}`),
+			adapterType === 'fees'
+				? getDimensionAdapterOverviewOfAllChains({
 						adapterType,
-						dataType,
-						chain,
-						excludeTotalDataChart: adapterType === 'fees' ? true : false,
-						excludeTotalDataChartBreakdown: true
+						dataType: 'dailyBribesRevenue'
+					}).catch(() => {
+						return {}
 					})
-				)
-			)
-		)
-			.map((e) => (e.status === 'fulfilled' ? e.value : null))
-			.filter((e) => e != null)
-
-		const bribesData =
+				: Promise.resolve({}),
 			adapterType === 'fees'
-				? (
-						await Promise.allSettled(
-							allChains.map(async (chain) =>
-								getAdapterChainOverview({
-									adapterType,
-									dataType: 'dailyBribesRevenue',
-									chain,
-									excludeTotalDataChart: true,
-									excludeTotalDataChartBreakdown: true
-								})
-							)
-						)
-					)
-						.map((e) => (e.status === 'fulfilled' ? e.value : null))
-						.filter((e) => e != null)
-				: []
-
-		const tokenTaxesData =
-			adapterType === 'fees'
-				? (
-						await Promise.allSettled(
-							allChains.map(async (chain) =>
-								getAdapterChainOverview({
-									adapterType,
-									dataType: 'dailyTokenTaxes',
-									chain,
-									excludeTotalDataChart: true,
-									excludeTotalDataChartBreakdown: true
-								})
-							)
-						)
-					)
-						.map((e) => (e.status === 'fulfilled' ? e.value : null))
-						.filter((e) => e != null)
-				: []
+				? getDimensionAdapterOverviewOfAllChains({
+						adapterType,
+						dataType: 'dailyTokenTaxes'
+					}).catch(() => {
+						return {}
+					})
+				: Promise.resolve({}),
+			adapterType === 'derivatives'
+				? getDimensionAdapterOverviewOfAllChains({
+						adapterType: 'open-interest',
+						dataType: 'openInterestAtEnd'
+					}).catch((err) => {
+						console.log(err)
+						return {}
+					})
+				: Promise.resolve({})
+		])
 
 		const bribesByChain = {}
 		const tokenTaxesByChain = {}
+		const openInterestByChain = {}
 
-		for (const chain of bribesData) {
-			bribesByChain[chain.chain] = {
-				total24h: chain.total24h ?? null,
-				total30d: chain.total30d ?? null
+		for (const chain in bribesData) {
+			bribesByChain[chain] = {
+				total24h: bribesData[chain]?.['24h'] ?? null,
+				total30d: bribesData[chain]?.['30d'] ?? null
 			}
 		}
 
-		for (const chain of tokenTaxesData) {
-			tokenTaxesByChain[chain.chain] = {
-				total24h: chain.total24h ?? null,
-				total30d: chain.total30d ?? null
+		for (const chain in tokenTaxesData) {
+			tokenTaxesByChain[chain] = {
+				total24h: tokenTaxesData[chain]?.['24h'] ?? null,
+				total30d: tokenTaxesData[chain]?.['30d'] ?? null
 			}
 		}
 
-		const chartData = {}
-
-		for (const chain of chainsData) {
-			for (const [date, value] of chain.totalDataChart) {
-				chartData[date] = chartData[date] || {}
-				chartData[date][chain.chain] = value
-			}
+		for (const chain in openInterestData) {
+			openInterestByChain[chain] = openInterestData[chain]?.['24h'] ?? null
 		}
 
-		const chains = chainsData
-			.map((c) => {
+		const chains = allChains
+			.map((chain) => {
 				return {
-					name: c.chain,
-					logo: chainIconUrl(c.chain),
-					total24h: c.total24h ?? null,
-					total30d: c.total30d ?? null,
-					...(bribesByChain[c.chain] ? { bribes: bribesByChain[c.chain] } : {}),
-					...(tokenTaxesByChain[c.chain] ? { tokenTax: tokenTaxesByChain[c.chain] } : {})
+					name: chain,
+					logo: chainIconUrl(chain),
+					total24h: chainsData[chain]?.['24h'] ?? null,
+					total30d: chainsData[chain]?.['30d'] ?? null,
+					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
+					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),
+					...(openInterestByChain[chain] ? { openInterest: openInterestByChain[chain] } : {})
 				}
 			})
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
@@ -1093,7 +1151,8 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-		const allChains = []
+		const allChains: Array<string> = []
+
 		for (const chain in metadataCache.chainMetadata) {
 			if (metadataCache.chainMetadata[chain]['chainFees']) {
 				allChains.push(chain)
@@ -1105,7 +1164,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 				getAdapterChainOverview({
 					adapterType: 'fees',
 					chain,
-					excludeTotalDataChart: false,
+					excludeTotalDataChart: true,
 					excludeTotalDataChartBreakdown: true
 				})
 			)

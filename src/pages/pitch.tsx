@@ -167,7 +167,9 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 			queryKey: ['investors', filters],
 			queryFn: () => fetchInvestors(filters),
 			enabled: hasSelectedFilters,
-			staleTime: 60 * 60 * 1000
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0
 		})
 	}
 

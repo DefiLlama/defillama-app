@@ -30,6 +30,7 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 							})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!chain
 	})
@@ -39,6 +40,8 @@ export const useFetchBridgeVolume = (chain: string = 'all') => {
 	return useQuery({
 		queryKey: ['bridgeVolume', chain],
 		queryFn: () => fetchJson(`${BRIDGEVOLUME_API}/${chain}`),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 }

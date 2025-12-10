@@ -41,7 +41,9 @@ export default function CompareFdv({ coinsData, protocols }) {
 							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
 				: () => null,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	let newPrice, increase

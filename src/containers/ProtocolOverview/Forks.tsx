@@ -18,7 +18,9 @@ export function ForksData({ protocolName }: { protocolName: string }) {
 						}
 					: null
 			),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	if (isLoading) {

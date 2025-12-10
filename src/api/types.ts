@@ -160,14 +160,6 @@ export interface IChain {
 	chainId: number | null
 }
 
-export interface IStackedDataset {
-	[key: number]: {
-		[key: string]: {
-			[key: string]: number
-		}
-	}
-}
-
 export interface IChainData {
 	[key: string]: [number, number][]
 }
@@ -292,17 +284,6 @@ export interface IFormattedProtocol extends LiteProtocol {
 	optionsVolumeByChain?: Record<string, ChainMetricSnapshot>
 }
 
-export interface IFusedProtocolData extends Omit<IProtocolResponse, 'tvl'> {
-	tvlBreakdowns: ICurrentChainTvls
-	tvlByChain: [string, number][]
-	historicalChainTvls: IChainTvl
-}
-
-export interface ICategory {
-	label: string
-	to: string
-}
-
 export type TCompressedChain = [string, { [chain: string]: { [dataType: string]: number } }]
 
 export interface IResponseCGMarketsAPI {
@@ -334,20 +315,3 @@ export interface IResponseCGMarketsAPI {
 	total_volume: number
 	image2: string
 }
-
-export interface IProtocolDevActivity {
-	project_id: string
-	last_commit_update_time: string
-	last_report_generated_time: string
-	project_type: string
-	name: string
-	linked_orgs: Array<string>
-	report: {
-		weekly_devs: Array<{ k: string; v: number; cc: number }>
-		monthly_devs: Array<{ k: string; v: number; cc: number }>
-		weekly_contributers: Array<{ k: string; v: number; cc: number }>
-		monthly_contributers: Array<{ k: string; v: number; cc: number }>
-	}
-}
-
-export type NftVolumeData = Array<{ date: string; volume: number }>

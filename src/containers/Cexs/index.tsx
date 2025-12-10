@@ -66,6 +66,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 		queryKey: ['cexs', startDate, endDate],
 		queryFn: () => getOutflowsByTimerange(startDate, endDate, cexs),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		enabled: !!startDate && !!endDate,
 		retry: false
 	})

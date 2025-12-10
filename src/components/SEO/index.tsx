@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react'
 import Head from 'next/head'
-import { ADAPTOR_TYPES } from '~/api/categories/adaptors'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 
 interface ILinkPreviewCardProps {
@@ -69,15 +69,15 @@ export const LinkPreviewCard = ({
 			} else {
 				valueHeader = `Next Unlock`
 			}
-		} else if (pageType === ADAPTOR_TYPES.FEES) {
+		} else if (pageType === ADAPTER_TYPES.FEES) {
 			valueHeader = '24h fees'
 		} else if (
-			pageType === ADAPTOR_TYPES.DEXS ||
-			pageType === ADAPTOR_TYPES.AGGREGATORS ||
-			pageType === ADAPTOR_TYPES.PERPS ||
-			pageType === ADAPTOR_TYPES.PERPS_AGGREGATOR ||
-			pageType === ADAPTOR_TYPES.OPTIONS ||
-			pageType === ADAPTOR_TYPES.BRIDGE_AGGREGATORS
+			pageType === ADAPTER_TYPES.DEXS ||
+			pageType === ADAPTER_TYPES.AGGREGATORS ||
+			pageType === ADAPTER_TYPES.PERPS ||
+			pageType === ADAPTER_TYPES.PERPS_AGGREGATOR ||
+			pageType === ADAPTER_TYPES.OPTIONS ||
+			pageType === ADAPTER_TYPES.BRIDGE_AGGREGATORS
 		) {
 			valueHeader = '24h volume'
 		} else {

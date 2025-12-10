@@ -636,7 +636,9 @@ export const useFetchProtocolAddlChartsData = (protocolName, isBorrowed = false)
 				isBorrowed
 			}),
 		staleTime: 60 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000
+		refetchInterval: 10 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	const historicalChainTvls = useMemo(() => {

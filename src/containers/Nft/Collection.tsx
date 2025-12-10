@@ -28,7 +28,9 @@ export function NFTCollectionContainer() {
 			getNFTCollection(
 				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
 			),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 	if (fetchingData) {
 		return (

@@ -56,5 +56,6 @@ export const ADAPTER_TYPES_TO_METADATA_TYPE = {
 	[ADAPTER_TYPES.PERPS]: 'perps',
 	[ADAPTER_TYPES.PERPS_AGGREGATOR]: 'perpsAggregators',
 	[ADAPTER_TYPES.OPTIONS]: 'options',
-	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridgeAggregators'
+	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridgeAggregators',
+	[ADAPTER_TYPES.OPEN_INTEREST]: 'openInterest'
 }
