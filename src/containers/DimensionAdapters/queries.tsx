@@ -1050,7 +1050,7 @@ export const getChainsByAdapterPageData = async ({
 			}),
 			adapterType === 'fees'
 				? Promise.resolve([])
-				: fetchJson(`${V2_SERVER_URL}/${adapterType}/overview/chain-breakdown`),
+				: fetchJson(`${V2_SERVER_URL}/overview/chart/chain-breakdown/${adapterType}`),
 			adapterType === 'fees'
 				? getDimensionAdapterOverviewOfAllChains({
 						adapterType,

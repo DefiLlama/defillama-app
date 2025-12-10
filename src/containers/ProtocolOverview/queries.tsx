@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	ACTIVE_USERS_API,
