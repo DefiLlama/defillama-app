@@ -120,8 +120,8 @@ export const getStaticProps = withPerformanceLogging(
 				optionsNotionalVolume: notionalVolumeData && notionalVolumeData.totalAllTime ? optionsNotionalVolume : null,
 				charts,
 				defaultCharts,
-				hasMultipleChain: premiumVolumeData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				protocolChains: premiumVolumeData?.chains ?? [],
+				protocolVersions: linkedProtocolsWithAdapterData?.map((protocol) => protocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView: premiumVolumeData?.defaultChartView ?? notionalVolumeData?.defaultChartView ?? 'daily'
 			},
@@ -253,22 +253,24 @@ export default function Protocols(props) {
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
-				{props.hasMultipleChain ? (
+				{props.protocolChains?.length > 1 ? (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="options"
+							breakdownNames={props.protocolChains}
 							title="Options Premium Volume by chain"
 						/>
 					</div>
 				) : null}
-				{props.hasMultipleVersions ? (
+				{props.protocolVersions?.length > 1 ? (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="options"
+							breakdownNames={props.protocolVersions}
 							title="Options Premium Volume by protocol version"
 						/>
 					</div>

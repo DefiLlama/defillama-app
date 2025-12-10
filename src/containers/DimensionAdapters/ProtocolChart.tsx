@@ -26,6 +26,7 @@ export const DimensionProtocolChartByType = ({
 	adapterType,
 	dataType,
 	chartType,
+	breakdownNames,
 	metadata,
 	title
 }: {
@@ -33,6 +34,7 @@ export const DimensionProtocolChartByType = ({
 	adapterType: `${ADAPTER_TYPES}`
 	dataType?: `${ADAPTER_DATA_TYPES}`
 	chartType: 'chain' | 'version'
+	breakdownNames: string[]
 	metadata?: { revenue?: boolean; bribeRevenue?: boolean; tokenTax?: boolean }
 	title: string
 }) => {
@@ -49,11 +51,6 @@ export const DimensionProtocolChartByType = ({
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
-
-	const allTypes = React.useMemo(() => {
-		if (!data || data.length === 0) return []
-		return Object.keys(data[data.length - 1][1])
-	}, [data])
 
 	if (isLoading) {
 		return (
@@ -74,7 +71,7 @@ export const DimensionProtocolChartByType = ({
 	return (
 		<ChartByType
 			totalDataChartBreakdown={data}
-			allTypes={allTypes}
+			breakdownNames={breakdownNames}
 			title={title}
 			chartType={chartType}
 			protocolName={protocolName}
@@ -86,20 +83,20 @@ export const DimensionProtocolChartByType = ({
 const ChartByType = ({
 	totalDataChartBreakdown,
 	title,
-	allTypes,
+	breakdownNames,
 	chartType,
 	protocolName,
 	adapterType
 }: {
 	totalDataChartBreakdown: Array<[number, Record<string, number>]>
 	title?: string
-	allTypes: string[]
+	breakdownNames: string[]
 	chartType: 'chain' | 'version'
 	protocolName: string
 	adapterType: string
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
-	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
+	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
@@ -196,8 +193,8 @@ const ChartByType = ({
 		}
 
 		// Build chart config
-		const allColors = getNDistinctColors(allTypes.length + 1)
-		const stackColors = Object.fromEntries(allTypes.map((type, i) => [type, allColors[i]]))
+		const allColors = getNDistinctColors(breakdownNames.length + 1)
+		const stackColors = Object.fromEntries(breakdownNames.map((type, i) => [type, allColors[i]]))
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
@@ -217,7 +214,7 @@ const ChartByType = ({
 		}
 
 		return { charts }
-	}, [allTypes, chartInterval, selectedTypes, totalDataChartBreakdown])
+	}, [breakdownNames, chartInterval, selectedTypes, totalDataChartBreakdown])
 
 	const prepareCsv = React.useCallback(() => {
 		if (selectedTypes.length === 0) return { filename: '', rows: [] }
@@ -261,12 +258,12 @@ const ChartByType = ({
 					))}
 				</div>
 				<SelectWithCombobox
-					allValues={allTypes}
+					allValues={breakdownNames}
 					selectedValues={selectedTypes}
 					setSelectedValues={setSelectedTypes}
 					label={chartType === 'version' ? 'Versions' : 'Chains'}
 					clearAll={() => setSelectedTypes([])}
-					toggleAll={() => setSelectedTypes(allTypes)}
+					toggleAll={() => setSelectedTypes(breakdownNames)}
 					selectOnlyOne={(newType) => {
 						setSelectedTypes([newType])
 					}}
