@@ -609,6 +609,11 @@
 		@apply relative isolate col-span-full grid min-h-full grid-cols-[228px_1fr] lg:gap-4;
 	}
 
+	#__next > *:only-child,
+	#__next > [data-rk] > *:only-child {
+		@apply col-span-full;
+	}
+
 	h1,
 	h2,
 	h3,
