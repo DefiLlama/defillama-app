@@ -10,6 +10,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ChartBuilderConfig } from '~/containers/ProDashboard/types'
 import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
@@ -38,8 +39,10 @@ export const DimensionProtocolChartByType = ({
 	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
 	title: string
 }) => {
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
+
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['dimension-adapter-chart-breakdown', protocolName, adapterType, dataType, chartType],
+		queryKey: ['dimension-adapter-chart-breakdown', protocolName, adapterType, dataType ?? null, chartType],
 		queryFn: () =>
 			getAdapterProtocolChartDataByType({
 				adapterType,
@@ -52,7 +55,65 @@ export const DimensionProtocolChartByType = ({
 		retry: 0
 	})
 
-	if (isLoading) {
+	const {
+		data: bribeData,
+		isLoading: fetchingBribeData,
+		error: fetchingBribeError
+	} = useQuery({
+		queryKey: [
+			'dimension-adapter-chart-breakdown',
+			protocolName,
+			adapterType,
+			'dailyBribesRevenue',
+			chartType,
+			metadata?.bribeRevenue ?? false,
+			feesSettings.bribes ?? false
+		],
+		queryFn: feesSettings.bribes
+			? () =>
+					getAdapterProtocolChartDataByType({
+						adapterType,
+						protocol: protocolName,
+						dataType: 'dailyBribesRevenue',
+						type: chartType
+					})
+			: () => Promise.resolve(null),
+		enabled: metadata?.bribeRevenue && feesSettings.bribes ? true : false,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
+	const {
+		data: tokenTaxData,
+		isLoading: fetchingTokenTaxData,
+		error: fetchingTokenTaxError
+	} = useQuery({
+		queryKey: [
+			'dimension-adapter-chart-breakdown',
+			protocolName,
+			adapterType,
+			'dailyTokenTaxes',
+			chartType,
+			metadata?.tokenTax ?? false,
+			feesSettings.tokentax ?? false
+		],
+		queryFn: feesSettings.tokentax
+			? () =>
+					getAdapterProtocolChartDataByType({
+						adapterType,
+						protocol: protocolName,
+						dataType: 'dailyTokenTaxes',
+						type: chartType
+					})
+			: () => Promise.resolve(null),
+		enabled: metadata?.tokenTax && feesSettings.tokentax ? true : false,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
+	if (isLoading || fetchingBribeData || fetchingTokenTaxData) {
 		return (
 			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<LocalLoader />
@@ -60,17 +121,21 @@ export const DimensionProtocolChartByType = ({
 		)
 	}
 
-	if (error) {
+	if (error || fetchingBribeError || fetchingTokenTaxError) {
 		return (
 			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p className="p-3 text-center text-sm text-(--error)">Error : {error.message}</p>
+				<p className="p-3 text-center text-sm text-(--error)">
+					Error : {error?.message || fetchingBribeError?.message || fetchingTokenTaxError?.message}
+				</p>
 			</div>
 		)
 	}
 
 	return (
 		<ChartByType
-			totalDataChartBreakdown={data}
+			data={data}
+			bribeData={bribeData}
+			tokenTaxData={tokenTaxData}
 			breakdownNames={breakdownNames}
 			title={title}
 			chartType={chartType}
@@ -81,14 +146,18 @@ export const DimensionProtocolChartByType = ({
 }
 
 const ChartByType = ({
-	totalDataChartBreakdown,
+	data,
+	bribeData,
+	tokenTaxData,
 	title,
 	breakdownNames,
 	chartType,
 	protocolName,
 	adapterType
 }: {
-	totalDataChartBreakdown: Array<[number, Record<string, number>]>
+	data: Array<[number, Record<string, number>]>
+	bribeData?: Array<[number, Record<string, number>]>
+	tokenTaxData?: Array<[number, Record<string, number>]>
 	title?: string
 	breakdownNames: string[]
 	chartType: 'chain' | 'version'
@@ -135,16 +204,20 @@ const ChartByType = ({
 	const mainChartData = React.useMemo(() => {
 		if (selectedTypes.length === 0) return { charts: {} }
 
+		// Helper to compute final date based on interval
+		const computeFinalDate = (date: number) =>
+			chartInterval === 'Weekly'
+				? lastDayOfWeek(+date * 1e3) * 1e3
+				: chartInterval === 'Monthly'
+					? firstDayOfMonth(+date * 1e3) * 1e3
+					: +date * 1e3
+
 		// Aggregate by date with interval grouping
 		const aggregatedByDate: Map<number, Record<string, number>> = new Map()
 
-		for (const [date, versions] of totalDataChartBreakdown) {
-			const finalDate =
-				chartInterval === 'Weekly'
-					? lastDayOfWeek(+date * 1e3) * 1e3
-					: chartInterval === 'Monthly'
-						? firstDayOfMonth(+date * 1e3) * 1e3
-						: +date * 1e3
+		// Process main data
+		for (const [date, versions] of data) {
+			const finalDate = computeFinalDate(date)
 
 			const existing = aggregatedByDate.get(finalDate)
 			if (existing) {
@@ -157,6 +230,44 @@ const ChartByType = ({
 					entry[type] = versions[type] || 0
 				}
 				aggregatedByDate.set(finalDate, entry)
+			}
+		}
+
+		// Add bribe data values
+		if (bribeData) {
+			for (const [date, versions] of bribeData) {
+				const finalDate = computeFinalDate(date)
+				const existing = aggregatedByDate.get(finalDate)
+				if (existing) {
+					for (const type of selectedTypes) {
+						existing[type] = (existing[type] || 0) + (versions[type] || 0)
+					}
+				} else {
+					const entry: Record<string, number> = {}
+					for (const type of selectedTypes) {
+						entry[type] = versions[type] || 0
+					}
+					aggregatedByDate.set(finalDate, entry)
+				}
+			}
+		}
+
+		// Add token tax data values
+		if (tokenTaxData) {
+			for (const [date, versions] of tokenTaxData) {
+				const finalDate = computeFinalDate(date)
+				const existing = aggregatedByDate.get(finalDate)
+				if (existing) {
+					for (const type of selectedTypes) {
+						existing[type] = (existing[type] || 0) + (versions[type] || 0)
+					}
+				} else {
+					const entry: Record<string, number> = {}
+					for (const type of selectedTypes) {
+						entry[type] = versions[type] || 0
+					}
+					aggregatedByDate.set(finalDate, entry)
+				}
 			}
 		}
 
@@ -214,7 +325,7 @@ const ChartByType = ({
 		}
 
 		return { charts }
-	}, [breakdownNames, chartInterval, selectedTypes, totalDataChartBreakdown])
+	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
 
 	const prepareCsv = React.useCallback(() => {
 		if (selectedTypes.length === 0) return { filename: '', rows: [] }

@@ -411,8 +411,8 @@ export default function Protocols(props) {
 							adapterType="fees"
 							breakdownNames={props.protocolChains}
 							metadata={{
-								bribeRevenue: props.metrics.bribeRevenue ?? false,
-								tokenTax: props.metrics.tokenTax ?? false
+								bribeRevenue: props.bribeRevenue ?? false,
+								tokenTax: props.tokenTax ?? false
 							}}
 							title="Fees by chain"
 						/>
@@ -426,8 +426,8 @@ export default function Protocols(props) {
 							adapterType="fees"
 							breakdownNames={props.protocolFeesVersions}
 							metadata={{
-								bribeRevenue: props.metrics.bribeRevenue ?? false,
-								tokenTax: props.metrics.tokenTax ?? false
+								bribeRevenue: props.bribeRevenue ?? false,
+								tokenTax: props.tokenTax ?? false
 							}}
 							title="Fees by protocol version"
 						/>
