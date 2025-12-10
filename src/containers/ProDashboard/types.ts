@@ -460,7 +460,6 @@ export const getProtocolChartTypes = (): string[] => {
 		'fees',
 		'revenue',
 		'incentives',
-		'liquidity',
 		'treasury',
 		'holdersRevenue',
 		'bribes',
