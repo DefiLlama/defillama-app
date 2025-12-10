@@ -2121,7 +2121,20 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
 
+function mergeIncomeStatementData(
+	data: { value: number; 'by-label': Record<string, number> },
+	newData?: { value: number; 'by-label': Record<string, number> }
+) {
+	const current = { ...data }
+	current.value += newData?.value ?? 0
+	for (const label in newData?.['by-label'] ?? {}) {
+		current['by-label'][label] = (current['by-label'][label] ?? 0) + newData['by-label'][label]
+	}
+	return current
+}
+
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 
 	const {
@@ -2152,25 +2165,72 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						: key,
 				props.incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
 			])
+
 			feesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.df ?? {
 				value: 0,
 				'by-label': {}
 			}
+			if (feesSettings.bribes) {
+				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dbr)
+			}
+			if (feesSettings.tokentax) {
+				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dtt)
+			}
+
 			revenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dr ?? {
 				value: 0,
 				'by-label': {}
 			}
+			if (feesSettings.bribes) {
+				revenueData[key] = mergeIncomeStatementData(
+					revenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				revenueData[key] = mergeIncomeStatementData(
+					revenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
+				)
+			}
+
 			incentivesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.incentives ?? {
 				value: 0,
 				'by-label': {}
 			}
+
 			holdersRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dhr ?? {
 				value: 0,
 				'by-label': {}
 			}
+			if (feesSettings.bribes) {
+				holdersRevenueData[key] = mergeIncomeStatementData(
+					holdersRevenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				holdersRevenueData[key] = mergeIncomeStatementData(
+					holdersRevenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
+				)
+			}
+
 			earningsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.earnings ?? {
 				value: 0,
 				'by-label': {}
+			}
+			if (feesSettings.bribes) {
+				earningsData[key] = mergeIncomeStatementData(
+					earningsData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				earningsData[key] = mergeIncomeStatementData(
+					earningsData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
+				)
 			}
 		}
 
@@ -2185,7 +2245,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? [],
 			earningsData
 		}
-	}, [groupBy, props.incomeStatement])
+	}, [groupBy, props.incomeStatement, feesSettings])
 
 	return (
 		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
