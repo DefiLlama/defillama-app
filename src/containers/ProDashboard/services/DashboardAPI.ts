@@ -23,6 +23,7 @@ export interface Dashboard {
 	liked?: boolean
 	created: string
 	updated: string
+	editedAt?: string
 	collectionId?: string
 	collectionName?: string
 	aiGenerated?: Record<
