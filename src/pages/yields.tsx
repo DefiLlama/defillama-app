@@ -7,6 +7,7 @@ import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {
+	// trigger build
 	const data = await getYieldPageData()
 	const dataBorrow = await getLendBorrowData()
 	data.props.pools = data.props.pools.map((p) => {
