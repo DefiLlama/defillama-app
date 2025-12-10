@@ -65,7 +65,12 @@ function App({ Component, pageProps }: AppProps) {
 
 	return (
 		<>
-			{userHash && typeof window !== 'undefined' && !(window as any).FrontChat && window.innerWidth > 768 ? (
+			{userHash &&
+			typeof window !== 'undefined' &&
+			!(window as any).FrontChat &&
+			window.innerWidth > 768 &&
+			// hide support icon on ai chat page because it can block the dialog button
+			!router.pathname.includes('/ai/chat') ? (
 				<Script
 					src="/assets/front-chat.js"
 					strategy="afterInteractive"

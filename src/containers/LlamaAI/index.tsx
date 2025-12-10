@@ -2510,14 +2510,6 @@ const ChatControls = memo(function ChatControls({
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>
 			</Tooltip>
-			{sessionId && messages.length > 0 && (
-				<PDFExportButton
-					sessionId={sessionId}
-					charts={allCharts}
-					exportType="full_conversation"
-					className="flex h-6 items-center justify-center gap-1 rounded-sm bg-(--old-blue)/12 px-1.5 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-				/>
-			)}
 		</div>
 	)
 })

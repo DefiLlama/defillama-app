@@ -199,7 +199,7 @@ export async function getLendBorrowData() {
 	pools = pools
 		.map((p) => {
 			const x = dataBorrow.find((i) => i.pool === p.pool)
-			// for some projects we haven't added the new fields yet, dataBorrow will thus be smoler;
+			// for some projects we haven't added the new fields yet, dataBorrow will thus be smaller;
 			// hence the check for undefined
 			if (x === undefined) return null
 
@@ -211,7 +211,7 @@ export async function getLendBorrowData() {
 			const apyBorrow = apyBaseBorrow === null && apyRewardBorrow === null ? null : apyBaseBorrow + apyRewardBorrow
 
 			// morpho
-			// (using compound available liquidity if totalSupplyUsd < totalBorrowUsd on morhpo === p2p fully matched
+			// (using compound available liquidity if totalSupplyUsd < totalBorrowUsd on morpho === p2p fully matched
 			// otherwise its negative.
 			// instead we display the compound available pool liq together with a tooltip to clarify this
 			let totalAvailableUsd

@@ -13,8 +13,6 @@ import { useIsClient } from '~/hooks/useIsClient'
 import { downloadDataURL } from '~/utils'
 
 const IMAGE_EXPORT_WIDTH = 1280
-// kept for potential future use; currently unused after simplifying legend layout
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const approximateTextWidth = (text: string, fontSize: number) => {
 	if (!text) return 0
 	const averageCharWidthRatio = 0.6
@@ -184,12 +182,17 @@ export const ChartExportButton = memo(function ChartExportButton({
 					const legendItemGap = 20
 					const legendFontSize = 24
 					const legendItemWidth = 48
+					const seriesNames: string[] = Array.isArray(currentOptions.series)
+						? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
+						: []
+					const totalLegendWidth = seriesNames.reduce(
+						(total, name) => total + approximateTextWidth(name, legendFontSize) + legendItemWidth + legendItemGap,
+						0
+					)
+
 					// If there is no legend on the original chart, we'll still be adding one
 					// below (scroll legend), so treat "has legend" based on either existing
 					// legend config or presence of series.
-					// We previously used legend label widths to decide wrapping; now we
-					// always keep the legend in a single scrollable row, so we don't
-					// need exact width calculations here.
 					const hasLegend =
 						legendArray.length > 0 ||
 						(Array.isArray(currentOptions.series) ? currentOptions.series.length > 0 : !!currentOptions.series)
@@ -198,15 +201,6 @@ export const ChartExportButton = memo(function ChartExportButton({
 					let legendRows = 1
 
 					if (expandLegend) {
-						const seriesNames: string[] = Array.isArray(currentOptions.series)
-							? currentOptions.series.map((s: any) => s.name || '').filter(Boolean)
-							: []
-
-						let totalLegendWidth = 0
-						for (const name of seriesNames) {
-							totalLegendWidth += approximateTextWidth(name, legendFontSize) + legendItemWidth + legendItemGap
-						}
-
 						legendRows = Math.max(1, Math.ceil(totalLegendWidth / availableWidth))
 					}
 
@@ -215,9 +209,24 @@ export const ChartExportButton = memo(function ChartExportButton({
 					const singleRowHeight = 32
 					const legendHeight = hasLegend ? singleRowHeight * legendRows : 0
 					const verticalGap = 16
+					const titleWidth = title ? approximateTextWidth(title, 28) + (iconBase64 ? 40 : 0) : 0
+					const horizontalGap = 24
+					const canShareRow =
+						!!title &&
+						hasLegend &&
+						legendRows === 1 &&
+						totalLegendWidth > 0 &&
+						titleWidth + horizontalGap + totalLegendWidth <= availableWidth
 
-					let legendTop = baseTopPadding + (title ? titleHeight + verticalGap : 0)
-					let gridTop = legendTop + (hasLegend ? legendHeight + verticalGap : 0)
+					let legendTop =
+						baseTopPadding +
+						(canShareRow ? Math.max(0, (titleHeight - singleRowHeight) / 2) : title ? titleHeight + verticalGap : 0)
+					let gridTop =
+						baseTopPadding +
+						(canShareRow
+							? Math.max(titleHeight, legendHeight) + verticalGap
+							: (title ? titleHeight + verticalGap : 0) +
+								(hasLegend ? legendHeight + verticalGap + (expandLegend ? 16 : 0) : 0))
 
 					currentOptions.animation = false
 					currentOptions.grid = {
@@ -255,38 +264,22 @@ export const ChartExportButton = memo(function ChartExportButton({
 					tempChart.setOption(currentOptions)
 
 					tempChart.setOption({
-						legend: expandLegend
-							? {
-									show: true,
-									textStyle: {
-										fontSize: legendFontSize,
-										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-									},
-									itemHeight: 24,
-									itemWidth: legendItemWidth,
-									itemGap: legendItemGap,
-									top: legendTop,
-									left: 80,
-									right: 16,
-									type: 'plain',
-									width: availableWidth - 64,
-									padding: 0
-								}
-							: {
-									show: true,
-									textStyle: {
-										fontSize: 24,
-										color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-									},
-									itemHeight: 24,
-									itemWidth: 48,
-									itemGap: legendItemGap,
-									top: legendTop,
-									right: 16,
-									type: 'scroll',
-									pageButtonPosition: 'end',
-									padding: [0, 0, 0, 18]
-								}
+						legend: {
+							show: true,
+							textStyle: {
+								fontSize: 24,
+								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+							},
+							itemHeight: 24,
+							itemWidth: 48,
+							itemGap: legendItemGap,
+							top: legendTop,
+							right: 16,
+							...(expandLegend
+								? { type: 'plain', padding: [0, 0, 0, 0], ...(canShareRow ? {} : { left: 16 }) }
+								: { type: 'scroll', padding: [0, 0, 0, 18] }),
+							pageButtonPosition: 'end'
+						}
 					})
 
 					// Wait for the chart (including async image loading) to finish rendering.

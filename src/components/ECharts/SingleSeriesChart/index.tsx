@@ -169,13 +169,15 @@ export default function SingleSeriesChart({
 
 		const { graphic, titleDefaults, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
+		const shouldHideDataZoom = series.data.length < 2 || hideDataZoom
+
 		chartInstance.setOption({
 			graphic,
 			tooltip,
 			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -186,7 +188,7 @@ export default function SingleSeriesChart({
 				...yAxis,
 				...(expandTo100Percent ? { max: 100, min: 0 } : {})
 			},
-			...(!hideDataZoom ? { dataZoom } : {}),
+			...(shouldHideDataZoom ? {} : { dataZoom }),
 			series
 		})
 

@@ -176,6 +176,8 @@ export default function MultiSeriesChart({
 		const legendRightPadding = needMultipleAxes ? 40 : legend.right
 		const gridLeftPadding = 12
 
+		const shouldHideDataZoom = seriesWithHallmarks.every((s: any) => s.data.length < 2) || hideDataZoom
+
 		chartInstance.setOption({
 			graphic,
 			tooltip:
@@ -200,7 +202,7 @@ export default function MultiSeriesChart({
 					: tooltip,
 			grid: {
 				left: gridLeftPadding,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -214,7 +216,7 @@ export default function MultiSeriesChart({
 				data: series?.map((s: any) => s.name) || [],
 				...(legendRightPadding !== undefined ? { right: legendRightPadding } : {})
 			},
-			dataZoom: hideDataZoom ? [] : [...dataZoom],
+			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series: seriesWithHallmarks
 		})
 
@@ -246,7 +248,16 @@ export default function MultiSeriesChart({
 			window.removeEventListener('resize', resize)
 			updateChartInstance(null)
 		}
-	}, [defaultChartSettings, processedSeries, chartOptions, hideDataZoom, alwaysShowTooltip, series, id, updateChartInstance])
+	}, [
+		defaultChartSettings,
+		processedSeries,
+		chartOptions,
+		hideDataZoom,
+		alwaysShowTooltip,
+		series,
+		id,
+		updateChartInstance
+	])
 
 	useEffect(() => {
 		return () => {

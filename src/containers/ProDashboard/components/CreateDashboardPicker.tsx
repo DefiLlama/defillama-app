@@ -3,16 +3,12 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
-import type { MultiChartConfig } from '../types'
-import { CHART_TYPES } from '../types'
-import {
-	DASHBOARD_TEMPLATES,
-	generateTemplateCharts,
-	type ChainCategoryData,
-	type DashboardTemplate
-} from '../templates'
-import { useProDashboard } from '../ProDashboardAPIContext'
 import { useAppMetadata } from '../AppMetadataContext'
+import { useDimensionProtocols } from '../hooks/useDimensionProtocols'
+import { useProDashboard } from '../ProDashboardAPIContext'
+import { DASHBOARD_TEMPLATES, generateTemplateCharts, type ChainCategoryData, type DashboardTemplate } from '../templates'
+import type { DashboardItemConfig } from '../types'
+import { CHART_TYPES } from '../types'
 
 const CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
@@ -29,7 +25,7 @@ interface CreateDashboardPickerProps {
 		visibility: 'private' | 'public'
 		tags: string[]
 		description: string
-		items?: MultiChartConfig[]
+		items?: DashboardItemConfig[]
 	}) => void
 }
 
@@ -70,6 +66,8 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 		return { chainsInCategory }
 	}, [chainCategoriesData])
 
+	const { dimensionProtocols } = useDimensionProtocols()
+
 	useEffect(() => {
 		if (!isOpen) {
 			setMode('picker')
@@ -96,7 +94,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 		visibility: 'private' | 'public'
 		tags: string[]
 		description: string
-		items: MultiChartConfig[]
+		items: DashboardItemConfig[]
 	}) => {
 		onCreate(data)
 		setMode('picker')
@@ -108,14 +106,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 	}
 
 	const handleCreateFromTemplate = (template: DashboardTemplate) => {
-		const items = generateTemplateCharts(
-			template,
-			protocols,
-			chains,
-			protocolsBySlug,
-			CHART_TYPES,
-			chainCategoryData
-		)
+		const items = generateTemplateCharts(template, protocols, chains, protocolsBySlug, CHART_TYPES, chainCategoryData, dimensionProtocols)
 
 		onCreate({
 			dashboardName: template.name,
@@ -249,7 +240,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 							className="rounded-lg border border-(--cards-border) p-2.5 text-left transition-colors hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 						>
 							<div className="text-sm font-medium text-(--text-primary)">{template.name}</div>
-							<div className="mt-0.5 text-xs text-(--text-tertiary) line-clamp-1">{template.description}</div>
+							<div className="mt-0.5 line-clamp-1 text-xs text-(--text-tertiary)">{template.description}</div>
 						</button>
 					))}
 				</div>

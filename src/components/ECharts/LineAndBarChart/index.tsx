@@ -236,6 +236,8 @@ export default function LineAndBarChart({
 			}
 		}
 
+		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
+
 		chartInstance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
@@ -243,7 +245,7 @@ export default function LineAndBarChart({
 			title: titleDefaults,
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -257,7 +259,7 @@ export default function LineAndBarChart({
 							...yAxis,
 							...(expandTo100Percent ? { max: 100, min: 0 } : {})
 						},
-			...(!hideDataZoom ? { dataZoom } : {}),
+			...(shouldHideDataZoom ? {} : { dataZoom }),
 			series
 		})
 

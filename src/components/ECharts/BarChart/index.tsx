@@ -171,6 +171,9 @@ export default function BarChart({
 
 		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
 
+		const shouldHideDataZoom =
+			(Array.isArray(series) ? series.every((s) => s.data.length < 2) : series.data.length < 2) || hideDataZoom
+
 		chartInstance.setOption({
 			graphic: {
 				...graphic
@@ -180,7 +183,7 @@ export default function BarChart({
 			},
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -199,7 +202,7 @@ export default function BarChart({
 					data: stackKeys
 				}
 			}),
-			dataZoom: hideDataZoom ? [] : [...dataZoom],
+			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
 

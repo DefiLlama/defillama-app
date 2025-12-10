@@ -105,12 +105,14 @@ export default function NonTimeSeriesBarChart({
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
+		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
+
 		chartInstance.setOption({
 			graphic,
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -118,7 +120,7 @@ export default function NonTimeSeriesBarChart({
 			},
 			xAxis,
 			yAxis,
-			dataZoom: hideDataZoom ? [] : [...dataZoom],
+			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
 

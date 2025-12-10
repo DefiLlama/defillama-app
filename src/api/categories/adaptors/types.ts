@@ -1,6 +1,6 @@
-//TODO: import from generic types
+// TODO: import from generic types
 
-//  Response /overview/type
+// Response /overview/type
 export interface IGetOverviewResponseBody {
 	total24h: number
 	total7d: number
@@ -28,7 +28,7 @@ export interface IGetOverviewResponseBody {
 	ps: number | null
 }
 
-//  Response /summary
+// Response /summary
 export interface ProtocolAdaptorSummaryResponse extends ProtocolAdaptorSummary {
 	logo: string | null
 	address?: string | null

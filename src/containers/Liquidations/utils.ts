@@ -578,7 +578,7 @@ export const sortObject = <T>(
 }
 
 export const convertChartDataBinsToArray = (obj: ChartDataBins, totalBins: number) => {
-	// this line below suddenly throws error in browser that the iterator cant iterate??
+	// this line below suddenly throws error in browser that the iterator can't iterate??
 	// const arr = [...Array(totalBins).keys()].map((i) => obj.bins[i] || 0)
 	const arr = Array.from({ length: totalBins }, (_, i) => i).map((i) => obj.bins[i] || { native: 0, usd: 0 })
 	return arr
