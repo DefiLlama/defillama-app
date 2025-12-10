@@ -99,7 +99,9 @@ function useStablecoinData(protocolName: string) {
 			})
 		},
 		enabled: !!protocolData?.chainTvls,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	return { data, isLoading: isLoading || isProtocolLoading }

@@ -1,8 +1,4 @@
-import { useDeferredValue } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import {
-	NFT_CHAINS_API,
-	NFT_CHART_API,
 	NFT_COLLECTION_API,
 	NFT_COLLECTION_FLOOR_HISTORY_API,
 	NFT_COLLECTION_SALES_API,
@@ -14,44 +10,11 @@ import {
 	NFT_ROYALTIES_API,
 	NFT_ROYALTY_API,
 	NFT_ROYALTY_HISTORY_API,
-	NFT_SEARCH_API,
 	NFT_VOLUME_API
 } from '~/constants'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
-
-interface IResponseNFTSearchAPI {
-	hits: Array<{
-		_id: string
-		_index: string
-		_score: number
-		_source: {
-			logo: string
-			name: string
-			slug: string
-			symbol: string
-		}
-		_type: string
-	}>
-	max_score: number
-	total: {
-		relation: string
-		value: number
-	}
-	data: null
-}
-
-interface ICollectionApiResponse {
-	data: {
-		logo: string
-		name: string
-		slug: string
-	}[]
-	hits: null
-}
-
-type ApiResponse = IResponseNFTSearchAPI | ICollectionApiResponse
 
 export const getNFTStatistics = (chart) => {
 	const { totalVolume, totalVolumeUSD } = (chart.length &&
@@ -325,35 +288,6 @@ export const getNFTRoyaltyHistory = async (slug: string) => {
 	}
 }
 
-export const getNFTCollections = async () => {
-	try {
-		const { data: collections } = await fetchJson(NFT_COLLECTIONS_API, { timeout: 60_000 })
-		return collections
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTCollectionsByChain = async (chain: string) => {
-	try {
-		const { data: collections } = await fetchJson(`${NFT_COLLECTIONS_API}/chain/${chain}`, { timeout: 60_000 })
-		return collections
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTCollectionsByMarketplace = async (marketplace: string) => {
-	try {
-		const { data: collections } = await fetchJson(`${NFT_COLLECTIONS_API}/marketplace/${marketplace}`, {
-			timeout: 60_000
-		})
-		return collections
-	} catch (e) {
-		console.log(e)
-	}
-}
-
 const flagOutliers = (sales) => {
 	const values = sales.map((s) => s[1])
 	const mean = values.reduce((acc, val) => acc + val, 0) / values.length
@@ -437,66 +371,5 @@ export const getNFTCollection = async (slug: string) => {
 		}
 	} catch (e) {
 		console.log(e)
-	}
-}
-
-export const getNFTChainChartData = async (chain) => {
-	try {
-		return fetchJson(`${NFT_CHART_API}/chain/${chain}`)
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTMarketplaceChartData = async (marketplace) => {
-	try {
-		return fetchJson(`${NFT_CHART_API}/marketplace/${marketplace}`)
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTCollectionChartData = async (slug) => {
-	try {
-		return fetchJson(`${NFT_CHART_API}/collection/${slug}`)
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTChainsData = async () => {
-	try {
-		return fetchJson(NFT_CHAINS_API)
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const getNFTSearchResults = async (query: string) => {
-	try {
-		if (query) {
-			const { hits }: { hits: any } = await fetchJson(`${NFT_SEARCH_API}?query=${query}`)
-			return hits.map((hit) => hit._source)
-		}
-		return []
-	} catch (e) {
-		console.log(e)
-	}
-}
-
-export const useFetchNFTsList = (searchValue: string) => {
-	const deferredSearchTerm = useDeferredValue(searchValue)
-	const url = deferredSearchTerm ? `${NFT_SEARCH_API}?query=${deferredSearchTerm}` : NFT_COLLECTIONS_API
-
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['nfts-list', url],
-		queryFn: () => fetchApi(url),
-		staleTime: 60 * 60 * 1000
-	})
-
-	return {
-		data: data?.hits?.map((el) => el._source) ?? data?.data ?? null,
-		error: error,
-		isLoading: (isLoading && !!searchValue) || searchValue != deferredSearchTerm
 	}
 }

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getDimensionProtocolPageData } from '~/api/categories/adaptors'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -13,7 +12,8 @@ import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapter
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
-import { ADAPTER_TYPES } from './constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
+import { getAdapterProtocolChartDataByType } from './queries'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
@@ -24,26 +24,36 @@ const LineAndBarChart = React.lazy(
 export const DimensionProtocolChartByType = ({
 	protocolName,
 	adapterType,
+	dataType,
 	chartType,
 	metadata,
 	title
 }: {
 	protocolName: string
 	adapterType: `${ADAPTER_TYPES}`
+	dataType?: `${ADAPTER_DATA_TYPES}`
 	chartType: 'chain' | 'version'
 	metadata?: { revenue?: boolean; bribeRevenue?: boolean; tokenTax?: boolean }
 	title: string
 }) => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['dimension-adapter-chart', adapterType, protocolName, JSON.stringify(metadata)],
+		queryKey: ['dimension-adapter-chart-breakdown', protocolName, adapterType, dataType, chartType],
 		queryFn: () =>
-			getDimensionProtocolPageData({ protocolName, adapterType, metadata }).then((data) => {
-				if (!data || data.totalDataChart[0].length === 0) return null
-				return data
+			getAdapterProtocolChartDataByType({
+				adapterType,
+				protocol: protocolName,
+				dataType,
+				type: chartType
 			}),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0
 	})
+
+	const allTypes = React.useMemo(() => {
+		if (!data || data.length === 0) return []
+		return Object.keys(data[data.length - 1][1])
+	}, [data])
 
 	if (isLoading) {
 		return (
@@ -63,8 +73,8 @@ export const DimensionProtocolChartByType = ({
 
 	return (
 		<ChartByType
-			totalDataChartBreakdown={data.totalDataChartBreakdown}
-			allTypes={chartType === 'chain' ? data.chains : data.linkedProtocols.slice(1)}
+			totalDataChartBreakdown={data}
+			allTypes={allTypes}
 			title={title}
 			chartType={chartType}
 			protocolName={protocolName}
@@ -81,7 +91,7 @@ const ChartByType = ({
 	protocolName,
 	adapterType
 }: {
-	totalDataChartBreakdown: any
+	totalDataChartBreakdown: Array<[number, Record<string, number>]>
 	title?: string
 	allTypes: string[]
 	chartType: 'chain' | 'version'
@@ -92,9 +102,9 @@ const ChartByType = ({
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(allTypes)
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
-	const builderMetric = getAdapterBuilderMetric(adapterType)
-
 	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
+		const builderMetric = getAdapterBuilderMetric(adapterType)
+
 		if (!builderMetric || chartType === 'version') return null
 
 		const grouping =
@@ -123,150 +133,114 @@ const ChartByType = ({
 			},
 			grouping
 		}
-	}, [protocolName, adapterType, builderMetric, chartInterval, title, chartType])
+	}, [protocolName, adapterType, chartInterval, title, chartType])
 
 	const mainChartData = React.useMemo(() => {
-		const chartData = {}
-		if (chartType === 'version') {
-			const cumulativeVolumeByVersion = {}
-			for (const version of selectedTypes) {
-				cumulativeVolumeByVersion[version] = 0
-			}
+		if (selectedTypes.length === 0) return { charts: {} }
 
-			for (const [date, chains] of totalDataChartBreakdown) {
-				const finalDate =
-					chartInterval === 'Weekly'
-						? lastDayOfWeek(+date * 1e3) * 1e3
-						: chartInterval === 'Monthly'
-							? firstDayOfMonth(+date * 1e3) * 1e3
-							: +date * 1e3
+		// Aggregate by date with interval grouping
+		const aggregatedByDate: Map<number, Record<string, number>> = new Map()
 
-				const dataByVersion = {}
-				for (const chain in chains) {
-					for (const version of selectedTypes) {
-						dataByVersion[version] = dataByVersion[version] || 0
-						dataByVersion[version] += chains[chain][version] || 0
-					}
+		for (const [date, versions] of totalDataChartBreakdown) {
+			const finalDate =
+				chartInterval === 'Weekly'
+					? lastDayOfWeek(+date * 1e3) * 1e3
+					: chartInterval === 'Monthly'
+						? firstDayOfMonth(+date * 1e3) * 1e3
+						: +date * 1e3
+
+			const existing = aggregatedByDate.get(finalDate)
+			if (existing) {
+				for (const type of selectedTypes) {
+					existing[type] = (existing[type] || 0) + (versions[type] || 0)
 				}
-
-				for (const version of selectedTypes) {
-					chartData[version] = chartData[version] || {}
-					chartData[version][finalDate] =
-						(chartData[version][finalDate] || 0) + dataByVersion[version] + cumulativeVolumeByVersion[version]
-
-					if (chartInterval === 'Cumulative') {
-						cumulativeVolumeByVersion[version] += dataByVersion[version] || 0
-					}
+			} else {
+				const entry: Record<string, number> = {}
+				for (const type of selectedTypes) {
+					entry[type] = versions[type] || 0
 				}
+				aggregatedByDate.set(finalDate, entry)
 			}
-		} else {
-			const cumulativeVolumeByChain = {}
-			for (const chain of selectedTypes) {
-				cumulativeVolumeByChain[chain] = 0
-			}
+		}
 
-			for (const [date, chains] of totalDataChartBreakdown) {
-				const finalDate =
-					chartInterval === 'Weekly'
-						? lastDayOfWeek(+date * 1e3) * 1e3
-						: chartInterval === 'Monthly'
-							? firstDayOfMonth(+date * 1e3) * 1e3
-							: +date * 1e3
+		// Sort dates and build chart arrays
+		const sortedDates = Array.from(aggregatedByDate.keys()).sort((a, b) => a - b)
+		const isCumulative = chartInterval === 'Cumulative'
+		const cumulative: Record<string, number> = {}
+		const chartArrays: Record<string, Array<[number, number | null]>> = {}
 
-				const dataByChain = {}
-				for (const chain in chains) {
-					for (const version in chains[chain]) {
-						dataByChain[chain] = dataByChain[chain] || 0
-						dataByChain[chain] += chains[chain][version] || 0
-					}
-				}
+		for (const type of selectedTypes) {
+			cumulative[type] = 0
+			chartArrays[type] = []
+		}
 
-				for (const chain of selectedTypes) {
-					chartData[chain] = chartData[chain] || {}
-					chartData[chain][finalDate] =
-						(chartData[chain][finalDate] || 0) + (dataByChain[chain] || 0) + cumulativeVolumeByChain[chain]
-
-					if (chartInterval === 'Cumulative') {
-						cumulativeVolumeByChain[chain] += dataByChain[chain] || 0
-					}
+		for (const date of sortedDates) {
+			const entry = aggregatedByDate.get(date)!
+			for (const type of selectedTypes) {
+				const value = entry[type] || 0
+				if (isCumulative) {
+					cumulative[type] += value
+					chartArrays[type].push([date, cumulative[type]])
+				} else {
+					chartArrays[type].push([date, value])
 				}
 			}
 		}
 
-		const finalChartData = {}
-
-		for (const chartType in chartData) {
-			finalChartData[chartType] = []
-			for (const date in chartData[chartType]) {
-				finalChartData[chartType].push([+date, chartData[chartType][date]])
+		// Replace leading zeros with null for cleaner charts
+		for (const type of selectedTypes) {
+			const arr = chartArrays[type]
+			for (let i = 0; i < arr.length && arr[i][1] === 0; i++) {
+				arr[i][1] = null
 			}
 		}
 
-		for (const chartType in finalChartData) {
-			const zeroIndex = finalChartData[chartType].findIndex(([date, value]) => value !== 0)
-			finalChartData[chartType] = finalChartData[chartType]
-				.slice(0, zeroIndex)
-				.map(([date]) => [date, null])
-				.concat(finalChartData[chartType].slice(zeroIndex))
-		}
-
+		// Build chart config
 		const allColors = getNDistinctColors(allTypes.length + 1)
-		const stackColors = Object.fromEntries(allTypes.map((_, i) => [_, allColors[i]]))
+		const stackColors = Object.fromEntries(allTypes.map((type, i) => [type, allColors[i]]))
 		stackColors['Others'] = allColors[allColors.length - 1]
 
-		const charts = {}
-		for (const chartType in finalChartData) {
-			charts[chartType] = {
-				data: finalChartData[chartType],
-				type: chartInterval === 'Cumulative' ? 'line' : 'bar',
-				name: chartType,
+		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
+		const charts: Record<
+			string,
+			{ data: Array<[number, number | null]>; type: 'line' | 'bar'; name: string; stack: string; color: string }
+		> = {}
+
+		for (const type of selectedTypes) {
+			charts[type] = {
+				data: chartArrays[type],
+				type: chartType2,
+				name: type,
 				stack: 'chartType',
-				color: stackColors[chartType]
+				color: stackColors[type]
 			}
 		}
+
 		return { charts }
-	}, [allTypes, chartInterval, chartType, selectedTypes, totalDataChartBreakdown])
+	}, [allTypes, chartInterval, selectedTypes, totalDataChartBreakdown])
 
 	const prepareCsv = React.useCallback(() => {
-		try {
-			let rows = []
-			const dataToExport = mainChartData.charts
-			const chartKeys = Object.keys(dataToExport)
+		if (selectedTypes.length === 0) return { filename: '', rows: [] }
 
-			if (chartKeys.length > 0) {
-				rows = [['Timestamp', 'Date', ...selectedTypes]]
-				const dateMap = new Map()
+		const rows: Array<Array<string | number | null>> = [['Timestamp', 'Date', ...selectedTypes]]
 
-				selectedTypes.forEach((type) => {
-					if (dataToExport[type]) {
-						dataToExport[type].data.forEach(([timestamp, value]) => {
-							if (!dateMap.has(timestamp)) {
-								dateMap.set(timestamp, {})
-							}
-							dateMap.get(timestamp)[type] = value
-						})
-					}
-				})
+		// Use first type's data as reference since all types share the same timestamps
+		const referenceData = mainChartData.charts[selectedTypes[0]]?.data
+		if (!referenceData) return { filename: '', rows: [] }
 
-				const sortedDates = Array.from(dateMap.keys()).sort((a, b) => a - b)
-
-				sortedDates.forEach((timestamp) => {
-					const row = [timestamp, toNiceCsvDate(timestamp / 1000)]
-					selectedTypes.forEach((type) => {
-						row.push(dateMap.get(timestamp)?.[type] ?? '')
-					})
-					rows.push(row)
-				})
+		for (let i = 0; i < referenceData.length; i++) {
+			const timestamp = referenceData[i][0]
+			const row: Array<string | number | null> = [timestamp, toNiceCsvDate(timestamp / 1000)]
+			for (const type of selectedTypes) {
+				row.push(mainChartData.charts[type]?.data[i]?.[1] ?? '')
 			}
-
-			const csvTitle = title ? slug(title) : chartType
-			const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
-
-			return { filename, rows }
-		} catch (error) {
-			console.log('Error generating CSV:', error)
+			rows.push(row)
 		}
-	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType])
+
+		const csvTitle = `${protocolName}-${title ? slug(title) : chartType}`
+		const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
+	}, [mainChartData.charts, selectedTypes, title, chartInterval, chartType, protocolName])
 
 	return (
 		<>

@@ -66,6 +66,7 @@ export default function Protocols(props) {
 		queryKey: ['treasury', props.name],
 		queryFn: () => fetchJson(`${PROTOCOL_TREASURY_API}/${props.name}`),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0
 	})
 

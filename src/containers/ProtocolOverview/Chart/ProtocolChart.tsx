@@ -467,6 +467,7 @@ export const useFetchAndFormatChartData = ({
 				return store
 			}),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: denominationGeckoId ? true : false
 	})
@@ -479,6 +480,7 @@ export const useFetchAndFormatChartData = ({
 				res.data.prices.length > 0 ? res.data : { prices: [], mcaps: [], volumes: [] }
 			),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled:
 			isRouterReady &&
@@ -495,6 +497,7 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['tokenSupply', geckoId],
 		queryFn: () => fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then((res) => res.data?.['total_supply']),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? true : false
 	})
@@ -503,6 +506,7 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['tokenLiquidity', protocolId],
 		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true' ? true : false
 	})
@@ -550,6 +554,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isFeesEnabled
 	})
@@ -566,6 +571,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isRevenueEnabled
 	})
@@ -584,6 +590,7 @@ export const useFetchAndFormatChartData = ({
 						})
 					: Promise.resolve(null),
 			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
 			retry: 0,
 			enabled: isHoldersRevenueEnabled
 		}
@@ -607,6 +614,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isBribesEnabled
 	})
@@ -627,6 +635,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isTokenTaxesEnabled
 	})
@@ -642,6 +651,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isDexVolumeEnabled
 	})
@@ -657,6 +667,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isPerpsVolumeEnabled
 	})
@@ -674,6 +685,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isOpenInterestEnabled
 	})
@@ -693,6 +705,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isOptionsPremiumVolumeEnabled
 	})
@@ -712,6 +725,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isOptionsNotionalVolumeEnabled
 	})
@@ -730,6 +744,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isDexAggregatorsVolumeEnabled
 	})
@@ -748,6 +763,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isPerpsAggregatorsVolumeEnabled
 	})
@@ -766,6 +782,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isBridgeAggregatorsVolumeEnabled
 	})
@@ -780,6 +797,7 @@ export const useFetchAndFormatChartData = ({
 		queryKey: ['unlocks', name, isUnlocksEnabled],
 		queryFn: () => (isUnlocksEnabled ? getProtocolEmissons(slug(name)) : Promise.resolve(null)),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isUnlocksEnabled
 	})
@@ -805,6 +823,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isTreasuryEnabled
 	})
@@ -822,6 +841,7 @@ export const useFetchAndFormatChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isUsdInflowsEnabled
 	})
@@ -846,6 +866,7 @@ export const useFetchAndFormatChartData = ({
 						.catch(() => null)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isBridgeVolumeEnabled
 	})
@@ -897,6 +918,7 @@ export const useFetchAndFormatChartData = ({
 						.catch(() => [])
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isNftVolumeEnabled
 	})

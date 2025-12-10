@@ -160,9 +160,9 @@ export async function getAdapterChainChartData({
 		totalDataChartUrl += `?dataType=${dataType}`
 	}
 
-	const totalDataChart = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
 
-	return totalDataChart
+	return data
 }
 
 export async function getAdapterProtocolChartData({
@@ -180,9 +180,31 @@ export async function getAdapterProtocolChartData({
 		totalDataChartUrl += `?dataType=${dataType}`
 	}
 
-	const totalDataChart = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
 
-	return totalDataChart
+	return data
+}
+
+export async function getAdapterProtocolChartDataByType({
+	adapterType,
+	protocol,
+	dataType,
+	type
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	type: 'chain' | 'version'
+}) {
+	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${type}-breakdown/${adapterType}/protocol/${slug(protocol)}`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return data as Array<[number, Record<string, number>]>
 }
 
 export async function getAdapterChainOverview({

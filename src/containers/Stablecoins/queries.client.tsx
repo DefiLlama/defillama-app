@@ -1,17 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { PEGGEDS_API } from '~/constants'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { fetchApi } from '~/utils/async'
-
-export const useFetchStablecoinsList = ({ disabled }: { disabled?: boolean }) => {
-	return useQuery({
-		queryKey: [PEGGEDS_API, disabled],
-		queryFn: () => fetchApi(PEGGEDS_API),
-		staleTime: 60 * 60 * 1000,
-		enabled: !disabled
-	})
-}
 
 export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 	const { data, isLoading, error } = useQuery({
@@ -42,6 +31,7 @@ export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 						})
 			: () => null,
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!chain
 	})

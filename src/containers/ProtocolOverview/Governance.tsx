@@ -144,7 +144,9 @@ export function GovernanceData({ apis = [] }: { apis: Array<string> }) {
 	const { data, isLoading, error } = useQuery({
 		queryKey: [JSON.stringify(apis)],
 		queryFn: () => fetchAndFormatGovernanceData(apis),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	const { finalData, governanceType } = React.useMemo(() => {

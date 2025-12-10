@@ -67,6 +67,7 @@ export const useFetchChainChartData = ({
 				return { prices: store, mcaps: res.data.mcaps, volumes: res.data.volumes }
 			}),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: denominationGeckoId ? true : false
 	})
@@ -82,6 +83,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainFeesEnabled
 	})
@@ -98,6 +100,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainRevenueEnabled
 	})
@@ -113,6 +116,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isDexVolumeEnabled
 	})
@@ -128,6 +132,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isPerpsVolumeEnabled
 	})
@@ -144,6 +149,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainAppFeesEnabled
 	})
@@ -162,6 +168,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainAppRevenueEnabled
 	})
@@ -188,6 +195,7 @@ export const useFetchChainChartData = ({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
 		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isBridgedTvlEnabled
 	})
@@ -213,6 +221,7 @@ export const useFetchChainChartData = ({
 					})
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isRaisesEnabled
 	})
@@ -232,6 +241,7 @@ export const useFetchChainChartData = ({
 						.catch(() => null)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isChainIncentivesEnabled
 	})

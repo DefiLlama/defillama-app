@@ -17,7 +17,9 @@ export const useGetPrice = (tokens: Array<string>) => {
 			return data
 		},
 		enabled: tokens.length > 0,
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	return prices
