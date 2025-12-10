@@ -70,12 +70,7 @@ function ProContent({
 }) {
 	const router = useRouter()
 	const { tab } = router.query
-	const activeTab =
-		typeof tab === 'string' && tabs.includes(tab as any)
-			? tab
-			: isAuthenticated && hasActiveSubscription
-				? 'my-dashboards'
-				: 'discover'
+	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
 
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const {
@@ -105,6 +100,14 @@ function ProContent({
 		<div className="pro-dashboard flex flex-1 flex-col gap-4 p-2 lg:px-0">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex overflow-x-auto">
+					<BasicLink
+						href={`/pro?tab=discover`}
+						shallow
+						data-active={activeTab === 'discover'}
+						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
+					>
+						Discover
+					</BasicLink>
 					{isAuthenticated && hasActiveSubscription && (
 						<BasicLink
 							href={`/pro?tab=my-dashboards`}
@@ -115,14 +118,6 @@ function ProContent({
 							My Dashboards
 						</BasicLink>
 					)}
-					<BasicLink
-						href={`/pro?tab=discover`}
-						shallow
-						data-active={activeTab === 'discover'}
-						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
-					>
-						Discover
-					</BasicLink>
 					{isAuthenticated && (
 						<BasicLink
 							href={`/pro?tab=favorites`}

@@ -194,7 +194,8 @@ class DashboardAPIService {
 			query?: string
 			tags?: string[]
 			visibility?: 'public' | 'private'
-			sortBy?: 'popular' | 'recent' | 'likes'
+			sortBy?: 'popular' | 'recent' | 'likes' | 'trending'
+			timeFrame?: '1d' | '7d' | '30d'
 			page?: number
 			limit?: number
 		},
@@ -212,6 +213,7 @@ class DashboardAPIService {
 		if (params.tags?.length) queryParams.append('tags', params.tags.join(','))
 		if (params.visibility) queryParams.append('visibility', params.visibility)
 		if (params.sortBy) queryParams.append('sortBy', params.sortBy)
+		if (params.timeFrame) queryParams.append('timeFrame', params.timeFrame)
 		if (params.page) queryParams.append('page', params.page.toString())
 		if (params.limit) queryParams.append('limit', params.limit.toString())
 
