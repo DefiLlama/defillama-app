@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('Failed to refresh auth')
 			}
 		},
-		enabled: authStoreState.record?.id != null,
+		enabled: authStoreState.token != null && authStoreState.isValid,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 3,
