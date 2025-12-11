@@ -1070,6 +1070,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		const chainTotals = new Map<string, number>()
 		const protocols: any[] = Array.isArray(overview?.protocols) ? overview.protocols : []
+		const allChainsFromApi: string[] = Array.isArray(overview?.allChains) ? overview.allChains : []
 
 		if (protocolCategoryLookup) {
 			extendLookupWithOverviewProtocols(protocolCategoryLookup, protocols)
@@ -1118,17 +1119,30 @@ async function getAllProtocolsTopChainsDimensionsData(
 		}
 
 		const filterSet = new Set<string>((chains || []).map((c) => toDimensionsChainSlug(c)))
+		const filterSetOriginal = new Set<string>((chains || []).map((c) => c.toLowerCase()))
 		let allowSlugsFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
 			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
 		}
 
+		if (chains && chains.length > 0 && filterMode === 'include') {
+			for (const chainName of allChainsFromApi) {
+				const slug = toDimensionsChainSlug(chainName)
+				if ((filterSet.has(slug) || filterSetOriginal.has(chainName.toLowerCase())) && !chainTotals.has(slug)) {
+					chainTotals.set(slug, 0)
+				}
+			}
+		}
+
 		let ranked = Array.from(chainTotals.entries())
-			.filter(([slug, v]) => v > 0)
-			.filter(([slug]) => {
-				if (!chains || chains.length === 0) return true
-				if (filterMode === 'include') return filterSet.has(slug)
-				return !filterSet.has(slug)
+			.filter(([slug, v]) => {
+				if (chains && chains.length > 0) {
+					if (filterMode === 'include') {
+						return filterSet.has(slug)
+					}
+					if (filterSet.has(slug)) return false
+				}
+				return v > 0
 			})
 			.filter(([slug]) => {
 				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
