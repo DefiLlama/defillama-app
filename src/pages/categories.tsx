@@ -316,6 +316,7 @@ export const descriptions = {
 	'NFT Automated Strategies': 'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
 	'Luck Games': 'Protocols that allow you to play games of chance, such as dice, or other games of chance',
 	've-Incentive Automator': 'Protocols that automate volume or tax-based flows into vote-escrowed (ve) positions, locks, or burn mechanisms to steer incentives and accrue value',
+	'Decentralized AI': 'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence on-chain',
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
