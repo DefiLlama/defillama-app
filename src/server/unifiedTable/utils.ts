@@ -16,6 +16,7 @@ const ALLOWED_CHAIN_PATTERN = /^[a-z0-9- ]+$/i
 
 const CHAIN_SLUG_ALIASES: Record<string, string> = {
 	optimism: 'op-mainnet',
+	'op mainnet': 'op-mainnet',
 	binance: 'bsc',
 	xdai: 'gnosis',
 	cosmos: 'cosmoshub',
