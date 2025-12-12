@@ -648,7 +648,10 @@
 
 	/* Dark mode calendar picker indicator */
 	html.dark input[type='date']::-webkit-calendar-picker-indicator {
-		filter: invert(1) brightness(0.8) contrast(0.8);
+		filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%)
+			contrast(88%);
+		cursor: pointer;
+		opacity: 1 !important;
 	}
 
 	img,

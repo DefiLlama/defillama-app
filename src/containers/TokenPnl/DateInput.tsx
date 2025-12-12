@@ -22,7 +22,7 @@ export const DateInput = ({
 				onChange={(event) => onChange(event.target.value)}
 				min={min}
 				max={max}
-				className={`rounded-md border bg-(--bg-input) px-3 py-2.5 text-base text-black outline-0 transition-colors duration-200 focus:border-white/30 focus:ring-0 dark:text-white ${invalid ? 'border-red-500' : 'border-(--form-control-border)'}`}
+				className={`rounded-md border bg-(--bg-input) px-3 py-2.5 text-base text-black outline-0 transition-colors duration-200 focus:border-white/30 focus:ring-0 dark:text-white dark:[color-scheme:dark] ${invalid ? 'border-red-500' : 'border-(--form-control-border)'}`}
 			/>
 		</label>
 	)

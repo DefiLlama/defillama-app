@@ -130,7 +130,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								value={startDate}
 								onChange={(e) => handleStartDateChange(e.target.value)}
 								required
-								className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
+								className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:[color-scheme:dark]"
 							/>
 						</label>
 						<label className="flex flex-col">
@@ -142,7 +142,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								onChange={(e) => handleEndDateChange(e.target.value)}
 								min={startDate}
 								required
-								className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
+								className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:[color-scheme:dark]"
 							/>
 						</label>
 					</span>
