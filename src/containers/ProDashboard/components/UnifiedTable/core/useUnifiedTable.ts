@@ -117,7 +117,7 @@ export function useUnifiedTable({
 		return filterRowsBySearch(withFilters, searchTerm)
 	}, [rows, config.filters, searchTerm])
 
-	const columns = useMemo(() => getUnifiedTableColumns(), [])
+	const columns = useMemo(() => getUnifiedTableColumns(config.customColumns), [config.customColumns])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
 
 	const groupingColumnSet = useMemo(() => new Set(groupingColumnIds), [groupingColumnIds])

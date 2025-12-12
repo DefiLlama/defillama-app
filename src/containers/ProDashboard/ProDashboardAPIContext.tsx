@@ -1055,7 +1055,8 @@ export function ProDashboardAPIProvider({
 				columnOrder: configOverrides?.columnOrder ?? [...DEFAULT_COLUMN_ORDER],
 				columnVisibility: configOverrides?.columnVisibility ?? {},
 				activePresetId: configOverrides?.activePresetId,
-				colSpan: configOverrides?.colSpan ?? 2
+				colSpan: configOverrides?.colSpan ?? 2,
+				customColumns: configOverrides?.customColumns
 			}
 
 			setItems((prev) => {

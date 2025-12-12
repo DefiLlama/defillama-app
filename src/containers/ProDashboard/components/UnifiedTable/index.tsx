@@ -2,7 +2,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
-import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
+import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
+import { evaluateExpression } from './utils/customColumns'
 import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
 import { UnifiedTablePagination } from './core/TablePagination'
 import { TableRenderer } from './core/TableRenderer'
@@ -130,9 +131,26 @@ const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
 
 const metricFromColumn = (columnId: string) => columnId
 
-const toCsvValue = (columnId: string, row: NormalizedRow): string => {
+const toCsvValue = (
+	columnId: string,
+	row: NormalizedRow,
+	customColumns?: CustomColumnDefinition[]
+): string => {
 	if (columnId === 'name') {
 		return row.name
+	}
+
+	if (columnId.startsWith('custom_')) {
+		const customCol = customColumns?.find((c) => c.id === columnId)
+		if (customCol) {
+			const value = evaluateExpression(customCol.expression, row.metrics)
+			if (value === null) return ''
+			if (customCol.format === 'percent') {
+				return value.toFixed(2)
+			}
+			return String(value)
+		}
+		return ''
 	}
 
 	const metricKey = metricFromColumn(columnId)
@@ -355,7 +373,9 @@ export const UnifiedTable = memo(function UnifiedTable({
 			return typeof header === 'string' ? header : column.id
 		})
 
-		const csvRows = unifiedTable.leafRows.map((row) => leafColumns.map((column) => toCsvValue(column.id, row)))
+		const csvRows = unifiedTable.leafRows.map((row) =>
+			leafColumns.map((column) => toCsvValue(column.id, row, config.customColumns))
+		)
 
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
 	}

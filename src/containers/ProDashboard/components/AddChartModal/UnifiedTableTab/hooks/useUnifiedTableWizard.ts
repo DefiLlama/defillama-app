@@ -13,7 +13,13 @@ import {
 	getDefaultRowHeaders,
 	normalizeSorting
 } from '~/containers/ProDashboard/components/UnifiedTable/utils/configHelpers'
-import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import { getOrderedCustomColumnIds } from '~/containers/ProDashboard/components/UnifiedTable/utils/customColumns'
+import type {
+	CustomColumnDefinition,
+	TableFilters,
+	UnifiedRowHeaderType,
+	UnifiedTableConfig
+} from '~/containers/ProDashboard/types'
 
 type WizardAction =
 	| { type: 'SET_CHAINS'; chains: string[] }
@@ -22,6 +28,9 @@ type WizardAction =
 	| { type: 'SET_PRESET'; presetId: string }
 	| { type: 'SET_COLUMNS'; columnOrder: ColumnOrderState; columnVisibility: VisibilityState }
 	| { type: 'SET_SORTING'; sorting: SortingState }
+	| { type: 'ADD_CUSTOM_COLUMN'; column: CustomColumnDefinition }
+	| { type: 'UPDATE_CUSTOM_COLUMN'; id: string; updates: Partial<CustomColumnDefinition> }
+	| { type: 'REMOVE_CUSTOM_COLUMN'; id: string }
 
 interface WizardState {
 	chains: string[]
@@ -31,6 +40,7 @@ interface WizardState {
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 	sorting: SortingState
+	customColumns: CustomColumnDefinition[]
 }
 
 const derivePreset = (presetId: string | undefined) => {
@@ -46,23 +56,35 @@ const createStateFromConfig = (config: UnifiedTableConfig, fallbackPresetId?: st
 	const columnOrder = getDefaultColumnOrder(config, preset)
 	const baseVisibility = getDefaultColumnVisibility(config, preset, true)
 
+	const customColumns = config.customColumns ? [...config.customColumns] : []
+
 	const sanitized = sanitizeConfigColumns({
 		order: columnOrder,
 		visibility: baseVisibility,
-		sorting: normalizeSorting(config.defaultSorting)
+		sorting: normalizeSorting(config.defaultSorting),
+		customColumns
 	})
 
-	const chains =
-		config.params?.chains && config.params.chains.length ? [...config.params.chains] : ['All']
+	const chains = config.params?.chains && config.params.chains.length ? [...config.params.chains] : ['All']
+	const orderedCustomIds = getOrderedCustomColumnIds(sanitized.order, customColumns)
+	const orderSet = new Set(sanitized.order)
+	const mergedOrder = [...sanitized.order, ...orderedCustomIds.filter((id) => !orderSet.has(id))]
+	const mergedVisibility = applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility)
+	for (const id of orderedCustomIds) {
+		if (!(id in mergedVisibility)) {
+			mergedVisibility[id] = true
+		}
+	}
 
 	return {
 		chains,
 		rowHeaders,
 		filters: { ...(config.filters ?? {}) },
 		activePresetId: config.activePresetId ?? preset.id,
-		columnOrder: sanitized.order,
-		columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
-		sorting: sanitized.sorting
+		columnOrder: mergedOrder,
+		columnVisibility: mergedVisibility,
+		sorting: sanitized.sorting,
+		customColumns
 	}
 }
 
@@ -88,7 +110,8 @@ const defaultState = (presetId?: string, existingConfig?: UnifiedTableConfig): W
 		activePresetId: preset.id,
 		columnOrder: sanitized.order,
 		columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
-		sorting: sanitized.sorting
+		sorting: sanitized.sorting,
+		customColumns: []
 	}
 }
 
@@ -112,14 +135,23 @@ const reducer = (state: WizardState, action: WizardAction): WizardState => {
 			const sanitized = sanitizeConfigColumns({
 				order: [...preset.columnOrder],
 				visibility: baseVisibility,
-				sorting: normalizeSorting(preset.defaultSorting)
+				sorting: normalizeSorting(preset.defaultSorting),
+				customColumns: state.customColumns
 			})
+			const customColumnIds = getOrderedCustomColumnIds(state.columnOrder, state.customColumns)
+			const customColumnVisibility = Object.fromEntries(
+				customColumnIds.map((id) => [id, state.columnVisibility[id] ?? true])
+			)
+			const nextOrderSet = new Set(sanitized.order)
 			return {
 				...state,
 				activePresetId: preset.id,
 				rowHeaders,
-				columnOrder: sanitized.order,
-				columnVisibility: applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
+				columnOrder: [...sanitized.order, ...customColumnIds.filter((id) => !nextOrderSet.has(id))],
+				columnVisibility: {
+					...applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility),
+					...customColumnVisibility
+				},
 				sorting: sanitized.sorting
 			}
 		}
@@ -127,6 +159,35 @@ const reducer = (state: WizardState, action: WizardAction): WizardState => {
 			return { ...state, columnOrder: action.columnOrder, columnVisibility: action.columnVisibility }
 		case 'SET_SORTING':
 			return { ...state, sorting: action.sorting }
+		case 'ADD_CUSTOM_COLUMN': {
+			const newOrder = [...state.columnOrder, action.column.id]
+			const newVisibility = { ...state.columnVisibility, [action.column.id]: true }
+			return {
+				...state,
+				customColumns: [...state.customColumns, action.column],
+				columnOrder: newOrder,
+				columnVisibility: newVisibility
+			}
+		}
+		case 'UPDATE_CUSTOM_COLUMN':
+			return {
+				...state,
+				customColumns: state.customColumns.map((col) =>
+					col.id === action.id ? { ...col, ...action.updates } : col
+				)
+			}
+		case 'REMOVE_CUSTOM_COLUMN': {
+			const newOrder = state.columnOrder.filter((id) => id !== action.id)
+			const { [action.id]: _, ...newVisibility } = state.columnVisibility
+			const newSorting = state.sorting.filter((sort) => sort.id !== action.id)
+			return {
+				...state,
+				customColumns: state.customColumns.filter((col) => col.id !== action.id),
+				columnOrder: newOrder,
+				columnVisibility: newVisibility,
+				sorting: newSorting
+			}
+		}
 		default:
 			return state
 	}
@@ -148,6 +209,16 @@ export const useUnifiedTableWizard = (presetId?: string, existingConfig?: Unifie
 		[]
 	)
 	const setSorting = useCallback((sorting: SortingState) => dispatch({ type: 'SET_SORTING', sorting }), [])
+	const addCustomColumn = useCallback(
+		(column: CustomColumnDefinition) => dispatch({ type: 'ADD_CUSTOM_COLUMN', column }),
+		[]
+	)
+	const updateCustomColumn = useCallback(
+		(id: string, updates: Partial<CustomColumnDefinition>) =>
+			dispatch({ type: 'UPDATE_CUSTOM_COLUMN', id, updates }),
+		[]
+	)
+	const removeCustomColumn = useCallback((id: string) => dispatch({ type: 'REMOVE_CUSTOM_COLUMN', id }), [])
 
 	const draftConfig = useMemo<Partial<UnifiedTableConfig>>(() => {
 		const params = {
@@ -161,7 +232,8 @@ export const useUnifiedTableWizard = (presetId?: string, existingConfig?: Unifie
 			columnOrder: state.columnOrder.length ? state.columnOrder : DEFAULT_COLUMN_ORDER,
 			columnVisibility: state.columnVisibility,
 			activePresetId: state.activePresetId,
-			defaultSorting: state.sorting.map((item) => ({ ...item }))
+			defaultSorting: state.sorting.map((item) => ({ ...item })),
+			customColumns: state.customColumns.length ? state.customColumns : undefined
 		}
 
 		return base
@@ -175,7 +247,10 @@ export const useUnifiedTableWizard = (presetId?: string, existingConfig?: Unifie
 			setFilters,
 			setPreset,
 			setColumns,
-			setSorting
+			setSorting,
+			addCustomColumn,
+			updateCustomColumn,
+			removeCustomColumn
 		},
 		derived: {
 			draftConfig

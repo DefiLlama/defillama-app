@@ -345,6 +345,14 @@ export interface ProtocolsTableConfig {
 	datasetTimeframe?: string
 }
 
+export interface CustomColumnDefinition {
+	id: string
+	name: string
+	expression: string
+	format: 'usd' | 'percent' | 'ratio' | 'number'
+	aggregation: 'sum' | 'first' | 'none' | 'recalculate'
+}
+
 export interface UnifiedTableConfig {
 	id: string
 	kind: 'unified-table'
@@ -360,6 +368,7 @@ export interface UnifiedTableConfig {
 	columnVisibility?: Record<string, boolean>
 	activePresetId?: string
 	colSpan?: StoredColSpan
+	customColumns?: CustomColumnDefinition[]
 }
 
 export interface Protocol {

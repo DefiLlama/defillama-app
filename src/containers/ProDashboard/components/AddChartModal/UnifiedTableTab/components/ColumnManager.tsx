@@ -24,14 +24,16 @@ import {
 } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import { isColumnSupported } from '~/containers/ProDashboard/components/UnifiedTable/config/metricCapabilities'
 import type { MetricGroup } from '~/containers/ProDashboard/components/UnifiedTable/types'
+import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
 
 interface ColumnManagerProps {
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 	onChange: (columnOrder: ColumnOrderState, columnVisibility: VisibilityState) => void
+	customColumns?: CustomColumnDefinition[]
 }
 
-type ColumnGroupId = MetricGroup | 'meta'
+type ColumnGroupId = MetricGroup | 'meta' | 'custom'
 
 interface ColumnMeta {
 	id: string
@@ -53,7 +55,8 @@ const GROUP_FILTERS: Array<{ id: ColumnGroupId | 'all'; label: string }> = [
 	{ id: 'aggregators', label: 'Aggregators' },
 	{ id: 'derivatives-aggregators', label: 'Derivatives Aggs' },
 	{ id: 'options', label: 'Options' },
-	{ id: 'ratios', label: 'Valuation' }
+	{ id: 'ratios', label: 'Valuation' },
+	{ id: 'custom', label: 'Custom' }
 ]
 
 const GROUP_LABELS: Record<ColumnGroupId | 'all', string> = GROUP_FILTERS.reduce(
@@ -72,8 +75,20 @@ const NAME_COLUMN: ColumnMeta = {
 	tags: []
 }
 
-const getColumnMeta = (id: string): ColumnMeta | null => {
+const getColumnMeta = (id: string, customColumns?: CustomColumnDefinition[]): ColumnMeta | null => {
 	if (id === 'name') return NAME_COLUMN
+	if (id.startsWith('custom_')) {
+		const customCol = customColumns?.find((c) => c.id === id)
+		if (customCol) {
+			return {
+				id: customCol.id,
+				header: customCol.name,
+				group: 'custom',
+				tags: []
+			}
+		}
+		return null
+	}
 	const dictionaryEntry = COLUMN_DICTIONARY_BY_ID.get(id)
 	if (!dictionaryEntry) return null
 	return {
@@ -84,7 +99,7 @@ const getColumnMeta = (id: string): ColumnMeta | null => {
 	}
 }
 
-const buildAllColumns = (): ColumnMeta[] => {
+const buildAllColumns = (customColumns?: CustomColumnDefinition[]): ColumnMeta[] => {
 	const dictionaryMetas = UNIFIED_TABLE_COLUMN_DICTIONARY.filter((column) => {
 		if (!isColumnSupported(column.id)) return false
 		return true
@@ -92,10 +107,22 @@ const buildAllColumns = (): ColumnMeta[] => {
 		.map(({ id }) => getColumnMeta(id))
 		.filter((meta): meta is ColumnMeta => Boolean(meta))
 
-	return [NAME_COLUMN, ...dictionaryMetas]
+	const customMetas: ColumnMeta[] = (customColumns ?? []).map((col) => ({
+		id: col.id,
+		header: col.name,
+		group: 'custom' as const,
+		tags: []
+	}))
+
+	return [NAME_COLUMN, ...dictionaryMetas, ...customMetas]
 }
 
-export function ColumnManager({ columnOrder, columnVisibility, onChange }: ColumnManagerProps) {
+export function ColumnManager({
+	columnOrder,
+	columnVisibility,
+	onChange,
+	customColumns
+}: ColumnManagerProps) {
 	const [search, setSearch] = useState('')
 	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
 	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
@@ -103,7 +130,7 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 	const [selectedCheckboxIds, setSelectedCheckboxIds] = useState<Set<string>>(new Set())
 	const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null)
 
-	const allColumns = useMemo(() => buildAllColumns(), [])
+	const allColumns = useMemo(() => buildAllColumns(customColumns), [customColumns])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((column) => column.id)), [allColumns])
 
 	const visibleSet = useMemo(() => {
@@ -443,7 +470,7 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 		)
 	}
 
-	const activeColumn = activeId ? getColumnMeta(String(activeId)) : null
+	const activeColumn = activeId ? getColumnMeta(String(activeId), customColumns) : null
 
 	const categoryOptions = useMemo(() => {
 		return GROUP_FILTERS.map((f) => ({ key: f.id, name: f.label }))
@@ -639,7 +666,7 @@ export function ColumnManager({ columnOrder, columnVisibility, onChange }: Colum
 									</div>
 								) : (
 									selectedColumns.map((columnId) => {
-										const meta = getColumnMeta(columnId)
+										const meta = getColumnMeta(columnId, customColumns)
 										if (!meta) return null
 										return (
 											<SortableSelectedItem key={meta.id} id={meta.id} disabled={ALWAYS_INCLUDED.has(meta.id)}>
