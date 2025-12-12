@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	return {
 		props: {
 			// lend & borrow from query are uppercase only. symbols in pools are mixed case though -> without
-			// setting to uppercase, we only show subset of available pools when applying `findOptimzerPools`
+			// setting to uppercase, we only show subset of available pools when applying `findOptimizerPools`
 			pools: pools
 				.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
 				.map((p) => ({ ...p, symbol: p.symbol.toUpperCase() })),
