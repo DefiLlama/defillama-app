@@ -270,7 +270,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<span className="">Minimum last investment time:</span>
 							<input
 								type="date"
-								className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:[color-scheme:dark]"
+								className="cursor-pointer rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white dark:[color-scheme:dark]"
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
