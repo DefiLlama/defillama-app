@@ -249,9 +249,10 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					(display.groupKind === 'parent' || display.header === 'protocol' || display.header === 'parent-protocol')
 				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
 				const iconSource = shouldShowChainIcon ? chainIcon : (display.iconUrl ?? baseRow?.logo ?? undefined)
-				const protocolCountValue = row.getIsGrouped()
-					? (row.getLeafRows().length || null)
-					: (baseRow?.metrics?.protocolCount ?? null)
+				const isChainOrCategoryGroup = display.header === 'chain' || display.header === 'category'
+				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped()
+					? (row.subRows?.length ?? null)
+					: null
 
 				return (
 					<div

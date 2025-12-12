@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
@@ -184,11 +184,11 @@ interface HeaderWithTooltipProps {
 	content?: string
 }
 
-const HeaderWithTooltip = ({ children, content }: HeaderWithTooltipProps) => {
+const HeaderWithTooltip = memo(function HeaderWithTooltip({ children, content }: HeaderWithTooltipProps) {
 	if (!content) return <>{children}</>
 	return (
 		<Tooltip content={content} className="underline decoration-dotted">
 			{children}
 		</Tooltip>
 	)
-}
+})

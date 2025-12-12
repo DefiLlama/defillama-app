@@ -11,21 +11,19 @@ import { useProDashboard } from '../../../ProDashboardAPIContext'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
 import { getOrderedCustomColumnIds } from '../../UnifiedTable/utils/customColumns'
+import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
 import type { FilterPill } from './components/ActiveFilterPills'
 import { ActiveFilterPills } from './components/ActiveFilterPills'
 import { CollapsibleSection } from './components/CollapsibleSection'
 import { ColumnManager } from './components/ColumnManager'
-import { CustomColumnBuilder } from './components/CustomColumnBuilder'
 import { FilterBuilder } from './components/FilterBuilder'
 import { FiltersPanel } from './components/FiltersPanel'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
-import { SortingSelector } from './components/SortingSelector'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
 import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
-import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
 
 interface UnifiedTableTabProps {
 	onClose: () => void
@@ -71,7 +69,17 @@ const TabContent = ({
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
 	const {
 		state: { chains, rowHeaders, filters, activePresetId, columnOrder, columnVisibility, sorting, customColumns },
-		actions: { setChains, setRowHeaders, setFilters, setPreset, setColumns, setSorting, addCustomColumn, updateCustomColumn, removeCustomColumn },
+		actions: {
+			setChains,
+			setRowHeaders,
+			setFilters,
+			setPreset,
+			setColumns,
+			setSorting,
+			addCustomColumn,
+			updateCustomColumn,
+			removeCustomColumn
+		},
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
 	const isEditing = Boolean(editItem)
@@ -222,22 +230,6 @@ const TabContent = ({
 		handlePresetSelect(activePreset.id)
 	}
 
-	const handleClearColumns = () => {
-		const customIds = customColumns.map((c) => c.id)
-		const nextVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
-			acc[id] = id === 'name' || customIds.includes(id)
-			return acc
-		}, {})
-
-		const nextOrder: ColumnOrderState = ['name', ...customIds]
-
-		setLocalOrder(nextOrder)
-		setLocalVisibility(nextVisibility)
-		setLocalSorting([])
-		setColumns(nextOrder, nextVisibility)
-		setSorting([])
-	}
-
 	const handleColumnChange = (order: ColumnOrderState, visibility: VisibilityState) => {
 		setLocalOrder(order)
 		setLocalVisibility(visibility)
@@ -258,22 +250,19 @@ const TabContent = ({
 		setFilters(nextFilters ?? {})
 	}, [])
 
-	const handleRemoveArrayFilterValue = useCallback(
-		(key: ArrayFilterKey, value: string) => {
-			setFilters((prev) => {
-				const next: TableFilters = { ...(prev ?? {}) }
-				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-				const updated = current.filter((item) => item !== value)
-				if (updated.length > 0) {
-					next[key] = updated
-				} else {
-					delete next[key]
-				}
-				return next
-			})
-		},
-		[]
-	)
+	const handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
+		setFilters((prev) => {
+			const next: TableFilters = { ...(prev ?? {}) }
+			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+			const updated = current.filter((item) => item !== value)
+			if (updated.length > 0) {
+				next[key] = updated
+			} else {
+				delete next[key]
+			}
+			return next
+		})
+	}, [])
 
 	const handleRemoveChainValue = useCallback(
 		(chainValue: string) => {
@@ -403,7 +392,7 @@ const TabContent = ({
 			? 'Adjust filters to refine the data shown in your table.'
 			: focusedSectionOnly === 'columns'
 				? 'Select and arrange columns to customize your table view.'
-				: 'Pick a tab to configure setup, columns, or filters.'
+				: ''
 
 	const setupBadge = useMemo(() => {
 		if (activePreset?.name) return `Protocols · ${activePreset.name}`
@@ -490,74 +479,38 @@ const TabContent = ({
 		columns: (
 			<div className="flex flex-col gap-3">
 				<CollapsibleSection
-					title="Custom Columns"
-					isDefaultExpanded={customColumns.length > 0}
-					badge={customColumns.length > 0 ? `${customColumns.length}` : undefined}
-					className="shadow-sm"
-				>
-					<CustomColumnBuilder
-						customColumns={customColumns}
-						onAdd={addCustomColumn}
-						onRemove={removeCustomColumn}
-						onUpdate={updateCustomColumn}
-					/>
-				</CollapsibleSection>
-
-				<CollapsibleSection
-					title="Columns & Sorting"
+					title="Columns"
 					isDefaultExpanded
-					badge={`${visibleColumnsCount} visible`}
+					badge={`${visibleColumnsCount} selected`}
 					className="shadow-sm"
 				>
-					<div className="flex flex-col gap-3">
-						<div className="flex flex-col gap-2">
-							<h4 className="text-xs font-semibold text-(--text-secondary)">Sorting</h4>
-							<SortingSelector
-								columnOrder={localOrder}
-								columnVisibility={localVisibility}
-								sorting={localSorting}
-								onChange={handleSortingChange}
-								onReset={() => handleSortingChange(presetSortingFallback)}
-								customColumns={customColumns}
-							/>
+					<div className="flex flex-col gap-2">
+						<div className="flex flex-wrap items-center justify-end gap-2 text-xs">
+							<button
+								type="button"
+								onClick={handleResetToPreset}
+								disabled={!isModified}
+								className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
+									isModified
+										? 'border-(--primary) text-(--primary) hover:bg-(--primary)/10'
+										: 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
+								}`}
+							>
+								Reset to preset
+							</button>
 						</div>
-						<div className="flex flex-col gap-2">
-							<div className="flex flex-wrap items-center justify-between gap-2">
-								<h4 className="text-xs font-semibold text-(--text-secondary)">Columns</h4>
-								<div className="flex flex-wrap items-center gap-2 text-xs">
-									<button
-										type="button"
-										onClick={handleResetToPreset}
-										disabled={!isModified}
-										className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
-											isModified
-												? 'border-(--primary) text-(--primary) hover:bg-(--primary)/10'
-												: 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
-										}`}
-									>
-										Reset to preset
-									</button>
-									<button
-										type="button"
-										onClick={handleClearColumns}
-										disabled={visibleColumnsCount === 0}
-										className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
-											visibleColumnsCount === 0
-												? 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
-												: 'border-red-500/60 text-red-500 hover:bg-red-500/10'
-										}`}
-									>
-										Clear all
-									</button>
-								</div>
-							</div>
-							<ColumnManager
-								columnOrder={localOrder}
-								columnVisibility={localVisibility}
-								onChange={handleColumnChange}
-								customColumns={customColumns}
-							/>
-						</div>
+						<ColumnManager
+							columnOrder={localOrder}
+							columnVisibility={localVisibility}
+							onChange={handleColumnChange}
+							customColumns={customColumns}
+							onAddCustomColumn={addCustomColumn}
+							onUpdateCustomColumn={updateCustomColumn}
+							onRemoveCustomColumn={removeCustomColumn}
+							sorting={localSorting}
+							onSortingChange={handleSortingChange}
+							onSortingReset={() => handleSortingChange(presetSortingFallback)}
+						/>
 					</div>
 				</CollapsibleSection>
 			</div>
@@ -615,10 +568,7 @@ const TabContent = ({
 
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
-				<h2 className="text-base font-semibold text-(--text-primary)">{headerTitle}</h2>
-				<p className="text-xs text-(--text-secondary)">{headerDescription}</p>
-			</header>
+			<header className="flex flex-shrink-0 flex-col gap-1 pb-3"></header>
 
 			{availableTabs.length > 0 && (
 				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
