@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { CATEGORY_CHART_API, CHART_API, DIMENISIONS_OVERVIEW_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { normalizeChainName, toChainSlug } from '~/containers/ProDashboard/chainNormalizer'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
 
 interface ChartSeries {
@@ -59,19 +60,6 @@ const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metri
 }
 
 const toSlug = (name: string = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
-
-const mapChainForProtocols = (chain: string): string => {
-	if (!chain) return chain
-	if (chain.toLowerCase() === 'optimism') return 'OP Mainnet'
-	return chain
-}
-
-const mapChainForDimensions = (chain: string): string => {
-	if (!chain) return chain
-	const lc = chain.toLowerCase()
-	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'op-mainnet'
-	return lc
-}
 
 const sumSeriesByTimestamp = (seriesList: [number, number][][]): Map<number, number> => {
 	const acc = new Map<number, number>()
@@ -280,10 +268,10 @@ const getTvlData = async (
 	const childScores: ChildScore[] = []
 	const childrenByParent: Map<string, Set<string>> = new Map()
 	const excludedChainSetForProtocols: Set<string> = new Set(
-		filterMode === 'exclude' ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
+		filterMode === 'exclude' ? selectedChains.map((ch) => normalizeChainName(ch)) : []
 	)
 	const includedChainSetForProtocols: Set<string> = new Set(
-		filterMode === 'include' && !isAll ? selectedChains.map((ch) => mapChainForProtocols(ch)) : []
+		filterMode === 'include' && !isAll ? selectedChains.map((ch) => normalizeChainName(ch)) : []
 	)
 	const categoriesFilterSet = new Set(categoriesFilter)
 
@@ -320,7 +308,7 @@ const getTvlData = async (
 				}
 			} else {
 				for (const ch of selectedChains) {
-					const key = mapChainForProtocols(ch)
+					const key = normalizeChainName(ch)
 					if (isIgnoredChainKey(key)) continue
 					const chainEntry = p.chainTvls?.[key]
 					if (chainEntry && typeof chainEntry.tvl === 'number') {
@@ -586,7 +574,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const chainDataPromises = chainsArray.map(async (singleChain) => {
-			let apiChain = mapChainForDimensions(singleChain)
+			const apiChain = toChainSlug(singleChain)
 
 			let apiUrl =
 				apiChain && apiChain !== 'all'
@@ -650,7 +638,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				chainsArray
 					.filter((c) => c.toLowerCase() !== 'all')
 					.map(async (singleChain) => {
-						let apiChain = mapChainForDimensions(singleChain)
+						const apiChain = toChainSlug(singleChain)
 						let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
 						if (config.dataType) url += `&dataType=${config.dataType}`
 						try {

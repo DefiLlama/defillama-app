@@ -11,6 +11,7 @@ import {
 	YIELD_URL_API
 } from '~/constants'
 import { fetchApi } from '~/utils/async'
+import { toDimensionsSlug } from '~/containers/ProDashboard/chainNormalizer'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
@@ -29,12 +30,6 @@ export async function getYieldPageData() {
 		rewardTokens: p.rewardTokens ?? []
 	}))
 
-	const priceChainMapping = {
-		binance: 'bsc',
-		avalanche: 'avax',
-		gnosis: 'xdai'
-	}
-
 	// get Price data
 	//
 	let pricesList = []
@@ -43,10 +38,7 @@ export async function getYieldPageData() {
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
 
 		if (rewardTokens?.length) {
-			let priceChainName = p.chain.toLowerCase()
-			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
-				? priceChainMapping[priceChainName]
-				: priceChainName
+			const priceChainName = toDimensionsSlug(p.chain)
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
@@ -61,12 +53,8 @@ export async function getYieldPageData() {
 	const coinsPrices = await fetchCoinPrices(pricesList)
 
 	for (let p of data.pools) {
-		let priceChainName = p.chain.toLowerCase()
+		const priceChainName = toDimensionsSlug(p.chain)
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
-
-		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
-			? priceChainMapping[priceChainName]
-			: priceChainName
 
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'

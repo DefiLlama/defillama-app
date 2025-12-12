@@ -2,6 +2,7 @@ import * as React from 'react'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
+import { CHAIN_NAME_ALIASES } from '~/containers/ProDashboard/chainNormalizer'
 
 type BuilderMetric = ChartBuilderConfig['metric']
 
@@ -35,16 +36,6 @@ type AppMetadataContextType = {
 }
 
 const AppMetadataContext = createContext<AppMetadataContextType | undefined>(undefined)
-
-const CHAIN_NAME_ALIASES: Record<string, string[]> = {
-	'OP Mainnet': ['Optimism'],
-	BSC: ['Binance'],
-	Hyperliquid: ['Hyperliquid L1'],
-	Gnosis: ['xDai'],
-	CosmosHub: ['Cosmos'],
-	PulseChain: ['Pulse'],
-	'EOS EVM': ['EOS']
-}
 
 const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags> = {
 	tvl: 'tvl',

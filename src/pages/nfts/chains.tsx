@@ -7,6 +7,7 @@ import { TEMP_CHAIN_NFTS } from '~/constants'
 import Layout from '~/layout'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { toChainSlug } from '~/containers/ProDashboard/chainNormalizer'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
@@ -18,10 +19,8 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 
 	const chains = []
 	for (const chain in data) {
-		const name =
-			metadataCache.chainMetadata[
-				chain === 'optimism' ? 'op-mainnet' : chain === 'immutablex' ? 'immutable-zkevm' : chain
-			]?.name
+		const normalizedSlug = toChainSlug(chain)
+		const name = metadataCache.chainMetadata[normalizedSlug]?.name
 		chains.push({
 			name,
 			logo: chainIconUrl(chain),

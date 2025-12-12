@@ -11,6 +11,12 @@ import {
 	PROTOCOLS_API
 } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import {
+	normalizeChainName,
+	toDimensionsSlug,
+	fromDimensionsSlugToOverview,
+	createChainMatchSet
+} from '~/containers/ProDashboard/chainNormalizer'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
 
 interface ChartSeries {
@@ -158,82 +164,6 @@ const getProtocolCategoryLookup = async (): Promise<ProtocolCategoryLookup | nul
 
 const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 
-const normalizeChainKey = (chain: string): string => {
-	const lc = chain.toLowerCase()
-	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'OP Mainnet'
-	if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era') return 'ZKsync Era'
-	if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'Polygon zkEVM'
-	if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm') return 'Immutable zkEVM'
-	if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'Cronos zkEVM'
-	return chain
-}
-
-const toDimensionsChainSlug = (chain: string): string => {
-	if (!chain) return chain
-	const lc = chain.toLowerCase()
-	if (lc === 'optimism' || lc === 'op mainnet' || lc === 'op-mainnet') return 'optimism'
-	if (lc === 'bsc' || lc === 'binance smart chain') return 'bsc'
-	if (lc === 'avax' || lc === 'avalanche') return 'avax'
-	if (lc === 'gnosis' || lc === 'xdai') return 'xdai'
-	if (lc === 'hyperliquid' || lc === 'hyperliquid l1' || lc === 'hyperliquid_l1' || lc === 'hyperliquid-l1')
-		return 'hyperliquid'
-	if (lc === 'zksync era' || lc === 'zksync-era' || lc === 'zksync_era' || lc === 'zksync' || lc === 'era') return 'era'
-	if (lc === 'polygon zkevm' || lc === 'polygon-zkevm' || lc === 'polygon_zkevm') return 'polygon_zkevm'
-	if (lc === 'immutable zkevm' || lc === 'immutable-zkevm' || lc === 'immutable_zkevm' || lc === 'imx') return 'imx'
-	if (lc === 'cronos zkevm' || lc === 'cronos-zkevm' || lc === 'cronos_zkevm') return 'cronos_zkevm'
-	if (lc === 'arbitrum nova' || lc === 'arbitrum-nova' || lc === 'arbitrum_nova') return 'arbitrum_nova'
-	return lc.replace(/\s+/g, '_')
-}
-
-const toOverviewApiSlug = (breakdownSlug: string): string => {
-	if (!breakdownSlug) return breakdownSlug
-	const lc = breakdownSlug.toLowerCase()
-	if (lc === 'optimism') return 'OP Mainnet'
-	if (lc === 'hyperliquid') return 'Hyperliquid L1'
-	if (lc === 'xdai') return 'Gnosis'
-	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
-	if (lc === 'imx') return 'Immutable zkEVM'
-	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
-	if (lc === 'cronos_zkevm') return 'Cronos zkEVM'
-	return lc.replace(/_/g, '-')
-}
-
-const displayChainName = (slug: string): string => {
-	const lc = slug.toLowerCase()
-	if (lc === 'op-mainnet' || lc === 'optimism') return 'OP Mainnet'
-	if (lc === 'hyperliquid') return 'Hyperliquid L1'
-	if (lc === 'avax') return 'Avalanche'
-	if (lc === 'bsc') return 'BSC'
-	if (lc === 'xdai') return 'Gnosis'
-	if (lc === 'era' || lc === 'zksync') return 'ZKsync Era'
-	if (lc === 'polygon_zkevm') return 'Polygon zkEVM'
-	if (lc === 'imx') return 'Immutable zkEVM'
-	if (lc === 'cronos_zkevm') return 'Cronos zkEVM'
-	if (lc === 'arbitrum_nova') return 'Arbitrum Nova'
-	const norm = lc.replace(/_/g, '-')
-	return norm
-		.split('-')
-		.map((p) => (p.length ? p[0].toUpperCase() + p.slice(1) : p))
-		.join(' ')
-}
-
-const buildChainMatchSet = (values: string[]): Set<string> => {
-	const set = new Set<string>()
-	for (const value of values) {
-		if (!value) continue
-		set.add(value)
-		set.add(value.toLowerCase())
-		const normalized = normalizeChainKey(value)
-		set.add(normalized)
-		set.add(normalized.toLowerCase())
-		const slug = toDimensionsChainSlug(value)
-		if (slug) {
-			set.add(slug)
-			set.add(slug.toLowerCase())
-		}
-	}
-	return set
-}
 
 const sumStablecoinUsd = (value: any): number => {
 	if (typeof value === 'number') return value || 0
@@ -302,7 +232,7 @@ async function getTvlProtocolChainData(
 		const availableChains: string[] = []
 		let colorIndex = 0
 
-		const excludeSet = new Set<string>((chains || []).map((c) => normalizeChainKey(c)))
+		const excludeSet = new Set<string>((chains || []).map((c) => normalizeChainName(c)))
 
 		let allowNamesFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
@@ -479,7 +409,7 @@ async function getDimensionsProtocolChainData(
 				}
 
 				if (allowSlugsFromCategories && allowSlugsFromCategories.size > 0) {
-					const chainSlug = toDimensionsChainSlug(chain)
+					const chainSlug = toDimensionsSlug(chain)
 					if (filterMode === 'include') {
 						if (!allowSlugsFromCategories.has(chainSlug)) return
 					} else {
@@ -604,7 +534,7 @@ async function getAllProtocolsTopChainsTvlData(
 	try {
 		const resp = await fetch(CHAIN_TVL_API)
 		const allChains = (await resp.json()) as Array<{ name: string; tvl: number }>
-		const includeSet = new Set<string>((chains || []).map((c) => normalizeChainKey(c)))
+		const includeSet = new Set<string>((chains || []).map((c) => normalizeChainName(c)))
 		let allowNamesFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
@@ -614,8 +544,8 @@ async function getAllProtocolsTopChainsTvlData(
 			.filter((c) => typeof c.tvl === 'number' && c.tvl > 0 && c.name)
 			.filter((c) => {
 				if (!chains || chains.length === 0) return true
-				if (filterMode === 'include') return includeSet.has(normalizeChainKey(c.name))
-				return !includeSet.has(normalizeChainKey(c.name))
+				if (filterMode === 'include') return includeSet.has(normalizeChainName(c.name))
+				return !includeSet.has(normalizeChainName(c.name))
 			})
 			.filter((c) => {
 				if (!allowNamesFromCategories || allowNamesFromCategories.size === 0) return true
@@ -709,12 +639,12 @@ async function getAllProtocolsTopChainsStablecoinsData(
 		const dominanceJson = await dominanceResp.json()
 		const chainChartMap: Record<string, any[]> = dominanceJson?.chainChartMap ?? {}
 
-		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
+		const includeSet = chains && chains.length > 0 ? createChainMatchSet(chains) : new Set<string>()
 
 		let allowNamesFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
 			const namesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
-			allowNamesFromCategories = buildChainMatchSet(Array.from(namesFromCategories))
+			allowNamesFromCategories = createChainMatchSet(Array.from(namesFromCategories))
 		}
 
 		const candidates: Array<{ name: string; data: [number, number][]; lastValue: number }> = []
@@ -726,9 +656,9 @@ async function getAllProtocolsTopChainsStablecoinsData(
 			const matchValues = [
 				chainName,
 				chainName.toLowerCase(),
-				normalizeChainKey(chainName),
-				normalizeChainKey(chainName).toLowerCase(),
-				toDimensionsChainSlug(chainName)
+				normalizeChainName(chainName),
+				normalizeChainName(chainName).toLowerCase(),
+				toDimensionsSlug(chainName)
 			]
 
 			if (includeSet.size > 0) {
@@ -770,7 +700,7 @@ async function getAllProtocolsTopChainsStablecoinsData(
 			const lastValue = normalized[normalized.length - 1]?.[1] || 0
 			if (lastValue <= 0) continue
 
-			const displayName = displayChainName(toDimensionsChainSlug(chainName))
+			const displayName = fromDimensionsSlugToOverview(toDimensionsSlug(chainName))
 
 			candidates.push({
 				name: displayName,
@@ -906,7 +836,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
 		const overview = await overviewResp.json()
 
-		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
+		const includeSet = chains && chains.length > 0 ? createChainMatchSet(chains) : new Set<string>()
 		let allowSlugsFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
 			const slugs = await resolveAllowedChainSlugsFromCategories(chainCategories)
@@ -917,10 +847,10 @@ async function getAllProtocolsTopChainsChainFeesData(
 		const rankedEntries = protocols
 			.filter((p) => (p?.protocolType || '').toLowerCase() === 'chain')
 			.map((p) => {
-				const slug = typeof p.slug === 'string' && p.slug.length > 0 ? p.slug : toDimensionsChainSlug(p.name || '')
+				const slug = typeof p.slug === 'string' && p.slug.length > 0 ? p.slug : toDimensionsSlug(p.name || '')
 				const total24h = Number(p.total24h) || 0
 				return {
-					name: displayChainName(slug),
+					name: fromDimensionsSlugToOverview(slug),
 					slug,
 					total24h
 				}
@@ -1117,7 +1047,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			}
 		}
 
-		const filterSet = new Set<string>((chains || []).map((c) => toDimensionsChainSlug(c)))
+		const filterSet = new Set<string>((chains || []).map((c) => toDimensionsSlug(c)))
 		let allowSlugsFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
 			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
@@ -1132,7 +1062,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			})
 			.filter(([slug]) => {
 				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
-				const normalizedSlug = toDimensionsChainSlug(slug)
+				const normalizedSlug = toDimensionsSlug(slug)
 				const result =
 					filterMode === 'include'
 						? allowSlugsFromCategories.has(normalizedSlug)
@@ -1146,7 +1076,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		const chainSeriesPromises = picked.map(async (slug, idx) => {
 			const includeBreakdownParam = hasProtocolCategoryFilter ? 'false' : 'true'
-			const endpointSlug = toOverviewApiSlug(slug)
+			const endpointSlug = fromDimensionsSlugToOverview(slug)
 			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
 			const r = await fetch(url)
@@ -1169,7 +1099,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			}
 
 			return {
-				name: displayChainName(slug),
+				name: fromDimensionsSlugToOverview(slug),
 				data: normalized,
 				color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
 			} as ChartSeries
@@ -1222,7 +1152,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: config.metricName,
-				chains: picked.map(displayChainName),
+				chains: picked.map(fromDimensionsSlugToOverview),
 				totalChains: ranked.length,
 				topN: Math.min(topN, ranked.length),
 				othersCount
@@ -1336,7 +1266,7 @@ async function resolveAllowedChainSlugsFromCategories(categories: string[]): Pro
 	const names = await resolveAllowedChainNamesFromCategories(categories)
 	const slugs = new Set<string>()
 	for (const name of names) {
-		const slug = toDimensionsChainSlug(name)
+		const slug = toDimensionsSlug(name)
 		slugs.add(slug)
 	}
 	return slugs

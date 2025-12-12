@@ -1,3 +1,5 @@
+import { normalizeChainName } from '~/containers/ProDashboard/chainNormalizer'
+
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []
 	let _config = poolsAndConfig[1]?.protocols ?? []
@@ -90,7 +92,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	}
 	// add chain symbols too
 	for (const chain of _chains) {
-		tokenNameMapping[chain.tokenSymbol] = chain.name === 'xDai' ? 'Gnosis' : chain.name
+		tokenNameMapping[chain.tokenSymbol] = normalizeChainName(chain.name)
 	}
 
 	tokenNameMapping['USDC'] = 'USD Coin'

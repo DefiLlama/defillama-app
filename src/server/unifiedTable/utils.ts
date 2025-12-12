@@ -1,4 +1,5 @@
 import type { UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import { toChainSlug } from '~/containers/ProDashboard/chainNormalizer'
 
 export interface LensTotals {
 	tvl_base: number | null
@@ -13,17 +14,6 @@ export interface LensTotals {
 const MAX_CHAIN_FILTERS = 100
 const MAX_CHAIN_NAME_LENGTH = 200
 const ALLOWED_CHAIN_PATTERN = /^[a-z0-9- ]+$/i
-
-const CHAIN_SLUG_ALIASES: Record<string, string> = {
-	optimism: 'op-mainnet',
-	binance: 'bsc',
-	xdai: 'gnosis',
-	cosmos: 'cosmoshub',
-	pulse: 'pulsechain',
-	hyperliquid: 'hyperliquid-l1',
-	zksync: 'zksync-era',
-	'zksync era': 'zksync-era'
-}
 
 export const toPercent = (value: number | null | undefined): number | null => {
 	if (value === null || value === undefined) return null
@@ -83,8 +73,7 @@ export const normalizeChainList = (chains?: string[] | null): string[] => {
 				)
 			}
 
-			const lc = trimmed.toLowerCase()
-			return CHAIN_SLUG_ALIASES[lc] ?? lc
+			return toChainSlug(trimmed)
 		})
 		.filter((chain): chain is string => chain !== null)
 

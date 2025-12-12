@@ -9,17 +9,13 @@ import {
 } from '~/constants'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
 import { fetchApi } from '~/utils/async'
-
-const formatChain = (chain: string) => {
-	if (chain.toLowerCase().includes('hyperliquid')) return 'Hyperliquid'
-	return chain
-}
+import { normalizeChainName } from '~/containers/ProDashboard/chainNormalizer'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const { chains } = req.query
 		let chainList = typeof chains === 'string' ? [chains] : chains || []
-		chainList = chainList.map(formatChain)
+		chainList = chainList.map(normalizeChainName)
 		const poolsAndConfig = await fetchApi([
 			YIELD_POOLS_API,
 			YIELD_CONFIG_API,
@@ -116,8 +112,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		let filteredPools = transformedPools
 		if (chainList.length > 0 && !chainList.includes('All')) {
+			const normalizedChainList = chainList.map((c: string) => normalizeChainName(c).toLowerCase())
 			filteredPools = transformedPools.filter((pool: any) =>
-				pool.chains.some((chain: string) => chainList.some((c: string) => c.toLowerCase() === chain.toLowerCase()))
+				pool.chains.some((chain: string) => normalizedChainList.includes(normalizeChainName(chain).toLowerCase()))
 			)
 		}
 
