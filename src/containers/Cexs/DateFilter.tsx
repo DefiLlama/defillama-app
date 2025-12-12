@@ -146,7 +146,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 							<input
 								type="date"
 								name="startDate"
-								className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
+								className="h-9 w-full cursor-pointer rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white dark:[color-scheme:dark]"
 								value={localStartDate}
 								max={maxDate}
 								onChange={handleStartDateChange}
@@ -173,7 +173,7 @@ export const DateFilter = ({ startDate, endDate }) => {
 							<input
 								type="date"
 								name="endDate"
-								className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
+								className="h-9 w-full cursor-pointer rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white dark:[color-scheme:dark]"
 								value={localEndDate}
 								max={maxDate}
 								onChange={handleEndDateChange}
