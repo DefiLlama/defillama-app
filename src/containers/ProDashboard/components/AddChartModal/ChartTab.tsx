@@ -61,6 +61,7 @@ interface ChartTabProps {
 	onChartBuilderChange: (updates: any) => void
 	onChartBuilderNameChange: (name: string) => void
 	timePeriod: any
+	customTimePeriod?: any
 }
 
 export function ChartTab(props: ChartTabProps) {
@@ -97,6 +98,7 @@ export function ChartTab(props: ChartTabProps) {
 					onChartBuilderChange={props.onChartBuilderChange}
 					onChartBuilderNameChange={props.onChartBuilderNameChange}
 					timePeriod={props.timePeriod}
+					customTimePeriod={props.customTimePeriod}
 				/>
 			) : (
 				<UnifiedChartTab

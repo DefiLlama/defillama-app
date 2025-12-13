@@ -7,6 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
+import { CustomTimePeriodPicker } from './components/CustomTimePeriodPicker'
 import { EmptyState } from './components/EmptyState'
 import type { UnifiedTableFocusSection } from './components/UnifiedTable/types'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
@@ -38,7 +39,6 @@ function ProDashboardContent() {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
 	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
 	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
-	const [isEditingName, setIsEditingName] = useState<boolean>(false)
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
@@ -46,14 +46,12 @@ function ProDashboardContent() {
 		items,
 		protocolsLoading,
 		timePeriod,
+		customTimePeriod,
 		setTimePeriod,
+		setCustomTimePeriod,
 		dashboardName,
-		setDashboardName,
 		dashboardId,
-		createNewDashboard,
-		deleteDashboard,
 		saveDashboard,
-		saveDashboardName,
 		isReadOnly,
 		copyDashboard,
 		dashboardVisibility,
@@ -109,22 +107,6 @@ function ProDashboardContent() {
 		setInitialUnifiedFocusSection(focusSection)
 		setShowAddModal(true)
 	}, [])
-
-	const handleNameSubmit = (e: React.FormEvent) => {
-		e.preventDefault()
-		setIsEditingName(false)
-		saveDashboardName()
-	}
-
-	const handleNameKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter') {
-			setIsEditingName(false)
-			saveDashboardName()
-		} else if (e.key === 'Escape') {
-			setIsEditingName(false)
-			saveDashboardName()
-		}
-	}
 
 	if (!isAuthenticated && !hasActiveSubscription && dashboardVisibility !== 'public') {
 		return (
@@ -267,7 +249,7 @@ function ProDashboardContent() {
 							{timePeriods.map((period) => (
 								<button
 									key={period.value}
-									className={`-ml-px flex-1 rounded-none border px-3 py-1.5 text-sm font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:flex-initial md:px-4 md:py-2 ${
+									className={`-ml-px flex-1 rounded-none border px-3 py-1.5 text-sm font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md md:flex-initial md:px-4 md:py-2 ${
 										timePeriod === period.value
 											? 'pro-border pro-btn-blue'
 											: 'pro-border pro-text2 hover:pro-text1 pro-hover-bg'
@@ -278,6 +260,13 @@ function ProDashboardContent() {
 									{period.label}
 								</button>
 							))}
+							<CustomTimePeriodPicker
+								isActive={timePeriod === 'custom'}
+								customPeriod={customTimePeriod}
+								onApply={(period) => setCustomTimePeriod(period)}
+								onClear={() => setTimePeriod('365d')}
+								disabled={!hasChartItems}
+							/>
 						</div>
 					</Tooltip>
 					<div className="order-3 flex items-center gap-2">

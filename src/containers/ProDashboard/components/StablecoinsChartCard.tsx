@@ -50,7 +50,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 
 export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 	const { chain, chartType } = config
-	const { timePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboard()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 
 	const {
@@ -82,7 +82,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			if (!hasDateField) return data
 
 			const points: [number, number][] = data.map((el) => [el.date, 1])
-			const filtered = filterDataByTimePeriod(points, timePeriod)
+			const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
 			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
 			return data.filter((el) => filteredTimestamps.has(el.date))
 		}
@@ -94,7 +94,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			usdInflows: filterTimeSeries(usdInflows),
 			tokenInflows: filterTimeSeries(tokenInflows)
 		}
-	}, [peggedAreaTotalData, peggedAreaChartData, dataWithExtraPeggedAndDominanceByDay, usdInflows, tokenInflows, timePeriod])
+	}, [peggedAreaTotalData, peggedAreaChartData, dataWithExtraPeggedAndDominanceByDay, usdInflows, tokenInflows, timePeriod, customTimePeriod])
 
 	const latestMcap = useMemo(() => {
 		const data = filteredChartData.peggedAreaTotalData

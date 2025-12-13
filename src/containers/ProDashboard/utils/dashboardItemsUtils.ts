@@ -17,6 +17,7 @@ export async function addItemToDashboard(
 			items: cleanItemsForSaving(updatedItems),
 			dashboardName: dashboard.data.dashboardName,
 			timePeriod: dashboard.data.timePeriod,
+			customTimePeriod: dashboard.data.customTimePeriod,
 			visibility: dashboard.visibility,
 			tags: dashboard.tags,
 			description: dashboard.description,

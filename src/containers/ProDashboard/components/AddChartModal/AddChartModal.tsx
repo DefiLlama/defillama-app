@@ -127,6 +127,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onChartBuilderChange={actions.updateChartBuilder}
 							onChartBuilderNameChange={actions.setChartBuilderName}
 							timePeriod={computed.timePeriod}
+							customTimePeriod={computed.customTimePeriod}
 						/>
 					)}
 

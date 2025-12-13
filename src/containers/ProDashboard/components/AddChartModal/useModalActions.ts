@@ -24,6 +24,7 @@ export function useModalActions(
 		chains,
 		protocolsLoading,
 		timePeriod,
+		customTimePeriod,
 		handleAddChart,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
@@ -709,9 +710,10 @@ export function useModalActions(
 			chainOptions,
 			protocolOptions,
 			protocolsLoading,
-			timePeriod
+			timePeriod,
+			customTimePeriod
 		}),
-		[selectedProtocolData, selectedChainData, chainOptions, protocolOptions, protocolsLoading, timePeriod]
+		[selectedProtocolData, selectedChainData, chainOptions, protocolOptions, protocolsLoading, timePeriod, customTimePeriod]
 	)
 
 	return {

@@ -72,6 +72,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handleEditItem,
 		isReadOnly,
 		timePeriod,
+		customTimePeriod,
 		getProtocolInfo
 	} = useProDashboard()
 	const { chartInstance, handleChartReady } = useChartImageExport()
@@ -103,7 +104,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.hideOthers,
 			config.groupByParent,
 			config.filterMode || 'include',
-			timePeriod
+			timePeriod,
+			customTimePeriod
 		],
 		queryFn: async () => {
 			if (config.mode === 'protocol') {
@@ -125,7 +127,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				if (timePeriod && timePeriod !== 'all') {
 					series = series.map((s) => ({
 						...s,
-						data: filterDataByTimePeriod(s.data, timePeriod)
+						data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
 					}))
 				}
 
@@ -162,7 +164,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			if (timePeriod && timePeriod !== 'all') {
 				series = series.map((s) => ({
 					...s,
-					data: filterDataByTimePeriod(s.data, timePeriod)
+					data: filterDataByTimePeriod(s.data, timePeriod, customTimePeriod)
 				}))
 			}
 
