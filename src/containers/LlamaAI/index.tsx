@@ -1766,7 +1766,7 @@ const PromptInput = memo(function PromptInput({
 									onChange={onChange}
 									onKeyDown={onKeyDown}
 									name="prompt"
-									className="relative z-[1] block min-h-[48px] w-full resize-none bg-transparent p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:caret-white placeholder:dark:text-[#919296]"
+									className={`relative z-[1] block min-h-[48px] w-full resize-none bg-transparent p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:caret-white placeholder:dark:text-[#919296] ${showResearchButton ? 'pb-10' : ''}`}
 									autoCorrect="off"
 									autoComplete="off"
 									spellCheck="false"
@@ -1775,7 +1775,7 @@ const PromptInput = memo(function PromptInput({
 							disabled={isPending && !isStreaming}
 						/>
 						<div
-							className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base"
+							className={`highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base ${showResearchButton ? 'pb-10' : ''}`}
 							ref={highlightRef}
 						/>
 					</div>
@@ -1824,7 +1824,7 @@ const PromptInput = memo(function PromptInput({
 						type="button"
 						onClick={onResearchModeToggle}
 						data-umami-event="llamaai-research-mode-toggle"
-						className={`absolute bottom-2 left-2 z-10 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors max-sm:top-0 max-sm:bottom-0 max-sm:my-auto ${
+						className={`absolute bottom-2 left-2 z-10 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
 							isResearchMode ? 'bg-(--old-blue) text-white' : 'bg-(--bg3) text-(--text2) hover:bg-(--old-blue)/12'
 						}`}
 					>
