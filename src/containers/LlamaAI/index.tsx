@@ -51,6 +51,7 @@ async function fetchPromptResponse({
 	suggestionContext,
 	preResolvedEntities,
 	mode,
+	forceIntent,
 	authorizedFetch
 }: {
 	prompt?: string
@@ -86,6 +87,7 @@ async function fetchPromptResponse({
 	suggestionContext?: any
 	preResolvedEntities?: Array<{ term: string; slug: string }>
 	mode: 'auto' | 'sql_only'
+	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
 }) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
@@ -109,6 +111,10 @@ async function fetchPromptResponse({
 
 		if (preResolvedEntities) {
 			requestBody.preResolvedEntities = preResolvedEntities
+		}
+
+		if (forceIntent) {
+			requestBody.forceIntent = forceIntent
 		}
 
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {
@@ -393,6 +399,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
+	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
 		suggestionContext?: any
@@ -533,6 +540,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				suggestionContext,
 				preResolvedEntities,
 				mode: 'auto',
+				forceIntent: isResearchMode ? 'comprehensive_report' : undefined,
 				authorizedFetch,
 				onProgress: (data) => {
 					if (data.type === 'token') {
@@ -1172,6 +1180,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isStreaming={isStreaming}
 											restoreRequest={restoreRequest}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+											isResearchMode={isResearchMode}
+											onResearchModeToggle={() => setIsResearchMode(!isResearchMode)}
+											showResearchButton={showDebug}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
 									</>
@@ -1395,6 +1406,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isStreaming={isStreaming}
 										restoreRequest={restoreRequest}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+										isResearchMode={isResearchMode}
+										onResearchModeToggle={() => setIsResearchMode(!isResearchMode)}
+										showResearchButton={showDebug}
 									/>
 								)}
 							</div>
@@ -1413,7 +1427,10 @@ const PromptInput = memo(function PromptInput({
 	handleStopRequest,
 	isStreaming,
 	placeholder,
-	restoreRequest
+	restoreRequest,
+	isResearchMode,
+	onResearchModeToggle,
+	showResearchButton
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
@@ -1426,6 +1443,9 @@ const PromptInput = memo(function PromptInput({
 		text: string
 		entities?: Array<{ term: string; slug: string }>
 	} | null
+	isResearchMode?: boolean
+	onResearchModeToggle?: () => void
+	showResearchButton?: boolean
 }) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -1798,6 +1818,19 @@ const PromptInput = memo(function PromptInput({
 							</Ariakit.ComboboxItem>
 						))}
 					</Ariakit.ComboboxPopover>
+				)}
+				{showResearchButton && (
+					<button
+						type="button"
+						onClick={onResearchModeToggle}
+						data-umami-event="llamaai-research-mode-toggle"
+						className={`absolute bottom-2 left-2 z-10 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors max-sm:top-0 max-sm:bottom-0 max-sm:my-auto ${
+							isResearchMode ? 'bg-(--old-blue) text-white' : 'bg-(--bg3) text-(--text2) hover:bg-(--old-blue)/12'
+						}`}
+					>
+						<Icon name="search" height={12} width={12} />
+						<span>Research</span>
+					</button>
 				)}
 				{isStreaming ? (
 					<Tooltip
