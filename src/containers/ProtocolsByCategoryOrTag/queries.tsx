@@ -62,8 +62,7 @@ export async function getProtocolsByCategoryOrTag({
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: null,
 		chainMetadata?.fees
@@ -71,24 +70,21 @@ export async function getProtocolsByCategoryOrTag({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: null,
 		chainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: null,
 		chainMetadata?.perps && category && ['Derivatives', 'Interface'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: null,
 		chainMetadata?.perps && category && ['Derivatives', 'Prediction Market'].includes(category)
@@ -96,8 +92,7 @@ export async function getProtocolsByCategoryOrTag({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
 					dataType: 'openInterestAtEnd',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				}).catch((err) => {
 					console.log(err)
 					return null

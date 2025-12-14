@@ -7,20 +7,17 @@ export const fetchChain = async ({ chain }) => {
 		getAdapterChainOverview({
 			adapterType: 'dexs',
 			chain,
-			excludeTotalDataChart: false,
-			excludeTotalDataChartBreakdown: true
+			excludeTotalDataChart: false
 		}),
 		getAdapterProtocolSummary({
 			adapterType: 'fees',
 			protocol: chain,
-			excludeTotalDataChart: false,
-			excludeTotalDataChartBreakdown: true
+			excludeTotalDataChart: false
 		}).catch(() => null),
 		getAdapterProtocolSummary({
 			adapterType: 'fees',
 			protocol: chain,
 			excludeTotalDataChart: false,
-			excludeTotalDataChartBreakdown: true,
 			dataType: 'dailyRevenue'
 		}).catch(() => null),
 		[]

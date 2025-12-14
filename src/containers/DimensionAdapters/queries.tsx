@@ -1,5 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { PROTOCOLS_API, REV_PROTOCOLS, SERVER_URL, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
+import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -211,13 +211,11 @@ export async function getAdapterChainOverview({
 	adapterType,
 	chain,
 	excludeTotalDataChart,
-	excludeTotalDataChartBreakdown,
 	dataType
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	excludeTotalDataChart: boolean
-	excludeTotalDataChartBreakdown: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
@@ -349,13 +347,11 @@ export async function getAdapterProtocolSummary({
 	adapterType,
 	protocol,
 	excludeTotalDataChart,
-	excludeTotalDataChartBreakdown,
 	dataType
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	protocol: string
 	excludeTotalDataChart: boolean
-	excludeTotalDataChartBreakdown: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
@@ -592,8 +588,7 @@ export const getAdapterByChainPageData = async ({
 			adapterType,
 			chain,
 			dataType,
-			excludeTotalDataChart: adapterType === 'fees' ? true : false,
-			excludeTotalDataChartBreakdown: true
+			excludeTotalDataChart: adapterType === 'fees' ? true : false
 		}),
 		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
@@ -601,8 +596,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyBribesRevenue',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null),
 		adapterType === 'fees'
@@ -610,8 +604,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyTokenTaxes',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null),
 		adapterType === 'derivatives'
@@ -619,8 +612,7 @@ export const getAdapterByChainPageData = async ({
 					adapterType: 'open-interest',
 					chain,
 					dataType: 'openInterestAtEnd',
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			: Promise.resolve(null)
 	])
@@ -972,22 +964,19 @@ export const getChainsByFeesAdapterPageData = async ({
 				adapterType,
 				dataType,
 				chain: 'All',
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: true
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
 			getAdapterChainOverview({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
 				chain: 'All',
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: true
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
 			getAdapterChainOverview({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
 				chain: 'All',
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: true
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
 		])
 
@@ -1164,8 +1153,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 				getAdapterChainOverview({
 					adapterType: 'fees',
 					chain,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 			)
 		)
@@ -1173,8 +1161,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 		const chainFeesData = await getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
+			excludeTotalDataChart: true
 		})
 
 		const chains = allChains.map((chain, index) => {

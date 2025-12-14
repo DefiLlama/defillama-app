@@ -33,8 +33,7 @@ export const getChainsByCategory = async ({
 		getAdapterChainOverview({
 			adapterType: 'fees',
 			chain: 'All',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
+			excludeTotalDataChart: true
 		}).catch((err) => {
 			console.log(err)
 			return null
@@ -43,7 +42,6 @@ export const getChainsByCategory = async ({
 			adapterType: 'fees',
 			chain: 'All',
 			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true,
 			dataType: 'dailyRevenue'
 		}).catch((err) => {
 			console.log(err)

@@ -26,8 +26,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue',
-			excludeTotalDataChart: true,
-			excludeTotalDataChartBreakdown: true
+			excludeTotalDataChart: true
 		}),
 		fetchJson(CATEGORY_API)
 	])
@@ -313,10 +312,13 @@ export const descriptions = {
 		'Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability',
 	'Physical TCG': 'Protocols that allow you to trade physical trading cards',
 	'Mining Pools': 'Protocols that coordinate user resources into shared mining pools',
-	'NFT Automated Strategies': 'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
+	'NFT Automated Strategies':
+		'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
 	'Luck Games': 'Protocols that allow you to play games of chance, such as dice, or other games of chance',
-	've-Incentive Automator': 'Protocols that automate volume or tax-based flows into vote-escrowed (ve) positions, locks, or burn mechanisms to steer incentives and accrue value',
-	'Decentralized AI': 'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence on-chain',
+	've-Incentive Automator':
+		'Protocols that automate volume or tax-based flows into vote-escrowed (ve) positions, locks, or burn mechanisms to steer incentives and accrue value',
+	'Decentralized AI':
+		'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence on-chain'
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))

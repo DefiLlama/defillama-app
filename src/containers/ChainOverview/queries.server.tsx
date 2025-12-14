@@ -232,7 +232,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						adapterType: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppRevenue'
 					}).catch((err) => {
 						console.log(err)
@@ -244,7 +243,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						adapterType: 'fees',
 						chain: metadata.name,
 						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyAppFees'
 					}).catch((err) => {
 						console.log(err)
@@ -255,8 +253,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? getAdapterProtocolSummary({
 						adapterType: 'fees',
 						protocol: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true
+						excludeTotalDataChart: true
 					}).catch((err) => {
 						console.log(err)
 						return null
@@ -267,7 +264,6 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 						adapterType: 'fees',
 						protocol: metadata.name,
 						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyRevenue'
 					}).catch((err) => {
 						console.log(err)
@@ -278,8 +274,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? getAdapterChainOverview({
 						adapterType: 'derivatives',
 						chain: metadata.name,
-						excludeTotalDataChart: true,
-						excludeTotalDataChartBreakdown: true
+						excludeTotalDataChart: true
 					}).catch((err) => {
 						console.log(err)
 						return null
@@ -665,8 +660,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			? getAdapterChainOverview({
 					adapterType: 'fees',
 					chain: metadata.name,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				}).catch((err) => {
 					console.log(err)
 					return null
@@ -677,7 +671,6 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					adapterType: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
 					dataType: 'dailyRevenue'
 				}).catch((err) => {
 					console.log(err)
@@ -689,7 +682,6 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					adapterType: 'fees',
 					chain: metadata.name,
 					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
 					dataType: 'dailyHoldersRevenue'
 				}).catch((err) => {
 					console.log(err)
@@ -700,8 +692,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 			? getAdapterChainOverview({
 					adapterType: 'dexs',
 					chain: metadata.name,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: false
 				}).catch((err) => {
 					console.log(err)
 					return null
