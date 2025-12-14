@@ -205,6 +205,26 @@ export async function getAdapterProtocolChartDataByBreakdownType({
 	return data as Array<[number, Record<string, number>]>
 }
 
+export async function getAdapterChainChartDataByProtocolBreakdown({
+	adapterType,
+	chain,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
+}) {
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	const data = await fetchJson(totalDataChartUrl, { timeout: 30_000 })
+
+	return data as Array<[number, Record<string, number>]>
+}
+
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -336,7 +356,7 @@ export async function getAdapterChainOverview({
 			total30d: chainSpecificTotal30d,
 			total1y: chainSpecificTotal1y,
 			protocols: filteredEarningsData
-		}
+		} as IAdapterOverview
 	}
 }
 
