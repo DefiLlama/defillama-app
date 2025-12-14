@@ -14,7 +14,7 @@ import {
 	PROTOCOLS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
-	V2_SERVER_URL,
+	SERVER_URL,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
@@ -1112,7 +1112,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		}
 
 		const [incomeStatement, incentives] = await Promise.all([
-			fetchJson(`${V2_SERVER_URL}/financial-statement/protocol/${slug(metadata.displayName)}`).catch(() => null),
+			fetchJson(`${SERVER_URL}/v2/metrics/financial-statement/protocol/${slug(metadata.displayName)}`).catch(
+				() => null
+			),
 			getProtocolEmissons(slug(metadata.displayName))
 				.then((data) => data.unlockUsdChart ?? [])
 				.then((chart) => {

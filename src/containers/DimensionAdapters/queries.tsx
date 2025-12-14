@@ -1,5 +1,5 @@
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
-import { PROTOCOLS_API, REV_PROTOCOLS, SERVER_URL, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
+import { PROTOCOLS_API, REV_PROTOCOLS, SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
@@ -149,11 +149,11 @@ export async function getAdapterChainChartData({
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
-	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	let totalDataChartUrl = `${SERVER_URL}/v2/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 	if (dataType === 'dailyEarnings') {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}`
+		totalDataChartUrl = `${SERVER_URL}/v2/chart/${adapterType}`
 	}
 
 	if (dataType) {
@@ -174,7 +174,7 @@ export async function getAdapterProtocolChartData({
 	protocol: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
-	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${adapterType}/protocol/${slug(protocol)}`
+	let totalDataChartUrl = `${SERVER_URL}/v2/chart/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
 		totalDataChartUrl += `?dataType=${dataType}`
@@ -196,7 +196,7 @@ export async function getAdapterProtocolChartDataByType({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	type: 'chain' | 'version'
 }) {
-	let totalDataChartUrl = `${SERVER_URL}/v2/metrics/chart/${type}-breakdown/${adapterType}/protocol/${slug(protocol)}`
+	let totalDataChartUrl = `${SERVER_URL}/v2/chart/${adapterType}/protocol/${slug(protocol)}/${type}-breakdown`
 
 	if (dataType) {
 		totalDataChartUrl += `?dataType=${dataType}`
@@ -221,7 +221,7 @@ export async function getAdapterChainOverview({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 }) {
 	if (dataType !== 'dailyEarnings') {
-		let summaryUrl = `${V2_SERVER_URL}/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+		let summaryUrl = `${SERVER_URL}/v2/metrics/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 		if (dataType) {
 			summaryUrl += `?dataType=${dataType}`
@@ -235,7 +235,7 @@ export async function getAdapterChainOverview({
 		return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
-		let summaryUrl = `${V2_SERVER_URL}/${adapterType}`
+		let summaryUrl = `${SERVER_URL}/v2/metrics/${adapterType}`
 
 		if (dataType) {
 			summaryUrl += `?dataType=dailyRevenue`
@@ -360,7 +360,7 @@ export async function getAdapterProtocolSummary({
 }) {
 	if (protocol == 'All') throw new Error('Protocol cannot be All')
 
-	let summaryUrl = `${V2_SERVER_URL}/${adapterType}/protocol/${slug(protocol)}`
+	let summaryUrl = `${SERVER_URL}/v2/metrics/${adapterType}/protocol/${slug(protocol)}`
 
 	if (dataType) {
 		summaryUrl += `?dataType=${dataType}`
@@ -1070,7 +1070,7 @@ export const getChainsByAdapterPageData = async ({
 				adapterType,
 				dataType
 			}),
-			adapterType === 'fees' ? Promise.resolve([]) : fetchJson(`${V2_SERVER_URL}/chart/chain-breakdown/${adapterType}`),
+			adapterType === 'fees' ? Promise.resolve([]) : fetchJson(`${SERVER_URL}/chart/${adapterType}/chain-breakdown`),
 			adapterType === 'fees'
 				? getDimensionAdapterOverviewOfAllChains({
 						adapterType,
