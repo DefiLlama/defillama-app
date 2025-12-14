@@ -434,7 +434,13 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			if (seriesConfig.dataMapping.entityFilter) {
 				const { field, value } = seriesConfig.dataMapping.entityFilter
 				entityValue = value
-				filteredData = rawData.filter((row) => row[field] === value)
+				filteredData = rawData.filter((row) => {
+					const rowValue = row[field]
+					if (typeof rowValue === 'string' && typeof value === 'string') {
+						return rowValue.toLowerCase() === value.toLowerCase()
+					}
+					return rowValue === value
+				})
 			}
 
 			if (config.axes.x.type === 'time') {
