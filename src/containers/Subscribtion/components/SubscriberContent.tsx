@@ -303,9 +303,6 @@ export const SubscriberContent = ({
 													<div className="animate-shimmer absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 												</div>
 											</div>
-											<div className="flex items-center justify-between text-xs text-[#8a8c90]">
-												<span>{hasApiSubscription ? 'Pro' : hasProSubscription ? 'Pro' : ''}</span>
-											</div>
 										</div>
 									</div>
 								</div>
