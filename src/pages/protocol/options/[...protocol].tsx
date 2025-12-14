@@ -48,8 +48,7 @@ export const getStaticProps = withPerformanceLogging(
 				? getAdapterProtocolSummary({
 						adapterType: 'options',
 						protocol: metadata[1].displayName,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true
+						excludeTotalDataChart: false
 					}).catch(() => null)
 				: null,
 			metadata[1].optionsNotionalVolume
@@ -57,7 +56,6 @@ export const getStaticProps = withPerformanceLogging(
 						adapterType: 'options',
 						protocol: metadata[1].displayName,
 						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
 						dataType: 'dailyNotionalVolume'
 					}).catch(() => null)
 				: null

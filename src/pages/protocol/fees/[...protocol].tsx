@@ -50,15 +50,13 @@ export const getStaticProps = withPerformanceLogging(
 				getAdapterProtocolSummary({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: false
 				}),
 				metadata[1].revenue
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyRevenue'
 						}).catch(() => null)
 					: Promise.resolve(null),
@@ -67,7 +65,6 @@ export const getStaticProps = withPerformanceLogging(
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyHoldersRevenue'
 						}).catch(() => null)
 					: Promise.resolve(null),
@@ -76,7 +73,6 @@ export const getStaticProps = withPerformanceLogging(
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyBribesRevenue'
 						}).catch(() => null)
 					: Promise.resolve(null),
@@ -85,7 +81,6 @@ export const getStaticProps = withPerformanceLogging(
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyTokenTaxes'
 						}).catch(() => null)
 					: Promise.resolve(null)

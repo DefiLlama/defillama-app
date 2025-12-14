@@ -44,8 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 			getAdapterProtocolSummary({
 				adapterType: 'bridge-aggregators',
 				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: false
 			})
 		])
 

@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import { getAPIUrlSummary } from '~/api/categories/adaptors/client'
 import {
 	CACHE_SERVER,
 	PROTOCOL_API,
@@ -9,6 +8,8 @@ import {
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
@@ -56,10 +57,12 @@ export default class ProtocolCharts {
 	}
 	static async summary(protocol: string, type: string, dataType?: string): Promise<[number, number][]> {
 		if (!protocol) return []
-		const url = getAPIUrlSummary(type, protocol, dataType)
-		const response = await fetch(url)
-		const data = await response.json()
-		return convertToNumberFormat(data.totalDataChart ?? [])
+		const data = await getAdapterProtocolChartData({
+			adapterType: type as `${ADAPTER_TYPES}`,
+			protocol,
+			dataType: dataType as `${ADAPTER_DATA_TYPES}`
+		})
+		return convertToNumberFormat(data ?? [])
 	}
 
 	static async volume(protocol: string): Promise<[number, number][]> {

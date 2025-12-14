@@ -276,8 +276,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'fees',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
 					.catch(() => null)
@@ -287,8 +286,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Revenue' }))
 					.catch(() => null)
@@ -298,8 +296,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyHoldersRevenue',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
 					.catch(() => null)
@@ -309,8 +306,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyBribesRevenue',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 					.catch(() => null)
@@ -320,8 +316,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyTokenTaxes',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
 					.catch(() => null)
@@ -330,8 +325,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'dexs',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'dexs' }))
 					.catch(() => null)
@@ -340,8 +334,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'aggregators',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'dexAggregators' }))
 					.catch(() => null)
@@ -350,8 +343,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'derivatives',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
 					.catch(() => null)
@@ -361,7 +353,6 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'open-interest',
 					protocol: metadata.displayName,
 					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
 					dataType: 'openInterestAtEnd'
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
@@ -371,8 +362,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'aggregator-derivatives',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perpsAggregators' }))
 					.catch(() => null)
@@ -381,8 +371,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'bridge-aggregators',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 					.catch(() => null)
@@ -392,8 +381,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 					.catch(() => null)
@@ -403,8 +391,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsNotionalVolume' }))
 					.catch(() => null)

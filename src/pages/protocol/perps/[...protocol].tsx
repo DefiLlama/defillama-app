@@ -46,8 +46,7 @@ export const getStaticProps = withPerformanceLogging(
 			getAdapterProtocolSummary({
 				adapterType: 'derivatives',
 				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: false
 			})
 		])
 

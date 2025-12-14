@@ -7,7 +7,6 @@ import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData
 
 export interface IAdapterOverview {
 	totalDataChart: Array<[number, number]> // date, value
-	totalDataChartBreakdown: Array<[number, Record<string, number>]> // date , {chain: value}
 	breakdown24h: number | null
 	chain: string | null
 	allChains: Array<string>
@@ -99,7 +98,6 @@ export interface IAdapterSummary {
 	total7d?: number | null
 	total30d?: number | null
 	totalAllTime?: number | null
-	totalDataChartBreakdown: Array<[number, Record<string, Record<string, number>>]>
 	totalDataChart: Array<[number, number]>
 	linkedProtocols?: string[]
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
@@ -185,7 +183,7 @@ export async function getAdapterProtocolChartData({
 	return data
 }
 
-export async function getAdapterProtocolChartDataByType({
+export async function getAdapterProtocolChartDataByBreakdownType({
 	adapterType,
 	protocol,
 	dataType,
@@ -230,7 +228,7 @@ export async function getAdapterChainOverview({
 			excludeTotalDataChart ? Promise.resolve([]) : getAdapterChainChartData({ adapterType, chain, dataType })
 		])
 
-		return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterOverview
+		return { ...overviewData, totalDataChart } as IAdapterOverview
 	} else {
 		//earnings we don't need to filter by chain, instead we filter it later on
 		let summaryUrl = `${V2_SERVER_URL}/metrics/${adapterType}`
@@ -332,7 +330,6 @@ export async function getAdapterChainOverview({
 		return {
 			...overviewData,
 			totalDataChart,
-			totalDataChartBreakdown: [],
 			chain,
 			total24h: chainSpecificTotal24h,
 			total7d: chainSpecificTotal7d,
@@ -367,7 +364,7 @@ export async function getAdapterProtocolSummary({
 		excludeTotalDataChart ? Promise.resolve([]) : getAdapterProtocolChartData({ adapterType, protocol, dataType })
 	])
 
-	return { ...overviewData, totalDataChart, totalDataChartBreakdown: [] } as IAdapterSummary
+	return { ...overviewData, totalDataChart } as IAdapterSummary
 }
 
 export async function getCexVolume() {
