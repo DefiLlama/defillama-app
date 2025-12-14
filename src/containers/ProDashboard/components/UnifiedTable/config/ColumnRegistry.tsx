@@ -7,7 +7,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
-import type { UnifiedRowHeaderType } from '../../../types'
+import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
 import {
@@ -20,6 +20,7 @@ import {
 import type { MetricGroup, NormalizedRow, NumericMetrics } from '../types'
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
+import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/customColumns'
 
 declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData, TValue> {
@@ -225,7 +226,7 @@ const groupingColumns: ColumnDef<NormalizedRow>[] = (
 	}
 }))
 
-export const getUnifiedTableColumns = (): ColumnDef<NormalizedRow>[] => {
+export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[]): ColumnDef<NormalizedRow>[] => {
 	const columns: ColumnDef<NormalizedRow>[] = [
 		{
 			id: 'name',
@@ -248,9 +249,10 @@ export const getUnifiedTableColumns = (): ColumnDef<NormalizedRow>[] => {
 					(display.groupKind === 'parent' || display.header === 'protocol' || display.header === 'parent-protocol')
 				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
 				const iconSource = shouldShowChainIcon ? chainIcon : (display.iconUrl ?? baseRow?.logo ?? undefined)
-				const protocolCountValue = row.getIsGrouped()
-					? ((row.getValue('protocolCount') as number | null) ?? null)
-					: (baseRow?.metrics?.protocolCount ?? null)
+				const isChainOrCategoryGroup = display.header === 'chain' || display.header === 'category'
+				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped()
+					? (row.subRows?.length ?? null)
+					: null
 
 				return (
 					<div
@@ -690,6 +692,19 @@ export const getUnifiedTableColumns = (): ColumnDef<NormalizedRow>[] => {
 			id: `group_${groupKey}`,
 			header: groupLabelMap[groupKey],
 			columns: supportedColumns,
+			meta: { align: 'center' }
+		})
+	}
+
+	const validCustomColumns = (customColumns ?? [])
+		.filter((col) => validateCustomColumnOnLoad(col).isValid)
+		.map(createCustomColumnDef)
+
+	if (validCustomColumns.length > 0) {
+		groupedColumns.push({
+			id: 'group_custom',
+			header: 'Custom',
+			columns: validCustomColumns,
 			meta: { align: 'center' }
 		})
 	}

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { COLUMN_DICTIONARY_BY_ID } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
+import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
 
 interface SortingSelectorProps {
 	columnOrder: ColumnOrderState
@@ -8,6 +9,7 @@ interface SortingSelectorProps {
 	sorting: SortingState
 	onChange: (sorting: SortingState) => void
 	onReset?: () => void
+	customColumns?: CustomColumnDefinition[]
 }
 
 const NAME_COLUMN_META = {
@@ -22,15 +24,31 @@ const formatLabel = (header: string, group?: string) => {
 	return `${header} · ${group.charAt(0).toUpperCase()}${group.slice(1)}`
 }
 
-export function SortingSelector({ columnOrder, columnVisibility, sorting, onChange, onReset }: SortingSelectorProps) {
+export function SortingSelector({ columnOrder, columnVisibility, sorting, onChange, onReset, customColumns }: SortingSelectorProps) {
 	const currentSorting = sorting[0]
 	const currentColumn = currentSorting?.id ?? ''
 	const isDescending = currentSorting?.desc ?? true
+
+	const customColumnsMap = useMemo(() => {
+		const map = new Map<string, CustomColumnDefinition>()
+		for (const col of customColumns ?? []) {
+			map.set(col.id, col)
+		}
+		return map
+	}, [customColumns])
 
 	const selectableColumns = useMemo(() => {
 		return columnOrder
 			.filter((id) => (columnVisibility[id] ?? true))
 			.map((id) => {
+				const customCol = customColumnsMap.get(id)
+				if (customCol) {
+					return {
+						id,
+						header: customCol.name,
+						group: 'custom'
+					}
+				}
 				const dictionaryMeta = COLUMN_DICTIONARY_BY_ID.get(id)
 				const meta = id === 'name' ? NAME_COLUMN_META : dictionaryMeta
 				return {
@@ -39,7 +57,7 @@ export function SortingSelector({ columnOrder, columnVisibility, sorting, onChan
 					group: meta?.group
 				}
 			})
-	}, [columnOrder, columnVisibility])
+	}, [columnOrder, columnVisibility, customColumnsMap])
 
 	const handleColumnChange = (value: string) => {
 		if (!value) {

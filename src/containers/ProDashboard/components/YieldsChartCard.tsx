@@ -25,7 +25,7 @@ const mainChartStackColors = {
 
 export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const { poolConfigId, poolName, project, chain } = config
-	const { timePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboard()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 
 	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(poolConfigId)
@@ -47,7 +47,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				el.date,
 				el.TVL
 			])
-			const filtered = filterDataByTimePeriod(tvlPoints, timePeriod)
+			const filtered = filterDataByTimePeriod(tvlPoints, timePeriod, customTimePeriod)
 			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
 			filteredData = data.filter((el: { date: number; TVL: number; APY: number | null }) =>
 				filteredTimestamps.has(el.date)
@@ -59,7 +59,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 		const latestTVL = latestData?.TVL ?? null
 
 		return { finalChartData: filteredData, latestAPY, latestTVL }
-	}, [chart, timePeriod])
+	}, [chart, timePeriod, customTimePeriod])
 
 	const handleCsvExport = useCallback(() => {
 		if (!finalChartData || finalChartData.length === 0) return

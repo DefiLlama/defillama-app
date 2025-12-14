@@ -1,11 +1,11 @@
-import { lazy, memo, Suspense, useEffect, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { DashboardItemConfig, StoredColSpan } from '../types'
+import { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
 import type { UnifiedTableFocusSection } from './UnifiedTable/types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
@@ -40,6 +40,9 @@ const StablecoinsChartCard = lazy(() =>
 )
 const StablecoinAssetChartCard = lazy(() =>
 	import('./StablecoinAssetChartCard').then((mod) => ({ default: mod.StablecoinAssetChartCard }))
+)
+const AdvancedTvlChartCard = lazy(() =>
+	import('./AdvancedTvlChartCard').then((mod) => ({ default: mod.AdvancedTvlChartCard }))
 )
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
@@ -85,6 +88,34 @@ interface ChartGridProps {
 	onAddChartClick: () => void
 	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
 }
+
+interface UnifiedTableCardProps {
+	item: UnifiedTableConfig
+	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
+}
+
+const UnifiedTableCard = memo(function UnifiedTableCard({ item, onEditItem }: UnifiedTableCardProps) {
+	const handleEdit = useCallback(
+		(focusSection?: UnifiedTableFocusSection) => {
+			onEditItem?.(item, focusSection)
+		},
+		[item, onEditItem]
+	)
+
+	const handleOpenColumnModal = useCallback(() => {
+		onEditItem?.(item, 'columns')
+	}, [item, onEditItem])
+
+	return (
+		<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1 md:min-h-[380px]" />}>
+			<UnifiedTable
+				config={item}
+				onEdit={onEditItem ? handleEdit : undefined}
+				onOpenColumnModal={onEditItem ? handleOpenColumnModal : undefined}
+			/>
+		</Suspense>
+	)
+})
 
 export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const {
@@ -209,20 +240,20 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 			)
 		}
 
+		if (item.kind === 'advanced-tvl') {
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<AdvancedTvlChartCard config={item} />
+				</Suspense>
+			)
+		}
+
 		if (item.kind === 'text') {
 			return <TextCard text={item} />
 		}
 
 		if (item.kind === 'unified-table') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[360px] flex-col p-1 md:min-h-[380px]" />}>
-					<UnifiedTable
-						config={item}
-						onEdit={onEditItem ? (focusSection) => onEditItem(item, focusSection) : undefined}
-						onOpenColumnModal={onEditItem ? () => onEditItem(item, 'columns') : undefined}
-					/>
-				</Suspense>
-			)
+			return <UnifiedTableCard item={item} onEditItem={onEditItem} />
 		}
 
 		if (item.kind === 'table') {

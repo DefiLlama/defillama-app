@@ -1,5 +1,5 @@
 import { AUTH_SERVER } from '../../../constants'
-import { TimePeriod } from '../ProDashboardAPIContext'
+import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
 
 export interface Dashboard {
@@ -9,6 +9,7 @@ export interface Dashboard {
 		items: DashboardItemConfig[]
 		dashboardName: string
 		timePeriod?: TimePeriod
+		customTimePeriod?: CustomTimePeriod | null
 		aiUndoState?: {
 			items: DashboardItemConfig[]
 			timestamp: string
@@ -110,6 +111,7 @@ class DashboardAPIService {
 			items: DashboardItemConfig[]
 			dashboardName: string
 			timePeriod?: TimePeriod
+			customTimePeriod?: CustomTimePeriod | null
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
@@ -141,6 +143,7 @@ class DashboardAPIService {
 			items: DashboardItemConfig[]
 			dashboardName: string
 			timePeriod?: TimePeriod
+			customTimePeriod?: CustomTimePeriod | null
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string

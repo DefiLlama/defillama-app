@@ -117,7 +117,7 @@ export function useUnifiedTable({
 		return filterRowsBySearch(withFilters, searchTerm)
 	}, [rows, config.filters, searchTerm])
 
-	const columns = useMemo(() => getUnifiedTableColumns(), [])
+	const columns = useMemo(() => getUnifiedTableColumns(config.customColumns), [config.customColumns])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])
 
 	const groupingColumnSet = useMemo(() => new Set(groupingColumnIds), [groupingColumnIds])
@@ -175,6 +175,18 @@ export function useUnifiedTable({
 		[columnVisibility, mergeColumnVisibility]
 	)
 
+	const tableState = useMemo(
+		() => ({
+			columnOrder: tableColumnOrder,
+			columnVisibility: tableColumnVisibility,
+			sorting,
+			grouping: groupingColumnIds,
+			expanded,
+			pagination
+		}),
+		[expanded, groupingColumnIds, pagination, sorting, tableColumnOrder, tableColumnVisibility]
+	)
+
 	const handleColumnVisibilityChange = useCallback(
 		(updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
 			if (typeof updater === 'function') {
@@ -190,14 +202,7 @@ export function useUnifiedTable({
 		data: filteredRows,
 		columns,
 		getRowId: (row) => row.id,
-		state: {
-			columnOrder: tableColumnOrder,
-			columnVisibility: tableColumnVisibility,
-			sorting,
-			grouping: groupingColumnIds,
-			expanded,
-			pagination
-		},
+		state: tableState,
 		onColumnOrderChange: handleColumnOrderChange,
 		onColumnVisibilityChange: handleColumnVisibilityChange,
 		onSortingChange,

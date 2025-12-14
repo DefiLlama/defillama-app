@@ -34,7 +34,12 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		filtered = filtered.filter((row) => {
 			const protocolId = normalize(row.protocolId)
 			const rowName = normalize(row.name)
-			return (protocolId && protocolSet.has(protocolId)) || (rowName && protocolSet.has(rowName))
+			const parentName = normalize(row.parentProtocolName)
+			return (
+				(protocolId && protocolSet.has(protocolId)) ||
+				(rowName && protocolSet.has(rowName)) ||
+				(parentName && protocolSet.has(parentName))
+			)
 		})
 	}
 

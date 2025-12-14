@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
+import type { CustomColumnDefinition, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { sanitizeConfigColumns } from '../config/metricCapabilities'
 import type { UnifiedTablePreset } from '../config/PresetRegistry'
@@ -34,7 +34,8 @@ export function getDefaultColumnOrder(config: UnifiedTableConfig, fallbackPreset
 	const sanitized = sanitizeConfigColumns({
 		order,
 		visibility: {},
-		sorting: []
+		sorting: [],
+		customColumns: config.customColumns
 	})
 
 	return sanitized.order
@@ -65,7 +66,8 @@ export function getDefaultColumnVisibility(
 	const sanitized = sanitizeConfigColumns({
 		order: [],
 		visibility,
-		sorting: []
+		sorting: [],
+		customColumns: config.customColumns
 	})
 
 	return sanitized.visibility
@@ -117,6 +119,7 @@ export interface ApplyPresetOptions {
 	preset: UnifiedTablePreset
 	includeRowHeaderRules?: boolean
 	mergeWithDefaults?: boolean
+	customColumns?: CustomColumnDefinition[]
 }
 
 export function applyPresetToConfig(options: ApplyPresetOptions): {
@@ -125,7 +128,7 @@ export function applyPresetToConfig(options: ApplyPresetOptions): {
 	sorting: SortingState
 	rowHeaders: UnifiedRowHeaderType[]
 } {
-	const { preset, includeRowHeaderRules = true, mergeWithDefaults = true } = options
+	const { preset, includeRowHeaderRules = true, mergeWithDefaults = true, customColumns } = options
 
 	const rowHeaders = sanitizeRowHeaders([...(preset.rowHeaders as UnifiedRowHeaderType[])])
 
@@ -136,7 +139,8 @@ export function applyPresetToConfig(options: ApplyPresetOptions): {
 	const sanitized = sanitizeConfigColumns({
 		order: [...preset.columnOrder],
 		visibility: columnVisibility,
-		sorting: normalizeSorting(preset.defaultSorting)
+		sorting: normalizeSorting(preset.defaultSorting),
+		customColumns
 	})
 
 	if (includeRowHeaderRules) {
@@ -193,7 +197,8 @@ export function initializeUnifiedTableConfig(options: InitializeConfigOptions): 
 	const sanitized = sanitizeConfigColumns({
 		order: columnOrder,
 		visibility: baseVisibility,
-		sorting
+		sorting,
+		customColumns: existingConfig?.customColumns
 	})
 
 	const columnVisibility = applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility)

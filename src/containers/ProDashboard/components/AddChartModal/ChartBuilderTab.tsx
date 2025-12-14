@@ -3,7 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
-import { TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
@@ -29,6 +29,7 @@ interface ChartBuilderTabProps {
 	onChartBuilderChange: (updates: Partial<ChartBuilderConfig>) => void
 	onChartBuilderNameChange: (name: string) => void
 	timePeriod: TimePeriod
+	customTimePeriod?: CustomTimePeriod | null
 }
 
 const METRIC_OPTIONS = [
@@ -84,7 +85,8 @@ export function ChartBuilderTab({
 	protocolsLoading,
 	onChartBuilderChange,
 	onChartBuilderNameChange,
-	timePeriod
+	timePeriod,
+	customTimePeriod
 }: ChartBuilderTabProps) {
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboard()
@@ -146,7 +148,8 @@ export function ChartBuilderTab({
 			chartBuilder.protocolCategories,
 			chartBuilder.groupByParent,
 			chartBuilder.filterMode || 'include',
-			timePeriod
+			timePeriod,
+			customTimePeriod
 		],
 		queryFn: async () => {
 			if (chartBuilder.mode === 'protocol') {
@@ -167,7 +170,7 @@ export function ChartBuilderTab({
 				if (data && data.series.length > 0) {
 					data.series = data.series.map((serie) => ({
 						...serie,
-						data: filterDataByTimePeriod(serie.data, timePeriod)
+						data: filterDataByTimePeriod(serie.data, timePeriod, customTimePeriod)
 					}))
 				}
 
@@ -202,7 +205,7 @@ export function ChartBuilderTab({
 			if (data && data.series.length > 0) {
 				data.series = data.series.map((serie) => ({
 					...serie,
-					data: filterDataByTimePeriod(serie.data, timePeriod)
+					data: filterDataByTimePeriod(serie.data, timePeriod, customTimePeriod)
 				}))
 			}
 

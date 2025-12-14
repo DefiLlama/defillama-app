@@ -3,7 +3,6 @@ import { AriakitVirtualizedMultiSelect } from '~/containers/ProDashboard/compone
 import { useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import type { TableFilters } from '~/containers/ProDashboard/types'
 import { getItemIconUrl } from '~/containers/ProDashboard/utils'
-import { buildProtocolOptions } from '~/containers/ProDashboard/utils/buildProtocolOptions'
 
 interface FiltersPanelProps {
 	chains: string[]
@@ -53,14 +52,33 @@ export function FiltersPanel({
 
 	const protocolOptions = useMemo(() => {
 		if (!protocols || protocols.length === 0) return []
-		const list = protocols.map((protocol) => ({
-			name: protocol.name,
-			tvl: protocol.tvl ?? 0,
-			parentProtocol: protocol.parentProtocol ?? null,
-			logo: protocol.logo,
-			defillamaId: protocol.id
-		}))
-		return buildProtocolOptions(list, [], 'name').options
+
+		const childrenByParentId = new Map<string, typeof protocols>()
+		const parentsOrSolo: typeof protocols = []
+
+		for (const protocol of protocols) {
+			if (protocol.parentProtocol) {
+				const arr = childrenByParentId.get(protocol.parentProtocol) || []
+				arr.push(protocol)
+				childrenByParentId.set(protocol.parentProtocol, arr)
+			} else {
+				parentsOrSolo.push(protocol)
+			}
+		}
+
+		parentsOrSolo.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
+
+		const options: Array<{ value: string; label: string; logo?: string; isChild?: boolean }> = []
+
+		for (const parent of parentsOrSolo) {
+			const childProtocols = (childrenByParentId.get(parent.id) || []).sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
+			options.push({ value: parent.name, label: parent.name, logo: parent.logo })
+			for (const child of childProtocols) {
+				options.push({ value: child.name, label: child.name, logo: child.logo, isChild: true })
+			}
+		}
+
+		return options
 	}, [protocols])
 
 	const oracleOptions = useMemo(() => {

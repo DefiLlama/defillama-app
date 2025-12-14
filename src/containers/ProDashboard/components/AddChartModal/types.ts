@@ -10,7 +10,7 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'charts' | 'metric' | 'table' | 'unified-table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
-export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins'
+export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins' | 'advanced-tvl'
 export type CombinedTableType =
 	| 'protocols'
 	| 'cex'
@@ -109,6 +109,9 @@ export interface ModalState {
 	selectedStablecoinAsset: string | null
 	selectedStablecoinAssetId: string | null
 	selectedStablecoinAssetChartType: string
+	selectedAdvancedTvlProtocol: string | null
+	selectedAdvancedTvlProtocolName: string | null
+	selectedAdvancedTvlChartType: string
 }
 
 export interface ModalActions {
@@ -166,4 +169,7 @@ export interface ModalActions {
 	setSelectedStablecoinAsset: (asset: string | null) => void
 	setSelectedStablecoinAssetId: (id: string | null) => void
 	setSelectedStablecoinAssetChartType: (chartType: string) => void
+	setSelectedAdvancedTvlProtocol: (protocol: string | null) => void
+	setSelectedAdvancedTvlProtocolName: (name: string | null) => void
+	setSelectedAdvancedTvlChartType: (chartType: string) => void
 }

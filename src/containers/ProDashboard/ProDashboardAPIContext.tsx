@@ -12,6 +12,8 @@ import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { Dashboard } from './services/DashboardAPI'
 import {
+	AdvancedTvlChartConfig,
+	AdvancedTvlChartType,
 	Chain,
 	CHART_TYPES,
 	ChartBuilderConfig,
@@ -33,7 +35,14 @@ import {
 } from './types'
 import { cleanItemsForSaving, generateItemId } from './utils/dashboardUtils'
 
-export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'
+export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all' | 'custom'
+
+export interface CustomTimePeriod {
+	type: 'relative' | 'absolute'
+	relativeDays?: number
+	startDate?: number
+	endDate?: number
+}
 
 export interface AISessionData {
 	rating?: number
@@ -70,6 +79,7 @@ interface ProDashboardContextType {
 	chains: Chain[]
 	protocolsLoading: boolean
 	timePeriod: TimePeriod
+	customTimePeriod: CustomTimePeriod | null
 	dashboardName: string
 	dashboardId: string | null
 	dashboards: Dashboard[]
@@ -84,6 +94,7 @@ interface ProDashboardContextType {
 	getCurrentRatingSession: () => (AISessionData & { sessionId: string }) | null
 	autoSkipOlderSessionsForRating: () => Promise<void>
 	setTimePeriod: (period: TimePeriod) => void
+	setCustomTimePeriod: (customPeriod: CustomTimePeriod | null) => void
 	setDashboardName: (name: string) => void
 	setDashboardVisibility: (visibility: 'private' | 'public') => void
 	setDashboardTags: (tags: string[]) => void
@@ -98,6 +109,7 @@ interface ProDashboardContextType {
 	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddStablecoinsChart: (chain: string, chartType: string) => void
 	handleAddStablecoinAssetChart: (stablecoin: string, stablecoinId: string, chartType: string) => void
+	handleAddAdvancedTvlChart: (protocol: string, protocolName: string, chartType: AdvancedTvlChartType) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -246,6 +258,7 @@ export function ProDashboardAPIProvider({
 	const chains = useMemo(() => rawChains as Chain[], [rawChains])
 	const [items, setItems] = useState<DashboardItemConfig[]>([])
 	const [timePeriod, setTimePeriodState] = useState<TimePeriod>('365d')
+	const [customTimePeriod, setCustomTimePeriodState] = useState<CustomTimePeriod | null>(null)
 	const [dashboardName, setDashboardName] = useState<string>('My Dashboard')
 	const [dashboardId, setDashboardId] = useState<string | null>(initialDashboardId || null)
 	const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null)
@@ -263,6 +276,7 @@ export function ProDashboardAPIProvider({
 		setDashboardName(dashboard.data.dashboardName || 'My Dashboard')
 		setItems(dashboard.data.items)
 		setTimePeriodState(dashboard.data.timePeriod || '365d')
+		setCustomTimePeriodState(dashboard.data.customTimePeriod || null)
 		setCurrentDashboard(dashboard)
 		setDashboardVisibility(dashboard.visibility || 'private')
 		setDashboardTags(dashboard.tags || [])
@@ -293,6 +307,7 @@ export function ProDashboardAPIProvider({
 		dashboardTags,
 		dashboardDescription,
 		timePeriod,
+		customTimePeriod,
 		isAuthenticated,
 		isReadOnly: isReadOnly || (initialDashboardId ? !currentDashboard : false), // Force read-only until dashboard is loaded
 		currentDashboard,
@@ -380,6 +395,7 @@ export function ProDashboardAPIProvider({
 				items: cleanedItems,
 				dashboardName,
 				timePeriod,
+				customTimePeriod,
 				visibility: overrides?.visibility ?? dashboardVisibility,
 				tags: overrides?.tags ?? dashboardTags,
 				description: overrides?.description ?? dashboardDescription,
@@ -403,6 +419,7 @@ export function ProDashboardAPIProvider({
 			items,
 			dashboardName,
 			timePeriod,
+			customTimePeriod,
 			dashboardId,
 			dashboardVisibility,
 			dashboardTags,
@@ -468,6 +485,7 @@ export function ProDashboardAPIProvider({
 				items: cleanedItems,
 				dashboardName,
 				timePeriod,
+				customTimePeriod,
 				visibility: dashboardVisibility,
 				tags: dashboardTags,
 				description: dashboardDescription,
@@ -489,6 +507,7 @@ export function ProDashboardAPIProvider({
 		items,
 		dashboardName,
 		timePeriod,
+		customTimePeriod,
 		dashboardVisibility,
 		dashboardTags,
 		dashboardDescription,
@@ -509,7 +528,8 @@ export function ProDashboardAPIProvider({
 		const data = {
 			items: cleanedItems,
 			dashboardName: `${dashboardName} (Copy)`,
-			timePeriod
+			timePeriod,
+			customTimePeriod
 		}
 
 		try {
@@ -517,7 +537,7 @@ export function ProDashboardAPIProvider({
 		} catch (error) {
 			console.log('Failed to copy dashboard:', error)
 		}
-	}, [items, dashboardName, timePeriod, isAuthenticated, createDashboard])
+	}, [items, dashboardName, timePeriod, customTimePeriod, isAuthenticated, createDashboard])
 
 	const createNewDashboard = useCallback(async () => {
 		if (!isAuthenticated) {
@@ -821,7 +841,7 @@ export function ProDashboardAPIProvider({
 		return chartItems
 	}, [items])
 
-	const chartQueries = useChartsData(allChartItems, timePeriod)
+	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod)
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()
@@ -978,6 +998,28 @@ export function ProDashboardAPIProvider({
 		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
 	)
 
+	const handleAddAdvancedTvlChart = useCallback(
+		(protocol: string, protocolName: string, chartType: AdvancedTvlChartType) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newAdvancedTvlChart: AdvancedTvlChartConfig = {
+				id: generateItemId('advanced-tvl', `${protocol}-${chartType}`),
+				kind: 'advanced-tvl',
+				protocol,
+				protocolName,
+				chartType,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newAdvancedTvlChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
+
 	const handleAddTable = useCallback(
 		(
 			chains: string[],
@@ -1055,7 +1097,8 @@ export function ProDashboardAPIProvider({
 				columnOrder: configOverrides?.columnOrder ?? [...DEFAULT_COLUMN_ORDER],
 				columnVisibility: configOverrides?.columnVisibility ?? {},
 				activePresetId: configOverrides?.activePresetId,
-				colSpan: configOverrides?.colSpan ?? 2
+				colSpan: configOverrides?.colSpan ?? 2,
+				customColumns: configOverrides?.customColumns
 			}
 
 			setItems((prev) => {
@@ -1227,12 +1270,32 @@ export function ProDashboardAPIProvider({
 				return
 			}
 			setTimePeriodState(period)
+			if (period !== 'custom') {
+				setCustomTimePeriodState(null)
+			}
 			setItems((currentItems) => {
-				autoSave(currentItems, { timePeriod: period })
+				autoSave(currentItems, { timePeriod: period, customTimePeriod: period !== 'custom' ? null : customTimePeriod })
 				return currentItems
 			})
 		},
-		[autoSave, isReadOnly]
+		[autoSave, isReadOnly, customTimePeriod]
+	)
+
+	const setCustomTimePeriod = useCallback(
+		(period: CustomTimePeriod | null) => {
+			if (isReadOnly) {
+				return
+			}
+			setCustomTimePeriodState(period)
+			if (period) {
+				setTimePeriodState('custom')
+			}
+			setItems((currentItems) => {
+				autoSave(currentItems, { timePeriod: period ? 'custom' : timePeriod, customTimePeriod: period })
+				return currentItems
+			})
+		},
+		[autoSave, isReadOnly, timePeriod]
 	)
 
 	const handleChartsReordered = useCallback(
@@ -1485,6 +1548,7 @@ export function ProDashboardAPIProvider({
 			chains,
 			protocolsLoading,
 			timePeriod,
+			customTimePeriod,
 			dashboardName,
 			dashboardId,
 			dashboards,
@@ -1499,6 +1563,7 @@ export function ProDashboardAPIProvider({
 			getCurrentRatingSession,
 			autoSkipOlderSessionsForRating,
 			setTimePeriod,
+			setCustomTimePeriod,
 			setDashboardName,
 			setDashboardVisibility,
 			setDashboardTags,
@@ -1507,6 +1572,7 @@ export function ProDashboardAPIProvider({
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
+			handleAddAdvancedTvlChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1553,6 +1619,7 @@ export function ProDashboardAPIProvider({
 			chains,
 			protocolsLoading,
 			timePeriod,
+			customTimePeriod,
 			dashboardName,
 			dashboardId,
 			dashboards,
@@ -1567,6 +1634,7 @@ export function ProDashboardAPIProvider({
 			getCurrentRatingSession,
 			autoSkipOlderSessionsForRating,
 			setTimePeriod,
+			setCustomTimePeriod,
 			setDashboardName,
 			setDashboardVisibility,
 			setDashboardTags,
@@ -1575,6 +1643,7 @@ export function ProDashboardAPIProvider({
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
+			handleAddAdvancedTvlChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,

@@ -5,6 +5,7 @@ import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { AriakitSelect } from '../AriakitSelect'
+import { AdvancedTvlChartTab } from './AdvancedTvlChartTab'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
@@ -67,6 +68,12 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedStablecoinAssetChange?: (asset: string | null) => void
 	onSelectedStablecoinAssetIdChange?: (id: string | null) => void
 	onSelectedStablecoinAssetChartTypeChange?: (chartType: string) => void
+	selectedAdvancedTvlProtocol?: string | null
+	selectedAdvancedTvlProtocolName?: string | null
+	selectedAdvancedTvlChartType?: string
+	onSelectedAdvancedTvlProtocolChange?: (protocol: string | null) => void
+	onSelectedAdvancedTvlProtocolNameChange?: (name: string | null) => void
+	onSelectedAdvancedTvlChartTypeChange?: (chartType: string) => void
 }
 
 export function UnifiedChartTab({
@@ -120,7 +127,13 @@ export function UnifiedChartTab({
 	onStablecoinModeChange,
 	onSelectedStablecoinAssetChange,
 	onSelectedStablecoinAssetIdChange,
-	onSelectedStablecoinAssetChartTypeChange
+	onSelectedStablecoinAssetChartTypeChange,
+	selectedAdvancedTvlProtocol = null,
+	selectedAdvancedTvlProtocolName = null,
+	selectedAdvancedTvlChartType = 'tvl',
+	onSelectedAdvancedTvlProtocolChange,
+	onSelectedAdvancedTvlProtocolNameChange,
+	onSelectedAdvancedTvlChartTypeChange
 }: UnifiedChartTabPropsExtended) {
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
@@ -239,6 +252,22 @@ export function UnifiedChartTab({
 		)
 	}
 
+	if (selectedChartTab === 'advanced-tvl') {
+		return (
+			<AdvancedTvlChartTab
+				selectedAdvancedTvlProtocol={selectedAdvancedTvlProtocol}
+				selectedAdvancedTvlProtocolName={selectedAdvancedTvlProtocolName}
+				selectedAdvancedTvlChartType={selectedAdvancedTvlChartType}
+				onSelectedAdvancedTvlProtocolChange={onSelectedAdvancedTvlProtocolChange || (() => {})}
+				onSelectedAdvancedTvlProtocolNameChange={onSelectedAdvancedTvlProtocolNameChange || (() => {})}
+				onSelectedAdvancedTvlChartTypeChange={onSelectedAdvancedTvlChartTypeChange || (() => {})}
+				onChartTabChange={onChartTabChange}
+				protocolOptions={protocolOptions as any}
+				protocolsLoading={protocolsLoading}
+			/>
+		)
+	}
+
 	return (
 		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
 			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
@@ -248,7 +277,8 @@ export function UnifiedChartTab({
 						options={[
 							{ value: 'chain', label: 'Protocols/Chains' },
 							{ value: 'yields', label: 'Yields' },
-							{ value: 'stablecoins', label: 'Stablecoins' }
+							{ value: 'stablecoins', label: 'Stablecoins' },
+							{ value: 'advanced-tvl', label: 'Advanced TVL' }
 						]}
 						selectedValue={selectedChartTab === 'protocol' ? 'chain' : selectedChartTab}
 						onChange={(option) => onChartTabChange(option.value as ChartTabType)}

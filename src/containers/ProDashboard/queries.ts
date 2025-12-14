@@ -3,7 +3,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggifyProtocol } from '~/utils/cache-client'
-import { TimePeriod } from './ProDashboardAPIContext'
+import { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
 import ChainCharts from './services/ChainCharts'
 import ProtocolCharts from './services/ProtocolCharts'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from './types'
@@ -49,8 +49,23 @@ export function useParentChildMapping() {
 	return { data: parentToChildren }
 }
 
-export function filterDataByTimePeriod(data: [number, number][], timePeriod: TimePeriod): [number, number][] {
+export function filterDataByTimePeriod(
+	data: [number, number][],
+	timePeriod: TimePeriod,
+	customPeriod?: CustomTimePeriod | null
+): [number, number][] {
 	if (timePeriod === 'all' || !data.length) {
+		return data
+	}
+
+	if (timePeriod === 'custom' && customPeriod) {
+		if (customPeriod.type === 'relative' && customPeriod.relativeDays) {
+			const cutoff = dayjs().subtract(customPeriod.relativeDays, 'day').unix()
+			return data.filter(([ts]) => ts >= cutoff)
+		}
+		if (customPeriod.type === 'absolute' && customPeriod.startDate && customPeriod.endDate) {
+			return data.filter(([ts]) => ts >= customPeriod.startDate! && ts <= customPeriod.endDate!)
+		}
 		return data
 	}
 
@@ -86,16 +101,29 @@ function getChartQueryKey(
 	itemType: 'chain' | 'protocol',
 	item: string,
 	geckoId?: string | null,
-	timePeriod?: TimePeriod
-): (string | undefined)[] {
+	timePeriod?: TimePeriod,
+	customPeriod?: CustomTimePeriod | null
+): (string | undefined | number)[] {
 	if (itemType === 'protocol') {
 		const tokenChartTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
 		const baseKey =
 			tokenChartTypes.includes(type) && geckoId ? [type, undefined, item, geckoId] : [type, undefined, item]
+		if (timePeriod === 'custom' && customPeriod) {
+			if (customPeriod.type === 'relative') {
+				return [...baseKey, 'custom-relative', customPeriod.relativeDays]
+			}
+			return [...baseKey, 'custom-absolute', customPeriod.startDate, customPeriod.endDate]
+		}
 		return timePeriod ? [...baseKey, timePeriod] : baseKey
 	} else {
 		const chainTokenChartTypes = ['chainMcap', 'chainPrice']
 		const baseKey = chainTokenChartTypes.includes(type) && geckoId ? [type, item, geckoId] : [type, item]
+		if (timePeriod === 'custom' && customPeriod) {
+			if (customPeriod.type === 'relative') {
+				return [...baseKey, 'custom-relative', customPeriod.relativeDays]
+			}
+			return [...baseKey, 'custom-absolute', customPeriod.startDate, customPeriod.endDate]
+		}
 		return timePeriod ? [...baseKey, timePeriod] : baseKey
 	}
 }
@@ -103,189 +131,199 @@ function getChartQueryKey(
 // Object maps for chart query functions
 const protocolChartHandlers: Record<
 	string,
-	(item: string, geckoId?: string | null, timePeriod?: TimePeriod) => () => Promise<[number, number][]>
+	(
+		item: string,
+		geckoId?: string | null,
+		timePeriod?: TimePeriod,
+		customPeriod?: CustomTimePeriod | null
+	) => () => Promise<[number, number][]>
 > = {
-	tvl: (item, geckoId, timePeriod) => async () => {
+	tvl: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.tvl(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	volume: (item, geckoId, timePeriod) => async () => {
+	volume: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.volume(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	fees: (item, geckoId, timePeriod) => async () => {
+	fees: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.fees(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	liquidity: (item, geckoId, timePeriod) => async () => {
+	liquidity: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.liquidity(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	treasury: (item, geckoId, timePeriod) => async () => {
+	treasury: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.treasury(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	incentives: (item, geckoId, timePeriod) => async () => {
+	incentives: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.incentives(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	revenue: (item, geckoId, timePeriod) => async () => {
+	revenue: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.revenue(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	holdersRevenue: (item, geckoId, timePeriod) => async () => {
+	holdersRevenue: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.holdersRevenue(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	bribes: (item, geckoId, timePeriod) => async () => {
+	bribes: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.bribes(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	tokenTax: (item, geckoId, timePeriod) => async () => {
+	tokenTax: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.tokenTax(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	perps: (item, geckoId, timePeriod) => async () => {
+	perps: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.perps(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	openInterest: (item, geckoId, timePeriod) => async () => {
+	openInterest: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.openInterest(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	aggregators: (item, geckoId, timePeriod) => async () => {
+	aggregators: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.aggregators(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	perpsAggregators: (item, geckoId, timePeriod) => async () => {
+	perpsAggregators: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.perpsAggregators(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	bridgeAggregators: (item, geckoId, timePeriod) => async () => {
+	bridgeAggregators: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.bridgeAggregators(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	optionsPremium: (item, geckoId, timePeriod) => async () => {
+	optionsPremium: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.optionsPremium(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	optionsNotional: (item, geckoId, timePeriod) => async () => {
+	optionsNotional: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.optionsNotional(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	tokenMcap: (item, geckoId, timePeriod) => async () => {
+	tokenMcap: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.tokenMcap(item, geckoId)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	tokenPrice: (item, geckoId, timePeriod) => async () => {
+	tokenPrice: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.tokenPrice(item, geckoId)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	tokenVolume: (item, geckoId, timePeriod) => async () => {
+	tokenVolume: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.tokenVolume(item, geckoId)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	medianApy: (item, geckoId, timePeriod) => async () => {
+	medianApy: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.medianApy(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	}
 }
 
 const chainChartHandlers: Record<
 	string,
-	(item: string, geckoId?: string | null, timePeriod?: TimePeriod) => () => Promise<[number, number][]>
+	(
+		item: string,
+		geckoId?: string | null,
+		timePeriod?: TimePeriod,
+		customPeriod?: CustomTimePeriod | null
+	) => () => Promise<[number, number][]>
 > = {
-	tvl: (item, geckoId, timePeriod) => async () => {
+	tvl: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.tvl(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	volume: (item, geckoId, timePeriod) => async () => {
+	volume: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.volume(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	fees: (item, geckoId, timePeriod) => async () => {
+	fees: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.fees(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	users: (item, geckoId, timePeriod) => async () => {
+	users: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.users(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	txs: (item, geckoId, timePeriod) => async () => {
+	txs: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.txs(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	aggregators: (item, geckoId, timePeriod) => async () => {
+	aggregators: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.aggregators(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	perps: (item, geckoId, timePeriod) => async () => {
+	perps: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.perps(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	bridgeAggregators: (item, geckoId, timePeriod) => async () => {
+	bridgeAggregators: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.bridgeAggregators(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	perpsAggregators: (item, geckoId, timePeriod) => async () => {
+	perpsAggregators: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.perpsAggregators(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	options: (item, geckoId, timePeriod) => async () => {
+	options: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.options(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	revenue: (item, geckoId, timePeriod) => async () => {
+	revenue: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.revenue(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	bribes: (item, geckoId, timePeriod) => async () => {
+	bribes: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.bribes(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	tokenTax: (item, geckoId, timePeriod) => async () => {
+	tokenTax: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.tokenTax(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	activeUsers: (item, geckoId, timePeriod) => async () => {
+	activeUsers: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.activeUsers(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	newUsers: (item, geckoId, timePeriod) => async () => {
+	newUsers: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.newUsers(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	gasUsed: (item, geckoId, timePeriod) => async () => {
+	gasUsed: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.gasUsed(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	stablecoins: (item, geckoId, timePeriod) => async () => {
+	stablecoins: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.stablecoins(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	stablecoinInflows: (item, geckoId, timePeriod) => async () => {
+	stablecoinInflows: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.stablecoinInflows(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	chainFees: (item, geckoId, timePeriod) => async () => {
+	chainFees: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.chainFees(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	chainRevenue: (item, geckoId, timePeriod) => async () => {
+	chainRevenue: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.chainRevenue(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	bridgedTvl: (item, geckoId, timePeriod) => async () => {
+	bridgedTvl: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.bridgedTvl(item)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	chainMcap: (item, geckoId, timePeriod) => async () => {
+	chainMcap: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.chainMcap(item, geckoId)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	},
-	chainPrice: (item, geckoId, timePeriod) => async () => {
+	chainPrice: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ChainCharts.chainPrice(item, geckoId)
-		return filterDataByTimePeriod(data, timePeriod || 'all')
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	}
 }
 
@@ -295,7 +333,8 @@ function getChartQueryFn(
 	item: string,
 	geckoId?: string | null,
 	timePeriod?: TimePeriod,
-	parentMapping?: Map<string, string[]>
+	parentMapping?: Map<string, string[]>,
+	customPeriod?: CustomTimePeriod | null
 ) {
 	if (itemType === 'protocol') {
 		const handler = protocolChartHandlers[type]
@@ -308,12 +347,12 @@ function getChartQueryFn(
 
 		return async () => {
 			if (tokenTypes.has(type)) {
-				return handler(item, geckoId, timePeriod)()
+				return handler(item, geckoId, timePeriod, customPeriod)()
 			}
 
 			let direct: [number, number][] = []
 			try {
-				direct = await handler(item, geckoId, timePeriod)()
+				direct = await handler(item, geckoId, timePeriod, customPeriod)()
 			} catch (e) {
 				direct = []
 			}
@@ -325,7 +364,7 @@ function getChartQueryFn(
 			const settled = await Promise.allSettled(
 				children.map(async (childSlug) => {
 					try {
-						return await handler(childSlug, undefined, timePeriod)()
+						return await handler(childSlug, undefined, timePeriod, customPeriod)()
 					} catch (e) {
 						return [] as [number, number][]
 					}
@@ -346,12 +385,12 @@ function getChartQueryFn(
 	} else {
 		const handler = chainChartHandlers[type]
 		if (handler) {
-			return handler(item, geckoId, timePeriod)
+			return handler(item, geckoId, timePeriod, customPeriod)
 		}
 		console.log(`Unknown chart type for chain: ${type}`)
 		return async () => {
 			const data = await ChainCharts.tvl(item)
-			return filterDataByTimePeriod(data, timePeriod || 'all')
+			return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 		}
 	}
 }
@@ -476,7 +515,7 @@ function computeGrouped(
 	return result
 }
 
-export function useChartsData(charts, timePeriod?: TimePeriod) {
+export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: CustomTimePeriod | null) {
 	const { data: parentMapping } = useParentChildMapping()
 	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({
@@ -486,11 +525,11 @@ export function useChartsData(charts, timePeriod?: TimePeriod) {
 
 			return {
 				queryKey: [
-					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod),
+					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod),
 					chart.grouping,
 					chart.id
 				],
-				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod, parentMapping),
+				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod, parentMapping, customPeriod),
 				keepPreviousData: true,
 				placeholderData: (prev) => prev,
 				select: (data) => {

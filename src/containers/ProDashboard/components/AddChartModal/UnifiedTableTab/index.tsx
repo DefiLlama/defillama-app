@@ -10,6 +10,8 @@ import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/c
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
+import { getOrderedCustomColumnIds } from '../../UnifiedTable/utils/customColumns'
+import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
 import type { FilterPill } from './components/ActiveFilterPills'
 import { ActiveFilterPills } from './components/ActiveFilterPills'
 import { CollapsibleSection } from './components/CollapsibleSection'
@@ -19,11 +21,9 @@ import { FiltersPanel } from './components/FiltersPanel'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
-import { SortingSelector } from './components/SortingSelector'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
 import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
-import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
 
 interface UnifiedTableTabProps {
 	onClose: () => void
@@ -68,8 +68,18 @@ const TabContent = ({
 }: UnifiedTableTabProps) => {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
 	const {
-		state: { chains, rowHeaders, filters, activePresetId, columnOrder, columnVisibility, sorting },
-		actions: { setChains, setRowHeaders, setFilters, setPreset, setColumns, setSorting },
+		state: { chains, rowHeaders, filters, activePresetId, columnOrder, columnVisibility, sorting, customColumns },
+		actions: {
+			setChains,
+			setRowHeaders,
+			setFilters,
+			setPreset,
+			setColumns,
+			setSorting,
+			addCustomColumn,
+			updateCustomColumn,
+			removeCustomColumn
+		},
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
 	const isEditing = Boolean(editItem)
@@ -106,28 +116,40 @@ const TabContent = ({
 	const activePreset = useMemo(() => UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId), [activePresetId])
 
 	const allColumns = useMemo(() => {
-		return [
+		const dictColumns = [
 			'name',
 			...UNIFIED_TABLE_COLUMN_DICTIONARY.filter((column) => column.id !== 'name').map((column) => column.id)
 		]
-	}, [])
+		const customIds = customColumns.map((c) => c.id)
+		return [...dictColumns, ...customIds]
+	}, [customColumns])
+
+	const customColumnIds = useMemo(
+		() => getOrderedCustomColumnIds(columnOrder, customColumns),
+		[columnOrder, customColumns]
+	)
 
 	const presetDefaults = useMemo(() => {
 		if (activePreset) {
 			const presetConfig = applyPresetToConfig({
 				preset: activePreset,
 				includeRowHeaderRules: true,
-				mergeWithDefaults: true
+				mergeWithDefaults: true,
+				customColumns
 			})
+			const baseOrder = presetConfig.columnOrder
+			const baseOrderSet = new Set(baseOrder)
+			const mergedOrder = [...baseOrder, ...customColumnIds.filter((id) => !baseOrderSet.has(id))]
+			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, columnVisibility[id] ?? true]))
 			return {
-				order: presetConfig.columnOrder,
-				visibility: presetConfig.columnVisibility,
+				order: mergedOrder,
+				visibility: { ...presetConfig.columnVisibility, ...customVisibility },
 				sorting: presetConfig.sorting
 			}
 		}
 		const baseOrder = [allColumns[0], ...allColumns.slice(1)]
 		const baseVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
-			acc[id] = id === 'name'
+			acc[id] = id === 'name' || customColumnIds.includes(id)
 			return acc
 		}, {})
 		return {
@@ -135,7 +157,7 @@ const TabContent = ({
 			visibility: baseVisibility,
 			sorting: [] as SortingState
 		}
-	}, [activePreset, allColumns])
+	}, [activePreset, allColumns, customColumnIds, columnVisibility, customColumns])
 
 	const presetSortingFallback = useMemo<SortingState>(() => {
 		return normalizeSorting(activePreset?.defaultSorting)
@@ -191,10 +213,14 @@ const TabContent = ({
 			const presetConfig = applyPresetToConfig({
 				preset,
 				includeRowHeaderRules: true,
-				mergeWithDefaults: true
+				mergeWithDefaults: true,
+				customColumns
 			})
-			setLocalOrder(presetConfig.columnOrder)
-			setLocalVisibility(presetConfig.columnVisibility)
+			const baseOrderSet = new Set(presetConfig.columnOrder)
+			const mergedOrder = [...presetConfig.columnOrder, ...customColumnIds.filter((id) => !baseOrderSet.has(id))]
+			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, localVisibility[id] ?? true]))
+			setLocalOrder(mergedOrder)
+			setLocalVisibility({ ...presetConfig.columnVisibility, ...customVisibility })
 			setLocalSorting(presetConfig.sorting)
 		}
 	}
@@ -202,23 +228,6 @@ const TabContent = ({
 	const handleResetToPreset = () => {
 		if (!activePreset) return
 		handlePresetSelect(activePreset.id)
-		setColumns(presetDefaults.order, presetDefaults.visibility)
-		setSorting(presetDefaults.sorting)
-	}
-
-	const handleClearColumns = () => {
-		const nextVisibility = allColumns.reduce<VisibilityState>((acc, id) => {
-			acc[id] = id === 'name'
-			return acc
-		}, {})
-
-		const nextOrder: ColumnOrderState = ['name']
-
-		setLocalOrder(nextOrder)
-		setLocalVisibility(nextVisibility)
-		setLocalSorting([])
-		setColumns(nextOrder, nextVisibility)
-		setSorting([])
 	}
 
 	const handleColumnChange = (order: ColumnOrderState, visibility: VisibilityState) => {
@@ -241,22 +250,19 @@ const TabContent = ({
 		setFilters(nextFilters ?? {})
 	}, [])
 
-	const handleRemoveArrayFilterValue = useCallback(
-		(key: ArrayFilterKey, value: string) => {
-			setFilters((prev) => {
-				const next: TableFilters = { ...(prev ?? {}) }
-				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-				const updated = current.filter((item) => item !== value)
-				if (updated.length > 0) {
-					next[key] = updated
-				} else {
-					delete next[key]
-				}
-				return next
-			})
-		},
-		[]
-	)
+	const handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
+		setFilters((prev) => {
+			const next: TableFilters = { ...(prev ?? {}) }
+			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+			const updated = current.filter((item) => item !== value)
+			if (updated.length > 0) {
+				next[key] = updated
+			} else {
+				delete next[key]
+			}
+			return next
+		})
+	}, [])
 
 	const handleRemoveChainValue = useCallback(
 		(chainValue: string) => {
@@ -386,7 +392,7 @@ const TabContent = ({
 			? 'Adjust filters to refine the data shown in your table.'
 			: focusedSectionOnly === 'columns'
 				? 'Select and arrange columns to customize your table view.'
-				: 'Pick a tab to configure setup, columns, or filters.'
+				: ''
 
 	const setupBadge = useMemo(() => {
 		if (activePreset?.name) return `Protocols · ${activePreset.name}`
@@ -471,61 +477,43 @@ const TabContent = ({
 			</div>
 		),
 		columns: (
-			<CollapsibleSection
-				title="Columns & Sorting"
-				isDefaultExpanded
-				badge={`${visibleColumnsCount} visible`}
-				className="shadow-sm"
-			>
-				<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-3">
+				<CollapsibleSection
+					title="Columns"
+					isDefaultExpanded
+					badge={`${visibleColumnsCount} selected`}
+					className="shadow-sm"
+				>
 					<div className="flex flex-col gap-2">
-						<h4 className="text-xs font-semibold text-(--text-secondary)">Sorting</h4>
-						<SortingSelector
-							columnOrder={localOrder}
-							columnVisibility={localVisibility}
-							sorting={localSorting}
-							onChange={handleSortingChange}
-							onReset={() => handleSortingChange(presetSortingFallback)}
-						/>
-					</div>
-					<div className="flex flex-col gap-2">
-						<div className="flex flex-wrap items-center justify-between gap-2">
-							<h4 className="text-xs font-semibold text-(--text-secondary)">Columns</h4>
-							<div className="flex flex-wrap items-center gap-2 text-xs">
-								<button
-									type="button"
-									onClick={handleResetToPreset}
-									disabled={!isModified}
-									className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
-										isModified
-											? 'border-(--primary) text-(--primary) hover:bg-(--primary)/10'
-											: 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
-									}`}
-								>
-									Reset to preset
-								</button>
-								<button
-									type="button"
-									onClick={handleClearColumns}
-									disabled={visibleColumnsCount === 0}
-									className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
-										visibleColumnsCount === 0
-											? 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
-											: 'border-red-500/60 text-red-500 hover:bg-red-500/10'
-									}`}
-								>
-									Clear all
-								</button>
-							</div>
+						<div className="flex flex-wrap items-center justify-end gap-2 text-xs">
+							<button
+								type="button"
+								onClick={handleResetToPreset}
+								disabled={!isModified}
+								className={`rounded-md border px-2 py-0.5 text-[11px] transition ${
+									isModified
+										? 'border-(--primary) text-(--primary) hover:bg-(--primary)/10'
+										: 'cursor-not-allowed border-(--cards-border) text-(--text-tertiary)'
+								}`}
+							>
+								Reset to preset
+							</button>
 						</div>
 						<ColumnManager
 							columnOrder={localOrder}
 							columnVisibility={localVisibility}
 							onChange={handleColumnChange}
+							customColumns={customColumns}
+							onAddCustomColumn={addCustomColumn}
+							onUpdateCustomColumn={updateCustomColumn}
+							onRemoveCustomColumn={removeCustomColumn}
+							sorting={localSorting}
+							onSortingChange={handleSortingChange}
+							onSortingReset={() => handleSortingChange(presetSortingFallback)}
 						/>
 					</div>
-				</div>
-			</CollapsibleSection>
+				</CollapsibleSection>
+			</div>
 		),
 		filters: (
 			<CollapsibleSection title="Filters" isDefaultExpanded badge={totalFilterCount || undefined} className="shadow-sm">
@@ -580,10 +568,7 @@ const TabContent = ({
 
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
-				<h2 className="text-base font-semibold text-(--text-primary)">{headerTitle}</h2>
-				<p className="text-xs text-(--text-secondary)">{headerDescription}</p>
-			</header>
+			<header className="flex flex-shrink-0 flex-col gap-1 pb-3"></header>
 
 			{availableTabs.length > 0 && (
 				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">

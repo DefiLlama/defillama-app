@@ -144,6 +144,24 @@ export interface StablecoinAssetChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type AdvancedTvlChartType =
+	| 'tvl'
+	| 'chainsTvl'
+	| 'tokenValuesUsd'
+	| 'tokensPie'
+	| 'tokenBalances'
+	| 'usdInflows'
+	| 'tokenInflows'
+
+export interface AdvancedTvlChartConfig {
+	id: string
+	kind: 'advanced-tvl'
+	protocol: string
+	protocolName: string
+	chartType: AdvancedTvlChartType
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -156,6 +174,7 @@ export type DashboardItemConfig =
 	| YieldsChartConfig
 	| StablecoinsChartConfig
 	| StablecoinAssetChartConfig
+	| AdvancedTvlChartConfig
 	| UnifiedTableConfig
 
 export interface ChartConfig {
@@ -345,6 +364,14 @@ export interface ProtocolsTableConfig {
 	datasetTimeframe?: string
 }
 
+export interface CustomColumnDefinition {
+	id: string
+	name: string
+	expression: string
+	format: 'usd' | 'percent' | 'ratio' | 'number'
+	aggregation: 'sum' | 'first' | 'none' | 'recalculate'
+}
+
 export interface UnifiedTableConfig {
 	id: string
 	kind: 'unified-table'
@@ -360,6 +387,7 @@ export interface UnifiedTableConfig {
 	columnVisibility?: Record<string, boolean>
 	activePresetId?: string
 	colSpan?: StoredColSpan
+	customColumns?: CustomColumnDefinition[]
 }
 
 export interface Protocol {
@@ -460,7 +488,6 @@ export const getProtocolChartTypes = (): string[] => {
 		'fees',
 		'revenue',
 		'incentives',
-		'liquidity',
 		'treasury',
 		'holdersRevenue',
 		'bribes',

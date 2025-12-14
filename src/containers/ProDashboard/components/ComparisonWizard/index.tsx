@@ -147,7 +147,7 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 		return {
 			id: generateItemId('unified-table', 'comparison'),
 			kind: 'unified-table',
-			rowHeaders: isChains ? ['chain'] : ['protocol'],
+			rowHeaders: isChains ? ['chain'] : ['parent-protocol', 'protocol'],
 			filters: {
 				protocols: !isChains ? state.selectedItems : undefined,
 				chains: isChains ? state.selectedItems : undefined
