@@ -29,6 +29,7 @@ export function useModalActions(
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
+		handleAddAdvancedTvlChart,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -514,6 +515,19 @@ export function useModalActions(
 						chartType: state.selectedStablecoinChartType
 					} as any
 				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'advanced-tvl' &&
+				state.selectedAdvancedTvlProtocol &&
+				state.selectedAdvancedTvlProtocolName
+			) {
+				newItem = {
+					...editItem,
+					kind: 'advanced-tvl',
+					protocol: state.selectedAdvancedTvlProtocol,
+					protocolName: state.selectedAdvancedTvlProtocolName,
+					chartType: state.selectedAdvancedTvlChartType
+				} as any
 			}
 
 			if (newItem) {
@@ -546,6 +560,18 @@ export function useModalActions(
 				} else {
 					handleAddStablecoinsChart(state.selectedStablecoinChain, state.selectedStablecoinChartType)
 				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'advanced-tvl' &&
+				state.selectedAdvancedTvlProtocol &&
+				state.selectedAdvancedTvlProtocolName
+			) {
+				handleAddAdvancedTvlChart(
+					state.selectedAdvancedTvlProtocol,
+					state.selectedAdvancedTvlProtocolName,
+					state.selectedAdvancedTvlChartType
+				)
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
 					if (state.chartCreationMode === 'combined') {
@@ -661,6 +687,7 @@ export function useModalActions(
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
+		handleAddAdvancedTvlChart,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,

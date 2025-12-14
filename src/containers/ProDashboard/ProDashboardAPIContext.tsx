@@ -12,6 +12,8 @@ import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { Dashboard } from './services/DashboardAPI'
 import {
+	AdvancedTvlChartConfig,
+	AdvancedTvlChartType,
 	Chain,
 	CHART_TYPES,
 	ChartBuilderConfig,
@@ -107,6 +109,7 @@ interface ProDashboardContextType {
 	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
 	handleAddStablecoinsChart: (chain: string, chartType: string) => void
 	handleAddStablecoinAssetChart: (stablecoin: string, stablecoinId: string, chartType: string) => void
+	handleAddAdvancedTvlChart: (protocol: string, protocolName: string, chartType: AdvancedTvlChartType) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -995,6 +998,28 @@ export function ProDashboardAPIProvider({
 		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
 	)
 
+	const handleAddAdvancedTvlChart = useCallback(
+		(protocol: string, protocolName: string, chartType: AdvancedTvlChartType) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newAdvancedTvlChart: AdvancedTvlChartConfig = {
+				id: generateItemId('advanced-tvl', `${protocol}-${chartType}`),
+				kind: 'advanced-tvl',
+				protocol,
+				protocolName,
+				chartType,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newAdvancedTvlChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
+
 	const handleAddTable = useCallback(
 		(
 			chains: string[],
@@ -1547,6 +1572,7 @@ export function ProDashboardAPIProvider({
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
+			handleAddAdvancedTvlChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1617,6 +1643,7 @@ export function ProDashboardAPIProvider({
 			handleAddYieldChart,
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
+			handleAddAdvancedTvlChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,

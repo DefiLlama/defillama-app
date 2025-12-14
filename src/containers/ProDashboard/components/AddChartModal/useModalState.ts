@@ -107,6 +107,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [selectedStablecoinAsset, setSelectedStablecoinAsset] = useState<string | null>(null)
 	const [selectedStablecoinAssetId, setSelectedStablecoinAssetId] = useState<string | null>(null)
 	const [selectedStablecoinAssetChartType, setSelectedStablecoinAssetChartType] = useState<string>('totalCirc')
+	const [selectedAdvancedTvlProtocol, setSelectedAdvancedTvlProtocol] = useState<string | null>(null)
+	const [selectedAdvancedTvlProtocolName, setSelectedAdvancedTvlProtocolName] = useState<string | null>(null)
+	const [selectedAdvancedTvlChartType, setSelectedAdvancedTvlChartType] = useState<string>('tvl')
 
 	// Initialize state based on editItem
 	useEffect(() => {
@@ -202,6 +205,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				setSelectedStablecoinAsset(editItem.stablecoin)
 				setSelectedStablecoinAssetId(editItem.stablecoinId)
 				setSelectedStablecoinAssetChartType(editItem.chartType)
+			} else if (editItem.kind === 'advanced-tvl') {
+				setSelectedMainTab('charts')
+				setChartMode('manual')
+				setSelectedChartTab('advanced-tvl')
+				setSelectedAdvancedTvlProtocol(editItem.protocol)
+				setSelectedAdvancedTvlProtocolName(editItem.protocolName)
+				setSelectedAdvancedTvlChartType(editItem.chartType)
 			}
 		} else {
 			setSelectedMainTab('charts')
@@ -259,6 +269,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedStablecoinAsset(null)
 			setSelectedStablecoinAssetId(null)
 			setSelectedStablecoinAssetChartType('totalCirc')
+			setSelectedAdvancedTvlProtocol(null)
+			setSelectedAdvancedTvlProtocolName(null)
+			setSelectedAdvancedTvlChartType('tvl')
 		}
 	}, [editItem, isOpen])
 
@@ -316,6 +329,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		setSelectedStablecoinAsset(null)
 		setSelectedStablecoinAssetId(null)
 		setSelectedStablecoinAssetChartType('totalCirc')
+		setSelectedAdvancedTvlProtocol(null)
+		setSelectedAdvancedTvlProtocolName(null)
+		setSelectedAdvancedTvlChartType('tvl')
 	}
 
 	const state: ModalState = {
@@ -360,7 +376,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 		stablecoinMode,
 		selectedStablecoinAsset,
 		selectedStablecoinAssetId,
-		selectedStablecoinAssetChartType
+		selectedStablecoinAssetChartType,
+		selectedAdvancedTvlProtocol,
+		selectedAdvancedTvlProtocolName,
+		selectedAdvancedTvlChartType
 	}
 
 	const actionsObj = useMemo(
@@ -406,7 +425,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setStablecoinMode,
 			setSelectedStablecoinAsset,
 			setSelectedStablecoinAssetId,
-			setSelectedStablecoinAssetChartType
+			setSelectedStablecoinAssetChartType,
+			setSelectedAdvancedTvlProtocol,
+			setSelectedAdvancedTvlProtocolName,
+			setSelectedAdvancedTvlChartType
 		}),
 		[
 			setSelectedMainTab,
@@ -449,7 +471,10 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setStablecoinMode,
 			setSelectedStablecoinAsset,
 			setSelectedStablecoinAssetId,
-			setSelectedStablecoinAssetChartType
+			setSelectedStablecoinAssetChartType,
+			setSelectedAdvancedTvlProtocol,
+			setSelectedAdvancedTvlProtocolName,
+			setSelectedAdvancedTvlChartType
 		]
 	)
 

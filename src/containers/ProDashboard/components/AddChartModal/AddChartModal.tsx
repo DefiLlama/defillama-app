@@ -53,7 +53,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 			}}
 		>
 			<Ariakit.Dialog
-				className={`pro-dashboard dialog add-chart-dialog max-sm:drawer thin-scrollbar flex w-[90%] flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${dialogSizingClass}`}
+				className={`pro-dashboard dialog add-chart-dialog max-sm:drawer thin-scrollbar flex w-[90%] flex-col gap-3 overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${dialogSizingClass}`}
 				unmountOnHide
 				portal
 				hideOnInteractOutside
@@ -117,6 +117,12 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedStablecoinAssetChange={actions.setSelectedStablecoinAsset}
 							onSelectedStablecoinAssetIdChange={actions.setSelectedStablecoinAssetId}
 							onSelectedStablecoinAssetChartTypeChange={actions.setSelectedStablecoinAssetChartType}
+							selectedAdvancedTvlProtocol={state.selectedAdvancedTvlProtocol}
+							selectedAdvancedTvlProtocolName={state.selectedAdvancedTvlProtocolName}
+							selectedAdvancedTvlChartType={state.selectedAdvancedTvlChartType}
+							onSelectedAdvancedTvlProtocolChange={actions.setSelectedAdvancedTvlProtocol}
+							onSelectedAdvancedTvlProtocolNameChange={actions.setSelectedAdvancedTvlProtocolName}
+							onSelectedAdvancedTvlChartTypeChange={actions.setSelectedAdvancedTvlChartType}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -221,6 +227,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedStablecoinAsset={state.selectedStablecoinAsset}
 							selectedStablecoinAssetId={state.selectedStablecoinAssetId}
 							selectedStablecoinAssetChartType={state.selectedStablecoinAssetChartType}
+							selectedAdvancedTvlProtocol={state.selectedAdvancedTvlProtocol}
+							selectedAdvancedTvlChartType={state.selectedAdvancedTvlChartType}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

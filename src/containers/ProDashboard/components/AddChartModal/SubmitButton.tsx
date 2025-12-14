@@ -29,6 +29,8 @@ interface SubmitButtonProps {
 	selectedStablecoinAsset?: string | null
 	selectedStablecoinAssetId?: string | null
 	selectedStablecoinAssetChartType?: string
+	selectedAdvancedTvlProtocol?: string | null
+	selectedAdvancedTvlChartType?: string
 	onSubmit: () => void
 }
 
@@ -60,12 +62,15 @@ export function SubmitButton({
 	selectedStablecoinAsset,
 	selectedStablecoinAssetId,
 	selectedStablecoinAssetChartType,
+	selectedAdvancedTvlProtocol,
+	selectedAdvancedTvlChartType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isStablecoinChainModeInvalid =
 		stablecoinMode === 'chain' && (!selectedStablecoinChain || !selectedStablecoinChartType)
 	const isStablecoinAssetModeInvalid =
 		stablecoinMode === 'asset' && (!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
+	const isAdvancedTvlInvalid = !selectedAdvancedTvlProtocol || !selectedAdvancedTvlChartType
 
 	const isDisabled =
 		chartTypesLoading ||
@@ -76,8 +81,13 @@ export function SubmitButton({
 			(isStablecoinChainModeInvalid || isStablecoinAssetModeInvalid)) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
+			selectedChartTab === 'advanced-tvl' &&
+			isAdvancedTvlInvalid) ||
+		(selectedMainTab === 'charts' &&
+			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
 			selectedChartTab !== 'stablecoins' &&
+			selectedChartTab !== 'advanced-tvl' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' &&
@@ -106,7 +116,7 @@ export function SubmitButton({
 				if (chartMode === 'builder') {
 					return 'Add Chart'
 				}
-				if (selectedChartTab === 'yields' || selectedChartTab === 'stablecoins') {
+				if (selectedChartTab === 'yields' || selectedChartTab === 'stablecoins' || selectedChartTab === 'advanced-tvl') {
 					return 'Add Chart'
 				}
 				if (chartCreationMode === 'combined') {

@@ -144,6 +144,24 @@ export interface StablecoinAssetChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type AdvancedTvlChartType =
+	| 'tvl'
+	| 'chainsTvl'
+	| 'tokenValuesUsd'
+	| 'tokensPie'
+	| 'tokenBalances'
+	| 'usdInflows'
+	| 'tokenInflows'
+
+export interface AdvancedTvlChartConfig {
+	id: string
+	kind: 'advanced-tvl'
+	protocol: string
+	protocolName: string
+	chartType: AdvancedTvlChartType
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -156,6 +174,7 @@ export type DashboardItemConfig =
 	| YieldsChartConfig
 	| StablecoinsChartConfig
 	| StablecoinAssetChartConfig
+	| AdvancedTvlChartConfig
 	| UnifiedTableConfig
 
 export interface ChartConfig {

@@ -51,6 +51,12 @@ interface ChartTabProps {
 	onSelectedStablecoinAssetChange?: (asset: string | null) => void
 	onSelectedStablecoinAssetIdChange?: (id: string | null) => void
 	onSelectedStablecoinAssetChartTypeChange?: (chartType: string) => void
+	selectedAdvancedTvlProtocol?: string | null
+	selectedAdvancedTvlProtocolName?: string | null
+	selectedAdvancedTvlChartType?: string
+	onSelectedAdvancedTvlProtocolChange?: (protocol: string | null) => void
+	onSelectedAdvancedTvlProtocolNameChange?: (name: string | null) => void
+	onSelectedAdvancedTvlChartTypeChange?: (chartType: string) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -148,6 +154,12 @@ export function ChartTab(props: ChartTabProps) {
 					onSelectedStablecoinAssetChange={props.onSelectedStablecoinAssetChange}
 					onSelectedStablecoinAssetIdChange={props.onSelectedStablecoinAssetIdChange}
 					onSelectedStablecoinAssetChartTypeChange={props.onSelectedStablecoinAssetChartTypeChange}
+					selectedAdvancedTvlProtocol={props.selectedAdvancedTvlProtocol}
+					selectedAdvancedTvlProtocolName={props.selectedAdvancedTvlProtocolName}
+					selectedAdvancedTvlChartType={props.selectedAdvancedTvlChartType}
+					onSelectedAdvancedTvlProtocolChange={props.onSelectedAdvancedTvlProtocolChange}
+					onSelectedAdvancedTvlProtocolNameChange={props.onSelectedAdvancedTvlProtocolNameChange}
+					onSelectedAdvancedTvlChartTypeChange={props.onSelectedAdvancedTvlChartTypeChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
 					onComposerItemColorChange={props.onComposerItemColorChange}
