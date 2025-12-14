@@ -2,6 +2,7 @@ import { useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
@@ -438,6 +439,19 @@ export const SubscriberContent = ({
 													: 'Not available'}
 										</p>
 									</div>
+
+									{hasApiSubscription && (
+										<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
+											<p className="mb-1 text-xs text-[#8a8c90]">Overage</p>
+											<p className="flex text-sm font-medium sm:text-base">
+												{apiSubscription?.overage ? 'Enabled' : 'Disabled'}
+												<QuestionHelper
+													className="ml-2"
+													text="API calls beyond 1M/month are charged at $0.60 per 1,000 calls."
+												/>
+											</p>
+										</div>
+									)}
 								</div>
 
 								{hasProSubscription &&
@@ -457,44 +471,6 @@ export const SubscriberContent = ({
 											<button
 												onClick={() => {
 													setUpgradeType('llamafeed')
-													setIsUpgradeModalOpen(true)
-												}}
-												disabled={loading === 'stripe'}
-												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-											>
-												{loading === 'stripe' ? (
-													<>
-														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-														<span>Processing...</span>
-													</>
-												) : (
-													<>
-														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-														<span className="sm:hidden">Upgrade to Yearly</span>
-													</>
-												)}
-											</button>
-										</div>
-									)}
-
-								{hasApiSubscription &&
-									(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
-										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-												</div>
-												<div className="flex-1">
-													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
-													<p className="text-xs text-[#8a8c90] sm:text-sm">
-														Switch to annual billing and save 2 months.
-													</p>
-												</div>
-											</div>
-											<button
-												onClick={() => {
-													setUpgradeType('api')
 													setIsUpgradeModalOpen(true)
 												}}
 												disabled={loading === 'stripe'}
@@ -548,6 +524,43 @@ export const SubscriberContent = ({
 										</button>
 									</div>
 								)}
+								{hasApiSubscription &&
+									(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
+										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
+												</div>
+												<div className="flex-1">
+													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
+													<p className="text-xs text-[#8a8c90] sm:text-sm">
+														Switch to annual billing and save 2 months.
+													</p>
+												</div>
+											</div>
+											<button
+												onClick={() => {
+													setUpgradeType('api')
+													setIsUpgradeModalOpen(true)
+												}}
+												disabled={loading === 'stripe'}
+												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+											>
+												{loading === 'stripe' ? (
+													<>
+														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+														<span>Processing...</span>
+													</>
+												) : (
+													<>
+														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+														<span className="sm:hidden">Upgrade to Yearly</span>
+													</>
+												)}
+											</button>
+										</div>
+									)}
 							</div>
 						</div>
 					</div>
