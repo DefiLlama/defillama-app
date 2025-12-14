@@ -8,11 +8,12 @@ export const timeframeOptions = {
 
 // API endpoints
 export const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
+export const V2_SERVER_URL = `${SERVER_URL}/v2`
 const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 export const CHART_API = `${SERVER_URL}/lite/charts`
-export const CHAIN_TVL_API = `${SERVER_URL}/v2/chains`
+export const CHAIN_TVL_API = `${V2_SERVER_URL}/chains`
 export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 export const PROTOCOL_API = `${SERVER_URL}/updatedProtocol`
 export const PROTOCOL_API_MINI = `${SERVER_URL}/_fe/updatedProtocol-mini`
