@@ -54,12 +54,12 @@ export function ChartPreview({ data, chartType, color, isLoading, hasError, item
 				<BarChart
 					chartData={data}
 					valueSymbol={valueSymbol}
-					height="400px"
+					height="240px"
 					color={color || chartTypeDetails.color}
 					hideDataZoom
 					hideDownloadButton
 					title=""
-					containerClassName="h-[400px]"
+					containerClassName="h-[240px]"
 				/>
 			</Suspense>
 		)
@@ -70,11 +70,11 @@ export function ChartPreview({ data, chartType, color, isLoading, hasError, item
 					chartData={data}
 					valueSymbol={valueSymbol}
 					color={color || chartTypeDetails.color}
-					height="400px"
+					height="240px"
 					hideDataZoom
 					hideDownloadButton
 					title=""
-					containerClassName="h-[400px]"
+					containerClassName="h-[240px]"
 				/>
 			</Suspense>
 		)

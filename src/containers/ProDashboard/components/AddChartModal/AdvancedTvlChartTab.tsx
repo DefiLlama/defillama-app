@@ -11,7 +11,6 @@ import ProtocolCharts from '../../services/ProtocolCharts'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
-import { ChartTabType } from './types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -24,7 +23,6 @@ interface AdvancedTvlChartTabProps {
 	onSelectedAdvancedTvlProtocolChange: (protocol: string | null) => void
 	onSelectedAdvancedTvlProtocolNameChange: (name: string | null) => void
 	onSelectedAdvancedTvlChartTypeChange: (chartType: string) => void
-	onChartTabChange: (tab: ChartTabType) => void
 	protocolOptions: VirtualizedSelectOption[]
 	protocolsLoading: boolean
 }
@@ -66,7 +64,6 @@ export function AdvancedTvlChartTab({
 	onSelectedAdvancedTvlProtocolChange,
 	onSelectedAdvancedTvlProtocolNameChange,
 	onSelectedAdvancedTvlChartTypeChange,
-	onChartTabChange,
 	protocolOptions,
 	protocolsLoading
 }: AdvancedTvlChartTabProps) {
@@ -299,64 +296,47 @@ export function AdvancedTvlChartTab({
 	const hasProtocolSelection = selectedAdvancedTvlProtocol && selectedAdvancedTvlProtocolName
 
 	return (
-		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
-			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
-				<div className="flex h-full flex-col p-3">
-					<AriakitSelect
-						label="Category"
-						options={[
-							{ value: 'chain', label: 'Protocols/Chains' },
-							{ value: 'yields', label: 'Yields' },
-							{ value: 'stablecoins', label: 'Stablecoins' },
-							{ value: 'advanced-tvl', label: 'Advanced TVL' }
-						]}
-						selectedValue="advanced-tvl"
-						onChange={(option) => onChartTabChange(option.value as ChartTabType)}
-						className="mb-3"
-					/>
+		<div className="flex flex-col gap-4">
+			<div className="space-y-3">
+				<AriakitVirtualizedSelect
+					label="Protocol"
+					options={filteredProtocolOptions}
+					selectedValue={selectedAdvancedTvlProtocol || ''}
+					onChange={handleProtocolChange}
+					placeholder="Select protocol..."
+					isLoading={protocolsLoading}
+				/>
 
-					<div className="mb-3 flex-shrink-0 space-y-2">
-						<AriakitVirtualizedSelect
-							label="Protocol"
-							options={filteredProtocolOptions}
-							selectedValue={selectedAdvancedTvlProtocol || ''}
-							onChange={handleProtocolChange}
-							placeholder="Select protocol..."
-							isLoading={protocolsLoading}
+				<Tooltip content={!hasProtocolSelection ? 'Select protocol first' : null} className="w-full">
+					<div className={`w-full ${!hasProtocolSelection ? 'pointer-events-none opacity-50' : ''}`}>
+						<AriakitSelect
+							label="Chart Type"
+							options={chartTypeOptions}
+							selectedValue={selectedAdvancedTvlChartType}
+							onChange={(option) => onSelectedAdvancedTvlChartTypeChange(option.value)}
+							placeholder="Select chart type..."
 						/>
-
-						<Tooltip content={!hasProtocolSelection ? 'Select protocol first' : null} className="w-full">
-							<div className={`w-full ${!hasProtocolSelection ? 'pointer-events-none opacity-50' : ''}`}>
-								<AriakitSelect
-									label="Chart Type"
-									options={chartTypeOptions}
-									selectedValue={selectedAdvancedTvlChartType}
-									onChange={(option) => onSelectedAdvancedTvlChartTypeChange(option.value)}
-									placeholder="Select chart type..."
-								/>
-							</div>
-						</Tooltip>
 					</div>
+				</Tooltip>
 
-					{hasProtocolSelection && isAddlLoading && (
-						<div className="pro-text3 text-xs">Loading available chart types...</div>
-					)}
+				{hasProtocolSelection && isAddlLoading && (
+					<div className="pro-text3 text-xs">Loading available chart types...</div>
+				)}
 
-					{hasProtocolSelection && !isAddlLoading && (
-						<div className="pro-text3 mt-auto text-xs">
-							<p>
-								Available charts: <span className="pro-text1 font-semibold">{availableChartTypes.size}</span>
-							</p>
-						</div>
-					)}
-				</div>
+				{hasProtocolSelection && !isAddlLoading && (
+					<div className="pro-text3 text-xs">
+						<p>
+							Available charts: <span className="pro-text1 font-semibold">{availableChartTypes.size}</span>
+						</p>
+					</div>
+				)}
 			</div>
 
-			<div className="pro-border flex flex-1 flex-col overflow-hidden border">
-				<div className="pro-text2 flex-shrink-0 px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="pro-border overflow-hidden rounded-lg border">
+				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
 
 				{hasProtocolSelection ? (
-					<div className="min-h-0 flex-1 overflow-auto rounded-md bg-(--cards-bg) p-3">
+					<div className="bg-(--cards-bg) p-3">
 						<div className="mb-3">
 							<h3 className="pro-text1 mb-1 text-sm font-semibold">
 								{selectedAdvancedTvlProtocolName} - {chartTypeLabel}
@@ -364,10 +344,10 @@ export function AdvancedTvlChartTab({
 							<p className="pro-text2 text-xs">Advanced TVL Chart</p>
 						</div>
 
-						<div className="min-h-[320px]">{renderChart()}</div>
+						<div className="h-[320px]">{renderChart()}</div>
 					</div>
 				) : (
-					<div className="pro-text3 flex flex-1 items-center justify-center text-center">
+					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
 						<div>
 							<Icon name="trending-up" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">Select a protocol to see available TVL charts</div>

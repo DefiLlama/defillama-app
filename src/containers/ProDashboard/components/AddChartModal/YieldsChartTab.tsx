@@ -10,16 +10,13 @@ import { useYieldChartData } from '~/containers/Yields/queries/client'
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
-import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
-import { ChartTabType } from './types'
 
 const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
 
 interface YieldsChartTabProps {
 	selectedYieldPool: { configID: string; name: string; project: string; chain: string } | null
 	onSelectedYieldPoolChange: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
-	onChartTabChange: (tab: ChartTabType) => void
 	selectedYieldChains: string[]
 	selectedYieldProjects: string[]
 	selectedYieldCategories: string[]
@@ -40,7 +37,6 @@ const mainChartStacks = ['APY', 'TVL']
 export function YieldsChartTab({
 	selectedYieldPool,
 	onSelectedYieldPoolChange,
-	onChartTabChange,
 	selectedYieldChains,
 	selectedYieldProjects,
 	selectedYieldCategories,
@@ -323,28 +319,14 @@ export function YieldsChartTab({
 	}, [selectedYieldChartData])
 
 	return (
-		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
-			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
-				<div className="flex h-full flex-col p-3">
-					<AriakitSelect
-						label="Category"
-						options={[
-							{ value: 'chain', label: 'Protocols/Chains' },
-							{ value: 'yields', label: 'Yields' },
-							{ value: 'stablecoins', label: 'Stablecoins' }
-						]}
-						selectedValue="yields"
-						onChange={(option) => onChartTabChange(option.value as ChartTabType)}
-						className="mb-3"
-					/>
-
-					{yieldsLoading ? (
-						<div className="flex flex-1 items-center justify-center">
-							<LocalLoader />
-						</div>
-					) : (
-						<>
-							<div className="mb-3 flex-shrink-0 space-y-2">
+		<div className="flex flex-col gap-4">
+			{yieldsLoading ? (
+				<div className="flex h-32 items-center justify-center">
+					<LocalLoader />
+				</div>
+			) : (
+				<>
+					<div className="space-y-3">
 								<div className="flex flex-col">
 									<label className="pro-text2 mb-1 block text-[11px] font-medium">Chains</label>
 									<PopoverDisclosure
@@ -688,119 +670,115 @@ export function YieldsChartTab({
 									placeholder="All categories"
 								/>
 
-								<div>
-									<label className="pro-text2 mb-1 block text-[11px] font-medium">TVL Range</label>
-									<div className="flex gap-2">
-										<input
-											type="number"
-											placeholder="Min"
-											value={minTvl ?? ''}
-											onChange={(e) => onMinTvlChange(e.target.value ? Number(e.target.value) : null)}
-											className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-										/>
-										<input
-											type="number"
-											placeholder="Max"
-											value={maxTvl ?? ''}
-											onChange={(e) => onMaxTvlChange(e.target.value ? Number(e.target.value) : null)}
-											className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-										/>
-									</div>
-								</div>
-							</div>
-
-							<div className="mb-2 flex-shrink-0">
-								<AriakitVirtualizedSelect
-									label="Select Yield Pool"
-									options={poolOptions}
-									selectedValue={selectedYieldPool?.configID || null}
-									onChange={(option) => {
-										const pool = filteredPools.find((p: any) => p.configID === option.value)
-										if (pool && onSelectedYieldPoolChange) {
-											onSelectedYieldPoolChange({
-												configID: pool.configID,
-												name: pool.pool,
-												project: pool.project,
-												chain: pool.chains[0]
-											})
-										}
-									}}
-									placeholder="Search pools..."
-									placement="top-start"
+						<div>
+							<label className="pro-text2 mb-1 block text-[11px] font-medium">TVL Range</label>
+							<div className="flex gap-2">
+								<input
+									type="number"
+									placeholder="Min"
+									value={minTvl ?? ''}
+									onChange={(e) => onMinTvlChange(e.target.value ? Number(e.target.value) : null)}
+									className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+								/>
+								<input
+									type="number"
+									placeholder="Max"
+									value={maxTvl ?? ''}
+									onChange={(e) => onMaxTvlChange(e.target.value ? Number(e.target.value) : null)}
+									className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
-
-							<p className="pro-text3 mb-2 text-xs">
-								{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''} match your filters
-							</p>
-						</>
-					)}
-				</div>
-			</div>
-
-			<div className="pro-border flex flex-1 flex-col overflow-hidden border">
-				<div className="pro-text2 flex-shrink-0 px-3 py-2 text-xs font-medium">Preview</div>
-
-				{selectedYieldPool ? (
-					<div className="min-h-0 flex-1 overflow-auto rounded-md bg-(--cards-bg) p-3">
-						<div className="mb-3">
-							<h3 className="pro-text1 mb-1 text-sm font-semibold">{selectedYieldPool.name}</h3>
-							<p className="pro-text2 text-xs">
-								{selectedYieldPool.project} - {selectedYieldPool.chain}
-							</p>
 						</div>
 
-						{latestYieldData.apy !== null && latestYieldData.tvl !== null && (
-							<div className="mb-3 flex gap-4">
-								<div className="flex flex-col">
-									<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
-									<span className="font-jetbrains text-base font-semibold" style={{ color: mainChartStackColors.APY }}>
-										{latestYieldData.apy}%
-									</span>
+						<AriakitVirtualizedSelect
+							label="Select Yield Pool"
+							options={poolOptions}
+							selectedValue={selectedYieldPool?.configID || null}
+							onChange={(option) => {
+								const pool = filteredPools.find((p: any) => p.configID === option.value)
+								if (pool && onSelectedYieldPoolChange) {
+									onSelectedYieldPoolChange({
+										configID: pool.configID,
+										name: pool.pool,
+										project: pool.project,
+										chain: pool.chains[0]
+									})
+								}
+							}}
+							placeholder="Search pools..."
+							placement="bottom-start"
+						/>
+
+						<p className="pro-text3 text-xs">
+							{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''} match your filters
+						</p>
+					</div>
+
+					<div className="pro-border overflow-hidden rounded-lg border">
+						<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+
+						{selectedYieldPool ? (
+							<div className="bg-(--cards-bg) p-3">
+								<div className="mb-3">
+									<h3 className="pro-text1 mb-1 text-sm font-semibold">{selectedYieldPool.name}</h3>
+									<p className="pro-text2 text-xs">
+										{selectedYieldPool.project} - {selectedYieldPool.chain}
+									</p>
 								</div>
-								<div className="flex flex-col">
-									<span className="pro-text3 text-[10px] uppercase">TVL</span>
-									<span className="font-jetbrains text-base font-semibold" style={{ color: mainChartStackColors.TVL }}>
-										{formattedNum(latestYieldData.tvl, true)}
-									</span>
+
+								{latestYieldData.apy !== null && latestYieldData.tvl !== null && (
+									<div className="mb-3 flex gap-4">
+										<div className="flex flex-col">
+											<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
+											<span className="font-jetbrains text-base font-semibold" style={{ color: mainChartStackColors.APY }}>
+												{latestYieldData.apy}%
+											</span>
+										</div>
+										<div className="flex flex-col">
+											<span className="pro-text3 text-[10px] uppercase">TVL</span>
+											<span className="font-jetbrains text-base font-semibold" style={{ color: mainChartStackColors.TVL }}>
+												{formattedNum(latestYieldData.tvl, true)}
+											</span>
+										</div>
+									</div>
+								)}
+
+								<div className="h-[320px]">
+									{selectedYieldChartLoading ? (
+										<div className="flex h-full items-center justify-center">
+											<LocalLoader />
+										</div>
+									) : (
+										<Suspense
+											fallback={
+												<div className="flex h-full items-center justify-center">
+													<LocalLoader />
+												</div>
+											}
+										>
+											<TVLAPYChart
+												height="320px"
+												chartData={yieldsChartData}
+												stackColors={mainChartStackColors}
+												stacks={mainChartStacks}
+												title=""
+												alwaysShowTooltip={false}
+											/>
+										</Suspense>
+									)}
+								</div>
+							</div>
+						) : (
+							<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+								<div>
+									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
+									<div className="text-xs">Select a yield pool to see preview</div>
 								</div>
 							</div>
 						)}
-
-						<div className="min-h-[320px]">
-							{selectedYieldChartLoading ? (
-								<div className="flex h-[320px] items-center justify-center">
-									<LocalLoader />
-								</div>
-							) : (
-								<Suspense
-									fallback={
-										<div className="flex h-[320px] items-center justify-center">
-											<LocalLoader />
-										</div>
-									}
-								>
-									<TVLAPYChart
-										height="320px"
-										chartData={yieldsChartData}
-										stackColors={mainChartStackColors}
-										stacks={mainChartStacks}
-										title=""
-										alwaysShowTooltip={false}
-									/>
-								</Suspense>
-							)}
-						</div>
 					</div>
-				) : (
-					<div className="pro-text3 flex flex-1 items-center justify-center text-center">
-						<div>
-							<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
-							<div className="text-xs">Select a yield pool to see preview</div>
-						</div>
-					</div>
-				)}
-			</div>
+				</>
+			)}
 		</div>
 	)
 }

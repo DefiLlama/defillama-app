@@ -38,13 +38,6 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 	]
 	const legacyTableTypes = primaryTableTypes.includes(state.selectedTableType) ? [] : [state.selectedTableType]
 
-	const dialogSizingClass =
-		state.selectedMainTab === 'charts'
-			? 'max-h-[90dvh] md:max-h-[85dvh] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'
-			: state.selectedMainTab === 'unified-table'
-				? 'max-h-[92dvh] md:max-h-[90dvh] w-[95%] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl'
-				: 'max-h-[85dvh] md:max-h-[80dvh] md:max-w-2xl lg:max-w-3xl xl:max-w-4xl'
-
 	return (
 		<Ariakit.DialogProvider
 			open={isOpen}
@@ -53,7 +46,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 			}}
 		>
 			<Ariakit.Dialog
-				className={`pro-dashboard dialog add-chart-dialog max-sm:drawer thin-scrollbar flex w-[90%] flex-col gap-3 overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4 ${dialogSizingClass}`}
+				className="pro-dashboard add-chart-dialog animate-slidein thin-scrollbar fixed top-0 right-0 bottom-0 z-50 flex h-full w-full max-w-6xl flex-col gap-3 overflow-hidden border-l border-(--cards-border) bg-(--cards-bg) p-3 shadow-xl md:p-4"
 				unmountOnHide
 				portal
 				hideOnInteractOutside

@@ -1,16 +1,18 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Switch } from '~/components/Switch'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { AriakitSelect } from '../AriakitSelect'
 import { AdvancedTvlChartTab } from './AdvancedTvlChartTab'
+import { CategoryCardsGrid } from './CategoryCardsGrid'
+import { CategoryFormHeader } from './CategoryFormHeader'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { ComposerItemsCarousel } from './ComposerItemsCarousel'
+import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
 import { SubjectMultiPanel } from './SubjectMultiPanel'
-import { ChartTabType } from './types'
+import { ChartTabType, ManualChartViewMode } from './types'
 import { YieldsChartTab } from './YieldsChartTab'
 
 interface UnifiedChartTabProps {
@@ -135,13 +137,23 @@ export function UnifiedChartTab({
 	onSelectedAdvancedTvlProtocolNameChange,
 	onSelectedAdvancedTvlChartTypeChange
 }: UnifiedChartTabPropsExtended) {
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl']
+	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
+		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
+	)
+
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboard()
 
-	const handleChartTypesChange = (types: string[]) => {
-		onChartTypesChange(types)
+	const handleSelectCategory = (category: ChartTabType) => {
+		onChartTabChange(category)
+		setViewMode('form')
+	}
+
+	const handleBackToCards = () => {
+		setViewMode('cards')
 	}
 
 	const handleAddToSelection = () => {
@@ -210,94 +222,129 @@ export function UnifiedChartTab({
 			}))
 	}, [instantAvailableChartTypes, globalAvailableChartTypes, selectedChartTab, chainChartTypes, protocolChartTypes])
 
+	if (viewMode === 'cards') {
+		return (
+			<div className="flex h-full flex-col">
+				<div className="min-h-0 flex-1">
+					<CategoryCardsGrid onSelectCategory={handleSelectCategory} />
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
 	if (selectedChartTab === 'yields') {
 		return (
-			<YieldsChartTab
-				selectedYieldPool={selectedYieldPool}
-				onSelectedYieldPoolChange={onSelectedYieldPoolChange || (() => {})}
-				onChartTabChange={onChartTabChange}
-				selectedYieldChains={selectedYieldChains}
-				selectedYieldProjects={selectedYieldProjects}
-				selectedYieldCategories={selectedYieldCategories}
-				selectedYieldTokens={selectedYieldTokens}
-				minTvl={minTvl}
-				maxTvl={maxTvl}
-				onSelectedYieldChainsChange={onSelectedYieldChainsChange || (() => {})}
-				onSelectedYieldProjectsChange={onSelectedYieldProjectsChange || (() => {})}
-				onSelectedYieldCategoriesChange={onSelectedYieldCategoriesChange || (() => {})}
-				onSelectedYieldTokensChange={onSelectedYieldTokensChange || (() => {})}
-				onMinTvlChange={onMinTvlChange || (() => {})}
-				onMaxTvlChange={onMaxTvlChange || (() => {})}
-			/>
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<YieldsChartTab
+						selectedYieldPool={selectedYieldPool}
+						onSelectedYieldPoolChange={onSelectedYieldPoolChange || (() => {})}
+						selectedYieldChains={selectedYieldChains}
+						selectedYieldProjects={selectedYieldProjects}
+						selectedYieldCategories={selectedYieldCategories}
+						selectedYieldTokens={selectedYieldTokens}
+						minTvl={minTvl}
+						maxTvl={maxTvl}
+						onSelectedYieldChainsChange={onSelectedYieldChainsChange || (() => {})}
+						onSelectedYieldProjectsChange={onSelectedYieldProjectsChange || (() => {})}
+						onSelectedYieldCategoriesChange={onSelectedYieldCategoriesChange || (() => {})}
+						onSelectedYieldTokensChange={onSelectedYieldTokensChange || (() => {})}
+						onMinTvlChange={onMinTvlChange || (() => {})}
+						onMaxTvlChange={onMaxTvlChange || (() => {})}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
 		)
 	}
 
 	if (selectedChartTab === 'stablecoins') {
 		return (
-			<StablecoinsChartTab
-				selectedStablecoinChain={selectedStablecoinChain}
-				selectedStablecoinChartType={selectedStablecoinChartType}
-				stablecoinMode={stablecoinMode}
-				selectedStablecoinAsset={selectedStablecoinAsset}
-				selectedStablecoinAssetId={selectedStablecoinAssetId}
-				selectedStablecoinAssetChartType={selectedStablecoinAssetChartType}
-				onSelectedStablecoinChainChange={onSelectedStablecoinChainChange || (() => {})}
-				onSelectedStablecoinChartTypeChange={onSelectedStablecoinChartTypeChange || (() => {})}
-				onStablecoinModeChange={onStablecoinModeChange || (() => {})}
-				onSelectedStablecoinAssetChange={onSelectedStablecoinAssetChange || (() => {})}
-				onSelectedStablecoinAssetIdChange={onSelectedStablecoinAssetIdChange || (() => {})}
-				onSelectedStablecoinAssetChartTypeChange={onSelectedStablecoinAssetChartTypeChange || (() => {})}
-				onChartTabChange={onChartTabChange}
-			/>
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<StablecoinsChartTab
+						selectedStablecoinChain={selectedStablecoinChain}
+						selectedStablecoinChartType={selectedStablecoinChartType}
+						stablecoinMode={stablecoinMode}
+						selectedStablecoinAsset={selectedStablecoinAsset}
+						selectedStablecoinAssetId={selectedStablecoinAssetId}
+						selectedStablecoinAssetChartType={selectedStablecoinAssetChartType}
+						onSelectedStablecoinChainChange={onSelectedStablecoinChainChange || (() => {})}
+						onSelectedStablecoinChartTypeChange={onSelectedStablecoinChartTypeChange || (() => {})}
+						onStablecoinModeChange={onStablecoinModeChange || (() => {})}
+						onSelectedStablecoinAssetChange={onSelectedStablecoinAssetChange || (() => {})}
+						onSelectedStablecoinAssetIdChange={onSelectedStablecoinAssetIdChange || (() => {})}
+						onSelectedStablecoinAssetChartTypeChange={onSelectedStablecoinAssetChartTypeChange || (() => {})}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
 		)
 	}
 
 	if (selectedChartTab === 'advanced-tvl') {
 		return (
-			<AdvancedTvlChartTab
-				selectedAdvancedTvlProtocol={selectedAdvancedTvlProtocol}
-				selectedAdvancedTvlProtocolName={selectedAdvancedTvlProtocolName}
-				selectedAdvancedTvlChartType={selectedAdvancedTvlChartType}
-				onSelectedAdvancedTvlProtocolChange={onSelectedAdvancedTvlProtocolChange || (() => {})}
-				onSelectedAdvancedTvlProtocolNameChange={onSelectedAdvancedTvlProtocolNameChange || (() => {})}
-				onSelectedAdvancedTvlChartTypeChange={onSelectedAdvancedTvlChartTypeChange || (() => {})}
-				onChartTabChange={onChartTabChange}
-				protocolOptions={protocolOptions as any}
-				protocolsLoading={protocolsLoading}
-			/>
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<AdvancedTvlChartTab
+						selectedAdvancedTvlProtocol={selectedAdvancedTvlProtocol}
+						selectedAdvancedTvlProtocolName={selectedAdvancedTvlProtocolName}
+						selectedAdvancedTvlChartType={selectedAdvancedTvlChartType}
+						onSelectedAdvancedTvlProtocolChange={onSelectedAdvancedTvlProtocolChange || (() => {})}
+						onSelectedAdvancedTvlProtocolNameChange={onSelectedAdvancedTvlProtocolNameChange || (() => {})}
+						onSelectedAdvancedTvlChartTypeChange={onSelectedAdvancedTvlChartTypeChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
 		)
 	}
 
 	return (
-		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
-			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
-				<div className="flex h-full flex-col p-3">
-					<AriakitSelect
-						label="Category"
-						options={[
-							{ value: 'chain', label: 'Protocols/Chains' },
-							{ value: 'yields', label: 'Yields' },
-							{ value: 'stablecoins', label: 'Stablecoins' },
-							{ value: 'advanced-tvl', label: 'Advanced TVL' }
-						]}
-						selectedValue={selectedChartTab === 'protocol' ? 'chain' : selectedChartTab}
-						onChange={(option) => onChartTabChange(option.value as ChartTabType)}
-						className="mb-3"
-					/>
-					{chartCreationMode === 'combined' && (
-						<div className="mb-2 flex-shrink-0">
-							<label className="pro-text2 mb-1 block text-xs font-medium">Chart Name</label>
-							<input
-								type="text"
-								value={unifiedChartName}
-								onChange={(e) => onUnifiedChartNameChange(e.target.value)}
-								placeholder="Enter chart name..."
-								className="pro-text1 placeholder:pro-text3 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-							/>
-						</div>
-					)}
+		<div className="flex h-full flex-col">
+			<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
 
-					<div className="mb-2 flex-shrink-0">
+			<div className="min-h-0 flex-1">
+				<div className="flex flex-col gap-4">
+					<div className="space-y-3">
 						<AriakitSelect
 							label="Select Chart Type"
 							options={chartTypeOptions}
@@ -306,9 +353,7 @@ export function UnifiedChartTab({
 							placeholder="Select chart type..."
 							isLoading={metaLoading}
 						/>
-					</div>
 
-					<div className="mb-2">
 						<SubjectMultiPanel
 							activeTab={selectedChartTab}
 							onTabChange={onChartTabChange}
@@ -321,103 +366,64 @@ export function UnifiedChartTab({
 							onSelectedProtocolsChange={onSelectedProtocolsChange || (() => {})}
 							isLoading={protocolsLoading}
 						/>
+
+						<button
+							onClick={handleAddToSelection}
+							disabled={
+								selectedChartTypes.length === 0 ||
+								(selectedChartTab === 'chain' && selectedChains.length === 0) ||
+								(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
+							}
+							className={`w-full rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 ${
+								selectedChartTypes.length === 0 ||
+								(selectedChartTab === 'chain' && selectedChains.length === 0) ||
+								(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
+									? 'pro-border pro-text3 cursor-not-allowed border opacity-50'
+									: 'pro-btn-blue'
+							}`}
+						>
+							Add to Selection{' '}
+							{selectedChartTypes.length > 0 &&
+								`(${selectedChartTypes.length} chart${selectedChartTypes.length > 1 ? 's' : ''})`}
+						</button>
 					</div>
 
-					<button
-						onClick={handleAddToSelection}
-						disabled={
-							selectedChartTypes.length === 0 ||
-							(selectedChartTab === 'chain' && selectedChains.length === 0) ||
-							(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
-						}
-						className={`mb-2 w-full flex-shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
-							selectedChartTypes.length === 0 ||
-							(selectedChartTab === 'chain' && selectedChains.length === 0) ||
-							(selectedChartTab === 'protocol' && selectedProtocols.length === 0)
-								? 'pro-border pro-text3 cursor-not-allowed border opacity-50'
-								: 'pro-btn-blue'
-						}`}
-					>
-						Add to Selection{' '}
-						{selectedChartTypes.length > 0 &&
-							`(${selectedChartTypes.length} chart${selectedChartTypes.length > 1 ? 's' : ''})`}
-					</button>
+					<SelectionFooter
+						composerItems={composerItems}
+						chartCreationMode={chartCreationMode}
+						unifiedChartName={unifiedChartName}
+						onChartCreationModeChange={onChartCreationModeChange}
+						onUnifiedChartNameChange={onUnifiedChartNameChange}
+						onComposerItemColorChange={onComposerItemColorChange}
+						onRemoveFromComposer={onRemoveFromComposer}
+					/>
 
-					<div className="pro-border flex-shrink-0 border-t pt-2">
-						<Switch
-							label="Combined Chart"
-							checked={chartCreationMode === 'combined'}
-							onChange={() => onChartCreationModeChange(chartCreationMode === 'combined' ? 'separate' : 'combined')}
-							value="combined"
-							help={
-								chartCreationMode === 'combined'
-									? `Create 1 multi-chart with ${composerItems.length} chart${composerItems.length !== 1 ? 's' : ''}`
-									: `Create ${composerItems.length} separate chart${composerItems.length !== 1 ? 's' : ''}`
-							}
-							className="text-xs"
-						/>
+					<div className="pro-border overflow-hidden rounded-lg border">
+						<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+
+						{composerItems.length > 0 ? (
+							<div className="h-[240px] bg-(--cards-bg)">
+								<div className="h-full w-full" key={`${composerItems.map((i) => i.id).join(',')}`}>
+									{chartCreationMode === 'combined' ? (
+										<CombinedChartPreview composerItems={composerItems} />
+									) : (
+										<ComposerItemsCarousel composerItems={composerItems} />
+									)}
+								</div>
+							</div>
+						) : (
+							<div className="pro-text3 flex h-[120px] items-center justify-center text-center">
+								<div>
+									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
+									<div className="text-xs">Select charts to see preview</div>
+									<div className="pro-text3 mt-1 text-xs">
+										Choose a {selectedChartTab} and chart types to generate preview
+									</div>
+								</div>
+							</div>
+						)}
 					</div>
 				</div>
-			</div>
-
-			<div className="pro-border flex flex-1 flex-col overflow-hidden border">
-				<div className="pro-text2 flex-shrink-0 px-3 py-2 text-xs font-medium">Preview</div>
-
-				{composerItems.length > 0 ? (
-					<div className="min-h-0 flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2">
-						<div className="h-full w-full" key={`${composerItems.map((i) => i.id).join(',')}`}>
-							{chartCreationMode === 'combined' ? (
-								<CombinedChartPreview composerItems={composerItems} />
-							) : (
-								<ComposerItemsCarousel composerItems={composerItems} />
-							)}
-						</div>
-					</div>
-				) : (
-					<div className="pro-text3 flex flex-1 items-center justify-center text-center">
-						<div>
-							<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
-							<div className="text-xs">Select charts to see preview</div>
-							<div className="pro-text3 mt-1 text-xs">
-								Choose a {selectedChartTab} and chart types to generate preview
-							</div>
-						</div>
-					</div>
-				)}
-
-				{composerItems.length > 0 && (
-					<div className="flex-shrink-0 border-t border-(--cards-border) px-2 py-2">
-						<div className="thin-scrollbar flex items-center gap-2 overflow-x-auto">
-							<span className="pro-text2 shrink-0 text-xs font-medium">
-								{chartCreationMode === 'combined' ? 'Charts in Multi-Chart:' : 'Charts to Create:'}
-							</span>
-							{composerItems.map((item) => (
-								<div
-									key={item.id}
-									className="flex shrink-0 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-xs"
-								>
-									<span className="pro-text1">
-										{item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
-									</span>
-									<input
-										type="color"
-										value={item.color || CHART_TYPES[item.type]?.color || '#3366ff'}
-										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
-										className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
-										aria-label="Select chart color"
-									/>
-									<button
-										onClick={() => onRemoveFromComposer(item.id)}
-										className="pro-text3 transition-colors hover:text-red-500"
-										title="Remove from selection"
-									>
-										<Icon name="x" height={12} width={12} />
-									</button>
-								</div>
-							))}
-						</div>
-					</div>
-				)}
 			</div>
 		</div>
 	)
