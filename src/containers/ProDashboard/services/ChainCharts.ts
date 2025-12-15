@@ -10,6 +10,7 @@ import {
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API
 } from '~/constants'
+import { toDisplayName } from '~/utils/chainNormalizer'
 import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
@@ -46,18 +47,6 @@ const CHART_METADATA = {
 }
 
 export default class ChainCharts {
-	private static readonly CHAIN_MIGRATIONS: Record<string, string> = {
-		optimism: 'OP Mainnet'
-	}
-
-	private static toDimensionsApiChain(chain: string): string {
-		if (!chain) return chain
-		const lc = chain.toLowerCase()
-		if (lc === 'optimism') return 'OP Mainnet'
-		if (lc === 'binance') return 'BSC'
-		return chain
-	}
-
 	private static async fetchAndMergeChains(
 		chains: string[],
 		fetchUrl: (chainName: string) => string,
@@ -93,19 +82,16 @@ export default class ChainCharts {
 	}
 
 	private static getChainNames(chain: string): string[] {
-		const lowerChain = chain.toLowerCase()
-		const newName = this.CHAIN_MIGRATIONS[lowerChain]
-
-		if (newName) {
-			return [chain, newName]
+		const displayName = toDisplayName(chain)
+		if (displayName !== chain) {
+			return [chain, displayName]
 		}
-
 		return [chain]
 	}
 
 	private static async dimensionsData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const apiChain = this.toDimensionsApiChain(chain)
+		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
 			? `${DIMENISIONS_OVERVIEW_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
@@ -117,7 +103,7 @@ export default class ChainCharts {
 
 	private static async userMetrics(chain: string, api: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const apiChain = this.toDimensionsApiChain(chain)
+		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const response = await fetch(`${api}/chain$${encodedChain}`)
 		const data = await response.json()
@@ -148,7 +134,7 @@ export default class ChainCharts {
 
 	private static async stablecoinsData(chain: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const apiChain = this.toDimensionsApiChain(chain)
+		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const response = await fetch(`${PEGGEDCHART_API}/${encodedChain}`)
 		const data = await response.json()
@@ -169,7 +155,7 @@ export default class ChainCharts {
 
 	private static async protocolData(chain: string, endpoint: string, dataType?: string): Promise<[number, number][]> {
 		if (!chain) return []
-		const apiChain = this.toDimensionsApiChain(chain)
+		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
 		const url = dataType
 			? `${DIMENISIONS_SUMMARY_BASE_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
