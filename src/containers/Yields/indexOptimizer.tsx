@@ -118,16 +118,21 @@ export const BorrowAggregatorAdvanced = ({
 	])
 
 	const tokens = React.useMemo(() => {
-		return [
-			...new Set(
-				poolsData
-					.map((pool) => [
-						`${pool.chain?.toLowerCase()}:${pool.underlyingTokens[0]?.toLowerCase().replaceAll('/', ':')}`,
-						`${pool.chain?.toLowerCase()}:${pool.borrow.underlyingTokens[0]?.toLowerCase().replaceAll('/', ':')}`
-					])
-					.flat()
-			)
-		] as Array<string>
+		const set = new Set<string>()
+
+		for (const pool of poolsData) {
+			const chain = pool.chain?.toLowerCase()
+			const lendToken = pool.underlyingTokens?.[0]?.toLowerCase()?.replaceAll('/', ':')
+			const borrowToken =
+				pool.borrow?.underlyingTokens?.length > 0
+					? pool.borrow.underlyingTokens[pool.borrow.underlyingTokens.length - 1].toLowerCase().replaceAll('/', ':')
+					: null
+
+			if (chain && lendToken) set.add(`${chain}:${lendToken}`)
+			if (chain && borrowToken) set.add(`${chain}:${borrowToken}`)
+		}
+
+		return [...set]
 	}, [poolsData])
 
 	const { data: prices } = useGetPrice(tokens)
@@ -137,14 +142,36 @@ export const BorrowAggregatorAdvanced = ({
 		const poolsWithAmounts = poolsData
 			.filter((pool) => pool.exposure === 'single')
 			.map((pool) => {
-				if (!prices) return pool
-				const lendPrice = prices[`${pool.underlyingTokens[0]?.toLowerCase()}`]
-				const borrowPrice = prices[`${pool.borrow.underlyingTokens[0]?.toLowerCase()}`]
-				if (!lendPrice || !borrowPrice) return null
+				// `prices` is keyed by the same string we request in `tokens`: `<chain>:<token>` (with `/` normalized to `:`)
+				if (!prices) return null
+
+				const chain = pool.chain?.toLowerCase()
+				const lendToken = pool.underlyingTokens?.[0]?.toLowerCase()?.replaceAll('/', ':')
+				const borrowToken =
+					pool.borrow?.underlyingTokens?.length > 0
+						? pool.borrow.underlyingTokens[pool.borrow.underlyingTokens.length - 1].toLowerCase().replaceAll('/', ':')
+						: null
+
+				if (!chain || !lendToken || !borrowToken) return null
+
+				const lendPrice = prices[`${chain}:${lendToken}`]
+				const borrowPrice = prices[`${chain}:${borrowToken}`]
+
+				const lendPriceNum = lendPrice?.price
+				const borrowPriceNum = borrowPrice?.price
+
+				if (
+					!Number.isFinite(lendPriceNum) ||
+					!Number.isFinite(borrowPriceNum) ||
+					lendPriceNum <= 0 ||
+					borrowPriceNum <= 0
+				)
+					return null
+				if (!Number.isFinite(pool.ltv) || pool.ltv <= 0) return null
 				if (lendAmount !== 0 && borrowAmount !== 0) {
-					const lendUSDAmount = lendAmount * lendPrice?.price || 0
-					const borrowUSDAmount = borrowAmount * borrowPrice?.price || 0
-					const availableToBorrowUSD = lendUSDAmount * pool.ltv || 0
+					const lendUSDAmount = lendAmount * lendPriceNum
+					const borrowUSDAmount = borrowAmount * borrowPriceNum
+					const availableToBorrowUSD = lendUSDAmount * pool.ltv
 					if (availableToBorrowUSD < borrowUSDAmount) return null
 					return {
 						...pool,
@@ -157,11 +184,11 @@ export const BorrowAggregatorAdvanced = ({
 					}
 				}
 				if (lendAmount !== 0) {
-					const lendUSDAmount = lendAmount * lendPrice?.price || 0
-					const borrowUSDAmount = lendUSDAmount * pool.ltv || 0
-					const borrowAmount = borrowUSDAmount / borrowPrice?.price || 0
+					const lendUSDAmount = lendAmount * lendPriceNum
+					const borrowUSDAmount = lendUSDAmount * pool.ltv
+					const borrowAmount = borrowUSDAmount / borrowPriceNum
 
-					if (![lendUSDAmount, borrowUSDAmount, borrowAmount].every((e) => isFinite(+e))) return null
+					if (![lendUSDAmount, borrowUSDAmount, borrowAmount].every((e) => Number.isFinite(e))) return null
 					return {
 						...pool,
 						lendUSDAmount,
@@ -172,11 +199,11 @@ export const BorrowAggregatorAdvanced = ({
 						borrowPrice
 					}
 				} else {
-					const borrowUSDAmount = borrowAmount * borrowPrice?.price || 0
-					const lendUSDAmount = borrowUSDAmount / pool.ltv || 0
-					const lendAmount = lendUSDAmount / lendPrice?.price || 0
+					const borrowUSDAmount = borrowAmount * borrowPriceNum
+					const lendUSDAmount = borrowUSDAmount / pool.ltv
+					const lendAmount = lendUSDAmount / lendPriceNum
 
-					if (![lendUSDAmount, borrowUSDAmount, lendAmount].every((e) => isFinite(e))) return null
+					if (![lendUSDAmount, borrowUSDAmount, lendAmount].every((e) => Number.isFinite(e))) return null
 
 					return {
 						...pool,
