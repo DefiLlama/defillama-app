@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
@@ -8,7 +8,10 @@ import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
-import { StripeCheckoutModal } from '../StripeCheckoutModal'
+
+const StripeCheckoutModal = lazy(() =>
+	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
+)
 
 interface SubscribeProCardProps {
 	context?: 'modal' | 'page' | 'account'
@@ -166,13 +169,15 @@ export function SubscribeProCard({
 				)}
 			</div>
 			{isUpgradeModalOpen && (
-				<StripeCheckoutModal
-					isOpen={isUpgradeModalOpen}
-					onClose={() => setIsUpgradeModalOpen(false)}
-					paymentMethod="stripe"
-					type="llamafeed"
-					billingInterval="year"
-				/>
+				<Suspense fallback={<></>}>
+					<StripeCheckoutModal
+						isOpen={isUpgradeModalOpen}
+						onClose={() => setIsUpgradeModalOpen(false)}
+						paymentMethod="stripe"
+						type="llamafeed"
+						billingInterval="year"
+					/>
+				</Suspense>
 			)}
 		</>
 	)

@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { StripeCheckoutModal } from '../StripeCheckoutModal'
+
+const StripeCheckoutModal = lazy(() =>
+	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
+)
 
 export function SubscribeAPICard({
 	context = 'page',
@@ -137,13 +140,15 @@ export function SubscribeAPICard({
 			</div>
 
 			{isUpgradeModalOpen && (
-				<StripeCheckoutModal
-					isOpen={isUpgradeModalOpen}
-					onClose={() => setIsUpgradeModalOpen(false)}
-					paymentMethod="stripe"
-					type="api"
-					billingInterval="year"
-				/>
+				<Suspense fallback={<></>}>
+					<StripeCheckoutModal
+						isOpen={isUpgradeModalOpen}
+						onClose={() => setIsUpgradeModalOpen(false)}
+						paymentMethod="stripe"
+						type="api"
+						billingInterval="year"
+					/>
+				</Suspense>
 			)}
 		</>
 	)
