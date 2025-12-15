@@ -14,6 +14,7 @@ import {
 } from '@tanstack/react-table'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { ProtocolCategoryFilter } from '~/components/Filters/ProtocolCategoryFilter'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -27,6 +28,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
+import { useProtocolCategoryFilter } from '~/hooks/useProtocolCategoryFilter'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
@@ -59,9 +61,18 @@ export const ChainProtocolsTable = ({
 	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
 	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
 
+	const { filterProtocolsByCategory } = useProtocolCategoryFilter(protocols)
+
 	const finalProtocols = useMemo(() => {
-		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })
-	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
+		const formattedProtocols = formatProtocolsList2({
+			protocols,
+			extraTvlsEnabled,
+			minTvl,
+			maxTvl
+		})
+		const categoryFilteredProtocols = filterProtocolsByCategory(formattedProtocols)
+		return categoryFilteredProtocols
+	}, [protocols, extraTvlsEnabled, minTvl, maxTvl, filterProtocolsByCategory])
 
 	const columnsInStorage = useSyncExternalStore(
 		subscribeToLocalStorage,
@@ -433,7 +444,7 @@ export const ChainProtocolsTable = ({
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
-
+				<ProtocolCategoryFilter protocols={protocols} />
 				<SelectWithCombobox
 					allValues={mergedColumns}
 					selectedValues={selectedColumns}
