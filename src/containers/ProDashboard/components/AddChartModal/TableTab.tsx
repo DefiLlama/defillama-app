@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { getItemIconUrl } from '../../utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
@@ -139,7 +139,7 @@ const tableTypeOptions: Array<{
 	}
 ]
 
-export function TableTab({
+export const TableTab = memo(function TableTab({
 	selectedChains,
 	chainOptions,
 	protocolsLoading,
@@ -373,4 +373,4 @@ export function TableTab({
 			) : null}
 		</div>
 	)
-}
+})

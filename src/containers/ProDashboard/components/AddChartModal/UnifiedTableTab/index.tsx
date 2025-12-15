@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
@@ -59,13 +59,13 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	return count
 }
 
-const TabContent = ({
+const TabContent = memo(function TabContent({
 	onClose,
 	chainOptions,
 	editItem,
 	initialFocusSection,
 	focusedSectionOnly
-}: UnifiedTableTabProps) => {
+}: UnifiedTableTabProps) {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
 	const {
 		state: { chains, rowHeaders, filters, activePresetId, columnOrder, columnVisibility, sorting, customColumns },
@@ -631,13 +631,13 @@ const TabContent = ({
 			</div>
 		</div>
 	)
-}
+})
 
-export function UnifiedTableTab(props: UnifiedTableTabProps) {
+export const UnifiedTableTab = memo(function UnifiedTableTab(props: UnifiedTableTabProps) {
 	const { editItem, focusedSectionOnly, ...rest } = props
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
 			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
 		</UnifiedTableWizardProvider>
 	)
-}
+})

@@ -1,486 +1,100 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useReducer, useCallback } from 'react'
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
-import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
-
-const CUMULATIVE_METRIC_TYPES = new Set([
-	'volume',
-	'fees',
-	'revenue',
-	'perps',
-	'aggregators',
-	'bridgeAggregators',
-	'perpsAggregators',
-	'bribes',
-	'tokenTax',
-	'holdersRevenue',
-	'optionsPremium',
-	'optionsNotional',
-	'tokenVolume',
-	'users',
-	'txs',
-	'activeUsers',
-	'newUsers',
-	'gasUsed',
-	'stablecoinInflows',
-	'chainFees',
-	'chainRevenue',
-	'incentives',
-	'options'
-])
-
-function getDefaultAggregator(metricType: string): MetricAggregator {
-	return CUMULATIVE_METRIC_TYPES.has(metricType) ? 'sum' : 'latest'
-}
+import {
+	ChartBuilderConfig,
+	ChartModeType,
+	ChartTabType,
+	CombinedTableType,
+	MainTabType,
+	ModalState
+} from './types'
+import { modalReducer, INITIAL_MODAL_STATE } from './modalReducer'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
-	const [selectedMainTab, setSelectedMainTab] = useState<MainTabType>('charts')
-	const [selectedChartTab, setSelectedChartTab] = useState<ChartTabType>('chain')
-	const [composerItems, setComposerItems] = useState<ChartConfig[]>([])
-	const [selectedChain, setSelectedChain] = useState<string | null>(null)
-	const [selectedChains, setSelectedChains] = useState<string[]>([])
-	const [selectedProtocols, setSelectedProtocols] = useState<string[]>([])
-	const [selectedProtocol, setSelectedProtocol] = useState<string | null>(null)
-	const [selectedChartType, setSelectedChartType] = useState<string>('tvl')
-	const [selectedChartTypes, setSelectedChartTypes] = useState<string[]>([])
-	const [unifiedChartName, setUnifiedChartName] = useState<string>('')
-	const [chartCreationModeState, setChartCreationModeState] = useState<'separate' | 'combined'>('combined')
-	const [chartMode, setChartMode] = useState<ChartModeType>('builder')
+	const [state, dispatch] = useReducer(modalReducer, INITIAL_MODAL_STATE)
 
-	const setChartCreationMode = (mode: 'separate' | 'combined') => {
-		setChartCreationModeState(mode)
-	}
-	const [textTitle, setTextTitle] = useState<string>('')
-	const [textContent, setTextContent] = useState<string>('')
-	const [selectedTableType, setSelectedTableType] = useState<CombinedTableType>('protocols')
-	const [selectedDatasetChain, setSelectedDatasetChain] = useState<string | null>(null)
-	const [selectedDatasetTimeframe, setSelectedDatasetTimeframe] = useState<string | null>(null)
-	const [selectedTokens, setSelectedTokens] = useState<string[]>([])
-	const [includeCex, setIncludeCex] = useState<boolean>(false)
-	const [chartBuilderName, setChartBuilderName] = useState<string>('')
-	const [chartBuilder, setChartBuilder] = useState<ChartBuilderConfig>({
-		metric: 'tvl',
-		mode: 'chains',
-		filterMode: 'include',
-		chains: [],
-		chainCategories: [],
-		protocolCategories: [],
-		categories: [],
-		groupBy: 'protocol',
-		limit: 10,
-		chartType: 'stackedArea',
-		displayAs: 'timeSeries',
-		additionalFilters: {},
-		seriesColors: {}
-	})
-
-	const [metricSubjectType, setMetricSubjectType] = useState<'chain' | 'protocol'>('chain')
-	const [metricChain, setMetricChain] = useState<string | null>(null)
-	const [metricProtocol, setMetricProtocol] = useState<string | null>(null)
-	const [metricType, setMetricTypeInternal] = useState<string>('tvl')
-	const [metricAggregator, setMetricAggregator] = useState<MetricAggregator>('latest')
-	const [metricWindow, setMetricWindow] = useState<'7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all'>('30d')
-
-	const setMetricType = useCallback(
-		(type: string) => {
-			setMetricTypeInternal(type)
-			setMetricAggregator(getDefaultAggregator(type))
-		},
-		[setMetricTypeInternal, setMetricAggregator]
-	)
-	const [metricLabel, setMetricLabel] = useState<string>('')
-	const [metricShowSparkline, setMetricShowSparkline] = useState<boolean>(true)
-	const [selectedYieldPool, setSelectedYieldPool] = useState<{
-		configID: string
-		name: string
-		project: string
-		chain: string
-	} | null>(null)
-	const [selectedYieldChains, setSelectedYieldChains] = useState<string[]>([])
-	const [selectedYieldProjects, setSelectedYieldProjects] = useState<string[]>([])
-	const [selectedYieldCategories, setSelectedYieldCategories] = useState<string[]>([])
-	const [selectedYieldTokens, setSelectedYieldTokens] = useState<string[]>([])
-	const [minTvl, setMinTvl] = useState<number | null>(null)
-	const [maxTvl, setMaxTvl] = useState<number | null>(null)
-	const [selectedStablecoinChain, setSelectedStablecoinChain] = useState<string>('All')
-	const [selectedStablecoinChartType, setSelectedStablecoinChartType] = useState<string>('totalMcap')
-	const [stablecoinMode, setStablecoinMode] = useState<'chain' | 'asset'>('chain')
-	const [selectedStablecoinAsset, setSelectedStablecoinAsset] = useState<string | null>(null)
-	const [selectedStablecoinAssetId, setSelectedStablecoinAssetId] = useState<string | null>(null)
-	const [selectedStablecoinAssetChartType, setSelectedStablecoinAssetChartType] = useState<string>('totalCirc')
-	const [selectedAdvancedTvlProtocol, setSelectedAdvancedTvlProtocol] = useState<string | null>(null)
-	const [selectedAdvancedTvlProtocolName, setSelectedAdvancedTvlProtocolName] = useState<string | null>(null)
-	const [selectedAdvancedTvlChartType, setSelectedAdvancedTvlChartType] = useState<string>('tvl')
-
-	// Initialize state based on editItem
 	useEffect(() => {
-		if (editItem) {
-			if (editItem.kind === 'chart') {
-				setSelectedMainTab('charts')
-				setChartMode('manual')
-				setSelectedChartTab(editItem.protocol ? 'protocol' : 'chain')
-				setSelectedChain(editItem.chain || null)
-				setSelectedProtocol(editItem.protocol || null)
-				setSelectedChartType(editItem.type)
-				setSelectedChartTypes([editItem.type])
-				setChartCreationModeState('combined')
-				setUnifiedChartName('')
-			} else if (editItem.kind === 'multi') {
-				setSelectedMainTab('charts')
-				setChartMode('manual')
-				setComposerItems(editItem.items)
-				setUnifiedChartName(editItem.name || '')
-				setChartCreationModeState('combined')
-				if (editItem.items.length > 0) {
-					const firstItem = editItem.items[0]
-					setSelectedChartTab(firstItem.protocol ? 'protocol' : 'chain')
-					setSelectedChartTypes([])
-					if (firstItem.protocol) {
-						setSelectedProtocol(firstItem.protocol)
-					} else if (firstItem.chain) {
-						setSelectedChain(firstItem.chain)
-					}
-				}
-			} else if (editItem.kind === 'table') {
-				setSelectedMainTab('table')
-				setSelectedChains(editItem.chains || [])
-				if (editItem.tableType === 'dataset') {
-					setSelectedTableType(editItem.datasetType || 'stablecoins')
-					setSelectedDatasetChain(editItem.datasetChain || null)
-					setSelectedDatasetTimeframe(editItem.datasetTimeframe || null)
-					if (editItem.datasetType === 'token-usage') {
-						setSelectedTokens(editItem.tokenSymbols || [])
-						setIncludeCex(editItem.includeCex || false)
-					}
-				} else {
-					setSelectedTableType('protocols')
-				}
-		} else if (editItem.kind === 'unified-table') {
-			setSelectedMainTab('unified-table')
-		} else if (editItem.kind === 'text') {
-				setSelectedMainTab('text')
-				setTextTitle(editItem.title || '')
-				setTextContent(editItem.content)
-			} else if (editItem.kind === 'builder') {
-				setSelectedMainTab('charts')
-				setChartMode('builder')
-				setChartBuilderName(editItem.name || '')
-				setChartBuilder({
-					...editItem.config,
-					mode: editItem.config.mode || 'chains',
-					protocolCategories: editItem.config.protocolCategories || [],
-					seriesColors: editItem.config.seriesColors || {}
-				})
-			} else if (editItem.kind === 'metric') {
-				setSelectedMainTab('metric')
-				setMetricSubjectType(editItem.subject.itemType)
-				setMetricChain(editItem.subject.chain || null)
-				setMetricProtocol(editItem.subject.protocol || null)
-				setMetricTypeInternal(editItem.type)
-				setMetricAggregator(editItem.aggregator)
-				setMetricWindow(editItem.window)
-				setMetricLabel(editItem.label || '')
-				setMetricShowSparkline(editItem.showSparkline !== false)
-			} else if (editItem.kind === 'yields') {
-				setSelectedMainTab('charts')
-				setChartMode('manual')
-				setSelectedChartTab('yields')
-				setSelectedYieldPool({
-					configID: editItem.poolConfigId,
-					name: editItem.poolName,
-					project: editItem.project,
-					chain: editItem.chain
-				})
-			} else if (editItem.kind === 'stablecoins') {
-				setSelectedMainTab('charts')
-				setChartMode('manual')
-				setSelectedChartTab('stablecoins')
-				setStablecoinMode('chain')
-				setSelectedStablecoinChain(editItem.chain)
-				setSelectedStablecoinChartType(editItem.chartType)
-			} else if (editItem.kind === 'stablecoin-asset') {
-				setSelectedMainTab('charts')
-				setChartMode('manual')
-				setSelectedChartTab('stablecoins')
-				setStablecoinMode('asset')
-				setSelectedStablecoinAsset(editItem.stablecoin)
-				setSelectedStablecoinAssetId(editItem.stablecoinId)
-				setSelectedStablecoinAssetChartType(editItem.chartType)
-			} else if (editItem.kind === 'advanced-tvl') {
-				setSelectedMainTab('charts')
-				setChartMode('manual')
-				setSelectedChartTab('advanced-tvl')
-				setSelectedAdvancedTvlProtocol(editItem.protocol)
-				setSelectedAdvancedTvlProtocolName(editItem.protocolName)
-				setSelectedAdvancedTvlChartType(editItem.chartType)
-			}
-		} else {
-			setSelectedMainTab('charts')
-			setSelectedChartTab('chain')
-			setChartMode('builder')
-			setComposerItems([])
-			setSelectedChain(null)
-			setSelectedChains([])
-			setSelectedProtocol(null)
-			setSelectedProtocols([])
-			setSelectedChartType('tvl')
-			setSelectedChartTypes([])
-			setUnifiedChartName('')
-			setChartCreationModeState('combined')
-			setTextTitle('')
-			setTextContent('')
-			setSelectedTableType('protocols')
-			setSelectedDatasetChain(null)
-			setSelectedDatasetTimeframe(null)
-			setSelectedTokens([])
-			setIncludeCex(false)
-			setChartBuilderName('')
-			setChartBuilder({
-				metric: 'tvl',
-				mode: 'chains',
-				filterMode: 'include',
-				chains: [],
-				chainCategories: [],
-				categories: [],
-				groupBy: 'protocol',
-				limit: 10,
-				chartType: 'stackedArea',
-				displayAs: 'timeSeries',
-				additionalFilters: {},
-				seriesColors: {}
-			})
-			setMetricSubjectType('chain')
-			setMetricChain(null)
-			setMetricProtocol(null)
-			setMetricType('tvl')
-			setMetricAggregator('latest')
-			setMetricWindow('30d')
-			setMetricLabel('')
-			setMetricShowSparkline(true)
-			setSelectedYieldPool(null)
-			setSelectedYieldChains([])
-			setSelectedYieldProjects([])
-			setSelectedYieldCategories([])
-			setSelectedYieldTokens([])
-			setMinTvl(null)
-			setMaxTvl(null)
-			setSelectedStablecoinChain('All')
-			setSelectedStablecoinChartType('totalMcap')
-			setStablecoinMode('chain')
-			setSelectedStablecoinAsset(null)
-			setSelectedStablecoinAssetId(null)
-			setSelectedStablecoinAssetChartType('totalCirc')
-			setSelectedAdvancedTvlProtocol(null)
-			setSelectedAdvancedTvlProtocolName(null)
-			setSelectedAdvancedTvlChartType('tvl')
-		}
+		dispatch({
+			type: 'INITIALIZE_FROM_EDIT_ITEM',
+			payload: { editItem: editItem ?? null }
+		})
 	}, [editItem, isOpen])
 
-	const resetState = () => {
-		setComposerItems([])
-		setTextTitle('')
-		setTextContent('')
-		setSelectedChartType('tvl')
-		setSelectedChartTypes([])
-		setUnifiedChartName('')
-		setChartCreationModeState('combined')
-		setChartMode('builder')
-		setSelectedChain(null)
-		setSelectedChains([])
-		setSelectedProtocol(null)
-		setSelectedProtocols([])
-		setSelectedTableType('protocols')
-		setSelectedDatasetChain(null)
-		setSelectedDatasetTimeframe(null)
-		setSelectedTokens([])
-		setIncludeCex(false)
-		setChartBuilderName('')
-		setChartBuilder({
-			metric: 'tvl',
-			mode: 'chains',
-			filterMode: 'include',
-			chains: [],
-			chainCategories: [],
-			categories: [],
-			groupBy: 'protocol',
-			limit: 10,
-			chartType: 'stackedArea',
-			displayAs: 'timeSeries',
-			additionalFilters: {},
-			seriesColors: {}
-		})
-		setMetricSubjectType('chain')
-		setMetricChain(null)
-		setMetricProtocol(null)
-		setMetricType('tvl')
-		setMetricAggregator('latest')
-		setMetricWindow('30d')
-		setMetricLabel('')
-		setMetricShowSparkline(true)
-		setSelectedYieldPool(null)
-		setSelectedYieldChains([])
-		setSelectedYieldProjects([])
-		setSelectedYieldCategories([])
-		setSelectedYieldTokens([])
-		setMinTvl(null)
-		setMaxTvl(null)
-		setSelectedStablecoinChain('All')
-		setSelectedStablecoinChartType('totalMcap')
-		setStablecoinMode('chain')
-		setSelectedStablecoinAsset(null)
-		setSelectedStablecoinAssetId(null)
-		setSelectedStablecoinAssetChartType('totalCirc')
-		setSelectedAdvancedTvlProtocol(null)
-		setSelectedAdvancedTvlProtocolName(null)
-		setSelectedAdvancedTvlChartType('tvl')
-	}
+	const resetState = useCallback(() => {
+		dispatch({ type: 'RESET_STATE' })
+	}, [])
 
-	const state: ModalState = {
-		selectedMainTab,
-		selectedChartTab,
-		chartMode,
-		composerItems,
-		selectedChain,
-		selectedChains,
-		selectedProtocol,
-		selectedProtocols,
-		selectedChartType,
-		selectedChartTypes,
-		unifiedChartName,
-		chartCreationMode: chartCreationModeState,
-		textTitle,
-		textContent,
-		selectedTableType,
-		selectedDatasetChain,
-		selectedDatasetTimeframe,
-		selectedTokens,
-		includeCex,
-		chartBuilderName,
-		chartBuilder,
-		metricSubjectType,
-		metricChain,
-		metricProtocol,
-		metricType,
-		metricAggregator,
-		metricWindow,
-		metricLabel,
-		metricShowSparkline,
-		selectedYieldPool,
-		selectedYieldChains,
-		selectedYieldProjects,
-		selectedYieldCategories,
-		selectedYieldTokens,
-		minTvl,
-		maxTvl,
-		selectedStablecoinChain,
-		selectedStablecoinChartType,
-		stablecoinMode,
-		selectedStablecoinAsset,
-		selectedStablecoinAssetId,
-		selectedStablecoinAssetChartType,
-		selectedAdvancedTvlProtocol,
-		selectedAdvancedTvlProtocolName,
-		selectedAdvancedTvlChartType
-	}
-
-	const actionsObj = useMemo(
+	const actions = useMemo(
 		() => ({
-			setSelectedMainTab,
-			setSelectedChartTab,
-			setChartMode,
-			setComposerItems,
-			setSelectedChain,
-			setSelectedChains,
-			setSelectedProtocol,
-			setSelectedProtocols,
-			setSelectedChartType,
-			setSelectedChartTypes,
-			setUnifiedChartName,
-			setChartCreationMode,
-			setTextTitle,
-			setTextContent,
-			setSelectedTableType,
-			setSelectedDatasetChain,
-			setSelectedDatasetTimeframe,
-			setSelectedTokens,
-			setIncludeCex,
-			setChartBuilderName,
-			setChartBuilder,
-			setMetricSubjectType,
-			setMetricChain,
-			setMetricProtocol,
-			setMetricType,
-			setMetricAggregator,
-			setMetricWindow,
-			setMetricLabel,
-			setMetricShowSparkline,
-			setSelectedYieldPool,
-			setSelectedYieldChains,
-			setSelectedYieldProjects,
-			setSelectedYieldCategories,
-			setSelectedYieldTokens,
-			setMinTvl,
-			setMaxTvl,
-			setSelectedStablecoinChain,
-			setSelectedStablecoinChartType,
-			setStablecoinMode,
-			setSelectedStablecoinAsset,
-			setSelectedStablecoinAssetId,
-			setSelectedStablecoinAssetChartType,
-			setSelectedAdvancedTvlProtocol,
-			setSelectedAdvancedTvlProtocolName,
-			setSelectedAdvancedTvlChartType
+			setSelectedMainTab: (tab: MainTabType) => dispatch({ type: 'SET_SELECTED_MAIN_TAB', payload: tab }),
+			setSelectedChartTab: (tab: ChartTabType) => dispatch({ type: 'SET_SELECTED_CHART_TAB', payload: tab }),
+			setChartMode: (mode: ChartModeType) => dispatch({ type: 'SET_CHART_MODE', payload: mode }),
+			setComposerItems: (items: React.SetStateAction<ChartConfig[]>) =>
+				dispatch({ type: 'SET_COMPOSER_ITEMS', payload: items }),
+			setSelectedChain: (chain: string | null) => dispatch({ type: 'SET_SELECTED_CHAIN', payload: chain }),
+			setSelectedChains: (chains: string[]) => dispatch({ type: 'SET_SELECTED_CHAINS', payload: chains }),
+			setSelectedProtocol: (protocol: string | null) => dispatch({ type: 'SET_SELECTED_PROTOCOL', payload: protocol }),
+			setSelectedProtocols: (protocols: string[]) => dispatch({ type: 'SET_SELECTED_PROTOCOLS', payload: protocols }),
+			setSelectedChartType: (type: string) => dispatch({ type: 'SET_SELECTED_CHART_TYPE', payload: type }),
+			setSelectedChartTypes: (types: string[]) => dispatch({ type: 'SET_SELECTED_CHART_TYPES', payload: types }),
+			setUnifiedChartName: (name: string) => dispatch({ type: 'SET_UNIFIED_CHART_NAME', payload: name }),
+			setChartCreationMode: (mode: 'separate' | 'combined') =>
+				dispatch({ type: 'SET_CHART_CREATION_MODE', payload: mode }),
+			setTextTitle: (title: string) => dispatch({ type: 'SET_TEXT_TITLE', payload: title }),
+			setTextContent: (content: string) => dispatch({ type: 'SET_TEXT_CONTENT', payload: content }),
+			setSelectedTableType: (type: CombinedTableType) => dispatch({ type: 'SET_SELECTED_TABLE_TYPE', payload: type }),
+			setSelectedDatasetChain: (chain: string | null) =>
+				dispatch({ type: 'SET_SELECTED_DATASET_CHAIN', payload: chain }),
+			setSelectedDatasetTimeframe: (timeframe: string | null) =>
+				dispatch({ type: 'SET_SELECTED_DATASET_TIMEFRAME', payload: timeframe }),
+			setSelectedTokens: (tokens: string[]) => dispatch({ type: 'SET_SELECTED_TOKENS', payload: tokens }),
+			setIncludeCex: (include: boolean) => dispatch({ type: 'SET_INCLUDE_CEX', payload: include }),
+			setChartBuilderName: (name: string) => dispatch({ type: 'SET_CHART_BUILDER_NAME', payload: name }),
+			setChartBuilder: (config: React.SetStateAction<ChartBuilderConfig>) =>
+				dispatch({ type: 'SET_CHART_BUILDER', payload: config }),
+			setMetricSubjectType: (t: 'chain' | 'protocol') => dispatch({ type: 'SET_METRIC_SUBJECT_TYPE', payload: t }),
+			setMetricChain: (v: string | null) => dispatch({ type: 'SET_METRIC_CHAIN', payload: v }),
+			setMetricProtocol: (v: string | null) => dispatch({ type: 'SET_METRIC_PROTOCOL', payload: v }),
+			setMetricType: (t: string) => dispatch({ type: 'SET_METRIC_TYPE', payload: t }),
+			setMetricAggregator: (a: MetricAggregator) => dispatch({ type: 'SET_METRIC_AGGREGATOR', payload: a }),
+			setMetricWindow: (w: '7d' | '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all') =>
+				dispatch({ type: 'SET_METRIC_WINDOW', payload: w }),
+			setMetricLabel: (s: string) => dispatch({ type: 'SET_METRIC_LABEL', payload: s }),
+			setMetricShowSparkline: (v: boolean) => dispatch({ type: 'SET_METRIC_SHOW_SPARKLINE', payload: v }),
+			setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) =>
+				dispatch({ type: 'SET_SELECTED_YIELD_POOL', payload: pool }),
+			setSelectedYieldChains: (chains: string[]) => dispatch({ type: 'SET_SELECTED_YIELD_CHAINS', payload: chains }),
+			setSelectedYieldProjects: (projects: string[]) =>
+				dispatch({ type: 'SET_SELECTED_YIELD_PROJECTS', payload: projects }),
+			setSelectedYieldCategories: (categories: string[]) =>
+				dispatch({ type: 'SET_SELECTED_YIELD_CATEGORIES', payload: categories }),
+			setSelectedYieldTokens: (tokens: string[]) => dispatch({ type: 'SET_SELECTED_YIELD_TOKENS', payload: tokens }),
+			setMinTvl: (tvl: number | null) => dispatch({ type: 'SET_MIN_TVL', payload: tvl }),
+			setMaxTvl: (tvl: number | null) => dispatch({ type: 'SET_MAX_TVL', payload: tvl }),
+			setSelectedStablecoinChain: (chain: string) =>
+				dispatch({ type: 'SET_SELECTED_STABLECOIN_CHAIN', payload: chain }),
+			setSelectedStablecoinChartType: (chartType: string) =>
+				dispatch({ type: 'SET_SELECTED_STABLECOIN_CHART_TYPE', payload: chartType }),
+			setStablecoinMode: (mode: 'chain' | 'asset') => dispatch({ type: 'SET_STABLECOIN_MODE', payload: mode }),
+			setSelectedStablecoinAsset: (asset: string | null) =>
+				dispatch({ type: 'SET_SELECTED_STABLECOIN_ASSET', payload: asset }),
+			setSelectedStablecoinAssetId: (id: string | null) =>
+				dispatch({ type: 'SET_SELECTED_STABLECOIN_ASSET_ID', payload: id }),
+			setSelectedStablecoinAssetChartType: (chartType: string) =>
+				dispatch({ type: 'SET_SELECTED_STABLECOIN_ASSET_CHART_TYPE', payload: chartType }),
+			setSelectedAdvancedTvlProtocol: (protocol: string | null) =>
+				dispatch({ type: 'SET_SELECTED_ADVANCED_TVL_PROTOCOL', payload: protocol }),
+			setSelectedAdvancedTvlProtocolName: (name: string | null) =>
+				dispatch({ type: 'SET_SELECTED_ADVANCED_TVL_PROTOCOL_NAME', payload: name }),
+			setSelectedAdvancedTvlChartType: (chartType: string) =>
+				dispatch({ type: 'SET_SELECTED_ADVANCED_TVL_CHART_TYPE', payload: chartType })
 		}),
-		[
-			setSelectedMainTab,
-			setSelectedChartTab,
-			setChartMode,
-			setComposerItems,
-			setSelectedChain,
-			setSelectedChains,
-			setSelectedProtocol,
-			setSelectedChartType,
-			setSelectedChartTypes,
-			setUnifiedChartName,
-			setChartCreationMode,
-			setTextTitle,
-			setTextContent,
-			setSelectedTableType,
-			setSelectedDatasetChain,
-			setSelectedDatasetTimeframe,
-			setSelectedTokens,
-			setIncludeCex,
-			setChartBuilderName,
-			setChartBuilder,
-			setMetricSubjectType,
-			setMetricChain,
-			setMetricProtocol,
-			setMetricType,
-			setMetricAggregator,
-			setMetricWindow,
-			setMetricLabel,
-			setMetricShowSparkline,
-			setSelectedYieldPool,
-			setSelectedYieldChains,
-			setSelectedYieldProjects,
-			setSelectedYieldCategories,
-			setSelectedYieldTokens,
-			setMinTvl,
-			setMaxTvl,
-			setSelectedStablecoinChain,
-			setSelectedStablecoinChartType,
-			setStablecoinMode,
-			setSelectedStablecoinAsset,
-			setSelectedStablecoinAssetId,
-			setSelectedStablecoinAssetChartType,
-			setSelectedAdvancedTvlProtocol,
-			setSelectedAdvancedTvlProtocolName,
-			setSelectedAdvancedTvlChartType
-		]
+		[]
 	)
 
 	return {
 		state,
-		actions: actionsObj,
+		actions,
 		resetState
 	}
 }

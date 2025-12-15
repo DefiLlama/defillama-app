@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 interface TextTabProps {
 	textTitle: string
 	textContent: string
@@ -5,7 +7,7 @@ interface TextTabProps {
 	onTextContentChange: (content: string) => void
 }
 
-export function TextTab({ textTitle, textContent, onTextTitleChange, onTextContentChange }: TextTabProps) {
+export const TextTab = memo(function TextTab({ textTitle, textContent, onTextTitleChange, onTextContentChange }: TextTabProps) {
 	return (
 		<div className="space-y-3 md:space-y-4">
 			<div>
@@ -33,4 +35,4 @@ export function TextTab({ textTitle, textContent, onTextTitleChange, onTextConte
 			</div>
 		</div>
 	)
-}
+})
