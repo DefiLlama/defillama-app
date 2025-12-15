@@ -33,18 +33,26 @@ export const BorrowAggregatorAdvanced = ({
 			categoryList
 		})
 
-	// get cdp collateral -> debt token route
-	const cdpPools = pools
-		.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
-		.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
+	const { cdpPools, lendingPools } = React.useMemo(() => {
+		// get cdp collateral -> debt token route
+		const cdpPools = pools
+			.filter((p) => (p.category === 'CDP' && p.mintedCoin) || (p.category === 'Lending' && p.mintedCoin)) // for lending projects with isolated markets (like morpho-blue) we use the mintedCoin integration
+			.map((p) => ({ ...p, chains: [p.chain], borrow: { ...p, symbol: p.mintedCoin.toUpperCase() } }))
 
-	const lendingPools = pools.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
+		const lendingPools = pools.filter((p) => p.category !== 'CDP' && !p.mintedCoin)
+		return {
+			cdpPools,
+			lendingPools
+		}
+	}, [pools])
+
 	const poolsData = React.useMemo(() => {
 		if (pathname === '/borrow/advanced' && (lend === '' || borrow === '')) {
 			return []
 		} else if (lend === undefined || borrow === undefined) {
 			return []
 		}
+
 		const selectedChainsSet = new Set(selectedChains)
 		const selectedLendingProtocolsSet = selectedLendingProtocols ? new Set(selectedLendingProtocols) : null
 
