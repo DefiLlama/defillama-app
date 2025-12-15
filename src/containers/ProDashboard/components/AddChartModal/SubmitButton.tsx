@@ -137,9 +137,9 @@ export function SubmitButton({
 	}
 
 	return (
-		<div className="pro-border mt-2 flex justify-end border-t pt-2">
+		<div className="pro-border mt-2 border-t pt-2">
 			<button
-				className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 md:px-4 md:py-2 md:text-sm ${
+				className={`w-full rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 md:px-4 md:py-2 md:text-sm ${
 					isDisabled ? 'pro-border pro-text3 cursor-not-allowed border opacity-50' : 'pro-btn-blue'
 				}`}
 				onClick={onSubmit}

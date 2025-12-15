@@ -2,6 +2,7 @@ import { useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
@@ -32,13 +33,13 @@ export const SubscriberContent = ({
 	enableOverage,
 	isEnableOverageLoading
 }: SubscriberContentProps) => {
-	const isLlamaFeed = llamafeedSubscription?.status === 'active'
-	const isPro = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
-	const isLegacy = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
-	const creditsLimit = isLlamaFeed ? 0 : 1_000_000
+	const hasProSubscription = llamafeedSubscription?.status === 'active'
+	const hasApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
+	const hasLegacySubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
+	const creditsLimit = hasProSubscription ? 0 : 1_000_000
 	const { loading, apiKey, isApiKeyLoading, generateNewKeyMutation } = useSubscribe()
 
-	const currentSubscription = isLlamaFeed ? llamafeedSubscription : isPro ? apiSubscription : null
+	const currentSubscription = hasProSubscription ? llamafeedSubscription : hasApiSubscription ? apiSubscription : null
 	const currentBillingInterval = currentSubscription?.billing_interval
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval || 'month')
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
@@ -49,11 +50,11 @@ export const SubscriberContent = ({
 	const monthlyPriceAPI = 300
 	const yearlyPriceAPI = monthlyPriceAPI * 10
 
-	const displayPrice = isLlamaFeed
+	const displayPrice = hasProSubscription
 		? currentBillingInterval === 'year'
 			? `$${yearlyPricePro}.00 USD`
 			: `$${monthlyPricePro}.00 USD`
-		: isPro
+		: hasApiSubscription
 			? currentBillingInterval === 'year'
 				? `$${yearlyPriceAPI}.00 USD`
 				: `$${monthlyPriceAPI}.00 USD`
@@ -104,19 +105,18 @@ export const SubscriberContent = ({
 				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
 					<SubscribeProCard
 						context="account"
-						active={isLlamaFeed && subscription?.provider !== 'trial'}
-						onCancelSubscription={isLlamaFeed ? () => handleManageSubscription('llamafeed') : undefined}
+						active={hasProSubscription && subscription?.provider !== 'trial'}
+						onCancelSubscription={hasProSubscription ? () => handleManageSubscription('llamafeed') : undefined}
 						currentBillingInterval={llamafeedSubscription?.billing_interval}
 						billingInterval={billingInterval}
-						// hasApiSubscription={isPro || isLegacy}
 					/>
 				</div>
 				<div className="relative flex flex-col overflow-hidden rounded-xl border border-[#4a4a50] bg-[#22242930] px-4 py-6 shadow-md backdrop-blur-md transition-all duration-300 md:px-5 md:py-8 md:hover:scale-[1.02]">
 					<SubscribeAPICard
 						context="account"
-						active={isPro || isLegacy}
-						onCancelSubscription={isPro ? () => handleManageSubscription('api') : undefined}
-						isLegacyActive={isLegacy}
+						active={hasApiSubscription || hasLegacySubscription}
+						onCancelSubscription={hasApiSubscription ? () => handleManageSubscription('api') : undefined}
+						isLegacyActive={hasLegacySubscription}
 						currentBillingInterval={apiSubscription?.billing_interval}
 						billingInterval={billingInterval}
 					/>
@@ -129,7 +129,7 @@ export const SubscriberContent = ({
 				</div>
 			</div>
 
-			{(isPro || isLegacy) && (
+			{(hasApiSubscription || hasLegacySubscription) && (
 				<div className="relative overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-xl">
 					<div className="absolute -inset-1 -z-10 bg-linear-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 blur-[100px]"></div>
 
@@ -294,7 +294,7 @@ export const SubscriberContent = ({
 													<span className="text-sm">Rate Limit</span>
 												</div>
 												<div className="flex items-baseline gap-1">
-													<span className="font-semibold text-white">{isPro ? '1,000' : '0'}</span>
+													<span className="font-semibold text-white">{hasApiSubscription ? '1,000' : '0'}</span>
 													<span className="text-xs text-[#8a8c90]">requests/minute</span>
 												</div>
 											</div>
@@ -303,10 +303,6 @@ export const SubscriberContent = ({
 												<div className="relative h-full w-full bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]">
 													<div className="animate-shimmer absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 												</div>
-											</div>
-
-											<div className="flex items-center justify-between text-xs text-[#8a8c90]">
-												<span>{isPro ? 'Pro' : isLlamaFeed ? 'Pro' : ''}</span>
 											</div>
 										</div>
 									</div>
@@ -352,7 +348,7 @@ export const SubscriberContent = ({
 				</div>
 			)}
 
-			{(isPro || isLlamaFeed) && (
+			{(hasApiSubscription || hasProSubscription) && (
 				<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
 					<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
 						<div className="flex items-center gap-2.5 sm:gap-3">
@@ -364,8 +360,9 @@ export const SubscriberContent = ({
 							<div>
 								<h3 className="text-lg font-bold sm:text-xl">Subscription</h3>
 								<p className="text-xs text-[#b4b7bc] sm:text-sm">
-									Manage your <span className="font-bold">{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''}</span> subscription
-									details
+									Manage your{' '}
+									<span className="font-bold">{hasProSubscription ? 'Pro' : hasApiSubscription ? 'API' : ''}</span>{' '}
+									subscription details
 								</p>
 							</div>
 						</div>
@@ -377,7 +374,7 @@ export const SubscriberContent = ({
 								<div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
 									<h4 className="flex items-center gap-2 text-sm font-medium sm:text-base">
 										<Icon name="bookmark" height={14} width={14} className="text-[#5C5CF9] sm:h-4 sm:w-4" />
-										<span>{isLlamaFeed ? 'Pro' : isPro ? 'API' : ''} Plan</span>
+										<span>{hasProSubscription ? 'Pro' : hasApiSubscription ? 'API' : ''} Plan</span>
 									</h4>
 									<div className="flex items-center gap-3 sm:gap-4">
 										<div className="flex items-center gap-2">
@@ -386,9 +383,9 @@ export const SubscriberContent = ({
 										</div>
 										<button
 											onClick={
-												isLlamaFeed
+												hasProSubscription
 													? () => handleManageSubscription('llamafeed')
-													: isPro
+													: hasApiSubscription
 														? () => handleManageSubscription('api')
 														: undefined
 											}
@@ -427,13 +424,13 @@ export const SubscriberContent = ({
 									<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
 										<p className="mb-1 text-xs text-[#8a8c90]">Next billing date</p>
 										<p className="text-sm font-medium sm:text-base">
-											{isLlamaFeed && llamafeedSubscription?.expires_at
+											{hasProSubscription && llamafeedSubscription?.expires_at
 												? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
 														month: 'short',
 														day: 'numeric',
 														year: 'numeric'
 													})
-												: isPro && apiSubscription?.expires_at
+												: hasApiSubscription && apiSubscription?.expires_at
 													? new Date(+apiSubscription.expires_at * 1000).toLocaleDateString('en-US', {
 															month: 'short',
 															day: 'numeric',
@@ -442,9 +439,22 @@ export const SubscriberContent = ({
 													: 'Not available'}
 										</p>
 									</div>
+
+									{hasApiSubscription && (
+										<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
+											<p className="mb-1 text-xs text-[#8a8c90]">Overage</p>
+											<p className="flex text-sm font-medium sm:text-base">
+												{apiSubscription?.overage ? 'Enabled' : 'Disabled'}
+												<QuestionHelper
+													className="ml-2"
+													text="API calls beyond 1M/month are charged at $0.60 per 1,000 calls."
+												/>
+											</p>
+										</div>
+									)}
 								</div>
 
-								{isLlamaFeed &&
+								{hasProSubscription &&
 									(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) && (
 										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
 											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
@@ -482,42 +492,7 @@ export const SubscriberContent = ({
 										</div>
 									)}
 
-								{isPro && (apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
-									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-											</div>
-											<div className="flex-1">
-												<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
-												<p className="text-xs text-[#8a8c90] sm:text-sm">Switch to annual billing and save 2 months.</p>
-											</div>
-										</div>
-										<button
-											onClick={() => {
-												setUpgradeType('api')
-												setIsUpgradeModalOpen(true)
-											}}
-											disabled={loading === 'stripe'}
-											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-										>
-											{loading === 'stripe' ? (
-												<>
-													<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-													<span>Processing...</span>
-												</>
-											) : (
-												<>
-													<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-													<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-													<span className="sm:hidden">Upgrade to Yearly</span>
-												</>
-											)}
-										</button>
-									</div>
-								)}
-
-								{isPro && !apiSubscription?.overage && (
+								{hasApiSubscription && !apiSubscription?.overage && (
 									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
 										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
 											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
@@ -549,6 +524,43 @@ export const SubscriberContent = ({
 										</button>
 									</div>
 								)}
+								{hasApiSubscription &&
+									(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
+										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
+												</div>
+												<div className="flex-1">
+													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
+													<p className="text-xs text-[#8a8c90] sm:text-sm">
+														Switch to annual billing and save 2 months.
+													</p>
+												</div>
+											</div>
+											<button
+												onClick={() => {
+													setUpgradeType('api')
+													setIsUpgradeModalOpen(true)
+												}}
+												disabled={loading === 'stripe'}
+												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+											>
+												{loading === 'stripe' ? (
+													<>
+														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+														<span>Processing...</span>
+													</>
+												) : (
+													<>
+														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+														<span className="sm:hidden">Upgrade to Yearly</span>
+													</>
+												)}
+											</button>
+										</div>
+									)}
 							</div>
 						</div>
 					</div>

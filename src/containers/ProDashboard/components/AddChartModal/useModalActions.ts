@@ -11,6 +11,7 @@ import {
 	StoredColSpan,
 	TextConfig
 } from '../../types'
+import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 import { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
@@ -162,6 +163,7 @@ export function useModalActions(
 			}
 
 			const targetGrouping = resolveTargetGrouping()
+			const getNextColorIndex = () => state.composerItems.length
 
 			if (state.selectedChartTab === 'chain' && chartTypesToAdd.length > 0) {
 				const chainsToUse =
@@ -172,13 +174,15 @@ export function useModalActions(
 						return !state.composerItems.some((item) => item.chain === chainName && item.type === chartType)
 					})
 					if (filteredTypes.length > 0) {
-						const newCharts = filteredTypes.map((chartType) => ({
+						const colorStartIndex = getNextColorIndex() + addedCount
+						const newCharts = filteredTypes.map((chartType, idx) => ({
 							id: `${chainName}-${chartType}-${Date.now()}-${Math.random()}`,
 							kind: 'chart' as const,
 							chain: chainName,
 							type: chartType,
 							grouping: targetGrouping,
-							geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
+							geckoId: ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined,
+							color: EXTENDED_COLOR_PALETTE[(colorStartIndex + idx) % EXTENDED_COLOR_PALETTE.length]
 						}))
 						actions.setComposerItems((prev) => [...prev, ...newCharts])
 						addedCount += filteredTypes.length
@@ -197,14 +201,16 @@ export function useModalActions(
 						return !state.composerItems.some((item) => item.protocol === slug && item.type === chartType)
 					})
 					if (filteredTypes.length > 0) {
-						const newCharts = filteredTypes.map((chartType) => ({
+						const colorStartIndex = getNextColorIndex() + addedCount
+						const newCharts = filteredTypes.map((chartType, idx) => ({
 							id: `${slug}-${chartType}-${Date.now()}-${Math.random()}`,
 							kind: 'chart' as const,
 							protocol: slug,
 							chain: '',
 							type: chartType,
 							grouping: targetGrouping,
-							geckoId: protocol?.geckoId
+							geckoId: protocol?.geckoId,
+							color: EXTENDED_COLOR_PALETTE[(colorStartIndex + idx) % EXTENDED_COLOR_PALETTE.length]
 						}))
 						actions.setComposerItems((prev) => [...prev, ...newCharts])
 						addedCount += filteredTypes.length
@@ -673,9 +679,8 @@ export function useModalActions(
 			}
 		}
 
-		// Clean up state
-		resetState()
 		onClose()
+		resetState()
 	}, [
 		editItem,
 		state,

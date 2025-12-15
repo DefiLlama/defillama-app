@@ -427,11 +427,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 			</div>
 
-			{loadingItems.length > 0 && (
+			{loadingItems.length > 0 && failedItems.length < multi.items.length && (
 				<div className="flex items-center gap-1.5 px-1 text-xs text-(--text-form) md:px-3">
 					<div className="h-3 w-3 animate-spin rounded-full border-2 border-(--text-form) border-t-transparent" />
 					<span>
-						{validItems.length}/{multi.items.length}
+						{validItems.length}/{multi.items.length - failedItems.length}
 					</span>
 				</div>
 			)}

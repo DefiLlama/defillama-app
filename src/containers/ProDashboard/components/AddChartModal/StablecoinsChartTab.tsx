@@ -16,7 +16,6 @@ import { colorManager, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
-import { ChartTabType } from './types'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -35,7 +34,6 @@ interface StablecoinsChartTabProps {
 	onSelectedStablecoinAssetChange: (asset: string | null) => void
 	onSelectedStablecoinAssetIdChange: (id: string | null) => void
 	onSelectedStablecoinAssetChartTypeChange: (chartType: string) => void
-	onChartTabChange: (tab: ChartTabType) => void
 }
 
 const STABLECOIN_CHAIN_CHART_TYPES = [
@@ -87,8 +85,7 @@ export function StablecoinsChartTab({
 	onStablecoinModeChange,
 	onSelectedStablecoinAssetChange,
 	onSelectedStablecoinAssetIdChange,
-	onSelectedStablecoinAssetChartTypeChange,
-	onChartTabChange
+	onSelectedStablecoinAssetChartTypeChange
 }: StablecoinsChartTabProps) {
 	const { data: chainsList = [], isLoading: chainsLoading } = useStablecoinChainsList()
 	const { data: assetsList = [], isLoading: assetsLoading } = useStablecoinAssetsList()
@@ -380,112 +377,94 @@ export function StablecoinsChartTab({
 	const hasAssetSelection = selectedStablecoinAsset && selectedStablecoinAssetId
 
 	return (
-		<div className="flex h-full min-h-[400px] gap-3 overflow-hidden">
-			<div className="pro-border flex w-[380px] flex-col border lg:w-[420px]">
-				<div className="flex h-full flex-col p-3">
-					<AriakitSelect
-						label="Category"
-						options={[
-							{ value: 'chain', label: 'Protocols/Chains' },
-							{ value: 'yields', label: 'Yields' },
-							{ value: 'stablecoins', label: 'Stablecoins' }
-						]}
-						selectedValue="stablecoins"
-						onChange={(option) => onChartTabChange(option.value as ChartTabType)}
-						className="mb-3"
-					/>
+		<div className="flex flex-col gap-4">
+			<div className="space-y-3">
+				<div className="flex rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 p-0.5">
+					<button
+						type="button"
+						onClick={() => onStablecoinModeChange('chain')}
+						className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-all ${
+							stablecoinMode === 'chain'
+								? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
+								: 'text-(--text-secondary) hover:text-(--text-primary)'
+						}`}
+					>
+						By Chain
+					</button>
+					<button
+						type="button"
+						onClick={() => onStablecoinModeChange('asset')}
+						className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-all ${
+							stablecoinMode === 'asset'
+								? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
+								: 'text-(--text-secondary) hover:text-(--text-primary)'
+						}`}
+					>
+						By Asset
+					</button>
+				</div>
 
-					<div className="mb-3 flex-shrink-0">
-						<div className="mb-2 flex rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 p-0.5">
-							<button
-								type="button"
-								onClick={() => onStablecoinModeChange('chain')}
-								className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-all ${
-									stablecoinMode === 'chain'
-										? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
-										: 'text-(--text-secondary) hover:text-(--text-primary)'
-								}`}
-							>
-								By Chain
-							</button>
-							<button
-								type="button"
-								onClick={() => onStablecoinModeChange('asset')}
-								className={`flex-1 rounded px-3 py-1.5 text-xs font-medium transition-all ${
-									stablecoinMode === 'asset'
-										? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
-										: 'text-(--text-secondary) hover:text-(--text-primary)'
-								}`}
-							>
-								By Asset
-							</button>
-						</div>
-					</div>
+				{stablecoinMode === 'chain' ? (
+					<>
+						<AriakitVirtualizedSelect
+							label="Chain"
+							options={chainOptions}
+							selectedValue={selectedStablecoinChain}
+							onChange={(option) => onSelectedStablecoinChainChange(option.value)}
+							placeholder="Select chain..."
+							isLoading={chainsLoading}
+						/>
 
-					<div className="mb-3 flex-shrink-0 space-y-2">
-						{stablecoinMode === 'chain' ? (
-							<>
-								<AriakitVirtualizedSelect
-									label="Chain"
-									options={chainOptions}
-									selectedValue={selectedStablecoinChain}
-									onChange={(option) => onSelectedStablecoinChainChange(option.value)}
-									placeholder="Select chain..."
-									isLoading={chainsLoading}
-								/>
+						<AriakitSelect
+							label="Chart Type"
+							options={STABLECOIN_CHAIN_CHART_TYPES}
+							selectedValue={selectedStablecoinChartType}
+							onChange={(option) => onSelectedStablecoinChartTypeChange(option.value)}
+							placeholder="Select chart type..."
+						/>
+					</>
+				) : (
+					<>
+						<AriakitVirtualizedSelect
+							label="Stablecoin"
+							options={assetOptions}
+							selectedValue={selectedStablecoinAsset || ''}
+							onChange={handleAssetChange}
+							placeholder="Select stablecoin..."
+							isLoading={assetsLoading}
+						/>
 
-								<AriakitSelect
-									label="Chart Type"
-									options={STABLECOIN_CHAIN_CHART_TYPES}
-									selectedValue={selectedStablecoinChartType}
-									onChange={(option) => onSelectedStablecoinChartTypeChange(option.value)}
-									placeholder="Select chart type..."
-								/>
-							</>
-						) : (
-							<>
-								<AriakitVirtualizedSelect
-									label="Stablecoin"
-									options={assetOptions}
-									selectedValue={selectedStablecoinAsset || ''}
-									onChange={handleAssetChange}
-									placeholder="Select stablecoin..."
-									isLoading={assetsLoading}
-								/>
+						<AriakitSelect
+							label="Chart Type"
+							options={STABLECOIN_ASSET_CHART_TYPES}
+							selectedValue={selectedStablecoinAssetChartType}
+							onChange={(option) => onSelectedStablecoinAssetChartTypeChange(option.value)}
+							placeholder="Select chart type..."
+						/>
+					</>
+				)}
 
-								<AriakitSelect
-									label="Chart Type"
-									options={STABLECOIN_ASSET_CHART_TYPES}
-									selectedValue={selectedStablecoinAssetChartType}
-									onChange={(option) => onSelectedStablecoinAssetChartTypeChange(option.value)}
-									placeholder="Select chart type..."
-								/>
-							</>
-						)}
-					</div>
-
-					<div className="pro-text3 mt-auto text-xs">
-						{stablecoinMode === 'chain' && totalMcapCurrent !== null && (
-							<p>
-								Total Market Cap:{' '}
-								<span className="pro-text1 font-semibold">{formattedNum(totalMcapCurrent, true)}</span>
-							</p>
-						)}
-						{stablecoinMode === 'asset' && totalCirculating !== null && (
-							<p>
-								Total Circulating:{' '}
-								<span className="pro-text1 font-semibold">{formattedNum(totalCirculating, true)}</span>
-							</p>
-						)}
-					</div>
+				<div className="pro-text3 text-xs">
+					{stablecoinMode === 'chain' && totalMcapCurrent !== null && (
+						<p>
+							Total Market Cap:{' '}
+							<span className="pro-text1 font-semibold">{formattedNum(totalMcapCurrent, true)}</span>
+						</p>
+					)}
+					{stablecoinMode === 'asset' && totalCirculating !== null && (
+						<p>
+							Total Circulating:{' '}
+							<span className="pro-text1 font-semibold">{formattedNum(totalCirculating, true)}</span>
+						</p>
+					)}
 				</div>
 			</div>
 
-			<div className="pro-border flex flex-1 flex-col overflow-hidden border">
-				<div className="pro-text2 flex-shrink-0 px-3 py-2 text-xs font-medium">Preview</div>
+			<div className="pro-border overflow-hidden rounded-lg border">
+				<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
 
 				{(stablecoinMode === 'chain' && hasChainSelection) || (stablecoinMode === 'asset' && hasAssetSelection) ? (
-					<div className="min-h-0 flex-1 overflow-auto rounded-md bg-(--cards-bg) p-3">
+					<div className="bg-(--cards-bg) p-3">
 						<div className="mb-3">
 							<h3 className="pro-text1 mb-1 text-sm font-semibold">
 								{stablecoinMode === 'chain'
@@ -497,10 +476,10 @@ export function StablecoinsChartTab({
 							</p>
 						</div>
 
-						<div className="min-h-[320px]">{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}</div>
+						<div className="h-[320px]">{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}</div>
 					</div>
 				) : (
-					<div className="pro-text3 flex flex-1 items-center justify-center text-center">
+					<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
 						<div>
 							<Icon name="dollar-sign" height={32} width={32} className="mx-auto mb-1" />
 							<div className="text-xs">

@@ -114,7 +114,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		<div className="h-full w-full">
 			<Suspense
 				fallback={
-					<div className="h-[450px] w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
+					<div className="h-[240px] w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
 				}
 			>
 				<MultiSeriesChart
@@ -123,7 +123,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					valueSymbol={valueSymbol}
 					groupBy={mapGroupingToGroupBy(previewGrouping)}
 					hideDataZoom={true}
-					height="450px"
+					height="240px"
 					chartOptions={{
 						xAxis: {
 							show: true
