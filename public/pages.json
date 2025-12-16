@@ -656,6 +656,12 @@
       "category": "Others",
       "description": "Overview of protocols with Safe Harbor Agreements",
       "totalTrackedKey": "safeHarbor.protocols"
+    },
+    {
+      "name": "Sheets",
+      "route": "/sheets",
+      "category": "Sheets",
+      "description": "Access DeFi data right in your spreadsheets"
     }
   ],
   "Tools": [
