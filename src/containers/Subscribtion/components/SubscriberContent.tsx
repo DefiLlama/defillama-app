@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+
+const StripeCheckoutModal = lazy(() =>
+	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
+)
 
 interface SubscriberContentProps {
 	credits: number | null
@@ -568,16 +571,18 @@ export const SubscriberContent = ({
 			)}
 
 			{isUpgradeModalOpen && upgradeType && (
-				<StripeCheckoutModal
-					isOpen={isUpgradeModalOpen}
-					onClose={() => {
-						setIsUpgradeModalOpen(false)
-						setUpgradeType(null)
-					}}
-					paymentMethod="stripe"
-					type={upgradeType}
-					billingInterval="year"
-				/>
+				<Suspense fallback={<></>}>
+					<StripeCheckoutModal
+						isOpen={isUpgradeModalOpen}
+						onClose={() => {
+							setIsUpgradeModalOpen(false)
+							setUpgradeType(null)
+						}}
+						paymentMethod="stripe"
+						type={upgradeType}
+						billingInterval="year"
+					/>
+				</Suspense>
 			)}
 		</>
 	)

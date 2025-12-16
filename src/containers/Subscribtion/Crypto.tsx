@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
-import { StripeCheckoutModal } from '~/components/StripeCheckoutModal'
 import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+
+const StripeCheckoutModal = lazy(() =>
+	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
+)
 
 export const PaymentButton = ({
 	paymentMethod,
@@ -63,13 +66,15 @@ export const PaymentButton = ({
 			</CustomTooltip>
 
 			{isStripe && (
-				<StripeCheckoutModal
-					isOpen={isCheckoutModalOpen}
-					onClose={() => setIsCheckoutModalOpen(false)}
-					paymentMethod="stripe"
-					type={type}
-					billingInterval={billingInterval}
-				/>
+				<Suspense fallback={<></>}>
+					<StripeCheckoutModal
+						isOpen={isCheckoutModalOpen}
+						onClose={() => setIsCheckoutModalOpen(false)}
+						paymentMethod="stripe"
+						type={type}
+						billingInterval={billingInterval}
+					/>
+				</Suspense>
 			)}
 		</>
 	)
