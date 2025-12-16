@@ -2140,10 +2140,12 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const {
 		tableHeaders,
 		feesData,
+		costOfRevenueData,
 		revenueData,
 		incentivesData,
 		holdersRevenueData,
 		feesByLabels,
+		costOfRevenueByLabels,
 		revenueByLabels,
 		holdersRevenueByLabels,
 		earningsData
@@ -2154,6 +2156,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const revenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const holdersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const costOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
 			tableHeaders.push([
@@ -2175,6 +2178,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			}
 			if (feesSettings.tokentax) {
 				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dtt)
+			}
+
+			costOfRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dssr ?? {
+				value: 0,
+				'by-label': {}
 			}
 
 			revenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dr ?? {
@@ -2237,10 +2245,12 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		return {
 			tableHeaders: tableHeaders.sort((a, b) => b[2] - a[2]),
 			feesData,
+			costOfRevenueData,
 			revenueData,
 			incentivesData,
 			holdersRevenueData,
 			feesByLabels: props.incomeStatement?.labelsByType?.df ?? [],
+			costOfRevenueByLabels: props.incomeStatement?.labelsByType?.dssr ?? [],
 			revenueByLabels: props.incomeStatement?.labelsByType?.dr ?? [],
 			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? [],
 			earningsData
@@ -2333,6 +2343,17 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						<IncomeStatementByLabel
 							protocolName={props.name}
 							groupBy={groupBy}
+							data={costOfRevenueData}
+							dataType="cost of revenue"
+							label="Cost of Revenue"
+							methodology={props.supplySideRevenue?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={costOfRevenueByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}}
+						/>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
 							data={revenueData}
 							dataType="revenue"
 							label="Gross Profit"
@@ -2374,7 +2395,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							methodology={props.holdersRevenue?.methodology ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={holdersRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Holders Revenue'] ?? {}}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['HoldersRevenue'] ?? {}}
 						/>
 					</tbody>
 				</table>
@@ -2397,7 +2418,7 @@ const IncomeStatementByLabel = ({
 	protocolName: string
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
 	data: Record<string, { value: number; 'by-label': Record<string, number> }>
-	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income'
+	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income' | 'cost of revenue'
 	label: string
 	methodology: string
 	tableHeaders: [string, string, number][]
@@ -2507,7 +2528,7 @@ const PerformanceTooltipContent = ({
 	currentValue: number
 	previousValue: number
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
-	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income'
+	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income' | 'cost of revenue'
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue

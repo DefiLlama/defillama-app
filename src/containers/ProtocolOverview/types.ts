@@ -161,6 +161,7 @@ export interface IProtocolOverviewPageData {
 	fees: IAdapterOverview | null
 	revenue: IAdapterOverview | null
 	holdersRevenue: IAdapterOverview | null
+	supplySideRevenue: IAdapterOverview | null
 	bribeRevenue: IAdapterOverview | null
 	tokenTax: IAdapterOverview | null
 	dexVolume: IAdapterOverview | null

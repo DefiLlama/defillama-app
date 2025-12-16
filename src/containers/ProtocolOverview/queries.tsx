@@ -169,6 +169,7 @@ export const getProtocolOverviewPageData = async ({
 		feesData,
 		revenueData,
 		holdersRevenueData,
+		supplySideRevenueData,
 		bribesData,
 		tokenTaxData,
 		dexVolumeData,
@@ -225,6 +226,7 @@ export const getProtocolOverviewPageData = async ({
 		IProtocolOverviewPageData['fees'],
 		IProtocolOverviewPageData['revenue'],
 		IProtocolOverviewPageData['holdersRevenue'],
+		IProtocolOverviewPageData['supplySideRevenue'],
 		IProtocolOverviewPageData['bribeRevenue'],
 		IProtocolOverviewPageData['tokenTax'],
 		IProtocolOverviewPageData['dexVolume'],
@@ -279,6 +281,16 @@ export const getProtocolOverviewPageData = async ({
 					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
+					.catch(() => null)
+			: Promise.resolve(null),
+		metadata.fees
+			? getAdapterProtocolSummary({
+					adapterType: 'fees',
+					dataType: 'dailySupplySideRevenue',
+					protocol: metadata.displayName,
+					excludeTotalDataChart: true
+				})
+					.then((data) => formatAdapterData({ data, methodologyKey: 'SupplySideRevenue' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		metadata.revenue
@@ -863,6 +875,7 @@ export const getProtocolOverviewPageData = async ({
 		fees: feesData,
 		revenue: revenueData,
 		holdersRevenue: holdersRevenueData,
+		supplySideRevenue: supplySideRevenueData,
 		bribeRevenue: bribesData,
 		tokenTax: tokenTaxData,
 		dexVolume: dexVolumeData,
@@ -1181,7 +1194,8 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		const labelMap = {
 			df: 'Fees',
 			dr: 'Revenue',
-			dhr: 'Holders Revenue'
+			dhr: 'HoldersRevenue',
+			dssr: 'SupplySideRevenue'
 		}
 		const methodologyByType = {}
 		for (const shortLabel in finalLabelsByType) {
