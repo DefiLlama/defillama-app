@@ -66,6 +66,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			...(hasActiveSubscription
 				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
 				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
+			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
 			{ name: 'Support', route: '/support', icon: 'headset' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
