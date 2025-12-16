@@ -4,8 +4,8 @@ import * as echarts from 'echarts/core'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, toNiceCsvDate } from '~/utils'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
@@ -131,10 +131,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 
 		switch (chartType) {
 			case 'tvl':
-				rows = [
-					['Date', 'TVL'],
-					...(filteredChartData.basicTvl?.map(([ts, val]) => [toNiceCsvDate(ts), val]) ?? [])
-				]
+				rows = [['Date', 'TVL'], ...(filteredChartData.basicTvl?.map(([ts, val]) => [toNiceCsvDate(ts), val]) ?? [])]
 				filename = `${protocolSlug}-tvl.csv`
 				break
 			case 'chainsTvl':
@@ -174,7 +171,10 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			case 'usdInflows':
 				rows = [
 					['Date', 'USD Inflows'],
-					...(filteredChartData.usdInflows?.map(([date, val]: [string, number]) => [toNiceCsvDate(Number(date)), val ?? '']) ?? [])
+					...(filteredChartData.usdInflows?.map(([date, val]: [string, number]) => [
+						toNiceCsvDate(Number(date)),
+						val ?? ''
+					]) ?? [])
 				]
 				filename = `${protocolSlug}-usd-inflows.csv`
 				break

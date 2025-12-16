@@ -5,10 +5,10 @@ import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
-import ProtocolCharts from '../../services/ProtocolCharts'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useProDashboard } from '../../ProDashboardAPIContext'
+import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
@@ -71,12 +71,8 @@ export function AdvancedTvlChartTab({
 	const { protocols } = useProDashboard()
 
 	const filteredProtocolOptions = useMemo(() => {
-		const parentIds = new Set(
-			protocols.filter((p: any) => p.parentProtocol).map((p: any) => p.parentProtocol)
-		)
-		const parentIdToSlug = new Map(
-			protocols.filter((p: any) => parentIds.has(p.id)).map((p: any) => [p.id, p.slug])
-		)
+		const parentIds = new Set(protocols.filter((p: any) => p.parentProtocol).map((p: any) => p.parentProtocol))
+		const parentIdToSlug = new Map(protocols.filter((p: any) => parentIds.has(p.id)).map((p: any) => [p.id, p.slug]))
 		const parentSlugs = new Set(parentIdToSlug.values())
 		return protocolOptions
 			.filter((opt: any) => !parentSlugs.has(opt.value))
@@ -129,7 +125,16 @@ export function AdvancedTvlChartTab({
 		}
 
 		return available
-	}, [chainsSplit, chainsUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown, tokensUnique, usdInflows, tokenInflows])
+	}, [
+		chainsSplit,
+		chainsUnique,
+		tokenBreakdownUSD,
+		tokenBreakdownPieChart,
+		tokenBreakdown,
+		tokensUnique,
+		usdInflows,
+		tokenInflows
+	])
 
 	const chartTypeOptions = useMemo(() => {
 		return ADVANCED_TVL_CHART_TYPES.map((type) => ({
@@ -261,12 +266,7 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<BarChart
-							chartData={usdInflows ?? []}
-							color={oldBlue}
-							title=""
-							chartOptions={inflowsChartOptions}
-						/>
+						<BarChart chartData={usdInflows ?? []} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
 					</Suspense>
 				)
 			case 'tokenInflows':

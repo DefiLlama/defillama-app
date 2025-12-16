@@ -1,7 +1,7 @@
 import { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
-import { DIMENISIONS_OVERVIEW_API } from '~/constants'
+import { DIMENSIONS_OVERVIEW_API } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
@@ -27,7 +27,7 @@ export const getStaticPaths = async () => {
 	}
 
 	const chains = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=${dataType}`
+		`${DIMENSIONS_OVERVIEW_API}/${adapterType}?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true&dataType=${dataType}`
 	)
 		.then((res) => (res.allChains ?? []).slice(0, 10))
 		.catch(() => [])

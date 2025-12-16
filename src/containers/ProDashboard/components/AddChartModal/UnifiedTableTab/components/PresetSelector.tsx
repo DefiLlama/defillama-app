@@ -19,7 +19,15 @@ const CATEGORY_CONFIG: Record<FilterPresetCategory, { label: string; color: stri
 	category: { label: 'Category', color: 'bg-cyan-500/20 text-cyan-400' }
 }
 
-const CATEGORY_ORDER: FilterPresetCategory[] = ['quick', 'growth', 'activity', 'size', 'revenue', 'investment', 'category']
+const CATEGORY_ORDER: FilterPresetCategory[] = [
+	'quick',
+	'growth',
+	'activity',
+	'size',
+	'revenue',
+	'investment',
+	'category'
+]
 
 const normalizeEntries = (filters: Partial<TableFilters>) => {
 	return Object.entries(filters).filter(([_, value]) => {
@@ -71,9 +79,7 @@ export function PresetSelector({ currentFilters, onApplyPreset }: PresetSelector
 				return (
 					<div key={category}>
 						<div className="mb-1.5 flex items-center gap-2">
-							<span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${config.color}`}>
-								{config.label}
-							</span>
+							<span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${config.color}`}>{config.label}</span>
 						</div>
 						<div className="flex flex-wrap gap-1.5">
 							{presets.map((preset) => {

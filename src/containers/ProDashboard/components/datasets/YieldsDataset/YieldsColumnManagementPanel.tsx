@@ -156,7 +156,10 @@ export function YieldsColumnManagementPanel({
 	if (!showColumnPanel) return null
 
 	return (
-		<div className="relative mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4" style={{ zIndex: 50, pointerEvents: 'auto' }}>
+		<div
+			className="relative mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4"
+			style={{ zIndex: 50, pointerEvents: 'auto' }}
+		>
 			<div className="mb-3 flex items-center justify-between">
 				<h4 className="pro-text1 text-sm font-medium">Customize Columns</h4>
 				<div className="flex items-center gap-2">

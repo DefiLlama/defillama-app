@@ -1,7 +1,7 @@
 import type { SortingState, VisibilityState } from '@tanstack/react-table'
-import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './ColumnDictionary'
 import type { CustomColumnDefinition } from '../../../types'
 import { validateCustomColumnOnLoad } from '../utils/customColumns'
+import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './ColumnDictionary'
 
 const ALWAYS_INCLUDE = new Set(['name'])
 let CAPABILITIES_CACHE: Set<string> | null = null
@@ -35,7 +35,10 @@ export function filterByCapabilities(ids: string[], validCustomColumnIds?: Set<s
 	return ids.filter((id) => isColumnSupported(id, validCustomColumnIds))
 }
 
-export function pruneVisibility(visibility: VisibilityState | undefined, validCustomColumnIds?: Set<string>): VisibilityState {
+export function pruneVisibility(
+	visibility: VisibilityState | undefined,
+	validCustomColumnIds?: Set<string>
+): VisibilityState {
 	if (!visibility) return {}
 	return Object.fromEntries(Object.entries(visibility).filter(([key]) => isColumnSupported(key, validCustomColumnIds)))
 }

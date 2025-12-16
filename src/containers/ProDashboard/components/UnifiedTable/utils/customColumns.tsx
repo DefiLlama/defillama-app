@@ -1,10 +1,10 @@
-import { Parser } from 'expr-eval'
 import type { ColumnDef, Row } from '@tanstack/react-table'
+import { Parser } from 'expr-eval'
 import { formattedNum, formattedPercent } from '~/utils'
 import type { CustomColumnDefinition } from '../../../types'
-import type { NormalizedRow, NumericMetrics } from '../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { getAggregationContextFromLeafRows } from '../core/groupingUtils'
+import type { NormalizedRow, NumericMetrics } from '../types'
 
 const parser = new Parser()
 
@@ -105,7 +105,10 @@ export function validateExpression(expression: string): { isValid: boolean; erro
 
 		const unknownVars = usedVars.filter((v) => !availableKeys.has(v))
 		if (unknownVars.length > 0) {
-			return { isValid: false, error: `Unknown variable${unknownVars.length > 1 ? 's' : ''}: ${unknownVars.join(', ')}` }
+			return {
+				isValid: false,
+				error: `Unknown variable${unknownVars.length > 1 ? 's' : ''}: ${unknownVars.join(', ')}`
+			}
 		}
 
 		const testContext: Record<string, number> = {}

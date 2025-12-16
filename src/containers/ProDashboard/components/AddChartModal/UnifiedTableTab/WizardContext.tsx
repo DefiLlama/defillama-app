@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import type { CustomColumnDefinition, TableFilters, UnifiedTableConfig, UnifiedRowHeaderType } from '../../../types'
+import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { useUnifiedTableWizard } from './hooks/useUnifiedTableWizard'
 
 interface WizardContextValue {

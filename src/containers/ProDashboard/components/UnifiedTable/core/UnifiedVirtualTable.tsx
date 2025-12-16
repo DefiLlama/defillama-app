@@ -99,9 +99,7 @@ export function UnifiedVirtualTable({
 											onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 										>
 											{header.isPlaceholder ? null : (
-												<HeaderWithTooltip content={meta?.headerHelperText}>
-													{value}
-												</HeaderWithTooltip>
+												<HeaderWithTooltip content={meta?.headerHelperText}>{value}</HeaderWithTooltip>
 											)}
 											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 										</span>

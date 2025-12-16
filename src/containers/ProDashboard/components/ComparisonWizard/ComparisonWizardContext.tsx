@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react'
 import type { UseComparisonWizardReturn } from './hooks/useComparisonWizard'
 import { useComparisonWizard } from './hooks/useComparisonWizard'
-import type { MetricWithAvailability } from './types'
 import { useMetricAvailability } from './hooks/useMetricAvailability'
+import type { MetricWithAvailability } from './types'
 
 interface ComparisonWizardContextValue extends UseComparisonWizardReturn {
 	availableMetrics: MetricWithAvailability[]

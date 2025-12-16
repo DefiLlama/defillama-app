@@ -6,7 +6,12 @@ import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useDimensionProtocols } from '../hooks/useDimensionProtocols'
 import { useProDashboard } from '../ProDashboardAPIContext'
-import { DASHBOARD_TEMPLATES, generateTemplateCharts, type ChainCategoryData, type DashboardTemplate } from '../templates'
+import {
+	DASHBOARD_TEMPLATES,
+	generateTemplateCharts,
+	type ChainCategoryData,
+	type DashboardTemplate
+} from '../templates'
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 
@@ -106,7 +111,15 @@ export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboard
 	}
 
 	const handleCreateFromTemplate = (template: DashboardTemplate) => {
-		const items = generateTemplateCharts(template, protocols, chains, protocolsBySlug, CHART_TYPES, chainCategoryData, dimensionProtocols)
+		const items = generateTemplateCharts(
+			template,
+			protocols,
+			chains,
+			protocolsBySlug,
+			CHART_TYPES,
+			chainCategoryData,
+			dimensionProtocols
+		)
 
 		onCreate({
 			dashboardName: template.name,

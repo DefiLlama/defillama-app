@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	ACTIVE_USERS_API,
@@ -15,13 +14,14 @@ import {
 	PROTOCOLS_API,
 	PROTOCOLS_EXPENSES_API,
 	PROTOCOLS_TREASURY,
+	V2_SERVER_URL,
 	YIELD_CONFIG_API,
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { capitalizeFirstLetter, firstDayOfMonth, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
@@ -276,8 +276,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'fees',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
 					.catch(() => null)
@@ -287,8 +286,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'Revenue' }))
 					.catch(() => null)
@@ -298,8 +296,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyHoldersRevenue',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
 					.catch(() => null)
@@ -309,8 +306,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyBribesRevenue',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 					.catch(() => null)
@@ -320,8 +316,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'fees',
 					dataType: 'dailyTokenTaxes',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
 					.catch(() => null)
@@ -330,8 +325,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'dexs',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'dexs' }))
 					.catch(() => null)
@@ -340,8 +334,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'aggregators',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'dexAggregators' }))
 					.catch(() => null)
@@ -350,8 +343,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'derivatives',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
 					.catch(() => null)
@@ -361,7 +353,6 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'open-interest',
 					protocol: metadata.displayName,
 					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true,
 					dataType: 'openInterestAtEnd'
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
@@ -371,8 +362,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'aggregator-derivatives',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'perpsAggregators' }))
 					.catch(() => null)
@@ -381,8 +371,7 @@ export const getProtocolOverviewPageData = async ({
 			? getAdapterProtocolSummary({
 					adapterType: 'bridge-aggregators',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 					.catch(() => null)
@@ -392,8 +381,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 					.catch(() => null)
@@ -403,8 +391,7 @@ export const getProtocolOverviewPageData = async ({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
 					protocol: metadata.displayName,
-					excludeTotalDataChart: true,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: true
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsNotionalVolume' }))
 					.catch(() => null)
@@ -987,14 +974,21 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; me
 			total7d: data.total7d ?? null,
 			total30d: data.total30d ?? null,
 			totalAllTime: data.totalAllTime ?? null,
-			...(areMethodologiesDifferent
-				? { childMethodologies: childMethodologies.filter((m) => (m[1] || m[2] ? true : false)) }
-				: {
+			...(methodologyKey === 'HoldersRevenue'
+				? {
 						methodology: methodologyKey
-							? (topChildMethodology?.[1] ?? commonMethodology[methodologyKey] ?? null)
+							? (childMethodologies.find((m) => m[1] != null)?.[1] ?? commonMethodology[methodologyKey] ?? null)
 							: null,
-						methodologyURL: topChildMethodology?.[2] ?? null
-					}),
+						methodologyURL: childMethodologies.find((m) => m[2] != null)?.[2] ?? null
+					}
+				: areMethodologiesDifferent
+					? { childMethodologies: childMethodologies.filter((m) => (m[1] || m[2] ? true : false)) }
+					: {
+							methodology: methodologyKey
+								? (topChildMethodology?.[1] ?? commonMethodology[methodologyKey] ?? null)
+								: null,
+							methodologyURL: topChildMethodology?.[2] ?? null
+						}),
 			defaultChartView: data.defaultChartView ?? 'daily'
 		}
 	}
@@ -1098,121 +1092,120 @@ const governanceApis = (governanceID) =>
 		) ?? []
 	).map((g) => g.toLowerCase())
 
-export async function getProtocolIncomeStatement({
-	metadata
-}: {
-	metadata: IProtocolMetadata
-}): Promise<IProtocolOverviewPageData['incomeStatement']> {
+export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }) {
 	try {
 		if (!metadata.fees || !metadata.revenue) {
 			return null
 		}
 
-		const [fees, revenue, holdersRevenue, incentives, bribes, tokenTaxes] = await Promise.all([
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				protocol: metadata.displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
-			}),
-			getAdapterProtocolSummary({
-				adapterType: 'fees',
-				protocol: metadata.displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true,
-				dataType: 'dailyRevenue'
-			}),
-			metadata.holdersRevenue
-				? getAdapterProtocolSummary({
-						adapterType: 'fees',
-						protocol: metadata.displayName,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
-						dataType: 'dailyHoldersRevenue'
-					})
-				: Promise.resolve(null),
+		const [incomeStatement, incentives] = await Promise.all([
+			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}`).catch(
+				() => null
+			),
 			getProtocolEmissons(slug(metadata.displayName))
 				.then((data) => data.unlockUsdChart ?? [])
 				.then((chart) => {
 					const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
 					return chart.slice(nonZeroIndex)
 				})
-				.catch(() => []),
-			metadata.bribeRevenue
-				? getAdapterProtocolSummary({
-						adapterType: 'fees',
-						protocol: metadata.displayName,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
-						dataType: 'dailyBribesRevenue'
-					}).catch(() => null)
-				: Promise.resolve(null),
-			metadata.tokenTax
-				? getAdapterProtocolSummary({
-						adapterType: 'fees',
-						protocol: metadata.displayName,
-						excludeTotalDataChart: false,
-						excludeTotalDataChartBreakdown: true,
-						dataType: 'dailyTokenTaxes'
-					}).catch(() => null)
-				: Promise.resolve(null)
+				.catch(() => [])
 		])
 
-		const feesByMonth: Record<string, number> = {}
-		const revenueByMonth: Record<string, number> = {}
-		const bribesByMonth: Record<string, number> = {}
-		const tokenTaxesByMonth: Record<string, number> = {}
-		const holdersRevenueByMonth: Record<string, number> = {}
-		const incentivesByMonth: Record<string, number> = {}
-		const monthDates = new Set<number>()
-
-		for (const [date, value] of fees.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			feesByMonth[dateKey] = (feesByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
-
-		for (const [date, value] of revenue.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			revenueByMonth[dateKey] = (revenueByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
-
-		for (const [date, value] of bribes?.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			bribesByMonth[dateKey] = (bribesByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
-
-		for (const [date, value] of tokenTaxes?.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			tokenTaxesByMonth[dateKey] = (tokenTaxesByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
-
-		for (const [date, value] of holdersRevenue?.totalDataChart ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			holdersRevenueByMonth[dateKey] = (holdersRevenueByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
-		}
+		const aggregates =
+			incomeStatement.aggregates ??
+			({
+				monthly: {},
+				quarterly: {},
+				yearly: {}
+			} as IProtocolOverviewPageData['incomeStatement']['data'])
 
 		for (const [date, value] of incentives ?? []) {
-			const dateKey = +firstDayOfMonth(+date * 1e3) * 1e3
-			incentivesByMonth[dateKey] = (incentivesByMonth[dateKey] ?? 0) + value
-			monthDates.add(dateKey)
+			const firstDayOfMonthDate = +firstDayOfMonth(+date * 1e3) * 1e3
+			const firstDayOfQuarterDate = +firstDayOfQuarter(firstDayOfMonthDate) * 1e3
+
+			const monthKey = `${new Date(firstDayOfMonthDate).toISOString().slice(0, 7)}`
+			const quarterKey = `${new Date(firstDayOfMonthDate).getUTCFullYear()}-Q${Math.ceil((new Date(firstDayOfQuarterDate).getUTCMonth() + 1) / 3)}`
+			const yearKey = new Date(firstDayOfMonthDate).getUTCFullYear()
+
+			aggregates.monthly[monthKey] = {
+				...(aggregates.monthly[monthKey] ?? {}),
+				incentives: {
+					value: (aggregates.monthly[monthKey]?.incentives?.value ?? 0) + value,
+					'by-label': {}
+				}
+			}
+			aggregates.quarterly[quarterKey] = {
+				...(aggregates.quarterly[quarterKey] ?? {}),
+				incentives: {
+					value: (aggregates.quarterly[quarterKey]?.incentives?.value ?? 0) + value,
+					'by-label': {}
+				}
+			}
+			aggregates.yearly[yearKey] = {
+				...(aggregates.yearly[yearKey] ?? {}),
+				incentives: {
+					value: (aggregates.yearly[yearKey]?.incentives?.value ?? 0) + value,
+					'by-label': {}
+				}
+			}
+		}
+
+		const labelsByType: Record<string, Set<string>> = {}
+
+		for (const group in aggregates) {
+			for (const date in aggregates[group]) {
+				aggregates[group][date].timestamp = date.includes('Q')
+					? new Date(
+							`${date.split('-')[0]}-${((parseInt(date.split('-')[1].replace('Q', '')) - 1) * 3 + 1).toString().padStart(2, '0')}`
+						).getTime()
+					: new Date(date.length === 4 ? `${date}-01-01` : date).getTime()
+
+				for (const label in aggregates[group][date]) {
+					for (const type in aggregates[group][date][label]['by-label'] ?? {}) {
+						labelsByType[label] = (labelsByType[label] ?? new Set()).add(type)
+					}
+				}
+
+				aggregates[group][date].earnings = {
+					value: (aggregates[group][date].dr?.value ?? 0) - (aggregates[group][date].incentives?.value ?? 0),
+					'by-label': {}
+				}
+			}
+		}
+
+		const finalLabelsByType = {}
+		for (const label in labelsByType) {
+			finalLabelsByType[label] = Array.from(labelsByType[label])
+		}
+
+		const labelMap = {
+			df: 'Fees',
+			dr: 'Revenue',
+			dhr: 'Holders Revenue'
+		}
+		const methodologyByType = {}
+		for (const shortLabel in finalLabelsByType) {
+			const label = labelMap[shortLabel]
+			if (!label) continue
+			methodologyByType[label] = methodologyByType[label] ?? {}
+			for (const type of finalLabelsByType[shortLabel]) {
+				for (const childProtocol of incomeStatement.childProtocols ?? []) {
+					if (childProtocol.breakdownMethodology?.[label]?.[type]) {
+						methodologyByType[label][type] = childProtocol.breakdownMethodology[label][type]
+						break
+					}
+				}
+				if (incomeStatement.breakdownMethodology?.[label]?.[type]) {
+					methodologyByType[label][type] = incomeStatement.breakdownMethodology[label][type]
+				}
+			}
 		}
 
 		return {
-			feesByMonth,
-			revenueByMonth,
-			holdersRevenueByMonth: holdersRevenue ? holdersRevenueByMonth : null,
-			incentivesByMonth: incentives.length > 0 ? incentivesByMonth : null,
-			bribesByMonth: bribes ? bribesByMonth : null,
-			tokenTaxesByMonth: tokenTaxes ? tokenTaxesByMonth : null,
-			monthDates: Array.from(monthDates)
-				.sort((a, b) => b - a)
-				.map((date) => [date, dayjs.utc(date).format('MMM YYYY')] as [number, string])
-		}
+			data: aggregates,
+			labelsByType: finalLabelsByType,
+			methodologyByType
+		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)
 		return null

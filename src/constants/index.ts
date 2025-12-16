@@ -7,12 +7,13 @@ export const timeframeOptions = {
 }
 
 // API endpoints
-const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
+export const SERVER_URL = process.env.SERVER_URL ?? 'https://api.llama.fi'
+export const V2_SERVER_URL = process.env.V2_SERVER_URL ?? `${SERVER_URL}/v2`
 const DATASETS_SERVER_URL = process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi'
 export const DATASETS_S3_PATH = 'https://defillama-datasets.s3.eu-central-1.amazonaws.com'
 export const DATASETS_R2_PATH = 'https://defillama-datasets.llama.fi'
 export const CHART_API = `${SERVER_URL}/lite/charts`
-export const CHAIN_TVL_API = `${SERVER_URL}/v2/chains`
+export const CHAIN_TVL_API = `${V2_SERVER_URL}/chains`
 export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 export const PROTOCOL_API = `${SERVER_URL}/updatedProtocol`
 export const PROTOCOL_API_MINI = `${SERVER_URL}/_fe/updatedProtocol-mini`
@@ -119,12 +120,10 @@ export const CHAINS_API_V2 = `${SERVER_URL}/chains2`
 export const CHAIN_ASSETS_FLOWS = `${SERVER_URL}/chain-assets/flows`
 export const CHAINS_ASSETS_CHART = `${SERVER_URL}/chain-assets/chart`
 
-const DIMENSIONS_SERVER_URL = process.env.DIMENSIONS_SERVER_URL ?? SERVER_URL
-export const DIMENISIONS_OVERVIEW_API = `${DIMENSIONS_SERVER_URL}/overview`
-export const BASE_API = `${SERVER_URL}/`
-export const DIMENISIONS_SUMMARY_BASE_API = `${DIMENSIONS_SERVER_URL}/summary`
-export const getProtocolFEConfig = (id: string) =>
-	`${DIMENSIONS_SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
+export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
+export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
+
+export const getProtocolFEConfig = (id: string) => `${SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
 
 export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
 export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'

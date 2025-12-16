@@ -447,14 +447,12 @@ export function StablecoinsChartTab({
 				<div className="pro-text3 text-xs">
 					{stablecoinMode === 'chain' && totalMcapCurrent !== null && (
 						<p>
-							Total Market Cap:{' '}
-							<span className="pro-text1 font-semibold">{formattedNum(totalMcapCurrent, true)}</span>
+							Total Market Cap: <span className="pro-text1 font-semibold">{formattedNum(totalMcapCurrent, true)}</span>
 						</p>
 					)}
 					{stablecoinMode === 'asset' && totalCirculating !== null && (
 						<p>
-							Total Circulating:{' '}
-							<span className="pro-text1 font-semibold">{formattedNum(totalCirculating, true)}</span>
+							Total Circulating: <span className="pro-text1 font-semibold">{formattedNum(totalCirculating, true)}</span>
 						</p>
 					)}
 				</div>

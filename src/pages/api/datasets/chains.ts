@@ -55,8 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const sortedChains = formattedChains.filter((chain) => chain.tvl > 0).sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
-		const finalChains =
-			normalizedLimit !== null ? sortedChains.slice(0, normalizedLimit) : sortedChains
+		const finalChains = normalizedLimit !== null ? sortedChains.slice(0, normalizedLimit) : sortedChains
 
 		res.status(200).json(finalChains)
 	} catch (error) {

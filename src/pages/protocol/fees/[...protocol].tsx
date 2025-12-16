@@ -50,15 +50,13 @@ export const getStaticProps = withPerformanceLogging(
 				getAdapterProtocolSummary({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
-					excludeTotalDataChart: false,
-					excludeTotalDataChartBreakdown: true
+					excludeTotalDataChart: false
 				}),
 				metadata[1].revenue
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyRevenue'
 						}).catch(() => null)
 					: Promise.resolve(null),
@@ -66,8 +64,7 @@ export const getStaticProps = withPerformanceLogging(
 					? getAdapterProtocolSummary({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
-							excludeTotalDataChart: true,
-							excludeTotalDataChartBreakdown: true,
+							excludeTotalDataChart: false,
 							dataType: 'dailyHoldersRevenue'
 						}).catch(() => null)
 					: Promise.resolve(null),
@@ -76,7 +73,6 @@ export const getStaticProps = withPerformanceLogging(
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyBribesRevenue'
 						}).catch(() => null)
 					: Promise.resolve(null),
@@ -85,7 +81,6 @@ export const getStaticProps = withPerformanceLogging(
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
-							excludeTotalDataChartBreakdown: true,
 							dataType: 'dailyTokenTaxes'
 						}).catch(() => null)
 					: Promise.resolve(null)
@@ -130,13 +125,17 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const linkedProtocols = (feesData?.linkedProtocols ?? []).slice(1)
-		const linkedProtocolsWithAdapterData = []
+		const linkedProtocolsWithFeesData = []
+		const linkedProtocolsWithRevenueData = []
 		if (protocolData.isParentProtocol) {
 			for (const key in protocolMetadata) {
 				if (linkedProtocols.length === 0) break
 				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
 					if (protocolMetadata[key].fees) {
-						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
+						linkedProtocolsWithFeesData.push(protocolMetadata[key])
+					}
+					if (protocolMetadata[key].revenue) {
+						linkedProtocolsWithRevenueData.push(protocolMetadata[key])
 					}
 					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
 				}
@@ -155,6 +154,7 @@ export const getStaticProps = withPerformanceLogging(
 		const charts = {
 			fees: feesData?.totalDataChart ?? [],
 			revenue: revenueData?.totalDataChart ?? [],
+			holdersRevenue: holdersRevenueData?.totalDataChart ?? [],
 			bribeRevenue: bribeRevenueData && bribeRevenueData.totalAllTime ? bribesCharts : null,
 			tokenTax: tokenTaxData && tokenTaxData.totalAllTime ? tokenTaxCharts : null
 		}
@@ -177,6 +177,14 @@ export const getStaticProps = withPerformanceLogging(
 			defaultCharts.push('Revenue')
 		}
 
+		if (
+			charts.holdersRevenue.length > 0 ||
+			bribeRevenueData?.totalDataChart?.length > 0 ||
+			tokenTaxData?.totalDataChart?.length > 0
+		) {
+			defaultCharts.push('Holders Revenue')
+		}
+
 		const toggleOptions = feesOptions.filter((option) =>
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
@@ -196,8 +204,9 @@ export const getStaticProps = withPerformanceLogging(
 				openSmolStatsSummaryByDefault: true,
 				charts,
 				defaultCharts,
-				hasMultipleChain: feesData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				protocolChains: feesData?.chains ?? [],
+				protocolFeesVersions: linkedProtocolsWithFeesData?.map((protocol) => protocol.displayName) ?? [],
+				protocolRevenueVersions: linkedProtocolsWithRevenueData?.map((protocol) => protocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView:
 					feesData?.defaultChartView ??
@@ -230,6 +239,7 @@ export default function Protocols(props) {
 
 		let feesChart = props.charts.fees
 		let revenueChart = props.charts.revenue
+		let holdersRevenueChart = props.charts.holdersRevenue
 
 		if (feesSettings.bribes && props.bribeRevenue?.totalAllTime) {
 			if (charts.includes('Fees')) {
@@ -241,6 +251,12 @@ export default function Protocols(props) {
 					value + (props.charts.bribeRevenue?.[date] ?? 0)
 				])
 			}
+			if (charts.includes('Holders Revenue')) {
+				holdersRevenueChart = props.charts.holdersRevenue.map(([date, value]) => [
+					date,
+					value + (props.charts.bribeRevenue?.[date] ?? 0)
+				])
+			}
 		}
 		if (feesSettings.tokentax && props.tokenTax?.totalAllTime) {
 			if (charts.includes('Fees')) {
@@ -248,6 +264,12 @@ export default function Protocols(props) {
 			}
 			if (charts.includes('Revenue')) {
 				revenueChart = props.charts.revenue.map(([date, value]) => [date, value + (props.charts.tokenTax?.[date] ?? 0)])
+			}
+			if (charts.includes('Holders Revenue')) {
+				holdersRevenueChart = props.charts.holdersRevenue.map(([date, value]) => [
+					date,
+					value + (props.charts.tokenTax?.[date] ?? 0)
+				])
 			}
 		}
 
@@ -277,6 +299,20 @@ export default function Protocols(props) {
 					dateInMs: false
 				}),
 				color: CHART_COLORS[1]
+			}
+		}
+		if (charts.includes('Holders Revenue')) {
+			finalCharts['Holders Revenue'] = {
+				name: 'Holders Revenue',
+				stack: 'Holders Revenue',
+				type: groupBy === 'cumulative' ? 'line' : 'bar',
+				data: formatBarChart({
+					data: holdersRevenueChart,
+					groupBy,
+					denominationPriceHistory: null,
+					dateInMs: false
+				}),
+				color: CHART_COLORS[2]
 			}
 		}
 
@@ -362,35 +398,70 @@ export default function Protocols(props) {
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
-				{props.hasMultipleChain ? (
+				{props.protocolChains?.length > 1 ? (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="fees"
+							breakdownNames={props.protocolChains}
 							metadata={{
-								revenue: props.metrics.revenue ?? false,
-								bribeRevenue: props.metrics.bribeRevenue ?? false,
-								tokenTax: props.metrics.tokenTax ?? false
+								bribeRevenue: props.bribeRevenue ?? false,
+								tokenTax: props.tokenTax ?? false
 							}}
 							title="Fees by chain"
 						/>
 					</div>
 				) : null}
-				{props.hasMultipleVersions ? (
+				{props.protocolFeesVersions?.length > 1 ? (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="fees"
+							breakdownNames={props.protocolFeesVersions}
 							metadata={{
-								revenue: props.metrics.revenue ?? false,
-								bribeRevenue: props.metrics.bribeRevenue ?? false,
-								tokenTax: props.metrics.tokenTax ?? false
+								bribeRevenue: props.bribeRevenue ?? false,
+								tokenTax: props.tokenTax ?? false
 							}}
 							title="Fees by protocol version"
 						/>
 					</div>
+				) : null}
+				{props.protocolRevenueVersions?.length > 1 ? (
+					<>
+						{props.protocolChains?.length > 1 ? (
+							<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+								<DimensionProtocolChartByType
+									chartType="chain"
+									protocolName={slug(props.name)}
+									adapterType="fees"
+									dataType="dailyRevenue"
+									breakdownNames={props.protocolChains}
+									metadata={{
+										bribeRevenue: props.metrics.bribeRevenue ?? false,
+										tokenTax: props.metrics.tokenTax ?? false
+									}}
+									title="Revenue by chain"
+								/>
+							</div>
+						) : null}
+
+						<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+							<DimensionProtocolChartByType
+								chartType="version"
+								protocolName={slug(props.name)}
+								adapterType="fees"
+								dataType="dailyRevenue"
+								breakdownNames={props.protocolRevenueVersions}
+								metadata={{
+									bribeRevenue: props.metrics.bribeRevenue ?? false,
+									tokenTax: props.metrics.tokenTax ?? false
+								}}
+								title="Revenue by protocol version"
+							/>
+						</div>
+					</>
 				) : null}
 			</div>
 		</ProtocolOverviewLayout>

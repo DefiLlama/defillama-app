@@ -3,8 +3,8 @@ import {
 	CHAIN_TVL_API,
 	CHAINS_API_V2,
 	CHART_API,
-	DIMENISIONS_OVERVIEW_API,
-	DIMENISIONS_SUMMARY_BASE_API,
+	DIMENSIONS_OVERVIEW_API,
+	DIMENSIONS_SUMMARY_API,
 	PEGGEDCHART_API,
 	PEGGEDCHART_DOMINANCE_ALL_API,
 	PROTOCOL_API,
@@ -433,7 +433,7 @@ async function getDimensionsProtocolChainData(
 	}
 
 	try {
-		let apiUrl = `${DIMENISIONS_SUMMARY_BASE_API}/${config.endpoint}/${protocol}`
+		let apiUrl = `${DIMENSIONS_SUMMARY_API}/${config.endpoint}/${protocol}`
 		if (config.dataType) {
 			apiUrl += `?dataType=${config.dataType}`
 		}
@@ -899,7 +899,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 ): Promise<ProtocolChainData> {
 	try {
 		const config = CHAIN_FEES_CONFIG[metric]
-		let overviewUrl = `${DIMENISIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true`
+		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true`
 		if (config?.dataType) overviewUrl += `&dataType=${config.dataType}`
 
 		const overviewResp = await fetch(overviewUrl)
@@ -960,7 +960,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 		const picked = rankedEntries.slice(0, Math.min(topN, rankedEntries.length))
 
 		const chainSeriesPromises = picked.map(async (entry, idx) => {
-			let summaryUrl = `${DIMENISIONS_SUMMARY_BASE_API}/fees/${entry.slug}`
+			let summaryUrl = `${DIMENSIONS_SUMMARY_API}/fees/${entry.slug}`
 			if (config?.dataType) summaryUrl += `?dataType=${config.dataType}`
 			const resp = await fetch(summaryUrl)
 			if (!resp.ok) return null
@@ -1053,7 +1053,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	if (!config) throw new Error(`Unsupported metric: ${metric}`)
 
 	try {
-		let overviewUrl = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
+		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) overviewUrl += `&dataType=${config.dataType}`
 		const overviewResp = await fetch(overviewUrl)
 		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
@@ -1161,7 +1161,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 		const chainSeriesPromises = picked.map(async (slug, idx) => {
 			const includeBreakdownParam = hasProtocolCategoryFilter ? 'false' : 'true'
 			const endpointSlug = toOverviewApiSlug(slug)
-			let url = `${DIMENISIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
+			let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
 			const r = await fetch(url)
 			if (!r.ok) return null

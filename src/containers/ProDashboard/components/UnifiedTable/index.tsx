@@ -3,7 +3,6 @@ import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
-import { evaluateExpression } from './utils/customColumns'
 import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
 import { UnifiedTablePagination } from './core/TablePagination'
 import { TableRenderer } from './core/TableRenderer'
@@ -17,6 +16,7 @@ import {
 	getDefaultRowHeaders,
 	normalizeSorting
 } from './utils/configHelpers'
+import { evaluateExpression } from './utils/customColumns'
 import { getActiveFilterChips } from './utils/filterChips'
 import type { ActiveFilterChip } from './utils/filterChips'
 import { sanitizeRowHeaders } from './utils/rowHeaders'
@@ -131,11 +131,7 @@ const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
 
 const metricFromColumn = (columnId: string) => columnId
 
-const toCsvValue = (
-	columnId: string,
-	row: NormalizedRow,
-	customColumns?: CustomColumnDefinition[]
-): string => {
+const toCsvValue = (columnId: string, row: NormalizedRow, customColumns?: CustomColumnDefinition[]): string => {
 	if (columnId === 'name') {
 		return row.name
 	}

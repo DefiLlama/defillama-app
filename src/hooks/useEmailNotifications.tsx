@@ -81,7 +81,8 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		},
 		enabled: isAuthenticated && !!portfolioName,
 		staleTime: 1000 * 60 * 5, // 5 minutes
-		retry: false
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	const savePreferences = useMutation<NotificationPreference, Error, SaveNotificationPreferencesRequest>({

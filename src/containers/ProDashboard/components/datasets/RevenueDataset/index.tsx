@@ -18,13 +18,13 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
+import { CategoryFilterModal } from '../../CategoryFilterModal'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
-import { CategoryFilterModal } from '../../CategoryFilterModal'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { revenueDatasetColumns } from './columns'
 import { useRevenueData } from './useRevenueData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 interface RevenueDatasetProps {
 	chains?: string[]

@@ -27,9 +27,7 @@ export function MetricCard({ metric, isSelected, onToggle, disabled, itemLabel =
 		>
 			<div
 				className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border transition-colors ${
-					isSelected
-						? 'border-(--primary) bg-(--primary)'
-						: 'border-(--form-control-border) bg-(--bg-input)'
+					isSelected ? 'border-(--primary) bg-(--primary)' : 'border-(--form-control-border) bg-(--bg-input)'
 				}`}
 			>
 				{isSelected && <Icon name="check" height={10} width={10} className="text-white" />}

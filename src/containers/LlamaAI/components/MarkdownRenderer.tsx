@@ -281,48 +281,46 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 					bottom: 0 !important;
 				}
 			`}</style>
-			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 ? (
-				contentParts.map((part, index) => {
-					if (part.type === 'chart' && part.chartId) {
-						const chart = charts?.find((c) => c.id === part.chartId)
-						if (chart && renderChart) {
-							const data = !chartData ? [] : Array.isArray(chartData) ? chartData : (chartData[part.chartId] || [])
-							return (
-								<div key={`chart-${part.chartId}-${index}`} className="my-4">
-									{renderChart(chart, data)}
-								</div>
-							)
+			{inlineChartIds.size > 0 || inlineCsvIds.size > 0
+				? contentParts.map((part, index) => {
+						if (part.type === 'chart' && part.chartId) {
+							const chart = charts?.find((c) => c.id === part.chartId)
+							if (chart && renderChart) {
+								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
+								return (
+									<div key={`chart-${part.chartId}-${index}`} className="my-4">
+										{renderChart(chart, data)}
+									</div>
+								)
+							}
+							if (isStreaming || !charts || charts.length === 0) {
+								return (
+									<div
+										key={`chart-loading-${part.chartId}-${index}`}
+										className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+									>
+										<span className="text-gray-500">Loading chart...</span>
+									</div>
+								)
+							}
+							return null
 						}
-						if (isStreaming || !charts || charts.length === 0) {
-							return (
-								<div
-									key={`chart-loading-${part.chartId}-${index}`}
-									className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-								>
-									<span className="text-gray-500">Loading chart...</span>
-								</div>
-							)
+						if (part.type === 'csv' && part.csvId) {
+							const csvExport = csvExports?.find((e) => e.id === part.csvId)
+							if (csvExport) {
+								return <CSVExportArtifact key={`csv-${part.csvId}-${index}`} csvExport={csvExport} />
+							}
+							if (isStreaming || !csvExports) {
+								return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
+							}
+							return null
+						}
+						if (part.content.trim()) {
+							return renderMarkdownSection(processCitations(part.content), `text-${index}`)
 						}
 						return null
-					}
-					if (part.type === 'csv' && part.csvId) {
-						const csvExport = csvExports?.find((e) => e.id === part.csvId)
-						if (csvExport) {
-							return <CSVExportArtifact key={`csv-${part.csvId}-${index}`} csvExport={csvExport} />
-						}
-						if (isStreaming || !csvExports) {
-							return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
-						}
-						return null
-					}
-					if (part.content.trim()) {
-						return renderMarkdownSection(processCitations(part.content), `text-${index}`)
-					}
-					return null
-				})
-			) : (
-				renderMarkdownSection(processedData.content, 'content')
-			)}
+					})
+				: renderMarkdownSection(processedData.content, 'content')}
 			{citations && citations.length > 0 && (
 				<details className="flex flex-col text-sm">
 					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">

@@ -53,7 +53,9 @@ export const normalizeChainList = (chains?: string[] | null): string[] => {
 	}
 
 	if (chains.length > MAX_CHAIN_FILTERS) {
-		throw new Error(`Too many chain filters provided. Maximum allowed is ${MAX_CHAIN_FILTERS}, received ${chains.length}`)
+		throw new Error(
+			`Too many chain filters provided. Maximum allowed is ${MAX_CHAIN_FILTERS}, received ${chains.length}`
+		)
 	}
 
 	const normalized = chains
@@ -125,4 +127,3 @@ export const formatDisplayName = (value?: string | null) => {
 		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
 		.join(' ')
 }
-

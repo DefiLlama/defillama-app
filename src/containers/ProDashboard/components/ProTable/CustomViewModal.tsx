@@ -49,7 +49,10 @@ export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: 
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs dark:bg-black/70"
 			onClick={onClose}
 		>
-			<div className="pro-bg1 pro-border w-full max-w-lg rounded-md border shadow-lg" onClick={(e) => e.stopPropagation()}>
+			<div
+				className="pro-bg1 pro-border w-full max-w-lg rounded-md border shadow-lg"
+				onClick={(e) => e.stopPropagation()}
+			>
 				<div className="p-6">
 					<div className="mb-6 flex items-center justify-between">
 						<h2 className="pro-text1 text-xl font-semibold">Save Custom View</h2>

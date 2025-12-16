@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -11,7 +12,9 @@ import { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { download, firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
+import { getAdapterChainChartDataByProtocolBreakdown, getAdapterChainOverview } from './queries'
 import { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly'] as const
@@ -21,39 +24,52 @@ const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
 ) as React.FC<ILineAndBarChartProps>
 
-// const downloadBreakdownChart = async ({
-// 	adapterType,
-// 	dataType,
-// 	chain
-// }: {
-// 	adapterType: string
-// 	dataType?: `${ADAPTER_DATA_TYPES}`
-// 	chain: string
-// }) => {
-// 	const data = await getAdapterChainOverview({
-// 		adapterType: adapterType as `${ADAPTER_TYPES}`,
-// 		chain,
-// 		excludeTotalDataChart: true,
-// 		excludeTotalDataChartBreakdown: false,
-// 		dataType
-// 	})
-// 	const rows: any = [['Timestamp', 'Date', ...data.protocols.map((protocol) => protocol.name)]]
+const downloadBreakdownChart = async ({
+	adapterType,
+	dataType,
+	chain,
+	fileName
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType?: `${ADAPTER_DATA_TYPES}`
+	chain: string
+	fileName: string
+}) => {
+	const [chartData, protocols] = await Promise.all([
+		getAdapterChainChartDataByProtocolBreakdown({
+			adapterType,
+			chain,
+			dataType
+		}),
+		getAdapterChainOverview({
+			adapterType,
+			chain,
+			dataType,
+			excludeTotalDataChart: true
+		})
+			.then((data) => data.protocols)
+			.then((protocols) =>
+				protocols.sort((a, b) => (b.totalAllTime ?? 0) - (a.totalAllTime ?? 0)).map((protocol) => protocol.name)
+			)
+	])
 
-// 	for (const item of data.totalDataChartBreakdown) {
-// 		const row = [item[0], toNiceCsvDate(item[0])]
-// 		for (const protocol of data.protocols) {
-// 			row.push(item[1][protocol.name] ?? '')
-// 		}
-// 		rows.push(row)
-// 	}
+	const rows: any = [['Timestamp', 'Date', ...protocols, 'Total']]
 
-// 	download(
-// 		`${slug(chain)}-${adapterType}-${new Date().toISOString().split('T')[0]}.csv`,
-// 		rows.map((r) => r.join(',')).join('\n')
-// 	)
+	for (const item of chartData) {
+		const row = [item[0], toNiceCsvDate(item[0])]
+		let total = 0
+		for (const protocol of protocols) {
+			row.push(item[1][protocol] ?? '')
+			total += item[1][protocol] ?? 0
+		}
+		row.push(total)
+		rows.push(row)
+	}
 
-// 	return null
-// }
+	download(`${slug(fileName)}-${new Date().toISOString().split('T')[0]}.csv`, rows.map((r) => r.join(',')).join('\n'))
+
+	return null
+}
 
 const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
@@ -153,13 +169,9 @@ export const AdapterByChainChart = ({
 		}
 	}, [chain, adapterType, dashboardChartType, chartInterval, chartName])
 
-	const prepareCsv = React.useCallback(() => {
-		const rows: any = [['Timestamp', 'Date', `${chartName} (USD)`]]
-		for (const [date, value] of chartData) {
-			rows.push([date, toNiceCsvDate(date / 1e3), value ?? ''])
-		}
-		return { filename: `${slug(chain)}-${adapterType}-${chartName}.csv`, rows }
-	}, [chartData, chain, adapterType, chartName])
+	const { mutate: downloadBreakdownChartMutation, isPending: isDownloadingBreakdownChart } = useMutation({
+		mutationFn: downloadBreakdownChart
+	})
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -180,7 +192,18 @@ export const AdapterByChainChart = ({
 								</Tooltip>
 							))}
 				</div>
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+				<CSVDownloadButton
+					onClick={() => {
+						downloadBreakdownChartMutation({
+							adapterType,
+							chain,
+							dataType,
+							fileName: `${chain === 'All' ? 'All Chains' : chain} - ${chartName}`
+						})
+					}}
+					isLoading={isDownloadingBreakdownChart}
+					smol
+				/>
 				<ChartExportButton
 					chartInstance={exportChartInstance}
 					filename={`${slug(chain)}-${adapterType}-${chartName}`}
@@ -219,10 +242,10 @@ export const ChainsByAdapterChart = ({
 	const prepareCsv = React.useCallback(() => {
 		const rows: any = [['Timestamp', 'Date', ...allChains]]
 
-		for (const date in chartData) {
+		for (const [date, chainsOnDate] of chartData) {
 			const row: any = [date, toNiceCsvDate(date)]
 			for (const chain of allChains) {
-				row.push(chartData[date][chain] ?? '')
+				row.push(chainsOnDate[chain] ?? '')
 			}
 			rows.push(row)
 		}
@@ -316,34 +339,34 @@ const getChartDataByChainAndInterval = ({
 	chartType,
 	selectedChains
 }: {
-	chartData: Record<string, Record<string, number>>
+	chartData: Array<[number, Record<string, number>]>
 	chartInterval: 'Daily' | 'Weekly' | 'Monthly'
 	chartType?: 'Volume' | 'Dominance'
 	selectedChains: string[]
 }) => {
 	if (chartType === 'Dominance') {
 		const sumByDate = {}
-		for (const date in chartData) {
+		for (const [date, chainsOnDate] of chartData) {
 			const finalDate = +date * 1e3
 
-			for (const chain in chartData[date]) {
+			for (const chain in chainsOnDate) {
 				if (selectedChains.includes(chain)) {
-					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chartData[date][chain] || 0)
+					sumByDate[finalDate] = (sumByDate[finalDate] || 0) + (chainsOnDate[chain] || 0)
 				}
 			}
 		}
 
 		const dataByChain = {}
 
-		for (const date in chartData) {
+		for (const [date, chainsOnDate] of chartData) {
 			const finalDate = +date * 1e3
 
 			for (const chain of selectedChains) {
 				dataByChain[chain] = dataByChain[chain] || []
 				dataByChain[chain].push([
 					finalDate,
-					sumByDate && chartData[date][chain] != null
-						? (Number(chartData[date][chain] || 0) / sumByDate[finalDate]) * 100
+					sumByDate && chainsOnDate[chain] != null
+						? (Number(chainsOnDate[chain] || 0) / sumByDate[finalDate]) * 100
 						: null
 				])
 			}
@@ -376,12 +399,12 @@ const getChartDataByChainAndInterval = ({
 	// 	const cumulativeByChain = {}
 	// 	const dataByChain = {}
 
-	// 	for (const date in chartData) {
+	// 	for (const [date, chainsOnDate] of chartData) {
 	// 		const finalDate = +date * 1e3
 
-	// 		for (const chain in chartData[date]) {
+	// 		for (const chain in chainsOnDate) {
 	// 			if (selectedChains.includes(chain)) {
-	// 				cumulativeByChain[chain] = (cumulativeByChain[chain] || 0) + (chartData[date][chain] || 0)
+	// 				cumulativeByChain[chain] = (cumulativeByChain[chain] || 0) + (chainsOnDate[chain] || 0)
 	// 				dataByChain[chain] = dataByChain[chain] || []
 	// 				dataByChain[chain].push([finalDate, cumulativeByChain[chain]])
 	// 			}
@@ -403,7 +426,7 @@ const getChartDataByChainAndInterval = ({
 	const topByAllDates = {}
 
 	const uniqTopChains = new Set<string>()
-	for (const date in chartData) {
+	for (const [date, chainsOnDate] of chartData) {
 		const finalDate =
 			chartInterval === 'Weekly'
 				? lastDayOfWeek(+date * 1e3) * 1e3
@@ -414,9 +437,9 @@ const getChartDataByChainAndInterval = ({
 		const topByDate = {}
 		let others = 0
 		const topItems = []
-		for (const chain in chartData[date]) {
+		for (const chain in chainsOnDate) {
 			if (selectedChains.includes(chain)) {
-				topItems.push([chain, chartData[date][chain]])
+				topItems.push([chain, chainsOnDate[chain]])
 			}
 		}
 		topItems

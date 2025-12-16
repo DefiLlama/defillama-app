@@ -82,7 +82,9 @@ export const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 		queries: chains.map((chain) => ({
 			queryKey: ['compare', chain],
 			queryFn: () => getChainData(chain),
-			staleTime: 60 * 60 * 1000
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0
 		}))
 	})
 

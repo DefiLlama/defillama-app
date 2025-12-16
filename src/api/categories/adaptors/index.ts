@@ -1,157 +1,13 @@
 import type { IParentProtocol } from '~/api/types'
-import { DIMENISIONS_OVERVIEW_API, DIMENISIONS_SUMMARY_BASE_API } from '~/constants'
-import { capitalizeFirstLetter, getBlockExplorer, slug } from '~/utils'
+import { DIMENSIONS_OVERVIEW_API } from '~/constants'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IGetOverviewResponseBody, IJSON, ProtocolAdaptorSummaryResponse } from './types'
-
-export enum ADAPTOR_TYPES {
-	DEXS = 'dexs',
-	FEES = 'fees',
-	AGGREGATORS = 'aggregators',
-	PERPS = 'derivatives',
-	PERPS_AGGREGATOR = 'aggregator-derivatives',
-	OPTIONS = 'options',
-	BRIDGE_AGGREGATORS = 'bridge-aggregators'
-}
-
-export const VOLUME_TYPE_ADAPTORS = [
-	'dexs',
-	'derivatives',
-	'options',
-	'aggregators',
-	'aggregator-derivatives',
-	'bridge-aggregators'
-]
-
-const getOverviewItem = (
-	type: string,
-	protocolName: string,
-	dataType?: string,
-	excludeTotalDataChart?: boolean,
-	excludeTotalDataChartBreakdown?: boolean
-): Promise<ProtocolAdaptorSummaryResponse> => {
-	return fetchJson(
-		`${DIMENISIONS_SUMMARY_BASE_API}/${type}/${slug(protocolName)}${dataType ? `?dataType=${dataType}` : ''}`
-	)
-}
-
-export interface ProtocolAdaptorSummaryProps extends Omit<ProtocolAdaptorSummaryResponse, 'totalDataChart'> {
-	type: string
-	totalDataChart: [IJoin2ReturnType, string[]]
-	allAddresses?: Array<string>
-	totalAllTimeTokenTaxes?: number
-	totalAllTimeBribes?: number
-	blockExplorers?: Array<{
-		blockExplorerLink: string
-		blockExplorerName: string
-		chain: string | null
-		address: string
-	}>
-}
-
-export const getDimensionProtocolPageData = async ({
-	adapterType,
-	protocolName,
-	dataType,
-	metadata
-}: {
-	adapterType: string
-	protocolName: string
-	dataType?: string
-	metadata?: any
-}): Promise<ProtocolAdaptorSummaryProps> => {
-	let label: string
-	if (adapterType === 'volumes') {
-		label = 'Volume'
-	} else if (adapterType === 'options') {
-		label = 'Premium volume'
-	} else {
-		label = capitalizeFirstLetter(adapterType)
-	}
-	const allCharts: IChartsList = []
-
-	let secondLabel: string
-	const promises: Promise<ProtocolAdaptorSummaryResponse | null>[] = [
-		getOverviewItem(adapterType, protocolName, dataType)
-	]
-	if (adapterType === 'fees') {
-		if (metadata?.revenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyRevenue'))
-		if (metadata?.bribeRevenue) promises.push(getOverviewItem(adapterType, protocolName, 'dailyBribesRevenue'))
-		if (metadata?.tokenTax) promises.push(getOverviewItem(adapterType, protocolName, 'dailyTokenTaxes'))
-		secondLabel = 'Revenue'
-	} else if (adapterType === 'options') {
-		promises.push(getOverviewItem(adapterType, protocolName, 'dailyNotionalVolume'))
-		secondLabel = 'Notional volume'
-	}
-	const [firstType, secondType, thirdType, fourthType] = await Promise.allSettled(promises)
-
-	if (firstType?.status === 'rejected') {
-		console.log(firstType.reason)
-		return null
-	}
-
-	if (firstType?.value?.totalDataChart) allCharts.push([label, firstType.value.totalDataChart])
-
-	if (secondLabel && secondType?.status === 'fulfilled' && secondType.value?.totalDataChart) {
-		allCharts.push([secondLabel, secondType.value.totalDataChart])
-	}
-
-	if (
-		thirdType?.status === 'fulfilled' &&
-		thirdType.value?.totalDataChart &&
-		!(thirdType.value.totalDataChart.length === 1 && thirdType.value.totalDataChart[0][1] === 0)
-	) {
-		allCharts.push(['Bribes', thirdType.value.totalDataChart])
-	}
-
-	if (
-		fourthType?.status === 'fulfilled' &&
-		fourthType.value?.totalDataChart &&
-		!(fourthType.value.totalDataChart.length === 1 && fourthType.value.totalDataChart[0][1] === 0)
-	) {
-		allCharts.push(['TokenTax', fourthType.value.totalDataChart])
-	}
-
-	const blockExplorers = (
-		firstType.value?.allAddresses ?? (firstType.value?.address ? [firstType.value.address] : [])
-	).map((address) => {
-		const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address)
-		const splittedAddress = address.split(':')
-		return {
-			blockExplorerLink,
-			blockExplorerName,
-			chain: splittedAddress.length > 1 ? splittedAddress[0] : null,
-			address: splittedAddress.length > 1 ? splittedAddress[1] : splittedAddress[0]
-		}
-	})
-
-	return {
-		...firstType.value,
-		logo: getLlamaoLogo(firstType.value?.logo),
-		dailyRevenue: secondType?.status === 'fulfilled' ? (secondType.value?.total24h ?? null) : null,
-		dailyBribesRevenue: thirdType?.status === 'fulfilled' ? (thirdType.value?.total24h ?? null) : null,
-		dailyTokenTaxes: fourthType?.status === 'fulfilled' ? (fourthType.value?.total24h ?? null) : null,
-		totalAllTimeTokenTaxes: fourthType?.status === 'fulfilled' ? (fourthType.value?.totalAllTime ?? null) : null,
-		totalAllTimeBribes: thirdType?.status === 'fulfilled' ? (thirdType.value?.totalAllTime ?? null) : null,
-		type: adapterType,
-		totalDataChart: [joinCharts2(...allCharts), allCharts.map(([label]) => label)],
-		blockExplorers
-	}
-}
 
 export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
 	if (numerator && denominator && numerator !== null && denominator !== null)
 		return Number((numerator / (denominator * 12)).toFixed(2))
 	return null
-}
-
-export const getLlamaoLogo = (logo: string | null) => {
-	if (!logo) return null
-	let llamoLogo = logo
-	if (llamoLogo.includes('chains'))
-		llamoLogo = llamoLogo.replace('https://icons.llama.fi/', 'https://icons.llamao.fi/icons/')
-	llamoLogo = llamoLogo.replace('https://icons.llama.fi/', 'https://icons.llamao.fi/icons/protocols/')
-	return llamoLogo.split('.').slice(0, -1).join('.')
 }
 
 export interface IOverviewProps {
@@ -188,41 +44,11 @@ export interface IOverviewProps {
 	parentProtocols?: Array<IParentProtocol>
 }
 
-type IChartsList = Array<[string, IGetOverviewResponseBody['totalDataChart']]>
 export type IJoin2ReturnType = Array<IJSON<number | string> & { date: string }>
-export const joinCharts2 = (...lists: Array<[string, Array<[number, number]>]>): IJoin2ReturnType =>
-	Object.values(
-		lists.reduce(
-			(acc, [name, list]) => {
-				list?.forEach(([timestamp, value]) => {
-					if (acc[timestamp])
-						acc[String(timestamp)] = {
-							...acc[String(timestamp)],
-							[name]: value
-						}
-					else
-						acc[String(timestamp)] = {
-							[name]: value,
-							date: String(timestamp)
-						}
-				})
-				return acc
-			},
-			{} as IJSON<IJoin2ReturnType[number]>
-		)
-	).map<IJoin2ReturnType[number]>((bar) => {
-		const date = bar.date
-		delete bar.date
-		const orderedItems = Object.entries(bar)
-		return {
-			date,
-			...orderedItems.reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as IJoin2ReturnType[number])
-		}
-	})
 
 // - used in /fees and /fees/chain/[chain]
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
-	const apiUrl = `${DIMENISIONS_OVERVIEW_API}/fees${
+	const apiUrl = `${DIMENSIONS_OVERVIEW_API}/fees${
 		chain && chain !== 'All' ? '/' + slug(chain) : ''
 	}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
@@ -313,7 +139,7 @@ export const getDexVolumeByChain = async ({
 	excludeTotalDataChartBreakdown: boolean
 }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/dexs${
+		`${DIMENSIONS_OVERVIEW_API}/dexs${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	).catch((err) => {
@@ -334,7 +160,7 @@ export const getPerpsVolumeByChain = async ({
 	excludeTotalDataChartBreakdown: boolean
 }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/derivatives${
+		`${DIMENSIONS_OVERVIEW_API}/derivatives${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
 	).catch((err) => {
@@ -347,7 +173,7 @@ export const getPerpsVolumeByChain = async ({
 
 export const getOpenInterestByChain = async ({ chain }: { chain?: string }) => {
 	const data = await fetchJson(
-		`${DIMENISIONS_OVERVIEW_API}/open-interest${
+		`${DIMENSIONS_OVERVIEW_API}/open-interest${
 			chain && chain !== 'All' ? '/' + slug(chain) : ''
 		}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
 	).catch((err) => {

@@ -94,10 +94,7 @@ export function useUnifiedTable({
 
 	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 
-	const paramsKey = useMemo(
-		() => JSON.stringify({ chains: config.params?.chains ?? [] }),
-		[config.params?.chains]
-	)
+	const paramsKey = useMemo(() => JSON.stringify({ chains: config.params?.chains ?? [] }), [config.params?.chains])
 	const headersKey = useMemo(() => sanitizedHeaders.join('|'), [sanitizedHeaders])
 
 	const { data, isLoading } = useQuery({

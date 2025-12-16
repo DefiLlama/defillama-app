@@ -24,7 +24,14 @@ const formatLabel = (header: string, group?: string) => {
 	return `${header} · ${group.charAt(0).toUpperCase()}${group.slice(1)}`
 }
 
-export function SortingSelector({ columnOrder, columnVisibility, sorting, onChange, onReset, customColumns }: SortingSelectorProps) {
+export function SortingSelector({
+	columnOrder,
+	columnVisibility,
+	sorting,
+	onChange,
+	onReset,
+	customColumns
+}: SortingSelectorProps) {
 	const currentSorting = sorting[0]
 	const currentColumn = currentSorting?.id ?? ''
 	const isDescending = currentSorting?.desc ?? true
@@ -39,7 +46,7 @@ export function SortingSelector({ columnOrder, columnVisibility, sorting, onChan
 
 	const selectableColumns = useMemo(() => {
 		return columnOrder
-			.filter((id) => (columnVisibility[id] ?? true))
+			.filter((id) => columnVisibility[id] ?? true)
 			.map((id) => {
 				const customCol = customColumnsMap.get(id)
 				if (customCol) {
@@ -85,7 +92,7 @@ export function SortingSelector({ columnOrder, columnVisibility, sorting, onChan
 						id="unified-sorting-column"
 						value={currentColumn}
 						onChange={(event) => handleColumnChange(event.target.value)}
-						className="w-full min-w-[180px] rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-primary) focus:border-(--primary) focus:outline-none focus:ring-2 focus:ring-(--primary)/20 sm:w-auto"
+						className="w-full min-w-[180px] rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 focus:outline-none sm:w-auto"
 					>
 						<option value="">No sorting</option>
 						{selectableColumns.map((column) => (

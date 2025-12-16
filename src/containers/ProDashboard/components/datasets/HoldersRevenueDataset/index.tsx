@@ -18,13 +18,13 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
+import { CategoryFilterModal } from '../../CategoryFilterModal'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
-import { CategoryFilterModal } from '../../CategoryFilterModal'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { holdersRevenueDatasetColumns } from './columns'
 import { useHoldersRevenueData } from './useHoldersRevenueData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 interface HoldersRevenueDatasetProps {
 	chains?: string[]
@@ -124,24 +124,24 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 			if (columnId === 'category') {
 				return {
 					...col,
-						header: () => (
-							<div className="flex items-center justify-end gap-2">
-								<span>Category</span>
-								<button
-									onClick={(event) => {
-										event.stopPropagation()
-										setShowFilterModal(true)
-									}}
-									className={`ml-2 rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
-										filterButtonIsActive ? 'text-(--primary)' : 'text-(--text-tertiary)'
-									}`}
-									title="Filter categories"
-								>
-									<Icon name="settings" height={14} width={14} />
-								</button>
-							</div>
-						)
-					}
+					header: () => (
+						<div className="flex items-center justify-end gap-2">
+							<span>Category</span>
+							<button
+								onClick={(event) => {
+									event.stopPropagation()
+									setShowFilterModal(true)
+								}}
+								className={`ml-2 rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
+									filterButtonIsActive ? 'text-(--primary)' : 'text-(--text-tertiary)'
+								}`}
+								title="Filter categories"
+							>
+								<Icon name="settings" height={14} width={14} />
+							</button>
+						</div>
+					)
+				}
 			}
 			return col
 		})

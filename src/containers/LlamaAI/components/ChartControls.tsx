@@ -48,7 +48,8 @@ export const ChartControls = memo(function ChartControls({
 
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
 
-	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks) return null
+	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks)
+		return null
 
 	return (
 		<div className="mb-2 flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 p-2 pt-0 dark:border-gray-700">

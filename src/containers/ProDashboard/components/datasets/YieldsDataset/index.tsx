@@ -3,12 +3,12 @@ import { TagGroup } from '~/components/TagGroup'
 import { useProDashboard } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { useYieldsData } from './useYieldsData'
 import { useYieldsTable } from './useYieldsTable'
 import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
 import { YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { YieldsTableHeader } from './YieldsTableHeader'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 interface YieldsDatasetProps {
 	chains?: string[]
@@ -161,15 +161,15 @@ export function YieldsDataset({
 			<YieldsFiltersPanel
 				showFiltersPanel={showFiltersPanel}
 				setShowFiltersPanel={setShowFiltersPanel}
-			filters={filters}
-			setFilters={setFilters}
-			availableChains={availableChains}
-			availableProtocols={availableProtocols}
-			availableTokens={availableTokens}
-			onApplyFilters={applyFilters}
-			onResetFilters={resetFilters}
-			activeFilterCount={activeFilterCount}
-		/>
+				filters={filters}
+				setFilters={setFilters}
+				availableChains={availableChains}
+				availableProtocols={availableProtocols}
+				availableTokens={availableTokens}
+				onApplyFilters={applyFilters}
+				onResetFilters={resetFilters}
+				activeFilterCount={activeFilterCount}
+			/>
 
 			<TableBody table={table} />
 

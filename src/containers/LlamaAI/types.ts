@@ -1,4 +1,3 @@
-
 // Chart-related types from backend
 export interface ChartConfiguration {
 	id: string

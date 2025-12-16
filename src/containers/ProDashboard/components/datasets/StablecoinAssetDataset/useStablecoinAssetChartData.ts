@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PEGGED_API, PEGGEDCONFIG_API, PEGGEDS_API } from '~/constants'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { fetchJson } from '~/utils/async'
 import { getDominancePercent, preparePieChartData, slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinAssetChartDataResult {
 	peggedAreaTotalData: any[]
@@ -19,7 +19,11 @@ interface UseStablecoinAssetChartDataResult {
 }
 
 export function useStablecoinAssetChartData(stablecoinSlug: string): UseStablecoinAssetChartDataResult {
-	const { data: rawData, isLoading, error } = useQuery({
+	const {
+		data: rawData,
+		isLoading,
+		error
+	} = useQuery({
 		queryKey: ['stablecoin-asset-chart-data', stablecoinSlug],
 		queryFn: async () => {
 			if (!stablecoinSlug) return null

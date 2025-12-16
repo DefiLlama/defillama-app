@@ -114,21 +114,65 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		{ minKey: 'change1mMin', maxKey: 'change1mMax', getValue: (row) => row.metrics.change1m },
 		{ minKey: 'pfRatioMin', maxKey: 'pfRatioMax', getValue: (row) => row.metrics.pf },
 		{ minKey: 'protocolCountMin', maxKey: 'protocolCountMax', getValue: (row) => row.metrics.protocolCount },
-		{ minKey: 'volumeDominance24hMin', maxKey: 'volumeDominance24hMax', getValue: (row) => row.metrics.volumeDominance_24h },
-		{ minKey: 'volumeMarketShare7dMin', maxKey: 'volumeMarketShare7dMax', getValue: (row) => row.metrics.volumeMarketShare7d },
+		{
+			minKey: 'volumeDominance24hMin',
+			maxKey: 'volumeDominance24hMax',
+			getValue: (row) => row.metrics.volumeDominance_24h
+		},
+		{
+			minKey: 'volumeMarketShare7dMin',
+			maxKey: 'volumeMarketShare7dMax',
+			getValue: (row) => row.metrics.volumeMarketShare7d
+		},
 		{ minKey: 'tvlShareMin', maxKey: 'tvlShareMax', getValue: (row) => row.metrics.tvlShare },
-		{ minKey: 'perpsVolumeDominance24hMin', maxKey: 'perpsVolumeDominance24hMax', getValue: (row) => row.metrics.perps_volume_dominance_24h },
-		{ minKey: 'optionsVolumeDominance24hMin', maxKey: 'optionsVolumeDominance24hMax', getValue: (row) => row.metrics.options_volume_dominance_24h },
+		{
+			minKey: 'perpsVolumeDominance24hMin',
+			maxKey: 'perpsVolumeDominance24hMax',
+			getValue: (row) => row.metrics.perps_volume_dominance_24h
+		},
+		{
+			minKey: 'optionsVolumeDominance24hMin',
+			maxKey: 'optionsVolumeDominance24hMax',
+			getValue: (row) => row.metrics.options_volume_dominance_24h
+		},
 		{ minKey: 'holderRevenue24hMin', maxKey: 'holderRevenue24hMax', getValue: (row) => row.metrics.holderRevenue_24h },
-		{ minKey: 'treasuryRevenue24hMin', maxKey: 'treasuryRevenue24hMax', getValue: (row) => row.metrics.treasuryRevenue_24h },
+		{
+			minKey: 'treasuryRevenue24hMin',
+			maxKey: 'treasuryRevenue24hMax',
+			getValue: (row) => row.metrics.treasuryRevenue_24h
+		},
 		{ minKey: 'stablesMcapMin', maxKey: 'stablesMcapMax', getValue: (row) => row.metrics.stablesMcap },
 		{ minKey: 'bridgedTvlMin', maxKey: 'bridgedTvlMax', getValue: (row) => row.metrics.bridgedTvl },
-		{ minKey: 'aggregatorsVolume24hMin', maxKey: 'aggregatorsVolume24hMax', getValue: (row) => row.metrics.aggregators_volume_24h },
-		{ minKey: 'aggregatorsVolume7dMin', maxKey: 'aggregatorsVolume7dMax', getValue: (row) => row.metrics.aggregators_volume_7d },
-		{ minKey: 'aggregatorsVolume30dMin', maxKey: 'aggregatorsVolume30dMax', getValue: (row) => row.metrics.aggregators_volume_30d },
-		{ minKey: 'derivativesAggregatorsVolume24hMin', maxKey: 'derivativesAggregatorsVolume24hMax', getValue: (row) => row.metrics.derivatives_aggregators_volume_24h },
-		{ minKey: 'derivativesAggregatorsVolume7dMin', maxKey: 'derivativesAggregatorsVolume7dMax', getValue: (row) => row.metrics.derivatives_aggregators_volume_7d },
-		{ minKey: 'derivativesAggregatorsVolume30dMin', maxKey: 'derivativesAggregatorsVolume30dMax', getValue: (row) => row.metrics.derivatives_aggregators_volume_30d }
+		{
+			minKey: 'aggregatorsVolume24hMin',
+			maxKey: 'aggregatorsVolume24hMax',
+			getValue: (row) => row.metrics.aggregators_volume_24h
+		},
+		{
+			minKey: 'aggregatorsVolume7dMin',
+			maxKey: 'aggregatorsVolume7dMax',
+			getValue: (row) => row.metrics.aggregators_volume_7d
+		},
+		{
+			minKey: 'aggregatorsVolume30dMin',
+			maxKey: 'aggregatorsVolume30dMax',
+			getValue: (row) => row.metrics.aggregators_volume_30d
+		},
+		{
+			minKey: 'derivativesAggregatorsVolume24hMin',
+			maxKey: 'derivativesAggregatorsVolume24hMax',
+			getValue: (row) => row.metrics.derivatives_aggregators_volume_24h
+		},
+		{
+			minKey: 'derivativesAggregatorsVolume7dMin',
+			maxKey: 'derivativesAggregatorsVolume7dMax',
+			getValue: (row) => row.metrics.derivatives_aggregators_volume_7d
+		},
+		{
+			minKey: 'derivativesAggregatorsVolume30dMin',
+			maxKey: 'derivativesAggregatorsVolume30dMax',
+			getValue: (row) => row.metrics.derivatives_aggregators_volume_30d
+		}
 	]
 
 	numericRangeFilters.forEach(({ minKey, maxKey, getValue }) => {

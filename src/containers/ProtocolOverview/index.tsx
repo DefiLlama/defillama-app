@@ -12,7 +12,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { firstDayOfQuarter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
 import { ProtocolOverviewLayout } from './Layout'
@@ -167,7 +167,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
-				{props.incomeStatement ? (
+				{props.incomeStatement?.data ? (
 					<Suspense fallback={<></>}>
 						<IncomeStatement {...props} />
 					</Suspense>
@@ -263,7 +263,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 	if (!props.hasKeyMetrics) return null
 	return (
 		<div className="flex flex-1 flex-col gap-2">
-			<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="key-metrics">
+			<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
 				Key Metrics
 				<a
 					aria-hidden="true"
@@ -1775,6 +1775,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 		</div>
 	)
 }
+
 const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
@@ -1843,35 +1844,36 @@ const MethodologyByAdapter = ({
 }) => {
 	if (adapter?.childMethodologies?.length) {
 		return (
-			<p>
-				<span className="font-medium">{title}:</span>
-				<br />
-				<span className="flex flex-col gap-1">
+			<div className="flex flex-col">
+				<h3 className="font-medium">{title}:</h3>
+				<div className="flex flex-col gap-0.5 text-(--text-label)">
 					{adapter.childMethodologies.map((child) =>
-						child[2] ? (
-							<a
-								key={`${title}-${child[0]}-${child[1] ?? ''}-${child[2] ?? ''}`}
-								href={child[2]}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="hover:underline"
-							>
-								<span>{child[0]}:</span> <span>{child[1]}</span>
-								{child[2] ? (
-									<span className="relative top-0.5 left-1 inline-block">
-										<Icon name="external-link" className="h-3.5 w-3.5" />
-										<span className="sr-only">View code on GitHub</span>
-									</span>
-								) : null}
-							</a>
-						) : (
-							<span key={`${title}-${child[0]}-${child[1] ?? ''}`}>
-								{child[0]}: {child[1]}
-							</span>
-						)
+						child[1] ? (
+							child[2] ? (
+								<a
+									key={`${title}-${child[0]}-${child[1] ?? ''}-${child[2] ?? ''}`}
+									href={child[2]}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="hover:underline"
+								>
+									<span>{child[0]} - </span> <span>{child[1]}</span>
+									{child[2] ? (
+										<span className="relative top-0.5 left-1 inline-block">
+											<Icon name="external-link" className="h-3.5 w-3.5" />
+											<span className="sr-only">View code on GitHub</span>
+										</span>
+									) : null}
+								</a>
+							) : (
+								<p key={`${title}-${child[0]}-${child[1] ?? ''}`}>
+									{child[0]}: {child[1]}
+								</p>
+							)
+						) : null
 					)}
-				</span>
-			</p>
+				</div>
+			</div>
 		)
 	}
 
@@ -2119,127 +2121,130 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
 
+function mergeIncomeStatementData(
+	data: { value: number; 'by-label': Record<string, number> },
+	newData?: { value: number; 'by-label': Record<string, number> }
+) {
+	const current = { ...data }
+	current.value += newData?.value ?? 0
+	for (const label in newData?.['by-label'] ?? {}) {
+		current['by-label'][label] = (current['by-label'][label] ?? 0) + newData['by-label'][label]
+	}
+	return current
+}
+
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
-	const { monthDates, feesByMonth, revenueByMonth, holdersRevenueByMonth, incentivesByMonth } = useMemo(() => {
-		if (groupBy === 'Quarterly') {
-			const quarterlyDates = new Set<number>()
-			const quarterlyFeesByMonth = {}
-			const quarterlyRevenueByMonth = {}
-			const quarterlyHoldersRevenueByMonth = {}
-			const quarterlyIncentivesByMonth = {}
-			for (const [date] of props.incomeStatement.monthDates) {
-				const dateKey = +firstDayOfQuarter(date) * 1e3
-				quarterlyDates.add(dateKey)
-				quarterlyFeesByMonth[dateKey] =
-					(quarterlyFeesByMonth[dateKey] ?? 0) +
-					(props.incomeStatement.feesByMonth[date] ?? 0) +
-					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
-					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
-				quarterlyRevenueByMonth[dateKey] =
-					(quarterlyRevenueByMonth[dateKey] ?? 0) +
-					(props.incomeStatement.revenueByMonth[date] ?? 0) +
-					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
-					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
-				quarterlyHoldersRevenueByMonth[dateKey] =
-					(quarterlyHoldersRevenueByMonth[dateKey] ?? 0) + (props.incomeStatement.holdersRevenueByMonth?.[date] ?? 0)
-				quarterlyIncentivesByMonth[dateKey] =
-					(quarterlyIncentivesByMonth[dateKey] ?? 0) + (props.incomeStatement.incentivesByMonth?.[date] ?? 0)
+
+	const {
+		tableHeaders,
+		feesData,
+		revenueData,
+		incentivesData,
+		holdersRevenueData,
+		feesByLabels,
+		revenueByLabels,
+		holdersRevenueByLabels,
+		earningsData
+	} = useMemo(() => {
+		const groupKey = groupBy.toLowerCase()
+		const tableHeaders = [] as [string, string, number][]
+		const feesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const revenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const holdersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
+			tableHeaders.push([
+				key,
+				groupKey === 'monthly'
+					? dayjs.utc(key).format('MMM YYYY')
+					: groupKey === 'quarterly'
+						? key.split('-').reverse().join(' ')
+						: key,
+				props.incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
+			])
+
+			feesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.df ?? {
+				value: 0,
+				'by-label': {}
 			}
-			return {
-				monthDates: Array.from(quarterlyDates)
-					.sort((a, b) => b - a)
-					.map((date) => {
-						const dateObj = new Date(date)
-						const quarter = Math.ceil((dateObj.getUTCMonth() + 1) / 3)
-						const year = dateObj.getUTCFullYear()
-						return [date, `Q${quarter} ${year}`]
-					}),
-				feesByMonth: quarterlyFeesByMonth,
-				revenueByMonth: quarterlyRevenueByMonth,
-				holdersRevenueByMonth: props.incomeStatement.holdersRevenueByMonth ? quarterlyHoldersRevenueByMonth : null,
-				incentivesByMonth: props.incomeStatement.incentivesByMonth ? quarterlyIncentivesByMonth : null
+			if (feesSettings.bribes) {
+				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dbr)
 			}
-		}
-		if (groupBy === 'Yearly') {
-			const yearlyDates = new Set<number>()
-			const yearlyFeesByMonth = {}
-			const yearlyRevenueByMonth = {}
-			const yearlyHoldersRevenueByMonth = {}
-			const yearlyIncentivesByMonth = {}
-			for (const [date] of props.incomeStatement.monthDates) {
-				const dateObj = new Date(date)
-				const yearKey = dateObj.getUTCFullYear()
-				yearlyDates.add(yearKey)
-				yearlyFeesByMonth[yearKey] =
-					(yearlyFeesByMonth[yearKey] ?? 0) +
-					(props.incomeStatement.feesByMonth[date] ?? 0) +
-					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
-					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
-				yearlyRevenueByMonth[yearKey] =
-					(yearlyRevenueByMonth[yearKey] ?? 0) +
-					(props.incomeStatement.revenueByMonth[date] ?? 0) +
-					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
-					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
-				yearlyHoldersRevenueByMonth[yearKey] =
-					(yearlyHoldersRevenueByMonth[yearKey] ?? 0) + (props.incomeStatement.holdersRevenueByMonth?.[date] ?? 0)
-				yearlyIncentivesByMonth[yearKey] =
-					(yearlyIncentivesByMonth[yearKey] ?? 0) + (props.incomeStatement.incentivesByMonth?.[date] ?? 0)
+			if (feesSettings.tokentax) {
+				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dtt)
 			}
-			return {
-				monthDates: Array.from(yearlyDates)
-					.sort((a, b) => b - a)
-					.map((date) => {
-						return [date, date]
-					}),
-				feesByMonth: yearlyFeesByMonth,
-				revenueByMonth: yearlyRevenueByMonth,
-				holdersRevenueByMonth: props.incomeStatement.holdersRevenueByMonth ? yearlyHoldersRevenueByMonth : null,
-				incentivesByMonth: props.incomeStatement.incentivesByMonth ? yearlyIncentivesByMonth : null
+
+			revenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dr ?? {
+				value: 0,
+				'by-label': {}
+			}
+			if (feesSettings.bribes) {
+				revenueData[key] = mergeIncomeStatementData(
+					revenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				revenueData[key] = mergeIncomeStatementData(
+					revenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
+				)
+			}
+
+			incentivesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.incentives ?? {
+				value: 0,
+				'by-label': {}
+			}
+
+			holdersRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dhr ?? {
+				value: 0,
+				'by-label': {}
+			}
+			if (feesSettings.bribes) {
+				holdersRevenueData[key] = mergeIncomeStatementData(
+					holdersRevenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				holdersRevenueData[key] = mergeIncomeStatementData(
+					holdersRevenueData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
+				)
+			}
+
+			earningsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.earnings ?? {
+				value: 0,
+				'by-label': {}
+			}
+			if (feesSettings.bribes) {
+				earningsData[key] = mergeIncomeStatementData(
+					earningsData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				earningsData[key] = mergeIncomeStatementData(
+					earningsData[key],
+					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
+				)
 			}
 		}
 
-		if (
-			(props.incomeStatement?.bribesByMonth || props.incomeStatement?.tokenTaxesByMonth) &&
-			(feesSettings.bribes || feesSettings.tokentax)
-		) {
-			const monthlyDates = new Set<number>()
-			const monthlyFeesByMonth = {}
-			const monthlyRevenueByMonth = {}
-			const monthlyHoldersRevenueByMonth = {}
-			const monthlyIncentivesByMonth = {}
-			for (const [date] of props.incomeStatement.monthDates) {
-				monthlyDates.add(date)
-				monthlyFeesByMonth[date] =
-					(monthlyFeesByMonth[date] ?? 0) +
-					(props.incomeStatement.feesByMonth[date] ?? 0) +
-					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
-					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
-				monthlyRevenueByMonth[date] =
-					(monthlyRevenueByMonth[date] ?? 0) +
-					(props.incomeStatement.revenueByMonth[date] ?? 0) +
-					(feesSettings.bribes ? (props.incomeStatement.bribesByMonth?.[date] ?? 0) : 0) +
-					(feesSettings.tokentax ? (props.incomeStatement.tokenTaxesByMonth?.[date] ?? 0) : 0)
-				monthlyHoldersRevenueByMonth[date] =
-					(monthlyHoldersRevenueByMonth[date] ?? 0) + (props.incomeStatement.holdersRevenueByMonth?.[date] ?? 0)
-				monthlyIncentivesByMonth[date] =
-					(monthlyIncentivesByMonth[date] ?? 0) + (props.incomeStatement.incentivesByMonth?.[date] ?? 0)
-			}
-			return {
-				monthDates: Array.from(monthlyDates)
-					.sort((a, b) => b - a)
-					.map((date) => {
-						return [date, dayjs.utc(date).format('MMM YYYY')]
-					}),
-				feesByMonth: monthlyFeesByMonth,
-				revenueByMonth: monthlyRevenueByMonth,
-				holdersRevenueByMonth: props.incomeStatement.holdersRevenueByMonth ? monthlyHoldersRevenueByMonth : null,
-				incentivesByMonth: props.incomeStatement.incentivesByMonth ? monthlyIncentivesByMonth : null
-			}
+		return {
+			tableHeaders: tableHeaders.sort((a, b) => b[2] - a[2]),
+			feesData,
+			revenueData,
+			incentivesData,
+			holdersRevenueData,
+			feesByLabels: props.incomeStatement?.labelsByType?.df ?? [],
+			revenueByLabels: props.incomeStatement?.labelsByType?.dr ?? [],
+			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? [],
+			earningsData
 		}
-
-		return props.incomeStatement
 	}, [groupBy, props.incomeStatement, feesSettings])
 
 	return (
@@ -2270,19 +2275,35 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					))}
 				</div>
 			</div>
-			<div className="overflow-x-auto">
-				<table className="w-full border-collapse">
+			<div className="relative overflow-x-auto">
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full" style={{ top: '50%' }}>
+					<img
+						src="/icons/defillama-dark-neutral.webp"
+						alt="defillama"
+						height={40}
+						width={155}
+						className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
+					/>
+					<img
+						src="/icons/defillama-light-neutral.webp"
+						alt="defillama"
+						height={40}
+						width={155}
+						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
+					/>
+				</div>
+				<table className="z-10 w-full border-collapse">
 					<thead>
 						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
-							{monthDates.map((month, i) => (
+							<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
+							{tableHeaders.map((header, i) => (
 								<th
-									key={`${props.name}-${groupBy}-income-statement-${month[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
+									key={`${props.name}-${groupBy}-income-statement-${header[0]}`}
+									className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
 								>
 									{i === 0 ? (
-										<span className="-mr-2 flex items-center justify-center gap-1">
-											<span className="overflow-hidden text-ellipsis whitespace-nowrap">{month[1]}</span>
+										<span className="-mr-2 flex items-center justify-start gap-1">
+											<span className="overflow-hidden text-ellipsis whitespace-nowrap">{header[1]}</span>
 											<Tooltip
 												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
 												className="text-xs text-(--error)"
@@ -2291,215 +2312,189 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 											</Tooltip>
 										</span>
 									) : (
-										month[1]
+										header[1]
 									)}
 								</th>
 							))}
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-								{props.fees?.methodology ? (
-									<Tooltip
-										content={props.fees?.methodology ?? ''}
-										className="flex justify-center underline decoration-dotted"
-									>
-										Fees
-									</Tooltip>
-								) : (
-									<>Fees</>
-								)}
-							</th>
-							{monthDates.map((month, i) => (
-								<td
-									key={`${props.name}-${groupBy}-fees-${month[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{i !== 0 && monthDates[i + 1] ? (
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={feesByMonth[month[0]]}
-													previousValue={monthDates[i + 1] ? feesByMonth[monthDates[i + 1][0]] : null}
-													groupBy={groupBy}
-													dataType="fees"
-												/>
-											}
-											className="justify-center underline decoration-dotted"
-										>
-											{formattedNum(feesByMonth[month[0]], true)}
-										</Tooltip>
-									) : (
-										<>{formattedNum(feesByMonth[month[0]], true)}</>
-									)}
-								</td>
-							))}
-						</tr>
-						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-								{props.revenue?.methodology ? (
-									<Tooltip
-										content={props.revenue?.methodology}
-										className="flex justify-center underline decoration-dotted"
-									>
-										Revenue
-									</Tooltip>
-								) : (
-									<>Revenue</>
-								)}
-							</th>
-							{monthDates.map((month, i) => (
-								<td
-									key={`${props.name}-${groupBy}-revenue-${month[0]}`}
-									className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{i !== 0 && monthDates[i + 1] ? (
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={revenueByMonth[month[0]]}
-													previousValue={monthDates[i + 1] ? revenueByMonth[monthDates[i + 1][0]] : null}
-													groupBy={groupBy}
-													dataType="revenue"
-												/>
-											}
-											className="justify-center underline decoration-dotted"
-										>
-											{formattedNum(revenueByMonth[month[0]], true)}
-										</Tooltip>
-									) : (
-										<span>{formattedNum(revenueByMonth[month[0]], true)}</span>
-									)}
-								</td>
-							))}
-						</tr>
-						{incentivesByMonth ? (
-							<tr>
-								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-									{props.incentives?.methodology ? (
-										<Tooltip
-											content={props.incentives?.methodology ?? ''}
-											className="flex justify-center underline decoration-dotted"
-										>
-											Incentives
-										</Tooltip>
-									) : (
-										<>Incentives</>
-									)}
-								</th>
-								{monthDates.map((month, i) => (
-									<td
-										key={`${props.name}-${groupBy}-incentives-${month[0]}`}
-										className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-									>
-										{i !== 0 && monthDates[i + 1] ? (
-											<Tooltip
-												content={
-													<PerformanceTooltipContent
-														currentValue={incentivesByMonth[month[0]]}
-														previousValue={monthDates[i + 1] ? incentivesByMonth[monthDates[i + 1][0]] : null}
-														groupBy={groupBy}
-														dataType="incentives"
-													/>
-												}
-												className="justify-center underline decoration-dotted"
-											>
-												{formattedNum(incentivesByMonth[month[0]], true)}
-											</Tooltip>
-										) : (
-											<span>{formattedNum(incentivesByMonth[month[0]], true)}</span>
-										)}
-									</td>
-								))}
-							</tr>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={feesData}
+							dataType="fees"
+							label="Gross Protocol Revenue"
+							methodology={props.fees?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={feesByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Fees'] ?? {}}
+						/>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={revenueData}
+							dataType="revenue"
+							label="Gross Profit"
+							methodology={props.revenue?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={revenueByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Revenue'] ?? {}}
+						/>
+						{props.metrics?.incentives ? (
+							<IncomeStatementByLabel
+								protocolName={props.name}
+								groupBy={groupBy}
+								data={incentivesData}
+								dataType="incentives"
+								label="Incentives"
+								methodology={props.incentives?.methodology ?? ''}
+								tableHeaders={tableHeaders}
+								breakdownByLabels={[]}
+								methodologyByType={{}}
+							/>
 						) : null}
-						<tr>
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-								<Tooltip
-									content="Revenue of the protocol minus the incentives distributed to users"
-									className="flex justify-center underline decoration-dotted"
-								>
-									Earnings
-								</Tooltip>
-							</th>
-							{monthDates.map((month, i) => {
-								const earnings = (revenueByMonth?.[month[0]] ?? 0) - (incentivesByMonth?.[month[0]] ?? 0)
-								const previousEarnings = monthDates[i + 1]
-									? (revenueByMonth?.[monthDates[i + 1][0]] ?? 0) - (incentivesByMonth?.[monthDates[i + 1][0]] ?? 0)
-									: null
-								return (
-									<td
-										key={`${props.name}-${groupBy}-earnings-${month[0]}`}
-										className={`overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${
-											earnings > 0 ? 'text-(--success)' : earnings < 0 ? 'text-(--error)' : ''
-										}`}
-									>
-										{i !== 0 && monthDates[i + 1] ? (
-											<Tooltip
-												content={
-													<PerformanceTooltipContent
-														currentValue={earnings}
-														previousValue={previousEarnings}
-														groupBy={groupBy}
-														dataType="earnings"
-													/>
-												}
-												className="justify-center underline decoration-dotted"
-											>
-												{formattedNum(earnings, true)}
-											</Tooltip>
-										) : (
-											<span>{formattedNum(earnings, true)}</span>
-										)}
-									</td>
-								)
-							})}
-						</tr>
-						{holdersRevenueByMonth ? (
-							<tr>
-								<th className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
-									{props.holdersRevenue?.methodology ? (
-										<Tooltip
-											content={props.holdersRevenue?.methodology}
-											className="flex justify-center underline decoration-dotted"
-										>
-											Token Holder Net Income
-										</Tooltip>
-									) : (
-										<>Token Holder Net Income</>
-									)}
-								</th>
-								{monthDates.map((month, i) => (
-									<td
-										key={`${props.name}-${groupBy}-holders-revenue-${month[0]}`}
-										className="overflow-hidden border border-black/10 bg-(--cards-bg) px-8 py-2 text-center font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-									>
-										{i !== 0 && monthDates[i + 1] ? (
-											<Tooltip
-												content={
-													<PerformanceTooltipContent
-														currentValue={holdersRevenueByMonth[month[0]]}
-														previousValue={monthDates[i + 1] ? holdersRevenueByMonth[monthDates[i + 1][0]] : null}
-														groupBy={groupBy}
-														dataType="token holders net income"
-													/>
-												}
-												className="justify-center underline decoration-dotted"
-											>
-												{formattedNum(holdersRevenueByMonth[month[0]], true)}
-											</Tooltip>
-										) : (
-											<span>{formattedNum(holdersRevenueByMonth[month[0]], true)}</span>
-										)}
-									</td>
-								))}
-							</tr>
-						) : null}
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={earningsData}
+							dataType="earnings"
+							label="Earnings"
+							methodology={'Gross Profit minus Incentives'}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={[]}
+							methodologyByType={{}}
+						/>
+						<IncomeStatementByLabel
+							protocolName={props.name}
+							groupBy={groupBy}
+							data={holdersRevenueData}
+							dataType="token holders net income"
+							label="Token Holder Net Income"
+							methodology={props.holdersRevenue?.methodology ?? ''}
+							tableHeaders={tableHeaders}
+							breakdownByLabels={holdersRevenueByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Holders Revenue'] ?? {}}
+						/>
 					</tbody>
 				</table>
 			</div>
 		</div>
+	)
+}
+
+const IncomeStatementByLabel = ({
+	protocolName,
+	groupBy,
+	data,
+	dataType,
+	label,
+	methodology,
+	tableHeaders,
+	breakdownByLabels,
+	methodologyByType
+}: {
+	protocolName: string
+	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
+	data: Record<string, { value: number; 'by-label': Record<string, number> }>
+	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income'
+	label: string
+	methodology: string
+	tableHeaders: [string, string, number][]
+	breakdownByLabels: string[]
+	methodologyByType: Record<string, string>
+}) => {
+	const isEarnings = dataType === 'earnings'
+	return (
+		<>
+			<tr>
+				<th className="overflow-hidden border border-black/10 p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+					{methodology ? (
+						<Tooltip
+							content={methodology}
+							className="flex items-center justify-start gap-1 underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+						>
+							{label}
+							<Icon name="help-circle" height={14} width={14} className="relative top-0.25 shrink-0" />
+						</Tooltip>
+					) : (
+						<>{label}</>
+					)}
+				</th>
+				{tableHeaders.map((header, i) => (
+					<td
+						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
+						className={`overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
+					>
+						{data[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
+							<Tooltip
+								content={
+									<PerformanceTooltipContent
+										currentValue={data[header[0]].value}
+										previousValue={tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]].value : null}
+										groupBy={groupBy}
+										dataType={dataType}
+									/>
+								}
+								className={`justify-start underline decoration-dotted ${isEarnings ? (data[header[0]]?.value >= 0 ? 'decoration-(--success)/60' : 'decoration-(--error)/60') : 'decoration-black/60 dark:decoration-white/60'}`}
+							>
+								{formattedNum(data[header[0]].value, true)}
+							</Tooltip>
+						) : (
+							<>{formattedNum(data[header[0]].value, true)}</>
+						)}
+					</td>
+				))}
+			</tr>
+			{breakdownByLabels.length > 0 ? (
+				<>
+					{breakdownByLabels.map((breakdownlabel) => (
+						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}>
+							<th className="overflow-hidden border border-black/10 p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
+								{methodologyByType[breakdownlabel] ? (
+									<Tooltip
+										content={methodologyByType[breakdownlabel]}
+										className="flex justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+									>
+										{breakdownlabel}
+									</Tooltip>
+								) : (
+									<>{breakdownlabel}</>
+								)}
+							</th>
+							{tableHeaders.map((header, i) => (
+								<td
+									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
+									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+								>
+									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
+									  tableHeaders[i + 1] &&
+									  data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] ? (
+										<Tooltip
+											content={
+												<PerformanceTooltipContent
+													currentValue={data[header[0]]['by-label']?.[breakdownlabel]}
+													previousValue={
+														tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] : null
+													}
+													groupBy={groupBy}
+													dataType={dataType}
+												/>
+											}
+											className="justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+										>
+											{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}
+										</Tooltip>
+									) : (
+										<>{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}</>
+									)}
+								</td>
+							))}
+						</tr>
+					))}
+				</>
+			) : null}
+		</>
 	)
 }
 

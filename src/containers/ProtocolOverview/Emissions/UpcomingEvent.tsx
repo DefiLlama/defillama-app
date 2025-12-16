@@ -182,52 +182,55 @@ export const UpcomingEvent = ({
 				</span>
 				<hr className="border-(--bg-border)" />
 				<span className="flex flex-col gap-4">
-					{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
-						const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-						const usdValue = price
-							? isLinearPerDay
-								? perDayAmount * price // per day value for linear
-								: totalAmount * price // total for cliff
-							: null
-						const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
-						const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
-						return (
-							<span className="flex flex-col gap-1" key={name + totalAmount}>
-								<h2 className="flex items-center justify-between gap-2">
-									<span className="flex items-center gap-2">
-										{name}{isOngoing && ' (Ongoing)'}
-										<Ariakit.TooltipProvider>
-											<Ariakit.TooltipAnchor>
-												<Icon
-													name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
-													height={16}
-													width={16}
-													className="text-(--text-meta)"
-												/>
-											</Ariakit.TooltipAnchor>
-											<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
-												{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
-											</Ariakit.Tooltip>
-										</Ariakit.TooltipProvider>
-									</span>
-									<span className="inline-flex items-baseline gap-1">
-										{usdValue ? formattedNum(usdValue, true) : '-'}
-										{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
-									</span>
-								</h2>
-								<p className="flex items-center justify-between gap-2 text-(--text-meta)">
-									<span>
-										{formattedNum(percentage)}%{' '}
-										{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
-									</span>
-									<span className="inline-flex items-baseline gap-1">
-										{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-										{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
-									</span>
-								</p>
-							</span>
-						)
-					})}
+					{currentUnlockBreakdown.map(
+						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
+							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
+							const usdValue = price
+								? isLinearPerDay
+									? perDayAmount * price // per day value for linear
+									: totalAmount * price // total for cliff
+								: null
+							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
+							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
+							return (
+								<span className="flex flex-col gap-1" key={name + totalAmount}>
+									<h2 className="flex items-center justify-between gap-2">
+										<span className="flex items-center gap-2">
+											{name}
+											{isOngoing && ' (Ongoing)'}
+											<Ariakit.TooltipProvider>
+												<Ariakit.TooltipAnchor>
+													<Icon
+														name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
+														height={16}
+														width={16}
+														className="text-(--text-meta)"
+													/>
+												</Ariakit.TooltipAnchor>
+												<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
+													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
+												</Ariakit.Tooltip>
+											</Ariakit.TooltipProvider>
+										</span>
+										<span className="inline-flex items-baseline gap-1">
+											{usdValue ? formattedNum(usdValue, true) : '-'}
+											{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+										</span>
+									</h2>
+									<p className="flex items-center justify-between gap-2 text-(--text-meta)">
+										<span>
+											{formattedNum(percentage)}%{' '}
+											{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
+										</span>
+										<span className="inline-flex items-baseline gap-1">
+											{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
+											{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+										</span>
+									</p>
+								</span>
+							)
+						}
+					)}
 				</span>
 
 				{timeLeft > 0 && (
@@ -326,52 +329,55 @@ export const UpcomingEvent = ({
 					</span>
 					<hr className="border-(--bg-border)" />
 					<span className="flex flex-col gap-4">
-						{currentUnlockBreakdown.map(({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
-							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
-							const usdValue = price
-								? isLinearPerDay
-									? perDayAmount * price // per day value for linear
-									: totalAmount * price // total for cliff
-								: null
-							const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
-							const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
-							return (
-								<span className="flex flex-col gap-1" key={name + totalAmount}>
-									<span className="flex items-center justify-between gap-2">
-										<span className="flex items-center gap-2">
-											{name}{isOngoing && ' (Ongoing)'}
-											<Ariakit.TooltipProvider>
-												<Ariakit.TooltipAnchor>
-													<Icon
-														name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
-														height={16}
-														width={16}
-														className="text-(--text-meta)"
-													/>
-												</Ariakit.TooltipAnchor>
-												<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
-													{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
-												</Ariakit.Tooltip>
-											</Ariakit.TooltipProvider>
+						{currentUnlockBreakdown.map(
+							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
+								const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
+								const usdValue = price
+									? isLinearPerDay
+										? perDayAmount * price // per day value for linear
+										: totalAmount * price // total for cliff
+									: null
+								const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
+								const percentageFloat = usdValue && mcap ? (usdValue / mcap) * 100 : null
+								return (
+									<span className="flex flex-col gap-1" key={name + totalAmount}>
+										<span className="flex items-center justify-between gap-2">
+											<span className="flex items-center gap-2">
+												{name}
+												{isOngoing && ' (Ongoing)'}
+												<Ariakit.TooltipProvider>
+													<Ariakit.TooltipAnchor>
+														<Icon
+															name={unlockType === 'linear' ? 'linear-unlock' : 'cliff-unlock'}
+															height={16}
+															width={16}
+															className="text-(--text-meta)"
+														/>
+													</Ariakit.TooltipAnchor>
+													<Ariakit.Tooltip className="z-50 rounded-md bg-(--bg-secondary) px-2 py-1 text-sm">
+														{unlockType === 'linear' ? 'Linear Unlock' : 'Cliff Unlock'}
+													</Ariakit.Tooltip>
+												</Ariakit.TooltipProvider>
+											</span>
+											<span className="inline-flex items-baseline gap-1">
+												{usdValue ? formattedNum(usdValue, true) : '-'}
+												{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+											</span>
 										</span>
-										<span className="inline-flex items-baseline gap-1">
-											{usdValue ? formattedNum(usdValue, true) : '-'}
-											{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+										<span className="flex items-center justify-between gap-2 text-(--text-meta)">
+											<span>
+												{formattedNum(percentage)}%{' '}
+												{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
+											</span>
+											<span className="inline-flex items-baseline gap-1">
+												{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
+												{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
+											</span>
 										</span>
 									</span>
-									<span className="flex items-center justify-between gap-2 text-(--text-meta)">
-										<span>
-											{formattedNum(percentage)}%{' '}
-											{percentageFloat ? <>( {formattedNum(percentageFloat)}% of float)</> : null}
-										</span>
-										<span className="inline-flex items-baseline gap-1">
-											{formattedNum(isLinearPerDay ? perDayAmount : totalAmount)} {tokenSymbol}
-											{isLinearPerDay && <span className="text-xs text-(--text-meta)">/ day</span>}
-										</span>
-									</span>
-								</span>
-							)
-						})}
+								)
+							}
+						)}
 					</span>
 					<hr className="border-(--bg-border)" />
 

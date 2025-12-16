@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getCategoryPerformance } from '~/api/categories/protocols'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
+import { getCategoryPerformance } from '~/containers/NarrativeTracker/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

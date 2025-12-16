@@ -14,16 +14,16 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 	isDefaultExpanded = false,
 	badge,
 	children,
-	className = '',
+	className = ''
 }) => {
 	const [isExpanded, setIsExpanded] = useState(isDefaultExpanded)
 
 	return (
-		<div className={`border border-(--cards-border) rounded-lg bg-(--cards-bg) ${className}`}>
+		<div className={`rounded-lg border border-(--cards-border) bg-(--cards-bg) ${className}`}>
 			<button
 				type="button"
 				onClick={() => setIsExpanded(!isExpanded)}
-				className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-(--cards-bg-alt) transition-colors rounded-t-lg"
+				className="flex w-full items-center justify-between rounded-t-lg px-3 py-2.5 transition-colors hover:bg-(--cards-bg-alt)"
 			>
 				<div className="flex items-center gap-2">
 					{isExpanded ? (
@@ -33,17 +33,13 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 					)}
 					<h3 className="text-sm font-semibold text-(--text-primary)">{title}</h3>
 					{badge !== undefined && (
-						<span className="px-1.5 py-0.5 text-[10px] font-medium bg-(--primary)/10 text-(--primary) rounded">
+						<span className="rounded bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary)">
 							{badge}
 						</span>
 					)}
 				</div>
 			</button>
-			{isExpanded && (
-				<div className="px-3 py-2.5 border-t border-(--cards-border)">
-					{children}
-				</div>
-			)}
+			{isExpanded && <div className="border-t border-(--cards-border) px-3 py-2.5">{children}</div>}
 		</div>
 	)
 }

@@ -79,7 +79,7 @@ export function UnifiedTableHeader({
 								value={groupingSelectValue}
 								onChange={(event) => onGroupingChange?.(event.target.value)}
 								disabled={!isGroupingInteractive}
-								className={`appearance-none rounded-md border px-3 py-1.5 pr-8 text-sm transition-colors pro-border pro-bg1 pro-text1 ${
+								className={`pro-border pro-bg1 pro-text1 appearance-none rounded-md border px-3 py-1.5 pr-8 text-sm transition-colors ${
 									isGroupingInteractive ? 'pro-hover-bg' : 'cursor-not-allowed opacity-60'
 								}`}
 							>
@@ -93,7 +93,7 @@ export function UnifiedTableHeader({
 								name="chevron-down"
 								height={14}
 								width={14}
-								className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-(--text-tertiary)"
+								className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 text-(--text-tertiary)"
 							/>
 						</div>
 					) : null}
@@ -108,9 +108,7 @@ export function UnifiedTableHeader({
 							}`}
 						>
 							<span>Filters</span>
-							<span
-								className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-(--cards-border) px-1 text-xs font-semibold text-(--text-secondary)"
-							>
+							<span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-(--cards-border) px-1 text-xs font-semibold text-(--text-secondary)">
 								{activeFilterCount}
 							</span>
 						</button>

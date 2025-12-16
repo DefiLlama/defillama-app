@@ -1,12 +1,12 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
-import { getNFTRoyaltyHistory } from '~/api/categories/nfts'
 import { formatBarChart } from '~/components/ECharts/utils'
 import { FormattedName } from '~/components/FormattedName'
 import { LocalLoader } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
+import { getNFTRoyaltyHistory } from '~/containers/Nft/queries'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 
@@ -24,7 +24,9 @@ export default function Collection() {
 			getNFTRoyaltyHistory(
 				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
 			),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	const chartData = useMemo(() => {

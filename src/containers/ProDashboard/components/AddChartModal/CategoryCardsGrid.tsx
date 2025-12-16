@@ -1,4 +1,4 @@
-import { CategoryCard, CATEGORY_CARDS } from './CategoryCard'
+import { CATEGORY_CARDS, CategoryCard } from './CategoryCard'
 import { ChartTabType } from './types'
 
 interface CategoryCardsGridProps {

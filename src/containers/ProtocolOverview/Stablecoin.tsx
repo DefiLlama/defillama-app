@@ -7,7 +7,9 @@ export const StablecoinInfo = ({ assetName }: { assetName: string }) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['stablecoin-info', assetName],
 		queryFn: () => getPeggedAssetPageData(assetName),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 
 	if (isLoading) {

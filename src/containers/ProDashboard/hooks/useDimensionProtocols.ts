@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { fetchJson } from '~/utils/async'
 import type { DimensionProtocols } from '../templates'
 

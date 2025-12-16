@@ -16,8 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				adapterType,
 				dataType: undefined,
 				chain: 'All',
-				excludeTotalDataChart: true,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: true
 			})
 
 			const protocols = data.protocols || []

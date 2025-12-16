@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
-import { getNFTCollection } from '~/api/categories/nfts'
 import { IChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
@@ -9,6 +8,7 @@ import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
+import { getNFTCollection } from '~/containers/Nft/queries'
 import Layout from '~/layout'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 
@@ -28,7 +28,9 @@ export function NFTCollectionContainer() {
 			getNFTCollection(
 				typeof router.query.collection === 'string' ? router.query.collection : router.query.collection[0]
 			),
-		staleTime: 60 * 60 * 1000
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
 	})
 	if (fetchingData) {
 		return (

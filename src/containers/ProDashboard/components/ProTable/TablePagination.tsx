@@ -14,9 +14,13 @@ export function TablePagination({ table }: TablePaginationProps) {
 		<div className="mt-2 flex w-full items-center justify-between">
 			<TagGroup
 				selectedValue={null}
-				setValue={(val) => (val === 'Next' ? table.getCanNextPage() && table.nextPage() : table.getCanPreviousPage() && table.previousPage())}
+				setValue={(val) =>
+					val === 'Next'
+						? table.getCanNextPage() && table.nextPage()
+						: table.getCanPreviousPage() && table.previousPage()
+				}
 				values={['Previous', 'Next']}
-				disabledValues={[!table.getCanNextPage() && "Next", !table.getCanPreviousPage() && "Previous" ]}
+				disabledValues={[!table.getCanNextPage() && 'Next', !table.getCanPreviousPage() && 'Previous']}
 			/>
 			<div className="flex items-center">
 				<div className="mr-2 text-xs">Per page</div>

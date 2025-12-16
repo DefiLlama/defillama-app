@@ -18,9 +18,9 @@ import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { bridgeAggregatorsDatasetColumns } from './columns'
 import { useBridgeAggregatorsData } from './useBridgeAggregatorsData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])

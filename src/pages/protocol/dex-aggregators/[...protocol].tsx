@@ -44,8 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 			getAdapterProtocolSummary({
 				adapterType: 'aggregators',
 				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false,
-				excludeTotalDataChartBreakdown: true
+				excludeTotalDataChart: false
 			})
 		])
 
@@ -88,8 +87,8 @@ export const getStaticProps = withPerformanceLogging(
 				openSmolStatsSummaryByDefault: true,
 				dexAggregatorVolume,
 				chart,
-				hasMultipleChain: adapterData?.chains?.length > 1 ? true : false,
-				hasMultipleVersions: linkedProtocolsWithAdapterData.length > 1 ? true : false,
+				protocolChains: adapterData?.chains ?? [],
+				protocolVersions: linkedProtocolsWithAdapterData?.map((protocol) => protocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView: adapterData?.defaultChartView ?? 'daily'
 			},
@@ -177,22 +176,24 @@ export default function Protocols(props) {
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
-				{props.hasMultipleChain ? (
+				{props.protocolChains?.length > 1 ? (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
 							adapterType="aggregators"
+							breakdownNames={props.protocolChains}
 							title="DEX Aggregator Volume by chain"
 						/>
 					</div>
 				) : null}
-				{props.hasMultipleVersions ? (
+				{props.protocolVersions?.length > 1 ? (
 					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
 							adapterType="aggregators"
+							breakdownNames={props.protocolVersions}
 							title="DEX Aggregator Volume by protocol version"
 						/>
 					</div>

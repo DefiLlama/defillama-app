@@ -172,9 +172,7 @@ const reducer = (state: WizardState, action: WizardAction): WizardState => {
 		case 'UPDATE_CUSTOM_COLUMN':
 			return {
 				...state,
-				customColumns: state.customColumns.map((col) =>
-					col.id === action.id ? { ...col, ...action.updates } : col
-				)
+				customColumns: state.customColumns.map((col) => (col.id === action.id ? { ...col, ...action.updates } : col))
 			}
 		case 'REMOVE_CUSTOM_COLUMN': {
 			const newOrder = state.columnOrder.filter((id) => id !== action.id)
@@ -214,8 +212,7 @@ export const useUnifiedTableWizard = (presetId?: string, existingConfig?: Unifie
 		[]
 	)
 	const updateCustomColumn = useCallback(
-		(id: string, updates: Partial<CustomColumnDefinition>) =>
-			dispatch({ type: 'UPDATE_CUSTOM_COLUMN', id, updates }),
+		(id: string, updates: Partial<CustomColumnDefinition>) => dispatch({ type: 'UPDATE_CUSTOM_COLUMN', id, updates }),
 		[]
 	)
 	const removeCustomColumn = useCallback((id: string) => dispatch({ type: 'REMOVE_CUSTOM_COLUMN', id }), [])
