@@ -5,42 +5,55 @@ import { Icon } from '~/components/Icon'
 interface DashboardSettingsModalProps {
 	isOpen: boolean
 	onClose: () => void
+	dashboardName: string
 	visibility: 'private' | 'public'
 	tags: string[]
 	description: string
+	onDashboardNameChange: (name: string) => void
 	onVisibilityChange: (visibility: 'private' | 'public') => void
 	onTagsChange: (tags: string[]) => void
 	onDescriptionChange: (description: string) => void
-	onSave: (overrides?: { visibility?: 'private' | 'public'; tags?: string[]; description?: string }) => void
+	onSave: (overrides?: {
+		dashboardName?: string
+		visibility?: 'private' | 'public'
+		tags?: string[]
+		description?: string
+	}) => void
 }
 
 export function DashboardSettingsModal({
 	isOpen,
 	onClose,
+	dashboardName,
 	visibility,
 	tags,
 	description,
+	onDashboardNameChange,
 	onVisibilityChange,
 	onTagsChange,
 	onDescriptionChange,
 	onSave
 }: DashboardSettingsModalProps) {
+	const [localDashboardName, setLocalDashboardName] = useState(dashboardName)
 	const [localVisibility, setLocalVisibility] = useState(visibility)
 	const [localTags, setLocalTags] = useState(tags)
 	const [localDescription, setLocalDescription] = useState(description)
 	const [tagInput, setTagInput] = useState('')
 
 	useEffect(() => {
+		setLocalDashboardName(dashboardName)
 		setLocalVisibility(visibility)
 		setLocalTags(tags)
 		setLocalDescription(description)
-	}, [visibility, tags, description])
+	}, [dashboardName, visibility, tags, description])
 
 	const handleSave = () => {
+		onDashboardNameChange(localDashboardName)
 		onVisibilityChange(localVisibility)
 		onTagsChange(localTags)
 		onDescriptionChange(localDescription)
 		onSave({
+			dashboardName: localDashboardName,
 			visibility: localVisibility,
 			tags: localTags,
 			description: localDescription
@@ -89,7 +102,17 @@ export function DashboardSettingsModal({
 				</div>
 
 				<div className="space-y-6">
-					{/* Visibility Setting */}
+					<div>
+						<label className="pro-text1 mb-3 block text-sm font-medium">Dashboard Name</label>
+						<input
+							type="text"
+							value={localDashboardName}
+							onChange={(e) => setLocalDashboardName(e.target.value)}
+							placeholder="Enter dashboard name"
+							className="pro-border pro-text1 placeholder:pro-text3 w-full rounded-md border px-3 py-2 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						/>
+					</div>
+
 					<div>
 						<label className="pro-text1 mb-3 block text-sm font-medium">Visibility</label>
 						<div className="flex gap-3">

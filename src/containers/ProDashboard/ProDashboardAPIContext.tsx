@@ -175,6 +175,7 @@ interface ProDashboardContextType {
 	handlePercentageChange: (itemId: string, showPercentage: boolean) => void
 	handleStackedChange: (itemId: string, showStacked: boolean) => void
 	handleHideOthersChange: (itemId: string, hideOthers: boolean) => void
+	handleChartTypeChange: (itemId: string, chartType: 'stackedBar' | 'stackedArea' | 'line') => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
 		tableId: string,
@@ -190,6 +191,7 @@ interface ProDashboardContextType {
 	loadDashboard: (id: string) => Promise<void>
 	deleteDashboard: (id: string) => Promise<void>
 	saveDashboard: (overrides?: {
+		dashboardName?: string
 		visibility?: 'private' | 'public'
 		tags?: string[]
 		description?: string
@@ -373,6 +375,7 @@ export function ProDashboardAPIProvider({
 	// Save dashboard
 	const saveDashboard = useCallback(
 		async (overrides?: {
+			dashboardName?: string
 			visibility?: 'private' | 'public'
 			tags?: string[]
 			description?: string
@@ -391,9 +394,10 @@ export function ProDashboardAPIProvider({
 
 			const itemsToSave = overrides?.items ?? items
 			const cleanedItems = cleanItemsForSaving(itemsToSave)
+			const nameToSave = overrides?.dashboardName ?? dashboardName
 			const data = {
 				items: cleanedItems,
-				dashboardName,
+				dashboardName: nameToSave,
 				timePeriod,
 				customTimePeriod,
 				visibility: overrides?.visibility ?? dashboardVisibility,
@@ -1458,6 +1462,31 @@ export function ProDashboardAPIProvider({
 		[autoSave, isReadOnly]
 	)
 
+	const handleChartTypeChange = useCallback(
+		(itemId: string, newChartType: 'stackedBar' | 'stackedArea' | 'line') => {
+			if (isReadOnly) {
+				return
+			}
+			setItems((prev) => {
+				const newItems = prev.map((item) => {
+					if (item.id === itemId && item.kind === 'builder') {
+						return {
+							...item,
+							config: {
+								...item.config,
+								chartType: newChartType
+							}
+						} as ChartBuilderConfig
+					}
+					return item
+				})
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[autoSave, isReadOnly]
+	)
+
 	const handleTableFiltersChange = useCallback(
 		(tableId: string, filters: TableFilters) => {
 			if (isReadOnly) {
@@ -1588,6 +1617,7 @@ export function ProDashboardAPIProvider({
 			handlePercentageChange,
 			handleStackedChange,
 			handleHideOthersChange,
+			handleChartTypeChange,
 			handleTableFiltersChange,
 			handleTableColumnsChange,
 			getChainInfo,
@@ -1659,6 +1689,7 @@ export function ProDashboardAPIProvider({
 			handlePercentageChange,
 			handleStackedChange,
 			handleHideOthersChange,
+			handleChartTypeChange,
 			handleTableFiltersChange,
 			handleTableColumnsChange,
 			getChainInfo,
