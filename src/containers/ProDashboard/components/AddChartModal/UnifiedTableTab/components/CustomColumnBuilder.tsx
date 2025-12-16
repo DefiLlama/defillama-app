@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
 import {
 	evaluateExpression,
 	formatPreviewNumber,
@@ -12,6 +11,7 @@ import {
 	SAMPLE_METRICS,
 	validateExpression
 } from '~/containers/ProDashboard/components/UnifiedTable/utils/customColumns'
+import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
 
 interface CustomColumnBuilderProps {
 	customColumns: CustomColumnDefinition[]
@@ -38,11 +38,36 @@ const AGGREGATION_OPTIONS: Array<{ id: ColumnAggregation; label: string; descrip
 ]
 
 const EXAMPLE_PRESETS = [
-	{ name: 'TVL/MCap', expression: 'tvl / mcap', format: 'ratio' as ColumnFormat, description: 'TVL to Market Cap ratio' },
-	{ name: 'Annualized Fees', expression: 'fees24h * 365', format: 'usd' as ColumnFormat, description: 'Projected yearly fees' },
-	{ name: 'Fee Yield', expression: '(fees24h * 365) / tvl * 100', format: 'percent' as ColumnFormat, description: 'Annual fee yield' },
-	{ name: 'P/F Ratio', expression: 'mcap / (fees24h * 365)', format: 'ratio' as ColumnFormat, description: 'Price to Fees' },
-	{ name: 'Revenue Margin', expression: 'revenue24h / fees24h * 100', format: 'percent' as ColumnFormat, description: 'Revenue as % of fees' }
+	{
+		name: 'TVL/MCap',
+		expression: 'tvl / mcap',
+		format: 'ratio' as ColumnFormat,
+		description: 'TVL to Market Cap ratio'
+	},
+	{
+		name: 'Annualized Fees',
+		expression: 'fees24h * 365',
+		format: 'usd' as ColumnFormat,
+		description: 'Projected yearly fees'
+	},
+	{
+		name: 'Fee Yield',
+		expression: '(fees24h * 365) / tvl * 100',
+		format: 'percent' as ColumnFormat,
+		description: 'Annual fee yield'
+	},
+	{
+		name: 'P/F Ratio',
+		expression: 'mcap / (fees24h * 365)',
+		format: 'ratio' as ColumnFormat,
+		description: 'Price to Fees'
+	},
+	{
+		name: 'Revenue Margin',
+		expression: 'revenue24h / fees24h * 100',
+		format: 'percent' as ColumnFormat,
+		description: 'Revenue as % of fees'
+	}
 ]
 
 interface AutocompleteSuggestion {
@@ -94,11 +119,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		if (!autocompleteFilter.trim()) return autocompleteSuggestions.slice(0, 15)
 		const filter = autocompleteFilter.toLowerCase()
 		return autocompleteSuggestions
-			.filter(
-				(s) =>
-					s.display.toLowerCase().includes(filter) ||
-					s.description.toLowerCase().includes(filter)
-			)
+			.filter((s) => s.display.toLowerCase().includes(filter) || s.description.toLowerCase().includes(filter))
 			.slice(0, 10)
 	}, [autocompleteSuggestions, autocompleteFilter])
 
@@ -251,7 +272,12 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		}
 
 		if (editingId) {
-			onUpdate(editingId, { name: column.name, expression: column.expression, format: column.format, aggregation: column.aggregation })
+			onUpdate(editingId, {
+				name: column.name,
+				expression: column.expression,
+				format: column.format,
+				aggregation: column.aggregation
+			})
 			setEditingId(null)
 		} else {
 			onAdd(column)
@@ -264,7 +290,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		setAggregation('recalculate')
 	}, [validation.isValid, name, expression, format, aggregation, editingId, onAdd, onUpdate])
 
-	const handleApplyPreset = useCallback((preset: typeof EXAMPLE_PRESETS[0]) => {
+	const handleApplyPreset = useCallback((preset: (typeof EXAMPLE_PRESETS)[0]) => {
 		aggregationTouchedRef.current = false
 		setName(preset.name)
 		setExpression(preset.expression)
@@ -301,15 +327,9 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		<div className="space-y-4">
 			<div className="pro-border rounded-md border bg-(--cards-bg) p-4">
 				<div className="mb-3 flex items-center justify-between">
-					<h5 className="pro-text1 text-sm font-medium">
-						{editingId ? 'Edit Column' : 'Create Custom Column'}
-					</h5>
+					<h5 className="pro-text1 text-sm font-medium">{editingId ? 'Edit Column' : 'Create Custom Column'}</h5>
 					{editingId && (
-						<button
-							type="button"
-							onClick={handleCancelEdit}
-							className="pro-text3 text-xs hover:text-(--primary)"
-						>
+						<button type="button" onClick={handleCancelEdit} className="pro-text3 text-xs hover:text-(--primary)">
 							Cancel
 						</button>
 					)}
@@ -364,9 +384,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 											onClick={() => insertSuggestion(suggestion)}
 											onMouseEnter={() => setAutocompleteIndex(index)}
 											className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm ${
-												index === autocompleteIndex
-													? 'bg-(--primary) text-white'
-													: 'pro-hover-bg pro-text1'
+												index === autocompleteIndex ? 'bg-(--primary) text-white' : 'pro-hover-bg pro-text1'
 											}`}
 										>
 											<span
@@ -455,9 +473,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 										{preview}
 									</span>
 								) : (
-									<span className="text-red-700 dark:text-red-300">
-										{expressionValidation.error || 'Invalid'}
-									</span>
+									<span className="text-red-700 dark:text-red-300">{expressionValidation.error || 'Invalid'}</span>
 								)}
 							</div>
 							{usedVariables.length > 0 && (

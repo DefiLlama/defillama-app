@@ -480,7 +480,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 				<SingleChart
 					key={chart.id}
 					config={chart}
-					data={Array.isArray(chartData) ? chartData : (chartData?.[chart.id] || [])}
+					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 				/>
 			))}

@@ -1,6 +1,6 @@
 import { maxAgeForNext } from '~/api'
-import { getCategoryInfo, getCoinPerformance } from '~/api/categories/protocols'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
+import { getCategoryInfo, getCoinPerformance } from '~/containers/NarrativeTracker/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

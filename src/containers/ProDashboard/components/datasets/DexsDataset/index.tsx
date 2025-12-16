@@ -20,9 +20,9 @@ import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { dexsDatasetColumns } from './columns'
 import { useDexsData } from './useDexsData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 type DexItemWithMarketShare = DexItem & {
 	marketShare7d: number

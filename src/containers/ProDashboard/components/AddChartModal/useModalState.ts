@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ChartConfig, DashboardItemConfig, MetricAggregator } from '../../types'
 import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
 
@@ -154,9 +154,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				} else {
 					setSelectedTableType('protocols')
 				}
-		} else if (editItem.kind === 'unified-table') {
-			setSelectedMainTab('unified-table')
-		} else if (editItem.kind === 'text') {
+			} else if (editItem.kind === 'unified-table') {
+				setSelectedMainTab('unified-table')
+			} else if (editItem.kind === 'text') {
 				setSelectedMainTab('text')
 				setTextTitle(editItem.title || '')
 				setTextContent(editItem.content)

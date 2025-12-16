@@ -327,348 +327,348 @@ export function YieldsChartTab({
 			) : (
 				<>
 					<div className="space-y-3">
-								<div className="flex flex-col">
-									<label className="pro-text2 mb-1 block text-[11px] font-medium">Chains</label>
-									<PopoverDisclosure
-										store={chainPopover}
-										className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						<div className="flex flex-col">
+							<label className="pro-text2 mb-1 block text-[11px] font-medium">Chains</label>
+							<PopoverDisclosure
+								store={chainPopover}
+								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							>
+								<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
+									{selectedYieldChains.length > 0
+										? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
+										: 'All chains'}
+								</span>
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+							</PopoverDisclosure>
+							<Popover
+								store={chainPopover}
+								modal={false}
+								portal={true}
+								gutter={4}
+								flip={false}
+								className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
+								style={{ width: 'var(--popover-anchor-width)' }}
+							>
+								<div className="p-2.5">
+									<div className="relative mb-2.5">
+										<Icon
+											name="search"
+											width={12}
+											height={12}
+											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
+										/>
+										<input
+											autoFocus
+											value={chainSearch}
+											onChange={(e) => setChainSearch(e.target.value)}
+											placeholder="Search chains..."
+											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+										/>
+									</div>
+									<div
+										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+										ref={chainListRef}
 									>
-										<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
-											{selectedYieldChains.length > 0
-												? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
-												: 'All chains'}
-										</span>
-										<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
-									</PopoverDisclosure>
-									<Popover
-										store={chainPopover}
-										modal={false}
-										portal={true}
-										gutter={4}
-										flip={false}
-										className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
-										style={{ width: 'var(--popover-anchor-width)' }}
-									>
-										<div className="p-2.5">
-											<div className="relative mb-2.5">
-												<Icon
-													name="search"
-													width={12}
-													height={12}
-													className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
-												/>
-												<input
-													autoFocus
-													value={chainSearch}
-													onChange={(e) => setChainSearch(e.target.value)}
-													placeholder="Search chains..."
-													className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-												/>
-											</div>
-											<div
-												className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
-												ref={chainListRef}
-											>
-												<div
-													className="p-1"
-													style={{
-														height: chainVirtualizer.getTotalSize(),
-														position: 'relative'
-													}}
-												>
-													{chainVirtualizer.getVirtualItems().map((row) => {
-														const option = filteredChainOptions[row.index]
-														if (!option) return null
-														const isActive = selectedYieldChains.includes(option.value)
-														const iconUrl = getItemIconUrl('chain', null, option.value)
-														return (
-															<button
-																key={option.value}
-																onClick={() => toggleChain(option.value)}
-																className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
-																	isActive
-																		? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
-																		: 'text-(--text-secondary) hover:text-(--text-primary)'
-																}`}
-																style={{
-																	position: 'absolute',
-																	top: 0,
-																	left: 0,
-																	width: '100%',
-																	transform: `translateY(${row.start}px)`
-																}}
-															>
-																<div className="flex min-w-0 items-center gap-2.5">
-																	{iconUrl && (
-																		<img
-																			src={iconUrl}
-																			alt={option.label}
-																			className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
-																			onError={(e) => {
-																				e.currentTarget.style.display = 'none'
-																			}}
-																		/>
-																	)}
-																	<span className="truncate">{option.label}</span>
-																</div>
-																{isActive && (
-																	<Icon
-																		name="check"
-																		width={14}
-																		height={14}
-																		className="ml-2 flex-shrink-0 text-(--primary)"
-																	/>
-																)}
-															</button>
-														)
-													})}
-												</div>
-											</div>
-											{selectedYieldChains.length > 0 && (
-												<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
-													<span className="text-[11px] font-medium text-(--text-secondary)">
-														{selectedYieldChains.length} selected
-													</span>
+										<div
+											className="p-1"
+											style={{
+												height: chainVirtualizer.getTotalSize(),
+												position: 'relative'
+											}}
+										>
+											{chainVirtualizer.getVirtualItems().map((row) => {
+												const option = filteredChainOptions[row.index]
+												if (!option) return null
+												const isActive = selectedYieldChains.includes(option.value)
+												const iconUrl = getItemIconUrl('chain', null, option.value)
+												return (
 													<button
-														type="button"
-														onClick={() => onSelectedYieldChainsChange([])}
-														className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
-													>
-														Clear
-													</button>
-												</div>
-											)}
-										</div>
-									</Popover>
-								</div>
-
-								<div className="flex flex-col">
-									<label className="pro-text2 mb-1 block text-[11px] font-medium">Projects</label>
-									<PopoverDisclosure
-										store={projectPopover}
-										className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-									>
-										<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
-											{selectedYieldProjects.length > 0
-												? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
-												: 'All projects'}
-										</span>
-										<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
-									</PopoverDisclosure>
-									<Popover
-										store={projectPopover}
-										modal={false}
-										portal={true}
-										gutter={4}
-										flip={false}
-										className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
-										style={{ width: 'var(--popover-anchor-width)' }}
-									>
-										<div className="p-2.5">
-											<div className="relative mb-2.5">
-												<Icon
-													name="search"
-													width={12}
-													height={12}
-													className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
-												/>
-												<input
-													autoFocus
-													value={projectSearch}
-													onChange={(e) => setProjectSearch(e.target.value)}
-													placeholder="Search projects..."
-													className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-												/>
-											</div>
-											<div
-												className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
-												ref={projectListRef}
-											>
-												<div
-													className="p-1"
-													style={{
-														height: projectVirtualizer.getTotalSize(),
-														position: 'relative'
-													}}
-												>
-													{projectVirtualizer.getVirtualItems().map((row) => {
-														const option = filteredProjectOptions[row.index]
-														if (!option) return null
-														const isActive = selectedYieldProjects.includes(option.value)
-														const iconUrl = getItemIconUrl('protocol', null, option.value)
-														return (
-															<button
-																key={option.value}
-																onClick={() => toggleProject(option.value)}
-																className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
-																	isActive
-																		? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
-																		: 'text-(--text-secondary) hover:text-(--text-primary)'
-																}`}
-																style={{
-																	position: 'absolute',
-																	top: 0,
-																	left: 0,
-																	width: '100%',
-																	transform: `translateY(${row.start}px)`
-																}}
-															>
-																<div className="flex min-w-0 items-center gap-2.5">
-																	{iconUrl && (
-																		<img
-																			src={iconUrl}
-																			alt={option.label}
-																			className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
-																			onError={(e) => {
-																				e.currentTarget.style.display = 'none'
-																			}}
-																		/>
-																	)}
-																	<span className="truncate">{option.label}</span>
-																</div>
-																{isActive && (
-																	<Icon
-																		name="check"
-																		width={14}
-																		height={14}
-																		className="ml-2 flex-shrink-0 text-(--primary)"
-																	/>
-																)}
-															</button>
-														)
-													})}
-												</div>
-											</div>
-											{selectedYieldProjects.length > 0 && (
-												<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
-													<span className="text-[11px] font-medium text-(--text-secondary)">
-														{selectedYieldProjects.length} selected
-													</span>
-													<button
-														type="button"
-														onClick={() => onSelectedYieldProjectsChange([])}
-														className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
-													>
-														Clear
-													</button>
-												</div>
-											)}
-										</div>
-									</Popover>
-								</div>
-
-								<div className="flex flex-col">
-									<label className="pro-text2 mb-1 block text-[11px] font-medium">Tokens</label>
-									<PopoverDisclosure
-										store={tokenPopover}
-										className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-									>
-										<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
-											{selectedYieldTokens.length > 0
-												? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
-												: 'All tokens'}
-										</span>
-										<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
-									</PopoverDisclosure>
-									<Popover
-										store={tokenPopover}
-										modal={false}
-										portal={true}
-										gutter={4}
-										flip={false}
-										className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
-										style={{ width: 'var(--popover-anchor-width)' }}
-									>
-										<div className="p-2.5">
-											<div className="relative mb-2.5">
-												<Icon
-													name="search"
-													width={12}
-													height={12}
-													className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
-												/>
-												<input
-													autoFocus
-													value={tokenSearch}
-													onChange={(e) => setTokenSearch(e.target.value)}
-													placeholder="Search tokens..."
-													className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-												/>
-											</div>
-											<div
-												className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
-												ref={tokenListRef}
-											>
-												<div
-													className="p-1"
-													style={{
-														height: tokenVirtualizer.getTotalSize(),
-														position: 'relative'
-													}}
-												>
-													{tokenVirtualizer.getVirtualItems().map((row) => {
-														const option = filteredTokenOptions[row.index]
-														if (!option) return null
-														const isActive = selectedYieldTokens.includes(option.value)
-														return (
-															<button
-																key={option.value}
-																onClick={() => toggleToken(option.value)}
-																className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
-																	isActive
-																		? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
-																		: 'text-(--text-secondary) hover:text-(--text-primary)'
-																}`}
-																style={{
-																	position: 'absolute',
-																	top: 0,
-																	left: 0,
-																	width: '100%',
-																	transform: `translateY(${row.start}px)`
-																}}
-															>
-																<span className="truncate">{option.label}</span>
-																{isActive && (
-																	<Icon
-																		name="check"
-																		width={14}
-																		height={14}
-																		className="ml-2 flex-shrink-0 text-(--primary)"
-																	/>
-																)}
-															</button>
-														)
-													})}
-												</div>
-											</div>
-											{selectedYieldTokens.length > 0 && (
-												<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
-													<span className="text-[11px] font-medium text-(--text-secondary)">
-														{selectedYieldTokens.length} selected
-													</span>
-													<button
-														type="button"
-														onClick={() => {
-															onSelectedYieldTokensChange([])
-															setTokenSearch('')
+														key={option.value}
+														onClick={() => toggleChain(option.value)}
+														className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
+															isActive
+																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
+																: 'text-(--text-secondary) hover:text-(--text-primary)'
+														}`}
+														style={{
+															position: 'absolute',
+															top: 0,
+															left: 0,
+															width: '100%',
+															transform: `translateY(${row.start}px)`
 														}}
-														className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
 													>
-														Clear
+														<div className="flex min-w-0 items-center gap-2.5">
+															{iconUrl && (
+																<img
+																	src={iconUrl}
+																	alt={option.label}
+																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
+																	onError={(e) => {
+																		e.currentTarget.style.display = 'none'
+																	}}
+																/>
+															)}
+															<span className="truncate">{option.label}</span>
+														</div>
+														{isActive && (
+															<Icon
+																name="check"
+																width={14}
+																height={14}
+																className="ml-2 flex-shrink-0 text-(--primary)"
+															/>
+														)}
 													</button>
-												</div>
-											)}
+												)
+											})}
 										</div>
-									</Popover>
+									</div>
+									{selectedYieldChains.length > 0 && (
+										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
+											<span className="text-[11px] font-medium text-(--text-secondary)">
+												{selectedYieldChains.length} selected
+											</span>
+											<button
+												type="button"
+												onClick={() => onSelectedYieldChainsChange([])}
+												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
+											>
+												Clear
+											</button>
+										</div>
+									)}
 								</div>
+							</Popover>
+						</div>
 
-								<AriakitMultiSelect
-									label="Categories"
-									options={categoryOptions}
-									selectedValues={selectedYieldCategories}
-									onChange={onSelectedYieldCategoriesChange}
-									placeholder="All categories"
-								/>
+						<div className="flex flex-col">
+							<label className="pro-text2 mb-1 block text-[11px] font-medium">Projects</label>
+							<PopoverDisclosure
+								store={projectPopover}
+								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							>
+								<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
+									{selectedYieldProjects.length > 0
+										? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
+										: 'All projects'}
+								</span>
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+							</PopoverDisclosure>
+							<Popover
+								store={projectPopover}
+								modal={false}
+								portal={true}
+								gutter={4}
+								flip={false}
+								className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
+								style={{ width: 'var(--popover-anchor-width)' }}
+							>
+								<div className="p-2.5">
+									<div className="relative mb-2.5">
+										<Icon
+											name="search"
+											width={12}
+											height={12}
+											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
+										/>
+										<input
+											autoFocus
+											value={projectSearch}
+											onChange={(e) => setProjectSearch(e.target.value)}
+											placeholder="Search projects..."
+											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+										/>
+									</div>
+									<div
+										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+										ref={projectListRef}
+									>
+										<div
+											className="p-1"
+											style={{
+												height: projectVirtualizer.getTotalSize(),
+												position: 'relative'
+											}}
+										>
+											{projectVirtualizer.getVirtualItems().map((row) => {
+												const option = filteredProjectOptions[row.index]
+												if (!option) return null
+												const isActive = selectedYieldProjects.includes(option.value)
+												const iconUrl = getItemIconUrl('protocol', null, option.value)
+												return (
+													<button
+														key={option.value}
+														onClick={() => toggleProject(option.value)}
+														className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
+															isActive
+																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
+																: 'text-(--text-secondary) hover:text-(--text-primary)'
+														}`}
+														style={{
+															position: 'absolute',
+															top: 0,
+															left: 0,
+															width: '100%',
+															transform: `translateY(${row.start}px)`
+														}}
+													>
+														<div className="flex min-w-0 items-center gap-2.5">
+															{iconUrl && (
+																<img
+																	src={iconUrl}
+																	alt={option.label}
+																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
+																	onError={(e) => {
+																		e.currentTarget.style.display = 'none'
+																	}}
+																/>
+															)}
+															<span className="truncate">{option.label}</span>
+														</div>
+														{isActive && (
+															<Icon
+																name="check"
+																width={14}
+																height={14}
+																className="ml-2 flex-shrink-0 text-(--primary)"
+															/>
+														)}
+													</button>
+												)
+											})}
+										</div>
+									</div>
+									{selectedYieldProjects.length > 0 && (
+										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
+											<span className="text-[11px] font-medium text-(--text-secondary)">
+												{selectedYieldProjects.length} selected
+											</span>
+											<button
+												type="button"
+												onClick={() => onSelectedYieldProjectsChange([])}
+												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
+											>
+												Clear
+											</button>
+										</div>
+									)}
+								</div>
+							</Popover>
+						</div>
+
+						<div className="flex flex-col">
+							<label className="pro-text2 mb-1 block text-[11px] font-medium">Tokens</label>
+							<PopoverDisclosure
+								store={tokenPopover}
+								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							>
+								<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
+									{selectedYieldTokens.length > 0
+										? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
+										: 'All tokens'}
+								</span>
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+							</PopoverDisclosure>
+							<Popover
+								store={tokenPopover}
+								modal={false}
+								portal={true}
+								gutter={4}
+								flip={false}
+								className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl"
+								style={{ width: 'var(--popover-anchor-width)' }}
+							>
+								<div className="p-2.5">
+									<div className="relative mb-2.5">
+										<Icon
+											name="search"
+											width={12}
+											height={12}
+											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
+										/>
+										<input
+											autoFocus
+											value={tokenSearch}
+											onChange={(e) => setTokenSearch(e.target.value)}
+											placeholder="Search tokens..."
+											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+										/>
+									</div>
+									<div
+										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+										ref={tokenListRef}
+									>
+										<div
+											className="p-1"
+											style={{
+												height: tokenVirtualizer.getTotalSize(),
+												position: 'relative'
+											}}
+										>
+											{tokenVirtualizer.getVirtualItems().map((row) => {
+												const option = filteredTokenOptions[row.index]
+												if (!option) return null
+												const isActive = selectedYieldTokens.includes(option.value)
+												return (
+													<button
+														key={option.value}
+														onClick={() => toggleToken(option.value)}
+														className={`flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
+															isActive
+																? 'bg-(--primary)/10 font-semibold text-(--primary) shadow-sm'
+																: 'text-(--text-secondary) hover:text-(--text-primary)'
+														}`}
+														style={{
+															position: 'absolute',
+															top: 0,
+															left: 0,
+															width: '100%',
+															transform: `translateY(${row.start}px)`
+														}}
+													>
+														<span className="truncate">{option.label}</span>
+														{isActive && (
+															<Icon
+																name="check"
+																width={14}
+																height={14}
+																className="ml-2 flex-shrink-0 text-(--primary)"
+															/>
+														)}
+													</button>
+												)
+											})}
+										</div>
+									</div>
+									{selectedYieldTokens.length > 0 && (
+										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
+											<span className="text-[11px] font-medium text-(--text-secondary)">
+												{selectedYieldTokens.length} selected
+											</span>
+											<button
+												type="button"
+												onClick={() => {
+													onSelectedYieldTokensChange([])
+													setTokenSearch('')
+												}}
+												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
+											>
+												Clear
+											</button>
+										</div>
+									)}
+								</div>
+							</Popover>
+						</div>
+
+						<AriakitMultiSelect
+							label="Categories"
+							options={categoryOptions}
+							selectedValues={selectedYieldCategories}
+							onChange={onSelectedYieldCategoriesChange}
+							placeholder="All categories"
+						/>
 
 						<div>
 							<label className="pro-text2 mb-1 block text-[11px] font-medium">TVL Range</label>
@@ -730,13 +730,19 @@ export function YieldsChartTab({
 									<div className="mb-3 flex gap-4">
 										<div className="flex flex-col">
 											<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
-											<span className="font-jetbrains text-base font-semibold" style={{ color: mainChartStackColors.APY }}>
+											<span
+												className="font-jetbrains text-base font-semibold"
+												style={{ color: mainChartStackColors.APY }}
+											>
 												{latestYieldData.apy}%
 											</span>
 										</div>
 										<div className="flex flex-col">
 											<span className="pro-text3 text-[10px] uppercase">TVL</span>
-											<span className="font-jetbrains text-base font-semibold" style={{ color: mainChartStackColors.TVL }}>
+											<span
+												className="font-jetbrains text-base font-semibold"
+												style={{ color: mainChartStackColors.TVL }}
+											>
 												{formattedNum(latestYieldData.tvl, true)}
 											</span>
 										</div>

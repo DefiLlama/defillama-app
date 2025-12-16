@@ -18,9 +18,9 @@ import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { feesDatasetColumns } from './columns'
 import { useFeesData } from './useFeesData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 export function FeesDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])

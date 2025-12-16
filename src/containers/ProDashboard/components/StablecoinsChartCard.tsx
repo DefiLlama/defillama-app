@@ -94,7 +94,15 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			usdInflows: filterTimeSeries(usdInflows),
 			tokenInflows: filterTimeSeries(tokenInflows)
 		}
-	}, [peggedAreaTotalData, peggedAreaChartData, dataWithExtraPeggedAndDominanceByDay, usdInflows, tokenInflows, timePeriod, customTimePeriod])
+	}, [
+		peggedAreaTotalData,
+		peggedAreaChartData,
+		dataWithExtraPeggedAndDominanceByDay,
+		usdInflows,
+		tokenInflows,
+		timePeriod,
+		customTimePeriod
+	])
 
 	const latestMcap = useMemo(() => {
 		const data = filteredChartData.peggedAreaTotalData
@@ -110,13 +118,19 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 
 		switch (chartType) {
 			case 'totalMcap':
-				rows = [['Date', 'Market Cap'], ...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Mcap ?? ''])]
+				rows = [
+					['Date', 'Market Cap'],
+					...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Mcap ?? ''])
+				]
 				filename = `stablecoins-${chainSlug}-total-mcap.csv`
 				break
 			case 'tokenMcaps':
 				rows = [
 					['Date', ...peggedAssetNames],
-					...filteredChartData.peggedAreaChartData.map((el: any) => [toNiceCsvDate(el.date), ...peggedAssetNames.map((name) => el[name] ?? '')])
+					...filteredChartData.peggedAreaChartData.map((el: any) => [
+						toNiceCsvDate(el.date),
+						...peggedAssetNames.map((name) => el[name] ?? '')
+					])
 				]
 				filename = `stablecoins-${chainSlug}-token-mcaps.csv`
 				break
@@ -131,13 +145,19 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 				filename = `stablecoins-${chainSlug}-dominance.csv`
 				break
 			case 'usdInflows':
-				rows = [['Date', 'USD Inflows'], ...filteredChartData.usdInflows.map((el: any) => [toNiceCsvDate(el.date), el.Inflows ?? ''])]
+				rows = [
+					['Date', 'USD Inflows'],
+					...filteredChartData.usdInflows.map((el: any) => [toNiceCsvDate(el.date), el.Inflows ?? ''])
+				]
 				filename = `stablecoins-${chainSlug}-usd-inflows.csv`
 				break
 			case 'tokenInflows':
 				rows = [
 					['Date', ...tokenInflowNames],
-					...filteredChartData.tokenInflows.map((el: any) => [toNiceCsvDate(el.date), ...tokenInflowNames.map((name) => el[name] ?? '')])
+					...filteredChartData.tokenInflows.map((el: any) => [
+						toNiceCsvDate(el.date),
+						...tokenInflowNames.map((name) => el[name] ?? '')
+					])
 				]
 				filename = `stablecoins-${chainSlug}-token-inflows.csv`
 				break

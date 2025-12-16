@@ -19,9 +19,9 @@ import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { stablecoinsDatasetColumns } from './columns'
 import { useStablecoinsData } from './useStablecoinsData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 interface StablecoinsDatasetProps {
 	chain: string

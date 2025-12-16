@@ -33,9 +33,7 @@ export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: T
 
 			const shouldGroup = item.grouping && item.grouping !== 'day'
 			const groupedData =
-				shouldGroup && Array.isArray(rawData) && rawData.length > 0
-					? groupData(rawData, item.grouping)
-					: rawData
+				shouldGroup && Array.isArray(rawData) && rawData.length > 0 ? groupData(rawData, item.grouping) : rawData
 
 			return {
 				...item,

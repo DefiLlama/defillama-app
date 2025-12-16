@@ -29,12 +29,8 @@ export function SelectMetricsStep() {
 						<Icon name="bar-chart-2" height={18} width={18} className="text-(--primary)" />
 					</div>
 					<div>
-						<p className="text-sm font-medium text-(--text-primary)">
-							{validMetrics.length} metrics available
-						</p>
-						<p className="text-xs text-(--text-tertiary)">
-							Based on data availability for your selected {typeLabel}
-						</p>
+						<p className="text-sm font-medium text-(--text-primary)">{validMetrics.length} metrics available</p>
+						<p className="text-xs text-(--text-tertiary)">Based on data availability for your selected {typeLabel}</p>
 					</div>
 				</div>
 				{invalidMetrics.length > 0 && (
@@ -74,7 +70,7 @@ export function SelectMetricsStep() {
 				</div>
 			</div>
 
-			<div className="max-h-[340px] overflow-y-auto rounded-lg thin-scrollbar">
+			<div className="thin-scrollbar max-h-[340px] overflow-y-auto rounded-lg">
 				<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 					{displayedMetrics.map((metric) => (
 						<MetricCard
@@ -94,8 +90,7 @@ export function SelectMetricsStep() {
 					<Icon name="alert-triangle" height={32} width={32} className="mx-auto mb-3 text-amber-500" />
 					<p className="font-medium text-(--text-primary)">No metrics available</p>
 					<p className="mt-1 text-sm text-(--text-tertiary)">
-						The selected {typeLabel} don't have enough common metrics to compare.
-						Try selecting different {typeLabel}.
+						The selected {typeLabel} don't have enough common metrics to compare. Try selecting different {typeLabel}.
 					</p>
 				</div>
 			)}

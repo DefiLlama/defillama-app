@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import {
 	DndContext,
 	DragOverlay,
@@ -18,7 +19,6 @@ import {
 	useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'

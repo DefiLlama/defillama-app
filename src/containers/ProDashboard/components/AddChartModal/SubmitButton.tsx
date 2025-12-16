@@ -69,7 +69,8 @@ export function SubmitButton({
 	const isStablecoinChainModeInvalid =
 		stablecoinMode === 'chain' && (!selectedStablecoinChain || !selectedStablecoinChartType)
 	const isStablecoinAssetModeInvalid =
-		stablecoinMode === 'asset' && (!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
+		stablecoinMode === 'asset' &&
+		(!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
 	const isAdvancedTvlInvalid = !selectedAdvancedTvlProtocol || !selectedAdvancedTvlChartType
 
 	const isDisabled =
@@ -116,7 +117,11 @@ export function SubmitButton({
 				if (chartMode === 'builder') {
 					return 'Add Chart'
 				}
-				if (selectedChartTab === 'yields' || selectedChartTab === 'stablecoins' || selectedChartTab === 'advanced-tvl') {
+				if (
+					selectedChartTab === 'yields' ||
+					selectedChartTab === 'stablecoins' ||
+					selectedChartTab === 'advanced-tvl'
+				) {
 					return 'Add Chart'
 				}
 				if (chartCreationMode === 'combined') {

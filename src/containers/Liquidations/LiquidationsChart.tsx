@@ -1,5 +1,4 @@
 import { useCallback, useContext, useEffect } from 'react'
-import * as echarts from 'echarts/core'
 import { BarChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -8,6 +7,7 @@ import {
 	LegendComponent,
 	TooltipComponent
 } from 'echarts/components'
+import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { ChartData } from '~/containers/Liquidations/utils'

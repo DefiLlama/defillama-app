@@ -12,13 +12,7 @@ interface FiltersPanelProps {
 	onFiltersChange: (filters: TableFilters) => void
 }
 
-export function FiltersPanel({
-	chains,
-	filters,
-	availableChains,
-	onChainsChange,
-	onFiltersChange
-}: FiltersPanelProps) {
+export function FiltersPanel({ chains, filters, availableChains, onChainsChange, onFiltersChange }: FiltersPanelProps) {
 	const { protocols } = useProDashboard()
 	const [categoryMode, setCategoryMode] = useState<'include' | 'exclude'>('include')
 

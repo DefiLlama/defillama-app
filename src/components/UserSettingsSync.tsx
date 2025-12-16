@@ -4,4 +4,3 @@ export function UserSettingsSync() {
 	useUserConfig()
 	return null
 }
-

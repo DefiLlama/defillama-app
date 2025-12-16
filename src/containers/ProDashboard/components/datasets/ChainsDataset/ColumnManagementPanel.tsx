@@ -140,7 +140,9 @@ export function ColumnManagementPanel({
 										<Icon name="check" height={12} width={12} className="text-(--success)" />
 										<span className="pro-text1 text-xs">{column.name}</span>
 										{columnId.endsWith('_share') && (
-											<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">%</span>
+											<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 rounded-md px-1 py-0.5 text-xs">
+												%
+											</span>
 										)}
 									</div>
 									<div className="flex items-center gap-1">
@@ -198,7 +200,9 @@ export function ColumnManagementPanel({
 												<Icon name="plus" height={10} width={10} className="pro-text3" />
 												<span className="pro-text1 text-xs">{column.name}</span>
 												{column.id.endsWith('_share') && (
-													<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">%</span>
+													<span className="bg-pro-blue-100 text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200 ml-auto rounded-md px-1 py-0.5 text-xs">
+														%
+													</span>
 												)}
 											</button>
 										))}

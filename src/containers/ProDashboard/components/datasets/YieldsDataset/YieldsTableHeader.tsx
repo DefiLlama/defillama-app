@@ -46,18 +46,18 @@ export function YieldsTableHeader({
 
 	return (
 		<div className="mb-3">
-				<div className="mb-3 flex items-center justify-between gap-4">
-					<h3 className="pro-text1 text-lg font-semibold">{displayTitle}</h3>
-					<div className="flex items-center gap-2">
-						<input
-							type="text"
-							placeholder="Search pools..."
-							value={poolName}
-							onChange={(e) => setPoolName(e.target.value)}
-							className="pro-border pro-text1 w-full rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm focus:border-(--primary) focus:outline-hidden"
-						/>
-					</div>
+			<div className="mb-3 flex items-center justify-between gap-4">
+				<h3 className="pro-text1 text-lg font-semibold">{displayTitle}</h3>
+				<div className="flex items-center gap-2">
+					<input
+						type="text"
+						placeholder="Search pools..."
+						value={poolName}
+						onChange={(e) => setPoolName(e.target.value)}
+						className="pro-border pro-text1 w-full rounded-md border bg-(--bg-glass) px-3 py-1.5 text-sm focus:border-(--primary) focus:outline-hidden"
+					/>
 				</div>
+			</div>
 
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">

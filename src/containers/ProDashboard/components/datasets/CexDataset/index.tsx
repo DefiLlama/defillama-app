@@ -18,9 +18,9 @@ import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
+import { TablePagination } from '../../ProTable/TablePagination'
 import { cexDatasetColumns } from './columns'
 import { useCexData } from './useCexData'
-import { TablePagination } from '../../ProTable/TablePagination'
 
 export function CexDataset() {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'cleanTvl', desc: true }])

@@ -45,7 +45,7 @@ export const TagGroup = ({
 						className={
 							buttonClassName ||
 							cn(
-								'shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white disabled:hover:bg-transparent',
+								'shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:hover:bg-transparent data-[active=true]:bg-(--old-blue) data-[active=true]:text-white',
 								triggerClassName
 							)
 						}

@@ -2,11 +2,7 @@ import type { Row } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType } from '../../../types'
 import type { NormalizedRow, NumericMetrics } from '../types'
 import { aggregateMetrics } from '../utils/aggregation'
-import {
-	GROUPING_COLUMN_ID_TO_HEADER,
-	ROW_HEADER_GROUPING_COLUMN_IDS,
-	type GroupingColumnId
-} from './grouping'
+import { GROUPING_COLUMN_ID_TO_HEADER, ROW_HEADER_GROUPING_COLUMN_IDS, type GroupingColumnId } from './grouping'
 
 const UNKNOWN_LABELS: Record<UnifiedRowHeaderType, string> = {
 	protocol: 'Unknown Protocol',

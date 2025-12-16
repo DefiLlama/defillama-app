@@ -9,10 +9,10 @@ import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
 import { getItemIconUrl } from '../../utils'
-import { AriakitSelect } from '../AriakitSelect'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
-import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
+import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
+import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
 import { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -226,8 +226,7 @@ export function ChartBuilderTab({
 
 		const hasChainCategoryFilter = (chartBuilder.chainCategories?.length || 0) > 0
 		const hasProtocolCategoryFilter = (chartBuilder.protocolCategories?.length || 0) > 0
-		const forceHideOthers =
-			chartBuilder.mode === 'protocol' && (hasChainCategoryFilter || hasProtocolCategoryFilter)
+		const forceHideOthers = chartBuilder.mode === 'protocol' && (hasChainCategoryFilter || hasProtocolCategoryFilter)
 
 		return chartBuilder.hideOthers || forceHideOthers
 			? previewData.series.filter((s) => !s.name.startsWith('Others'))
@@ -448,11 +447,13 @@ export function ChartBuilderTab({
 
 						{chartBuilder.mode === 'chains' ? (
 							<>
-						<div className="mb-1.5">
-							<AriakitVirtualizedMultiSelect
-								label="Chains"
-								options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
-								selectedValues={chartBuilder.chains}
+								<div className="mb-1.5">
+									<AriakitVirtualizedMultiSelect
+										label="Chains"
+										options={
+											chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []
+										}
+										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
 											(chartBuilder.filterMode || 'include') === 'exclude'
@@ -539,7 +540,9 @@ export function ChartBuilderTab({
 								<div className="mb-1.5">
 									<AriakitVirtualizedMultiSelect
 										label="Chains"
-										options={chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []}
+										options={
+											chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []
+										}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
 										placeholder={
@@ -549,31 +552,31 @@ export function ChartBuilderTab({
 										}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
-								renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
-							/>
-						</div>
-						{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (
-							<div className="mb-1.5">
-								<AriakitMultiSelect
-									label="Protocol Categories"
-									options={categoryOptions}
-									selectedValues={chartBuilder.protocolCategories || []}
-									onChange={handleProtocolCategoriesChange}
-									placeholder={
-										(chartBuilder.filterMode || 'include') === 'exclude'
-											? 'Select protocol categories to exclude...'
-											: 'Select protocol categories...'
-									}
-									isLoading={false}
-									maxSelections={5}
-								/>
-							</div>
-						)}
-						<div className="mb-1.5">
-							<AriakitMultiSelect
-								label="Chain Categories"
-								options={(chainCategoriesList || []).map((c) => ({ value: c, label: c }))}
-								selectedValues={chartBuilder.chainCategories || []}
+										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+									/>
+								</div>
+								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (
+									<div className="mb-1.5">
+										<AriakitMultiSelect
+											label="Protocol Categories"
+											options={categoryOptions}
+											selectedValues={chartBuilder.protocolCategories || []}
+											onChange={handleProtocolCategoriesChange}
+											placeholder={
+												(chartBuilder.filterMode || 'include') === 'exclude'
+													? 'Select protocol categories to exclude...'
+													: 'Select protocol categories...'
+											}
+											isLoading={false}
+											maxSelections={5}
+										/>
+									</div>
+								)}
+								<div className="mb-1.5">
+									<AriakitMultiSelect
+										label="Chain Categories"
+										options={(chainCategoriesList || []).map((c) => ({ value: c, label: c }))}
+										selectedValues={chartBuilder.chainCategories || []}
 										onChange={handleChainCategoriesChange}
 										placeholder={
 											(chartBuilder.filterMode || 'include') === 'exclude'
@@ -651,7 +654,6 @@ export function ChartBuilderTab({
 							))}
 						</div>
 					</div>
-
 				</div>
 
 				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -850,9 +852,7 @@ export function ChartBuilderTab({
 									onClick={handleResetAllSeriesColors}
 									disabled={!hasCustomSeriesColors}
 									className={`text-[10px] font-medium transition-colors disabled:cursor-not-allowed ${
-										hasCustomSeriesColors
-											? 'pro-text2 hover:pro-text1'
-											: 'pro-text3 cursor-not-allowed'
+										hasCustomSeriesColors ? 'pro-text2 hover:pro-text1' : 'pro-text3 cursor-not-allowed'
 									}`}
 								>
 									Reset All
@@ -867,7 +867,7 @@ export function ChartBuilderTab({
 											key={series.name}
 											className="flex shrink-0 items-center gap-1.5 rounded border border-(--cards-border) bg-(--bg-input) px-2 py-1 text-xs"
 										>
-											<span className="max-w-[140px] truncate pro-text2" title={series.name}>
+											<span className="pro-text2 max-w-[140px] truncate" title={series.name}>
 												{series.name}
 											</span>
 											<input

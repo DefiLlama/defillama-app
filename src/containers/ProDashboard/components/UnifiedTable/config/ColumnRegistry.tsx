@@ -18,9 +18,9 @@ import {
 	getRowHeaderFromGroupingColumn
 } from '../core/groupingUtils'
 import type { MetricGroup, NormalizedRow, NumericMetrics } from '../types'
+import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/customColumns'
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
-import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/customColumns'
 
 declare module '@tanstack/table-core' {
 	interface ColumnMeta<TData, TValue> {
@@ -250,9 +250,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
 				const iconSource = shouldShowChainIcon ? chainIcon : (display.iconUrl ?? baseRow?.logo ?? undefined)
 				const isChainOrCategoryGroup = display.header === 'chain' || display.header === 'category'
-				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped()
-					? (row.subRows?.length ?? null)
-					: null
+				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped() ? (row.subRows?.length ?? null) : null
 
 				return (
 					<div

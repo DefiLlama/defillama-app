@@ -82,14 +82,17 @@ export function YieldsFiltersPanel({
 	if (!showFiltersPanel) return null
 
 	return (
-		<div className="relative mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4" style={{ zIndex: 50, pointerEvents: 'auto' }}>
+		<div
+			className="relative mb-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4"
+			style={{ zIndex: 50, pointerEvents: 'auto' }}
+		>
 			<div className="mb-3 flex items-center justify-between">
 				<h4 className="pro-text1 text-sm font-medium">Filter Yields</h4>
 				<div className="flex items-center gap-2">
 					{activeFilterCount > 0 && (
 						<button
 							onClick={handleReset}
-								className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
+							className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 						>
 							Clear All ({activeFilterCount})
 						</button>
@@ -281,28 +284,28 @@ export function YieldsFiltersPanel({
 					</div>
 				</div>
 
-		<div>
-			<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Protocol & Token Filters</h5>
+				<div>
+					<h5 className="pro-text2 mb-3 text-xs font-medium tracking-wide uppercase">Protocol & Token Filters</h5>
 
-			<div className="space-y-3">
-				<AriakitVirtualizedMultiSelect
-					label="Protocols"
-					options={availableProtocols}
-					selectedValues={localFilters.protocols || []}
-					onChange={(values) => updateFilter('protocols', values.length > 0 ? values : undefined)}
-					placeholder="Select protocols..."
-					renderIcon={(option) => option.logo || null}
-				/>
+					<div className="space-y-3">
+						<AriakitVirtualizedMultiSelect
+							label="Protocols"
+							options={availableProtocols}
+							selectedValues={localFilters.protocols || []}
+							onChange={(values) => updateFilter('protocols', values.length > 0 ? values : undefined)}
+							placeholder="Select protocols..."
+							renderIcon={(option) => option.logo || null}
+						/>
 
-				<AriakitVirtualizedMultiSelect
-					label="Pool Tokens"
-					options={availableTokens.map((token) => ({ value: token, label: token }))}
-					selectedValues={localFilters.tokens || []}
-					onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
-					placeholder="Select tokens..."
-				/>
-			</div>
-		</div>
+						<AriakitVirtualizedMultiSelect
+							label="Pool Tokens"
+							options={availableTokens.map((token) => ({ value: token, label: token }))}
+							selectedValues={localFilters.tokens || []}
+							onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
+							placeholder="Select tokens..."
+						/>
+					</div>
+				</div>
 			</div>
 
 			<div className="pro-divider mt-4 flex items-center justify-between border-t pt-3">

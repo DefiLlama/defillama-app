@@ -24,7 +24,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 100,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-				return <span className="pro-text1">{value || 0}</span>
+			return <span className="pro-text1">{value || 0}</span>
 		}
 	},
 	{
@@ -33,7 +33,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 130,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-				return <span className="pro-text1">{value ? formattedNum(value) : ''}</span>
+			return <span className="pro-text1">{value ? formattedNum(value) : ''}</span>
 		}
 	},
 	{
@@ -42,38 +42,38 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		size: 90,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-		return (
-			<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
-				{value ? formattedPercent(value, false, 100) : '-'}
-			</span>
-		)
-	}
-},
+			return (
+				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
+					{value ? formattedPercent(value, false, 100) : '-'}
+				</span>
+			)
+		}
+	},
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
 		size: 90,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-		return (
-			<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
-				{value ? formattedPercent(value, false, 100) : '-'}
-			</span>
-		)
-	}
-},
+			return (
+				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
+					{value ? formattedPercent(value, false, 100) : '-'}
+				</span>
+			)
+		}
+	},
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
 		size: 90,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-		return (
-			<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
-				{value ? formattedPercent(value, false, 100) : '-'}
-			</span>
-		)
-	}
+			return (
+				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
+					{value ? formattedPercent(value, false, 100) : '-'}
+				</span>
+			)
+		}
 	},
 	{
 		header: 'DeFi TVL',

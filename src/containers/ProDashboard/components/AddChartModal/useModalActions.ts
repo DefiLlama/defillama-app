@@ -745,7 +745,15 @@ export function useModalActions(
 			timePeriod,
 			customTimePeriod
 		}),
-		[selectedProtocolData, selectedChainData, chainOptions, protocolOptions, protocolsLoading, timePeriod, customTimePeriod]
+		[
+			selectedProtocolData,
+			selectedChainData,
+			chainOptions,
+			protocolOptions,
+			protocolsLoading,
+			timePeriod,
+			customTimePeriod
+		]
 	)
 
 	return {

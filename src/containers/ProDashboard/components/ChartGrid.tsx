@@ -6,7 +6,6 @@ import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import { useProDashboard } from '../ProDashboardAPIContext'
 import { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
-import type { UnifiedTableFocusSection } from './UnifiedTable/types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -28,6 +27,7 @@ import {
 import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
+import type { UnifiedTableFocusSection } from './UnifiedTable/types'
 import { YieldsChartCard } from './YieldsChartCard'
 
 const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))

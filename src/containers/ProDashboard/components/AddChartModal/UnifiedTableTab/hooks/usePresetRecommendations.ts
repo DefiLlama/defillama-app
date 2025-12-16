@@ -140,5 +140,13 @@ export function usePresetRecommendations({ filters, chains }: UsePresetRecommend
 			const preset = UNIFIED_TABLE_PRESETS_BY_ID.get(id)
 			return Boolean(preset)
 		})
-	}, [filters.categories, filters.excludedCategories, filters.protocols, filters.oracles, filters.hasRewards, filters.activeLending, chains])
+	}, [
+		filters.categories,
+		filters.excludedCategories,
+		filters.protocols,
+		filters.oracles,
+		filters.hasRewards,
+		filters.activeLending,
+		chains
+	])
 }

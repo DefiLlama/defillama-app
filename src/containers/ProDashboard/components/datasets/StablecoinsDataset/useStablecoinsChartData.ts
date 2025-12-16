@@ -1,10 +1,9 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
-import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
-import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-import { fetchJson } from '~/utils/async'
+import { buildStablecoinChartData, formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getDominancePercent, preparePieChartData } from '~/utils'
+import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinsChartDataResult {
 	peggedAreaTotalData: any[]
@@ -21,7 +20,11 @@ interface UseStablecoinsChartDataResult {
 }
 
 export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataResult {
-	const { data: rawData, isLoading, error } = useQuery({
+	const {
+		data: rawData,
+		isLoading,
+		error
+	} = useQuery({
 		queryKey: ['stablecoins-chart-data', chain],
 		queryFn: async () => {
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([

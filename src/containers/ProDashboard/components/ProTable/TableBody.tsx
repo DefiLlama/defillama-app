@@ -43,7 +43,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 									<th
 										key={header.id}
 										colSpan={header.colSpan}
-										className={`bg-(--cards-bg) relative border-b border-r border-(--divider) px-1 py-2 font-medium first:rounded-l-md last:rounded-r-md last:border-r-0 sm:px-2 ${
+										className={`relative border-r border-b border-(--divider) bg-(--cards-bg) px-1 py-2 font-medium first:rounded-l-md last:rounded-r-md last:border-r-0 sm:px-2 ${
 											header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
 										}`}
 										style={{
