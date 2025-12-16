@@ -26,6 +26,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
+import definitions from '~/public/definitions.json'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
@@ -713,7 +714,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Total fees paid by users when using the protocol in the last 24 hours'
+					headerHelperText: definitions.fees.protocol['24h']
 				},
 				size: 128
 			},
@@ -726,7 +727,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Total fees paid by users when using the protocol in the last 7 days'
+					headerHelperText: definitions.fees.protocol['7d']
 				},
 				size: 128
 			},
@@ -739,7 +740,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Total fees paid by users when using the protocol in the last 30 days'
+					headerHelperText: definitions.fees.protocol['30d']
 				},
 				size: 128
 			}
@@ -787,7 +788,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
+					headerHelperText: definitions.revenue.protocol['24h']
 				},
 				size: 128
 			},
@@ -800,7 +801,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
+					headerHelperText: definitions.revenue.protocol['7d']
 				},
 				size: 128
 			},
@@ -813,7 +814,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+					headerHelperText: definitions.revenue.protocol['30d']
 				},
 				size: 128
 			}
@@ -861,7 +862,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by token holders of the protocol in the last 24 hours'
+					headerHelperText: definitions.holdersRevenue.protocol['24h']
 				},
 				size: 180
 			},
@@ -874,7 +875,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by token holders of the protocol in the last 7 days'
+					headerHelperText: definitions.holdersRevenue.protocol['7d']
 				},
 				size: 180
 			},
@@ -887,7 +888,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Revenue earned by token holders of the protocol in the last 30 days'
+					headerHelperText: definitions.holdersRevenue.protocol['30d']
 				},
 				size: 180
 			}
@@ -1392,9 +1393,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours' +
-						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
+					headerHelperText: isChain ? definitions.earnings.chain['24h'] : definitions.earnings.protocol['24h']
 				},
 				size: 160
 			},
@@ -1407,9 +1406,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Earnings (Revenue - Incentives) earned by the protocol in the last 7 days' +
-						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
+					headerHelperText: isChain ? definitions.earnings.chain['7d'] : definitions.earnings.protocol['7d']
 				},
 				size: 160
 			},
@@ -1422,9 +1419,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Earnings (Revenue - Incentives) earned by the protocol in the last 30 days' +
-						(isChain ? ' Incentives are split propotionally to revenue on this chain.' : '')
+					headerHelperText: isChain ? definitions.earnings.chain['30d'] : definitions.earnings.protocol['30d']
 				},
 				size: 160
 			}
@@ -1461,7 +1456,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Market cap / annualized fees'
+					headerHelperText: definitions.fees.protocol['pf']
 				},
 				size: 120
 			}
@@ -1498,7 +1493,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Market cap / annualized revenue'
+					headerHelperText: definitions.revenue.protocol['ps']
 				},
 				size: 120
 			}

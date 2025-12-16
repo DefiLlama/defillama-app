@@ -27,6 +27,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
+import definitions from '~/public/definitions.json'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
@@ -780,7 +781,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 24 hours'
+					headerHelperText: definitions.fees.protocol['24h']
 				},
 				size: 100
 			}),
@@ -792,7 +793,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
+					headerHelperText: definitions.revenue.protocol['24h']
 				},
 				size: 125
 			}),
@@ -804,7 +805,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the token holders in the last 24 hours'
+					headerHelperText: definitions.holdersRevenue.protocol['24h']
 				},
 				size: 180
 			}),
@@ -816,8 +817,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Incentives distributed to users in the last 24 hours through liquidity mining or incentive programs'
+					headerHelperText: definitions.incentives.protocol['24h']
 				},
 				size: 125
 			}),
@@ -829,7 +829,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 7 days'
+					headerHelperText: definitions.fees.protocol['7d']
 				},
 				size: 100
 			}),
@@ -841,7 +841,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
+					headerHelperText: definitions.revenue.protocol['7d']
 				},
 				size: 120
 			}),
@@ -853,7 +853,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the token holders in the last 7 days'
+					headerHelperText: definitions.holdersRevenue.protocol['7d']
 				},
 				size: 180
 			}),
@@ -865,8 +865,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Incentives distributed to users in the last 7 days through liquidity mining or incentive programs'
+					headerHelperText: definitions.incentives.protocol['7d']
 				},
 				size: 125
 			}),
@@ -878,7 +877,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 30 days'
+					headerHelperText: definitions.fees.protocol['30d']
 				},
 				size: 100
 			}),
@@ -890,7 +889,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+					headerHelperText: definitions.revenue.protocol['30d']
 				},
 				size: 125
 			}),
@@ -902,7 +901,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the token holders in the last 30 days'
+					headerHelperText: definitions.holdersRevenue.protocol['30d']
 				},
 				size: 180
 			}),
@@ -914,8 +913,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Incentives distributed to users in the last 30 days through liquidity mining or incentive programs'
+					headerHelperText: definitions.incentives.protocol['30d']
 				},
 				size: 125
 			}),
@@ -927,7 +925,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 1 year'
+					headerHelperText: definitions.fees.protocol['1y']
 				},
 				size: 100
 			}),
@@ -939,7 +937,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
+					headerHelperText: definitions.fees.protocol['monthlyAverage1y']
 				},
 				size: 180
 			}),
@@ -951,7 +949,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 12 months'
+					headerHelperText: definitions.revenue.protocol['1y']
 				},
 				size: 120
 			}),
@@ -963,7 +961,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the token holders in the last 12 months'
+					headerHelperText: definitions.holdersRevenue.protocol['1y']
 				},
 				size: 180
 			}),
@@ -975,7 +973,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+					headerHelperText: definitions.revenue.protocol['monthlyAverage1y']
 				},
 				size: 180
 			}),
@@ -987,7 +985,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly revenue earned by the token holders in the last 12 months'
+					headerHelperText: definitions.holdersRevenue.protocol['monthlyAverage1y']
 				},
 				size: 260
 			}),
@@ -999,8 +997,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Incentives distributed to users in the last 12 months through liquidity mining or incentive programs'
+					headerHelperText: definitions.incentives.protocol['1y']
 				},
 				size: 125
 			}),
@@ -1012,7 +1009,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly incentives distributed to users in the last 12 months'
+					headerHelperText: definitions.incentives.protocol['monthlyAverage1y']
 				},
 				size: 220
 			}),
@@ -1024,7 +1021,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total fees paid by users since the protocol was launched'
+					headerHelperText: definitions.fees.protocol['cumulative']
 				},
 				size: 150
 			}),
@@ -1036,7 +1033,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total revenue earned by the protocol since the protocol was launched'
+					headerHelperText: definitions.revenue.protocol['cumulative']
 				},
 				size: 180
 			}),
@@ -1048,7 +1045,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total revenue earned by the token holders since the protocol was launched'
+					headerHelperText: definitions.holdersRevenue.protocol['cumulative']
 				},
 				size: 220
 			}),
@@ -1060,7 +1057,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total incentives distributed to users since the protocol was launched'
+					headerHelperText: definitions.incentives.protocol['cumulative']
 				},
 				size: 180
 			}),
@@ -1072,7 +1069,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Market cap / annualized fees'
+					headerHelperText: definitions.fees.protocol['pf']
 				},
 				size: 80
 			}),
@@ -1084,7 +1081,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Market cap / annualized revenue'
+					headerHelperText: definitions.revenue.protocol['ps']
 				},
 				size: 80
 			}),
@@ -1102,7 +1099,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
-						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 24 hours'
+						headerHelperText: definitions.earnings.protocol['24h']
 					},
 					size: 125
 				}
@@ -1121,7 +1118,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
-						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 7 days'
+						headerHelperText: definitions.earnings.protocol['7d']
 					},
 					size: 125
 				}
@@ -1140,7 +1137,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
-						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 30 days'
+						headerHelperText: definitions.earnings.protocol['30d']
 					},
 					size: 125
 				}
@@ -1159,7 +1156,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
-						headerHelperText: 'Earnings (Revenue - Incentives) earned by the protocol in the last 12 months'
+						headerHelperText: definitions.earnings.protocol['1y']
 					},
 					size: 125
 				}
@@ -1178,8 +1175,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
-						headerHelperText:
-							'Average monthly earnings (Revenue - Incentives) earned by the protocol in the last 12 months'
+						headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
 					},
 					size: 200
 				}
@@ -1198,7 +1194,7 @@ const columns: ColumnDef<IProtocol>[] = [
 					sortingFn: 'alphanumericFalsyLast' as any,
 					meta: {
 						align: 'end',
-						headerHelperText: 'Total earnings (Revenue - Incentives) earned by the protocol since it was launched'
+						headerHelperText: definitions.earnings.protocol['cumulative']
 					},
 					size: 180
 				}
@@ -1206,7 +1202,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		],
 		meta: {
 			headerHelperText:
-				"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers."
+				"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers.\nHolders Revenue is subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers."
 		}
 	}),
 	columnHelper.group({

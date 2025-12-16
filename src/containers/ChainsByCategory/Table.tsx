@@ -23,6 +23,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import useWindowSize from '~/hooks/useWindowSize'
+import definitions from '~/public/definitions.json'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'
@@ -503,7 +504,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		size: 140,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total fees paid by users when using the chain in the last 24h. Updated daily at 00:00UTC'
+			headerHelperText: definitions.fees.chain['24h']
 		}
 	},
 	{
@@ -514,8 +515,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 		size: 180,
 		meta: {
 			align: 'end',
-			headerHelperText:
-				'Total revenue earned by the apps on the chain in the last 24h. Excludes stablecoins, liquid staking apps, and gas fees. Updated daily at 00:00UTC'
+			headerHelperText: definitions.appRevenue.chain['24h']
 		}
 	},
 	{

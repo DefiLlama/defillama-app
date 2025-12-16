@@ -21,6 +21,7 @@ import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import definitions from '~/public/definitions.json'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { IChainOverviewData } from './types'
@@ -291,7 +292,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainFees?.total24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Total fees paid by users when using the chain. Updates daily at 00:00 UTC"
+									content={definitions.fees.chain['24h']}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Chain Fees (24h)
@@ -302,7 +303,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainRevenue?.total24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Subset of fees that the chain collects for itself. Updates daily at 00:00 UTC"
+									content={definitions.revenue.chain['24h']}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Chain Revenue (24h)
@@ -313,7 +314,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainFees?.totalREV24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="REV is the sum of chain fees and MEV tips. Updates daily at 00:00 UTC"
+									content={definitions.rev.chain['24h']}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Chain REV (24h)
@@ -324,7 +325,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.chainIncentives?.emissions24h != null ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content="Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms. Updates daily at 00:00 UTC"
+									content={definitions.incentives.protocol['24h']}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									Token Incentives (24h)
@@ -337,9 +338,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.appRevenue?.total24h != null && props.appRevenue?.total24h > 1e3 ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content={
-										'Total revenue earned by the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.\nUpdates daily at 00:00 UTC'
-									}
+									content={definitions.appRevenue.chain['24h']}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									App Revenue (24h)
@@ -350,9 +349,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 						{props.appFees?.total24h != null && props.appFees?.total24h > 1e3 ? (
 							<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 								<Tooltip
-									content={
-										'Total fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees.\nUpdates daily at 00:00 UTC'
-									}
+									content={definitions.appFees.chain['24h']}
 									className="text-(--text-label) underline decoration-dotted"
 								>
 									App Fees (24h)

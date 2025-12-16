@@ -10,6 +10,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import definitions from '~/public/definitions.json'
 import { chainIconUrl, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
@@ -620,7 +621,7 @@ const columns = (
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Fees paid by users in the last 7 days'
+			headerHelperText: definitions.fees.protocol['7d']
 		},
 		size: 100
 	},
@@ -632,7 +633,7 @@ const columns = (
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Revenue earned by the protocol in the last 7 days'
+			headerHelperText: definitions.revenue.protocol['7d']
 		},
 		size: 128
 	},
@@ -672,7 +673,7 @@ const columns = (
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Fees paid by users in the last 30 days'
+			headerHelperText: definitions.fees.protocol['30d']
 		},
 		size: 100
 	},
@@ -684,7 +685,7 @@ const columns = (
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+			headerHelperText: definitions.revenue.protocol['30d']
 		},
 		size: 128
 	},
@@ -712,7 +713,7 @@ const columns = (
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Fees paid by users in the last 24 hours'
+			headerHelperText: definitions.fees.protocol['24h']
 		},
 		size: 100
 	},
@@ -724,7 +725,7 @@ const columns = (
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
+			headerHelperText: definitions.revenue.protocol['24h']
 		},
 		size: 128
 	},

@@ -8,6 +8,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import definitions from '~/public/definitions.json'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
@@ -236,49 +237,49 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				header: 'Earnings 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Net protocol earnings generated over the last 24 hours' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['24h'] },
 				size: 140
 			}),
 			columnHelper.accessor('earningsChange_1d', {
 				header: 'Earnings Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Day-over-day change in earnings' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['change1d'] },
 				size: 170
 			}),
 			columnHelper.accessor('earnings_7d', {
 				header: 'Earnings 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Net protocol earnings across the last 7 days' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['7d'] },
 				size: 140
 			}),
 			columnHelper.accessor('earningsChange_7d', {
 				header: 'Earnings Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Change of 7d earnings versus previous 7d' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['change7d'] },
 				size: 180
 			}),
 			columnHelper.accessor('earnings_30d', {
 				header: 'Earnings 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Net protocol earnings across the last 30 days' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['30d'] },
 				size: 140
 			}),
 			columnHelper.accessor('earningsChange_1m', {
 				header: 'Earnings Change 1m',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Month-over-month change in earnings' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['change1m'] },
 				size: 180
 			}),
 			columnHelper.accessor('earnings_1y', {
 				header: 'Earnings 1y',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Net protocol earnings over the last year' },
+				meta: { align: 'end', headerHelperText: definitions.earnings.protocol['1y'] },
 				size: 150
 			})
 		],
@@ -296,7 +297,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 24 hours'
+					headerHelperText: definitions.fees.protocol['24h']
 				},
 				size: 100
 			}),
@@ -306,7 +307,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 24 hours'
+					headerHelperText: definitions.revenue.protocol['24h']
 				},
 				size: 125
 			}),
@@ -316,7 +317,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 7 days'
+					headerHelperText: definitions.fees.protocol['7d']
 				},
 				size: 100
 			}),
@@ -326,7 +327,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Day-over-day percentage change in fees'
+					headerHelperText: definitions.fees.protocol['change1d']
 				},
 				size: 140
 			}),
@@ -336,7 +337,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Week-over-week percentage change in fees'
+					headerHelperText: definitions.fees.protocol['change7d']
 				},
 				size: 140
 			}),
@@ -346,7 +347,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 7 days'
+					headerHelperText: definitions.revenue.protocol['7d']
 				},
 				size: 120
 			}),
@@ -356,7 +357,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Day-over-day percentage change in revenue'
+					headerHelperText: definitions.revenue.protocol['change1d']
 				},
 				size: 155
 			}),
@@ -366,7 +367,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Week-over-week percentage change in revenue'
+					headerHelperText: definitions.revenue.protocol['change7d']
 				},
 				size: 160
 			}),
@@ -376,7 +377,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 7d fees over the previous 7d fees'
+					headerHelperText: definitions.fees.protocol['change7dover7d']
 				},
 				size: 140
 			}),
@@ -386,7 +387,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Fees paid by users in the last 30 days'
+					headerHelperText: definitions.fees.protocol['30d']
 				},
 				size: 100
 			}),
@@ -396,7 +397,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Month-over-month percentage change in fees'
+					headerHelperText: definitions.fees.protocol['change1m']
 				},
 				size: 150
 			}),
@@ -406,7 +407,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Revenue earned by the protocol in the last 30 days'
+					headerHelperText: definitions.revenue.protocol['30d']
 				},
 				size: 125
 			}),
@@ -416,7 +417,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Month-over-month percentage change in revenue'
+					headerHelperText: definitions.revenue.protocol['change1m']
 				},
 				size: 165
 			}),
@@ -426,7 +427,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 30d fees over the previous 30d fees'
+					headerHelperText: definitions.fees.protocol['change30dover30d']
 				},
 				size: 150
 			}),
@@ -436,7 +437,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 7d revenue over the previous 7d revenue'
+					headerHelperText: definitions.revenue.protocol['change7dover7d']
 				},
 				size: 160
 			}),
@@ -446,7 +447,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 30d revenue over the previous 30d revenue'
+					headerHelperText: definitions.revenue.protocol['change30dover30d']
 				},
 				size: 170
 			}),
@@ -456,7 +457,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total fees paid by users in the last 12 months'
+					headerHelperText: definitions.fees.protocol['1y']
 				},
 				size: 120
 			}),
@@ -466,7 +467,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly fees paid by users in the last 12 months'
+					headerHelperText: definitions.fees.protocol['average1y']
 				},
 				size: 170
 			}),
@@ -476,17 +477,17 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+					headerHelperText: definitions.revenue.protocol['average1y']
 				},
 				size: 120
 			}),
 			columnHelper.accessor('average_revenue_1y', {
-				header: 'Monthly Avg 1Y Rev',
+				header: 'Monthly Avg 1Y Revenue',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Average monthly revenue earned by the protocol in the last 12 months'
+					headerHelperText: definitions.revenue.protocol['monthlyAverage1y']
 				},
 				size: 180
 			}),
@@ -496,8 +497,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Subset of 30 days revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers.'
+					headerHelperText: definitions.holdersRevenue.protocol['30d']
 				},
 				size: 180
 			}),
@@ -517,7 +517,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total fees paid by users since the protocol was launched'
+					headerHelperText: definitions.fees.protocol['cumulative']
 				},
 				size: 150
 			}),
@@ -527,8 +527,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText:
-						'Subset of 24 hour revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers.'
+					headerHelperText: definitions.holdersRevenue.protocol['24h']
 				},
 				size: 180
 			}),
@@ -538,7 +537,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Market cap / annualized fees'
+					headerHelperText: definitions.fees.protocol['pf']
 				},
 				size: 180
 			}),
@@ -548,14 +547,14 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Market cap / annualized revenue'
+					headerHelperText: definitions.revenue.protocol['ps']
 				},
 				size: 180
 			})
 		],
 		meta: {
 			headerHelperText:
-				"Total fees paid by users when using the protocol\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers."
+				"Total fees paid by users when using the protocol\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers.\nHolders Revenue is subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers."
 		}
 	}),
 	columnHelper.group({
@@ -918,7 +917,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Change of last 30d holders revenue over the previous 30d'
+			headerHelperText: definitions.holdersRevenue.protocol['change30dover30d']
 		},
 		size: 200
 	}),

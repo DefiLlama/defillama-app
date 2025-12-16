@@ -7,6 +7,7 @@ import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByREVPageData } from '~/containers/DimensionAdapters/queries'
 import { IChainsByREVPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import definitions from '~/public/definitions.json'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -83,7 +84,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'center',
-			headerHelperText: 'Chain fees and MEV tips in the last 24 hours'
+			headerHelperText: definitions.rev.chain['24h']
 		},
 		size: 128
 	},
@@ -95,7 +96,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'center',
-			headerHelperText: 'Chain fees and MEV tips in the last 30 days'
+			headerHelperText: definitions.rev.chain['30d']
 		},
 		size: 128
 	}

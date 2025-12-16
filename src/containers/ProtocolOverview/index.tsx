@@ -12,6 +12,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import definitions from '~/public/definitions.json'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
@@ -417,14 +418,13 @@ function Fees(props: IKeyMetricsProps) {
 	if (fees30d != null) {
 		metrics.push({
 			name: 'Fees (Annualized)',
-			tooltipContent:
-				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			tooltipContent: definitions.fees.protocol['annualized'],
 			value: fees30d * 12.2
 		})
 
 		metrics.push({
 			name: 'Fees 30d',
-			tooltipContent: 'Total fees paid by users in the last 30 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.fees.protocol['30d'],
 			value: fees30d
 		})
 	}
@@ -432,7 +432,7 @@ function Fees(props: IKeyMetricsProps) {
 	if (fees7d != null) {
 		metrics.push({
 			name: 'Fees 7d',
-			tooltipContent: 'Total fees paid by users in the last 7 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.fees.protocol['7d'],
 			value: fees7d
 		})
 	}
@@ -440,7 +440,7 @@ function Fees(props: IKeyMetricsProps) {
 	if (fees24h != null) {
 		metrics.push({
 			name: 'Fees 24h',
-			tooltipContent: 'Total fees paid by users in the last 24 hours, updated daily at 00:00UTC',
+			tooltipContent: definitions.fees.protocol['24h'],
 			value: fees24h
 		})
 	}
@@ -448,7 +448,7 @@ function Fees(props: IKeyMetricsProps) {
 	if (feesAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Fees',
-			tooltipContent: 'Total fees paid by users since the protocol was launched',
+			tooltipContent: definitions.fees.protocol['cumulative'],
 			value: feesAllTime
 		})
 	}
@@ -496,14 +496,13 @@ function Revenue(props: IKeyMetricsProps) {
 	if (revenue30d != null) {
 		metrics.push({
 			name: 'Revenue (Annualized)',
-			tooltipContent:
-				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			tooltipContent: definitions.revenue.protocol['annualized'],
 			value: revenue30d * 12.2
 		})
 
 		metrics.push({
 			name: 'Revenue 30d',
-			tooltipContent: 'Total revenue earned by the protocol in the last 30 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.revenue.protocol['30d'],
 			value: revenue30d
 		})
 	}
@@ -511,7 +510,7 @@ function Revenue(props: IKeyMetricsProps) {
 	if (revenue7d != null) {
 		metrics.push({
 			name: 'Revenue 7d',
-			tooltipContent: 'Total revenue earned by the protocol in the last 7 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.revenue.protocol['7d'],
 			value: revenue7d
 		})
 	}
@@ -519,7 +518,7 @@ function Revenue(props: IKeyMetricsProps) {
 	if (revenue24h != null) {
 		metrics.push({
 			name: 'Revenue 24h',
-			tooltipContent: 'Total revenue earned by the protocol in the last 24 hours, updated daily at 00:00UTC',
+			tooltipContent: definitions.revenue.protocol['24h'],
 			value: revenue24h
 		})
 	}
@@ -527,7 +526,7 @@ function Revenue(props: IKeyMetricsProps) {
 	if (revenueAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Revenue',
-			tooltipContent: 'Total revenue earned by the protocol since the protocol was launched',
+			tooltipContent: definitions.revenue.protocol['cumulative'],
 			value: revenueAllTime
 		})
 	}
@@ -726,15 +725,13 @@ function Earnings(props: IKeyMetricsProps) {
 	if (earnings30d) {
 		metrics.push({
 			name: 'Earnings (Annualized)',
-			tooltipContent:
-				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			tooltipContent: definitions.earnings.protocol['annualized'],
 			value: earnings30d * 12.2
 		})
 
 		metrics.push({
 			name: 'Earnings 30d',
-			tooltipContent:
-				'Total earnings (revenue - incentives) of the protocol in the last 30 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.earnings.protocol['30d'],
 			value: earnings30d
 		})
 	}
@@ -742,8 +739,7 @@ function Earnings(props: IKeyMetricsProps) {
 	if (earnings7d != null) {
 		metrics.push({
 			name: 'Earnings 7d',
-			tooltipContent:
-				'Total earnings (revenue - incentives) of the protocol in the last 7 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.earnings.protocol['7d'],
 			value: earnings7d
 		})
 	}
@@ -751,8 +747,7 @@ function Earnings(props: IKeyMetricsProps) {
 	if (earnings24h != null) {
 		metrics.push({
 			name: 'Earnings 24h',
-			tooltipContent:
-				'Total earnings (revenue - incentives) of the protocol in the last 24 hours, updated daily at 00:00UTC',
+			tooltipContent: definitions.earnings.protocol['24h'],
 			value: earnings24h
 		})
 	}
@@ -760,7 +755,7 @@ function Earnings(props: IKeyMetricsProps) {
 	if (earningsAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Earnings',
-			tooltipContent: 'Total earnings (revenue - incentives) of the protocol since the protocol was launched',
+			tooltipContent: definitions.earnings.protocol['cumulative'],
 			value: earningsAllTime
 		})
 	}

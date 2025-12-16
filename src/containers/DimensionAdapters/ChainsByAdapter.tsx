@@ -20,6 +20,7 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
+import definitions from '~/public/definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
 import { IChainsByAdapterPageData } from './types'
@@ -217,7 +218,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Fees paid by users when using the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.fees.chain['24h']
 			},
 			size: 128
 		},
@@ -230,7 +231,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Fees paid by users when using the chain in the last 30 days'
+				headerHelperText: definitions.fees.chain['30d']
 			},
 			size: 128
 		}
@@ -246,8 +247,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Subset of fees that the chain collects for itself in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.revenue.chain['24h']
 			},
 			size: 128
 		},
@@ -260,7 +260,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Subset of fees that the chain collects for itself in the last 30 days'
+				headerHelperText: definitions.revenue.chain['30d']
 			},
 			size: 128
 		}
@@ -276,8 +276,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Revenue earned by token holders of the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.holdersRevenue.chain['24h']
 			},
 			size: 180
 		},
@@ -290,7 +289,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Revenue earned by token holders of the chain in the last 30 days'
+				headerHelperText: definitions.holdersRevenue.chain['30d']
 			},
 			size: 180
 		}
@@ -306,8 +305,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Total revenue earned by the apps on the chain, updated daily at 00:00 UTC. Excludes liquid staking apps and gas fees'
+				headerHelperText: definitions.appRevenue.chain['24h']
 			},
 			size: 180
 		},
@@ -320,8 +318,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Total revenue earned by the apps on the chain in the last 30 days. Excludes liquid staking apps and gas fees'
+				headerHelperText: definitions.appRevenue.chain['30d']
 			},
 			size: 180
 		}
