@@ -862,6 +862,10 @@
     {
       "name": "List your project",
       "route": "https://docs.llama.fi/list-your-project/submit-a-project"
+    },
+    {
+      "name": "Data Definitions",
+      "route": "/data-definitions"
     }
   ],
   "About Us": [

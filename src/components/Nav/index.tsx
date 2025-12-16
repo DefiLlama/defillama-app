@@ -1,7 +1,6 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
