@@ -69,6 +69,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handlePercentageChange,
 		handleGroupingChange,
 		handleHideOthersChange,
+		handleChartTypeChange,
 		handleEditItem,
 		isReadOnly,
 		timePeriod,
@@ -401,6 +402,31 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								</button>
 							))}
 						</div>
+					)}
+					{!isReadOnly && (
+						<Select
+							allValues={[
+								{ name: 'Stacked Bar', key: 'stackedBar' },
+								{ name: 'Stacked Area', key: 'stackedArea' },
+								{ name: 'Line', key: 'line' }
+							]}
+							selectedValues={config.chartType}
+							setSelectedValues={(value) => {
+								handleChartTypeChange(builder.id, value as 'stackedBar' | 'stackedArea' | 'line')
+							}}
+							label={
+								config.chartType === 'stackedBar'
+									? 'Stacked Bar'
+									: config.chartType === 'stackedArea'
+										? 'Stacked Area'
+										: 'Line'
+							}
+							labelType="none"
+							triggerProps={{
+								className:
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+							}}
+						/>
 					)}
 					{!isReadOnly && (
 						<Select

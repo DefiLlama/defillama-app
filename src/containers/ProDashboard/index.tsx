@@ -50,6 +50,7 @@ function ProDashboardContent() {
 		setTimePeriod,
 		setCustomTimePeriod,
 		dashboardName,
+		setDashboardName,
 		dashboardId,
 		saveDashboard,
 		isReadOnly,
@@ -339,9 +340,11 @@ function ProDashboardContent() {
 				<DashboardSettingsModal
 					isOpen={showSettingsModal}
 					onClose={() => setShowSettingsModal(false)}
+					dashboardName={dashboardName}
 					visibility={dashboardVisibility}
 					tags={dashboardTags}
 					description={dashboardDescription}
+					onDashboardNameChange={setDashboardName}
 					onVisibilityChange={setDashboardVisibility}
 					onTagsChange={setDashboardTags}
 					onDescriptionChange={setDashboardDescription}
