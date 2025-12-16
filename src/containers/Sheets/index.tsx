@@ -47,6 +47,15 @@ export default function SheetsContainer() {
 		window.open('https://workspace.google.com/marketplace/app/defillama_sheets/571407189628', '_blank')
 	}
 
+	const onExcelButtonClick = () => {
+		if (!isAuthenticated || !hasActiveSubscription) {
+			subscribeModalStore.show()
+			return
+		}
+
+		window.open('https://marketplace.microsoft.com/en-us/product/WA200009711', '_blank')
+	}
+
 	return (
 		<div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 pb-[64px] xl:max-w-7xl 2xl:max-w-[1440px]">
 			<div className="relative mx-auto aspect-square h-[118px] w-[118px] rounded-full object-contain">
@@ -100,21 +109,23 @@ export default function SheetsContainer() {
 					</div>
 				</div>
 
-				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:transform">
+				<div className="flex flex-col justify-between rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:transform">
 					<div className="mb-4 flex items-center gap-3">
 						<div className="rounded-lg bg-[#217346]/10 p-3">
-							<img src="/icons/microsoft-excel.svg" alt="Microsoft Excel" className="h-8 w-8" />
+							<img src="/icons/microsoft-excel-v2.svg" alt="Microsoft Excel" className="h-8 w-8" />
 						</div>
 						<h2 className="text-xl font-bold">Microsoft Excel</h2>
 					</div>
 					<p className="mb-6 text-[#b4b7bc]">
-						Access the same powerful DeFi data in Excel with our custom functions add-in for seamless analysis.
+						Access DeFi data in Excel with our custom functions add-in for seamless analysis.
 					</p>
 					<div className="flex items-center gap-3">
-						<span className="inline-flex items-center gap-1 rounded-full border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 px-3 py-1 text-sm text-[#5C5CF9]">
-							<Icon name="clock" height={16} width={16} />
-							Coming Soon
-						</span>
+						<button
+							onClick={onExcelButtonClick}
+							className="inline-flex items-center gap-1 rounded-full border border-[#34a853]/30 bg-[#34a853]/10 px-3 py-1 text-sm text-[#34a853]"
+						>
+							Get Started
+						</button>
 					</div>
 				</div>
 			</div>

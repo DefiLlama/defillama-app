@@ -20,6 +20,12 @@ export default function Sheets() {
 						</BasicLink>
 
 						<div className="flex items-center gap-4">
+							<BasicLink
+								href="https://docs.llama.fi/spreadsheet-functions/function-reference"
+								className="text-sm font-bold text-white transition-colors hover:text-white"
+							>
+								Functions Reference
+							</BasicLink>
 							<BasicLink href="/" className="text-sm font-medium text-[#b4b7bc] transition-colors hover:text-white">
 								Return to Main Page
 							</BasicLink>
