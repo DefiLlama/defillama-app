@@ -5,8 +5,8 @@ import Layout from '~/layout'
 
 const Definition = ({ header, id, children }: { header: string; id: string; children: React.ReactNode }) => {
 	return (
-		<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-			<h2 className="group relative flex items-center gap-1 text-lg font-semibold" id={id}>
+		<section aria-labelledby={`${id}-title`} id={id} className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+			<h2 className="group relative flex items-center gap-1 text-lg font-semibold" id={`${id}-title`}>
 				{header}
 				<a
 					aria-hidden="true"
@@ -18,7 +18,7 @@ const Definition = ({ header, id, children }: { header: string; id: string; chil
 			</h2>
 			<hr className="border-black/20 dark:border-white/20" />
 			{children}
-		</div>
+		</section>
 	)
 }
 
