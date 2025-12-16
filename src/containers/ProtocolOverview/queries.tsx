@@ -167,9 +167,9 @@ export const getProtocolOverviewPageData = async ({
 	const [
 		protocolData,
 		feesData,
+		supplySideRevenueData,
 		revenueData,
 		holdersRevenueData,
-		supplySideRevenueData,
 		bribesData,
 		tokenTaxData,
 		dexVolumeData,
@@ -224,9 +224,9 @@ export const getProtocolOverviewPageData = async ({
 			}
 		},
 		IProtocolOverviewPageData['fees'],
+		IProtocolOverviewPageData['supplySideRevenue'],
 		IProtocolOverviewPageData['revenue'],
 		IProtocolOverviewPageData['holdersRevenue'],
-		IProtocolOverviewPageData['supplySideRevenue'],
 		IProtocolOverviewPageData['bribeRevenue'],
 		IProtocolOverviewPageData['tokenTax'],
 		IProtocolOverviewPageData['dexVolume'],
