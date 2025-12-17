@@ -2300,7 +2300,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				<table className="z-10 w-full border-collapse">
 					<thead>
 						<tr>
-							<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"></th>
+							<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10"></th>
 							{tableHeaders.map((header, i) => (
 								<th
 									key={`${props.name}-${groupBy}-income-statement-${header[0]}`}
@@ -2424,7 +2424,7 @@ const IncomeStatementByLabel = ({
 	return (
 		<>
 			<tr>
-				<th className="overflow-hidden border border-black/10 p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
+				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
 					{methodology ? (
 						<Tooltip
 							content={methodology}
@@ -2440,7 +2440,7 @@ const IncomeStatementByLabel = ({
 				{tableHeaders.map((header, i) => (
 					<td
 						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
+						className={`overflow-hidden border border-black/10 p-2 text-left font-medium text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
 					>
 						{data[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
 							<Tooltip
@@ -2465,8 +2465,8 @@ const IncomeStatementByLabel = ({
 			{breakdownByLabels.length > 0 ? (
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
-						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}>
-							<th className="overflow-hidden border border-black/10 p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic dark:border-white/10">
+						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
+							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
 								{methodologyByType[breakdownlabel] ? (
 									<Tooltip
 										content={methodologyByType[breakdownlabel]}
