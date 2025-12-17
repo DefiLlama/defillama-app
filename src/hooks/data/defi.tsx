@@ -679,13 +679,20 @@ export const formatProtocolsList2 = ({
 			if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
 				strikeTvl = false
 			}
+
+			const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
+				if (acc === null) return null
+				if (value == null) return null
+				return (acc ?? 0) + value
+			}
+
 			for (const tvlKey in protocol.tvl) {
 				// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
 				if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
-					defaultTvl.tvl = (defaultTvl.tvl || 0) + protocol.tvl[tvlKey].tvl
-					defaultTvl.tvlPrevDay = (defaultTvl.tvlPrevDay || 0) + protocol.tvl[tvlKey].tvlPrevDay
-					defaultTvl.tvlPrevWeek = (defaultTvl.tvlPrevWeek || 0) + protocol.tvl[tvlKey].tvlPrevWeek
-					defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + protocol.tvl[tvlKey].tvlPrevMonth
+					defaultTvl.tvl = addOrNull(defaultTvl.tvl, protocol.tvl[tvlKey].tvl)
+					defaultTvl.tvlPrevDay = addOrNull(defaultTvl.tvlPrevDay, protocol.tvl[tvlKey].tvlPrevDay)
+					defaultTvl.tvlPrevWeek = addOrNull(defaultTvl.tvlPrevWeek, protocol.tvl[tvlKey].tvlPrevWeek)
+					defaultTvl.tvlPrevMonth = addOrNull(defaultTvl.tvlPrevMonth, protocol.tvl[tvlKey].tvlPrevMonth)
 				}
 			}
 
@@ -708,13 +715,20 @@ export const formatProtocolsList2 = ({
 					if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
 						strikeTvl = false
 					}
+
+					const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
+						if (acc === null) return null
+						if (value == null) return null
+						return (acc ?? 0) + value
+					}
+
 					for (const tvlKey in child.tvl) {
 						// if tvlKey is doublecounted or liquidstaking just strike tvl but do not add them
 						if (extraTvlsEnabled[tvlKey] && tvlKey !== 'doublecounted' && tvlKey !== 'liquidstaking') {
-							defaultTvl.tvl = (defaultTvl.tvl || 0) + child.tvl[tvlKey].tvl
-							defaultTvl.tvlPrevDay = (defaultTvl.tvlPrevDay || 0) + child.tvl[tvlKey].tvlPrevDay
-							defaultTvl.tvlPrevWeek = (defaultTvl.tvlPrevWeek || 0) + child.tvl[tvlKey].tvlPrevWeek
-							defaultTvl.tvlPrevMonth = (defaultTvl.tvlPrevMonth || 0) + child.tvl[tvlKey].tvlPrevMonth
+							defaultTvl.tvl = addOrNull(defaultTvl.tvl, child.tvl[tvlKey].tvl)
+							defaultTvl.tvlPrevDay = addOrNull(defaultTvl.tvlPrevDay, child.tvl[tvlKey].tvlPrevDay)
+							defaultTvl.tvlPrevWeek = addOrNull(defaultTvl.tvlPrevWeek, child.tvl[tvlKey].tvlPrevWeek)
+							defaultTvl.tvlPrevMonth = addOrNull(defaultTvl.tvlPrevMonth, child.tvl[tvlKey].tvlPrevMonth)
 						}
 					}
 					const tvlChange = {

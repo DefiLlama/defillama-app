@@ -1052,18 +1052,19 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 					(parentTvl.default.tvlPrevMonth ?? 0) - (parentTvl.excludeParent.tvlPrevMonth ?? 0)
 			}
 
-			const parentHasMissingPrev = parentStore[parentProtocol.id].some((child) =>
-				['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'].some((key) => child.tvl?.default?.[key] == null)
+			const prevKeys = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
+			const missingPrevKeys = prevKeys.filter((key) =>
+				parentStore[parentProtocol.id].some((child) => child.tvl?.default?.[key] == null)
 			)
 
-			if (parentHasMissingPrev && parentTvl?.default) {
-				parentTvl.default.tvlPrevDay = null
-				parentTvl.default.tvlPrevWeek = null
-				parentTvl.default.tvlPrevMonth = null
+			if (missingPrevKeys.length && parentTvl?.default) {
+				for (const key of missingPrevKeys) {
+					parentTvl.default[key] = null
+				}
 			}
 
 			const parentTvlChange =
-				parentTvl?.default?.tvl != null && !parentHasMissingPrev
+				parentTvl?.default?.tvl != null
 					? {
 							change1d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevDay),
 							change7d: getPercentChange(parentTvl.default.tvl, parentTvl.default.tvlPrevWeek),
