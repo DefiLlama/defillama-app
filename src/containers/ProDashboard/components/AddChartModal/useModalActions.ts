@@ -39,7 +39,7 @@ export function useModalActions(
 		handleEditItem
 	} = useProDashboard() as any
 
-	const { state, actions, resetState } = useModalState(editItem, isOpen)
+	const { state, actions } = useModalState(editItem, isOpen)
 
 	const selectedProtocolData = useMemo(
 		() => protocols.find((p: Protocol) => p.slug === state.selectedProtocol),
@@ -228,7 +228,8 @@ export function useModalActions(
 			state.selectedChartTab,
 			state.selectedChartTypes,
 			state.selectedProtocol,
-			state.selectedProtocols
+			state.selectedProtocols,
+			state.chartCreationMode
 		]
 	)
 
@@ -680,7 +681,6 @@ export function useModalActions(
 		}
 
 		onClose()
-		resetState()
 	}, [
 		editItem,
 		state,
@@ -697,7 +697,6 @@ export function useModalActions(
 		handleAddText,
 		handleAddMetric,
 		handleAddChartBuilder,
-		resetState,
 		onClose
 	])
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboard } from '../../ProDashboardAPIContext'
@@ -78,7 +78,7 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedAdvancedTvlChartTypeChange?: (chartType: string) => void
 }
 
-export function UnifiedChartTab({
+export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedChartTab,
 	selectedChain,
 	selectedProtocol,
@@ -427,4 +427,4 @@ export function UnifiedChartTab({
 			</div>
 		</div>
 	)
-}
+})

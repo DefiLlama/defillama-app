@@ -1,16 +1,7 @@
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
+import { toInternalSlug } from '~/utils/chainNormalizer'
 
 let currentChainMetrics: Record<string, ChainMetrics> = {}
-
-const CHAIN_SLUG_ALIASES: Record<string, string> = {
-	optimism: 'op-mainnet',
-	binance: 'bsc',
-	xdai: 'gnosis',
-	cosmos: 'cosmoshub',
-	pulse: 'pulsechain',
-	hyperliquid: 'hyperliquid-l1',
-	zksync: 'zksync-era'
-}
 
 export const setChainMetrics = (metrics: Record<string, ChainMetrics> | undefined) => {
 	if (metrics) {
@@ -23,7 +14,6 @@ export const getChainMetrics = (): Record<string, ChainMetrics> => {
 }
 
 export const getChainMetricsByName = (chainName: string): ChainMetrics | null => {
-	const slug = chainName.toLowerCase().replace(/\s+/g, '-')
-	const normalizedSlug = CHAIN_SLUG_ALIASES[slug] ?? slug
+	const normalizedSlug = toInternalSlug(chainName)
 	return currentChainMetrics[normalizedSlug] ?? null
 }

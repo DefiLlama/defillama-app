@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHART_TYPES, ChartConfig } from '../../types'
 
@@ -11,7 +12,7 @@ interface SelectionFooterProps {
 	onRemoveFromComposer: (id: string) => void
 }
 
-export function SelectionFooter({
+export const SelectionFooter = memo(function SelectionFooter({
 	composerItems,
 	chartCreationMode,
 	unifiedChartName,
@@ -77,4 +78,4 @@ export function SelectionFooter({
 			</div>
 		</div>
 	)
-}
+})

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, memo, Suspense, useEffect, useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
@@ -77,7 +77,7 @@ const MODE_OPTIONS = [
 	{ value: 'protocol', label: 'Group by Chains' } // group by chains filter by protocol
 ]
 
-export function ChartBuilderTab({
+export const ChartBuilderTab = memo(function ChartBuilderTab({
 	chartBuilder,
 	chartBuilderName,
 	chainOptions,
@@ -931,4 +931,4 @@ export function ChartBuilderTab({
 			</div>
 		</div>
 	)
-}
+})

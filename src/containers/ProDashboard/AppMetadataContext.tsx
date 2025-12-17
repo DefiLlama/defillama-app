@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
 
@@ -35,16 +36,6 @@ type AppMetadataContextType = {
 }
 
 const AppMetadataContext = createContext<AppMetadataContextType | undefined>(undefined)
-
-const CHAIN_NAME_ALIASES: Record<string, string[]> = {
-	'OP Mainnet': ['Optimism'],
-	BSC: ['Binance'],
-	Hyperliquid: ['Hyperliquid L1'],
-	Gnosis: ['xDai'],
-	CosmosHub: ['Cosmos'],
-	PulseChain: ['Pulse'],
-	'EOS EVM': ['EOS']
-}
 
 const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags> = {
 	tvl: 'tvl',
@@ -170,11 +161,9 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 				}
 				chainsByName.set(name, record)
 				chainsByName.set(name.toLowerCase(), record)
-				const aliases = CHAIN_NAME_ALIASES[name]
-				if (aliases) {
-					for (const alias of aliases) {
-						chainsByName.set(alias, record)
-					}
+				const aliases = getDisplayAliases(name)
+				for (const alias of aliases) {
+					chainsByName.set(alias, record)
 				}
 			}
 		}

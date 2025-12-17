@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -28,7 +28,7 @@ interface SubjectMultiPanelProps {
 	isLoading: boolean
 }
 
-export function SubjectMultiPanel({
+export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 	activeTab,
 	onTabChange,
 	selectedChartType,
@@ -398,4 +398,4 @@ export function SubjectMultiPanel({
 			</Popover>
 		</div>
 	)
-}
+})

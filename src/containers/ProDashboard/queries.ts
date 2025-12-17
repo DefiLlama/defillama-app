@@ -3,6 +3,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { CHAINS_API, PROTOCOLS_API } from '~/constants'
 import { sluggifyProtocol } from '~/utils/cache-client'
+import { toDisplayName } from '~/utils/chainNormalizer'
 import { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
 import ChainCharts from './services/ChainCharts'
 import ProtocolCharts from './services/ProtocolCharts'
@@ -416,12 +417,6 @@ export function useChartData(
 
 export { generateChartKey, getChartQueryKey, getChartQueryFn }
 
-const CHAIN_NAME_OVERRIDES: Record<string, string> = {
-	Binance: 'BSC',
-	Optimism: 'OP Mainnet',
-	xDai: 'Gnosis'
-}
-
 export function useChains() {
 	return useQuery({
 		queryKey: ['chains'],
@@ -430,7 +425,7 @@ export function useChains() {
 			const data = await response.json()
 			const transformedData = data.map((chain) => ({
 				...chain,
-				name: CHAIN_NAME_OVERRIDES[chain.name] ?? chain.name
+				name: toDisplayName(chain.name)
 			}))
 			return transformedData.sort((a, b) => b.tvl - a.tvl)
 		},
@@ -454,7 +449,7 @@ export function useProtocolsAndChains() {
 
 			const transformedChains = chainsData.map((chain) => ({
 				...chain,
-				name: CHAIN_NAME_OVERRIDES[chain.name] ?? chain.name
+				name: toDisplayName(chain.name)
 			}))
 			const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
 
