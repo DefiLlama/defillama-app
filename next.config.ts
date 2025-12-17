@@ -348,11 +348,6 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
-				source: '/perp',
-				destination: '/perps',
-				permanent: true
-			},
-			{
 				source: '/perps/chain',
 				destination: '/perps/chains',
 				permanent: true
@@ -489,17 +484,17 @@ const nextConfig: NextConfig = {
 			},
 			{
 				source: '/compare',
-				destination: '/comapre-chains',
+				destination: '/compare-chains',
+				permanent: true
+			},
+			{
+				source: '/comapre-chains',
+				destination: '/compare-chains',
 				permanent: true
 			},
 			{
 				source: '/comparison',
 				destination: '/compare-protocols',
-				permanent: true
-			},
-			{
-				source: '/compare-chain',
-				destination: '/comapre-chains',
 				permanent: true
 			},
 			{
