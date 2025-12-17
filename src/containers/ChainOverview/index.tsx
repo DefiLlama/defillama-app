@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
@@ -15,10 +14,16 @@ const pageName = ['Overview']
 
 const Announcement = () => (
 	<>
-		We just launched{' '}
-		<BasicLink href="/digital-asset-treasuries" className="underline">
-			DAT tracking
-		</BasicLink>
+		Check out the{' '}
+		<a
+			href="https://x.com/dl_research/status/2001362971893862851"
+			className="underline"
+			target="_blank"
+			rel="noreferrer noopener"
+		>
+			2025 State of DeFi Report
+		</a>{' '}
+		by DL Research
 	</>
 )
 

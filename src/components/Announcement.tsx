@@ -8,7 +8,7 @@ import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
 export const ANNOUNCEMENT = {
 	defi: {
 		key: 'defi-flag-announcement',
-		value: 'defi5'
+		value: 'defi6'
 	},
 	yields: {
 		key: 'yield-flag-announcement',
