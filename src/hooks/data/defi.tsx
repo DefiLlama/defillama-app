@@ -681,9 +681,8 @@ export const formatProtocolsList2 = ({
 			}
 
 			const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
-				if (acc === null) return null
-				if (value == null) return null
-				return (acc ?? 0) + value
+				if (acc == null || value == null) return null
+				return (acc ?? 0) + (value ?? 0)
 			}
 
 			for (const tvlKey in protocol.tvl) {
@@ -717,9 +716,8 @@ export const formatProtocolsList2 = ({
 					}
 
 					const addOrNull = (acc: number | null | undefined, value: number | null | undefined) => {
-						if (acc === null) return null
-						if (value == null) return null
-						return (acc ?? 0) + value
+						if (acc == null || value == null) return null
+						return (acc ?? 0) + (value ?? 0)
 					}
 
 					for (const tvlKey in child.tvl) {
@@ -741,15 +739,34 @@ export const formatProtocolsList2 = ({
 						child.mcap && defaultTvl.tvl ? +formatNum(+child.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) : null
 
 					if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
-						childProtocols.push({ ...child, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
+						childProtocols.push({
+							...child,
+							strikeTvl,
+							tvl: child.tvl == null ? null : { default: defaultTvl },
+							tvlChange,
+							mcaptvl
+						})
 					}
 				}
 				if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
-					final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, childProtocols, tvlChange, mcaptvl })
+					final.push({
+						...protocol,
+						strikeTvl,
+						tvl: protocol.tvl == null ? null : { default: defaultTvl },
+						childProtocols,
+						tvlChange,
+						mcaptvl
+					})
 				}
 			} else {
 				if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
-					final.push({ ...protocol, strikeTvl, tvl: { default: defaultTvl }, tvlChange, mcaptvl })
+					final.push({
+						...protocol,
+						strikeTvl,
+						tvl: protocol.tvl == null ? null : { default: defaultTvl },
+						tvlChange,
+						mcaptvl
+					})
 				}
 			}
 		}

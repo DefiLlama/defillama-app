@@ -1054,7 +1054,9 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 
 			const prevKeys = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const
 			const missingPrevKeys = prevKeys.filter((key) =>
-				parentStore[parentProtocol.id].some((child) => child.tvl?.default?.[key] == null)
+				parentStore[parentProtocol.id].some(
+					(child) => child.tvl?.default?.['tvl'] != null && child.tvl?.default?.[key] == null
+				)
 			)
 
 			if (missingPrevKeys.length && parentTvl?.default) {
