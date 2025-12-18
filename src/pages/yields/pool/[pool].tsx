@@ -102,9 +102,11 @@ const PageView = (props) => {
 		retry: 0
 	})
 
-	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(query.pool)
+	const poolId = typeof query.pool === 'string' ? query.pool : null
 
-	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(query.pool)
+	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(poolId)
+
+	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(poolId)
 
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 

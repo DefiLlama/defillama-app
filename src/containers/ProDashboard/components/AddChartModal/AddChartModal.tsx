@@ -98,6 +98,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedYieldTokensChange={actions.setSelectedYieldTokens}
 							onMinTvlChange={actions.setMinTvl}
 							onMaxTvlChange={actions.setMaxTvl}
+							selectedYieldChartType={state.selectedYieldChartType}
+							onSelectedYieldChartTypeChange={actions.setSelectedYieldChartType}
 							selectedStablecoinChain={state.selectedStablecoinChain}
 							selectedStablecoinChartType={state.selectedStablecoinChartType}
 							stablecoinMode={state.stablecoinMode}

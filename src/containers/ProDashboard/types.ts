@@ -113,6 +113,14 @@ export interface ChartBuilderConfig {
 	colSpan?: StoredColSpan
 }
 
+export type YieldChartType =
+	| 'tvl-apy'
+	| 'supply-apy'
+	| 'supply-apy-7d'
+	| 'borrow-apy'
+	| 'net-borrow-apy'
+	| 'pool-liquidity'
+
 export interface YieldsChartConfig {
 	id: string
 	kind: 'yields'
@@ -120,6 +128,7 @@ export interface YieldsChartConfig {
 	poolName: string
 	project: string
 	chain: string
+	chartType?: YieldChartType
 	colSpan?: StoredColSpan
 }
 

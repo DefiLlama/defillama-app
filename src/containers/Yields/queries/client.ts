@@ -24,24 +24,24 @@ export const useYieldPoolData = (configID) => {
 }
 
 // single pool chart data
-export const useYieldChartData = (configID) => {
-	const url = configID ? `${YIELD_CHART_API}/${configID}` : null
+export const useYieldChartData = (configID: string | null) => {
 	return useQuery({
-		queryKey: ['yield-pool-chart-data', url],
-		queryFn: () => fetchApi(url),
+		queryKey: ['yield-pool-chart-data', configID],
+		queryFn: () => fetchApi(`${YIELD_CHART_API}/${configID}`),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 0
+		retry: 0,
+		enabled: !!configID
 	})
 }
-export const useYieldChartLendBorrow = (configID) => {
-	const url = configID ? `${YIELD_CHART_LEND_BORROW_API}/${configID}` : null
+export const useYieldChartLendBorrow = (configID: string | null) => {
 	return useQuery({
-		queryKey: ['yield-lend-borrow-chart', url],
-		queryFn: () => fetchApi(url),
+		queryKey: ['yield-lend-borrow-chart', configID],
+		queryFn: () => fetchApi(`${YIELD_CHART_LEND_BORROW_API}/${configID}`),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 0
+		retry: 0,
+		enabled: !!configID
 	})
 }
 export const useConfigPool = (configIDs) => {

@@ -40,6 +40,8 @@ interface ChartTabProps {
 	onSelectedYieldTokensChange?: (tokens: string[]) => void
 	onMinTvlChange?: (tvl: number | null) => void
 	onMaxTvlChange?: (tvl: number | null) => void
+	selectedYieldChartType?: string
+	onSelectedYieldChartTypeChange?: (chartType: string) => void
 	selectedStablecoinChain?: string
 	selectedStablecoinChartType?: string
 	stablecoinMode?: 'chain' | 'asset'
@@ -143,6 +145,8 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 					onSelectedYieldTokensChange={props.onSelectedYieldTokensChange}
 					onMinTvlChange={props.onMinTvlChange}
 					onMaxTvlChange={props.onMaxTvlChange}
+					selectedYieldChartType={props.selectedYieldChartType}
+					onSelectedYieldChartTypeChange={props.onSelectedYieldChartTypeChange}
 					selectedStablecoinChain={props.selectedStablecoinChain}
 					selectedStablecoinChartType={props.selectedStablecoinChartType}
 					stablecoinMode={props.stablecoinMode}

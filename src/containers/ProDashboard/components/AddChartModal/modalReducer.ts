@@ -37,6 +37,7 @@ export type ModalAction =
 			type: 'SET_SELECTED_YIELD_POOL'
 			payload: { configID: string; name: string; project: string; chain: string } | null
 	  }
+	| { type: 'SET_SELECTED_YIELD_CHART_TYPE'; payload: string }
 	| { type: 'SET_SELECTED_YIELD_CHAINS'; payload: string[] }
 	| { type: 'SET_SELECTED_YIELD_PROJECTS'; payload: string[] }
 	| { type: 'SET_SELECTED_YIELD_CATEGORIES'; payload: string[] }
@@ -132,6 +133,7 @@ export const INITIAL_MODAL_STATE: ModalState = {
 	metricLabel: '',
 	metricShowSparkline: true,
 	selectedYieldPool: null,
+	selectedYieldChartType: 'tvl-apy',
 	selectedYieldChains: [],
 	selectedYieldProjects: [],
 	selectedYieldCategories: [],
@@ -285,7 +287,8 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 				name: editItem.poolName,
 				project: editItem.project,
 				chain: editItem.chain
-			}
+			},
+			selectedYieldChartType: editItem.chartType || 'tvl-apy'
 		}
 	}
 
@@ -430,6 +433,9 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 
 		case 'SET_SELECTED_YIELD_POOL':
 			return { ...state, selectedYieldPool: action.payload }
+
+		case 'SET_SELECTED_YIELD_CHART_TYPE':
+			return { ...state, selectedYieldChartType: action.payload }
 
 		case 'SET_SELECTED_YIELD_CHAINS':
 			return { ...state, selectedYieldChains: action.payload }

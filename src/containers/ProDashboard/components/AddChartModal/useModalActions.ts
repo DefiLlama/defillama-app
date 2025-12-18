@@ -503,7 +503,8 @@ export function useModalActions(
 					poolConfigId: state.selectedYieldPool.configID,
 					poolName: state.selectedYieldPool.name,
 					project: state.selectedYieldPool.project,
-					chain: state.selectedYieldPool.chain
+					chain: state.selectedYieldPool.chain,
+					chartType: state.selectedYieldChartType
 				} as any
 			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'stablecoins') {
 				if (state.stablecoinMode === 'asset' && state.selectedStablecoinAsset && state.selectedStablecoinAssetId) {
@@ -551,7 +552,8 @@ export function useModalActions(
 					state.selectedYieldPool.configID,
 					state.selectedYieldPool.name,
 					state.selectedYieldPool.project,
-					state.selectedYieldPool.chain
+					state.selectedYieldPool.chain,
+					state.selectedYieldChartType
 				)
 			} else if (
 				state.selectedMainTab === 'charts' &&

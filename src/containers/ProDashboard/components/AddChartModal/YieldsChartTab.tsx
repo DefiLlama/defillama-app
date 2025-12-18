@@ -2,21 +2,28 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import type { IChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
+import { CHART_COLORS } from '~/constants/colors'
 import { useYieldsData } from '~/containers/ProDashboard/components/datasets/YieldsDataset/useYieldsData'
-import { useYieldChartData } from '~/containers/Yields/queries/client'
+import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
+import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
+import { useYieldChartTransformations } from '../useYieldChartTransformations'
 
 const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
+const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 interface YieldsChartTabProps {
 	selectedYieldPool: { configID: string; name: string; project: string; chain: string } | null
 	onSelectedYieldPoolChange: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
+	selectedYieldChartType: string
+	onSelectedYieldChartTypeChange: (chartType: string) => void
 	selectedYieldChains: string[]
 	selectedYieldProjects: string[]
 	selectedYieldCategories: string[]
@@ -34,9 +41,16 @@ interface YieldsChartTabProps {
 const mainChartStackColors = { APY: '#fd3c99', TVL: '#4f8fea' }
 const mainChartStacks = ['APY', 'TVL']
 
+const barChartStacks = { Base: 'a', Reward: 'a' }
+const barChartColors = { Base: CHART_COLORS[0], Reward: CHART_COLORS[1] }
+const liquidityChartColors = { Supplied: CHART_COLORS[0], Borrowed: CHART_COLORS[1], Available: CHART_COLORS[2] }
+const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
+
 export function YieldsChartTab({
 	selectedYieldPool,
 	onSelectedYieldPoolChange,
+	selectedYieldChartType,
+	onSelectedYieldChartTypeChange,
 	selectedYieldChains,
 	selectedYieldProjects,
 	selectedYieldCategories,
@@ -298,25 +312,94 @@ export function YieldsChartTab({
 		selectedYieldPool?.configID || null
 	)
 
-	const yieldsChartData = useMemo(() => {
-		if (!selectedYieldChartData || !selectedYieldChartData.data) return []
-		return selectedYieldChartData.data.map((el: any) => ({
-			date: Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-			TVL: el.tvlUsd,
-			APY: el.apy ?? null
-		}))
-	}, [selectedYieldChartData])
+	const { data: borrowChartData, isLoading: borrowChartLoading } = useYieldChartLendBorrow(
+		selectedYieldPool?.configID || null
+	)
 
-	const latestYieldData = useMemo(() => {
-		if (!selectedYieldChartData || !selectedYieldChartData.data || selectedYieldChartData.data.length === 0) {
-			return { apy: null, tvl: null }
+	const availableChartTypes = useMemo(() => {
+		const types: Array<{ value: string; label: string; available: boolean }> = [
+			{ value: 'tvl-apy', label: 'TVL & APY', available: true }
+		]
+
+		if (selectedYieldChartData?.data) {
+			const hasApyComponents = selectedYieldChartData.data.some((d: any) => d.apyBase !== null || d.apyReward !== null)
+			types.push({
+				value: 'supply-apy',
+				label: 'Supply APY',
+				available: hasApyComponents
+			})
+			types.push({
+				value: 'supply-apy-7d',
+				label: '7 Day Avg Supply APY',
+				available: selectedYieldChartData.data.length >= 7
+			})
 		}
-		const latest = selectedYieldChartData.data[selectedYieldChartData.data.length - 1]
-		return {
-			apy: latest.apy?.toFixed(2) ?? null,
-			tvl: latest.tvlUsd ?? null
+
+		if (borrowChartData?.data && borrowChartData.data.length > 0) {
+			const hasBorrowApy = borrowChartData.data.some((d: any) => d.apyBaseBorrow !== null || d.apyRewardBorrow !== null)
+			const hasLiquidityData = borrowChartData.data.some(
+				(d: any) => d.totalSupplyUsd !== null && d.totalBorrowUsd !== null
+			)
+
+			types.push({
+				value: 'borrow-apy',
+				label: 'Borrow APY',
+				available: hasBorrowApy
+			})
+			types.push({
+				value: 'net-borrow-apy',
+				label: 'Net Borrow APY',
+				available: hasBorrowApy
+			})
+			types.push({
+				value: 'pool-liquidity',
+				label: 'Pool Liquidity',
+				available: hasLiquidityData
+			})
 		}
-	}, [selectedYieldChartData])
+
+		return types
+	}, [selectedYieldChartData, borrowChartData])
+
+	useEffect(() => {
+		if (!selectedYieldPool) return
+
+		const borrowTypes = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity']
+		const isBorrowType = borrowTypes.includes(selectedYieldChartType)
+
+		if (isBorrowType && borrowChartLoading) return
+		if (!isBorrowType && selectedYieldChartLoading) return
+
+		const currentTypeAvailable = availableChartTypes.find((t) => t.value === selectedYieldChartType && t.available)
+		if (!currentTypeAvailable) {
+			onSelectedYieldChartTypeChange('tvl-apy')
+		}
+	}, [
+		selectedYieldPool,
+		availableChartTypes,
+		selectedYieldChartType,
+		onSelectedYieldChartTypeChange,
+		borrowChartLoading,
+		selectedYieldChartLoading
+	])
+
+	const {
+		tvlApyData: yieldsChartData,
+		supplyApyBarData,
+		supplyApy7dData,
+		borrowApyBarData,
+		netBorrowApyData,
+		poolLiquidityData,
+		latestData: latestYieldData
+	} = useYieldChartTransformations({
+		chartData: selectedYieldChartData,
+		borrowData: borrowChartData
+	})
+
+	const borrowTypes = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity']
+	const isPreviewLoading = borrowTypes.includes(selectedYieldChartType)
+		? selectedYieldChartLoading || borrowChartLoading
+		: selectedYieldChartLoading
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -712,6 +795,26 @@ export function YieldsChartTab({
 						<p className="pro-text3 text-xs">
 							{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''} match your filters
 						</p>
+
+						{selectedYieldPool && (
+							<AriakitSelect
+								label="Chart Type"
+								options={availableChartTypes.map((type) => ({
+									value: type.value,
+									label:
+										type.label +
+										(!type.available
+											? ' (N/A)'
+											: borrowChartLoading && ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(type.value)
+												? ' (Loading...)'
+												: ''),
+									disabled: !type.available
+								}))}
+								selectedValue={selectedYieldChartType}
+								onChange={(option) => onSelectedYieldChartTypeChange(option.value)}
+								placeholder="Select chart type"
+							/>
+						)}
 					</div>
 
 					<div className="pro-border overflow-hidden rounded-lg border">
@@ -726,31 +829,33 @@ export function YieldsChartTab({
 									</p>
 								</div>
 
-								{latestYieldData.apy !== null && latestYieldData.tvl !== null && (
-									<div className="mb-3 flex gap-4">
-										<div className="flex flex-col">
-											<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
-											<span
-												className="font-jetbrains text-base font-semibold"
-												style={{ color: mainChartStackColors.APY }}
-											>
-												{latestYieldData.apy}%
-											</span>
+								{selectedYieldChartType === 'tvl-apy' &&
+									latestYieldData.apy !== null &&
+									latestYieldData.tvl !== null && (
+										<div className="mb-3 flex gap-4">
+											<div className="flex flex-col">
+												<span className="pro-text3 text-[10px] uppercase">Latest APY</span>
+												<span
+													className="font-jetbrains text-base font-semibold"
+													style={{ color: mainChartStackColors.APY }}
+												>
+													{latestYieldData.apy}%
+												</span>
+											</div>
+											<div className="flex flex-col">
+												<span className="pro-text3 text-[10px] uppercase">TVL</span>
+												<span
+													className="font-jetbrains text-base font-semibold"
+													style={{ color: mainChartStackColors.TVL }}
+												>
+													{formattedNum(latestYieldData.tvl, true)}
+												</span>
+											</div>
 										</div>
-										<div className="flex flex-col">
-											<span className="pro-text3 text-[10px] uppercase">TVL</span>
-											<span
-												className="font-jetbrains text-base font-semibold"
-												style={{ color: mainChartStackColors.TVL }}
-											>
-												{formattedNum(latestYieldData.tvl, true)}
-											</span>
-										</div>
-									</div>
-								)}
+									)}
 
 								<div className="h-[320px]">
-									{selectedYieldChartLoading ? (
+									{isPreviewLoading ? (
 										<div className="flex h-full items-center justify-center">
 											<LocalLoader />
 										</div>
@@ -762,14 +867,65 @@ export function YieldsChartTab({
 												</div>
 											}
 										>
-											<TVLAPYChart
-												height="320px"
-												chartData={yieldsChartData}
-												stackColors={mainChartStackColors}
-												stacks={mainChartStacks}
-												title=""
-												alwaysShowTooltip={false}
-											/>
+											{selectedYieldChartType === 'tvl-apy' && (
+												<TVLAPYChart
+													height="320px"
+													chartData={yieldsChartData}
+													stackColors={mainChartStackColors}
+													stacks={mainChartStacks}
+													title=""
+													alwaysShowTooltip={false}
+												/>
+											)}
+											{selectedYieldChartType === 'supply-apy' && (
+												<BarChart
+													height="320px"
+													chartData={supplyApyBarData}
+													stacks={barChartStacks}
+													stackColors={barChartColors}
+													title="Supply APY"
+													valueSymbol="%"
+												/>
+											)}
+											{selectedYieldChartType === 'supply-apy-7d' && (
+												<AreaChart
+													height="320px"
+													chartData={supplyApy7dData}
+													title="7 Day Avg Supply APY"
+													valueSymbol="%"
+													color={CHART_COLORS[0]}
+												/>
+											)}
+											{selectedYieldChartType === 'borrow-apy' && (
+												<BarChart
+													height="320px"
+													chartData={borrowApyBarData}
+													stacks={barChartStacks}
+													stackColors={barChartColors}
+													title="Borrow APY"
+													valueSymbol="%"
+												/>
+											)}
+											{selectedYieldChartType === 'net-borrow-apy' && (
+												<AreaChart
+													height="320px"
+													chartData={netBorrowApyData}
+													title="Net Borrow APY"
+													valueSymbol="%"
+													color={CHART_COLORS[0]}
+												/>
+											)}
+											{selectedYieldChartType === 'pool-liquidity' && (
+												<AreaChart
+													height="320px"
+													chartData={poolLiquidityData}
+													title="Pool Liquidity"
+													customLegendName="Filter"
+													customLegendOptions={liquidityLegendOptions}
+													valueSymbol="$"
+													stackColors={liquidityChartColors}
+												/>
+											)}
 										</Suspense>
 									)}
 								</div>

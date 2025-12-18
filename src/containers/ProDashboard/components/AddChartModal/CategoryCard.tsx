@@ -22,10 +22,10 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 	},
 	{
 		id: 'yields',
-		title: 'Yields',
-		description: 'APY and TVL tracking for 17000+ yield pools',
+		title: 'Yields & Lending',
+		description: 'Supply/Borrow APY, TVL, and pool liquidity for 17000+ yield pools',
 		icon: 'trending-up',
-		tags: ['APY', 'TVL', 'Pools']
+		tags: ['Supply APY', 'Borrow APY', 'TVL', 'Liquidity']
 	},
 	{
 		id: 'stablecoins',

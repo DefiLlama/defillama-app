@@ -56,6 +56,8 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setMetricShowSparkline: (v: boolean) => dispatch({ type: 'SET_METRIC_SHOW_SPARKLINE', payload: v }),
 			setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) =>
 				dispatch({ type: 'SET_SELECTED_YIELD_POOL', payload: pool }),
+			setSelectedYieldChartType: (chartType: string) =>
+				dispatch({ type: 'SET_SELECTED_YIELD_CHART_TYPE', payload: chartType }),
 			setSelectedYieldChains: (chains: string[]) => dispatch({ type: 'SET_SELECTED_YIELD_CHAINS', payload: chains }),
 			setSelectedYieldProjects: (projects: string[]) =>
 				dispatch({ type: 'SET_SELECTED_YIELD_PROJECTS', payload: projects }),

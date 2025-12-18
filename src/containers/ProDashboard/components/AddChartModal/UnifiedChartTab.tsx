@@ -58,6 +58,8 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedYieldTokensChange?: (tokens: string[]) => void
 	onMinTvlChange?: (tvl: number | null) => void
 	onMaxTvlChange?: (tvl: number | null) => void
+	selectedYieldChartType?: string
+	onSelectedYieldChartTypeChange?: (chartType: string) => void
 	selectedStablecoinChain?: string
 	selectedStablecoinChartType?: string
 	stablecoinMode?: 'chain' | 'asset'
@@ -118,6 +120,8 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	onSelectedYieldTokensChange,
 	onMinTvlChange,
 	onMaxTvlChange,
+	selectedYieldChartType = 'tvl-apy',
+	onSelectedYieldChartTypeChange,
 	selectedStablecoinChain = 'All',
 	selectedStablecoinChartType = 'totalMcap',
 	stablecoinMode = 'chain',
@@ -249,6 +253,8 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 					<YieldsChartTab
 						selectedYieldPool={selectedYieldPool}
 						onSelectedYieldPoolChange={onSelectedYieldPoolChange || (() => {})}
+						selectedYieldChartType={selectedYieldChartType}
+						onSelectedYieldChartTypeChange={onSelectedYieldChartTypeChange || (() => {})}
 						selectedYieldChains={selectedYieldChains}
 						selectedYieldProjects={selectedYieldProjects}
 						selectedYieldCategories={selectedYieldCategories}

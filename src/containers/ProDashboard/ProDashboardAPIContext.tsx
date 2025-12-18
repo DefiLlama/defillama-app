@@ -106,7 +106,13 @@ interface ProDashboardContextType {
 		geckoId?: string | null,
 		color?: string
 	) => void
-	handleAddYieldChart: (poolConfigId: string, poolName: string, project: string, chain: string) => void
+	handleAddYieldChart: (
+		poolConfigId: string,
+		poolName: string,
+		project: string,
+		chain: string,
+		chartType?: string
+	) => void
 	handleAddStablecoinsChart: (chain: string, chartType: string) => void
 	handleAddStablecoinAssetChart: (stablecoin: string, stablecoinId: string, chartType: string) => void
 	handleAddAdvancedTvlChart: (protocol: string, protocolName: string, chartType: AdvancedTvlChartType) => void
@@ -937,7 +943,7 @@ export function ProDashboardAPIProvider({
 	)
 
 	const handleAddYieldChart = useCallback(
-		(poolConfigId: string, poolName: string, project: string, chain: string) => {
+		(poolConfigId: string, poolName: string, project: string, chain: string, chartType?: string) => {
 			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
 				return
 			}
@@ -948,6 +954,7 @@ export function ProDashboardAPIProvider({
 				poolName,
 				project,
 				chain,
+				chartType: (chartType as YieldsChartConfig['chartType']) || 'tvl-apy',
 				colSpan: 1
 			}
 			setItems((prev) => {

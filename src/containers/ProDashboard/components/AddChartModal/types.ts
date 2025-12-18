@@ -98,6 +98,7 @@ export interface ModalState {
 	metricLabel: string
 	metricShowSparkline: boolean
 	selectedYieldPool: { configID: string; name: string; project: string; chain: string } | null
+	selectedYieldChartType: string
 	selectedYieldChains: string[]
 	selectedYieldProjects: string[]
 	selectedYieldCategories: string[]
@@ -158,6 +159,7 @@ export interface ModalActions {
 	setMetricLabel: (s: string) => void
 	setMetricShowSparkline: (v: boolean) => void
 	setSelectedYieldPool: (pool: { configID: string; name: string; project: string; chain: string } | null) => void
+	setSelectedYieldChartType: (chartType: string) => void
 	setSelectedYieldChains: (chains: string[]) => void
 	setSelectedYieldProjects: (projects: string[]) => void
 	setSelectedYieldCategories: (categories: string[]) => void
