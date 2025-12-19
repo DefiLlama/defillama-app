@@ -23,7 +23,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import useWindowSize from '~/hooks/useWindowSize'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
 const optionsKey = 'chains-overview-table-columns'

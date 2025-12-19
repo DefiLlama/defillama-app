@@ -27,7 +27,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
@@ -1217,7 +1217,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Volume of spot trades in the last 24 hours'
+					headerHelperText: definitions.dexs.protocol['24h']
 				},
 				size: 150
 			}),
@@ -1229,7 +1229,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Volume of spot trades in the last 7 days'
+					headerHelperText: definitions.dexs.protocol['7d']
 				},
 				size: 150
 			}),
@@ -1241,7 +1241,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
+					headerHelperText: definitions.dexs.protocol['change7d']
 				},
 				size: 140
 			}),
@@ -1253,13 +1253,13 @@ const columns: ColumnDef<IProtocol>[] = [
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total volume traded on the protocol since it was launched'
+					headerHelperText: definitions.dexs.protocol['cumulative']
 				},
 				size: 200
 			})
 		],
 		meta: {
-			headerHelperText: 'Volume traded on the protocol'
+			headerHelperText: 'Volume of spot swaps traded on the protocol'
 		}
 	})
 ]

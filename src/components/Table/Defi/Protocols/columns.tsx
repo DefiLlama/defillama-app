@@ -8,7 +8,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
@@ -567,7 +567,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Volume of spot trades in the last 24 hours'
+					headerHelperText: definitions.dexs.protocol['24h']
 				},
 				size: 150
 			}),
@@ -577,7 +577,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Volume of spot trades in the last 7 days'
+					headerHelperText: definitions.dexs.protocol['7d']
 				},
 				size: 150
 			}),
@@ -587,7 +587,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Volume of spot trades in the last 30 days'
+					headerHelperText: definitions.dexs.protocol['30d']
 				},
 				size: 150
 			}),
@@ -597,7 +597,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Day-over-day change in spot volume'
+					headerHelperText: definitions.dexs.protocol['change1d']
 				},
 				size: 140
 			}),
@@ -607,7 +607,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 7d volume over the previous 7d volume'
+					headerHelperText: definitions.dexs.protocol['change7d']
 				},
 				size: 140
 			}),
@@ -617,7 +617,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Month-over-month change in spot volume'
+					headerHelperText: definitions.dexs.protocol['change1m']
 				},
 				size: 140
 			}),
@@ -627,7 +627,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total volume traded on the protocol since it was launched'
+					headerHelperText: definitions.dexs.protocol['cumulative']
 				},
 				size: 200
 			}),
@@ -637,7 +637,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Share of total 24h spot volume across tracked protocols'
+					headerHelperText: definitions.dexs.protocol['marketShare24h']
 				},
 				size: 140
 			}),
@@ -647,16 +647,15 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Share of total 7d spot volume across tracked protocols'
+					headerHelperText: definitions.dexs.protocol['marketShare7d']
 				},
 				size: 140
 			})
 		],
 		meta: {
-			headerHelperText: 'Volume traded on the protocol'
+			headerHelperText: 'Volume of spot swaps traded on the protocol'
 		}
 	}),
-
 	columnHelper.group({
 		id: 'perps',
 		header: 'Perps Volume',
@@ -667,7 +666,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Perpetuals trading volume in the last 24 hours'
+					headerHelperText: definitions.perps.protocol['24h']
 				},
 				size: 150
 			}),
@@ -677,7 +676,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Perpetuals trading volume in the last 7 days'
+					headerHelperText: definitions.perps.protocol['7d']
 				},
 				size: 150
 			}),
@@ -687,7 +686,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Perpetuals trading volume in the last 30 days'
+					headerHelperText: definitions.perps.protocol['30d']
 				},
 				size: 150
 			}),
@@ -697,7 +696,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Day-over-day change in perps volume'
+					headerHelperText: definitions.perps.protocol['change1d']
 				},
 				size: 180
 			}),
@@ -707,7 +706,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Change of last 7d perps volume over the previous 7d'
+					headerHelperText: definitions.perps.protocol['change7d']
 				},
 				size: 180
 			}),
@@ -717,7 +716,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Month-over-month change in perps volume'
+					headerHelperText: definitions.perps.protocol['change1m']
 				},
 				size: 180
 			}),
@@ -727,13 +726,13 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				sortUndefined: 'last',
 				meta: {
 					align: 'end',
-					headerHelperText: 'Share of total 24h perpetuals volume across tracked protocols'
+					headerHelperText: definitions.perps.protocol['marketShare24h']
 				},
 				size: 180
 			})
 		],
 		meta: {
-			headerHelperText: 'Perpetuals volume traded on the protocol'
+			headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage'
 		}
 	}),
 
@@ -745,54 +744,54 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				header: 'Agg Volume 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'DEX aggregator routed volume in the last 24 hours' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['24h'] },
 				size: 150
 			}),
 			columnHelper.accessor('aggregators_volume_change_1d', {
 				header: 'Agg Volume Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Day-over-day change in DEX aggregator volume' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['change1d'] },
 				size: 190
 			}),
 			columnHelper.accessor('aggregators_volume_7d', {
 				header: 'Agg Volume 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'DEX aggregator routed volume over the last 7 days' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['7d'] },
 				size: 150
 			}),
 			columnHelper.accessor('aggregators_volume_change_7d', {
 				header: 'Agg Volume Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Change of 7d DEX aggregator volume vs previous 7d' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['change7d'] },
 				size: 190
 			}),
 			columnHelper.accessor('aggregators_volume_30d', {
 				header: 'Agg Volume 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'DEX aggregator routed volume over the last 30 days' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['30d'] },
 				size: 160
 			}),
 			columnHelper.accessor('aggregators_volume_dominance_24h', {
 				header: 'Agg Volume % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Share of total 24h DEX aggregator volume' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['marketShare24h'] },
 				size: 180
 			}),
 			columnHelper.accessor('aggregators_volume_marketShare7d', {
 				header: 'Agg Volume % 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Share of total 7d DEX aggregator volume' },
+				meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['marketShare7d'] },
 				size: 180
 			})
 		],
 		meta: {
-			headerHelperText: 'Trading volume routed through DEX aggregators'
+			headerHelperText: 'Spot token swap trading volume routed through DEX aggregators'
 		}
 	}),
 
@@ -804,47 +803,47 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				header: 'Bridge Agg Volume 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Bridge aggregator flows in the last 24 hours' },
+				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['24h'] },
 				size: 180
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_change_1d', {
 				header: 'Bridge Agg Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Day-over-day change in bridge aggregator flows' },
+				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['change1d'] },
 				size: 200
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_7d', {
 				header: 'Bridge Agg Volume 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Bridge aggregator flows over the last 7 days' },
+				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['7d'] },
 				size: 180
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_change_7d', {
 				header: 'Bridge Agg Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Change of 7d bridge aggregator flows vs previous 7d' },
+				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['change7d'] },
 				size: 200
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_30d', {
 				header: 'Bridge Agg Volume 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Bridge aggregator flows over the last 30 days' },
+				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['30d'] },
 				size: 180
 			}),
 			columnHelper.accessor('bridge_aggregators_volume_dominance_24h', {
 				header: 'Bridge Agg % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Share of total bridge aggregator flows' },
+				meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['marketShare24h'] },
 				size: 180
 			})
 		],
 		meta: {
-			headerHelperText: 'Activity routed through bridge aggregators'
+			headerHelperText: 'Sum of value of all assets that were bridged through the bridge aggregator'
 		}
 	}),
 
@@ -856,47 +855,47 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				header: 'Options Volume 24h',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Options trading volume in the last 24 hours' },
+				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['24h'] },
 				size: 160
 			}),
 			columnHelper.accessor('options_volume_change_1d', {
 				header: 'Options Change 1d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Day-over-day change in options trading volume' },
+				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['change1d'] },
 				size: 180
 			}),
 			columnHelper.accessor('options_volume_7d', {
 				header: 'Options Volume 7d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Options trading volume across the last 7 days' },
+				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['7d'] },
 				size: 160
 			}),
 			columnHelper.accessor('options_volume_change_7d', {
 				header: 'Options Change 7d',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Change of 7d options volume vs previous 7d' },
+				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['change7d'] },
 				size: 180
 			}),
 			columnHelper.accessor('options_volume_30d', {
 				header: 'Options Volume 30d',
 				cell: ({ getValue }) => <>{getValue() != null ? formattedNum(getValue(), true) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Options trading volume across the last 30 days' },
+				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['30d'] },
 				size: 160
 			}),
 			columnHelper.accessor('options_volume_dominance_24h', {
 				header: 'Options Volume % 24h',
 				cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? formattedPercent(getValue()) : null}</>,
 				sortUndefined: 'last',
-				meta: { align: 'end', headerHelperText: 'Share of total 24h options volume' },
+				meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['marketShare24h'] },
 				size: 180
 			})
 		],
 		meta: {
-			headerHelperText: 'Options trading metrics'
+			headerHelperText: 'Sum of value paid buying and selling options on the exchange'
 		}
 	}),
 
@@ -906,7 +905,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Total notional value of all open perpetual futures positions'
+			headerHelperText: definitions.openInterest.protocol
 		},
 		size: 140
 	}),

@@ -20,7 +20,7 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
 import { IChainsByAdapterPageData } from './types'
@@ -334,8 +334,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Sum of value paid buying and selling options on all options exchanges on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.optionsPremium.chain['24h']
 			},
 			size: 180
 		},
@@ -348,8 +347,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Sum of value paid buying and selling options on all options exchanges on the chain in the last 30 days'
+				headerHelperText: definitions.optionsPremium.chain['30d']
 			},
 			size: 180
 		}
@@ -365,8 +363,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Sum of the notional value of all options that have been traded on all options exchanges on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.optionsNotional.chain['24h']
 			},
 			size: 180
 		},
@@ -379,8 +376,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Sum of the notional value of all options that have been traded on all options exchanges on the chain in the last 30 days'
+				headerHelperText: definitions.optionsNotional.chain['30d']
 			},
 			size: 180
 		}
@@ -396,8 +392,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Volume of all spot swaps on all dexs on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.dexs.chain['24h']
 			},
 			size: 152
 		},
@@ -410,7 +405,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Volume of all spot swaps on all dexs on the chain in the last 30 days'
+				headerHelperText: definitions.dexs.chain['30d']
 			},
 			size: 152
 		}
@@ -426,8 +421,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Notional volume of all trades on all perp exchanges on the chain, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.perps.chain['24h']
 			},
 			size: 160
 		},
@@ -440,8 +434,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Notional volume of all trades on all perp exchanges on the chain, including leverage in the last 30 days'
+				headerHelperText: definitions.perps.chain['30d']
 			},
 			size: 160
 		},
@@ -454,8 +447,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Total notional value of all outstanding perpetual futures positions, updated daily at 00:00 UTC'
+				headerHelperText: definitions.openInterest.chain
 			},
 			size: 160
 		}
@@ -476,8 +468,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Notional volume of all trades on all perp aggregators on the chain, including leverage in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.perpsAggregators.chain['24h']
 			},
 			size: 160
 		},
@@ -495,8 +486,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Notional volume of all trades on all perp aggregators on the chain, including leverage in the last 30 days'
+				headerHelperText: definitions.perpsAggregators.chain['30d']
 			},
 			size: 160
 		}
@@ -517,8 +507,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Sum of value of all assets that were bridged through all the bridge Aggregators on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.bridgeAggregators.chain['24h']
 			},
 			size: 160
 		},
@@ -536,8 +525,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Sum of value of all assets that were bridged through all the bridge Aggregators on the chain in the last 30 days'
+				headerHelperText: definitions.bridgeAggregators.chain['30d']
 			},
 			size: 160
 		}
@@ -558,8 +546,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText:
-					'Volume of spot token swaps on all the DEX aggregators on the chain in the last 24 hours, updated daily at 00:00 UTC'
+				headerHelperText: definitions.dexAggregators.chain['24h']
 			},
 			size: 160
 		},
@@ -577,7 +564,7 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			sortingFn: 'alphanumericFalsyLast' as any,
 			meta: {
 				align: 'center',
-				headerHelperText: 'Volume of spot token swaps on all the DEX aggregators on the chain in the last 30 days'
+				headerHelperText: definitions.dexAggregators.chain['30d']
 			},
 			size: 160
 		}

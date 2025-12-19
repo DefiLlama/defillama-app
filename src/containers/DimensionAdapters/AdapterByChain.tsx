@@ -26,7 +26,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import useWindowSize from '~/hooks/useWindowSize'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
 import { protocolCharts } from '../ProtocolOverview/Chart/constants'
@@ -393,6 +393,7 @@ export function AdapterByChain(props: IProps) {
 						{props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
+									{/* TODO: add tooltip */}
 									<span>{metricName} (24h)</span>
 									<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
 										{formattedNum(props.total24h, true)}
@@ -405,7 +406,7 @@ export function AdapterByChain(props: IProps) {
 							{props.openInterest ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<Tooltip
-										content="Total notional value of all outstanding perpetual futures positions"
+										content={definitions.openInterest.chain}
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Open Interest
@@ -904,7 +905,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 24 hours'
+					headerHelperText: definitions.optionsPremium.protocol['24h']
 				},
 				size: 180
 			},
@@ -917,7 +918,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 7 days'
+					headerHelperText: definitions.optionsPremium.protocol['7d']
 				},
 				size: 180
 			},
@@ -930,7 +931,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Sum of value paid buying and selling options on the options exchange in the last 30 days'
+					headerHelperText: definitions.optionsPremium.protocol['30d']
 				},
 				size: 180
 			}
@@ -946,8 +947,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of the notional value of all options that have been traded on the options exchange in the last 24 hours'
+					headerHelperText: definitions.optionsNotional.protocol['24h']
 				},
 				size: 180
 			},
@@ -960,8 +960,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of the notional value of all options that have been traded on the options exchange in the last 7 days'
+					headerHelperText: definitions.optionsNotional.protocol['7d']
 				},
 				size: 180
 			},
@@ -974,8 +973,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of the notional value of all options that have been traded on the options exchange in the last 30 days'
+					headerHelperText: definitions.optionsNotional.protocol['30d']
 				},
 				size: 180
 			}
@@ -1001,7 +999,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of all spot swaps on the dex in the last 24 hours'
+					headerHelperText: definitions.dexs.protocol['24h']
 				},
 				size: 152
 			},
@@ -1024,7 +1022,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of all spot swaps on the dex in the last 7 days'
+					headerHelperText: definitions.dexs.protocol['7d']
 				},
 				size: 152
 			},
@@ -1047,7 +1045,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of all spot swaps on the dex in the last 30 days'
+					headerHelperText: definitions.dexs.protocol['30d']
 				},
 				size: 152
 			}
@@ -1089,8 +1087,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Notional volume of all trades on the perp exchange, including leverage in the last 24 hours'
+					headerHelperText: definitions.perps.protocol['24h']
 				},
 				size: 160
 			},
@@ -1103,7 +1100,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
+					headerHelperText: definitions.openInterest.protocol
 				},
 				size: 160
 			},
@@ -1142,7 +1139,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 7 days'
+					headerHelperText: definitions.perps.protocol['7d']
 				},
 				size: 160
 			},
@@ -1181,7 +1178,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage in the last 30 days'
+					headerHelperText: definitions.perps.protocol['30d']
 				},
 				size: 160
 			}
@@ -1197,7 +1194,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'end',
-					headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
+					headerHelperText: definitions.openInterest.protocol
 				},
 				size: 160
 			}
@@ -1218,8 +1215,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Notional volume of all trades on the perp aggregator, including leverage in the last 24 hours'
+					headerHelperText: definitions.perpsAggregators.protocol['24h']
 				},
 				size: 160
 			},
@@ -1232,8 +1228,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Notional volume of all trades on the perp aggregator, including leverage in the last 7 days'
+					headerHelperText: definitions.perpsAggregators.protocol['7d']
 				},
 				size: 160
 			},
@@ -1251,8 +1246,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Notional volume of all trades on the perp aggregator, including leverage in the last 30 days'
+					headerHelperText: definitions.perpsAggregators.protocol['30d']
 				},
 				size: 160
 			}
@@ -1273,8 +1267,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 24 hours'
+					headerHelperText: definitions.bridgeAggregators.chain['24h']
 				},
 				size: 160
 			},
@@ -1287,8 +1280,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 7 days'
+					headerHelperText: definitions.bridgeAggregators.chain['7d']
 				},
 				size: 160
 			},
@@ -1306,8 +1298,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText:
-						'Sum of value of all assets that were bridged through the bridge Aggregator in the last 30 days'
+					headerHelperText: definitions.bridgeAggregators.chain['30d']
 				},
 				size: 160
 			}
@@ -1328,7 +1319,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 24 hours'
+					headerHelperText: definitions.dexAggregators.protocol['24h']
 				},
 				size: 160
 			},
@@ -1341,7 +1332,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 7 days'
+					headerHelperText: definitions.dexAggregators.protocol['7d']
 				},
 				size: 160
 			},
@@ -1359,7 +1350,7 @@ const getColumnsByType = (
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
 					align: 'center',
-					headerHelperText: 'Volume of spot token swaps on the DEX aggregator in the last 30 days'
+					headerHelperText: definitions.dexAggregators.protocol['30d']
 				},
 				size: 160
 			}

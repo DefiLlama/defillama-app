@@ -10,7 +10,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
@@ -153,20 +153,44 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 							</p>
 						)}
 						{props.dexVolume7d != null && (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={`Total volume of all spot token swaps on protocols on the chain in the last 7 days`}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									DEX Volume (7d)
-								</Tooltip>
-								<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
-							</p>
+							<>
+								{props.category === 'Dexs' ? (
+									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+										<Tooltip
+											content={definitions.dexs.protocol['7d']}
+											className="font-normal text-(--text-label) underline decoration-dotted"
+										>
+											DEX Volume (7d)
+										</Tooltip>
+										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+									</p>
+								) : props.category === 'DEX Aggregators' ? (
+									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+										<Tooltip
+											content={definitions.dexAggregators.protocol['7d']}
+											className="font-normal text-(--text-label) underline decoration-dotted"
+										>
+											DEX Aggregator Volume (7d)
+										</Tooltip>
+										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+									</p>
+								) : props.category === 'Prediction Market' ? (
+									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+										<span className="font-normal text-(--text-label)">Prediction Market Volume (7d)</span>
+										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+									</p>
+								) : (
+									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+										<span className="font-normal text-(--text-label)">Volume (7d)</span>
+										<span className="font-jetbrains text-right">{formattedNum(props.dexVolume7d, true)}</span>
+									</p>
+								)}
+							</>
 						)}
 						{props.perpVolume7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Notional volume of all perpetual futures trades including leverage on protocols on the chain in the last 7 days`}
+									content={definitions.perps.protocol['7d']}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Perp Volume (7d)
@@ -362,7 +386,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Notional volume of all trades in the last 24 hours'
+						headerHelperText: definitions.perps.protocol['24h']
 					},
 					size: 160
 				},
@@ -378,7 +402,7 @@ const columns = (
 								sortingFn: 'alphanumericFalsyLast' as any,
 								meta: {
 									align: 'end',
-									headerHelperText: 'Total notional value of all outstanding perpetual futures positions'
+									headerHelperText: definitions.openInterest.protocol
 								},
 								size: 160
 							}
@@ -417,7 +441,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Notional volume of all trades in the last 7 days'
+						headerHelperText: definitions.perps.protocol['7d']
 					},
 					size: 160
 				},
@@ -455,7 +479,7 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Notional volume of all trades in the last 30 days'
+						headerHelperText: definitions.perps.protocol['30d']
 					},
 					size: 160
 				}
@@ -637,7 +661,7 @@ const columns = (
 		},
 		size: 128
 	},
-	...(['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
+	...(category === 'Dexs'
 		? [
 				{
 					id: 'dex_volume_7d',
@@ -647,12 +671,41 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Volume of spot trades in the last 7 days'
+						headerHelperText: definitions.dexs.protocol['7d']
 					},
 					size: 140
 				}
 			]
-		: ([] as any)),
+		: category === 'DEX Aggregators'
+			? [
+					{
+						id: 'dex_aggregator_volume_7d',
+						header: 'DEX Aggregator Volume 7d',
+						accessorFn: (protocol) => protocol.dexVolume?.total7d,
+						cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+						sortUndefined: 'last',
+						meta: {
+							align: 'end',
+							headerHelperText: definitions.dexAggregators.protocol['7d']
+						},
+						size: 140
+					}
+				]
+			: category === 'Prediction Market'
+				? [
+						{
+							id: 'prediction_market_volume_7d',
+							header: 'Volume 7d',
+							accessorFn: (protocol) => protocol.dexVolume?.total7d,
+							cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+							sortUndefined: 'last',
+							meta: {
+								align: 'end'
+							},
+							size: 140
+						}
+					]
+				: []),
 	{
 		id: 'mcap/tvl',
 		header: 'Mcap/TVL',
@@ -689,7 +742,7 @@ const columns = (
 		},
 		size: 128
 	},
-	...(['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
+	...(category === 'Dexs'
 		? [
 				{
 					id: 'dex_volume_30d',
@@ -699,12 +752,41 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Volume of spot trades in the last 30 days'
+						headerHelperText: definitions.dexs.protocol['30d']
 					},
 					size: 148
 				}
 			]
-		: ([] as any)),
+		: category === 'DEX Aggregators'
+			? [
+					{
+						id: 'dex_aggregator_volume_30d',
+						header: 'DEX Aggregator Volume 30d',
+						accessorFn: (protocol) => protocol.dexVolume?.total30d,
+						cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+						sortUndefined: 'last',
+						meta: {
+							align: 'end',
+							headerHelperText: definitions.dexAggregators.protocol['30d']
+						},
+						size: 148
+					}
+				]
+			: category === 'Prediction Market'
+				? [
+						{
+							id: 'prediction_market_volume_30d',
+							header: 'Volume 30d',
+							accessorFn: (protocol) => protocol.dexVolume?.total30d,
+							cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+							sortUndefined: 'last',
+							meta: {
+								align: 'end'
+							},
+							size: 148
+						}
+					]
+				: []),
 	{
 		id: 'fees_24h',
 		header: 'Fees 24h',
@@ -729,7 +811,7 @@ const columns = (
 		},
 		size: 128
 	},
-	...(['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
+	...(category === 'Dexs'
 		? [
 				{
 					id: 'dex_volume_24h',
@@ -739,12 +821,41 @@ const columns = (
 					sortUndefined: 'last',
 					meta: {
 						align: 'end',
-						headerHelperText: 'Volume of spot trades in the last 24 hours'
+						headerHelperText: definitions.dexs.protocol['24h']
 					},
 					size: 148
 				}
 			]
-		: ([] as any)),
+		: category === 'DEX Aggregators'
+			? [
+					{
+						id: 'dex_aggregator_volume_24h',
+						header: 'DEX Aggregator Volume 24h',
+						accessorFn: (protocol) => protocol.dexVolume?.total24h,
+						cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+						sortUndefined: 'last',
+						meta: {
+							align: 'end',
+							headerHelperText: definitions.dexAggregators.protocol['24h']
+						},
+						size: 148
+					}
+				]
+			: category === 'Prediction Market'
+				? [
+						{
+							id: 'prediction_market_volume_24h',
+							header: 'Volume 24h',
+							accessorFn: (protocol) => protocol.dexVolume?.total24h,
+							cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+							sortUndefined: 'last',
+							meta: {
+								align: 'end'
+							},
+							size: 148
+						}
+					]
+				: []),
 	...(['Lending'].includes(category)
 		? [
 				{

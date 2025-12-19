@@ -7,7 +7,7 @@ import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByREVPageData } from '~/containers/DimensionAdapters/queries'
 import { IChainsByREVPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 

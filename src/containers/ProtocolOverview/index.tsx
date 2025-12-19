@@ -12,7 +12,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import definitions from '~/public/definitions.json'
+import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
@@ -579,15 +579,13 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	if (holdersRevenue30d != null) {
 		metrics.push({
 			name: 'Holders Revenue (Annualized)',
-			tooltipContent:
-				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			tooltipContent: definitions.holdersRevenue.protocol['annualized'],
 			value: holdersRevenue30d * 12.2
 		})
 
 		metrics.push({
 			name: 'Holders Revenue 30d',
-			tooltipContent:
-				"Total revenue that is distributed to protocol's token holders in the last 30 days, updated daily at 00:00UTC",
+			tooltipContent: definitions.holdersRevenue.protocol['30d'],
 			value: holdersRevenue30d
 		})
 	}
@@ -595,8 +593,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	if (holdersRevenue7d != null) {
 		metrics.push({
 			name: 'Holders Revenue 7d',
-			tooltipContent:
-				"Total revenue that is distributed to protocol's token holders in the last 7 days, updated daily at 00:00UTC",
+			tooltipContent: definitions.holdersRevenue.protocol['7d'],
 			value: holdersRevenue7d
 		})
 	}
@@ -604,8 +601,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	if (holdersRevenue24h != null) {
 		metrics.push({
 			name: 'Holders Revenue 24h',
-			tooltipContent:
-				"Total revenue that is distributed to protocol's token holders in the last 24 hours, updated daily at 00:00UTC",
+			tooltipContent: definitions.holdersRevenue.protocol['24h'],
 			value: holdersRevenue24h
 		})
 	}
@@ -613,7 +609,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	if (holdersRevenueAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Holders Revenue',
-			tooltipContent: "Total revenue that is distributed to protocol's token holders since the protocol was launched",
+			tooltipContent: definitions.holdersRevenue.protocol['cumulative'],
 			value: holdersRevenueAllTime
 		})
 	}
@@ -637,14 +633,13 @@ function Incentives(props: IKeyMetricsProps) {
 	if (props.incentives.emissions30d != null) {
 		metrics.push({
 			name: 'Incentives (Annualized)',
-			tooltipContent:
-				'This is calculated by taking data from the last 30 days and multiplying it by 12 to annualize it',
+			tooltipContent: definitions.incentives.protocol['annualized'],
 			value: props.incentives.emissions30d * 12.2
 		})
 
 		metrics.push({
 			name: 'Incentives 30d',
-			tooltipContent: 'Total incentives distributed by the protocol in the last 30 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.incentives.protocol['30d'],
 			value: props.incentives.emissions30d
 		})
 	}
@@ -652,7 +647,7 @@ function Incentives(props: IKeyMetricsProps) {
 	if (props.incentives.emissions7d != null) {
 		metrics.push({
 			name: 'Incentives 7d',
-			tooltipContent: 'Total incentives distributed by the protocol in the last 7 days, updated daily at 00:00UTC',
+			tooltipContent: definitions.incentives.protocol['7d'],
 			value: props.incentives.emissions7d
 		})
 	}
@@ -660,7 +655,7 @@ function Incentives(props: IKeyMetricsProps) {
 	if (props.incentives.emissions24h != null) {
 		metrics.push({
 			name: 'Incentives 24h',
-			tooltipContent: 'Total incentives distributed by the protocol in the last 24 hours, updated daily at 00:00UTC',
+			tooltipContent: definitions.incentives.protocol['24h'],
 			value: props.incentives.emissions24h
 		})
 	}
@@ -668,7 +663,7 @@ function Incentives(props: IKeyMetricsProps) {
 	if (props.incentives.emissionsAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Incentives',
-			tooltipContent: 'Total incentives distributed by the protocol since the protocol was launched',
+			tooltipContent: definitions.incentives.protocol['cumulative'],
 			value: props.incentives.emissionsAllTime
 		})
 	}
@@ -777,16 +772,32 @@ function DexVolume(props: IKeyMetricsProps) {
 	const metrics = []
 
 	if (props.dexVolume.total30d != null) {
-		metrics.push({ name: 'DEX Volume 30d', tooltipContent: null, value: props.dexVolume.total30d })
+		metrics.push({
+			name: 'DEX Volume 30d',
+			tooltipContent: definitions.dexs.protocol['30d'],
+			value: props.dexVolume.total30d
+		})
 	}
 	if (props.dexVolume.total7d != null) {
-		metrics.push({ name: 'DEX Volume 7d', tooltipContent: null, value: props.dexVolume.total7d })
+		metrics.push({
+			name: 'DEX Volume 7d',
+			tooltipContent: definitions.dexs.protocol['7d'],
+			value: props.dexVolume.total7d
+		})
 	}
 	if (props.dexVolume.total24h != null) {
-		metrics.push({ name: 'DEX Volume 24h', tooltipContent: null, value: props.dexVolume.total24h })
+		metrics.push({
+			name: 'DEX Volume 24h',
+			tooltipContent: definitions.dexs.protocol['24h'],
+			value: props.dexVolume.total24h
+		})
 	}
 	if (props.dexVolume.totalAllTime != null) {
-		metrics.push({ name: 'Cumulative DEX Volume', tooltipContent: null, value: props.dexVolume.totalAllTime })
+		metrics.push({
+			name: 'Cumulative DEX Volume',
+			tooltipContent: definitions.dexs.protocol['cumulative'],
+			value: props.dexVolume.totalAllTime
+		})
 	}
 
 	return (
@@ -806,18 +817,30 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 	const metrics = []
 
 	if (props.dexAggregatorVolume.total30d != null) {
-		metrics.push({ name: 'DEX Aggregator Volume 30d', tooltipContent: null, value: props.dexAggregatorVolume.total30d })
+		metrics.push({
+			name: 'DEX Aggregator Volume 30d',
+			tooltipContent: definitions.dexAggregators.protocol['30d'],
+			value: props.dexAggregatorVolume.total30d
+		})
 	}
 	if (props.dexAggregatorVolume.total7d != null) {
-		metrics.push({ name: 'DEX Aggregator Volume 7d', tooltipContent: null, value: props.dexAggregatorVolume.total7d })
+		metrics.push({
+			name: 'DEX Aggregator Volume 7d',
+			tooltipContent: definitions.dexAggregators.protocol['7d'],
+			value: props.dexAggregatorVolume.total7d
+		})
 	}
 	if (props.dexAggregatorVolume.total24h != null) {
-		metrics.push({ name: 'DEX Aggregator Volume 24h', tooltipContent: null, value: props.dexAggregatorVolume.total24h })
+		metrics.push({
+			name: 'DEX Aggregator Volume 24h',
+			tooltipContent: definitions.dexAggregators.protocol['24h'],
+			value: props.dexAggregatorVolume.total24h
+		})
 	}
 	if (props.dexAggregatorVolume.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative DEX Aggregator Volume',
-			tooltipContent: null,
+			tooltipContent: definitions.dexAggregators.protocol['cumulative'],
 			value: props.dexAggregatorVolume.totalAllTime
 		})
 	}
@@ -839,18 +862,30 @@ function PerpVolume(props: IKeyMetricsProps) {
 	const metrics = []
 
 	if (props.perpVolume.total30d != null) {
-		metrics.push({ name: 'Perp Volume 30d', tooltipContent: null, value: props.perpVolume.total30d })
+		metrics.push({
+			name: 'Perp Volume 30d',
+			tooltipContent: definitions.perps.protocol['30d'],
+			value: props.perpVolume.total30d
+		})
 	}
 	if (props.perpVolume.total7d != null) {
-		metrics.push({ name: 'Perp Volume 7d', tooltipContent: null, value: props.perpVolume.total7d })
+		metrics.push({
+			name: 'Perp Volume 7d',
+			tooltipContent: definitions.perps.protocol['7d'],
+			value: props.perpVolume.total7d
+		})
 	}
 	if (props.perpVolume.total24h != null) {
-		metrics.push({ name: 'Perp Volume 24h', tooltipContent: null, value: props.perpVolume.total24h })
+		metrics.push({
+			name: 'Perp Volume 24h',
+			tooltipContent: definitions.perps.protocol['24h'],
+			value: props.perpVolume.total24h
+		})
 	}
 	if (props.perpVolume.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Perp Volume',
-			tooltipContent: null,
+			tooltipContent: definitions.perps.protocol['cumulative'],
 			value: props.perpVolume.totalAllTime
 		})
 	}
@@ -874,7 +909,7 @@ function OpenInterest(props: IKeyMetricsProps) {
 	if (props.openInterest.total24h != null) {
 		metrics.push({
 			name: 'Open Interest',
-			tooltipContent: 'Total notional value of all outstanding perpetual futures positions',
+			tooltipContent: definitions.openInterest.protocol,
 			value: props.openInterest.total24h
 		})
 	}
@@ -898,28 +933,28 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 	if (props.perpAggregatorVolume.total30d != null) {
 		metrics.push({
 			name: 'Perp Aggregator Volume 30d',
-			tooltipContent: null,
+			tooltipContent: definitions.perpsAggregators.protocol['30d'],
 			value: props.perpAggregatorVolume.total30d
 		})
 	}
 	if (props.perpAggregatorVolume.total7d != null) {
 		metrics.push({
 			name: 'Perp Aggregator Volume 7d',
-			tooltipContent: null,
+			tooltipContent: definitions.perpsAggregators.protocol['7d'],
 			value: props.perpAggregatorVolume.total7d
 		})
 	}
 	if (props.perpAggregatorVolume.total24h != null) {
 		metrics.push({
 			name: 'Perp Aggregator Volume 24h',
-			tooltipContent: null,
+			tooltipContent: definitions.perpsAggregators.protocol['24h'],
 			value: props.perpAggregatorVolume.total24h
 		})
 	}
 	if (props.perpAggregatorVolume.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Perp Aggregator Volume',
-			tooltipContent: null,
+			tooltipContent: definitions.perpsAggregators.protocol['cumulative'],
 			value: props.perpAggregatorVolume.totalAllTime
 		})
 	}
@@ -943,28 +978,28 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 	if (props.bridgeAggregatorVolume.total30d != null) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 30d',
-			tooltipContent: null,
+			tooltipContent: definitions.bridgeAggregators.protocol['30d'],
 			value: props.bridgeAggregatorVolume.total30d
 		})
 	}
 	if (props.bridgeAggregatorVolume.total7d != null) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 7d',
-			tooltipContent: null,
+			tooltipContent: definitions.bridgeAggregators.protocol['7d'],
 			value: props.bridgeAggregatorVolume.total7d
 		})
 	}
 	if (props.bridgeAggregatorVolume.total24h != null) {
 		metrics.push({
 			name: 'Bridge Aggregator Volume 24h',
-			tooltipContent: null,
+			tooltipContent: definitions.bridgeAggregators.protocol['24h'],
 			value: props.bridgeAggregatorVolume.total24h
 		})
 	}
 	if (props.bridgeAggregatorVolume.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Bridge Aggregator Volume',
-			tooltipContent: null,
+			tooltipContent: definitions.bridgeAggregators.protocol['cumulative'],
 			value: props.bridgeAggregatorVolume.totalAllTime
 		})
 	}
@@ -1062,28 +1097,28 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 	if (props.optionsPremiumVolume.total30d != null) {
 		metrics.push({
 			name: 'Options Premium Volume 30d',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsPremium.protocol['30d'],
 			value: props.optionsPremiumVolume.total30d
 		})
 	}
 	if (props.optionsPremiumVolume.total7d != null) {
 		metrics.push({
 			name: 'Options Premium Volume 7d',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsPremium.protocol['7d'],
 			value: props.optionsPremiumVolume.total7d
 		})
 	}
 	if (props.optionsPremiumVolume.total24h != null) {
 		metrics.push({
 			name: 'Options Premium Volume 24h',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsPremium.protocol['24h'],
 			value: props.optionsPremiumVolume.total24h
 		})
 	}
 	if (props.optionsPremiumVolume.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Options Premium Volume',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsPremium.protocol['cumulative'],
 			value: props.optionsPremiumVolume.totalAllTime
 		})
 	}
@@ -1107,28 +1142,28 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 	if (props.optionsNotionalVolume.total30d != null) {
 		metrics.push({
 			name: 'Options Notional Volume 30d',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsNotional.protocol['30d'],
 			value: props.optionsNotionalVolume.total30d
 		})
 	}
 	if (props.optionsNotionalVolume.total7d != null) {
 		metrics.push({
 			name: 'Options Notional Volume 7d',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsNotional.protocol['7d'],
 			value: props.optionsNotionalVolume.total7d
 		})
 	}
 	if (props.optionsNotionalVolume.total24h != null) {
 		metrics.push({
 			name: 'Options Notional Volume 24h',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsNotional.protocol['24h'],
 			value: props.optionsNotionalVolume.total24h
 		})
 	}
 	if (props.optionsNotionalVolume.totalAllTime != null) {
 		metrics.push({
 			name: 'Cumulative Options Notional Volume',
-			tooltipContent: null,
+			tooltipContent: definitions.optionsNotional.protocol['cumulative'],
 			value: props.optionsNotionalVolume.totalAllTime
 		})
 	}
