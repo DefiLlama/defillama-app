@@ -1,6 +1,8 @@
 import { Icon } from '~/components/Icon'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import type { ActiveFilterChip } from '../utils/filterChips'
+import type { UnifiedRowHeaderType } from '../../../types'
+import { CsvExportDropdown, type CsvExportLevel } from './CsvExportDropdown'
 
 export interface GroupingOption {
 	id: string
@@ -13,6 +15,8 @@ export interface UnifiedTableHeaderProps {
 	rowHeadersSummary: string | null
 	onCustomizeColumns?: () => void
 	onCsvExport?: () => void
+	onCsvExportLevel?: (level: CsvExportLevel) => void
+	rowHeaders?: UnifiedRowHeaderType[]
 	isExportDisabled?: boolean
 	isLoading?: boolean
 	searchTerm: string
@@ -34,6 +38,8 @@ export function UnifiedTableHeader({
 	rowHeadersSummary,
 	onCustomizeColumns,
 	onCsvExport,
+	onCsvExportLevel,
+	rowHeaders,
 	isExportDisabled = false,
 	isLoading = false,
 	searchTerm,
@@ -48,7 +54,8 @@ export function UnifiedTableHeader({
 	selectedGroupingId,
 	onGroupingChange
 }: UnifiedTableHeaderProps) {
-	const csvDisabled = isExportDisabled || !onCsvExport
+	const hasGrouping = rowHeaders && rowHeaders.length > 1
+	const csvDisabled = isExportDisabled || (!onCsvExport && !onCsvExportLevel)
 	const customizeDisabled = !onCustomizeColumns
 	const hasFilters = filterChips.length > 0
 	const canMutateFilters = filtersEditable && Boolean(onFilterRemove)
@@ -126,16 +133,25 @@ export function UnifiedTableHeader({
 						<Icon name="settings" height={14} width={14} />
 						<span>Customize Columns</span>
 					</button>
-					<ProTableCSVButton
-						onClick={() => {
-							if (csvDisabled) return
-							onCsvExport?.()
-						}}
-						isLoading={isLoading}
-						className={`pro-border pro-bg1 pro-hover-bg pro-text1 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
-							csvDisabled ? 'cursor-not-allowed opacity-60' : ''
-						}`}
-					/>
+					{hasGrouping && onCsvExportLevel && rowHeaders ? (
+						<CsvExportDropdown
+							rowHeaders={rowHeaders}
+							onExport={onCsvExportLevel}
+							isLoading={isLoading}
+							disabled={csvDisabled}
+						/>
+					) : (
+						<ProTableCSVButton
+							onClick={() => {
+								if (csvDisabled) return
+								onCsvExport?.()
+							}}
+							isLoading={isLoading}
+							className={`pro-border pro-bg1 pro-hover-bg pro-text1 flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
+								csvDisabled ? 'cursor-not-allowed opacity-60' : ''
+							}`}
+						/>
+					)}
 				</div>
 			</div>
 

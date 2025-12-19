@@ -1,12 +1,22 @@
 import type { ColumnDef, Row } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
+import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import { formattedNum, formattedPercent } from '~/utils'
 import type { CustomColumnDefinition } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
+import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { getAggregationContextFromLeafRows } from '../core/groupingUtils'
 import type { NormalizedRow, NumericMetrics } from '../types'
 
 const parser = new Parser()
+
+const CHAIN_METRIC_KEYS: (keyof ChainMetrics)[] = [
+	'stablesMcap',
+	'bridgedTvl',
+	'tvlShare',
+	'stablesShare',
+	'volume24hShare'
+]
 
 const EXPR_CACHE_MAX_SIZE = 100
 const expressionCache = new Map<string, ReturnType<typeof parser.parse>>()
@@ -310,9 +320,47 @@ const getRenderer = (format: CustomColumnDefinition['format']) => {
 	}
 }
 
+const isChainLevelGrouping = (leafRows: Row<NormalizedRow>[]): boolean => {
+	if (leafRows.length <= 1) return false
+	const parentIds = new Set<string>()
+	for (const row of leafRows) {
+		const id = row.original?.parentProtocolId || row.original?.protocolId || row.original?.id
+		if (id) parentIds.add(id)
+		if (parentIds.size > 1) return true
+	}
+	return false
+}
+
 const createAggregationFn = (def: CustomColumnDefinition) => {
+	const expressionVars = getExpressionVariables(def.expression)
+	const usesChainMetrics = expressionVars.some((v) => CHAIN_METRIC_KEYS.includes(v as keyof ChainMetrics))
+
 	return (_columnId: string, leafRows: Row<NormalizedRow>[]): number | null => {
 		if (!leafRows.length) return null
+
+		if (usesChainMetrics) {
+			const firstChain = leafRows[0]?.original?.chain
+			if (!firstChain) return null
+
+			const allSameChain = leafRows.length === 1 || leafRows.every((row) => row.original?.chain === firstChain)
+			if (!allSameChain) return null
+
+			if (!isChainLevelGrouping(leafRows)) return null
+
+			const chainMetrics = getChainMetricsByName(firstChain)
+			if (chainMetrics) {
+				const context = getAggregationContextFromLeafRows(leafRows)
+				const mergedMetrics: NumericMetrics = { ...context.metrics }
+				for (const key of CHAIN_METRIC_KEYS) {
+					const value = chainMetrics[key]
+					if (value !== null && value !== undefined) {
+						;(mergedMetrics as any)[key] = value
+					}
+				}
+				return evaluateExpression(def.expression, mergedMetrics)
+			}
+			return null
+		}
 
 		switch (def.aggregation) {
 			case 'none':

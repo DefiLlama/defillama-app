@@ -4,6 +4,8 @@ import { downloadCSV } from '~/utils'
 import { useProDashboard } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
 import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
+import type { CsvExportLevel } from './core/CsvExportDropdown'
+import { isGroupingColumnId } from './core/grouping'
 import { UnifiedTablePagination } from './core/TablePagination'
 import { TableRenderer } from './core/TableRenderer'
 import { UnifiedTableHeader } from './core/UnifiedTableHeader'
@@ -16,6 +18,7 @@ import {
 	getDefaultRowHeaders,
 	normalizeSorting
 } from './utils/configHelpers'
+import { buildGroupedCsvData, getRowsAtGroupLevel } from './utils/csvExport'
 import { evaluateExpression } from './utils/customColumns'
 import { getActiveFilterChips } from './utils/filterChips'
 import type { ActiveFilterChip } from './utils/filterChips'
@@ -134,6 +137,14 @@ const metricFromColumn = (columnId: string) => columnId
 const toCsvValue = (columnId: string, row: NormalizedRow, customColumns?: CustomColumnDefinition[]): string => {
 	if (columnId === 'name') {
 		return row.name
+	}
+
+	if (columnId === 'chain') {
+		return row.chain ?? ''
+	}
+
+	if (columnId === 'category') {
+		return row.category ?? ''
 	}
 
 	if (columnId.startsWith('custom_')) {
@@ -362,16 +373,34 @@ export const UnifiedTable = memo(function UnifiedTable({
 	)
 
 	const handleExportClick = () => {
-		const leafColumns = unifiedTable.table.getAllLeafColumns().filter((column) => column.getIsVisible())
+		const leafColumns = unifiedTable.table
+			.getAllLeafColumns()
+			.filter((column) => column.getIsVisible() && !isGroupingColumnId(column.id))
 
-		const headers = leafColumns.map((column) => {
+		const columnHeaders = leafColumns.map((column) => {
 			const header = column.columnDef.header
 			return typeof header === 'string' ? header : column.id
 		})
 
-		const csvRows = unifiedTable.leafRows.map((row) =>
-			leafColumns.map((column) => toCsvValue(column.id, row, config.customColumns))
-		)
+		const sortedLeafRows: NormalizedRow[] = []
+		const collectLeafRows = (rows: ReturnType<typeof unifiedTable.table.getRowModel>['rows']) => {
+			for (const row of rows) {
+				if (row.getIsGrouped() && row.subRows?.length) {
+					collectLeafRows(row.subRows)
+				} else if (row.original) {
+					sortedLeafRows.push(row.original)
+				}
+			}
+		}
+		collectLeafRows(unifiedTable.table.getRowModel().rows)
+
+		const nameIndex = columnHeaders.findIndex((h) => h === 'Name' || h === 'name')
+		const insertIndex = nameIndex >= 0 ? nameIndex + 1 : 0
+		const headers = [...columnHeaders.slice(0, insertIndex), 'Chain', ...columnHeaders.slice(insertIndex)]
+		const csvRows = sortedLeafRows.map((row) => {
+			const rowData = leafColumns.map((column) => toCsvValue(column.id, row, config.customColumns))
+			return [...rowData.slice(0, insertIndex), row.chain ?? '', ...rowData.slice(insertIndex)]
+		})
 
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
 	}
@@ -380,6 +409,31 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!unifiedTable.leafRows.length) return
 		handleExportClick()
 	}
+
+	const handleExportAtLevel = useCallback(
+		(level: CsvExportLevel) => {
+			if (!unifiedTable.leafRows.length) return
+
+			const leafColumns = unifiedTable.table
+				.getAllLeafColumns()
+				.filter((column) => column.getIsVisible() && !isGroupingColumnId(column.id))
+
+			if (level === 'all') {
+				handleExportClick()
+				return
+			}
+
+			const groupedRows = getRowsAtGroupLevel(unifiedTable.table, level)
+			if (!groupedRows.length) {
+				handleExportClick()
+				return
+			}
+
+			const { headers, data } = buildGroupedCsvData(groupedRows, leafColumns, CSV_PERCENT_COLUMNS, level)
+			downloadCSV(`unified-table-${level}.csv`, [headers, ...data])
+		},
+		[unifiedTable.table, unifiedTable.leafRows.length]
+	)
 
 	const title = 'Protocols overview'
 	const scopeDescription = useMemo(() => {
@@ -420,6 +474,8 @@ export const UnifiedTable = memo(function UnifiedTable({
 				rowHeadersSummary={rowHeadersSummary}
 				onCustomizeColumns={canCustomizeColumns ? handleCustomizeColumns : undefined}
 				onCsvExport={handleCsvClick}
+				onCsvExportLevel={handleExportAtLevel}
+				rowHeaders={resolvedRowHeaders}
 				isExportDisabled={!unifiedTable.leafRows.length}
 				isLoading={unifiedTable.isLoading}
 				searchTerm={searchTerm}
