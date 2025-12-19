@@ -5,12 +5,17 @@ import NProgress from 'nprogress'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import { useEffect } from 'react'
-import { AppProps } from 'next/app'
+import type { AppProps, NextWebVitalsMetric } from 'next/app'
 import { useRouter } from 'next/router'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
+import { reportWebVitalMetric } from '~/utils/webVitals'
 
 NProgress.configure({ showSpinner: false })
+
+export function reportWebVitals(metric: NextWebVitalsMetric) {
+	reportWebVitalMetric(metric)
+}
 
 const client = new QueryClient()
 
