@@ -1,5 +1,6 @@
 export const definitions = {
   "fees": {
+    "common": "Total fees paid by users when using the protocol",
     "protocol": {
       "24h": "Total fees paid by users when using the protocol in the last 24 hours",
       "7d": "Total fees paid by users when using the protocol in the last 7 days",
@@ -23,6 +24,7 @@ export const definitions = {
     }
   },
   "revenue": {
+    "common": "Revenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers",
     "protocol": {
       "24h": "Total Revenue earned by the protocol in the last 24 hours",
       "7d": "Total Revenue earned by the protocol in the last 7 days",
@@ -46,6 +48,7 @@ export const definitions = {
     }
   },
   "appFees": {
+    "common": "Total fees paid by users when using the apps on the chain",
     "chain": {
       "24h": "Total fees paid by users when using the apps on the chain in the last 24 hours. Excludes stablecoins, liquid staking apps, and gas fees. Updates daily at 00:00 UTC",
       "7d": "Total fees paid by users when using the apps on the chain in the last 7 days. Excludes stablecoins, liquid staking apps, and gas fees. Updates daily at 00:00 UTC",
@@ -53,6 +56,7 @@ export const definitions = {
     }
   },
   "appRevenue": {
+    "common": "Total revenue earned by the apps on the chain",
     "chain": {
       "24h": "Total revenue earned by the apps on the chain in the last 24 hours. Excludes stablecoins, liquid staking apps, and gas fees. Updates daily at 00:00 UTC",
       "7d": "Total revenue earned by the apps on the chain in the last 7 days. Excludes stablecoins, liquid staking apps, and gas fees. Updates daily at 00:00 UTC",
@@ -60,6 +64,7 @@ export const definitions = {
     }
   },
   "holdersRevenue": {
+    "common": "Holders Revenue is subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers",
     "protocol": {
       "24h": "Total revenue earned by token holders of the protocol in the last 24 hours",
       "7d": "Total revenue earned by token holders of the protocol in the last 7 days",
@@ -82,6 +87,7 @@ export const definitions = {
     }
   },
   "rev": {
+    "common": "Real Economic Value (Chain Fees + MEV Tips) of the chain",
     "chain": {
       "24h": "Real Economic Value (Chain Fees + MEV Tips) of the chain in the last 24 hours. Updates daily at 00:00 UTC",
       "7d": "Real Economic Value (Chain Fees + MEV Tips) of the chain in the last 7 days. Updates daily at 00:00 UTC",
@@ -89,6 +95,7 @@ export const definitions = {
     }
   },
   "earnings": {
+    "common": "Net protocol earnings (Revenue - Incentives) by the protocol",
     "protocol": {
       "24h": "Net protocol earnings (Revenue - Incentives) by the protocol in the last 24 hours",
       "7d": "Net protocol earnings (Revenue - Incentives) by the protocol in the last 7 days",
@@ -111,6 +118,7 @@ export const definitions = {
     }
   },
   "incentives": {
+    "common": "Total incentives distributed to users through liquidity mining or incentive programs",
     "protocol": {
       "24h": "Total incentives distributed to users in the last 24 hours through liquidity mining or incentive programs",
       "7d": "Total incentives distributed to users in the last 7 days through liquidity mining or incentive programs",
@@ -122,6 +130,7 @@ export const definitions = {
     }
   },
   "dexs": {
+    "common": "Volume of all spot token swaps on the DEX",
     "protocol": {
       "24h": "Volume of all spot token swaps on the DEX in the last 24 hours",
       "7d": "Volume of all spot token swaps on the DEX in the last 7 days",
@@ -141,10 +150,12 @@ export const definitions = {
     "chain": {
       "24h": "Volume of all spot token swaps on all DEXs on the chain in the last 24 hours. Updated daily at 00:00 UTC",
       "7d": "Volume of all spot token swaps on all DEXs on the chain in the last 7 days. Updated daily at 00:00 UTC",
-      "30d": "Volume of all spot token swaps on all DEXs on the chain in the last 30 days. Updated daily at 00:00 UTC"
+      "30d": "Volume of all spot token swaps on all DEXs on the chain in the last 30 days. Updated daily at 00:00 UTC",
+      "change7dover7d": "Change of last 7d volume over the previous 7d volume",
     }
   },
   "dexAggregators": {
+    "common": "Volume of all spot token swaps routed through the DEX aggregator",
     "protocol": {
       "24h": "Volume of all spot token swaps routed through the DEX aggregator in the last 24 hours",
       "7d": "Volume of all spot token swaps routed through the DEX aggregator in the last 7 days",
@@ -167,6 +178,7 @@ export const definitions = {
     }
   },
   "perps": {
+    "common": "Notional volume of all trades including leverage on the perp exchange",
     "protocol": {
       "24h": "Notional volume of all trades including leverage on the perp exchange in the last 24 hours",
       "7d": "Notional volume of all trades including leverage on the perp exchange in the last 7 days",
@@ -184,10 +196,12 @@ export const definitions = {
     "chain": {
       "24h": "Notional volume of all trades including leverage on all perp exchanges on the chain in the last 24 hours. Updated daily at 00:00 UTC",
       "7d": "Notional volume of all trades including leverage on all perp exchanges on the chain in the last 7 days. Updated daily at 00:00 UTC",
-      "30d": "Notional volume of all trades including leverage on all perp exchanges on the chain in the last 30 days. Updated daily at 00:00 UTC"
+      "30d": "Notional volume of all trades including leverage on all perp exchanges on the chain in the last 30 days. Updated daily at 00:00 UTC",
+      "change7dover7d": "Change of last 7d notional volume including leverage over the previous 7d notional volume including leverage",
     }
   },
   "perpsAggregators": {
+    "common": "Notional volume of all trades including leverage routed through the perp aggregator",
     "protocol": {
       "24h": "Notional volume of all trades including leverage routed through the perp aggregator in the last 24 hours",
       "7d": "Notional volume of all trades including leverage routed through the perp aggregator in the last 7 days",
@@ -209,6 +223,7 @@ export const definitions = {
     }
   },
   "bridgeAggregators": {
+    "common": "Sum of value of all assets that were bridged through the bridge aggregator",
     "protocol": {
       "24h": "Sum of value of all assets that were bridged through the bridge aggregator in the last 24 hours",
       "7d": "Sum of value of all assets that were bridged through the bridge aggregator in the last 7 days",
@@ -232,6 +247,7 @@ export const definitions = {
     }
   },
   "optionsPremium": {
+    "common": "Sum of value paid buying and selling options on the exchange",
     "protocol": {
       "24h": "Sum of value paid buying and selling options on the exchange in the last 24 hours",
       "7d": "Sum of value paid buying and selling options on the exchange in the last 7 days",
@@ -254,6 +270,7 @@ export const definitions = {
     }
   },
   "optionsNotional": {
+    "common": "Sum of the notional value of all options that have been traded on the exchange",
     "protocol": {
       "24h": "Sum of the notional value of all options that have been traded on the exchange in the last 24 hours",
       "7d": "Sum of the notional value of all options that have been traded on the exchange in the last 7 days",
@@ -276,6 +293,7 @@ export const definitions = {
     }
   },
   "openInterest": {
+    "common": "Total notional value of all outstanding perpetual futures positions",
     "protocol": "Total notional value of all outstanding perpetual futures positions",
     "chain": "Total notional value of all outstanding perpetual futures positions on all perp exchanges on the chain, updated daily at 00:00 UTC"
   }

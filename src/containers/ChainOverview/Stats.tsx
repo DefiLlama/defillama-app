@@ -361,11 +361,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
-										content={
-											props.metadata.name === 'All'
-												? 'Sum of volume on all DEXs on all chains. Updates daily at 00:00 UTC'
-												: 'Sum of volume on all DEXs on the chain. Updates daily at 00:00 UTC'
-										}
+										content={definitions.dexs.chain['24h']}
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										DEXs Volume (24h)
@@ -381,13 +377,23 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								<div className="mb-3 flex flex-col">
 									{props.dexs.total7d != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Volume (7d)</span>
+											<Tooltip
+												content={definitions.dexs.chain['7d']}
+												className="text-(--text-label) underline decoration-dotted"
+											>
+												Volume (7d)
+											</Tooltip>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.dexs.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.dexs.change_7dover7d != null && (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Weekly Change</span>
+											<Tooltip
+												content={definitions.dexs.chain['change7dover7d']}
+												className="text-(--text-label) underline decoration-dotted"
+											>
+												Weekly Change
+											</Tooltip>
 											<span
 												className={`font-jetbrains ml-auto ${
 													props.dexs.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'
@@ -410,7 +416,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 									<Tooltip
-										content="Sum of volume on all perpetual exchanges on the chain. Updates daily at 00:00 UTC"
+										content={definitions.perps.chain['24h']}
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Perps Volume (24h)
@@ -426,13 +432,23 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								<div className="mb-3 flex flex-col">
 									{props.perps.total7d != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Perps Volume (7d)</span>
+											<Tooltip
+												content={definitions.perps.chain['7d']}
+												className="text-(--text-label) underline decoration-dotted"
+											>
+												Volume (7d)
+											</Tooltip>
 											<span className="font-jetbrains ml-auto">{formattedNum(props.perps.total7d, true)}</span>
 										</p>
 									) : null}
 									{props.perps.change_7dover7d != null ? (
 										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Weekly Change</span>
+											<Tooltip
+												content={definitions.perps.chain['change7dover7d']}
+												className="text-(--text-label) underline decoration-dotted"
+											>
+												Weekly Change
+											</Tooltip>
 											<span
 												className={`font-jetbrains ml-auto ${
 													props.perps.change_7dover7d >= 0 ? 'text-(--success)' : 'text-(--error)'

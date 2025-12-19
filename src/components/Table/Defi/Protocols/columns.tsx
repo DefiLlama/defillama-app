@@ -554,7 +554,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		],
 		meta: {
 			headerHelperText:
-				"Total fees paid by users when using the protocol\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers.\nHolders Revenue is subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers."
+				definitions.fees.common + '\n\n' + definitions.revenue.common + '\n\n' + definitions.holdersRevenue.common
 		}
 	}),
 	columnHelper.group({
@@ -653,7 +653,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			})
 		],
 		meta: {
-			headerHelperText: 'Volume of spot swaps traded on the protocol'
+			headerHelperText: definitions.dexs.common
 		}
 	}),
 	columnHelper.group({
@@ -732,7 +732,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			})
 		],
 		meta: {
-			headerHelperText: 'Notional volume of all trades on the perp exchange, including leverage'
+			headerHelperText: definitions.perps.common
 		}
 	}),
 
@@ -791,7 +791,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			})
 		],
 		meta: {
-			headerHelperText: 'Spot token swap trading volume routed through DEX aggregators'
+			headerHelperText: definitions.dexAggregators.common
 		}
 	}),
 
@@ -843,7 +843,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			})
 		],
 		meta: {
-			headerHelperText: 'Sum of value of all assets that were bridged through the bridge aggregator'
+			headerHelperText: definitions.bridgeAggregators.common
 		}
 	}),
 
@@ -895,7 +895,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			})
 		],
 		meta: {
-			headerHelperText: 'Sum of value paid buying and selling options on the exchange'
+			headerHelperText: definitions.optionsPremium.common
 		}
 	}),
 

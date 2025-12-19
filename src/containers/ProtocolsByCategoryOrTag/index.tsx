@@ -201,7 +201,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						{props.openInterest != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Total notional value of all outstanding perpetual futures positions`}
+									content={definitions.openInterest.common}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Open Interest

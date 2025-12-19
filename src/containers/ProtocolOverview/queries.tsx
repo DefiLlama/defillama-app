@@ -21,6 +21,7 @@ import {
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
@@ -1020,13 +1021,13 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; me
 }
 
 const commonMethodology = {
-	dexs: 'Volume of all spot token swaps that go through the protocol',
-	dexAggregators: 'Volume of all spot token swaps that go through the protocol',
-	perps: 'Notional volume of all trades in the protocol, includes leverage',
-	perpsAggregators: 'Notional volume of all trades in the protocol, includes leverage',
-	bridgeAggregators: 'Sum of value of all assets that were bridged through the protocol',
-	optionsPremiumVolume: 'Sum of value paid buying and selling options',
-	optionsNotionalVolume: 'Sum of the notional value of all options that have been traded on the protocol'
+	dexs: definitions.dexs.common,
+	dexAggregators: definitions.dexAggregators.common,
+	perps: definitions.perps.common,
+	perpsAggregators: definitions.perpsAggregators.common,
+	bridgeAggregators: definitions.bridgeAggregators.common,
+	optionsPremiumVolume: definitions.optionsPremium.common,
+	optionsNotionalVolume: definitions.optionsNotional.common
 }
 
 export const fetchArticles = async ({ tags = '', size = 2 }) => {

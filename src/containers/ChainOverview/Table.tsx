@@ -1202,7 +1202,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		],
 		meta: {
 			headerHelperText:
-				"Total fees paid by users when using the protocol\n\nRevenue is subset of fees that the protocol collects for itself, usually going to the protocol treasury, the team or distributed among token holders. This doesn't include any fees distributed to Liquidity Providers.\nHolders Revenue is subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers."
+				definitions.fees.common + '\n\n' + definitions.revenue.common + '\n\n' + definitions.holdersRevenue.common
 		}
 	}),
 	columnHelper.group({
@@ -1259,7 +1259,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			})
 		],
 		meta: {
-			headerHelperText: 'Volume of spot swaps traded on the protocol'
+			headerHelperText: definitions.dexs.common
 		}
 	})
 ]
