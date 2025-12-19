@@ -2354,7 +2354,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							label="Gross Profit"
 							methodology={props.revenue?.methodology ?? ''}
 							tableHeaders={tableHeaders}
-							breakdownByLabels={revenueByLabels}
+							breakdownByLabels={[]}
 							methodologyByType={props.incomeStatement?.methodologyByType?.['Revenue'] ?? {}}
 						/>
 						{props.metrics?.incentives ? (
