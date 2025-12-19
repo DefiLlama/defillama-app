@@ -11,8 +11,6 @@ import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
-import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
 import { useYieldChartTransformations } from '../useYieldChartTransformations'
 
 const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
@@ -68,9 +66,14 @@ export function YieldsChartTab({
 	const [chainSearch, setChainSearch] = useState('')
 	const [projectSearch, setProjectSearch] = useState('')
 	const [tokenSearch, setTokenSearch] = useState('')
+	const [poolSearch, setPoolSearch] = useState('')
+	const [sortColumn, setSortColumn] = useState<'tvl' | 'apy'>('tvl')
+	const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc')
+	const [showPoolPicker, setShowPoolPicker] = useState(!selectedYieldPool)
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const projectListRef = useRef<HTMLDivElement | null>(null)
 	const tokenListRef = useRef<HTMLDivElement | null>(null)
+	const poolListRef = useRef<HTMLDivElement | null>(null)
 	const chainPopover = usePopoverStore({ placement: 'bottom-start' })
 	const projectPopover = usePopoverStore({ placement: 'bottom-start' })
 	const tokenPopover = usePopoverStore({ placement: 'bottom-start' })
@@ -297,16 +300,42 @@ export function YieldsChartTab({
 		maxTvl
 	])
 
-	const poolOptions = useMemo(() => {
-		return filteredPools
-			.sort((a: any, b: any) => (b.tvl || 0) - (a.tvl || 0))
-			.map((pool: any) => ({
-				value: pool.configID,
-				label: `${pool.pool} (${pool.project})`,
-				description: `${pool.chains[0]} • APY: ${pool.apy?.toFixed(2) || '0.00'}% • TVL: ${formattedNum(pool.tvl, true)}`,
-				logo: getItemIconUrl('protocol', null, pool.project)
-			}))
-	}, [filteredPools])
+	const searchedAndSortedPools = useMemo(() => {
+		let result = filteredPools
+
+		if (poolSearch) {
+			result = matchSorter(result, poolSearch, {
+				keys: ['pool', 'project', (item: any) => item.chains?.[0] || '']
+			})
+		}
+
+		return [...result].sort((a: any, b: any) => {
+			const aVal = sortColumn === 'tvl' ? a.tvl || 0 : a.apy || 0
+			const bVal = sortColumn === 'tvl' ? b.tvl || 0 : b.apy || 0
+			return sortDirection === 'desc' ? bVal - aVal : aVal - bVal
+		})
+	}, [filteredPools, poolSearch, sortColumn, sortDirection])
+
+	const poolListVirtualizer = useVirtualizer({
+		count: searchedAndSortedPools.length,
+		getScrollElement: () => poolListRef.current,
+		estimateSize: () => 64,
+		overscan: 8
+	})
+
+	const toggleSort = (column: 'tvl' | 'apy') => {
+		if (sortColumn === column) {
+			setSortDirection((prev) => (prev === 'desc' ? 'asc' : 'desc'))
+		} else {
+			setSortColumn(column)
+			setSortDirection('desc')
+		}
+	}
+
+	const selectedPoolData = useMemo(() => {
+		if (!selectedYieldPool) return null
+		return yieldsData.find((p: any) => p.configID === selectedYieldPool.configID) || null
+	}, [selectedYieldPool, yieldsData])
 
 	const { data: selectedYieldChartData, isLoading: selectedYieldChartLoading } = useYieldChartData(
 		selectedYieldPool?.configID || null
@@ -408,8 +437,8 @@ export function YieldsChartTab({
 					<LocalLoader />
 				</div>
 			) : (
-				<>
-					<div className="space-y-3">
+				<div className="flex flex-col gap-4">
+					<div className="grid grid-cols-5 gap-2">
 						<div className="flex flex-col">
 							<label className="pro-text2 mb-1 block text-[11px] font-medium">Chains</label>
 							<PopoverDisclosure
@@ -449,7 +478,7 @@ export function YieldsChartTab({
 										/>
 									</div>
 									<div
-										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md bg-(--cards-bg-alt)/30"
 										ref={chainListRef}
 									>
 										<div
@@ -564,7 +593,7 @@ export function YieldsChartTab({
 										/>
 									</div>
 									<div
-										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md bg-(--cards-bg-alt)/30"
 										ref={projectListRef}
 									>
 										<div
@@ -679,7 +708,7 @@ export function YieldsChartTab({
 										/>
 									</div>
 									<div
-										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+										className="thin-scrollbar h-[240px] overflow-y-auto rounded-md bg-(--cards-bg-alt)/30"
 										ref={tokenListRef}
 									>
 										<div
@@ -753,9 +782,9 @@ export function YieldsChartTab({
 							placeholder="All categories"
 						/>
 
-						<div>
+						<div className="flex flex-col">
 							<label className="pro-text2 mb-1 block text-[11px] font-medium">TVL Range</label>
-							<div className="flex gap-2">
+							<div className="flex gap-1">
 								<input
 									type="number"
 									placeholder="Min"
@@ -772,61 +801,264 @@ export function YieldsChartTab({
 								/>
 							</div>
 						</div>
-
-						<AriakitVirtualizedSelect
-							label="Select Yield Pool"
-							options={poolOptions}
-							selectedValue={selectedYieldPool?.configID || null}
-							onChange={(option) => {
-								const pool = filteredPools.find((p: any) => p.configID === option.value)
-								if (pool && onSelectedYieldPoolChange) {
-									onSelectedYieldPoolChange({
-										configID: pool.configID,
-										name: pool.pool,
-										project: pool.project,
-										chain: pool.chains[0]
-									})
-								}
-							}}
-							placeholder="Search pools..."
-							placement="bottom-start"
-						/>
-
-						<p className="pro-text3 text-xs">
-							{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''} match your filters
-						</p>
-
-						{selectedYieldPool && (
-							<AriakitSelect
-								label="Chart Type"
-								options={availableChartTypes.map((type) => ({
-									value: type.value,
-									label:
-										type.label +
-										(!type.available
-											? ' (N/A)'
-											: borrowChartLoading && ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(type.value)
-												? ' (Loading...)'
-												: ''),
-									disabled: !type.available
-								}))}
-								selectedValue={selectedYieldChartType}
-								onChange={(option) => onSelectedYieldChartTypeChange(option.value)}
-								placeholder="Select chart type"
-							/>
-						)}
 					</div>
 
-					<div className="pro-border overflow-hidden rounded-lg border">
-						<div className="pro-text2 border-b border-(--cards-border) px-3 py-2 text-xs font-medium">Preview</div>
+					{selectedYieldPool && !showPoolPicker ? (
+						<div className="overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
+							<div className="flex items-center justify-between px-3 py-2.5">
+								<div className="flex items-center gap-3">
+									{selectedPoolData && (
+										<img
+											src={getItemIconUrl('protocol', null, selectedPoolData.project)}
+											alt={selectedPoolData.project}
+											className="h-8 w-8 rounded-full object-cover ring-1 ring-(--cards-border)"
+											onError={(e) => {
+												e.currentTarget.style.display = 'none'
+											}}
+										/>
+									)}
+									<div className="min-w-0">
+										<div className="pro-text1 text-sm font-semibold">{selectedYieldPool.name}</div>
+										<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
+											<span>{selectedYieldPool.project}</span>
+											<span>•</span>
+											<span>{selectedYieldPool.chain}</span>
+											{selectedPoolData && (
+												<>
+													<span>•</span>
+													<span className="font-medium text-(--text-secondary)">
+														TVL: {formattedNum(selectedPoolData.tvl, true)}
+													</span>
+													<span>•</span>
+													<span className="font-medium text-(--text-secondary)">
+														APY: {selectedPoolData.apy?.toFixed(2) || '0.00'}%
+													</span>
+												</>
+											)}
+										</div>
+									</div>
+								</div>
+								<div className="flex items-center gap-2">
+									<button
+										type="button"
+										onClick={() => setShowPoolPicker(true)}
+										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
+									>
+										Change pool
+									</button>
+									<button
+										type="button"
+										onClick={() => {
+											onSelectedYieldPoolChange(null)
+											setShowPoolPicker(true)
+										}}
+										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:text-red-500"
+									>
+										Clear
+									</button>
+								</div>
+							</div>
+						</div>
+					) : (
+						<div className="overflow-hidden rounded-lg border border-(--cards-border)">
+							<div className="flex items-center justify-between border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
+								<div className="flex items-center gap-3">
+									<div className="relative">
+										<Icon
+											name="search"
+											width={12}
+											height={12}
+											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
+										/>
+										<input
+											value={poolSearch}
+											onChange={(e) => setPoolSearch(e.target.value)}
+											placeholder="Search pools..."
+											className="w-48 rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+										/>
+									</div>
+									<span className="pro-text3 text-xs">
+										{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''}
+									</span>
+								</div>
+								{selectedYieldPool && (
+									<button
+										type="button"
+										onClick={() => setShowPoolPicker(false)}
+										className="text-xs font-medium text-(--primary) transition-colors hover:text-(--primary)/80"
+									>
+										Cancel
+									</button>
+								)}
+							</div>
+
+							<div className="grid grid-cols-[1fr_100px_100px_80px] gap-2 border-b border-(--cards-border) bg-(--cards-bg-alt)/50 px-3 py-2 text-[11px] font-medium">
+								<div className="pro-text3">Pool</div>
+								<button
+									onClick={() => toggleSort('tvl')}
+									className={`flex items-center justify-end gap-1 ${
+										sortColumn === 'tvl' ? 'text-(--primary)' : 'pro-text3 hover:text-(--text-primary)'
+									}`}
+								>
+									TVL
+									<Icon
+										name={sortColumn === 'tvl' && sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
+										width={10}
+										height={10}
+										className={sortColumn === 'tvl' ? 'opacity-100' : 'opacity-30'}
+									/>
+								</button>
+								<button
+									onClick={() => toggleSort('apy')}
+									className={`flex items-center justify-end gap-1 ${
+										sortColumn === 'apy' ? 'text-(--primary)' : 'pro-text3 hover:text-(--text-primary)'
+									}`}
+								>
+									APY
+									<Icon
+										name={sortColumn === 'apy' && sortDirection === 'asc' ? 'arrow-up' : 'arrow-down'}
+										width={10}
+										height={10}
+										className={sortColumn === 'apy' ? 'opacity-100' : 'opacity-30'}
+									/>
+								</button>
+								<div className="pro-text3 text-right">Category</div>
+							</div>
+
+							<div ref={poolListRef} className="thin-scrollbar h-[240px] overflow-y-auto">
+								{searchedAndSortedPools.length === 0 ? (
+									<div className="pro-text3 flex h-full items-center justify-center text-xs">
+										No pools match your search
+									</div>
+								) : (
+									<div
+										style={{
+											height: poolListVirtualizer.getTotalSize(),
+											position: 'relative'
+										}}
+									>
+										{poolListVirtualizer.getVirtualItems().map((row) => {
+											const pool = searchedAndSortedPools[row.index]
+											if (!pool) return null
+											const isSelected = selectedYieldPool?.configID === pool.configID
+											const iconUrl = getItemIconUrl('protocol', null, pool.project)
+											return (
+												<button
+													key={pool.configID}
+													onClick={() => {
+														onSelectedYieldPoolChange({
+															configID: pool.configID,
+															name: pool.pool,
+															project: pool.project,
+															chain: pool.chains[0]
+														})
+														setShowPoolPicker(false)
+													}}
+													className={`grid w-full grid-cols-[1fr_100px_100px_80px] items-center gap-2 px-3 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
+														isSelected ? 'bg-(--primary)/10' : ''
+													}`}
+													style={{
+														position: 'absolute',
+														top: 0,
+														left: 0,
+														width: '100%',
+														transform: `translateY(${row.start}px)`
+													}}
+												>
+													<div className="flex min-w-0 items-center gap-2">
+														{iconUrl && (
+															<img
+																src={iconUrl}
+																alt={pool.project}
+																className="h-6 w-6 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+																onError={(e) => {
+																	e.currentTarget.style.display = 'none'
+																}}
+															/>
+														)}
+														<div className="min-w-0">
+															<div className={`truncate font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
+																{pool.pool}
+															</div>
+															<div className="truncate text-[10px] text-(--text-tertiary)">
+																{pool.project} • {pool.chains[0]}
+															</div>
+														</div>
+													</div>
+
+													<div className={`text-right font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
+														{formattedNum(pool.tvl, true)}
+													</div>
+
+													<div className="text-right">
+														<div className={`font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
+															{pool.apy?.toFixed(2) || '0.00'}%
+														</div>
+														{pool.apyMean30d != null && (
+															<div className="text-[10px] text-(--text-tertiary)">
+																30d: {pool.apyMean30d.toFixed(2)}%
+															</div>
+														)}
+													</div>
+
+													<div className="text-right">
+														{pool.category && (
+															<span className="inline-block truncate rounded bg-(--cards-bg-alt) px-1.5 py-0.5 text-[10px] text-(--text-tertiary)">
+																{pool.category}
+															</span>
+														)}
+													</div>
+												</button>
+											)
+										})}
+									</div>
+								)}
+							</div>
+						</div>
+					)}
+
+					{/* Chart Preview */}
+					<div className="overflow-hidden rounded-lg border border-(--cards-border)">
+						<div className="flex items-center justify-between border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
+							<span className="pro-text2 text-xs font-medium">
+								{selectedYieldPool ? selectedYieldPool.name : 'Preview'}
+							</span>
+						</div>
+
+						{/* Chart Type Pills */}
+						{selectedYieldPool && (
+							<div className="flex flex-wrap gap-1.5 border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
+								{availableChartTypes.map((type) => {
+									const isLoading =
+										borrowChartLoading && ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(type.value)
+									const isActive = selectedYieldChartType === type.value
+									return (
+										<button
+											key={type.value}
+											onClick={() => type.available && onSelectedYieldChartTypeChange(type.value)}
+											disabled={!type.available || isLoading}
+											className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition-all ${
+												isActive
+													? 'bg-(--primary) text-white shadow-sm'
+													: type.available
+														? 'bg-(--cards-bg-alt) text-(--text-secondary) hover:bg-(--cards-bg-alt)/80 hover:text-(--text-primary)'
+														: 'cursor-not-allowed bg-(--cards-bg-alt)/50 text-(--text-tertiary) opacity-50'
+											}`}
+										>
+											{type.label}
+											{isLoading && '...'}
+										</button>
+									)
+								})}
+							</div>
+						)}
 
 						{selectedYieldPool ? (
 							<div className="bg-(--cards-bg) p-3">
-								<div className="mb-3">
-									<h3 className="pro-text1 mb-1 text-sm font-semibold">{selectedYieldPool.name}</h3>
-									<p className="pro-text2 text-xs">
-										{selectedYieldPool.project} - {selectedYieldPool.chain}
-									</p>
+								<div className="mb-2 flex items-center gap-2 text-xs">
+									<span className="pro-text3">{selectedYieldPool.project}</span>
+									<span className="pro-text3">•</span>
+									<span className="pro-text3">{selectedYieldPool.chain}</span>
 								</div>
 
 								{selectedYieldChartType === 'tvl-apy' &&
@@ -854,7 +1086,7 @@ export function YieldsChartTab({
 										</div>
 									)}
 
-								<div className="h-[320px]">
+								<div className="h-[280px]">
 									{isPreviewLoading ? (
 										<div className="flex h-full items-center justify-center">
 											<LocalLoader />
@@ -869,7 +1101,7 @@ export function YieldsChartTab({
 										>
 											{selectedYieldChartType === 'tvl-apy' && (
 												<TVLAPYChart
-													height="320px"
+													height="280px"
 													chartData={yieldsChartData}
 													stackColors={mainChartStackColors}
 													stacks={mainChartStacks}
@@ -879,7 +1111,7 @@ export function YieldsChartTab({
 											)}
 											{selectedYieldChartType === 'supply-apy' && (
 												<BarChart
-													height="320px"
+													height="280px"
 													chartData={supplyApyBarData}
 													stacks={barChartStacks}
 													stackColors={barChartColors}
@@ -889,7 +1121,7 @@ export function YieldsChartTab({
 											)}
 											{selectedYieldChartType === 'supply-apy-7d' && (
 												<AreaChart
-													height="320px"
+													height="280px"
 													chartData={supplyApy7dData}
 													title="7 Day Avg Supply APY"
 													valueSymbol="%"
@@ -898,7 +1130,7 @@ export function YieldsChartTab({
 											)}
 											{selectedYieldChartType === 'borrow-apy' && (
 												<BarChart
-													height="320px"
+													height="280px"
 													chartData={borrowApyBarData}
 													stacks={barChartStacks}
 													stackColors={barChartColors}
@@ -908,7 +1140,7 @@ export function YieldsChartTab({
 											)}
 											{selectedYieldChartType === 'net-borrow-apy' && (
 												<AreaChart
-													height="320px"
+													height="280px"
 													chartData={netBorrowApyData}
 													title="Net Borrow APY"
 													valueSymbol="%"
@@ -917,7 +1149,7 @@ export function YieldsChartTab({
 											)}
 											{selectedYieldChartType === 'pool-liquidity' && (
 												<AreaChart
-													height="320px"
+													height="280px"
 													chartData={poolLiquidityData}
 													title="Pool Liquidity"
 													customLegendName="Filter"
@@ -931,7 +1163,7 @@ export function YieldsChartTab({
 								</div>
 							</div>
 						) : (
-							<div className="pro-text3 flex h-[320px] items-center justify-center text-center">
+							<div className="pro-text3 flex h-[280px] items-center justify-center bg-(--cards-bg) text-center">
 								<div>
 									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
 									<div className="text-xs">Select a yield pool to see preview</div>
@@ -939,7 +1171,7 @@ export function YieldsChartTab({
 							</div>
 						)}
 					</div>
-				</>
+				</div>
 			)}
 		</div>
 	)
