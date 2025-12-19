@@ -1517,7 +1517,7 @@ function Users(props: IProtocolOverviewPageData) {
 		<div>
 			<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 				<Tooltip
-					content="This only counts users that interact with protocol directly (so not through another contract, such as a dex aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
+					content="This only counts users that interact with protocol directly (so not through another contract, such as a DEX aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
 					className="mr-auto font-semibold underline decoration-dotted"
 					render={<h2 />}
 				>

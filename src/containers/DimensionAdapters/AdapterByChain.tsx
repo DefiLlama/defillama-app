@@ -406,7 +406,6 @@ export function AdapterByChain(props: IProps) {
 						{props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
-									{/* TODO: add tooltip */}
 									{pageTypeByDefinition[props.type]?.['24h'] ? (
 										<Tooltip
 											content={pageTypeByDefinition[props.type]['24h']}

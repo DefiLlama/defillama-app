@@ -23,7 +23,7 @@ export const getStaticProps = withPerformanceLogging('compare-tokens', async () 
 		}),
 		fetchJson(`${DIMENSIONS_OVERVIEW_API}/dexs?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).catch(
 			(err) => {
-				console.log(`Couldn't fetch dex protocols list at path: compare-tokens`, 'Error:', err)
+				console.log(`Couldn't fetch DEX protocols list at path: compare-tokens`, 'Error:', err)
 				return {}
 			}
 		)

@@ -106,7 +106,7 @@ export function ChainOverview(props: IChainOverviewData) {
 const linksToOtherLlamaApps = [
 	{
 		name: 'LlamaSwap',
-		description: 'No fees dex aggregator',
+		description: 'No fees DEX aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
 			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
