@@ -689,7 +689,7 @@ function cleanPool(pool) {
 	// need to remove these parts from api call, otherwise we won't receive the total risk score
 
 	// for 0x addresses
-	// match 0x followed by at least 40 hexadecimal characters balancer pool ids have length 64)
+	// match 0x followed by at least 40 hexadecimal characters (balancer pool ids have length 64)
 	const pattern = /0x[a-fA-F0-9]{40,}/
 
 	const match = pool.match(pattern)

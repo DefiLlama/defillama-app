@@ -661,7 +661,7 @@
 							errorPageController.trackEasterEgg()
 						}
 					}
-					//  Play sound effect and jump on starting the game for the first time.
+					// Play sound effect and jump on starting the game for the first time.
 					if (!this.tRex.jumping && !this.tRex.ducking) {
 						this.playSound(this.soundFx.BUTTON_PRESS)
 						this.tRex.startJump(this.currentSpeed)
