@@ -199,6 +199,7 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 		if (flags.optionsPremiumVolume) types.add('optionsPremium')
 		if (flags.optionsNotionalVolume) types.add('optionsNotional')
 		if (flags.yields) types.add('medianApy')
+		if (flags.borrowed) types.add('borrowed')
 		if (opts?.hasGeckoId) {
 			types.add('tokenMcap')
 			types.add('tokenPrice')

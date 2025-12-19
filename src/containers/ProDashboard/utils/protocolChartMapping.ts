@@ -22,7 +22,7 @@ export const PROTOCOL_TO_DASHBOARD_CHART_TYPE: Record<ProtocolChartsLabels, stri
 	Unlocks: null,
 	Incentives: 'incentives',
 	Staking: null,
-	Borrowed: null,
+	Borrowed: 'borrowed',
 	'Median APY': 'medianApy',
 	'USD Inflows': 'stablecoinInflows',
 	Treasury: 'treasury',

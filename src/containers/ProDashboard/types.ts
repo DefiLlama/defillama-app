@@ -486,7 +486,8 @@ export const CHART_TYPES = {
 	chainRevenue: { id: 'chainRevenue', title: 'Chain Revenue', chartType: 'bar', color: '#F59E0B', groupable: true },
 	bridgedTvl: { id: 'bridgedTvl', title: 'Bridged TVL', chartType: 'area', color: '#9333EA' },
 	chainMcap: { id: 'chainMcap', title: 'Native Token Market Cap', chartType: 'area', color: '#2563EB' },
-	chainPrice: { id: 'chainPrice', title: 'Native Token Price', chartType: 'area', color: '#16A34A' }
+	chainPrice: { id: 'chainPrice', title: 'Native Token Price', chartType: 'area', color: '#16A34A' },
+	borrowed: { id: 'borrowed', title: 'Borrowed', chartType: 'area', color: '#EF4444' }
 }
 
 // Helper functions to extract chart types from CHART_TYPES
@@ -511,7 +512,8 @@ export const getProtocolChartTypes = (): string[] => {
 		'tokenMcap',
 		'tokenPrice',
 		'tokenVolume',
-		'medianApy'
+		'medianApy',
+		'borrowed'
 	]
 }
 

@@ -225,4 +225,31 @@ export default class ProtocolCharts {
 		const res = data.map((item) => [dayjs(item.timestamp).unix(), item.medianAPY])
 		return res
 	}
+
+	static async borrowed(protocol: string): Promise<[number, number][]> {
+		if (!protocol) return []
+		try {
+			const res = await fetch(`${PROTOCOL_API}/${protocol}`)
+			if (!res.ok) return []
+			const data = await res.json()
+			const chainTvls = data?.chainTvls || {}
+			const store: Record<number, number> = {}
+			for (const key of Object.keys(chainTvls)) {
+				if (!key.endsWith('-borrowed')) continue
+				const arr = chainTvls[key]?.tvl || []
+				for (const item of arr) {
+					const d = Number(item?.date)
+					const v = Number(item?.totalLiquidityUSD ?? 0)
+					if (!Number.isFinite(d) || !Number.isFinite(v)) continue
+					store[d] = (store[d] ?? 0) + v
+				}
+			}
+			return Object.entries(store)
+				.map(([d, v]) => [Number(d), Number(v)] as [number, number])
+				.sort((a, b) => a[0] - b[0])
+		} catch (e) {
+			console.log('Error fetching protocol borrowed', e)
+			return []
+		}
+	}
 }

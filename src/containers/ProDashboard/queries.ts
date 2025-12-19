@@ -222,6 +222,10 @@ const protocolChartHandlers: Record<
 	medianApy: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.medianApy(item)
 		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
+	},
+	borrowed: (item, geckoId, timePeriod, customPeriod) => async () => {
+		const data = await ProtocolCharts.borrowed(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	}
 }
 
