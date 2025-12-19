@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategy', async ()
 
 	const searchData = await getAllCGTokensList()
 
-	// restrict bororw and farming part (min apy's, noIL, single exposure only)
+	// restrict borrow and farming part (min apy's, noIL, single exposure only)
 	// and uppercase symbols (lend and borrow strings from router are upper case only)
 
 	// for cdp pools we filter only on borrow apy because supply apy is usually 0
