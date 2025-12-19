@@ -68,6 +68,19 @@ const defaultSortingByType: Partial<Record<TPageType, SortingState>> & { default
 	default: [{ desc: true, id: 'total24h' }]
 }
 
+const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> = {
+	Fees: definitions.fees.chain,
+	Revenue: definitions.revenue.chain,
+	'Holders Revenue': definitions.holdersRevenue.chain,
+	'DEX Volume': definitions.dexs.chain,
+	'Perp Volume': definitions.perps.chain,
+	'Bridge Aggregator Volume': definitions.bridgeAggregators.chain,
+	'Perp Aggregator Volume': definitions.perpsAggregators.chain,
+	'DEX Aggregator Volume': definitions.dexAggregators.chain,
+	'Options Premium Volume': definitions.optionsPremium.chain,
+	'Options Notional Volume': definitions.optionsNotional.chain,
+	Earnings: definitions.earnings.chain
+}
 const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
 	const final = []
 
@@ -394,7 +407,16 @@ export function AdapterByChain(props: IProps) {
 							<p className="flex flex-col">
 								<span className="flex flex-col">
 									{/* TODO: add tooltip */}
-									<span>{metricName} (24h)</span>
+									{pageTypeByDefinition[props.type]?.['24h'] ? (
+										<Tooltip
+											content={pageTypeByDefinition[props.type]['24h']}
+											className="text-(--text-label) underline decoration-dotted"
+										>
+											{metricName} (24h)
+										</Tooltip>
+									) : (
+										<span className="text-(--text-label)">{metricName} (24h)</span>
+									)}
 									<span className="font-jetbrains min-h-8 overflow-hidden text-2xl font-semibold text-ellipsis whitespace-nowrap">
 										{formattedNum(props.total24h, true)}
 									</span>
@@ -416,7 +438,16 @@ export function AdapterByChain(props: IProps) {
 							) : null}
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									<span className="text-(--text-label)">{metricName} (30d)</span>
+									{pageTypeByDefinition[props.type]?.['30d'] ? (
+										<Tooltip
+											content={pageTypeByDefinition[props.type]['30d']}
+											className="text-(--text-label) underline decoration-dotted"
+										>
+											{metricName} (30d)
+										</Tooltip>
+									) : (
+										<span className="text-(--text-label)">{metricName} (30d)</span>
+									)}
 									<span className="font-jetbrains ml-auto">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
