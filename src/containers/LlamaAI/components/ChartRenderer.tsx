@@ -296,7 +296,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'combo':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="m-2 mt-0 flex items-center justify-end">
+						<div className="flex items-center justify-end p-2 pt-0">
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -307,7 +307,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="m-2 mt-0 flex items-center justify-end">
+						<div className="flex items-center justify-end p-2 pt-0">
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
