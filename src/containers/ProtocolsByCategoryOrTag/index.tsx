@@ -231,7 +231,14 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	)
 }
 
-const Name: ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]> = {
+type ProtocolRow = IProtocolByCategoryOrTagPageData['protocols'][0]
+type Column = ColumnDef<ProtocolRow>
+
+// ============================================================================
+// Base Columns (used by most categories)
+// ============================================================================
+
+const nameColumn: Column = {
 	id: 'name',
 	header: 'Name',
 	accessorFn: (protocol) => protocol.name,
@@ -297,603 +304,664 @@ const Name: ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]> = {
 	size: 280
 }
 
+const tvlColumn = (isRWA: boolean): Column => ({
+	id: 'tvl',
+	header: isRWA ? 'Total Assets' : 'TVL',
+	accessorFn: (protocol) => protocol.tvl,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
+	},
+	size: 120
+})
+
+const mcapTvlColumn: Column = {
+	id: 'mcap/tvl',
+	header: 'Mcap/TVL',
+	accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? (protocol.mcap / protocol.tvl).toFixed(2) : null),
+	cell: (info) => <>{info.getValue() != null ? (info.getValue() as number) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: 'Market cap / TVL ratio'
+	},
+	size: 110
+}
+
+// ============================================================================
+// Fees & Revenue Columns
+// ============================================================================
+
+const fees7dColumn: Column = {
+	id: 'fees_7d',
+	header: 'Fees 7d',
+	accessorFn: (protocol) => protocol.fees?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.fees.protocol['7d']
+	},
+	size: 100
+}
+
+const revenue7dColumn: Column = {
+	id: 'revenue_7d',
+	header: 'Revenue 7d',
+	accessorFn: (protocol) => protocol.revenue?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.revenue.protocol['7d']
+	},
+	size: 128
+}
+
+const fees30dColumn: Column = {
+	id: 'fees_30d',
+	header: 'Fees 30d',
+	accessorFn: (protocol) => protocol.fees?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.fees.protocol['30d']
+	},
+	size: 100
+}
+
+const revenue30dColumn: Column = {
+	id: 'revenue_30d',
+	header: 'Revenue 30d',
+	accessorFn: (protocol) => protocol.revenue?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.revenue.protocol['30d']
+	},
+	size: 128
+}
+
+const fees24hColumn: Column = {
+	id: 'fees_24h',
+	header: 'Fees 24h',
+	accessorFn: (protocol) => protocol.fees?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.fees.protocol['24h']
+	},
+	size: 100
+}
+
+const revenue24hColumn: Column = {
+	id: 'revenue_24h',
+	header: 'Revenue 24h',
+	accessorFn: (protocol) => protocol.revenue?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.revenue.protocol['24h']
+	},
+	size: 128
+}
+
+// ============================================================================
+// RWA Columns
+// ============================================================================
+
+const rwaAssetClassColumn = (category: string): Column => ({
+	id: 'asset_class',
+	header: 'Asset Class',
+	accessorFn: (protocol) => protocol.tvl,
+	enableSorting: false,
+	cell: (info) => {
+		if (info.row.original.tags.length === 0) return null
+		return (
+			<span className="flex flex-nowrap justify-end gap-1">
+				<BasicLink
+					href={`/protocols/${slug(info.row.original.tags[0])}`}
+					className="text-sm font-medium whitespace-nowrap text-(--link-text) hover:underline"
+				>
+					{info.row.original.tags[0]}
+				</BasicLink>
+				{info.row.original.tags.length > 1 && (
+					<Tooltip
+						content={
+							<span className="flex flex-col gap-1">
+								{info.row.original.tags.slice(1).map((tag) => (
+									<BasicLink
+										key={`protocols-${category}-${tag}`}
+										href={`/protocols/${slug(tag)}`}
+										className="text-sm font-medium whitespace-nowrap text-(--link-text) hover:underline"
+									>
+										{tag}
+									</BasicLink>
+								))}
+							</span>
+						}
+					>
+						<span className="text-sm font-medium whitespace-nowrap text-(--text-disabled)">
+							{`+${info.row.original.tags.length - 1}`}
+						</span>
+					</Tooltip>
+				)}
+			</span>
+		)
+	},
+	meta: {
+		align: 'end'
+	},
+	size: 180
+})
+
+const rwaStatsColumns: Column[] = [
+	{
+		id: 'rwa_redeemable',
+		header: 'Redeemable',
+		accessorFn: (protocol) => protocol.rwaStats?.redeemable,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the asset can be redeemed for the underlying'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_attestations',
+		header: 'Attestations',
+		accessorFn: (protocol) => protocol.rwaStats?.attestations,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the platform publishes holdings reports'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_cex_listed',
+		header: 'CEX Listed',
+		accessorFn: (protocol) => protocol.rwaStats?.cexListed,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the asset is listed on a CEX'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_kyc',
+		header: 'KYC',
+		accessorFn: (protocol) => protocol.rwaStats?.kyc,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the asset requires KYC to mint and redeem'
+		},
+		size: 80
+	},
+	{
+		id: 'rwa_transferable',
+		header: 'Transferable',
+		accessorFn: (protocol) => protocol.rwaStats?.transferable,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the asset can be transferred freely to third parties'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_self_custody',
+		header: 'Self Custody',
+		accessorFn: (protocol) => protocol.rwaStats?.selfCustody,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the asset can be self-custodied'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_liquidity',
+		header: 'Liquidity',
+		accessorFn: (protocol) => protocol.rwaStats?.tvlUsd,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Liquidity of the asset in tracked pools'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_volume_7d',
+		header: 'Volume 7d',
+		accessorFn: (protocol) => protocol.rwaStats?.volumeUsd7d,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Volume of trades across tracked pools in the last 7 days'
+		},
+		size: 120
+	},
+	{
+		id: 'rwa_volume_24h',
+		header: 'Volume 24h',
+		accessorFn: (protocol) => protocol.rwaStats?.volumeUsd1d,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Volume of trades across tracked pools in the last 24 hours'
+		},
+		size: 120
+	}
+]
+
+// ============================================================================
+// Perp Volume Columns (Derivatives / Interface)
+// ============================================================================
+
+const perpVolume24hColumn: Column = {
+	id: 'perp_volume_24h',
+	header: 'Perp Volume 24h',
+	accessorFn: (protocol) => protocol.perpVolume?.total24h,
+	cell: (info) => {
+		if (info.getValue() == null) return null
+		const helpers = []
+		if (info.row.original.perpVolume?.zeroFeePerp) {
+			helpers.push('This protocol charges no fees for most of its users')
+		}
+		// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+		// 	helpers.push(
+		// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+		// 	)
+		// }
+
+		if (helpers.length > 0) {
+			return (
+				<span className="flex items-center justify-end gap-1">
+					{helpers.map((helper) => (
+						<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+					))}
+					<span className={info.row.original.perpVolume?.doublecounted ? 'text-(--text-disabled)' : ''}>
+						{formattedNum(info.getValue(), true)}
+					</span>
+				</span>
+			)
+		}
+
+		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+	},
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.perps.protocol['24h']
+	},
+	size: 160
+}
+
+const openInterestColumn: Column = {
+	header: 'Open Interest',
+	id: 'open_interest',
+	accessorFn: (protocol) => protocol.openInterest?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	sortingFn: 'alphanumericFalsyLast' as any,
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.openInterest.protocol
+	},
+	size: 160
+}
+
+const perpVolume7dColumn: Column = {
+	id: 'perp_volume_7d',
+	header: 'Perp Volume 7d',
+	accessorFn: (protocol) => protocol.perpVolume?.total7d,
+	cell: (info) => {
+		if (info.getValue() == null) return null
+		const helpers = []
+		if (info.row.original.perpVolume?.zeroFeePerp) {
+			helpers.push('This protocol charges no fees for most of its users')
+		}
+		// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+		// 	helpers.push(
+		// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+		// 	)
+		// }
+
+		if (helpers.length > 0) {
+			return (
+				<span className="flex items-center justify-end gap-1">
+					{helpers.map((helper) => (
+						<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+					))}
+					<span className={info.row.original.perpVolume?.doublecounted ? 'text-(--text-disabled)' : ''}>
+						{formattedNum(info.getValue(), true)}
+					</span>
+				</span>
+			)
+		}
+
+		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+	},
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.perps.protocol['7d']
+	},
+	size: 160
+}
+
+const perpVolume30dColumn: Column = {
+	id: 'perp_volume_30d',
+	header: 'Perp Volume 30d',
+	accessorFn: (protocol) => protocol.perpVolume?.total30d,
+	cell: (info) => {
+		if (info.getValue() == null) return null
+		const helpers = []
+		if (info.row.original.perpVolume?.zeroFeePerp) {
+			helpers.push('This protocol charges no fees for most of its users')
+		}
+		// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
+		// 	helpers.push(
+		// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+		// 	)
+		// }
+
+		if (helpers.length > 0) {
+			return (
+				<span className="flex items-center justify-end gap-1">
+					{helpers.map((helper) => (
+						<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+					))}
+					<span className={info.row.original.perpVolume?.doublecounted ? 'text-(--text-disabled)' : ''}>
+						{formattedNum(info.getValue(), true)}
+					</span>
+				</span>
+			)
+		}
+
+		return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+	},
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.perps.protocol['30d']
+	},
+	size: 160
+}
+
+// ============================================================================
+// DEX Volume Columns
+// ============================================================================
+
+const dexVolume7dColumn: Column = {
+	id: 'dex_volume_7d',
+	header: 'DEX Volume 7d',
+	accessorFn: (protocol) => protocol.dexVolume?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.dexs.protocol['7d']
+	},
+	size: 140
+}
+
+const dexVolume30dColumn: Column = {
+	id: 'dex_volume_30d',
+	header: 'DEX Volume 30d',
+	accessorFn: (protocol) => protocol.dexVolume?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.dexs.protocol['30d']
+	},
+	size: 148
+}
+
+const dexVolume24hColumn: Column = {
+	id: 'dex_volume_24h',
+	header: 'DEX Volume 24h',
+	accessorFn: (protocol) => protocol.dexVolume?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.dexs.protocol['24h']
+	},
+	size: 148
+}
+
+// ============================================================================
+// DEX Aggregator Volume Columns
+// ============================================================================
+
+const dexAggregatorVolume7dColumn: Column = {
+	id: 'dex_aggregator_volume_7d',
+	header: 'DEX Aggregator Volume 7d',
+	accessorFn: (protocol) => protocol.dexVolume?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.dexAggregators.protocol['7d']
+	},
+	size: 140
+}
+
+const dexAggregatorVolume30dColumn: Column = {
+	id: 'dex_aggregator_volume_30d',
+	header: 'DEX Aggregator Volume 30d',
+	accessorFn: (protocol) => protocol.dexVolume?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.dexAggregators.protocol['30d']
+	},
+	size: 148
+}
+
+const dexAggregatorVolume24hColumn: Column = {
+	id: 'dex_aggregator_volume_24h',
+	header: 'DEX Aggregator Volume 24h',
+	accessorFn: (protocol) => protocol.dexVolume?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.dexAggregators.protocol['24h']
+	},
+	size: 148
+}
+
+// ============================================================================
+// Prediction Market Volume Columns
+// ============================================================================
+
+const predictionMarketVolume7dColumn: Column = {
+	id: 'prediction_market_volume_7d',
+	header: 'Volume 7d',
+	accessorFn: (protocol) => protocol.dexVolume?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end'
+	},
+	size: 140
+}
+
+const predictionMarketVolume30dColumn: Column = {
+	id: 'prediction_market_volume_30d',
+	header: 'Volume 30d',
+	accessorFn: (protocol) => protocol.dexVolume?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end'
+	},
+	size: 148
+}
+
+const predictionMarketVolume24hColumn: Column = {
+	id: 'prediction_market_volume_24h',
+	header: 'Volume 24h',
+	accessorFn: (protocol) => protocol.dexVolume?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end'
+	},
+	size: 148
+}
+
+// ============================================================================
+// Lending Columns
+// ============================================================================
+
+const lendingColumns: Column[] = [
+	{
+		id: 'borrowed',
+		header: 'Borrowed',
+		accessorFn: (protocol) => protocol.borrowed,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Total amount borrowed from the protocol'
+		},
+		size: 100
+	},
+	{
+		id: 'supplied',
+		header: 'Supplied',
+		accessorFn: (protocol) => protocol.supplied,
+		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Total amount supplied to the protocol'
+		},
+		size: 100
+	},
+	{
+		id: 'supplied/tvl',
+		header: 'Supplied/TVL',
+		accessorFn: (protocol) => protocol.suppliedTvl,
+		cell: (info) => <>{info.getValue() ?? null}</>,
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: '(Total amount supplied / Total value locked) ratio'
+		},
+		size: 140
+	}
+]
+
+// ============================================================================
+// Column Composition Function
+// ============================================================================
+
+const getVolumeColumn = (category: string | null, period: '7d' | '30d' | '24h'): Column | null => {
+	const volumeColumns = {
+		Dexs: { '7d': dexVolume7dColumn, '30d': dexVolume30dColumn, '24h': dexVolume24hColumn },
+		'DEX Aggregators': {
+			'7d': dexAggregatorVolume7dColumn,
+			'30d': dexAggregatorVolume30dColumn,
+			'24h': dexAggregatorVolume24hColumn
+		},
+		'Prediction Market': {
+			'7d': predictionMarketVolume7dColumn,
+			'30d': predictionMarketVolume30dColumn,
+			'24h': predictionMarketVolume24hColumn
+		}
+	}
+	return volumeColumns[category]?.[period] ?? null
+}
+
 const columns = (
 	category: IProtocolByCategoryOrTagPageData['category'],
 	isRWA: IProtocolByCategoryOrTagPageData['isRWA']
-): ColumnDef<IProtocolByCategoryOrTagPageData['protocols'][0]>[] => [
-	Name,
-	...(['RWA'].includes(category)
-		? [
-				{
-					id: 'asset_class',
-					header: 'Asset Class',
-					accessorFn: (protocol) => protocol.tvl,
-					enableSorting: false,
-					cell: (info) => {
-						if (info.row.original.tags.length === 0) return null
-						return (
-							<span className="flex flex-nowrap justify-end gap-1">
-								<BasicLink
-									href={`/protocols/${slug(info.row.original.tags[0])}`}
-									className="text-sm font-medium whitespace-nowrap text-(--link-text) hover:underline"
-								>
-									{info.row.original.tags[0]}
-								</BasicLink>
-								{info.row.original.tags.length > 1 && (
-									<Tooltip
-										content={
-											<span className="flex flex-col gap-1">
-												{info.row.original.tags.slice(1).map((tag) => (
-													<BasicLink
-														key={`protocols-${category}-${tag}`}
-														href={`/protocols/${slug(tag)}`}
-														className="text-sm font-medium whitespace-nowrap text-(--link-text) hover:underline"
-													>
-														{tag}
-													</BasicLink>
-												))}
-											</span>
-										}
-									>
-										<span className="text-sm font-medium whitespace-nowrap text-(--text-disabled)">
-											{`+${info.row.original.tags.length - 1}`}
-										</span>
-									</Tooltip>
-								)}
-							</span>
-						)
-					},
-					meta: {
-						align: 'end'
-					},
-					size: 180
-				}
-			]
-		: []),
-	...(['Derivatives', 'Interface'].includes(category)
-		? [
-				{
-					id: 'perp_volume_24h',
-					header: 'Perp Volume 24h',
-					accessorFn: (protocol) => protocol.perpVolume?.total24h,
-					cell: (info) => {
-						if (info.getValue() == null) return null
-						const helpers = []
-						if (info.row.original.perpVolume?.zeroFeePerp) {
-							helpers.push('This protocol charges no fees for most of its users')
-						}
-						// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
-						// 	helpers.push(
-						// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						// 	)
-						// }
+): Column[] =>
+	[
+		// Base
+		nameColumn,
 
-						if (helpers.length > 0) {
-							return (
-								<span className="flex items-center justify-end gap-1">
-									{helpers.map((helper) => (
-										<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-									))}
-									<span className={info.row.original.perpVolume?.doublecounted ? 'text-(--text-disabled)' : ''}>
-										{formattedNum(info.getValue(), true)}
-									</span>
-								</span>
-							)
-						}
+		// RWA Asset Class
+		category === 'RWA' ? rwaAssetClassColumn(category) : null,
 
-						return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-					},
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.perps.protocol['24h']
-					},
-					size: 160
-				},
-				...(['Interface'].includes(category)
-					? []
-					: [
-							{
-								header: 'Open Interest',
-								id: 'open_interest',
-								accessorFn: (protocol) => protocol.openInterest?.total24h,
-								cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-								sortUndefined: 'last',
-								sortingFn: 'alphanumericFalsyLast' as any,
-								meta: {
-									align: 'end',
-									headerHelperText: definitions.openInterest.protocol
-								},
-								size: 160
-							}
-						]),
-				{
-					id: 'perp_volume_7d',
-					header: 'Perp Volume 7d',
-					accessorFn: (protocol) => protocol.perpVolume?.total7d,
-					cell: (info) => {
-						if (info.getValue() == null) return null
-						const helpers = []
-						if (info.row.original.zeroFeePerp) {
-							helpers.push('This protocol charges no fees for most of its users')
-						}
-						// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
-						// 	helpers.push(
-						// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						// 	)
-						// }
+		// Perp columns (Derivatives & Interface)
+		category === 'Derivatives' || category === 'Interface' ? perpVolume24hColumn : null,
+		category === 'Derivatives' ? openInterestColumn : null,
+		category === 'Derivatives' || category === 'Interface' ? perpVolume7dColumn : null,
+		category === 'Derivatives' || category === 'Interface' ? perpVolume30dColumn : null,
 
-						if (helpers.length > 0) {
-							return (
-								<span className="flex items-center justify-end gap-1">
-									{helpers.map((helper) => (
-										<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-									))}
-									<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-										{formattedNum(info.getValue(), true)}
-									</span>
-								</span>
-							)
-						}
+		// TVL (not for Interface)
+		category !== 'Interface' ? tvlColumn(isRWA) : null,
 
-						return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-					},
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.perps.protocol['7d']
-					},
-					size: 160
-				},
-				{
-					id: 'perp_volume_30d',
-					header: 'Perp Volume 30d',
-					accessorFn: (protocol) => protocol.perpVolume?.total30d,
-					cell: (info) => {
-						if (info.getValue() == null) return null
-						const helpers = []
-						if (info.row.original.zeroFeePerp) {
-							helpers.push('This protocol charges no fees for most of its users')
-						}
-						// if (info.getValue() != null && info.row.original.perpVolume?.doublecounted) {
-						// 	helpers.push(
-						// 		"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						// 	)
-						// }
+		// RWA stats
+		...(isRWA ? rwaStatsColumns : []),
 
-						if (helpers.length > 0) {
-							return (
-								<span className="flex items-center justify-end gap-1">
-									{helpers.map((helper) => (
-										<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-									))}
-									<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-										{formattedNum(info.getValue(), true)}
-									</span>
-								</span>
-							)
-						}
+		// Fees & Revenue 7d
+		fees7dColumn,
+		revenue7dColumn,
+		getVolumeColumn(category, '7d'),
 
-						return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-					},
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.perps.protocol['30d']
-					},
-					size: 160
-				}
-			]
-		: ([] as any)),
-	...(['Interface'].includes(category)
-		? []
-		: [
-				{
-					id: 'tvl',
-					header: isRWA ? 'Total Assets' : 'TVL',
-					accessorFn: (protocol) => protocol.tvl,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
-					},
-					size: 120
-				}
-			]),
-	...(isRWA
-		? [
-				{
-					id: 'rwa_redeemable',
-					header: 'Redeemable',
-					accessorFn: (protocol) => protocol.rwaStats?.redeemable,
-					cell: (info) => (
-						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-						</span>
-					),
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Whether the asset can be redeemed for the underlying'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_attestations',
-					header: 'Attestations',
-					accessorFn: (protocol) => protocol.rwaStats?.attestations,
-					cell: (info) => (
-						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-						</span>
-					),
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Whether the platform publishes holdings reports'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_cex_listed',
-					header: 'CEX Listed',
-					accessorFn: (protocol) => protocol.rwaStats?.cexListed,
-					cell: (info) => (
-						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-						</span>
-					),
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Whether the asset is listed on a CEX'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_kyc',
-					header: 'KYC',
-					accessorFn: (protocol) => protocol.rwaStats?.kyc,
-					cell: (info) => (
-						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-						</span>
-					),
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Whether the asset requires KYC to mint and redeem'
-					},
-					size: 80
-				},
-				{
-					id: 'rwa_transferable',
-					header: 'Transferable',
-					accessorFn: (protocol) => protocol.rwaStats?.transferable,
-					cell: (info) => (
-						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-						</span>
-					),
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Whether the asset can be transferred freely to third parties'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_self_custody',
-					header: 'Self Custody',
-					accessorFn: (protocol) => protocol.rwaStats?.selfCustody,
-					cell: (info) => (
-						<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-							{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
-						</span>
-					),
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Whether the asset can be self-custodied'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_liquidity',
-					header: 'Liquidity',
-					accessorFn: (protocol) => protocol.rwaStats?.tvlUsd,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Liquidity of the asset in tracked pools'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_volume_7d',
-					header: 'Volume 7d',
-					accessorFn: (protocol) => protocol.rwaStats?.volumeUsd7d,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Volume of trades across tracked pools in the last 7 days'
-					},
-					size: 120
-				},
-				{
-					id: 'rwa_volume_24h',
-					header: 'Volume 24h',
-					accessorFn: (protocol) => protocol.rwaStats?.volumeUsd1d,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Volume of trades across tracked pools in the last 24 hours'
-					},
-					size: 120
-				}
-			]
-		: ([] as any)),
-	{
-		id: 'fees_7d',
-		header: 'Fees 7d',
-		accessorFn: (protocol) => protocol.fees?.total7d,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.fees.protocol['7d']
-		},
-		size: 100
-	},
-	{
-		id: 'revenue_7d',
-		header: 'Revenue 7d',
-		accessorFn: (protocol) => protocol.revenue?.total7d,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.revenue.protocol['7d']
-		},
-		size: 128
-	},
-	...(category === 'Dexs'
-		? [
-				{
-					id: 'dex_volume_7d',
-					header: 'DEX Volume 7d',
-					accessorFn: (protocol) => protocol.dexVolume?.total7d,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.dexs.protocol['7d']
-					},
-					size: 140
-				}
-			]
-		: category === 'DEX Aggregators'
-			? [
-					{
-						id: 'dex_aggregator_volume_7d',
-						header: 'DEX Aggregator Volume 7d',
-						accessorFn: (protocol) => protocol.dexVolume?.total7d,
-						cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-						sortUndefined: 'last',
-						meta: {
-							align: 'end',
-							headerHelperText: definitions.dexAggregators.protocol['7d']
-						},
-						size: 140
-					}
-				]
-			: category === 'Prediction Market'
-				? [
-						{
-							id: 'prediction_market_volume_7d',
-							header: 'Volume 7d',
-							accessorFn: (protocol) => protocol.dexVolume?.total7d,
-							cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-							sortUndefined: 'last',
-							meta: {
-								align: 'end'
-							},
-							size: 140
-						}
-					]
-				: []),
-	{
-		id: 'mcap/tvl',
-		header: 'Mcap/TVL',
-		accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? (protocol.mcap / protocol.tvl).toFixed(2) : null),
-		cell: (info) => <>{info.getValue() != null ? (info.getValue() as number) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: 'Market cap / TVL ratio'
-		},
-		size: 110
-	},
-	{
-		id: 'fees_30d',
-		header: 'Fees 30d',
-		accessorFn: (protocol) => protocol.fees?.total30d,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.fees.protocol['30d']
-		},
-		size: 100
-	},
-	{
-		id: 'revenue_30d',
-		header: 'Revenue 30d',
-		accessorFn: (protocol) => protocol.revenue?.total30d,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.revenue.protocol['30d']
-		},
-		size: 128
-	},
-	...(category === 'Dexs'
-		? [
-				{
-					id: 'dex_volume_30d',
-					header: 'DEX Volume 30d',
-					accessorFn: (protocol) => protocol.dexVolume?.total30d,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.dexs.protocol['30d']
-					},
-					size: 148
-				}
-			]
-		: category === 'DEX Aggregators'
-			? [
-					{
-						id: 'dex_aggregator_volume_30d',
-						header: 'DEX Aggregator Volume 30d',
-						accessorFn: (protocol) => protocol.dexVolume?.total30d,
-						cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-						sortUndefined: 'last',
-						meta: {
-							align: 'end',
-							headerHelperText: definitions.dexAggregators.protocol['30d']
-						},
-						size: 148
-					}
-				]
-			: category === 'Prediction Market'
-				? [
-						{
-							id: 'prediction_market_volume_30d',
-							header: 'Volume 30d',
-							accessorFn: (protocol) => protocol.dexVolume?.total30d,
-							cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-							sortUndefined: 'last',
-							meta: {
-								align: 'end'
-							},
-							size: 148
-						}
-					]
-				: []),
-	{
-		id: 'fees_24h',
-		header: 'Fees 24h',
-		accessorFn: (protocol) => protocol.fees?.total24h,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.fees.protocol['24h']
-		},
-		size: 100
-	},
-	{
-		id: 'revenue_24h',
-		header: 'Revenue 24h',
-		accessorFn: (protocol) => protocol.revenue?.total24h,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-		sortUndefined: 'last',
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.revenue.protocol['24h']
-		},
-		size: 128
-	},
-	...(category === 'Dexs'
-		? [
-				{
-					id: 'dex_volume_24h',
-					header: 'DEX Volume 24h',
-					accessorFn: (protocol) => protocol.dexVolume?.total24h,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.dexs.protocol['24h']
-					},
-					size: 148
-				}
-			]
-		: category === 'DEX Aggregators'
-			? [
-					{
-						id: 'dex_aggregator_volume_24h',
-						header: 'DEX Aggregator Volume 24h',
-						accessorFn: (protocol) => protocol.dexVolume?.total24h,
-						cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-						sortUndefined: 'last',
-						meta: {
-							align: 'end',
-							headerHelperText: definitions.dexAggregators.protocol['24h']
-						},
-						size: 148
-					}
-				]
-			: category === 'Prediction Market'
-				? [
-						{
-							id: 'prediction_market_volume_24h',
-							header: 'Volume 24h',
-							accessorFn: (protocol) => protocol.dexVolume?.total24h,
-							cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-							sortUndefined: 'last',
-							meta: {
-								align: 'end'
-							},
-							size: 148
-						}
-					]
-				: []),
-	...(['Lending'].includes(category)
-		? [
-				{
-					id: 'borrowed',
-					header: 'Borrowed',
-					accessorFn: (protocol) => protocol.borrowed,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Total amount borrowed from the protocol'
-					},
-					size: 100
-				},
-				{
-					id: 'supplied',
-					header: 'Supplied',
-					accessorFn: (protocol) => protocol.supplied,
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: 'Total amount supplied to the protocol'
-					},
-					size: 100
-				},
-				{
-					id: 'supplied/tvl',
-					header: 'Supplied/TVL',
-					accessorFn: (protocol) => protocol.suppliedTvl,
-					cell: (info) => <>{info.getValue() ?? null}</>,
-					sortUndefined: 'last',
-					meta: {
-						align: 'end',
-						headerHelperText: '(Total amount supplied / Total value locked) ratio'
-					},
-					size: 140
-				}
-			]
-		: ([] as any))
-]
+		// Mcap/TVL
+		mcapTvlColumn,
+
+		// Fees & Revenue 30d
+		fees30dColumn,
+		revenue30dColumn,
+		getVolumeColumn(category, '30d'),
+
+		// Fees & Revenue 24h
+		fees24hColumn,
+		revenue24hColumn,
+		getVolumeColumn(category, '24h'),
+
+		// Lending
+		...(category === 'Lending' ? lendingColumns : [])
+	].filter((col): col is Column => col !== null)

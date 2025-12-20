@@ -29,6 +29,9 @@ interface IProtocolByCategory {
 	openInterest?: { total24h: number }
 	tags: Array<string>
 	rwaStats?: IRWAStats | null
+	borrowed?: number | null
+	supplied?: number | null
+	suppliedTvl?: number | null
 }
 
 interface IProtocolByCategoryWithSubRows extends IProtocolByCategory {
