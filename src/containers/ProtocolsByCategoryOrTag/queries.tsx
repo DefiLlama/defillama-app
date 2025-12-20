@@ -3,7 +3,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
+import { IChainMetadata, ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
 import { getAdapterChainOverview, IAdapterOverview } from '../DimensionAdapters/queries'
 import { IProtocolByCategoryOrTagPageData, IRWAStats } from './types'
 
@@ -25,9 +25,17 @@ export async function getProtocolsByCategoryOrTag({
 	}
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const chainMetadata = chain
+	const chainMetadata: IChainMetadata = chain
 		? metadataCache.chainMetadata[slug(chain)]
-		: { name: 'All', fees: true, dexs: true, perps: true }
+		: {
+				name: 'All',
+				fees: true,
+				dexs: true,
+				perps: true,
+				optionsPremiumVolume: true,
+				optionsNotionalVolume: true,
+				id: 'all'
+			}
 
 	if (!chainMetadata) {
 		return null
@@ -43,11 +51,15 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolumeData,
 		perpVolumeData,
 		openInterestData,
+		optionsPremiumData,
+		optionsNotionalData,
 		chartData,
 		chainsByCategoriesOrTags,
 		rwaStats
 	]: [
 		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
+		IAdapterOverview | null,
+		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
 		IAdapterOverview | null,
@@ -76,7 +88,7 @@ export async function getProtocolsByCategoryOrTag({
 		chainMetadata?.dexs && category && ['Dexs', 'DEX Aggregators', 'Prediction Market'].includes(category)
 			? getAdapterChainOverview({
 					chain: chain ?? 'All',
-					adapterType: 'dexs',
+					adapterType: category === 'DEX Aggregators' ? 'aggregators' : 'dexs',
 					excludeTotalDataChart: true
 				})
 			: null,
@@ -96,6 +108,22 @@ export async function getProtocolsByCategoryOrTag({
 				}).catch((err) => {
 					console.log(err)
 					return null
+				})
+			: null,
+		chainMetadata?.optionsPremiumVolume && category === 'Options'
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'options',
+					dataType: 'dailyPremiumVolume',
+					excludeTotalDataChart: true
+				})
+			: null,
+		chainMetadata?.optionsNotionalVolume && category === 'Options'
+			? getAdapterChainOverview({
+					chain: chain ?? 'All',
+					adapterType: 'options',
+					dataType: 'dailyNotionalVolume',
+					excludeTotalDataChart: true
 				})
 			: null,
 		tag
@@ -171,6 +199,32 @@ export async function getProtocolsByCategoryOrTag({
 		}
 		adapterDataStore[protocol.defillamaId].openInterest = {
 			total24h: protocol.total24h ?? null,
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
+		}
+	}
+	for (const protocol of optionsPremiumData?.protocols ?? []) {
+		if (!adapterDataStore[protocol.defillamaId]) {
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
+		}
+		adapterDataStore[protocol.defillamaId].optionsPremium = {
+			total24h: protocol.total24h ?? null,
+			total7d: protocol.total7d ?? null,
+			total30d: protocol.total30d ?? null,
+			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
+		}
+	}
+	for (const protocol of optionsNotionalData?.protocols ?? []) {
+		if (!adapterDataStore[protocol.defillamaId]) {
+			adapterDataStore[protocol.defillamaId] = {
+				chains: protocol.chains
+			}
+		}
+		adapterDataStore[protocol.defillamaId].optionsNotional = {
+			total24h: protocol.total24h ?? null,
+			total7d: protocol.total7d ?? null,
+			total30d: protocol.total30d ?? null,
 			chains: Array.from(new Set([...adapterDataStore[protocol.defillamaId].chains, ...protocol.chains]))
 		}
 	}
@@ -253,6 +307,8 @@ export async function getProtocolsByCategoryOrTag({
 			const dexVolume = adapterDataStore[protocol.defillamaId]?.dexVolume ?? null
 			const perpVolume = adapterDataStore[protocol.defillamaId]?.perpVolume ?? null
 			const openInterest = adapterDataStore[protocol.defillamaId]?.openInterest ?? null
+			const optionsPremium = adapterDataStore[protocol.defillamaId]?.optionsPremium ?? null
+			const optionsNotional = adapterDataStore[protocol.defillamaId]?.optionsNotional ?? null
 
 			const finalData = {
 				name: protocol.name,
@@ -270,6 +326,8 @@ export async function getProtocolsByCategoryOrTag({
 				dexVolume,
 				perpVolume,
 				openInterest,
+				optionsPremium,
+				optionsNotional,
 				tags: protocol.tags ?? [],
 				...(isRWA ? { rwaStats: rwaStats[protocol.defillamaId] ?? null } : {})
 			}
@@ -368,6 +426,30 @@ export async function getProtocolsByCategoryOrTag({
 					total24h: 0
 				}
 			)
+			const optionsPremium = parentProtocolsStore[parentProtocol.id].reduce(
+				(acc, p) => ({
+					total24h: acc.total24h + (p.optionsPremium?.total24h ?? 0),
+					total7d: acc.total7d + (p.optionsPremium?.total7d ?? 0),
+					total30d: acc.total30d + (p.optionsPremium?.total30d ?? 0)
+				}),
+				{
+					total24h: 0,
+					total7d: 0,
+					total30d: 0
+				}
+			)
+			const optionsNotional = parentProtocolsStore[parentProtocol.id].reduce(
+				(acc, p) => ({
+					total24h: acc.total24h + (p.optionsNotional?.total24h ?? 0),
+					total7d: acc.total7d + (p.optionsNotional?.total7d ?? 0),
+					total30d: acc.total30d + (p.optionsNotional?.total30d ?? 0)
+				}),
+				{
+					total24h: 0,
+					total7d: 0,
+					total30d: 0
+				}
+			)
 
 			const hasRWAStats = parentProtocolsStore[parentProtocol.id].some((p) => p.rwaStats != null)
 			const rwaStats: IRWAStats = {
@@ -407,6 +489,14 @@ export async function getProtocolsByCategoryOrTag({
 				dexVolume: dexVolume.total24h == 0 && dexVolume.total7d == 0 && dexVolume.total30d == 0 ? null : dexVolume,
 				perpVolume: perpVolume.total24h == 0 && perpVolume.total7d == 0 && perpVolume.total30d == 0 ? null : perpVolume,
 				openInterest: openInterest.total24h == 0 ? null : openInterest,
+				optionsPremium:
+					optionsPremium.total24h == 0 && optionsPremium.total7d == 0 && optionsPremium.total30d == 0
+						? null
+						: optionsPremium,
+				optionsNotional:
+					optionsNotional.total24h == 0 && optionsNotional.total7d == 0 && optionsNotional.total30d == 0
+						? null
+						: optionsNotional,
 				subRows: parentProtocolsStore[parentProtocol.id].sort((a, b) => b.tvl - a.tvl),
 				tags: Array.from(new Set(parentProtocolsStore[parentProtocol.id].flatMap((p) => p.tags ?? []))),
 				...(hasRWAStats ? { rwaStats } : {})
@@ -440,6 +530,8 @@ export async function getProtocolsByCategoryOrTag({
 	let dexVolume7d = 0
 	let perpVolume7d = 0
 	let openInterest = 0
+	let optionsPremium7d = 0
+	let optionsNotional7d = 0
 
 	for (const protocol of finalProtocols) {
 		fees7d += protocol.fees?.total7d ?? 0
@@ -447,6 +539,8 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolume7d += protocol.dexVolume?.total7d ?? 0
 		perpVolume7d += protocol.perpVolume?.total7d ?? 0
 		openInterest += protocol.openInterest?.total24h ?? 0
+		optionsPremium7d += protocol.optionsPremium?.total7d ?? 0
+		optionsNotional7d += protocol.optionsNotional?.total7d ?? 0
 	}
 
 	return {
@@ -475,6 +569,8 @@ export async function getProtocolsByCategoryOrTag({
 		dexVolume7d: dexVolume7d > 0 ? dexVolume7d : null,
 		perpVolume7d: perpVolume7d > 0 ? perpVolume7d : null,
 		openInterest: openInterest > 0 ? openInterest : null,
+		optionsPremium7d: optionsPremium7d > 0 ? optionsPremium7d : null,
+		optionsNotional7d: optionsNotional7d > 0 ? optionsNotional7d : null,
 		extraTvlCharts
 	}
 }

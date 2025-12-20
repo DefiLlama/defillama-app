@@ -19,7 +19,8 @@ const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'
 const defaultSortingState = {
 	'Trading App': [{ id: 'revenue_7d', desc: true }],
 	Derivatives: [{ id: 'perp_volume_24h', desc: true }],
-	Interface: [{ id: 'perp_volume_24h', desc: true }]
+	Interface: [{ id: 'perp_volume_24h', desc: true }],
+	Options: [{ id: 'options_premium_7d', desc: true }]
 }
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
@@ -130,10 +131,32 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</span>
 							</p>
 						)}
+						{props.optionsPremium7d != null && (
+							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+								<Tooltip
+									content={definitions.optionsPremium.chain['7d']}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									Premium Volume (7d)
+								</Tooltip>
+								<span className="font-jetbrains text-right">{formattedNum(props.optionsPremium7d, true)}</span>
+							</p>
+						)}
+						{props.optionsNotional7d != null && (
+							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+								<Tooltip
+									content={definitions.optionsNotional.chain['7d']}
+									className="font-normal text-(--text-label) underline decoration-dotted"
+								>
+									Notional Volume (7d)
+								</Tooltip>
+								<span className="font-jetbrains text-right">{formattedNum(props.optionsNotional7d, true)}</span>
+							</p>
+						)}
 						{props.fees7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Total fees paid by users when using the ${(name ?? props.tag ?? '').toLowerCase()} protocols on the chain in the last 7 days`}
+									content={definitions.fees.chain['7d']}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Fees (7d)
@@ -144,7 +167,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						{props.revenue7d != null && (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
-									content={`Total revenue earned by the ${(name ?? props.tag ?? '').toLowerCase()} protocols on the chain in the last 7 days`}
+									content={definitions.revenue.chain['7d']}
 									className="font-normal text-(--text-label) underline decoration-dotted"
 								>
 									Revenue (7d)
@@ -225,7 +248,11 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header={props.isRWA ? 'Assets Rankings' : 'Protocol Rankings'}
 				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
-				customFilters={<CSVDownloadButton prepareCsv={prepareCsv} />}
+				customFilters={
+					<>
+						<CSVDownloadButton prepareCsv={prepareCsv} />
+					</>
+				}
 			/>
 		</>
 	)
@@ -901,6 +928,88 @@ const lendingColumns: Column[] = [
 ]
 
 // ============================================================================
+// Options Columns
+// ============================================================================
+
+const optionsPremium24hColumn: Column = {
+	id: 'options_premium_24h',
+	header: 'Premium Volume 24h',
+	accessorFn: (protocol) => protocol.optionsPremium?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.optionsPremium.protocol['24h']
+	},
+	size: 180
+}
+
+const optionsPremium7dColumn: Column = {
+	id: 'options_premium_7d',
+	header: 'Premium Volume 7d',
+	accessorFn: (protocol) => protocol.optionsPremium?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.optionsPremium.protocol['7d']
+	},
+	size: 180
+}
+
+const optionsPremium30dColumn: Column = {
+	id: 'options_premium_30d',
+	header: 'Premium Volume 30d',
+	accessorFn: (protocol) => protocol.optionsPremium?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.optionsPremium.protocol['30d']
+	},
+	size: 180
+}
+
+const optionsNotional24hColumn: Column = {
+	id: 'options_notional_24h',
+	header: 'Notional Volume 24h',
+	accessorFn: (protocol) => protocol.optionsNotional?.total24h,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.optionsNotional.protocol['24h']
+	},
+	size: 180
+}
+
+const optionsNotional7dColumn: Column = {
+	id: 'options_notional_7d',
+	header: 'Notional Volume 7d',
+	accessorFn: (protocol) => protocol.optionsNotional?.total7d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.optionsNotional.protocol['7d']
+	},
+	size: 180
+}
+
+const optionsNotional30dColumn: Column = {
+	id: 'options_notional_30d',
+	header: 'Notional Volume 30d',
+	accessorFn: (protocol) => protocol.optionsNotional?.total30d,
+	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+	sortUndefined: 'last',
+	meta: {
+		align: 'end',
+		headerHelperText: definitions.optionsNotional.protocol['30d']
+	},
+	size: 180
+}
+
+// ============================================================================
 // Column Composition Function
 // ============================================================================
 
@@ -944,23 +1053,26 @@ const columns = (
 		// RWA stats
 		...(isRWA ? rwaStatsColumns : []),
 
-		// Fees & Revenue 7d
+		// Volume & Fees & Revenue 7d
+		getVolumeColumn(category, '7d'),
+		...(category === 'Options' ? [optionsPremium7dColumn, optionsNotional7dColumn] : []),
 		fees7dColumn,
 		revenue7dColumn,
-		getVolumeColumn(category, '7d'),
 
 		// Mcap/TVL
 		mcapTvlColumn,
 
-		// Fees & Revenue 30d
+		// Volume & Fees & Revenue 30d
+		getVolumeColumn(category, '30d'),
+		...(category === 'Options' ? [optionsPremium30dColumn, optionsNotional30dColumn] : []),
 		fees30dColumn,
 		revenue30dColumn,
-		getVolumeColumn(category, '30d'),
 
-		// Fees & Revenue 24h
+		// Volume & Fees & Revenue 24h
+		getVolumeColumn(category, '24h'),
+		...(category === 'Options' ? [optionsPremium24hColumn, optionsNotional24hColumn] : []),
 		fees24hColumn,
 		revenue24hColumn,
-		getVolumeColumn(category, '24h'),
 
 		// Lending
 		...(category === 'Lending' ? lendingColumns : [])
