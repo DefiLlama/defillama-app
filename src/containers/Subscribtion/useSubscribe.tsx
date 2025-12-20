@@ -176,15 +176,15 @@ export const useSubscribe = () => {
 
 			const result = await createSubscription.mutateAsync(subscriptionData)
 
-			// For embedded mode, return the result instead of opening a new tab
+			// For embedded mode, return the result instead of redirecting
 			if (useEmbedded) {
 				return result
 			}
 
-			// For legacy redirect mode
+			// Navigate to checkout URL in same window
 			if (result.checkoutUrl) {
 				onSuccess?.(result.checkoutUrl)
-				window.open(result.checkoutUrl, '_blank')
+				window.location.href = result.checkoutUrl
 			}
 		} catch (error) {
 			console.log('Subscription error:', error)
@@ -353,7 +353,7 @@ export const useSubscribe = () => {
 			const typeToSend = subscriptionType || subscriptionData.type
 			const url = await createPortalSessionMutation.mutateAsync(typeToSend)
 			if (url) {
-				window.open(url, '_blank')
+				window.location.href = url
 			}
 			return url
 		} catch (error) {
