@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
+import { RecordAuthResponse, RecordModel } from 'pocketbase'
 import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'
@@ -91,10 +92,20 @@ interface AuthContextType {
 	) => Promise<void>
 	logout: () => void
 	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
-	signInWithEthereum: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
-	signInWithGithub: (onSuccess?: () => void) => Promise<void>
+	signInWithEthereumMutation: UseMutationResult<
+		{
+			address: string
+		},
+		Error,
+		{
+			address: string
+			signMessageFunction: any
+		},
+		unknown
+	>
+	signInWithGithubMutation: UseMutationResult<RecordAuthResponse<RecordModel>, Error, void, unknown>
 	addWallet: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
-	resetPassword: (email: string) => void
+	resetPasswordMutation: UseMutationResult<void, Error, string, unknown>
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
 	addEmail: (email: string) => void
@@ -106,10 +117,7 @@ interface AuthContextType {
 		login: boolean
 		signup: boolean
 		logout: boolean
-		signInWithEthereum: boolean
-		signInWithGithub: boolean
 		addWallet: boolean
-		resetPassword: boolean
 		changeEmail: boolean
 		resendVerification: boolean
 		addEmail: boolean
@@ -370,27 +378,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				console.log('Ethereum sign-in error:', error)
 				throw new Error('Failed to sign in with Ethereum')
 			}
-		},
-		onError: (error) => {
-			const message = error instanceof Error ? error.message : 'Failed to connect wallet'
-
-			toast.error(message)
 		}
 	})
-
-	const signInWithEthereum = useCallback(
-		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
-			try {
-				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction })
-				onSuccess?.()
-				return Promise.resolve()
-			} catch (error) {
-				console.log('Ethereum sign-in error:', error)
-				return Promise.reject(error)
-			}
-		},
-		[signInWithEthereumMutation]
-	)
 
 	const signInWithGithubMutation = useMutation({
 		mutationFn: async () => {
@@ -405,27 +394,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				console.log('GitHub sign-in error:', error)
 				throw new Error('Failed to sign in with GitHub')
 			}
-		},
-		onError: (error) => {
-			const message = error instanceof Error ? error.message : 'Failed to connect with GitHub'
-			toast.error(message)
 		}
 	})
-
-	const signInWithGithub = useCallback(
-		async (onSuccess?: () => void) => {
-			try {
-				await signInWithGithubMutation.mutateAsync()
-				onSuccess?.()
-				toast.success('Successfully signed in with GitHub')
-				return Promise.resolve()
-			} catch (error) {
-				console.log('GitHub sign-in error:', error)
-				return Promise.reject(error)
-			}
-		},
-		[signInWithGithubMutation]
-	)
 
 	const addWalletMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
@@ -497,13 +467,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		[addWalletMutation]
 	)
 
-	const resetPassword = useMutation({
+	const resetPasswordMutation = useMutation({
 		mutationFn: async (email: string) => {
 			await pb.collection('users').requestPasswordReset(email)
 			toast.success('Password reset email sent')
-		},
-		onError: (error) => {
-			toast.error('Failed to send password reset email. Please try again.')
 		}
 	})
 
@@ -623,10 +590,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		signup,
 		logout,
 		authorizedFetch,
-		signInWithEthereum,
-		signInWithGithub,
+		signInWithEthereumMutation,
+		signInWithGithubMutation,
 		addWallet,
-		resetPassword: resetPassword.mutate,
+		resetPasswordMutation,
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
 		addEmail: addEmail.mutate,
@@ -637,10 +604,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,
 			logout: logoutMutation.isPending,
-			signInWithEthereum: signInWithEthereumMutation.isPending,
-			signInWithGithub: signInWithGithubMutation.isPending,
 			addWallet: addWalletMutation.isPending,
-			resetPassword: resetPassword.isPending,
 			changeEmail: changeEmail.isPending,
 			resendVerification: resendVerification.isPending,
 			addEmail: addEmail.isPending,

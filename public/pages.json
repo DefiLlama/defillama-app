@@ -84,12 +84,6 @@
       "oldName": "Forks"
     },
     {
-      "name": "TVL Breakdown by Smart Contract Languages",
-      "route": "/languages",
-      "category": "Total Value Locked",
-      "description": "TVL breakdown by languages that the smart contracts are written in"
-    },
-    {
       "name": "Total Borrowed by Protocol",
       "route": "/total-borrowed",
       "category": "Total Value Locked",
@@ -102,6 +96,12 @@
       "category": "Total Value Locked",
       "description": "Total value of the protocol's own tokens staked on their platform",
       "tab": "Protocols"
+    },
+    {
+      "name": "TVL Breakdown by Smart Contract Languages",
+      "route": "/languages",
+      "category": "Total Value Locked",
+      "description": "TVL breakdown by languages that the smart contracts are written in"
     },
     {
       "name": "Pool2 TVL by Protocol",
@@ -131,6 +131,14 @@
       "oldName": "Stablecoin Pools"
     },
     {
+      "name": "Yields: Leveraged Lending",
+      "route": "/yields/loop",
+      "category": "Yields",
+      "description": "Pools by leveraged lending APY values",
+      "oldCategory": "Yields",
+      "oldName": "Leveraged Lending"
+    },
+    {
       "name": "Yields: Delta Neutral Strategies",
       "route": "/yields/strategy",
       "category": "Yields",
@@ -148,12 +156,12 @@
       "oldName": "All Projects"
     },
     {
-      "name": "Yields: Leveraged Lending",
-      "route": "/yields/loop",
+      "name": "Yields: Halal",
+      "route": "/yields/halal",
       "category": "Yields",
-      "description": "Pools by leveraged lending APY values",
+      "description": "Shariah-compliant yield pools",
       "oldCategory": "Yields",
-      "oldName": "Leveraged Lending"
+      "oldName": "Halal"
     },
     {
       "name": "Yields: APY Overview",
@@ -170,14 +178,6 @@
       "description": "Find 'long-short' strategies across all our tracked pools",
       "oldCategory": "Yields",
       "oldName": "Long/Short Strategies"
-    },
-    {
-      "name": "Yields: Halal",
-      "route": "/yields/halal",
-      "category": "Yields",
-      "description": "Shariah-compliant yield pools",
-      "oldCategory": "Yields",
-      "oldName": "Halal"
     },
     {
       "name": "Revenue by Protocol",
@@ -544,30 +544,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols",
-      "oldName": "Treasuries"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding its own token",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Treasury: Entities",
-      "route": "/entities",
-      "category": "Treasury",
-      "description": "Treasury by entity",
-      "totalTrackedKey": "treasury.entities"
-    },
-    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -601,6 +577,30 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols",
+      "oldName": "Treasuries"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Treasury: Entities",
+      "route": "/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity",
+      "totalTrackedKey": "treasury.entities"
     },
     {
       "name": "Sheets",

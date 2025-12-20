@@ -116,7 +116,8 @@ export const SignInForm = ({
 	const [emailError, setEmailError] = useState('')
 	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('on')
 
-	const { login, signup, signInWithEthereum, signInWithGithub, resetPassword, loaders } = useAuthContext()
+	const { login, signup, signInWithEthereumMutation, signInWithGithubMutation, resetPasswordMutation, loaders } =
+		useAuthContext()
 	const { signMessageAsync } = useSignMessage()
 
 	const handleEmailSignIn = async (e: FormEvent<HTMLFormElement>) => {
@@ -202,7 +203,7 @@ export const SignInForm = ({
 	const handleForgotPassword = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		try {
-			resetPassword(email)
+			await resetPasswordMutation.mutateAsync(email)
 			setFlow('signin')
 		} catch (error) {
 			console.log('Error resetting password:', error)
@@ -212,7 +213,7 @@ export const SignInForm = ({
 	const handleWalletSignIn = async () => {
 		if (address) {
 			try {
-				await signInWithEthereum(address, signMessageAsync)
+				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction: signMessageAsync })
 				if (returnUrl) {
 					router.push(returnUrl)
 				}
@@ -360,20 +361,32 @@ export const SignInForm = ({
 							<button
 								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
 								onClick={handleWalletSignIn}
-								disabled={loaders.signInWithEthereum}
+								disabled={signInWithEthereumMutation.isPending}
 							>
 								<Icon name="wallet" height={16} width={16} />
-								{loaders.signInWithEthereum ? 'Connecting...' : 'Sign in with Wallet'}
+								{signInWithEthereumMutation.isPending ? 'Connecting...' : 'Sign in with Wallet'}
 							</button>
+
+							{signInWithEthereumMutation.error ? (
+								<div className="text-center text-xs text-red-500">
+									{signInWithEthereumMutation.error.message?.slice(0, 100)}
+								</div>
+							) : null}
 
 							<button
 								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-								onClick={() => signInWithGithub(() => dialogStore.hide())}
-								disabled={loaders.signInWithGithub}
+								onClick={() => signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())}
+								disabled={signInWithGithubMutation.isPending}
 							>
 								<Icon name="github" height={16} width={16} />
-								{loaders.signInWithGithub ? 'Connecting...' : 'Sign in with GitHub'}
+								{signInWithGithubMutation.isPending ? 'Connecting...' : 'Sign in with GitHub'}
 							</button>
+
+							{signInWithGithubMutation.error ? (
+								<div className="text-center text-xs text-red-500">
+									{signInWithGithubMutation.error.message?.slice(0, 100)}
+								</div>
+							) : null}
 						</div>
 
 						{pendingActionMessage && (
@@ -411,9 +424,9 @@ export const SignInForm = ({
 
 						<button
 							className="mt-1 w-full rounded-lg bg-linear-to-r from-[#5C5CF9] to-[#6E6EFA] py-3 font-medium text-white shadow-lg transition-all duration-200 hover:from-[#4A4AF0] hover:to-[#5A5AF5] hover:shadow-[#5C5CF9]/20 disabled:cursor-not-allowed disabled:opacity-50"
-							disabled={loaders.resetPassword}
+							disabled={resetPasswordMutation.isPending}
 						>
-							{loaders.resetPassword ? (
+							{resetPasswordMutation.isPending ? (
 								<span className="flex items-center justify-center gap-2">
 									<svg
 										className="h-5 w-5 animate-spin text-white"
@@ -441,6 +454,12 @@ export const SignInForm = ({
 								'Reset Password'
 							)}
 						</button>
+
+						{resetPasswordMutation.error ? (
+							<div className="text-center text-xs text-red-500">
+								{resetPasswordMutation.error.message?.slice(0, 100)}
+							</div>
+						) : null}
 
 						<button
 							type="button"
