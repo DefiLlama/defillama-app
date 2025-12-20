@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { Tooltip as CustomTooltip } from '~/components/Tooltip'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignInModal } from '~/containers/Subscribtion/SignIn'
@@ -41,6 +41,10 @@ export const PaymentButton = ({
 	}
 
 	const handleClick = () => {
+		if (!user?.verified && !user?.address) {
+			toast.error('Please verify your email first to subscribe')
+			return
+		}
 		// For Stripe, use embedded checkout modal
 		if (isStripe) {
 			setIsCheckoutModalOpen(true)
@@ -50,20 +54,17 @@ export const PaymentButton = ({
 		}
 	}
 
-	const disabled = loading === paymentMethod || (!user?.verified && !user?.address)
 	return (
 		<>
-			<CustomTooltip content={!user?.verified && !user?.address ? 'Please verify your email first to subscribe' : null}>
-				<button
-					onClick={handleClick}
-					disabled={disabled}
-					className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
-					data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
-				>
-					{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
-					<span className="break-words">{text}</span>
-				</button>
-			</CustomTooltip>
+			<button
+				onClick={handleClick}
+				disabled={loading === paymentMethod}
+				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
+				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
+			>
+				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
+				<span className="break-words">{text}</span>
+			</button>
 
 			{isStripe && (
 				<Suspense fallback={<></>}>
