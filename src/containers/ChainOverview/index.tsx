@@ -132,6 +132,17 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
+		name: '2025 DeFi Report',
+		description: '',
+		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
+		icon: (
+			<svg width={44} height={44}>
+				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
+			</svg>
+		),
+		background: <span className="llama-app-background" />
+	},
+	{
 		name: 'DLNews',
 		description: '',
 		href: 'https://www.dlnews.com',

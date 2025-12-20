@@ -460,7 +460,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
-					<h1 className="mr-auto text-xl font-semibold">Categories</h1>
+					<h1 className="mr-auto text-xl font-semibold">TVL by Category</h1>
 					<SelectWithCombobox
 						allValues={categories}
 						selectedValues={selectedCategories}
