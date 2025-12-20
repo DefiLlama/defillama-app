@@ -137,7 +137,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
+				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
