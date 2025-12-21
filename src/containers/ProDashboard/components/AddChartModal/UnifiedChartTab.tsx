@@ -348,6 +348,57 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		<div className="flex h-full flex-col">
 			<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
 
+			<div className="mb-3 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
+				<div className="grid grid-cols-2 gap-1">
+					<button
+						type="button"
+						onClick={() => onChartTabChange('chain')}
+						className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
+							selectedChartTab === 'chain'
+								? 'bg-(--primary)/10 text-(--primary) shadow-sm'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+						}`}
+					>
+						<div className="flex items-center justify-center gap-2">
+							<Icon
+								name="chain"
+								width={14}
+								height={14}
+								className={
+									selectedChartTab === 'chain'
+										? 'text-(--primary)'
+										: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+								}
+							/>
+							<span>Chains</span>
+						</div>
+					</button>
+					<button
+						type="button"
+						onClick={() => onChartTabChange('protocol')}
+						className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
+							selectedChartTab === 'protocol'
+								? 'bg-(--primary)/10 text-(--primary) shadow-sm'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+						}`}
+					>
+						<div className="flex items-center justify-center gap-2">
+							<Icon
+								name="protocol"
+								width={14}
+								height={14}
+								className={
+									selectedChartTab === 'protocol'
+										? 'text-(--primary)'
+										: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+								}
+							/>
+							<span>Protocols</span>
+						</div>
+					</button>
+				</div>
+			</div>
+
 			<div className="min-h-0 flex-1">
 				<div className="flex flex-col gap-4">
 					<div className="space-y-3">
@@ -371,6 +422,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 							selectedProtocols={selectedProtocols}
 							onSelectedProtocolsChange={onSelectedProtocolsChange || (() => {})}
 							isLoading={protocolsLoading}
+							hideTabToggle
 						/>
 
 						<button

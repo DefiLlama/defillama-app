@@ -26,6 +26,7 @@ interface SubjectMultiPanelProps {
 	selectedProtocols: string[]
 	onSelectedProtocolsChange: (values: string[]) => void
 	isLoading: boolean
+	hideTabToggle?: boolean
 }
 
 export const SubjectMultiPanel = memo(function SubjectMultiPanel({
@@ -38,7 +39,8 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 	onSelectedChainsChange,
 	selectedProtocols,
 	onSelectedProtocolsChange,
-	isLoading
+	isLoading,
+	hideTabToggle = false
 }: SubjectMultiPanelProps) {
 	const [search, setSearch] = useState('')
 	const chainListRef = useRef<HTMLDivElement | null>(null)
@@ -173,78 +175,80 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 				}}
 			>
 				<div className="p-2.5">
-					<div className="mb-2.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
-						<div className="grid grid-cols-2 gap-1">
-							<button
-								type="button"
-								onClick={() => onTabChange('chain')}
-								className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
-									activeTab === 'chain'
-										? 'bg-(--primary)/10 text-(--primary) shadow-sm'
-										: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
-								}`}
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon
-										name="chain"
-										width={14}
-										height={14}
-										className={
-											activeTab === 'chain'
-												? 'text-(--primary)'
-												: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
-										}
-									/>
-									<span>Chains</span>
-									{selectedChains.length > 0 && (
-										<span
-											className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+					{!hideTabToggle && (
+						<div className="mb-2.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
+							<div className="grid grid-cols-2 gap-1">
+								<button
+									type="button"
+									onClick={() => onTabChange('chain')}
+									className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
+										activeTab === 'chain'
+											? 'bg-(--primary)/10 text-(--primary) shadow-sm'
+											: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+									}`}
+								>
+									<div className="flex items-center justify-center gap-2">
+										<Icon
+											name="chain"
+											width={14}
+											height={14}
+											className={
 												activeTab === 'chain'
-													? 'bg-(--primary)/20 text-(--primary)'
-													: 'bg-(--cards-bg-alt) text-(--text-tertiary)'
-											}`}
-										>
-											{selectedChains.length}
-										</span>
-									)}
-								</div>
-							</button>
-							<button
-								type="button"
-								onClick={() => onTabChange('protocol')}
-								className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
-									activeTab === 'protocol'
-										? 'bg-(--primary)/10 text-(--primary) shadow-sm'
-										: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
-								}`}
-							>
-								<div className="flex items-center justify-center gap-2">
-									<Icon
-										name="protocol"
-										width={14}
-										height={14}
-										className={
-											activeTab === 'protocol'
-												? 'text-(--primary)'
-												: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
-										}
-									/>
-									<span>Protocols</span>
-									{selectedProtocols.length > 0 && (
-										<span
-											className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+													? 'text-(--primary)'
+													: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+											}
+										/>
+										<span>Chains</span>
+										{selectedChains.length > 0 && (
+											<span
+												className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+													activeTab === 'chain'
+														? 'bg-(--primary)/20 text-(--primary)'
+														: 'bg-(--cards-bg-alt) text-(--text-tertiary)'
+												}`}
+											>
+												{selectedChains.length}
+											</span>
+										)}
+									</div>
+								</button>
+								<button
+									type="button"
+									onClick={() => onTabChange('protocol')}
+									className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
+										activeTab === 'protocol'
+											? 'bg-(--primary)/10 text-(--primary) shadow-sm'
+											: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+									}`}
+								>
+									<div className="flex items-center justify-center gap-2">
+										<Icon
+											name="protocol"
+											width={14}
+											height={14}
+											className={
 												activeTab === 'protocol'
-													? 'bg-(--primary)/20 text-(--primary)'
-													: 'bg-(--cards-bg-alt) text-(--text-tertiary)'
-											}`}
-										>
-											{selectedProtocols.length}
-										</span>
-									)}
-								</div>
-							</button>
+													? 'text-(--primary)'
+													: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+											}
+										/>
+										<span>Protocols</span>
+										{selectedProtocols.length > 0 && (
+											<span
+												className={`ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+													activeTab === 'protocol'
+														? 'bg-(--primary)/20 text-(--primary)'
+														: 'bg-(--cards-bg-alt) text-(--text-tertiary)'
+												}`}
+											>
+												{selectedProtocols.length}
+											</span>
+										)}
+									</div>
+								</button>
+							</div>
 						</div>
-					</div>
+					)}
 
 					<div className="relative mb-2.5">
 						<Icon
