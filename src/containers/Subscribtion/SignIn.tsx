@@ -100,7 +100,9 @@ export const SignInForm = ({
 	const { address } = useAccount()
 	const router = useRouter()
 
-	const [selectedTabId, setSelectedTabId] = useState<'signin' | 'signup'>('signin')
+	const [selectedTabId, setSelectedTabId] = useState<'signin' | 'signup'>(
+		defaultFlow === 'signup' ? 'signup' : 'signin'
+	)
 	const tabStore = Ariakit.useTabStore({
 		selectedId: selectedTabId,
 		setSelectedId: (id: 'signin' | 'signup') => setSelectedTabId(id)
