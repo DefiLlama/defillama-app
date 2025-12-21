@@ -361,7 +361,7 @@ export const SignInForm = ({
 
 						<div className="flex w-full flex-col gap-2 sm:gap-3">
 							<button
-								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
+								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
 								onClick={handleWalletSignIn}
 								disabled={signInWithEthereumMutation.isPending}
 							>
