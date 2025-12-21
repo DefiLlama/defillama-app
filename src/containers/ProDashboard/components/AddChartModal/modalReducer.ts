@@ -53,6 +53,9 @@ export type ModalAction =
 	| { type: 'SET_SELECTED_ADVANCED_TVL_PROTOCOL'; payload: string | null }
 	| { type: 'SET_SELECTED_ADVANCED_TVL_PROTOCOL_NAME'; payload: string | null }
 	| { type: 'SET_SELECTED_ADVANCED_TVL_CHART_TYPE'; payload: string }
+	| { type: 'SET_SELECTED_BORROWED_PROTOCOL'; payload: string | null }
+	| { type: 'SET_SELECTED_BORROWED_PROTOCOL_NAME'; payload: string | null }
+	| { type: 'SET_SELECTED_BORROWED_CHART_TYPE'; payload: string }
 	| { type: 'RESET_STATE' }
 	| { type: 'INITIALIZE_FROM_EDIT_ITEM'; payload: { editItem: DashboardItemConfig | null | undefined } }
 
@@ -148,7 +151,10 @@ export const INITIAL_MODAL_STATE: ModalState = {
 	selectedStablecoinAssetChartType: 'totalCirc',
 	selectedAdvancedTvlProtocol: null,
 	selectedAdvancedTvlProtocolName: null,
-	selectedAdvancedTvlChartType: 'tvl'
+	selectedAdvancedTvlChartType: 'tvl',
+	selectedBorrowedProtocol: null,
+	selectedBorrowedProtocolName: null,
+	selectedBorrowedChartType: 'chainsBorrowed'
 }
 
 export function initializeFromEditItem(editItem: DashboardItemConfig | null | undefined): ModalState {
@@ -329,6 +335,18 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 		}
 	}
 
+	if (editItem.kind === 'advanced-borrowed') {
+		return {
+			...base,
+			selectedMainTab: 'charts',
+			chartMode: 'manual',
+			selectedChartTab: 'borrowed',
+			selectedBorrowedProtocol: editItem.protocol,
+			selectedBorrowedProtocolName: editItem.protocolName,
+			selectedBorrowedChartType: editItem.chartType
+		}
+	}
+
 	return base
 }
 
@@ -481,6 +499,15 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 
 		case 'SET_SELECTED_ADVANCED_TVL_CHART_TYPE':
 			return { ...state, selectedAdvancedTvlChartType: action.payload }
+
+		case 'SET_SELECTED_BORROWED_PROTOCOL':
+			return { ...state, selectedBorrowedProtocol: action.payload }
+
+		case 'SET_SELECTED_BORROWED_PROTOCOL_NAME':
+			return { ...state, selectedBorrowedProtocolName: action.payload }
+
+		case 'SET_SELECTED_BORROWED_CHART_TYPE':
+			return { ...state, selectedBorrowedChartType: action.payload }
 
 		case 'RESET_STATE':
 			return INITIAL_MODAL_STATE

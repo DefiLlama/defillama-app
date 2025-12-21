@@ -5,6 +5,7 @@ import { useProDashboard } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { AriakitSelect } from '../AriakitSelect'
 import { AdvancedTvlChartTab } from './AdvancedTvlChartTab'
+import { BorrowedChartTab } from './BorrowedChartTab'
 import { CategoryCardsGrid } from './CategoryCardsGrid'
 import { CategoryFormHeader } from './CategoryFormHeader'
 import { CombinedChartPreview } from './CombinedChartPreview'
@@ -78,6 +79,12 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedAdvancedTvlProtocolChange?: (protocol: string | null) => void
 	onSelectedAdvancedTvlProtocolNameChange?: (name: string | null) => void
 	onSelectedAdvancedTvlChartTypeChange?: (chartType: string) => void
+	selectedBorrowedProtocol?: string | null
+	selectedBorrowedProtocolName?: string | null
+	selectedBorrowedChartType?: string
+	onSelectedBorrowedProtocolChange?: (protocol: string | null) => void
+	onSelectedBorrowedProtocolNameChange?: (name: string | null) => void
+	onSelectedBorrowedChartTypeChange?: (chartType: string) => void
 }
 
 export const UnifiedChartTab = memo(function UnifiedChartTab({
@@ -139,9 +146,15 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedAdvancedTvlChartType = 'tvl',
 	onSelectedAdvancedTvlProtocolChange,
 	onSelectedAdvancedTvlProtocolNameChange,
-	onSelectedAdvancedTvlChartTypeChange
+	onSelectedAdvancedTvlChartTypeChange,
+	selectedBorrowedProtocol = null,
+	selectedBorrowedProtocolName = null,
+	selectedBorrowedChartType = 'chainsBorrowed',
+	onSelectedBorrowedProtocolChange,
+	onSelectedBorrowedProtocolNameChange,
+	onSelectedBorrowedChartTypeChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl']
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
@@ -327,6 +340,35 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						onSelectedAdvancedTvlProtocolChange={onSelectedAdvancedTvlProtocolChange || (() => {})}
 						onSelectedAdvancedTvlProtocolNameChange={onSelectedAdvancedTvlProtocolNameChange || (() => {})}
 						onSelectedAdvancedTvlChartTypeChange={onSelectedAdvancedTvlChartTypeChange || (() => {})}
+						protocolOptions={protocolOptions as any}
+						protocolsLoading={protocolsLoading}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
+	if (selectedChartTab === 'borrowed') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<BorrowedChartTab
+						selectedBorrowedProtocol={selectedBorrowedProtocol}
+						selectedBorrowedProtocolName={selectedBorrowedProtocolName}
+						selectedBorrowedChartType={selectedBorrowedChartType}
+						onSelectedBorrowedProtocolChange={onSelectedBorrowedProtocolChange || (() => {})}
+						onSelectedBorrowedProtocolNameChange={onSelectedBorrowedProtocolNameChange || (() => {})}
+						onSelectedBorrowedChartTypeChange={onSelectedBorrowedChartTypeChange || (() => {})}
 						protocolOptions={protocolOptions as any}
 						protocolsLoading={protocolsLoading}
 					/>

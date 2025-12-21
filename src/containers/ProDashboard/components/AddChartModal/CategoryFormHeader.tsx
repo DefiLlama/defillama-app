@@ -6,7 +6,8 @@ const CATEGORY_TITLES: Record<ChartTabType, string> = {
 	protocol: 'Protocols & Chains',
 	yields: 'Yields',
 	stablecoins: 'Stablecoins',
-	'advanced-tvl': 'Advanced TVL'
+	'advanced-tvl': 'Advanced TVL',
+	borrowed: 'Borrowed'
 }
 
 interface CategoryFormHeaderProps {

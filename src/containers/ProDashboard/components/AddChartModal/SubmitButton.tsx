@@ -31,6 +31,8 @@ interface SubmitButtonProps {
 	selectedStablecoinAssetChartType?: string
 	selectedAdvancedTvlProtocol?: string | null
 	selectedAdvancedTvlChartType?: string
+	selectedBorrowedProtocol?: string | null
+	selectedBorrowedChartType?: string
 	onSubmit: () => void
 }
 
@@ -64,6 +66,8 @@ export function SubmitButton({
 	selectedStablecoinAssetChartType,
 	selectedAdvancedTvlProtocol,
 	selectedAdvancedTvlChartType,
+	selectedBorrowedProtocol,
+	selectedBorrowedChartType,
 	onSubmit
 }: SubmitButtonProps) {
 	const isStablecoinChainModeInvalid =
@@ -72,6 +76,7 @@ export function SubmitButton({
 		stablecoinMode === 'asset' &&
 		(!selectedStablecoinAsset || !selectedStablecoinAssetId || !selectedStablecoinAssetChartType)
 	const isAdvancedTvlInvalid = !selectedAdvancedTvlProtocol || !selectedAdvancedTvlChartType
+	const isBorrowedInvalid = !selectedBorrowedProtocol || !selectedBorrowedChartType
 
 	const isDisabled =
 		chartTypesLoading ||
@@ -86,9 +91,14 @@ export function SubmitButton({
 			isAdvancedTvlInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
+			selectedChartTab === 'borrowed' &&
+			isBorrowedInvalid) ||
+		(selectedMainTab === 'charts' &&
+			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
 			selectedChartTab !== 'stablecoins' &&
 			selectedChartTab !== 'advanced-tvl' &&
+			selectedChartTab !== 'borrowed' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' &&
@@ -120,7 +130,8 @@ export function SubmitButton({
 				if (
 					selectedChartTab === 'yields' ||
 					selectedChartTab === 'stablecoins' ||
-					selectedChartTab === 'advanced-tvl'
+					selectedChartTab === 'advanced-tvl' ||
+					selectedChartTab === 'borrowed'
 				) {
 					return 'Add Chart'
 				}

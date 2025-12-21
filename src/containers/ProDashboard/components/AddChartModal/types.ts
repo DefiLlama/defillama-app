@@ -10,7 +10,7 @@ export interface AddChartModalProps {
 
 export type MainTabType = 'charts' | 'metric' | 'table' | 'unified-table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
-export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins' | 'advanced-tvl'
+export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins' | 'advanced-tvl' | 'borrowed'
 export type ManualChartViewMode = 'cards' | 'form'
 export type CombinedTableType =
 	| 'protocols'
@@ -114,6 +114,9 @@ export interface ModalState {
 	selectedAdvancedTvlProtocol: string | null
 	selectedAdvancedTvlProtocolName: string | null
 	selectedAdvancedTvlChartType: string
+	selectedBorrowedProtocol: string | null
+	selectedBorrowedProtocolName: string | null
+	selectedBorrowedChartType: string
 }
 
 export interface ModalActions {
@@ -175,4 +178,7 @@ export interface ModalActions {
 	setSelectedAdvancedTvlProtocol: (protocol: string | null) => void
 	setSelectedAdvancedTvlProtocolName: (name: string | null) => void
 	setSelectedAdvancedTvlChartType: (chartType: string) => void
+	setSelectedBorrowedProtocol: (protocol: string | null) => void
+	setSelectedBorrowedProtocolName: (name: string | null) => void
+	setSelectedBorrowedChartType: (chartType: string) => void
 }

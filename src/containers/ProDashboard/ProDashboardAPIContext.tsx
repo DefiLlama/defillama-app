@@ -14,6 +14,8 @@ import { Dashboard } from './services/DashboardAPI'
 import {
 	AdvancedTvlChartConfig,
 	AdvancedTvlChartType,
+	BorrowedChartConfig,
+	BorrowedChartType,
 	Chain,
 	CHART_TYPES,
 	ChartBuilderConfig,
@@ -116,6 +118,7 @@ interface ProDashboardContextType {
 	handleAddStablecoinsChart: (chain: string, chartType: string) => void
 	handleAddStablecoinAssetChart: (stablecoin: string, stablecoinId: string, chartType: string) => void
 	handleAddAdvancedTvlChart: (protocol: string, protocolName: string, chartType: AdvancedTvlChartType) => void
+	handleAddBorrowedChart: (protocol: string, protocolName: string, chartType: BorrowedChartType) => void
 	handleAddTable: (
 		chains: string[],
 		tableType?: 'protocols' | 'dataset',
@@ -1031,6 +1034,28 @@ export function ProDashboardAPIProvider({
 		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
 	)
 
+	const handleAddBorrowedChart = useCallback(
+		(protocol: string, protocolName: string, chartType: BorrowedChartType) => {
+			if (isReadOnly || (initialDashboardId && !currentDashboard)) {
+				return
+			}
+			const newBorrowedChart: BorrowedChartConfig = {
+				id: generateItemId('advanced-borrowed', `${protocol}-${chartType}`),
+				kind: 'advanced-borrowed',
+				protocol,
+				protocolName,
+				chartType,
+				colSpan: 1
+			}
+			setItems((prev) => {
+				const newItems = [...prev, newBorrowedChart]
+				autoSave(newItems)
+				return newItems
+			})
+		},
+		[isReadOnly, initialDashboardId, currentDashboard, autoSave]
+	)
+
 	const handleAddTable = useCallback(
 		(
 			chains: string[],
@@ -1609,6 +1634,7 @@ export function ProDashboardAPIProvider({
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
 			handleAddAdvancedTvlChart,
+			handleAddBorrowedChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,
@@ -1681,6 +1707,7 @@ export function ProDashboardAPIProvider({
 			handleAddStablecoinsChart,
 			handleAddStablecoinAssetChart,
 			handleAddAdvancedTvlChart,
+			handleAddBorrowedChart,
 			handleAddTable,
 			handleAddMultiChart,
 			handleAddText,

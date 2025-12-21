@@ -118,6 +118,12 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedAdvancedTvlProtocolChange={actions.setSelectedAdvancedTvlProtocol}
 							onSelectedAdvancedTvlProtocolNameChange={actions.setSelectedAdvancedTvlProtocolName}
 							onSelectedAdvancedTvlChartTypeChange={actions.setSelectedAdvancedTvlChartType}
+							selectedBorrowedProtocol={state.selectedBorrowedProtocol}
+							selectedBorrowedProtocolName={state.selectedBorrowedProtocolName}
+							selectedBorrowedChartType={state.selectedBorrowedChartType}
+							onSelectedBorrowedProtocolChange={actions.setSelectedBorrowedProtocol}
+							onSelectedBorrowedProtocolNameChange={actions.setSelectedBorrowedProtocolName}
+							onSelectedBorrowedChartTypeChange={actions.setSelectedBorrowedChartType}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -224,6 +230,8 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedStablecoinAssetChartType={state.selectedStablecoinAssetChartType}
 							selectedAdvancedTvlProtocol={state.selectedAdvancedTvlProtocol}
 							selectedAdvancedTvlChartType={state.selectedAdvancedTvlChartType}
+							selectedBorrowedProtocol={state.selectedBorrowedProtocol}
+							selectedBorrowedChartType={state.selectedBorrowedChartType}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

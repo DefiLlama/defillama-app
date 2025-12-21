@@ -28,18 +28,25 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 		tags: ['Supply APY', 'Borrow APY', 'TVL', 'Liquidity']
 	},
 	{
-		id: 'stablecoins',
-		title: 'Stablecoins',
-		description: 'Market cap, dominance, inflows by chain or asset',
-		icon: 'dollar-sign',
-		tags: ['Market Cap', 'Dominance', 'Inflows']
-	},
-	{
 		id: 'advanced-tvl',
 		title: 'Advanced TVL',
 		description: 'Token-level breakdown, inflows, detailed protocol analysis across 5000+ protocols',
 		icon: 'bar-chart-2',
 		tags: ['Tokens', 'Inflows', 'Breakdown']
+	},
+	{
+		id: 'borrowed',
+		title: 'Borrowed',
+		description: 'Borrowed breakdowns by chain and token for lending protocols',
+		icon: 'banknote',
+		tags: ['Borrowed', 'Chains', 'Tokens']
+	},
+	{
+		id: 'stablecoins',
+		title: 'Stablecoins',
+		description: 'Market cap, dominance, inflows by chain or asset',
+		icon: 'dollar-sign',
+		tags: ['Market Cap', 'Dominance', 'Inflows']
 	}
 ]
 
