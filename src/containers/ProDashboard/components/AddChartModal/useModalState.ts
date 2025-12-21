@@ -82,7 +82,13 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedAdvancedTvlProtocolName: (name: string | null) =>
 				dispatch({ type: 'SET_SELECTED_ADVANCED_TVL_PROTOCOL_NAME', payload: name }),
 			setSelectedAdvancedTvlChartType: (chartType: string) =>
-				dispatch({ type: 'SET_SELECTED_ADVANCED_TVL_CHART_TYPE', payload: chartType })
+				dispatch({ type: 'SET_SELECTED_ADVANCED_TVL_CHART_TYPE', payload: chartType }),
+			setSelectedBorrowedProtocol: (protocol: string | null) =>
+				dispatch({ type: 'SET_SELECTED_BORROWED_PROTOCOL', payload: protocol }),
+			setSelectedBorrowedProtocolName: (name: string | null) =>
+				dispatch({ type: 'SET_SELECTED_BORROWED_PROTOCOL_NAME', payload: name }),
+			setSelectedBorrowedChartType: (chartType: string) =>
+				dispatch({ type: 'SET_SELECTED_BORROWED_CHART_TYPE', payload: chartType })
 		}),
 		[]
 	)

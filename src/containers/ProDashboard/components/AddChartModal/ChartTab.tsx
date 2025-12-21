@@ -60,6 +60,12 @@ interface ChartTabProps {
 	onSelectedAdvancedTvlProtocolChange?: (protocol: string | null) => void
 	onSelectedAdvancedTvlProtocolNameChange?: (name: string | null) => void
 	onSelectedAdvancedTvlChartTypeChange?: (chartType: string) => void
+	selectedBorrowedProtocol?: string | null
+	selectedBorrowedProtocolName?: string | null
+	selectedBorrowedChartType?: string
+	onSelectedBorrowedProtocolChange?: (protocol: string | null) => void
+	onSelectedBorrowedProtocolNameChange?: (name: string | null) => void
+	onSelectedBorrowedChartTypeChange?: (chartType: string) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -165,6 +171,12 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 					onSelectedAdvancedTvlProtocolChange={props.onSelectedAdvancedTvlProtocolChange}
 					onSelectedAdvancedTvlProtocolNameChange={props.onSelectedAdvancedTvlProtocolNameChange}
 					onSelectedAdvancedTvlChartTypeChange={props.onSelectedAdvancedTvlChartTypeChange}
+					selectedBorrowedProtocol={props.selectedBorrowedProtocol}
+					selectedBorrowedProtocolName={props.selectedBorrowedProtocolName}
+					selectedBorrowedChartType={props.selectedBorrowedChartType}
+					onSelectedBorrowedProtocolChange={props.onSelectedBorrowedProtocolChange}
+					onSelectedBorrowedProtocolNameChange={props.onSelectedBorrowedProtocolNameChange}
+					onSelectedBorrowedChartTypeChange={props.onSelectedBorrowedChartTypeChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
 					onComposerItemColorChange={props.onComposerItemColorChange}

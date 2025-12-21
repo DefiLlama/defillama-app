@@ -44,6 +44,9 @@ const StablecoinAssetChartCard = lazy(() =>
 const AdvancedTvlChartCard = lazy(() =>
 	import('./AdvancedTvlChartCard').then((mod) => ({ default: mod.AdvancedTvlChartCard }))
 )
+const BorrowedChartCard = lazy(() =>
+	import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard }))
+)
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -244,6 +247,14 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 			return (
 				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
 					<AdvancedTvlChartCard config={item} />
+				</Suspense>
+			)
+		}
+
+		if (item.kind === 'advanced-borrowed') {
+			return (
+				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+					<BorrowedChartCard config={item} />
 				</Suspense>
 			)
 		}

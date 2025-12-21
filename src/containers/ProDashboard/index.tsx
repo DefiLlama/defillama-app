@@ -94,7 +94,9 @@ function ProDashboardContent() {
 			item?.kind === 'builder' ||
 			item?.kind === 'yields' ||
 			item?.kind === 'stablecoins' ||
-			item?.kind === 'stablecoin-asset'
+			item?.kind === 'stablecoin-asset' ||
+			item?.kind === 'advanced-tvl' ||
+			item?.kind === 'advanced-borrowed'
 	)
 
 	const currentRatingSession = getCurrentRatingSession()

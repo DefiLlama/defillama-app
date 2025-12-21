@@ -31,6 +31,7 @@ export function useModalActions(
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
+		handleAddBorrowedChart,
 		handleAddTable,
 		handleAddMultiChart,
 		handleAddText,
@@ -536,6 +537,20 @@ export function useModalActions(
 					protocolName: state.selectedAdvancedTvlProtocolName,
 					chartType: state.selectedAdvancedTvlChartType
 				} as any
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'borrowed' &&
+				state.selectedBorrowedProtocol &&
+				state.selectedBorrowedProtocolName &&
+				state.selectedBorrowedChartType
+			) {
+				newItem = {
+					...editItem,
+					kind: 'advanced-borrowed',
+					protocol: state.selectedBorrowedProtocol,
+					protocolName: state.selectedBorrowedProtocolName,
+					chartType: state.selectedBorrowedChartType
+				} as any
 			}
 
 			if (newItem) {
@@ -580,6 +595,19 @@ export function useModalActions(
 					state.selectedAdvancedTvlProtocol,
 					state.selectedAdvancedTvlProtocolName,
 					state.selectedAdvancedTvlChartType
+				)
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'borrowed' &&
+				state.selectedBorrowedProtocol &&
+				state.selectedBorrowedProtocolName &&
+				state.selectedBorrowedChartType
+			) {
+				handleAddBorrowedChart(
+					state.selectedBorrowedProtocol,
+					state.selectedBorrowedProtocolName,
+					state.selectedBorrowedChartType
 				)
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'manual') {
 				if (state.composerItems.length > 0) {
@@ -695,6 +723,7 @@ export function useModalActions(
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
 		handleAddAdvancedTvlChart,
+		handleAddBorrowedChart,
 		handleAddTable,
 		handleAddText,
 		handleAddMetric,

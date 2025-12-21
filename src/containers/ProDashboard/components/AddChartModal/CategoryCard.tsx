@@ -28,18 +28,25 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 		tags: ['Supply APY', 'Borrow APY', 'TVL', 'Liquidity']
 	},
 	{
-		id: 'stablecoins',
-		title: 'Stablecoins',
-		description: 'Market cap, dominance, inflows by chain or asset',
-		icon: 'dollar-sign',
-		tags: ['Market Cap', 'Dominance', 'Inflows']
-	},
-	{
 		id: 'advanced-tvl',
 		title: 'Advanced TVL',
 		description: 'Token-level breakdown, inflows, detailed protocol analysis across 5000+ protocols',
 		icon: 'bar-chart-2',
 		tags: ['Tokens', 'Inflows', 'Breakdown']
+	},
+	{
+		id: 'borrowed',
+		title: 'Borrowed',
+		description: 'Borrowed breakdowns by chain and token for lending protocols',
+		icon: 'banknote',
+		tags: ['Borrowed', 'Chains', 'Tokens']
+	},
+	{
+		id: 'stablecoins',
+		title: 'Stablecoins',
+		description: 'Market cap, dominance, inflows by chain or asset',
+		icon: 'dollar-sign',
+		tags: ['Market Cap', 'Dominance', 'Inflows']
 	}
 ]
 
@@ -52,11 +59,11 @@ export const CategoryCard = memo(function CategoryCard({ card, onClick }: Catego
 	return (
 		<button
 			onClick={onClick}
-			className="pro-border flex h-full flex-col items-start justify-between rounded-lg border p-5 text-left transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)"
+			className="pro-border flex h-full flex-col items-start justify-between rounded-lg border p-4 text-left transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)"
 		>
 			<div className="flex flex-col items-start gap-3">
-				<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-(--primary)/10">
-					<Icon name={card.icon} height={28} width={28} className="text-(--primary)" />
+				<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
+					<Icon name={card.icon} height={22} width={22} className="text-(--primary)" />
 				</div>
 				<div>
 					<h3 className="pro-text1 text-base font-semibold">{card.title}</h3>

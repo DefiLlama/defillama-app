@@ -54,7 +54,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 
 export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const { protocol, protocolName, chartType } = config
-	const { timePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboard()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -97,20 +97,20 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			if (!hasDateField) return data
 
 			const points: [number, number][] = data.map((el) => [el.date, 1])
-			const filtered = filterDataByTimePeriod(points, timePeriod)
+			const filtered = filterDataByTimePeriod(points, timePeriod, customTimePeriod)
 			const filteredTimestamps = new Set(filtered.map(([ts]) => ts))
 			return data.filter((el) => filteredTimestamps.has(el.date))
 		}
 
 		const filterTupleArray = (data: [number, number][] | undefined) => {
 			if (!data) return data
-			return filterDataByTimePeriod(data, timePeriod)
+			return filterDataByTimePeriod(data, timePeriod, customTimePeriod)
 		}
 
 		const filterStringDateTuples = (data: [string, number][] | undefined) => {
 			if (!data || data.length === 0) return data
 			const asNumbers: [number, number][] = data.map(([d, v]) => [Number(d), v])
-			const filtered = filterDataByTimePeriod(asNumbers, timePeriod)
+			const filtered = filterDataByTimePeriod(asNumbers, timePeriod, customTimePeriod)
 			return filtered.map(([d, v]): [string, number] => [String(d), v])
 		}
 
@@ -122,7 +122,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			usdInflows: filterStringDateTuples(usdInflows as [string, number][] | undefined),
 			tokenInflows: filterTimeSeries(tokenInflows ?? [])
 		}
-	}, [basicTvlData, chainsSplit, tokenBreakdownUSD, tokenBreakdown, usdInflows, tokenInflows, timePeriod])
+	}, [basicTvlData, chainsSplit, tokenBreakdownUSD, tokenBreakdown, usdInflows, tokenInflows, timePeriod, customTimePeriod])
 
 	const handleCsvExport = useCallback(() => {
 		let rows: (string | number)[][] = []

@@ -171,6 +171,21 @@ export interface AdvancedTvlChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export type BorrowedChartType =
+	| 'chainsBorrowed'
+	| 'tokenBorrowedUsd'
+	| 'tokensBorrowedPie'
+	| 'tokenBorrowedRaw'
+
+export interface BorrowedChartConfig {
+	id: string
+	kind: 'advanced-borrowed'
+	protocol: string
+	protocolName: string
+	chartType: BorrowedChartType
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -184,6 +199,7 @@ export type DashboardItemConfig =
 	| StablecoinsChartConfig
 	| StablecoinAssetChartConfig
 	| AdvancedTvlChartConfig
+	| BorrowedChartConfig
 	| UnifiedTableConfig
 
 export interface ChartConfig {
