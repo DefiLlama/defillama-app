@@ -8,7 +8,7 @@ interface SubscriptionUpgradeProps {
 export const SubscriptionUpgrade = ({ onSubscribe, loading = null }: SubscriptionUpgradeProps) => {
 	const handleSubscribe = (paymentMethod: 'stripe' | 'llamapay') => {
 		onSubscribe(paymentMethod, (checkoutUrl) => {
-			window.open(checkoutUrl, '_blank')
+			window.location.href = checkoutUrl
 		})
 	}
 

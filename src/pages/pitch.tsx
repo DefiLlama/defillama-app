@@ -186,7 +186,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 				body: JSON.stringify({ ...projectInfo, filters: filtersData })
 			})
 			const data = await response.json()
-			window.open(data.link, '_blank')
+			window.location.href = data.link
 			setPaymentLink(data.link)
 		} catch (error) {
 			console.log('Error creating payment:', error)
