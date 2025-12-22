@@ -169,6 +169,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			}
 		}
 
+		console.log(adaptedChart)
+
 		const hasData =
 			adaptedChart.chartType === 'multi-series'
 				? (adaptedChart.props as any).series?.length > 0
