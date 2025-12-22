@@ -398,8 +398,8 @@ export function useDefaults({
 				fontWeight: 400,
 				color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 			},
-			top: !hideLegend && isSmall ? 30 : 0,
-			right: !hideLegend && isSmall ? null : 20
+			top: !hideLegend && isSmall && !title ? 30 : 0,
+			right: !hideLegend && isSmall && !title ? null : 20
 		}
 
 		const dataZoom = [

@@ -105,7 +105,7 @@ export default function MultiSeriesChart({
 				return serieConfig
 			}) || []
 		)
-	}, [series, isThemeDark])
+	}, [series, isThemeDark, xAxisType])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
@@ -256,7 +256,8 @@ export default function MultiSeriesChart({
 		alwaysShowTooltip,
 		series,
 		id,
-		updateChartInstance
+		updateChartInstance,
+		showAggregateInTooltip
 	])
 
 	useEffect(() => {
