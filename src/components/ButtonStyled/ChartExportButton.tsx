@@ -1,4 +1,4 @@
-import { memo, Suspense, useState } from 'react'
+import { lazy, memo, Suspense, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { LegendComponent } from 'echarts/components'
@@ -6,11 +6,14 @@ import * as echarts from 'echarts/core'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { downloadDataURL } from '~/utils'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 const IMAGE_EXPORT_WIDTH = 1280
 const approximateTextWidth = (text: string, fontSize: number) => {
@@ -42,7 +45,9 @@ export const ChartExportButton = memo(function ChartExportButton({
 }: ChartExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const router = useRouter()
 	const isClient = useIsClient()
 
@@ -354,9 +359,11 @@ export const ChartExportButton = memo(function ChartExportButton({
 				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
 				<span>{smol ? '.png' : 'Image'}</span>
 			</button>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</>
 	)
 })

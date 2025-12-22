@@ -51,7 +51,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
 	const isLoading = loaders.userLoading || loading || staticLoading ? true : false
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const isClient = useIsClient()
 	const router = useRouter()
 
@@ -96,11 +96,6 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 							}
 						}
 					} else if (!isLoading) {
-						// mount modal lazily to avoid rendering WalletProvider/RainbowKit
-						// wrappers next to every CSV button by default
-						if (!shouldRenderModal) {
-							setShouldRenderModal(true)
-						}
 						subscribeModalStore.show()
 					}
 				}}

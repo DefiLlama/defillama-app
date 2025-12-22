@@ -814,3 +814,53 @@
 .dark .llamaai-glow-text:hover {
 	text-shadow: 0px 0px 30px rgba(253, 224, 169, 0.8);
 }
+
+.prose.llamaai-prose p,
+.prose.llamaai-prose blockquote,
+.prose.llamaai-prose h1,
+.prose.llamaai-prose h2,
+.prose.llamaai-prose h3,
+.prose.llamaai-prose h4,
+.prose.llamaai-prose h5,
+.prose.llamaai-prose h6,
+.prose.llamaai-prose img,
+.prose.llamaai-prose picture,
+.prose.llamaai-prose video,
+.prose.llamaai-prose pre,
+.prose.llamaai-prose ol,
+.prose.llamaai-prose ul,
+.prose.llamaai-prose li,
+.prose.llamaai-prose dl,
+.prose.llamaai-prose dt,
+.prose.llamaai-prose dd,
+.prose.llamaai-prose hr,
+.prose.llamaai-prose figure,
+.prose.llamaai-prose figcaption,
+.prose.llamaai-prose table,
+.prose.llamaai-prose [class~='lead'] {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.citation-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 4px;
+	margin: 0 1px;
+	font-size: 11px;
+	font-weight: 500;
+	color: #1f67d2;
+	background-color: rgba(31, 103, 210, 0.08);
+	border: 1px solid rgba(31, 103, 210, 0.2);
+	border-radius: 4px;
+	text-decoration: none;
+	transition: all 0.2s;
+	cursor: pointer;
+}
+.citation-badge:hover {
+	background-color: rgba(31, 103, 210, 0.15);
+	border-color: rgba(31, 103, 210, 0.35);
+}

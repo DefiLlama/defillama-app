@@ -169,8 +169,6 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			}
 		}
 
-		console.log(adaptedChart)
-
 		const hasData =
 			adaptedChart.chartType === 'multi-series'
 				? (adaptedChart.props as any).series?.length > 0
@@ -347,7 +345,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		}
 
 		return (
-			<div className="flex flex-col" data-chart-id={config.id}>
+			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
 				{config.displayOptions && !['scatter'].includes(adaptedChart.chartType) && (
 					<ChartControls
 						displayOptions={config.displayOptions}

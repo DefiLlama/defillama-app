@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -14,7 +14,8 @@ const SubscribeProModal = lazy(() =>
 export const FullOldViewButton = () => {
 	const { createDashboardWithDataset, isLoading } = useDashboardCreation()
 	const { loaders, isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const isClient = useIsClient()
 
 	const handleClick = () => {
@@ -53,9 +54,11 @@ export const FullOldViewButton = () => {
 				{isClient && isLoading ? <LoadingSpinner size={14} /> : <Icon name="plus" height={14} width={14} />}
 				<span>Open in Dashboard</span>
 			</Tooltip>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

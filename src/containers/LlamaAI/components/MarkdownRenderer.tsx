@@ -78,7 +78,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 				)}
 			</div>
 			<div ref={tableRef} className="overflow-x-auto">
-				<table className="m-0! table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
+				<table className="table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
 					{children}
 				</table>
 			</div>
@@ -100,7 +100,7 @@ function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps)
 		return (
 			<a
 				href={entityUrl}
-				className="relative -bottom-0.5 inline-flex items-center gap-1 text-(--link-text) *:m-0! hover:underline"
+				className="relative -bottom-0.5 inline-flex items-center gap-1 text-(--link-text) hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
 				{...props}
@@ -250,37 +250,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	)
 
 	return (
-		<div className="prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal">
-			<style jsx>{`
-				:global(.citation-badge) {
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
-					min-width: 18px;
-					height: 18px;
-					padding: 0 4px;
-					margin: 0 1px;
-					font-size: 11px;
-					font-weight: 500;
-					color: #1f67d2;
-					background-color: rgba(31, 103, 210, 0.08);
-					border: 1px solid rgba(31, 103, 210, 0.2);
-					border-radius: 4px;
-					text-decoration: none;
-					transition: all 0.2s;
-					cursor: pointer;
-				}
-				:global(.citation-badge:hover) {
-					background-color: rgba(31, 103, 210, 0.15);
-					border-color: rgba(31, 103, 210, 0.35);
-				}
-				:global(.prose *) {
-					margin: 0;
-				}
-				:global(.prose :is(h1, h2, h3, h4, h5, h6) a) {
-					bottom: 0 !important;
-				}
-			`}</style>
+		<div className="prose llamaai-prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal">
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {
@@ -323,7 +293,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 				: renderMarkdownSection(processedData.content, 'content')}
 			{citations && citations.length > 0 && (
 				<details className="flex flex-col text-sm">
-					<summary className="m-0! mr-auto! flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+					<summary className="mr-auto flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="14"
