@@ -11,7 +11,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
@@ -347,8 +347,8 @@ const tvlColumn = (isRWA: boolean): Column => ({
 const mcapTvlColumn: Column = {
 	id: 'mcap/tvl',
 	header: 'Mcap/TVL',
-	accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? (protocol.mcap / protocol.tvl).toFixed(2) : null),
-	cell: (info) => <>{info.getValue() != null ? (info.getValue() as number) : null}</>,
+	accessorFn: (protocol) => (protocol.mcap && protocol.tvl ? formatNum(protocol.mcap / protocol.tvl) : null),
+	cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
 	sortUndefined: 'last',
 	meta: {
 		align: 'end',
