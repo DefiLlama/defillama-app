@@ -1136,12 +1136,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								<div className="flex min-h-11 lg:hidden" />
 							</>
 						) : (
-							<ChatControls
-								handleSidebarToggle={handleSidebarToggle}
-								handleNewChat={handleNewChat}
-								sessionId={sessionId}
-								messages={messages}
-							/>
+							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
 						)}
 					</>
 				)}
@@ -1727,7 +1722,7 @@ const PromptInput = memo(function PromptInput({
 	return (
 		<>
 			<form
-				className="relative w-full"
+				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 focus-within:border-(--old-blue) dark:border-[#222324]"
 				onSubmit={(e) => {
 					e.preventDefault()
 					trackSubmit()
@@ -1738,47 +1733,45 @@ const PromptInput = memo(function PromptInput({
 					handleSubmit(promptValue, finalEntities)
 				}}
 			>
-				<div className="overflow-hidden">
-					<div className="relative w-full rounded-lg border border-[#e6e6e6] bg-(--app-bg) focus-within:border-(--old-blue) dark:border-[#222324]">
-						<Ariakit.Combobox
-							store={combobox}
-							autoSelect
-							value={value}
-							// We'll overwrite how the combobox popover is shown, so we disable
-							// the default behaviors.
-							showOnClick={false}
-							showOnChange={false}
-							showOnKeyPress={false}
-							// To the combobox state, we'll only set the value after the trigger
-							// character (the search value), so we disable the default behavior.
-							setValueOnChange={false}
-							render={
-								<textarea
-									ref={promptInputRef}
-									rows={1}
-									maxLength={2000}
-									placeholder={finalPlaceholder}
-									// We need to re-calculate the position of the combobox popover
-									// when the textarea contents are scrolled, and sync highlightRef scroll.
-									onScroll={handleScroll}
-									// Hide the combobox popover whenever the selection changes.
-									onPointerDown={combobox.hide}
-									onChange={onChange}
-									onKeyDown={onKeyDown}
-									name="prompt"
-									className={`relative z-[1] block min-h-[48px] w-full resize-none bg-transparent p-4 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:pr-8 max-sm:text-base sm:min-h-[72px] dark:caret-white placeholder:dark:text-[#919296] ${showResearchButton ? 'pb-10' : ''}`}
-									autoCorrect="off"
-									autoComplete="off"
-									spellCheck="false"
-								/>
-							}
-							disabled={isPending && !isStreaming}
-						/>
-						<div
-							className={`highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 overflow-hidden p-4 leading-normal break-words whitespace-pre-wrap max-sm:pr-8 max-sm:text-base ${showResearchButton ? 'pb-10' : ''}`}
-							ref={highlightRef}
-						/>
-					</div>
+				<div className="relative w-full">
+					<Ariakit.Combobox
+						store={combobox}
+						autoSelect
+						value={value}
+						// We'll overwrite how the combobox popover is shown, so we disable
+						// the default behaviors.
+						showOnClick={false}
+						showOnChange={false}
+						showOnKeyPress={false}
+						// To the combobox state, we'll only set the value after the trigger
+						// character (the search value), so we disable the default behavior.
+						setValueOnChange={false}
+						render={
+							<textarea
+								ref={promptInputRef}
+								rows={1}
+								maxLength={2000}
+								placeholder={finalPlaceholder}
+								// We need to re-calculate the position of the combobox popover
+								// when the textarea contents are scrolled, and sync highlightRef scroll.
+								onScroll={handleScroll}
+								// Hide the combobox popover whenever the selection changes.
+								onPointerDown={combobox.hide}
+								onChange={onChange}
+								onKeyDown={onKeyDown}
+								name="prompt"
+								className="thin-scrollbar relative z-[1] block min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
+								autoCorrect="off"
+								autoComplete="off"
+								spellCheck="false"
+							/>
+						}
+						disabled={isPending && !isStreaming}
+					/>
+					<div
+						className="highlighted-text thin-scrollbar pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal break-words whitespace-pre-wrap max-sm:text-base"
+						ref={highlightRef}
+					/>
 				</div>
 				{hasMatches && (
 					<Ariakit.ComboboxPopover
@@ -1819,39 +1812,44 @@ const PromptInput = memo(function PromptInput({
 						))}
 					</Ariakit.ComboboxPopover>
 				)}
-				{showResearchButton && (
-					<button
-						type="button"
-						onClick={onResearchModeToggle}
-						data-umami-event="llamaai-research-mode-toggle"
-						className={`absolute bottom-2 left-2 z-10 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-							isResearchMode ? 'bg-(--old-blue) text-white' : 'bg-(--bg3) text-(--text2) hover:bg-(--old-blue)/12'
-						}`}
-					>
-						<Icon name="search" height={12} width={12} />
-						<span>Research</span>
-					</button>
-				)}
-				{isStreaming ? (
-					<Tooltip
-						content="Stop"
-						render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-						className="group absolute right-2 bottom-2 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
-					>
-						<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
-						<span className="sr-only">Stop</span>
-					</Tooltip>
-				) : (
-					<button
-						type="submit"
-						data-umami-event="llamaai-prompt-submit"
-						className="absolute right-2 bottom-2 z-10 flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
-						disabled={isPending || isStreaming}
-					>
-						<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-						<span className="sr-only">Submit prompt</span>
-					</button>
-				)}
+				<div className="flex flex-wrap items-center justify-between gap-4 p-0">
+					{showResearchButton && (
+						<button
+							type="button"
+							onClick={onResearchModeToggle}
+							data-umami-event="llamaai-research-mode-toggle"
+							className={`flex min-h-7 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors ${
+								isResearchMode
+									? 'border-(--old-blue) bg-(--old-blue) text-white'
+									: 'border-[#1853A8] text-[#1853A8] hover:bg-(--old-blue)/10 dark:border-(--old-blue) dark:text-[#78A4E4]'
+							}`}
+						>
+							<Icon name="search" height={12} width={12} />
+							<span>Research</span>
+							{isResearchMode ? <Icon name="x" height={12} width={12} /> : null}
+						</button>
+					)}
+					{isStreaming ? (
+						<Tooltip
+							content="Stop"
+							render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
+							className="group flex h-7 w-7 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+						>
+							<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
+							<span className="sr-only">Stop</span>
+						</Tooltip>
+					) : (
+						<button
+							type="submit"
+							data-umami-event="llamaai-prompt-submit"
+							className="flex h-7 w-7 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+							disabled={isPending || isStreaming}
+						>
+							<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+							<span className="sr-only">Submit prompt</span>
+						</button>
+					)}
+				</div>
 			</form>
 		</>
 	)
@@ -2510,21 +2508,11 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat,
-	sessionId,
-	messages
+	handleNewChat
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
-	sessionId: string | null
-	messages: any[]
 }) {
-	const allCharts = useMemo(() => {
-		return messages
-			.filter((m) => m.role === 'assistant' && m.charts?.length > 0)
-			.flatMap((m) => m.charts.map((c: any) => ({ id: c.id, title: c.title })))
-	}, [messages])
-
 	return (
 		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
 			<Tooltip
@@ -2581,6 +2569,7 @@ function highlightWord(text: string, words: string[]) {
 function syncHighlightScroll(promptInputRef, highlightRef) {
 	if (promptInputRef?.current && highlightRef?.current) {
 		highlightRef.current.scrollTop = promptInputRef.current.scrollTop
+		highlightRef.current.scrollLeft = promptInputRef.current.scrollLeft
 	}
 }
 
