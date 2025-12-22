@@ -1,4 +1,4 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -508,6 +508,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				currentSessionId = createFakeSession()
 				newlyCreatedSessionsRef.current.add(currentSessionId)
 				setSessionId(currentSessionId)
+				sessionIdRef.current = currentSessionId
 			}
 
 			if (abortControllerRef.current) {
@@ -707,30 +708,33 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	})
 
 	const handleStopRequest = useCallback(async () => {
-		if (!sessionId || !isStreaming) return
+		if (!isStreaming) return
 
+		const currentSessionId = sessionIdRef.current
 		const finalContent = streamingContentRef.current.getContent()
 		setIsStreaming(false)
 
-		try {
-			const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					sessionId: sessionId
+		if (currentSessionId) {
+			try {
+				const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({
+						sessionId: currentSessionId
+					})
 				})
-			})
 
-			if (response.ok) {
-				console.log('Successfully stopped streaming session')
-			} else {
-				const errorData = await response.json()
-				console.log('Failed to stop streaming session:', errorData)
+				if (response.ok) {
+					console.log('Successfully stopped streaming session')
+				} else {
+					const errorData = await response.json()
+					console.log('Failed to stop streaming session:', errorData)
+				}
+			} catch (error) {
+				console.log('Error stopping streaming session:', error)
 			}
-		} catch (error) {
-			console.log('Error stopping streaming session:', error)
 		}
 
 		if (abortControllerRef.current) {
@@ -760,10 +764,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setPrompt('')
 			lastInputRef.current = null
 		} else {
-			// No content streamed yet – restore the last submitted input
-			setPrompt(prompt)
+			// No content streamed yet – restore the last submitted input to the text field
 			const lastInput = lastInputRef.current
-			if (lastInput && lastInput.text === prompt) {
+			if (lastInput) {
+				setPrompt(lastInput.text)
 				setRestoreRequest((prev) => ({
 					key: (prev?.key ?? 0) + 1,
 					text: lastInput.text,
@@ -783,7 +787,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			promptInputRef.current?.focus()
 		}, 100)
 	}, [
-		sessionId,
 		isStreaming,
 		streamingSuggestions,
 		streamingCharts,
@@ -1316,7 +1319,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</div>
 											)}
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-218px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-194px)]">
+												<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-214px)]">
 													{prompt && <SentPrompt prompt={prompt} />}
 													<PromptResponse
 														response={
@@ -1821,7 +1824,7 @@ const PromptInput = memo(function PromptInput({
 							className={`flex min-h-7 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors ${
 								isResearchMode
 									? 'border-(--old-blue) bg-(--old-blue) text-white'
-									: 'border-[#1853A8] text-[#1853A8] hover:bg-(--old-blue)/10 dark:border-(--old-blue) dark:text-[#78A4E4]'
+									: 'border-[#1853A8] text-[#1853A8] hover:bg-(--old-blue)/10 dark:border-(--old-blue) dark:text-[#78A4E4] dark:hover:bg-(--old-blue)/30'
 							}`}
 						>
 							<Icon name="search" height={12} width={12} />
