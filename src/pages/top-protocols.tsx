@@ -15,12 +15,12 @@ import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
+import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
-import { descriptions } from './categories'
 
 const excludeChains = new Set([...DEFI_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
@@ -151,7 +151,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				},
 				size: 200,
 				meta: {
-					headerHelperText: descriptions[cat as string]
+					headerHelperText: protocolCategories[cat as string]?.description ?? ''
 				}
 			})
 		)

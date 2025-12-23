@@ -12,15 +12,29 @@ import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { protocolCategories } from './constants'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
-const defaultSortingState = {
+const defaultSortingState: Partial<Record<keyof typeof protocolCategories, { id: string; desc: boolean }[]>> = {
 	'Trading App': [{ id: 'revenue_7d', desc: true }],
 	Derivatives: [{ id: 'perp_volume_24h', desc: true }],
 	Interface: [{ id: 'perp_volume_24h', desc: true }],
-	Options: [{ id: 'options_premium_7d', desc: true }]
+	Options: [{ id: 'options_premium_7d', desc: true }],
+	'Telegram Bot': [{ id: 'revenue_7d', desc: true }],
+	'NFT Marketplace': [{ id: 'revenue_7d', desc: true }],
+	SoFi: [{ id: 'revenue_7d', desc: true }],
+	Launchpad: [{ id: 'revenue_7d', desc: true }],
+	'NFT Launchpad': [{ id: 'revenue_7d', desc: true }],
+	Services: [{ id: 'revenue_7d', desc: true }],
+	'Developer Tools': [{ id: 'revenue_7d', desc: true }],
+	Dexs: [{ id: 'dex_volume_7d', desc: true }],
+	'DEX Aggregator': [{ id: 'dex_aggregator_volume_7d', desc: true }],
+	'Prediction Market': [{ id: 'prediction_market_volume_7d', desc: true }],
+	Wallets: [{ id: 'revenue_7d', desc: true }],
+	'Stablecoin Issuer': [{ id: 'revenue_7d', desc: true }],
+	Domains: [{ id: 'revenue_7d', desc: true }]
 }
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {

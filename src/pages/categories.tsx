@@ -9,6 +9,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
@@ -136,7 +137,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				change_1d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevDay),
 				change_7d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevWeek),
 				change_1m: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevMonth),
-				description: descriptions[tag] || ''
+				description: protocolCategories[tag]?.description ?? ''
 			})
 		}
 		finalCategories.push({
@@ -144,7 +145,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			change_1d: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevDay),
 			change_7d: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevWeek),
 			change_1m: getPercentChange(categories[cat].tvl, categories[cat].tvlPrevMonth),
-			description: descriptions[cat] || '',
+			description: protocolCategories[cat]?.description ?? '',
 			...(subRows.length > 0 ? { subRows } : {})
 		})
 	}
@@ -196,133 +197,6 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
-
-export const descriptions = {
-	Dexs: 'Protocols where you can swap/trade cryptocurrency',
-	Yield: 'Protocols that pay you a reward for your staking/LP on their platform',
-	Lending: 'Protocols that allow users to borrow and lend assets',
-	'Cross Chain Bridge':
-		'Protocols that transfer assets between different blockchains through pooled liquidity on each network, instead of relying on mint/burn mechanisms',
-	Staking: 'Protocols that allow you to stake assets in exchange of a reward',
-	Services: 'Protocols that provide a service to the user',
-	'Yield Aggregator': 'Protocols that aggregated yield from diverse protocols',
-	Minting: 'Protocols NFT minting Related (in work)',
-	Assets: '(will be removed)',
-	Derivatives: 'Protocols for betting with leverage',
-	Payments: 'Protocols that offer the ability to pay/send/receive cryptocurrency',
-	Privacy: 'Protocols that have the intention of hiding information about transactions',
-	Insurance: 'Protocols that are designed to provide monetary protections',
-	Indexes: 'Protocols that have a way to track/created the performance of a group of related assets',
-	Synthetics: 'Protocol that created a tokenized derivative that mimics the value of another asset.',
-	CDP: 'Protocols that mint its own stablecoin using collateralized lending',
-	Bridge: 'Protocols that bridge tokens from one network to another',
-	'Reserve Currency': 'Protocols that use a reserve of valuable assets to back its native token. Includes OHM forks',
-	Options: 'Protocols that give you the right to buy an asset at a fixed price',
-	Launchpad: 'Protocols that launch new projects and coins',
-	Gaming: 'Protocols that have gaming components',
-	'Prediction Market': 'Protocols that allow you to wager/bet/buy in future results',
-	'Algo-Stables': 'Protocols that provide algorithmic coins to stablecoins',
-	'NFT Marketplace': 'Protocols where users can buy/sell/rent NFTs',
-	'NFT Lending': 'Protocols that allow you to collateralize your NFT for a loan',
-	RWA: 'Protocols that involve Real World Assets, such as house tokenization',
-	'RWA Lending':
-		'Protocols that bridge traditional finance and blockchain ecosystems by tokenizing real-world assets for use as collateral or credit assessment, enabling decentralized lending and borrowing opportunities.',
-	Farm: 'Protocols that allow users to lock money in exchange for a protocol token',
-	'Liquid Staking':
-		'Protocols that enable you to earn staking rewards on your tokens while also providing a tradeable and liquid receipt for your staked position',
-	Oracle: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (on-chain)',
-	'Leveraged Farming': 'Protocols that allow you to leverage yield farm with borrowed money',
-	'Options Vault': 'Protocols that allow you to deposit collateral into an options strategy',
-	'Uncollateralized Lending':
-		'Protocol that allows you to lend against known parties that can borrow without collaterall',
-	'Exotic Options': 'Protocols that provide option vaults while also adding borrowing on top',
-	'Liquidity manager': 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs',
-	'Staking Pool': `Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects`,
-	'Partially Algorithmic Stablecoin': `Coins pegged to USD through decentralized mechanisms, but uses an algorithmic mechanism to keep it stable`,
-	SoFi: 'Social Finance Networks',
-	'DEX Aggregator': `A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage`,
-	Restaking: 'Protocols that allow you to stake the same ETH natively and in others protocols',
-	'Liquid Restaking': 'Protocols that create a liquid token for restaking',
-	Wallets: 'Protocols where you have a form of digital storage to secure access to your crypto.',
-	NftFi: 'NFT leverage protocols',
-	'Telegram Bot': 'Trading bots for Telegram users',
-	Ponzi: 'Farms promising high rates of return, where the money from new investors is used to pay earlier investors',
-	'Basis Trading': `Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets`,
-	MEV: 'MEV Layer',
-	CeDeFi: 'Projects that incorporate elements of centralization within their product strategies',
-	'CDP Manager': 'Protocols that manage CDPs',
-	'Governance Incentives': `Protocols that facilitate governance participation by offering incentives or rewards for token holders' voting power`,
-	'Security Extension': 'A browser extension that protects Web3 users from malicious activities and exploits',
-	'AI Agents':
-		'Smart programs that use AI to handle tasks and make crypto interactions easier for blockchain platforms',
-	'Treasury Manager':
-		'Protocols that help organizations manage and optimize their treasury assets and funds using automated strategies',
-	'OTC Marketplace':
-		'A decentralized platform where users can trade assets directly peer-to-peer, using secure smart contracts',
-	'Yield Lottery': 'DeFi protocol where users deposit funds for a chance to win the pooled yield as prizes',
-	'Token Locker':
-		'Protocols that lock digital assets like fungible tokens, NFTs, and LP tokens, ensuring restricted access for a set duration',
-	'Bug Bounty': 'Protocols that incentivize security researchers to find and report vulnerabilities in smart contracts',
-	'DCA Tools':
-		'Protocols that automate dollar-cost averaging, allowing users to make regular crypto investments automatically',
-	'Onchain Capital Allocator':
-		'Protocols where token pools are actively controlled and managed by a designated operator or governance',
-	'Developer Tools':
-		'Platforms and services providing APIs, integrations, or other resources to facilitate the development and management of blockchain applications',
-	'Stablecoin Issuer':
-		'Company that creates and manages stablecoins designed to maintain a stable value, typically pegged to a fiat like the US dollar',
-	'Coins Tracker':
-		'A tool that aggregates and displays real-time token prices, trading volumes, and market trends from decentralized exchanges',
-	Domains: 'Decentralized naming services that map human-readable names to blockchain addresses',
-	'NFT Launchpad': 'Platforms that enable creators to mint, manage, and launch NFT collections',
-	'Trading App':
-		'Apps that simplify trading tokens like memecoins with user-friendly interfaces, real-time updates, self-custodial tools, and direct fiat on-ramps for casual traders',
-	Foundation:
-		'A foundation supporting blockchain ecosystems by funding research, development, and community initiatives',
-	Liquidations: 'Protocols that enable the purchase of liquidated collateral from lending platforms or CDP protocols',
-	'Bridge Aggregator':
-		'Protocols that consolidate multiple bridging solutions, allowing users to transfer assets across different blockchains by finding the most efficient routes',
-	'Restaked BTC':
-		'Protocols that enable users to stake their Bitcoin (BTC) natively, receiving a representative receipt token in return',
-	'Decentralized BTC':
-		'Tokens that represent Bitcoin in a decentralized manner, backed and issued through trustless mechanisms such as smart contracts, without reliance on centralized custodians.',
-	'Anchor BTC':
-		'Tokens indirectly tied to Bitcoin, backed by assets or instruments that are themselves backed by Bitcoin, offering exposure with additional flexibility but not a direct 1:1 representation of BTC.',
-	'Portfolio Tracker': 'Tools that monitor token balances and performance',
-	'Liquidity Automation': 'Automatically manages and adjusts liquidity in DeFi protocols through smart contracts',
-	'Charity Fundraising': 'Projects that raise capital for DeFi projects through grants, or community contributions',
-	'Volume Boosting':
-		'Protocols that artificially increase trading volume and liquidity for tokens, boosting market perception',
-	DOR: 'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets',
-	'Collateral Management': 'Protocols that manage or leverage onchain collateral for financial applications',
-	Meme: 'Tokens inspired by internet culture, trends, or public figures. Typically community-driven and speculative in nature.',
-	'Private Investment Platform':
-		'Protocols that coordinate private, gated investment opportunities onchain, typically for startups or early-stage projects, often led by curated investor groups',
-	'Risk Curators':
-		'Projects that analyze DeFi risks and help users choose strategies across lending, trading, or staking systems to improve safety and returns.',
-	'DAO Service Provider': 'Protocols that provide services to DAOs',
-	'Staking Rental': 'Protocols that facilitate the borrowing or renting of staking rights',
-	'Canonical Bridge': 'The official bridge designated by a blockchain for transferring its assets across networks',
-	Interface: 'Projects that provide a user interface to interact with external protocols',
-	'Video Infrastructure':
-		'Protocols that provide decentralized tools and infrastructure for video streaming, transcoding, recording, playback, or media processing',
-	DePIN:
-		'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance',
-	'Dual-Token Stablecoin':
-		'Protocols that maintain a USD peg through a dual-token system where one token serves as the stablecoin and the other absorbs volatility, using overcollateralized reserves and algorithmic mechanisms to adjust supply and maintain stability',
-	'Physical TCG': 'Protocols that allow you to trade physical trading cards',
-	'Mining Pools': 'Protocols that coordinate user resources into shared mining pools',
-	'NFT Automated Strategies':
-		'Protocols that deploy automated trading and capital allocation strategies around NFTs, such as floor buying, relisting, and supply-burn loops',
-	'Luck Games': 'Protocols that allow you to play games of chance, such as dice, or other games of chance',
-	've-Incentive Automator':
-		'Protocols that automate volume or tax-based flows into vote-escrowed (ve) positions, locks, or burn mechanisms to steer incentives and accrue value',
-	'Decentralized AI':
-		'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence on-chain',
-	'Identity & Reputation':
-		'Protocols that provide decentralized identity, credentialing, attestations, or reputation systems used by users and applications to verify trust, eligibility, or behavior on-chain',
-	'Gamified Mining': 'Protocols that use probabilistic mining and participant stakes to issue and redistribute native tokens'
-}
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
 

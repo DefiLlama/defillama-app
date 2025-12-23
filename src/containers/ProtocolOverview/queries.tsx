@@ -108,13 +108,18 @@ export const getProtocolMetrics = ({
 
 	let chainsWithTvl = 0
 	for (const chain in protocolData.chainTvls ?? {}) {
-		if (protocolData.chainTvls[chain].tvl?.length > 0) {
+		const goodChart =
+			protocolData.chainTvls[chain].tvl &&
+			protocolData.chainTvls[chain].tvl.length > 0 &&
+			protocolData.chainTvls[chain].tvl.every((item) => item.totalLiquidityUSD !== 0)
+
+		if (goodChart) {
 			tvlChartExist = true
 		}
 		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS.includes(chain)) {
 			continue
 		}
-		if (protocolData.chainTvls[chain].tvl?.length > 0) {
+		if (goodChart) {
 			chainsWithTvl++
 		}
 		if (chainsWithTvl > 1) {
@@ -624,33 +629,25 @@ export const getProtocolOverviewPageData = async ({
 			: null) ?? null
 
 	const tvlChart = {}
-	const extraTvlCharts = Object.fromEntries(DEFI_SETTINGS_KEYS.map((key) => [key, {}]))
+	const extraTvlCharts = {}
 	if (metadata.tvl) {
-		for (const chain in protocolData.chainTvls ?? {}) {
-			if (!protocolData.chainTvls[chain].tvl?.length) continue
-			if (chain.includes('-') || chain === 'offers') continue
-			if (DEFI_SETTINGS_KEYS.includes(chain)) {
-				for (const item of protocolData.chainTvls[chain].tvl) {
-					extraTvlCharts[chain][item.date] = (extraTvlCharts[chain][item.date] ?? 0) + item.totalLiquidityUSD
+		for (const chainOrTvlKey in protocolData.chainTvls ?? {}) {
+			if (chainOrTvlKey.includes('-') || chainOrTvlKey === 'offers') continue
+			if (!protocolData.chainTvls[chainOrTvlKey].tvl?.length) continue
+
+			if (DEFI_SETTINGS_KEYS.includes(chainOrTvlKey)) {
+				if (!extraTvlCharts[chainOrTvlKey]) {
+					extraTvlCharts[chainOrTvlKey] = {}
+				}
+				for (const item of protocolData.chainTvls[chainOrTvlKey].tvl) {
+					extraTvlCharts[chainOrTvlKey][item.date] =
+						(extraTvlCharts[chainOrTvlKey][item.date] ?? 0) + item.totalLiquidityUSD
 				}
 			} else {
-				for (const item of protocolData.chainTvls[chain].tvl) {
+				for (const item of protocolData.chainTvls[chainOrTvlKey].tvl) {
 					tvlChart[item.date] = (tvlChart[item.date] ?? 0) + item.totalLiquidityUSD
 				}
 			}
-		}
-	}
-
-	for (const type in extraTvlCharts) {
-		let hasKeys = false
-
-		for (const key in extraTvlCharts[type]) {
-			hasKeys = true
-			break
-		}
-
-		if (!hasKeys) {
-			delete extraTvlCharts[type]
 		}
 	}
 
