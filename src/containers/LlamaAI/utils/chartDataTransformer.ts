@@ -4,9 +4,8 @@ export class ChartDataTransformer {
 		interval: 'day' | 'week' | 'month' | 'quarter',
 		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'
 	): any[] {
-		const isFlowMetric = chartType === 'bar'
-
 		return series.map((s) => {
+			const isFlowMetric = s.metricClass === 'flow'
 			const grouped = new Map<number, number[]>()
 
 			s.data.forEach(([timestamp, value]: [number, number]) => {

@@ -422,7 +422,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			type: 'line' | 'bar'
 			name: string
 			color: string
-			metricType?: string
+			metricClass: 'flow' | 'stock'
 		}> = []
 
 		for (let seriesIndex = 0; seriesIndex < config.series.length; seriesIndex++) {
@@ -471,7 +471,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				type: chartType,
 				name: seriesConfig.name,
 				color,
-				metricType: seriesConfig.yAxisId || 'default'
+				metricClass: seriesConfig.metricClass
 			})
 		}
 
