@@ -320,7 +320,8 @@ export const descriptions = {
 	'Decentralized AI':
 		'Protocols that provide decentralized machine-learning or AI inference networks, allowing models or agents to contribute, evaluate, and serve intelligence on-chain',
 	'Identity & Reputation':
-		'Protocols that provide decentralized identity, credentialing, attestations, or reputation systems used by users and applications to verify trust, eligibility, or behavior on-chain'
+		'Protocols that provide decentralized identity, credentialing, attestations, or reputation systems used by users and applications to verify trust, eligibility, or behavior on-chain',
+	'Gamified Mining': 'Protocols that use probabilistic mining and participant stakes to issue and redistribute native tokens'
 }
 
 const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
