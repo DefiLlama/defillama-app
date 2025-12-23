@@ -240,7 +240,7 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 	}
 
 	if (editItem.kind === 'unified-table') {
-		return { ...base, selectedMainTab: 'unified-table' }
+		return { ...base, selectedMainTab: 'table', selectedTableType: 'protocols' }
 	}
 
 	if (editItem.kind === 'text') {

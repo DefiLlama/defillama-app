@@ -12,13 +12,12 @@ export const TabNavigation = memo(function TabNavigation({ selectedMainTab, edit
 	const allTabs = [
 		{ id: 'charts' as const, label: 'Charts', subtitle: '', mobileLabel: 'Charts' },
 		{ id: 'metric' as const, label: 'Metric', mobileLabel: 'Metric' },
-		{ id: 'table' as const, label: 'Table', subtitle: '(Dataset)', mobileLabel: 'Table' },
-		{ id: 'unified-table' as const, label: 'ProTable', mobileLabel: 'ProTable' },
+		{ id: 'table' as const, label: 'Table', mobileLabel: 'Table' },
 		{ id: 'text' as const, label: 'Text', subtitle: '(Markdown)', mobileLabel: 'Text' }
 	]
 
 	return (
-		<div className="grid grid-cols-5 gap-0">
+		<div className="grid grid-cols-4 gap-0">
 			{allTabs.map((tab) => (
 				<button
 					key={tab.id}

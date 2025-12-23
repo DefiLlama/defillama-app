@@ -3,7 +3,6 @@ import { ChartTab } from './ChartTab'
 import { MetricTab } from './MetricTab'
 import { ModalHeader } from './ModalHeader'
 import { SubmitButton } from './SubmitButton'
-import { TableTab } from './TableTab'
 import { TabNavigation } from './TabNavigation'
 import { TextTab } from './TextTab'
 import { AddChartModalProps, CombinedTableType } from './types'
@@ -160,31 +159,25 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					)}
 
 					{state.selectedMainTab === 'table' && (
-						<TableTab
-							selectedChains={state.selectedChains}
-							chainOptions={computed.chainOptions}
-							protocolsLoading={computed.protocolsLoading}
-							onChainsChange={actions.handleChainsChange}
-							selectedDatasetChain={state.selectedDatasetChain}
-							onDatasetChainChange={actions.handleDatasetChainChange}
-							selectedDatasetTimeframe={state.selectedDatasetTimeframe}
-							onDatasetTimeframeChange={actions.setSelectedDatasetTimeframe}
-							selectedTableType={state.selectedTableType}
-							onTableTypeChange={actions.setSelectedTableType}
-							selectedTokens={state.selectedTokens}
-							onTokensChange={actions.handleTokensChange}
-							includeCex={state.includeCex}
-							onIncludeCexChange={actions.setIncludeCex}
-							legacyTableTypes={legacyTableTypes}
-						/>
-					)}
-
-					{state.selectedMainTab === 'unified-table' && (
 						<UnifiedTableTab
 							onClose={onClose}
 							chainOptions={computed.chainOptions ?? []}
 							editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
 							initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
+							selectedTableType={state.selectedTableType}
+							onTableTypeChange={actions.setSelectedTableType}
+							selectedChains={state.selectedChains}
+							onChainsChange={actions.handleChainsChange}
+							selectedDatasetChain={state.selectedDatasetChain}
+							onDatasetChainChange={actions.handleDatasetChainChange}
+							selectedDatasetTimeframe={state.selectedDatasetTimeframe}
+							onDatasetTimeframeChange={actions.setSelectedDatasetTimeframe}
+							selectedTokens={state.selectedTokens}
+							onTokensChange={actions.handleTokensChange}
+							includeCex={state.includeCex}
+							onIncludeCexChange={actions.setIncludeCex}
+							protocolsLoading={computed.protocolsLoading}
+							legacyTableTypes={legacyTableTypes}
 						/>
 					)}
 
@@ -198,7 +191,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					)}
 				</div>
 
-				{state.selectedMainTab !== 'unified-table' && (
+				{(state.selectedMainTab !== 'table' || state.selectedTableType !== 'protocols') && (
 					<div className="flex-shrink-0">
 						<SubmitButton
 							editItem={editItem}

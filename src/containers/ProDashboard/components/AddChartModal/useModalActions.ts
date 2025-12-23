@@ -325,14 +325,7 @@ export function useModalActions(
 					geckoId: protocol?.geckoId
 				} as ChartConfig
 			} else if (state.selectedMainTab === 'table') {
-				if (state.selectedTableType === 'protocols' && state.selectedChains.length > 0) {
-					newItem = {
-						...editItem,
-						kind: 'table',
-						tableType: 'protocols',
-						chains: state.selectedChains
-					} as ProtocolsTableConfig
-				} else if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
+				if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
 					newItem = {
 						...editItem,
 						kind: 'table',
@@ -637,9 +630,7 @@ export function useModalActions(
 					}
 				}
 			} else if (state.selectedMainTab === 'table') {
-				if (state.selectedTableType === 'protocols' && state.selectedChains.length > 0) {
-					handleAddTable(state.selectedChains, 'protocols')
-				} else if (state.selectedTableType === 'cex') {
+				if (state.selectedTableType === 'cex') {
 					handleAddTable([], 'dataset', 'cex')
 				} else if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
 					handleAddTable([state.selectedDatasetChain], 'dataset', 'stablecoins', state.selectedDatasetChain)

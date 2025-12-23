@@ -12,6 +12,7 @@ import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
 import { getOrderedCustomColumnIds } from '../../UnifiedTable/utils/customColumns'
 import { getActiveFilterChips } from '../../UnifiedTable/utils/filterChips'
+import type { CombinedTableType } from '../types'
 import type { FilterPill } from './components/ActiveFilterPills'
 import { ActiveFilterPills } from './components/ActiveFilterPills'
 import { CollapsibleSection } from './components/CollapsibleSection'
@@ -21,6 +22,7 @@ import { FiltersPanel } from './components/FiltersPanel'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
+import { SimpleTableConfig } from './components/SimpleTableConfig'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
 import { UnifiedTableWizardProvider, useUnifiedTableWizardContext } from './WizardContext'
@@ -31,6 +33,20 @@ interface UnifiedTableTabProps {
 	editItem?: UnifiedTableConfig | null
 	initialFocusSection?: UnifiedTableFocusSection
 	focusedSectionOnly?: 'filters' | 'columns'
+	selectedTableType: CombinedTableType
+	onTableTypeChange: (type: CombinedTableType) => void
+	selectedChains: string[]
+	onChainsChange: (values: string[]) => void
+	selectedDatasetChain: string | null
+	onDatasetChainChange: (value: string | null) => void
+	selectedDatasetTimeframe: string | null
+	onDatasetTimeframeChange: (timeframe: string) => void
+	selectedTokens: string[]
+	onTokensChange: (tokens: string[]) => void
+	includeCex: boolean
+	onIncludeCexChange: (include: boolean) => void
+	protocolsLoading: boolean
+	legacyTableTypes?: CombinedTableType[]
 }
 
 const PROTOCOL_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol']
@@ -59,12 +75,86 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	return count
 }
 
+type TableTypeCardIcon = 'layers' | 'trending-up' | 'credit-card' | 'chain' | 'dollar-sign' | 'pie-chart' | 'flame'
+
+const TABLE_TYPE_CARDS: Array<{
+	value: CombinedTableType
+	label: string
+	description: string
+	icon: TableTypeCardIcon
+	tags: string[]
+}> = [
+	{
+		value: 'protocols',
+		label: 'Protocols',
+		description: 'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
+		icon: 'layers',
+		tags: ['Grouping', 'Chains', 'Categories', 'Custom Columns', '30+ Filters', 'Presets']
+	},
+	{
+		value: 'yields',
+		label: 'Yields',
+		description: 'DeFi yield opportunities with APY, TVL, and IL data',
+		icon: 'trending-up',
+		tags: ['APY', 'TVL', 'IL Risk']
+	},
+	{
+		value: 'cex',
+		label: 'CEX',
+		description: 'Centralized exchange assets, flows, and trading metrics',
+		icon: 'credit-card',
+		tags: ['Assets', 'Flows', 'Volume']
+	},
+	{
+		value: 'chains',
+		label: 'Chains',
+		description: 'Blockchain metrics including TVL, users, volume, and fees',
+		icon: 'chain',
+		tags: ['TVL', 'Users', 'Fees']
+	},
+	{
+		value: 'stablecoins',
+		label: 'Stablecoins',
+		description: 'Stablecoin market caps, price stability, and chains',
+		icon: 'dollar-sign',
+		tags: ['Market Cap', 'Dominance']
+	},
+	{
+		value: 'token-usage',
+		label: 'Token Usage',
+		description: 'Track protocol adoption by token usage',
+		icon: 'pie-chart',
+		tags: ['Adoption', 'Protocols']
+	},
+	{
+		value: 'trending-contracts',
+		label: 'Trending Contracts',
+		description: 'Most active smart contracts by transactions and gas usage',
+		icon: 'flame',
+		tags: ['Transactions', 'Gas']
+	}
+]
+
 const TabContent = memo(function TabContent({
 	onClose,
 	chainOptions,
 	editItem,
 	initialFocusSection,
-	focusedSectionOnly
+	focusedSectionOnly,
+	selectedTableType,
+	onTableTypeChange,
+	selectedChains,
+	onChainsChange,
+	selectedDatasetChain,
+	onDatasetChainChange,
+	selectedDatasetTimeframe,
+	onDatasetTimeframeChange,
+	selectedTokens,
+	onTokensChange,
+	includeCex,
+	onIncludeCexChange,
+	protocolsLoading,
+	legacyTableTypes
 }: UnifiedTableTabProps) {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
 	const {
@@ -83,6 +173,8 @@ const TabContent = memo(function TabContent({
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
 	const isEditing = Boolean(editItem)
+	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
+	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
 
 	const [localOrder, setLocalOrder] = useState<ColumnOrderState>(columnOrder)
 	const [localVisibility, setLocalVisibility] = useState<VisibilityState>({ ...columnVisibility })
@@ -566,9 +658,116 @@ const TabContent = memo(function TabContent({
 		)
 	}
 
+	const handleSelectTableType = (type: CombinedTableType) => {
+		onTableTypeChange(type)
+		setShowTypeSelector(false)
+	}
+
+	if (showTypeSelector) {
+		const heroCard = TABLE_TYPE_CARDS[0]
+		const otherCards = TABLE_TYPE_CARDS.slice(1)
+
+		return (
+			<div className="flex h-full flex-col p-4">
+				<button
+					type="button"
+					onClick={() => handleSelectTableType(heroCard.value)}
+					className="pro-border group relative flex flex-col rounded-xl border p-5 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+				>
+					<div className="mb-3 flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--primary)/10">
+								<Icon name={heroCard.icon} height={22} width={22} className="text-(--primary)" />
+							</div>
+							<h3 className="pro-text1 text-lg font-semibold">{heroCard.label}</h3>
+						</div>
+						<Icon
+							name="arrow-right"
+							height={18}
+							width={18}
+							className="text-(--text-secondary) transition-transform group-hover:translate-x-1 group-hover:text-(--primary)"
+						/>
+					</div>
+					<p className="pro-text2 mb-4 text-sm">{heroCard.description}</p>
+					<div className="flex flex-wrap gap-1.5">
+						{heroCard.tags.map((tag) => (
+							<span
+								key={tag}
+								className="rounded-full bg-(--cards-bg-alt) px-2.5 py-1 text-xs font-medium text-(--text-secondary) transition-colors group-hover:bg-(--primary)/10 group-hover:text-(--primary)"
+							>
+								{tag}
+							</span>
+						))}
+					</div>
+				</button>
+
+				<div className="mt-4">
+					<span className="pro-text2 mb-2.5 block text-xs font-medium tracking-wide uppercase">Other datasets</span>
+					<div className="grid grid-cols-2 gap-2">
+						{otherCards.map((card) => (
+							<button
+								key={card.value}
+								type="button"
+								onClick={() => handleSelectTableType(card.value)}
+								className="pro-border group flex items-start gap-2.5 rounded-lg border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+							>
+								<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
+									<Icon
+										name={card.icon}
+										height={16}
+										width={16}
+										className="text-(--text-secondary) group-hover:text-(--primary)"
+									/>
+								</div>
+								<div className="min-w-0 flex-1">
+									<span className="pro-text1 text-sm font-medium">{card.label}</span>
+									<p className="pro-text2 mt-0.5 line-clamp-1 text-xs">{card.description}</p>
+								</div>
+							</button>
+						))}
+					</div>
+				</div>
+			</div>
+		)
+	}
+
+	if (selectedTableType !== 'protocols') {
+		return (
+			<SimpleTableConfig
+				selectedChains={selectedChains}
+				chainOptions={chainOptions}
+				protocolsLoading={protocolsLoading}
+				onChainsChange={onChainsChange}
+				selectedDatasetChain={selectedDatasetChain}
+				onDatasetChainChange={onDatasetChainChange}
+				selectedDatasetTimeframe={selectedDatasetTimeframe}
+				onDatasetTimeframeChange={onDatasetTimeframeChange}
+				selectedTableType={selectedTableType}
+				onTableTypeChange={onTableTypeChange}
+				selectedTokens={selectedTokens}
+				onTokensChange={onTokensChange}
+				includeCex={includeCex}
+				onIncludeCexChange={onIncludeCexChange}
+				legacyTableTypes={legacyTableTypes}
+				onBackToTypeSelector={() => setShowTypeSelector(true)}
+			/>
+		)
+	}
+
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3"></header>
+			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
+				{!isEditingUnifiedTable && (
+					<button
+						type="button"
+						onClick={() => setShowTypeSelector(true)}
+						className="pro-text2 hover:pro-text1 mb-2 flex items-center gap-1 text-sm transition-colors"
+					>
+						<span>←</span>
+						<span>Back to table type selection</span>
+					</button>
+				)}
+			</header>
 
 			{availableTabs.length > 0 && (
 				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">

@@ -1,12 +1,12 @@
 import { memo, useMemo, useState } from 'react'
-import { getItemIconUrl } from '../../utils'
-import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedMultiSelect } from '../AriakitVirtualizedMultiSelect'
-import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
-import { useTokenSearch } from '../datasets/TokenUsageDataset/useTokenSearch'
-import { CombinedTableType } from './types'
+import { getItemIconUrl } from '../../../../utils'
+import { AriakitSelect } from '../../../AriakitSelect'
+import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
+import { AriakitVirtualizedSelect } from '../../../AriakitVirtualizedSelect'
+import { useTokenSearch } from '../../../datasets/TokenUsageDataset/useTokenSearch'
+import { CombinedTableType } from '../../types'
 
-interface TableTabProps {
+interface SimpleTableConfigProps {
 	selectedChains: string[]
 	chainOptions: Array<{ value: string; label: string }>
 	protocolsLoading: boolean
@@ -22,6 +22,7 @@ interface TableTabProps {
 	includeCex: boolean
 	onIncludeCexChange: (include: boolean) => void
 	legacyTableTypes?: CombinedTableType[]
+	onBackToTypeSelector: () => void
 }
 
 const tableTypeOptions: Array<{
@@ -31,12 +32,6 @@ const tableTypeOptions: Array<{
 	icon: string
 	hidden?: boolean
 }> = [
-	{
-		value: 'protocols',
-		label: 'Protocols',
-		description: 'Protocol TVL rankings and performance metrics',
-		icon: '📊'
-	},
 	{
 		value: 'yields',
 		label: 'Yields',
@@ -89,7 +84,6 @@ const tableTypeOptions: Array<{
 		icon: '📈',
 		hidden: true
 	},
-
 	{
 		value: 'token-usage',
 		label: 'Token Usage',
@@ -139,7 +133,7 @@ const tableTypeOptions: Array<{
 	}
 ]
 
-export const TableTab = memo(function TableTab({
+export const SimpleTableConfig = memo(function SimpleTableConfig({
 	selectedChains,
 	chainOptions,
 	protocolsLoading,
@@ -154,8 +148,9 @@ export const TableTab = memo(function TableTab({
 	onTokensChange,
 	includeCex,
 	onIncludeCexChange,
-	legacyTableTypes = []
-}: TableTabProps) {
+	legacyTableTypes = [],
+	onBackToTypeSelector
+}: SimpleTableConfigProps) {
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 
@@ -220,6 +215,15 @@ export const TableTab = memo(function TableTab({
 
 	return (
 		<div className="flex flex-col gap-4">
+			<button
+				type="button"
+				onClick={onBackToTypeSelector}
+				className="pro-text2 hover:pro-text1 flex items-center gap-1 text-sm transition-colors"
+			>
+				<span>←</span>
+				<span>Back to table type selection</span>
+			</button>
+
 			<AriakitVirtualizedSelect
 				label="Table Type"
 				options={datasetSelectOptions}
@@ -228,17 +232,7 @@ export const TableTab = memo(function TableTab({
 				placeholder="Select table type..."
 			/>
 
-			{selectedTableType === 'protocols' ? (
-				<AriakitVirtualizedMultiSelect
-					label="Select Chains"
-					options={chainOptions}
-					selectedValues={selectedChains}
-					onChange={onChainsChange}
-					isLoading={protocolsLoading}
-					placeholder="Select chains..."
-					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
-				/>
-			) : selectedTableType === 'stablecoins' ? (
+			{selectedTableType === 'stablecoins' ? (
 				<AriakitVirtualizedSelect
 					label="Select Chain"
 					options={chainOptions}

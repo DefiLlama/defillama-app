@@ -101,9 +101,6 @@ export function SubmitButton({
 			selectedChartTab !== 'borrowed' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
-		(selectedMainTab === 'table' &&
-			selectedTableType === 'protocols' &&
-			(!selectedChains || selectedChains.length === 0)) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' && selectedTableType === 'trending-contracts' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' &&

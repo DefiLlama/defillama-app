@@ -92,11 +92,11 @@ export function DiscoverySection({
 				<div
 					ref={scrollContainerRef}
 					onScroll={updateScrollState}
-					className="no-scrollbar flex gap-4 overflow-x-auto pb-2"
+					className="no-scrollbar flex items-stretch gap-4 overflow-x-auto pb-2"
 				>
 					{dashboards.map((dashboard) => (
 						<div key={dashboard.id} className="w-[300px] shrink-0 md:w-[320px]">
-							<DashboardCard dashboard={dashboard} onTagClick={onTagClick} viewMode="grid" />
+							<DashboardCard dashboard={dashboard} onTagClick={onTagClick} viewMode="grid" className="h-full" />
 						</div>
 					))}
 				</div>

@@ -8,7 +8,7 @@ export interface AddChartModalProps {
 	initialUnifiedFocusSection?: UnifiedTableFocusSection
 }
 
-export type MainTabType = 'charts' | 'metric' | 'table' | 'unified-table' | 'text' | 'builder'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
 export type ChartModeType = 'manual' | 'builder'
 export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins' | 'advanced-tvl' | 'borrowed'
 export type ManualChartViewMode = 'cards' | 'form'
