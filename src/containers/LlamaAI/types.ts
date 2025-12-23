@@ -27,6 +27,7 @@ export interface ChartConfiguration {
 		name: string
 		type: 'line' | 'area' | 'bar'
 		yAxisId: string
+		metricClass: 'flow' | 'stock'
 		dataMapping: {
 			xField: string
 			yField: string
