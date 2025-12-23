@@ -69,72 +69,21 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
-		const chartsByStaus = {}
-		for (const pchart in protocolCharts) {
-			const chartKey = protocolCharts[pchart]
-			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
-		}
-
-		const defaultToggledCharts: ProtocolChartsLabels[] = [props.isCEX ? 'Total Assets' : 'TVL', 'Events' as any]
-
-		const toggled = {
-			...chartsByStaus
-		} as Record<(typeof protocolCharts)[keyof typeof protocolCharts], 'true' | 'false'>
-
-		if (!props.metrics.tvl) {
-			if (props.metrics.dexs) {
-				defaultToggledCharts.push('DEX Volume')
-				toggled.dexVolume = queryParams.dexVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.perps) {
-				defaultToggledCharts.push('Perp Volume')
-				toggled.perpVolume = queryParams.perpVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.optionsPremiumVolume || props.metrics.optionsNotionalVolume) {
-				if (props.metrics.optionsPremiumVolume) {
-					defaultToggledCharts.push('Options Premium Volume')
-					toggled.optionsPremiumVolume = queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true'
-				}
-				if (props.metrics.optionsNotionalVolume) {
-					defaultToggledCharts.push('Options Notional Volume')
-					toggled.optionsNotionalVolume = queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
-				}
-			} else if (props.metrics.dexAggregators) {
-				defaultToggledCharts.push('DEX Aggregator Volume')
-				toggled.dexAggregatorVolume = queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.bridgeAggregators) {
-				defaultToggledCharts.push('Bridge Aggregator Volume')
-				toggled.bridgeAggregatorVolume = queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.perpsAggregators) {
-				defaultToggledCharts.push('Perp Aggregator Volume')
-				toggled.perpAggregatorVolume = queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true'
-			} else if (props.metrics.fees) {
-				defaultToggledCharts.push('Fees')
-				toggled.fees = queryParams.fees === 'false' ? 'false' : 'true'
-			} else if (props.metrics.revenue) {
-				defaultToggledCharts.push('Revenue')
-				defaultToggledCharts.push('Holders Revenue')
-				toggled.revenue = queryParams.revenue === 'false' ? 'false' : 'true'
-				toggled.holdersRevenue = queryParams.holdersRevenue === 'false' ? 'false' : 'true'
-			} else if (props.metrics.unlocks) {
-				defaultToggledCharts.push('Unlocks')
-				toggled.unlocks = queryParams.unlocks === 'false' ? 'false' : 'true'
-			} else if (props.metrics.treasury) {
-				defaultToggledCharts.push('Treasury')
-				toggled.treasury = queryParams.treasury === 'false' ? 'false' : 'true'
-			} else {
-				// if (props.metrics.bridge) {
-				// 	 toggled.bridgeVolume = queryParams.bridgeVolume === 'false' ? 'false' : 'true'
-				// }
-			}
+		const chartsByVisibility = {}
+		for (const chartLabel in protocolCharts) {
+			const chartKey = protocolCharts[chartLabel]
+			chartsByVisibility[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
 		}
 
 		const toggledMetrics = {
-			...toggled,
-			...(props.isCEX
-				? { totalAssets: queryParams.totalAssets === 'false' ? 'false' : 'true' }
-				: { tvl: queryParams.tvl === 'false' || !props.metrics.tvl ? 'false' : 'true' }),
-			events: queryParams.events === 'false' ? 'false' : 'true',
+			...chartsByVisibility,
 			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics
+
+		for (const chartLabel of props.defaultToggledCharts) {
+			const chartKey = protocolCharts[chartLabel]
+			toggledMetrics[chartKey] = queryParams[chartKey] === 'false' ? 'false' : 'true'
+		}
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
@@ -149,7 +98,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 					? (queryParams.groupBy as any)
 					: (props.defaultChartView ?? 'daily')
 				: 'daily',
-			defaultToggledCharts
+			defaultToggledCharts: props.defaultToggledCharts
 		}
 	}, [queryParamsString, props])
 
@@ -622,6 +571,8 @@ export const useFetchAndFormatChartData = ({
 		feesSettings?.tokentax &&
 		metrics.tokenTax &&
 		isRouterReady
+			? true
+			: false
 	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]>>({
 		queryKey: ['token-taxes', name, isTokenTaxesEnabled],
 		queryFn: () =>

@@ -267,6 +267,7 @@ export interface IProtocolOverviewPageData {
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 	seoDescription: string
 	seoKeywords: string
+	defaultToggledCharts: ProtocolChartsLabels[]
 }
 
 interface ICredit {

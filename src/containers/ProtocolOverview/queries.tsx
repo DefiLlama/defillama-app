@@ -26,7 +26,8 @@ import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolT
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getAdapterProtocolSummary, IAdapterSummary } from '../DimensionAdapters/queries'
 import { IHack } from '../Hacks/queries'
-import { ProtocolChartsLabels } from './Chart/constants'
+import { protocolCategories } from '../ProtocolsByCategoryOrTag/constants'
+import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
 import {
 	IArticle,
 	IArticlesResponse,
@@ -628,9 +629,10 @@ export const getProtocolOverviewPageData = async ({
 					?.sort((a, b) => a.date - b.date)
 			: null) ?? null
 
+	const protocolMetrics = getProtocolMetrics({ protocolData, metadata })
 	const tvlChart = {}
 	const extraTvlCharts = {}
-	if (metadata.tvl) {
+	if (protocolMetrics.tvl) {
 		for (const chainOrTvlKey in protocolData.chainTvls ?? {}) {
 			if (chainOrTvlKey.includes('-') || chainOrTvlKey === 'offers') continue
 			if (!protocolData.chainTvls[chainOrTvlKey].tvl?.length) continue
@@ -833,6 +835,43 @@ export const getProtocolOverviewPageData = async ({
 	seoDescription += ' and their methodologies'
 	seoKeywords += `, ${name.toLowerCase()} methodologies`
 
+	const defaultToggledCharts: ProtocolChartsLabels[] = []
+	if (protocolMetrics.tvl) {
+		defaultToggledCharts.push(isCEX ? 'Total Assets' : 'TVL')
+		defaultToggledCharts.push('Events' as any)
+	}
+
+	if (protocolData.category && protocolCategories[protocolData.category]?.defaultChart) {
+		let defaultChartLabel = null
+		for (const chartLabel in protocolCharts) {
+			if (protocolCharts[chartLabel] === protocolCategories[protocolData.category].defaultChart) {
+				defaultChartLabel = chartLabel
+				break
+			}
+		}
+		if (defaultChartLabel) {
+			defaultToggledCharts.push(defaultChartLabel as any)
+		}
+	} else {
+		const cannotShowAsDefault = new Set<ProtocolChartsLabels>([
+			'TVL',
+			'Total Assets',
+			'Mcap',
+			'Token Price',
+			'Token Volume',
+			'Token Liquidity',
+			'FDV',
+			'Total Proposals',
+			'Successful Proposals',
+			'Max Votes'
+		])
+
+		const fallbackLabel = availableCharts.find((chart) => !cannotShowAsDefault.has(chart))
+		if (fallbackLabel) {
+			defaultToggledCharts.push(fallbackLabel as any)
+		}
+	}
+
 	return {
 		id: String(protocolData.id),
 		name: name,
@@ -869,7 +908,7 @@ export const getProtocolOverviewPageData = async ({
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
 			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address)
 		},
-		metrics: getProtocolMetrics({ protocolData, metadata }),
+		metrics: protocolMetrics,
 		fees: feesData,
 		revenue: revenueData,
 		holdersRevenue: holdersRevenueData,
@@ -953,7 +992,8 @@ export const getProtocolOverviewPageData = async ({
 			optionsNotionalVolumeData?.defaultChartView ??
 			'daily',
 		seoDescription,
-		seoKeywords
+		seoKeywords,
+		defaultToggledCharts
 	}
 }
 

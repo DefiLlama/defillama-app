@@ -63,54 +63,21 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	const { toggledMetrics, groupBy, tvlSettings, feesSettings } = useMemo(() => {
 		const queryParams = JSON.parse(queryParamsString)
-		const chartsByStaus = {}
-		for (const pchart in protocolCharts) {
-			const chartKey = protocolCharts[pchart]
-			chartsByStaus[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
+		const chartsByVisibility = {}
+		for (const chartLabel in protocolCharts) {
+			const chartKey = protocolCharts[chartLabel]
+			chartsByVisibility[chartKey] = queryParams[chartKey] === 'true' ? 'true' : 'false'
 		}
-		const toggled = {
-			...chartsByStaus,
-			...((!props.metrics.tvl
-				? props.metrics.dexs
-					? { dexVolume: queryParams.dexVolume === 'false' ? 'false' : 'true' }
-					: props.metrics.perps
-						? { perpVolume: queryParams.perpVolume === 'false' ? 'false' : 'true' }
-						: props.metrics.optionsPremiumVolume || props.metrics.optionsNotionalVolume
-							? {
-									optionsPremiumVolume: queryParams.optionsPremiumVolume === 'false' ? 'false' : 'true',
-									optionsNotionalVolume: queryParams.optionsNotionalVolume === 'false' ? 'false' : 'true'
-								}
-							: props.metrics.dexAggregators
-								? { dexAggregatorVolume: queryParams.dexAggregatorVolume === 'false' ? 'false' : 'true' }
-								: props.metrics.bridgeAggregators
-									? { bridgeAggregatorVolume: queryParams.bridgeAggregatorVolume === 'false' ? 'false' : 'true' }
-									: props.metrics.perpsAggregators
-										? { perpAggregatorVolume: queryParams.perpAggregatorVolume === 'false' ? 'false' : 'true' }
-										: props.metrics.bridge
-											? { bridgeVolume: queryParams.bridgeVolume === 'false' ? 'false' : 'true' }
-											: props.metrics.fees
-												? {
-														fees: queryParams.fees === 'false' ? 'false' : 'true'
-													}
-												: props.metrics.revenue
-													? {
-															revenue: queryParams.revenue === 'false' ? 'false' : 'true',
-															holdersRevenue: queryParams.holdersRevenue === 'false' ? 'false' : 'true'
-														}
-													: props.metrics.unlocks
-														? { unlocks: queryParams.unlocks === 'false' ? 'false' : 'true' }
-														: props.metrics.treasury
-															? { treasury: queryParams.treasury === 'false' ? 'false' : 'true' }
-															: {}
-				: {}) as Record<string, 'true' | 'false'>)
-		} as Record<(typeof protocolCharts)[keyof typeof protocolCharts], 'true' | 'false'>
 
 		const toggledMetrics = {
-			...toggled,
-			tvl: queryParams.tvl === 'false' ? 'false' : 'true',
-			events: queryParams.events === 'false' ? 'false' : 'true',
+			...chartsByVisibility,
 			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
 		} as IToggledMetrics
+
+		for (const chartLabel of props.defaultToggledCharts) {
+			const chartKey = protocolCharts[chartLabel]
+			toggledMetrics[chartKey] = queryParams[chartKey] === 'false' ? 'false' : 'true'
+		}
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
@@ -139,7 +106,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 			tvlSettings,
 			feesSettings
 		}
-	}, [queryParamsString, props.availableCharts, props.metrics])
+	}, [queryParamsString, props])
 
 	const isThemeDark = router.query.theme === 'dark' ? true : false
 
