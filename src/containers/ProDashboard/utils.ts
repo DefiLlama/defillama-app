@@ -117,10 +117,16 @@ export const groupData = (
 	return Object.entries(groupedData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
 }
 
-export const convertToCumulative = (data: [string, number][] | undefined): [string, number][] => {
+export const convertToCumulative = <T extends string | number>(
+	data: [T, number][] | undefined
+): [T, number][] => {
 	if (!data || data.length === 0) return []
 
-	const sorted = [...data].sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+	const sorted = [...data].sort((a, b) => {
+		const aVal = typeof a[0] === 'string' ? parseInt(a[0]) : (a[0] as number)
+		const bVal = typeof b[0] === 'string' ? parseInt(b[0]) : (b[0] as number)
+		return aVal - bVal
+	})
 	let cumulative = 0
 
 	return sorted.map(([timestamp, value]) => {

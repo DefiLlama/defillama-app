@@ -412,6 +412,8 @@ export function useChartData(
 		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod),
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping),
 		staleTime: 1000 * 60 * 5,
+		gcTime: 1000 * 60 * 30,
+		refetchOnWindowFocus: false,
 		enabled:
 			!!item &&
 			((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
@@ -433,7 +435,10 @@ export function useChains() {
 			}))
 			return transformedData.sort((a, b) => b.tvl - a.tvl)
 		},
-		staleTime: 1000 * 60 * 60
+		staleTime: 1000 * 60 * 60,
+		gcTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false
 	})
 }
 
@@ -441,7 +446,6 @@ export function useProtocolsAndChains() {
 	return useQuery({
 		queryKey: ['protocols-and-chains'],
 		queryFn: async () => {
-			// Fetch both protocols and chains data in parallel
 			const [protocolsResponse, chainsResponse] = await Promise.all([fetch(PROTOCOLS_API), fetch(CHAINS_API)])
 
 			if (!protocolsResponse.ok || !chainsResponse.ok) {
@@ -497,7 +501,11 @@ export function useProtocolsAndChains() {
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		},
-		staleTime: 1000 * 60 * 60
+		staleTime: 1000 * 60 * 60,
+		gcTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		refetchOnReconnect: false
 	})
 }
 
@@ -529,6 +537,9 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 					chart.id
 				],
 				queryFn: getChartQueryFn(chart.type, itemType, item, chart.geckoId, timePeriod, parentMapping, customPeriod),
+				staleTime: 1000 * 60 * 5,
+				gcTime: 1000 * 60 * 30,
+				refetchOnWindowFocus: false,
 				keepPreviousData: true,
 				placeholderData: (prev) => prev,
 				select: (data) => {

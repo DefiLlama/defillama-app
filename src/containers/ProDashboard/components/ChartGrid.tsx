@@ -120,6 +120,167 @@ const UnifiedTableCard = memo(function UnifiedTableCard({ item, onEditItem }: Un
 	)
 })
 
+interface DashboardItemRendererProps {
+	item: DashboardItemConfig
+	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
+	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
+}
+
+const DashboardItemRenderer = memo(function DashboardItemRenderer({
+	item,
+	onEditItem,
+	handleEditItem
+}: DashboardItemRendererProps) {
+	if (item.kind === 'chart') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<ChartCard chart={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'multi') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
+				<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'metric') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[140px] flex-col p-1" />}>
+				<MetricCard metric={item as any} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'builder') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]" />}>
+				<ChartBuilderCard builder={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'yields') {
+		return <YieldsChartCard config={item} />
+	}
+
+	if (item.kind === 'stablecoins') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<StablecoinsChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'stablecoin-asset') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<StablecoinAssetChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'advanced-tvl') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<AdvancedTvlChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'advanced-borrowed') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<BorrowedChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'text') {
+		return <TextCard text={item} />
+	}
+
+	if (item.kind === 'unified-table') {
+		return <UnifiedTableCard item={item} onEditItem={onEditItem} />
+	}
+
+	if (item.kind === 'table') {
+		if (item.tableType === 'dataset') {
+			if (item.datasetType === 'cex') return <CexDataset />
+			if (item.datasetType === 'revenue')
+				return <RevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+			if (item.datasetType === 'holders-revenue')
+				return <HoldersRevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+			if (item.datasetType === 'earnings')
+				return <EarningsDataset chains={item.chains} tableId={item.id} filters={item.filters} />
+			if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
+			if (item.datasetType === 'token-usage')
+				return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
+			if (item.datasetType === 'yields')
+				return (
+					<div className="relative" style={{ isolation: 'isolate' }}>
+						<YieldsDataset
+							chains={item.chains}
+							tableId={item.id}
+							columnOrder={item.columnOrder}
+							columnVisibility={item.columnVisibility}
+							filters={item.filters as any}
+						/>
+					</div>
+				)
+			if (item.datasetType === 'aggregators') return <AggregatorsDataset chains={item.chains} />
+			if (item.datasetType === 'perps') return <PerpsDataset chains={item.chains} />
+			if (item.datasetType === 'options') return <OptionsDataset chains={item.chains} />
+			if (item.datasetType === 'dexs') return <DexsDataset chains={item.chains} />
+			if (item.datasetType === 'bridge-aggregators') return <BridgeAggregatorsDataset chains={item.chains} />
+			if (item.datasetType === 'trending-contracts')
+				return (
+					<TrendingContractsDataset
+						chain={item.datasetChain}
+						timeframe={item.datasetTimeframe}
+						tableId={item.id}
+						onChainChange={(newChain) => {
+							handleEditItem(item.id, { ...item, datasetChain: newChain })
+						}}
+						onTimeframeChange={(newTimeframe) => {
+							handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe })
+						}}
+					/>
+				)
+			if (item.datasetType === 'chains')
+				return (
+					<ChainsDataset
+						category={item.datasetChain}
+						tableId={item.id}
+						columnOrder={item.columnOrder}
+						columnVisibility={item.columnVisibility}
+					/>
+				)
+			return <StablecoinsDataset chain={item.datasetChain || 'All'} />
+		}
+
+		const tableColSpan = (item.colSpan ?? 2) >= 2 ? 2 : 1
+		return (
+			<ProtocolsByChainTable
+				tableId={item.id}
+				chains={item.chains}
+				colSpan={tableColSpan}
+				filters={item.filters}
+				columnOrder={item.columnOrder}
+				columnVisibility={item.columnVisibility}
+				customColumns={item.customColumns}
+				activeViewId={item.activeViewId}
+				activePresetId={item.activePresetId}
+			/>
+		)
+	}
+
+	return null
+})
+
 export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const {
 		chartsWithData,
@@ -190,157 +351,6 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 		setDeleteConfirmItem(null)
 	}
 
-	const renderItemContent = (item: DashboardItemConfig) => {
-		if (item.kind === 'chart') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
-					<ChartCard chart={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'multi') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]" />}>
-					<MultiChartCard key={`${item.id}-${item.items?.map((i) => i.id).join('-')}`} multi={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'metric') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[140px] flex-col p-1" />}>
-					<MetricCard metric={item as any} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'builder') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]" />}>
-					<ChartBuilderCard builder={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'yields') {
-			return <YieldsChartCard config={item} />
-		}
-
-		if (item.kind === 'stablecoins') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
-					<StablecoinsChartCard config={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'stablecoin-asset') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
-					<StablecoinAssetChartCard config={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'advanced-tvl') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
-					<AdvancedTvlChartCard config={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'advanced-borrowed') {
-			return (
-				<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
-					<BorrowedChartCard config={item} />
-				</Suspense>
-			)
-		}
-
-		if (item.kind === 'text') {
-			return <TextCard text={item} />
-		}
-
-		if (item.kind === 'unified-table') {
-			return <UnifiedTableCard item={item} onEditItem={onEditItem} />
-		}
-
-		if (item.kind === 'table') {
-			if (item.tableType === 'dataset') {
-				if (item.datasetType === 'cex') return <CexDataset />
-				if (item.datasetType === 'revenue')
-					return <RevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
-				if (item.datasetType === 'holders-revenue')
-					return <HoldersRevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
-				if (item.datasetType === 'earnings')
-					return <EarningsDataset chains={item.chains} tableId={item.id} filters={item.filters} />
-				if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
-				if (item.datasetType === 'token-usage')
-					return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
-				if (item.datasetType === 'yields')
-					return (
-						<div className="relative" style={{ isolation: 'isolate' }}>
-							<YieldsDataset
-								chains={item.chains}
-								tableId={item.id}
-								columnOrder={item.columnOrder}
-								columnVisibility={item.columnVisibility}
-								filters={item.filters as any}
-							/>
-						</div>
-					)
-				if (item.datasetType === 'aggregators') return <AggregatorsDataset chains={item.chains} />
-				if (item.datasetType === 'perps') return <PerpsDataset chains={item.chains} />
-				if (item.datasetType === 'options') return <OptionsDataset chains={item.chains} />
-				if (item.datasetType === 'dexs') return <DexsDataset chains={item.chains} />
-				if (item.datasetType === 'bridge-aggregators') return <BridgeAggregatorsDataset chains={item.chains} />
-				if (item.datasetType === 'trending-contracts')
-					return (
-						<TrendingContractsDataset
-							chain={item.datasetChain}
-							timeframe={item.datasetTimeframe}
-							tableId={item.id}
-							onChainChange={(newChain) => {
-								handleEditItem(item.id, { ...item, datasetChain: newChain })
-							}}
-							onTimeframeChange={(newTimeframe) => {
-								handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe })
-							}}
-						/>
-					)
-				if (item.datasetType === 'chains')
-					return (
-						<ChainsDataset
-							category={item.datasetChain}
-							tableId={item.id}
-							columnOrder={item.columnOrder}
-							columnVisibility={item.columnVisibility}
-						/>
-					)
-				return <StablecoinsDataset chain={item.datasetChain || 'All'} />
-			}
-
-			const tableColSpan = (item.colSpan ?? 2) >= 2 ? 2 : 1
-			return (
-				<ProtocolsByChainTable
-					tableId={item.id}
-					chains={item.chains}
-					colSpan={tableColSpan}
-					filters={item.filters}
-					columnOrder={item.columnOrder}
-					columnVisibility={item.columnVisibility}
-					customColumns={item.customColumns}
-					activeViewId={item.activeViewId}
-					activePresetId={item.activePresetId}
-				/>
-			)
-		}
-
-		return null
-	}
-
 	if (isReadOnly) {
 		return (
 			<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-4">
@@ -358,7 +368,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 							}`}
 							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
 						>
-							{renderItemContent(item)}
+							<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 						</div>
 					)
 				})}
@@ -438,7 +448,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 												<span className="sr-only">Remove item</span>
 											</Tooltip>
 										</div>
-										<div>{renderItemContent(item)}</div>
+										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 									</SortableItem>
 								</div>
 							)

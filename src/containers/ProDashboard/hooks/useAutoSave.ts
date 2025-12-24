@@ -36,59 +36,13 @@ interface AutoSaveOverrides {
 	customTimePeriod?: CustomTimePeriod | null
 }
 
-export function useAutoSave({
-	dashboardId,
-	dashboardName,
-	dashboardVisibility,
-	dashboardTags,
-	dashboardDescription,
-	timePeriod,
-	customTimePeriod,
-	isAuthenticated,
-	isReadOnly,
-	currentDashboard,
-	userId,
-	updateDashboard,
-	cleanItemsForSaving,
-	delay = 2000
-}: UseAutoSaveOptions) {
+export function useAutoSave(options: UseAutoSaveOptions) {
 	const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const optionsRef = useRef(options)
+	optionsRef.current = options
 
-	const autoSave = useCallback(
-		(newItems: DashboardItemConfig[], overrides?: AutoSaveOverrides) => {
-			const isOwner = currentDashboard && userId && currentDashboard.user === userId
-			const shouldBlock = !dashboardId || !isAuthenticated || isReadOnly || !isOwner
-
-			if (shouldBlock) {
-				return
-			}
-
-			// Clear existing timeout
-			if (autoSaveTimeoutRef.current) {
-				clearTimeout(autoSaveTimeoutRef.current)
-			}
-
-			// Clean items and prepare data
-			const cleanedItems = cleanItemsForSaving(newItems)
-			const data = {
-				items: cleanedItems,
-				dashboardName,
-				timePeriod: overrides?.timePeriod ?? timePeriod,
-				customTimePeriod: overrides?.customTimePeriod !== undefined ? overrides.customTimePeriod : customTimePeriod,
-				visibility: dashboardVisibility,
-				tags: dashboardTags,
-				description: dashboardDescription,
-				aiGenerated: currentDashboard?.aiGenerated ?? null
-			}
-
-			// Set new timeout
-			autoSaveTimeoutRef.current = setTimeout(() => {
-				updateDashboard({ id: dashboardId, data }).catch((error) => {
-					console.log('Auto-save failed:', error)
-				})
-			}, delay)
-		},
-		[
+	const autoSave = useCallback((newItems: DashboardItemConfig[], overrides?: AutoSaveOverrides) => {
+		const {
 			dashboardId,
 			isAuthenticated,
 			isReadOnly,
@@ -102,9 +56,38 @@ export function useAutoSave({
 			customTimePeriod,
 			cleanItemsForSaving,
 			updateDashboard,
-			delay
-		]
-	)
+			delay = 2000
+		} = optionsRef.current
+
+		const isOwner = currentDashboard && userId && currentDashboard.user === userId
+		const shouldBlock = !dashboardId || !isAuthenticated || isReadOnly || !isOwner
+
+		if (shouldBlock) {
+			return
+		}
+
+		if (autoSaveTimeoutRef.current) {
+			clearTimeout(autoSaveTimeoutRef.current)
+		}
+
+		const cleanedItems = cleanItemsForSaving(newItems)
+		const data = {
+			items: cleanedItems,
+			dashboardName,
+			timePeriod: overrides?.timePeriod ?? timePeriod,
+			customTimePeriod: overrides?.customTimePeriod !== undefined ? overrides.customTimePeriod : customTimePeriod,
+			visibility: dashboardVisibility,
+			tags: dashboardTags,
+			description: dashboardDescription,
+			aiGenerated: currentDashboard?.aiGenerated ?? null
+		}
+
+		autoSaveTimeoutRef.current = setTimeout(() => {
+			updateDashboard({ id: dashboardId, data }).catch((error) => {
+				console.log('Auto-save failed:', error)
+			})
+		}, delay)
+	}, [])
 
 	// Cleanup function to clear timeout on unmount
 	const clearAutoSave = useCallback(() => {
