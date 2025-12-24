@@ -1,7 +1,7 @@
 import { keepNeededProperties } from '~/api/shared'
 import type { IFormattedProtocol } from '~/api/types'
 import { ILiteProtocol } from '~/containers/ChainOverview/types'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange } from '~/utils'
 
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
@@ -138,7 +138,7 @@ export const formatProtocolsData = ({
 						protocol.oraclesByChain[chain].includes(oracle)
 					)
 				} else {
-					if (DEFI_SETTINGS_KEYS.includes(sectionName) || sectionName === 'excludeParent') {
+					if (DEFI_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
 					}
 				}

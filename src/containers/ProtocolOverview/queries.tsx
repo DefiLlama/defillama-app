@@ -20,7 +20,7 @@ import {
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
@@ -117,7 +117,7 @@ export const getProtocolMetrics = ({
 		if (goodChart) {
 			tvlChartExist = true
 		}
-		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS.includes(chain)) {
+		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS_SET.has(chain)) {
 			continue
 		}
 		if (goodChart) {
@@ -630,14 +630,14 @@ export const getProtocolOverviewPageData = async ({
 			: null) ?? null
 
 	const protocolMetrics = getProtocolMetrics({ protocolData, metadata })
-	const tvlChart = {}
-	const extraTvlCharts = {}
+	const tvlChart: Record<string, number> = {}
+	const extraTvlCharts: Record<string, Record<string, number>> = {}
 	if (protocolMetrics.tvl) {
 		for (const chainOrTvlKey in protocolData.chainTvls ?? {}) {
 			if (chainOrTvlKey.includes('-') || chainOrTvlKey === 'offers') continue
 			if (!protocolData.chainTvls[chainOrTvlKey].tvl?.length) continue
 
-			if (DEFI_SETTINGS_KEYS.includes(chainOrTvlKey)) {
+			if (DEFI_SETTINGS_KEYS_SET.has(chainOrTvlKey)) {
 				if (!extraTvlCharts[chainOrTvlKey]) {
 					extraTvlCharts[chainOrTvlKey] = {}
 				}
@@ -664,7 +664,7 @@ export const getProtocolOverviewPageData = async ({
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {
 		if (chain.includes('-') || chain === 'offers') continue
-		if (DEFI_SETTINGS_KEYS.includes(chain)) continue
+		if (DEFI_SETTINGS_KEYS_SET.has(chain)) continue
 		if (protocolData.currentChainTvls[chain] != null) {
 			chains.push([chain, protocolData.currentChainTvls[chain]])
 		}
@@ -838,6 +838,29 @@ export const getProtocolOverviewPageData = async ({
 	const defaultToggledCharts: ProtocolChartsLabels[] = []
 	if (protocolMetrics.tvl) {
 		defaultToggledCharts.push(isCEX ? 'Total Assets' : 'TVL')
+		if (tvlChartData.length === 0 || tvlChartData.every(([date, value]) => value === 0)) {
+			let hasStaking = false
+			for (const date in extraTvlCharts?.staking) {
+				if (extraTvlCharts?.staking[date] > 0) {
+					hasStaking = true
+					break
+				}
+			}
+			if (hasStaking) {
+				defaultToggledCharts.push('Staking' as any)
+			}
+
+			let hasBorrowed = false
+			for (const date in extraTvlCharts?.borrowed) {
+				if (extraTvlCharts?.borrowed[date] > 0) {
+					hasBorrowed = true
+					break
+				}
+			}
+			if (!hasStaking && hasBorrowed) {
+				defaultToggledCharts.push('Borrowed' as any)
+			}
+		}
 		defaultToggledCharts.push('Events' as any)
 	}
 
@@ -849,7 +872,7 @@ export const getProtocolOverviewPageData = async ({
 				break
 			}
 		}
-		if (defaultChartLabel) {
+		if (defaultChartLabel && availableCharts.includes(defaultChartLabel as any)) {
 			defaultToggledCharts.push(defaultChartLabel as any)
 		}
 	} else {

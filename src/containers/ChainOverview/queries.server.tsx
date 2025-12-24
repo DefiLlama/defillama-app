@@ -25,7 +25,7 @@ import {
 } from '~/containers/DimensionAdapters/queries'
 import { getPeggedOverviewPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getStablecoinDominance } from '~/containers/Stablecoins/utils'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
@@ -836,7 +836,7 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 
 			for (const chainKey in protocol.chainTvls ?? {}) {
 				if (chain === 'All') {
-					if (DEFI_SETTINGS_KEYS.includes(chainKey as any) || chainKey === 'excludeParent') {
+					if (DEFI_SETTINGS_KEYS_SET.has(chainKey as any) || chainKey === 'excludeParent') {
 						tvls[chainKey] = {
 							tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
 							tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,

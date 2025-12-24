@@ -169,7 +169,9 @@ export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES
 
 const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key)
 export const DEFI_SETTINGS_KEYS = Object.values(DEFI_SETTINGS) as Array<string>
+export const DEFI_SETTINGS_KEYS_SET = new Set(DEFI_SETTINGS_KEYS)
 export const FEES_SETTINGS_KEYS = Object.values(FEES_SETTINGS)
+export const FEES_SETTINGS_KEYS_SET = new Set(FEES_SETTINGS_KEYS)
 export const STABLECOINS_SETTINGS_KEYS = Object.values(STABLECOINS_SETTINGS)
 export const NFT_SETTINGS_KEYS = Object.values(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = Object.values(LIQS_SETTINGS)

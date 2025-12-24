@@ -1,6 +1,6 @@
 import { CATEGORY_CHART_API, PROTOCOLS_API, RWA_STATS_API, TAGS_CHART_API, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { IChainMetadata, ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
@@ -258,13 +258,13 @@ export async function getProtocolsByCategoryOrTag({
 					if (
 						extraKey
 							? ['doublecounted', 'liquidstaking', 'dcAndLsOverlap', 'offers'].includes(extraKey) ||
-								!DEFI_SETTINGS_KEYS.includes(extraKey)
+								!DEFI_SETTINGS_KEYS_SET.has(extraKey)
 							: false
 					) {
 						continue
 					}
 
-					if (DEFI_SETTINGS_KEYS.includes(extraKey)) {
+					if (DEFI_SETTINGS_KEYS_SET.has(extraKey)) {
 						extraTvls[extraKey] = (extraTvls[extraKey] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 						continue
 					}
@@ -290,7 +290,7 @@ export async function getProtocolsByCategoryOrTag({
 						continue
 					}
 
-					if (DEFI_SETTINGS_KEYS.includes(pchain)) {
+					if (DEFI_SETTINGS_KEYS_SET.has(pchain)) {
 						extraTvls[pchain] = (extraTvls[pchain] ?? 0) + (protocol.chainTvls[pchain].tvl ?? 0)
 						continue
 					}

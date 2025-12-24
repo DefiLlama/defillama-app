@@ -11,7 +11,12 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	DEFI_SETTINGS_KEYS,
+	DEFI_SETTINGS_KEYS_SET,
+	FEES_SETTINGS,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
@@ -21,6 +26,7 @@ import { IProtocolOverviewPageData } from './types'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
+
 	const { tvl, tvlByChain, toggleOptions } = useMemo(() => {
 		let tvl = 0
 		let toggleOptions = []
@@ -28,7 +34,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 		const tvlByChain = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
-			if (chain.toLowerCase() in extraTvlsEnabled || chain == 'offers') {
+			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
@@ -38,12 +44,14 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 
 			const [chainName, extraTvlKey] = chain.split('-')
 
-			if (extraTvlKey) {
-				if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
-					tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
-				}
-			} else {
+			if (!extraTvlKey) {
 				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				continue
+			}
+
+			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				continue
 			}
 		}
 

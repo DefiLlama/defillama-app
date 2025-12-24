@@ -13,7 +13,7 @@ import {
 	getProtocolWarningBanners,
 	useFetchProtocolAddlChartsData
 } from '~/containers/ProtocolOverview/utils'
-import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -56,7 +56,7 @@ export const getStaticProps = withPerformanceLogging(
 		const toggleOptions = []
 
 		for (const chain in protocolData.chainTvls) {
-			if (DEFI_SETTINGS_KEYS.includes(chain)) {
+			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option) {
 					toggleOptions.push(option)
