@@ -17,23 +17,27 @@ export const TabNavigation = memo(function TabNavigation({ selectedMainTab, edit
 	]
 
 	return (
-		<div className="grid grid-cols-4 gap-0">
-			{allTabs.map((tab) => (
-				<button
-					key={tab.id}
-					className={`-ml-px rounded-none border px-2 py-2.5 text-xs font-medium transition-colors duration-200 first:ml-0 first:rounded-l-md last:rounded-r-md md:px-2 md:py-3 md:text-sm ${
-						selectedMainTab === tab.id ? 'pro-border pro-btn-blue' : 'pro-border pro-text2 pro-hover-bg hover:pro-text1'
-					}`}
-					onClick={() => !editItem && onTabChange(tab.id)}
-					disabled={!!editItem}
-				>
-					<span className="lg:hidden">{tab.mobileLabel}</span>
-					<span className="hidden lg:inline">
-						{tab.label}
-						{tab.subtitle && <span className="text-xs opacity-70"> {tab.subtitle}</span>}
-					</span>
-				</button>
-			))}
+		<div className="rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
+			<div className="grid grid-cols-4 gap-1">
+				{allTabs.map((tab) => (
+					<button
+						key={tab.id}
+						className={`rounded-lg px-3 py-2.5 text-xs font-medium transition-all duration-200 md:text-sm ${
+							selectedMainTab === tab.id
+								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
+						} ${editItem ? 'cursor-not-allowed opacity-50' : ''}`}
+						onClick={() => !editItem && onTabChange(tab.id)}
+						disabled={!!editItem}
+					>
+						<span className="lg:hidden">{tab.mobileLabel}</span>
+						<span className="hidden lg:inline">
+							{tab.label}
+							{tab.subtitle && <span className="ml-1 text-xs opacity-70">{tab.subtitle}</span>}
+						</span>
+					</button>
+				))}
+			</div>
 		</div>
 	)
 })

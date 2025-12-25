@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { Icon } from '~/components/Icon'
 import { ChartBuilderTab } from './ChartBuilderTab'
 import { ChartModeType, ChartTabType } from './types'
 import { UnifiedChartTab } from './UnifiedChartTab'
@@ -84,23 +85,41 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 
 	return (
 		<div className="flex h-full flex-col">
-			<div className="mb-2 flex gap-0">
-				<button
-					onClick={() => onChartModeChange('builder')}
-					className={`-ml-px flex-1 rounded-none border px-3 py-2 text-sm font-medium transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-						chartMode === 'builder' ? 'pro-border pro-btn-blue' : 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-					}`}
-				>
-					Builder
-				</button>
-				<button
-					onClick={() => onChartModeChange('manual')}
-					className={`-ml-px flex-1 rounded-none border px-3 py-2 text-sm font-medium transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-						chartMode === 'manual' ? 'pro-border pro-btn-blue' : 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-					}`}
-				>
-					Manual
-				</button>
+			<div className="mb-3 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
+				<div className="grid grid-cols-2 gap-1">
+					<button
+						onClick={() => onChartModeChange('builder')}
+						className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+							chartMode === 'builder'
+								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
+						}`}
+					>
+						<Icon
+							name="pencil-ruler"
+							width={15}
+							height={15}
+							className={chartMode === 'builder' ? 'text-white' : 'text-(--text-tertiary) group-hover:text-(--text-secondary)'}
+						/>
+						<span>Builder</span>
+					</button>
+					<button
+						onClick={() => onChartModeChange('manual')}
+						className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+							chartMode === 'manual'
+								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
+						}`}
+					>
+						<Icon
+							name="layers"
+							width={15}
+							height={15}
+							className={chartMode === 'manual' ? 'text-white' : 'text-(--text-tertiary) group-hover:text-(--text-secondary)'}
+						/>
+						<span>Manual</span>
+					</button>
+				</div>
 			</div>
 
 			{chartMode === 'builder' ? (
