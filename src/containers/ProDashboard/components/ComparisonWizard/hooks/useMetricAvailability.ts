@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useAppMetadata } from '../../../AppMetadataContext'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '../../../types'
 import type { ComparisonType, MetricWithAvailability } from '../types'
 
@@ -9,7 +9,7 @@ export function useMetricAvailability(
 	comparisonType: ComparisonType | null
 ): MetricWithAvailability[] {
 	const { availableChainChartTypes, availableProtocolChartTypes, chainsByName } = useAppMetadata()
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo } = useProDashboardCatalog()
 
 	return useMemo(() => {
 		if (!comparisonType || selectedItems.length === 0) return []

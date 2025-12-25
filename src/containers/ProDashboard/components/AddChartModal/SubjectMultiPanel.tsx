@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { getItemIconUrl } from '../../utils'
 import { ChartTabType } from './types'
 
@@ -48,7 +48,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 	const popover = usePopoverStore({ placement: 'bottom-start' })
 	const isPopoverOpen = popover.useState('open')
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
-	const { protocols, chains } = useProDashboard()
+	const { protocols, chains } = useProDashboardCatalog()
 
 	const baseChainOptions = useMemo(() => chainOptions.filter((o) => o.value !== 'All'), [chainOptions])
 

@@ -15,7 +15,7 @@ import {
 } from '@tanstack/react-table'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
 import { ChainsTableHeader } from './ChainsTableHeader'
@@ -36,7 +36,7 @@ export function ChainsDataset({
 	columnOrder: savedColumnOrder,
 	columnVisibility: savedColumnVisibility
 }: ChainsDatasetProps) {
-	const { handleTableColumnsChange } = useProDashboard()
+	const { handleTableColumnsChange } = useProDashboardEditorActions()
 	const uniqueTableId = React.useMemo(() => tableId || `chains-dataset-${category || 'all'}`, [tableId, category])
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])

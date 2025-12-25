@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
@@ -19,7 +19,7 @@ const mapGroupingToGroupBy = (
 }
 
 export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProps) {
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo } = useProDashboardCatalog()
 
 	const previewGrouping = useMemo<'day' | 'week' | 'month' | 'quarter'>(() => {
 		const definedGroupings = composerItems

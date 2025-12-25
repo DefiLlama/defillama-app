@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { AriakitMultiSelect } from '../../AriakitMultiSelect'
 import { useComparisonWizardContext } from '../ComparisonWizardContext'
 
@@ -17,7 +17,7 @@ interface Option {
 
 export function SelectItemsStep() {
 	const { state, actions } = useComparisonWizardContext()
-	const { protocols, chains, protocolsLoading } = useProDashboard()
+	const { protocols, chains, protocolsLoading } = useProDashboardCatalog()
 	const [search, setSearch] = useState('')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 	const listRef = useRef<HTMLDivElement>(null)

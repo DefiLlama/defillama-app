@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { download, toNiceCsvDate } from '~/utils'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { BorrowedChartConfig } from '../types'
 import { ChartExportButton } from './ProTable/ChartExportButton'
@@ -20,7 +20,7 @@ interface BorrowedChartCardProps {
 
 export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { protocol, protocolName, chartType } = config
-	const { timePeriod, customTimePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 
 	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolAddlChartsData(protocolName, true)

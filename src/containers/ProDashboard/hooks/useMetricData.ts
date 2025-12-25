@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs, { type Dayjs } from 'dayjs'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../ProDashboardAPIContext'
 import { getChartQueryFn, getChartQueryKey, useParentChildMapping } from '../queries'
 import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
 
@@ -181,7 +181,7 @@ export function useMetricData(metric: MetricConfig) {
 	}, [metric.compare])
 	const itemType = subject.itemType
 	const item = subject.itemType === 'protocol' ? subject.protocol || '' : subject.chain || ''
-	const { protocols, chains } = useProDashboard()
+	const { protocols, chains } = useProDashboardCatalog()
 	const geckoId =
 		subject.geckoId ??
 		(subject.itemType === 'protocol'

@@ -5,7 +5,11 @@ import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter, download } from '~/utils'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import {
+	useProDashboardCatalog,
+	useProDashboardEditorActions,
+	useProDashboardPermissions
+} from '../ProDashboardAPIContext'
 import { Chain, CHART_TYPES, ChartConfig, Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -91,7 +95,9 @@ const ChartRenderer = memo(function ChartRenderer({
 const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 
 export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
-	const { getChainInfo, getProtocolInfo, handleGroupingChange, handleCumulativeChange, isReadOnly } = useProDashboard()
+	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
+	const { handleGroupingChange, handleCumulativeChange } = useProDashboardEditorActions()
+	const { isReadOnly } = useProDashboardPermissions()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 
 	const {

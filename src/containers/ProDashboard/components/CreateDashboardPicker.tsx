@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useDimensionProtocols } from '../hooks/useDimensionProtocols'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../ProDashboardAPIContext'
 import {
 	DASHBOARD_TEMPLATES,
 	generateTemplateCharts,
@@ -37,7 +37,7 @@ interface CreateDashboardPickerProps {
 export function CreateDashboardPicker({ dialogStore, onCreate }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
 	const isOpen = dialogStore.useState('open')
-	const { protocols, chains } = useProDashboard()
+	const { protocols, chains } = useProDashboardCatalog()
 	const { protocolsBySlug } = useAppMetadata()
 
 	const { data: chainCategoriesData } = useQuery({

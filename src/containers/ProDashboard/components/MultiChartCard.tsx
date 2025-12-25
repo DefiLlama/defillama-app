@@ -4,7 +4,11 @@ import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter, download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import {
+	useProDashboardCatalog,
+	useProDashboardEditorActions,
+	useProDashboardPermissions
+} from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
@@ -18,14 +22,14 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
+	const { getProtocolInfo } = useProDashboardCatalog()
 	const {
-		getProtocolInfo,
 		handleGroupingChange,
 		handleCumulativeChange,
 		handlePercentageChange,
-		handleStackedChange,
-		isReadOnly
-	} = useProDashboard()
+		handleStackedChange
+	} = useProDashboardEditorActions()
+	const { isReadOnly } = useProDashboardPermissions()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false

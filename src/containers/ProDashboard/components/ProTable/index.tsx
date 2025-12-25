@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { memo, useMemo, useState } from 'react'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardEditorActions } from '../../ProDashboardAPIContext'
 import { TableFilters } from '../../types'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { ProtocolFilterModal } from './ProtocolFilterModal'
@@ -30,7 +30,7 @@ export const ProtocolsByChainTable = memo(function ProtocolsByChainTable({
 	activeViewId?: string
 	activePresetId?: string
 }) {
-	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboard()
+	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboardEditorActions()
 	const [showFilterModal, setShowFilterModal] = useState(false)
 	const memoizedChains = useMemo(() => chains, [chains.join(',')])
 	const proDashboardElement = typeof window !== 'undefined' ? document.querySelector('.pro-dashboard') : null

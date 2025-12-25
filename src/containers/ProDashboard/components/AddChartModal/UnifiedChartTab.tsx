@@ -1,7 +1,7 @@
 import { memo, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { AriakitSelect } from '../AriakitSelect'
 import { AdvancedTvlChartTab } from './AdvancedTvlChartTab'
@@ -162,7 +162,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
-	const { protocols, chains } = useProDashboard()
+	const { protocols, chains } = useProDashboardCatalog()
 
 	const handleSelectCategory = (category: ChartTabType) => {
 		onChartTabChange(category)

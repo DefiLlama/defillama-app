@@ -4,7 +4,12 @@ import { Select } from '~/components/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { download } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import {
+	useProDashboardCatalog,
+	useProDashboardEditorActions,
+	useProDashboardPermissions,
+	useProDashboardTime
+} from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
 import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
@@ -70,12 +75,11 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		handleGroupingChange,
 		handleHideOthersChange,
 		handleChartTypeChange,
-		handleEditItem,
-		isReadOnly,
-		timePeriod,
-		customTimePeriod,
-		getProtocolInfo
-	} = useProDashboard()
+		handleEditItem
+	} = useProDashboardEditorActions()
+	const { isReadOnly } = useProDashboardPermissions()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
+	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const config = builder.config
 	const [showColors, setShowColors] = useState(false)

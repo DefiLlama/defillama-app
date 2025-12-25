@@ -16,7 +16,7 @@ import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
 import { CategoryFilterModal } from '../../CategoryFilterModal'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -42,7 +42,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 		pageSize: 10
 	})
 
-	const { handleTableFiltersChange } = useProDashboard()
+	const { handleTableFiltersChange } = useProDashboardEditorActions()
 	const { data, isLoading, error, refetch } = useRevenueData(chains)
 	const windowSize = useWindowSize()
 

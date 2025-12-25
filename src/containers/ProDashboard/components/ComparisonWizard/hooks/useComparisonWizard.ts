@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useReducer } from 'react'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import type {
 	ComparisonType,
 	ComparisonWizardState,
@@ -97,7 +97,7 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 
 export function useComparisonWizard() {
 	const [state, dispatch] = useReducer(reducer, initialState)
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo } = useProDashboardCatalog()
 
 	const setStep = useCallback((step: WizardStep) => dispatch({ type: 'SET_STEP', step }), [])
 

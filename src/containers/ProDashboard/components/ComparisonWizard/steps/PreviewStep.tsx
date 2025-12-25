@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { CHART_TYPES, MetricAggregator, MetricWindow } from '../../../types'
 import { AriakitCheckbox } from '../../AriakitCheckbox'
 import { AriakitSelect, SelectOption } from '../../AriakitSelect'
@@ -40,7 +40,7 @@ const WINDOW_OPTIONS: SelectOption[] = [
 
 export function PreviewStep() {
 	const { state, actions } = useComparisonWizardContext()
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo } = useProDashboardCatalog()
 	const [tagInput, setTagInput] = useState('')
 
 	const selectedItemLabels = useMemo(() => {

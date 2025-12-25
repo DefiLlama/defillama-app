@@ -1,5 +1,9 @@
 import { useCallback, useMemo } from 'react'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import {
+	useProDashboardCatalog,
+	useProDashboardEditorActions,
+	useProDashboardTime
+} from '../../ProDashboardAPIContext'
 import {
 	Chain,
 	CHART_TYPES,
@@ -20,12 +24,9 @@ export function useModalActions(
 	isOpen: boolean,
 	onClose: () => void
 ) {
+	const { protocols, chains, protocolsLoading } = useProDashboardCatalog()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const {
-		protocols,
-		chains,
-		protocolsLoading,
-		timePeriod,
-		customTimePeriod,
 		handleAddChart,
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
@@ -38,7 +39,7 @@ export function useModalActions(
 		handleAddMetric,
 		handleAddChartBuilder,
 		handleEditItem
-	} = useProDashboard() as any
+	} = useProDashboardEditorActions()
 
 	const { state, actions } = useModalState(editItem, isOpen)
 

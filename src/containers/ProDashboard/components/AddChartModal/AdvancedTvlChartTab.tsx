@@ -7,7 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -68,7 +68,7 @@ export function AdvancedTvlChartTab({
 	protocolsLoading
 }: AdvancedTvlChartTabProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-	const { protocols } = useProDashboard()
+	const { protocols } = useProDashboardCatalog()
 
 	const filteredProtocolOptions = useMemo(() => {
 		const parentIds = new Set(protocols.filter((p: any) => p.parentProtocol).map((p: any) => p.parentProtocol))

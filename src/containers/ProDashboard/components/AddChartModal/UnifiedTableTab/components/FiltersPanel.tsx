@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AriakitVirtualizedMultiSelect } from '~/containers/ProDashboard/components/AriakitVirtualizedMultiSelect'
-import { useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { useProDashboardCatalog } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import type { TableFilters } from '~/containers/ProDashboard/types'
 import { getItemIconUrl } from '~/containers/ProDashboard/utils'
 
@@ -13,7 +13,7 @@ interface FiltersPanelProps {
 }
 
 export function FiltersPanel({ chains, filters, availableChains, onChainsChange, onFiltersChange }: FiltersPanelProps) {
-	const { protocols } = useProDashboard()
+	const { protocols } = useProDashboardCatalog()
 	const [categoryMode, setCategoryMode] = useState<'include' | 'exclude'>('include')
 
 	const chainSelectOptions = useMemo(() => {

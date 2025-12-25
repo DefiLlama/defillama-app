@@ -7,7 +7,7 @@ import { oldBlue } from '~/constants/colors'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { download, toNiceCsvDate } from '~/utils'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
@@ -54,7 +54,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 
 export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const { protocol, protocolName, chartType } = config
-	const { timePeriod, customTimePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 

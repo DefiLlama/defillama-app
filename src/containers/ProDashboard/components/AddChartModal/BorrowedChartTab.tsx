@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPES } from '../../borrowedChartConstants'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
@@ -33,7 +33,7 @@ export function BorrowedChartTab({
 	protocolOptions,
 	protocolsLoading
 }: BorrowedChartTabProps) {
-	const { protocols } = useProDashboard()
+	const { protocols } = useProDashboardCatalog()
 
 	const filteredProtocolOptions = useMemo(() => {
 		const parentIds = new Set(protocols.filter((p: any) => p.parentProtocol).map((p: any) => p.parentProtocol))

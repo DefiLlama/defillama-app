@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAppMetadata } from '../../AppMetadataContext'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import {
 	CHART_TYPES,
 	ChartConfig,
@@ -29,7 +29,7 @@ interface ComparisonWizardProps {
 
 function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 	const { state, actions, derived, availableMetrics } = useComparisonWizardContext()
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chainsByName } = useAppMetadata()
 	const [isGenerating, setIsGenerating] = useState(false)
 

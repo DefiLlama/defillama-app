@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { downloadCSV } from '~/utils'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardEditorActions, useProDashboardPermissions } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
 import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
 import type { CsvExportLevel } from './core/CsvExportDropdown'
@@ -186,7 +186,8 @@ export const UnifiedTable = memo(function UnifiedTable({
 	onEdit,
 	onOpenColumnModal
 }: UnifiedTableProps) {
-	const { handleEditItem, isReadOnly } = useProDashboard()
+	const { handleEditItem } = useProDashboardEditorActions()
+	const { isReadOnly } = useProDashboardPermissions()
 	const [searchTerm, setSearchTerm] = useState('')
 	const [columnOrderState, setColumnOrderState] = useState<ColumnOrderState>(getDefaultColumnOrder(config))
 	const [columnVisibilityState, setColumnVisibilityState] = useState<VisibilityState>(

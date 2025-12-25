@@ -7,7 +7,7 @@ import {
 	UNIFIED_TABLE_PRESETS_BY_ID
 } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
 import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
-import { useProDashboard } from '../../../ProDashboardAPIContext'
+import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
 import { getOrderedCustomColumnIds } from '../../UnifiedTable/utils/customColumns'
@@ -156,7 +156,7 @@ const TabContent = memo(function TabContent({
 	protocolsLoading,
 	legacyTableTypes
 }: UnifiedTableTabProps) {
-	const { handleAddUnifiedTable, handleEditItem } = useProDashboard()
+	const { handleAddUnifiedTable, handleEditItem } = useProDashboardEditorActions()
 	const {
 		state: { chains, rowHeaders, filters, activePresetId, columnOrder, columnVisibility, sorting, customColumns },
 		actions: {

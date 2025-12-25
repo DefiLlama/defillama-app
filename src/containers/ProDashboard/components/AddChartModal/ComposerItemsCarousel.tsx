@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useProDashboard } from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { CHART_TYPES, ChartConfig } from '../../types'
 import { ChartPreview } from '../ChartPreview'
 
@@ -10,7 +10,7 @@ interface ComposerItemsCarouselProps {
 
 export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselProps) {
 	const [currentIndex, setCurrentIndex] = useState(0)
-	const { getProtocolInfo } = useProDashboard()
+	const { getProtocolInfo } = useProDashboardCatalog()
 
 	const validItems = useMemo(
 		() => composerItems.filter((item) => item.data && Array.isArray(item.data) && item.data.length > 0),

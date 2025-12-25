@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
 import { download, formattedNum } from '~/utils'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { YieldsChartConfig } from '../types'
 import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
@@ -33,7 +33,7 @@ const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
 
 export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const { poolConfigId, poolName, project, chain, chartType = 'tvl-apy' } = config
-	const { timePeriod, customTimePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 	const handleChartReady = useCallback((instance: echarts.ECharts) => {
 		setChartInstance((prev) => (prev === instance ? prev : instance))

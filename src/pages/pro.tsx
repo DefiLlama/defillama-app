@@ -7,7 +7,11 @@ import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContex
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useMyDashboards } from '~/containers/ProDashboard/hooks'
-import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import {
+	ProDashboardAPIProvider,
+	useProDashboardDashboard,
+	useProDashboardUI
+} from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 
@@ -73,14 +77,8 @@ function ProContent({
 	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
 
 	const subscribeModalStore = Ariakit.useDialogStore()
-	const {
-		deleteDashboard,
-		handleCreateDashboard,
-		createDashboardDialogStore,
-		showGenerateDashboardModal,
-		setShowGenerateDashboardModal,
-		handleGenerateDashboard
-	} = useProDashboard()
+	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
+	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
 
 	const selectedPage =
 		typeof router.query.page === 'string' && !Number.isNaN(Number(router.query.page)) ? parseInt(router.query.page) : 1

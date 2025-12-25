@@ -4,7 +4,12 @@ import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortab
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import {
+	useProDashboardChartsData,
+	useProDashboardDashboard,
+	useProDashboardEditorActions,
+	useProDashboardPermissions
+} from '../ProDashboardAPIContext'
 import { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
@@ -282,18 +287,11 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 })
 
 export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
-	const {
-		chartsWithData,
-		handleChartsReordered,
-		handleRemoveItem,
-		handleColSpanChange,
-		handleEditItem,
-		isReadOnly,
-		getCurrentRatingSession,
-		autoSkipOlderSessionsForRating,
-		submitRating,
-		skipRating
-	} = useProDashboard()
+	const { chartsWithData } = useProDashboardChartsData()
+	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } = useProDashboardEditorActions()
+	const { isReadOnly } = useProDashboardPermissions()
+	const { getCurrentRatingSession, autoSkipOlderSessionsForRating, submitRating, skipRating } =
+		useProDashboardDashboard()
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
 	const [isSmallScreen, setIsSmallScreen] = useState(false)
 

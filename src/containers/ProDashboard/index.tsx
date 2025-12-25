@@ -11,7 +11,16 @@ import { CustomTimePeriodPicker } from './components/CustomTimePeriodPicker'
 import { EmptyState } from './components/EmptyState'
 import type { UnifiedTableFocusSection } from './components/UnifiedTable/types'
 import { useDashboardEngagement } from './hooks/useDashboardEngagement'
-import { AIGeneratedData, TimePeriod, useProDashboard } from './ProDashboardAPIContext'
+import {
+	AIGeneratedData,
+	TimePeriod,
+	useProDashboardCatalog,
+	useProDashboardDashboard,
+	useProDashboardItemsState,
+	useProDashboardPermissions,
+	useProDashboardTime,
+	useProDashboardUI
+} from './ProDashboardAPIContext'
 import { Dashboard } from './services/DashboardAPI'
 import { DashboardItemConfig } from './types'
 
@@ -42,18 +51,15 @@ function ProDashboardContent() {
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
+	const { items } = useProDashboardItemsState()
+	const { protocolsLoading } = useProDashboardCatalog()
+	const { timePeriod, customTimePeriod, setTimePeriod, setCustomTimePeriod } = useProDashboardTime()
+	const { isReadOnly } = useProDashboardPermissions()
 	const {
-		items,
-		protocolsLoading,
-		timePeriod,
-		customTimePeriod,
-		setTimePeriod,
-		setCustomTimePeriod,
 		dashboardName,
 		setDashboardName,
 		dashboardId,
 		saveDashboard,
-		isReadOnly,
 		copyDashboard,
 		dashboardVisibility,
 		dashboardTags,
@@ -62,11 +68,6 @@ function ProDashboardContent() {
 		setDashboardVisibility,
 		setDashboardTags,
 		setDashboardDescription,
-		createDashboardDialogStore,
-		showGenerateDashboardModal,
-		setShowGenerateDashboardModal,
-		showIterateDashboardModal,
-		setShowIterateDashboardModal,
 		handleCreateDashboard,
 		handleGenerateDashboard,
 		handleIterateDashboard,
@@ -76,7 +77,14 @@ function ProDashboardContent() {
 		dismissRating,
 		undoAIGeneration,
 		canUndo
-	} = useProDashboard()
+	} = useProDashboardDashboard()
+	const {
+		createDashboardDialogStore,
+		showGenerateDashboardModal,
+		setShowGenerateDashboardModal,
+		showIterateDashboardModal,
+		setShowIterateDashboardModal
+	} = useProDashboardUI()
 
 	const timePeriods: { value: TimePeriod; label: string }[] = [
 		{ value: '30d', label: '30d' },

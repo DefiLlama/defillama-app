@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinAssetChartData } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinAssetChartConfig } from '../types'
 import { ChartExportButton } from './ProTable/ChartExportButton'
@@ -41,7 +41,7 @@ const EMPTY_HALLMARKS: [number, string][] = []
 
 export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardProps) {
 	const { stablecoin, stablecoinId, chartType } = config
-	const { timePeriod, customTimePeriod } = useProDashboard()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const [chartInstance, setChartInstance] = useState<echarts.ECharts | null>(null)
 
 	const {

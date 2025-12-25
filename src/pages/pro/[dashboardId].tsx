@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
-import { ProDashboardAPIProvider, useProDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { ProDashboardAPIProvider, useProDashboardDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 
@@ -38,7 +38,7 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 	const router = useRouter()
 
 	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
-	const { isLoadingDashboard, dashboardVisibility, currentDashboard, dashboardName } = useProDashboard()
+	const { isLoadingDashboard, dashboardVisibility, currentDashboard, dashboardName } = useProDashboardDashboard()
 	const [isValidating, setIsValidating] = useState(true)
 	const { trackView } = useDashboardEngagement(dashboardId === 'new' ? null : dashboardId)
 	const hasTrackedView = useRef(false)

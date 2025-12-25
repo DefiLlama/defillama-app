@@ -3,7 +3,7 @@ import { SparklineChart } from '~/components/ECharts/SparklineChart'
 import { Icon } from '~/components/Icon'
 import { formattedNum } from '~/utils'
 import { useMetricData } from '../hooks/useMetricData'
-import { useProDashboard } from '../ProDashboardAPIContext'
+import { useProDashboardCatalog, useProDashboardPermissions } from '../ProDashboardAPIContext'
 import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
 import { CHART_TYPES } from '../types'
 import { getItemIconUrl } from '../utils'
@@ -64,7 +64,8 @@ interface MetricCardProps {
 }
 
 export function MetricCard({ metric }: MetricCardProps) {
-	const { getChainInfo, getProtocolInfo, isReadOnly } = useProDashboard()
+	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
+	const { isReadOnly } = useProDashboardPermissions()
 	const { value, delta, deltaPct, sparklineData, lastUpdatedTs, isLoading, isError } = useMetricData(metric)
 
 	const { displayTitle, baseTitle, iconUrl, format } = useMemo(() => {
