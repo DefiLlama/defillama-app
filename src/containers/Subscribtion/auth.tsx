@@ -377,7 +377,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				return { address }
 			} catch (error) {
 				console.log('Ethereum sign-in error:', error)
-				throw new Error('Failed to sign in with Ethereum')
+				const message = error instanceof Error ? error.message : 'Failed to sign in with Ethereum'
+				throw new Error(message)
 			}
 		}
 	})

@@ -371,7 +371,7 @@ export const SignInForm = ({
 
 							{signInWithEthereumMutation.error ? (
 								<div className="text-center text-xs text-red-500">
-									{signInWithEthereumMutation.error.message?.slice(0, 100)}
+									{signInWithEthereumMutation.error.message || 'Failed to sign in with Ethereum'}
 								</div>
 							) : null}
 
