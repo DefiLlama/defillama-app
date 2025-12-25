@@ -360,7 +360,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				})
 
 				if (!response.ok) {
-					throw new Error('Failed to sign in with Ethereum')
+					const errorData = await response.json()
+					throw new Error(errorData.error || 'Failed to sign in with Ethereum')
 				}
 
 				const { password, identity, impersonate } = await response.json()
