@@ -417,12 +417,19 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			return adaptChartData(config, rawData)
 		}
 
+		const yAxisIdToIndex = new Map<string, number>()
+		config.axes.yAxes?.forEach((axis, index) => {
+			yAxisIdToIndex.set(axis.id, index)
+		})
+
 		const series: Array<{
 			data: Array<[number, number | null]>
 			type: 'line' | 'bar'
 			name: string
 			color: string
 			metricClass: 'flow' | 'stock'
+			metricType?: string
+			yAxisIndex?: number
 		}> = []
 
 		for (let seriesIndex = 0; seriesIndex < config.series.length; seriesIndex++) {
@@ -471,7 +478,9 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				type: chartType,
 				name: seriesConfig.name,
 				color,
-				metricClass: seriesConfig.metricClass
+				metricClass: seriesConfig.metricClass,
+				metricType: seriesConfig.metricClass,
+				yAxisIndex: yAxisIdToIndex.get(seriesConfig.yAxisId) ?? 0
 			})
 		}
 

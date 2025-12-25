@@ -151,13 +151,19 @@ export default function MultiSeriesChart({
 		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
 		const uniqueMetricTypes = Array.from(metricTypes)
 
-		const needMultipleAxes = uniqueMetricTypes.length > 1
+		const hasExplicitAxisIndex = processedSeries.some((s: any) => s.yAxisIndex != null && s.yAxisIndex > 0)
+		const maxExplicitAxisIndex = hasExplicitAxisIndex
+			? Math.max(...processedSeries.map((s: any) => s.yAxisIndex ?? 0))
+			: 0
+
+		const needMultipleAxes = uniqueMetricTypes.length > 1 || hasExplicitAxisIndex
 
 		let finalYAxis: any = yAxis
 		let seriesWithHallmarks = processedSeries
 
 		if (needMultipleAxes) {
-			finalYAxis = uniqueMetricTypes.slice(0, 3).map((_, index) => ({
+			const axisCount = Math.max(uniqueMetricTypes.length, maxExplicitAxisIndex + 1, 2)
+			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
 				...yAxis,
 				axisLabel: { ...(yAxis as any).axisLabel, margin: 4 },
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
@@ -165,10 +171,10 @@ export default function MultiSeriesChart({
 			}))
 
 			seriesWithHallmarks = seriesWithHallmarks.map((s: any) => {
-				const axisIndex = uniqueMetricTypes.indexOf(s.metricType)
+				const axisIndex = s.yAxisIndex ?? uniqueMetricTypes.indexOf(s.metricType)
 				return {
 					...s,
-					yAxisIndex: Math.min(axisIndex, 2)
+					yAxisIndex: Math.min(axisIndex >= 0 ? axisIndex : 0, 2)
 				}
 			})
 		}
