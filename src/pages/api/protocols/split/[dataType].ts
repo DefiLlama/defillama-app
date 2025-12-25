@@ -275,6 +275,10 @@ const getTvlData = async (
 	)
 	const categoriesFilterSet = new Set(categoriesFilter)
 
+	const hasRealExcludedChains =
+		filterMode === 'exclude' &&
+		Array.from(excludedChainSetForProtocols).some((chain) => chain.toLowerCase() !== 'all')
+
 	for (const p of protocols) {
 		const cat = (p.category || '').toLowerCase()
 		if (categoriesFilterSet.size > 0) {
@@ -284,7 +288,7 @@ const getTvlData = async (
 
 		let score = 0
 		if (isAll) {
-			if (filterMode === 'exclude') {
+			if (filterMode === 'exclude' && hasRealExcludedChains) {
 				for (const key in p.chainTvls || {}) {
 					if (isIgnoredChainKey(key)) continue
 					if (excludedChainSetForProtocols.has(key)) continue
@@ -297,7 +301,7 @@ const getTvlData = async (
 				score = typeof p.tvl === 'number' ? p.tvl : 0
 			}
 		} else {
-			if (filterMode === 'exclude') {
+			if (filterMode === 'exclude' && hasRealExcludedChains) {
 				for (const key in p.chainTvls || {}) {
 					if (isIgnoredChainKey(key)) continue
 					if (excludedChainSetForProtocols.has(key)) continue
@@ -381,9 +385,11 @@ const getTvlData = async (
 					const chainTvls = json?.chainTvls || {}
 
 					const opts: any = {}
-					if (filterMode === 'exclude' && excludedChainSetForProtocols.size > 0) {
+					if (hasRealExcludedChains) {
 						opts.filterMode = 'exclude'
-						opts.excludeChains = Array.from(excludedChainSetForProtocols)
+						opts.excludeChains = Array.from(excludedChainSetForProtocols).filter(
+							(c) => c.toLowerCase() !== 'all'
+						)
 					}
 					if (filterMode === 'include' && !isAll && includedChainSetForProtocols.size > 0) {
 						opts.filterMode = 'include'
@@ -434,7 +440,8 @@ const getTvlData = async (
 	}
 
 	let totalSeries: [number, number][]
-	if (filterMode === 'exclude') {
+	const hasRealExcludedChainsForTotal = hasRealExcludedChains || categoriesFilter.length > 0
+	if (filterMode === 'exclude' && hasRealExcludedChainsForTotal) {
 		const allTvl = await fetchAllChainTotalTvl()
 		const excludedChains = (isAll ? selectedChains : selectedChains).filter((c) => c.toLowerCase() !== 'all')
 		const excludedPerChain = await Promise.all(excludedChains.map((c) => fetchChainTvlSingle(c)))
@@ -620,7 +627,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const aggregatedBreakdown = new Map<number, Map<string, number>>()
 
-		if (fm === 'exclude') {
+		const realChainsToExclude = chainsArray.filter((c) => c.toLowerCase() !== 'all')
+		const hasRealChainsToExclude = fm === 'exclude' && realChainsToExclude.length > 0
+
+		if (hasRealChainsToExclude) {
 			const config = METRIC_CONFIG[metric]
 			let allUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 			if (config.dataType) allUrl += `&dataType=${config.dataType}`
@@ -635,21 +645,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			})
 
 			const excludedResults = await Promise.all(
-				chainsArray
-					.filter((c) => c.toLowerCase() !== 'all')
-					.map(async (singleChain) => {
-						let apiChain = toInternalSlug(singleChain)
-						let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
-						if (config.dataType) url += `&dataType=${config.dataType}`
-						try {
-							const r = await fetch(url)
-							if (!r.ok) return null
-							const j = await r.json()
-							return j
-						} catch {
-							return null
-						}
-					})
+				realChainsToExclude.map(async (singleChain) => {
+					let apiChain = toInternalSlug(singleChain)
+					let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
+					if (config.dataType) url += `&dataType=${config.dataType}`
+					try {
+						const r = await fetch(url)
+						if (!r.ok) return null
+						const j = await r.json()
+						return j
+					} catch {
+						return null
+					}
+				})
 			)
 			const excludedMaps: Map<number, Map<string, number>>[] = []
 			for (const ex of excludedResults) {
@@ -663,7 +671,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				excludedMaps.push(map)
 			}
 
-			// Subtract excluded from all
 			for (const [ts, allProtoMap] of allMap.entries()) {
 				const out = new Map<string, number>(allProtoMap)
 				for (const exMap of excludedMaps) {

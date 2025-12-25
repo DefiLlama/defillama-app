@@ -390,53 +390,49 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		<div className="flex h-full flex-col">
 			<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
 
-			<div className="mb-3 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1">
+			<div className="mb-3 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
 				<div className="grid grid-cols-2 gap-1">
 					<button
 						type="button"
 						onClick={() => onChartTabChange('chain')}
-						className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
+						className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
 							selectedChartTab === 'chain'
-								? 'bg-(--primary)/10 text-(--primary) shadow-sm'
-								: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
 						}`}
 					>
-						<div className="flex items-center justify-center gap-2">
-							<Icon
-								name="chain"
-								width={14}
-								height={14}
-								className={
-									selectedChartTab === 'chain'
-										? 'text-(--primary)'
-										: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
-								}
-							/>
-							<span>Chains</span>
-						</div>
+						<Icon
+							name="chain"
+							width={14}
+							height={14}
+							className={
+								selectedChartTab === 'chain'
+									? 'text-white'
+									: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+							}
+						/>
+						<span>Chains</span>
 					</button>
 					<button
 						type="button"
 						onClick={() => onChartTabChange('protocol')}
-						className={`group rounded-md px-3 py-2.5 text-xs font-semibold transition-all ${
+						className={`group flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-all duration-200 ${
 							selectedChartTab === 'protocol'
-								? 'bg-(--primary)/10 text-(--primary) shadow-sm'
-								: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+								? 'bg-(--old-blue) text-white shadow-md ring-1 ring-black/10'
+								: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary) hover:shadow-sm'
 						}`}
 					>
-						<div className="flex items-center justify-center gap-2">
-							<Icon
-								name="protocol"
-								width={14}
-								height={14}
-								className={
-									selectedChartTab === 'protocol'
-										? 'text-(--primary)'
-										: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
-								}
-							/>
-							<span>Protocols</span>
-						</div>
+						<Icon
+							name="protocol"
+							width={14}
+							height={14}
+							className={
+								selectedChartTab === 'protocol'
+									? 'text-white'
+									: 'text-(--text-tertiary) transition-colors group-hover:text-(--text-secondary)'
+							}
+						/>
+						<span>Protocols</span>
 					</button>
 				</div>
 			</div>

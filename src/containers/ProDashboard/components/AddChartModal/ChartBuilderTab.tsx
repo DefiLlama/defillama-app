@@ -403,20 +403,22 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Mode</h4>
-						<div className="mb-1.5 flex gap-0">
-							{MODE_OPTIONS.map((option) => (
-								<button
-									key={option.value}
-									onClick={() => handleModeChange(option.value as any)}
-									className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-										chartBuilder.mode === option.value
-											? 'pro-border pro-btn-blue'
-											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-									}`}
-								>
-									{option.label}
-								</button>
-							))}
+						<div className="mb-1.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
+							<div className="grid grid-cols-2 gap-0.5">
+								{MODE_OPTIONS.map((option) => (
+									<button
+										key={option.value}
+										onClick={() => handleModeChange(option.value as any)}
+										className={`rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 ${
+											chartBuilder.mode === option.value
+												? 'bg-(--old-blue) text-white shadow-sm'
+												: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary)'
+										}`}
+									>
+										{option.label}
+									</button>
+								))}
+							</div>
 						</div>
 					</div>
 
@@ -425,23 +427,25 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 						<div className="mb-1.5">
 							<h5 className="pro-text2 mb-1 text-[11px] font-medium">Filter Mode</h5>
-							<div className="mb-1.5 flex gap-0">
-								{[
-									{ value: 'include', label: 'Include' },
-									{ value: 'exclude', label: 'Exclude' }
-								].map((option) => (
-									<button
-										key={option.value}
-										onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
-										className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-											(chartBuilder.filterMode || 'include') === option.value
-												? 'pro-border pro-btn-blue'
-												: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-										}`}
-									>
-										{option.label}
-									</button>
-								))}
+							<div className="mb-1.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
+								<div className="grid grid-cols-2 gap-0.5">
+									{[
+										{ value: 'include', label: 'Include' },
+										{ value: 'exclude', label: 'Exclude' }
+									].map((option) => (
+										<button
+											key={option.value}
+											onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
+											className={`rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 ${
+												(chartBuilder.filterMode || 'include') === option.value
+													? 'bg-(--old-blue) text-white shadow-sm'
+													: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary)'
+											}`}
+										>
+											{option.label}
+										</button>
+									))}
+								</div>
 							</div>
 						</div>
 
@@ -638,20 +642,22 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Display value as</h4>
-						<div className="flex gap-0">
-							{DISPLAY_OPTIONS.map((option) => (
-								<button
-									key={option.value}
-									onClick={() => handleDisplayChange(option.value as any)}
-									className={`-ml-px flex-1 rounded-none border px-2 py-1 text-xs transition-colors first:ml-0 first:rounded-l-md last:rounded-r-md ${
-										chartBuilder.displayAs === option.value
-											? 'pro-border pro-btn-blue'
-											: 'pro-border pro-hover-bg pro-text2 hover:pro-text1'
-									}`}
-								>
-									{option.label}
-								</button>
-							))}
+						<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
+							<div className="grid grid-cols-2 gap-0.5">
+								{DISPLAY_OPTIONS.map((option) => (
+									<button
+										key={option.value}
+										onClick={() => handleDisplayChange(option.value as any)}
+										className={`rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 ${
+											chartBuilder.displayAs === option.value
+												? 'bg-(--old-blue) text-white shadow-sm'
+												: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary)'
+										}`}
+									>
+										{option.label}
+									</button>
+								))}
+							</div>
 						</div>
 					</div>
 				</div>
