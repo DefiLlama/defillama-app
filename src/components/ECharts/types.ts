@@ -161,6 +161,7 @@ export interface IMultiSeriesChartProps {
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 	hallmarks?: [number, string][]
 	valueSymbol?: string
+	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean

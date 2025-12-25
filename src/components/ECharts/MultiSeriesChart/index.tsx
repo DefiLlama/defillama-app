@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useDefaults } from '../useDefaults'
+import { formatTooltipValue, useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
@@ -23,6 +23,7 @@ interface IMultiSeriesChartProps {
 	height?: string
 	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
 	valueSymbol?: string
+	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
 	hideDataZoom?: boolean
 	hideDownloadButton?: boolean
@@ -35,6 +36,7 @@ interface IMultiSeriesChartProps {
 export default function MultiSeriesChart({
 	series,
 	valueSymbol = '',
+	yAxisSymbols = [],
 	height,
 	chartOptions,
 	groupBy,
@@ -165,7 +167,11 @@ export default function MultiSeriesChart({
 			const axisCount = Math.max(uniqueMetricTypes.length, maxExplicitAxisIndex + 1, 2)
 			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
 				...yAxis,
-				axisLabel: { ...(yAxis as any).axisLabel, margin: 4 },
+				axisLabel: {
+					...(yAxis as any).axisLabel,
+					margin: 4,
+					formatter: (value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol)
+				},
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
 				offset: index === 2 ? 40 : 0
 			}))
