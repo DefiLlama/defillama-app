@@ -139,7 +139,9 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			}
 		}
 
-		const valueSymbol = chartState.percentage ? '%' : config.valueSymbol || '$'
+		const valueSymbol = chartState.percentage
+			? '%'
+			: config.valueSymbol || (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : undefined) || '$'
 		adaptedChart = {
 			...adaptedChart,
 			props: {

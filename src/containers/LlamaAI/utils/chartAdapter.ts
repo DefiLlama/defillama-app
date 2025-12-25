@@ -418,8 +418,10 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 		}
 
 		const yAxisIdToIndex = new Map<string, number>()
+		const yAxisIndexToSymbol = new Map<number, string>()
 		config.axes.yAxes?.forEach((axis, index) => {
 			yAxisIdToIndex.set(axis.id, index)
+			yAxisIndexToSymbol.set(index, axis.valueSymbol ?? config.valueSymbol ?? '$')
 		})
 
 		const series: Array<{
@@ -485,6 +487,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 		}
 
 		const validSeries = series.filter((s) => s.data && s.data.length > 0)
+		const yAxisSymbols = config.axes.yAxes?.map((axis) => axis.valueSymbol ?? config.valueSymbol ?? '$') ?? []
 
 		const multiSeriesProps: Partial<IMultiSeriesChartProps> = {
 			series: validSeries,
@@ -492,6 +495,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			height: '360px',
 			hideDownloadButton: false,
 			valueSymbol: config.valueSymbol ?? '',
+			yAxisSymbols,
 			xAxisType: config.axes.x.type === 'value' ? 'category' : config.axes.x.type,
 
 			...(config.hallmarks?.length && {
@@ -517,10 +521,12 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 						params.forEach((param: any) => {
 							const value = param.value?.[1]
 							if (value != null) {
+								const yAxisIndex = validSeries[param.seriesIndex]?.yAxisIndex ?? 0
+								const axisSymbol = yAxisIndexToSymbol.get(yAxisIndex) ?? config.valueSymbol ?? '$'
 								const formattedValue =
-									config.valueSymbol === '%'
+									axisSymbol === '%'
 										? formatPrecisionPercentage(value)
-										: formatTooltipValue(value, config.valueSymbol ?? '')
+										: formatTooltipValue(value, axisSymbol)
 								content += `<div>${param.marker} ${param.seriesName}: ${formattedValue}</div>`
 							}
 						})
