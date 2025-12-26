@@ -112,7 +112,7 @@ export const getProtocolMetrics = ({
 		const goodChart =
 			protocolData.chainTvls[chain].tvl &&
 			protocolData.chainTvls[chain].tvl.length > 0 &&
-			protocolData.chainTvls[chain].tvl.every((item) => item.totalLiquidityUSD !== 0)
+			protocolData.chainTvls[chain].tvl.some((item) => item.totalLiquidityUSD !== 0)
 
 		if (goodChart) {
 			tvlChartExist = true
