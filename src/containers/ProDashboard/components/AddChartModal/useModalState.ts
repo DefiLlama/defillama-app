@@ -7,10 +7,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 	const [state, dispatch] = useReducer(modalReducer, editItem, initializeFromEditItem)
 
 	useEffect(() => {
-		dispatch({
-			type: 'INITIALIZE_FROM_EDIT_ITEM',
-			payload: { editItem: editItem ?? null }
-		})
+		if (isOpen) {
+			dispatch({
+				type: 'INITIALIZE_FROM_EDIT_ITEM',
+				payload: { editItem: editItem ?? null }
+			})
+		}
 	}, [editItem, isOpen])
 
 	const resetState = useCallback(() => {
