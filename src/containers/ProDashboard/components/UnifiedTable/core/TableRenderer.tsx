@@ -27,7 +27,7 @@ export function TableRenderer({
 	}
 
 	return (
-		<div className="relative isolate flex-1 overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
+		<div className="relative isolate flex h-[450px] flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<UnifiedVirtualTable table={table} />
 			{isEmpty && (
 				<div className="pointer-events-none absolute inset-0 z-5 flex items-center justify-center bg-gradient-to-b from-transparent via-(--cards-bg)/90 to-(--cards-bg)">
