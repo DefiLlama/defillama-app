@@ -136,6 +136,22 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 	onEditItem,
 	handleEditItem
 }: DashboardItemRendererProps) {
+	const handleConfigChange = useCallback(
+		(newConfig: DashboardItemConfig) => handleEditItem(item.id, newConfig),
+		[handleEditItem, item.id]
+	)
+
+	const handleDatasetChainChange = useCallback(
+		(newChain: string) => handleEditItem(item.id, { ...item, datasetChain: newChain } as DashboardItemConfig),
+		[handleEditItem, item]
+	)
+
+	const handleDatasetTimeframeChange = useCallback(
+		(newTimeframe: string) =>
+			handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe } as DashboardItemConfig),
+		[handleEditItem, item]
+	)
+
 	if (item.kind === 'chart') {
 		return (
 			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
@@ -223,7 +239,7 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 				return <EarningsDataset chains={item.chains} tableId={item.id} filters={item.filters} />
 			if (item.datasetType === 'fees') return <FeesDataset chains={item.chains} />
 			if (item.datasetType === 'token-usage')
-				return <TokenUsageDataset config={item} onConfigChange={(newConfig) => handleEditItem(item.id, newConfig)} />
+				return <TokenUsageDataset config={item} onConfigChange={handleConfigChange} />
 			if (item.datasetType === 'yields')
 				return (
 					<div className="relative" style={{ isolation: 'isolate' }}>
@@ -247,12 +263,8 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 						chain={item.datasetChain}
 						timeframe={item.datasetTimeframe}
 						tableId={item.id}
-						onChainChange={(newChain) => {
-							handleEditItem(item.id, { ...item, datasetChain: newChain })
-						}}
-						onTimeframeChange={(newTimeframe) => {
-							handleEditItem(item.id, { ...item, datasetTimeframe: newTimeframe })
-						}}
+						onChainChange={handleDatasetChainChange}
+						onTimeframeChange={handleDatasetTimeframeChange}
 					/>
 				)
 			if (item.datasetType === 'chains')
