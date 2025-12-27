@@ -202,9 +202,14 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		accessorFn: (asset) => asset.name,
 		enableSorting: false,
 		cell: (info) => {
+			const index =
+				info.row.depth === 0
+					? info.table.getSortedRowModel().rows.findIndex((x) => x.id === info.row.id)
+					: info.row.index
+
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{info.row.index + 1}</span>
+					<span className="shrink-0">{index + 1}</span>
 					<span className="-my-1.5 flex flex-col overflow-hidden">
 						{info.row.original.name && (
 							<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline">
