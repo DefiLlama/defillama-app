@@ -25,7 +25,7 @@ import { IRWAAssetsOverview } from './queries'
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainTvl.total', desc: true }])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMarketcap.total', desc: true }])
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
