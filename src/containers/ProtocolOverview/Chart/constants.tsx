@@ -2,6 +2,7 @@
 export const protocolCharts = {
 	TVL: 'tvl',
 	'Total Assets': 'totalAssets',
+	TVS: 'tvs',
 	Mcap: 'mcap',
 	'Token Price': 'tokenPrice',
 	'Token Volume': 'tokenVolume',
@@ -48,6 +49,7 @@ export const yAxisByChart: {
 } = {
 	TVL: 'TVL',
 	'Total Assets': 'TVL',
+	TVS: 'TVL',
 	Mcap: 'TVL',
 	FDV: 'TVL',
 	Borrowed: 'TVL',

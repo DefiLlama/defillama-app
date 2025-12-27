@@ -875,10 +875,11 @@ export const getProtocolOverviewPageData = async ({
 		if (defaultChartLabel && availableCharts.includes(defaultChartLabel as any)) {
 			defaultToggledCharts.push(defaultChartLabel as any)
 		}
-	} else {
+	} else if (!isCEX) {
 		const cannotShowAsDefault = new Set<ProtocolChartsLabels>([
 			'TVL',
 			'Total Assets',
+			'TVS',
 			'Mcap',
 			'Token Price',
 			'Token Volume',

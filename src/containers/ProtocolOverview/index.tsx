@@ -11,12 +11,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import {
-	DEFI_SETTINGS_KEYS,
-	DEFI_SETTINGS_KEYS_SET,
-	FEES_SETTINGS,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
@@ -25,9 +20,115 @@ import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
+	const router = useRouter()
+
+	const { tvl, tvlByChain, toggleOptions } = useFinalTVL(props)
+
+	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
+
+	const formatPrice = (value?: number | string | null): string | number | null => {
+		if (Number.isNaN(Number(value))) return null
+
+		if (
+			!fetchingChainPrice &&
+			chainPrice?.price &&
+			typeof router.query.denomination === 'string' &&
+			props.chartDenominations?.[1]?.symbol &&
+			props.chartDenominations[1].symbol === router.query.denomination
+		) {
+			return formattedNum(Number(value) / chainPrice.price, false) + ` ${chainPrice.symbol}`
+		}
+
+		return formattedNum(value, true)
+	}
+
+	return (
+		<ProtocolOverviewLayout
+			isCEX={props.isCEX}
+			name={props.name}
+			category={props.category}
+			otherProtocols={props.otherProtocols}
+			toggleOptions={toggleOptions}
+			metrics={props.metrics}
+			warningBanners={props.warningBanners}
+			tab="information"
+			seoDescription={props.seoDescription}
+			seoKeywords={props.seoKeywords}
+		>
+			<LinkPreviewCard
+				cardName={props.name}
+				token={props.name}
+				logo={tokenIconUrl(props.name)}
+				tvl={formattedNum(tvl, true)?.toString()}
+				isCEX={props.isCEX}
+			/>
+			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
+				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
+					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
+						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<span className="font-bold">
+							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+						</span>
+						{props.token.symbol && props.token.symbol !== '-' ? (
+							<span className="mr-auto font-normal">({props.token.symbol})</span>
+						) : null}
+						<Bookmark readableName={props.name} />
+					</h1>
+					<PrimaryValue
+						hasTvl={props.metrics.tvl}
+						value={tvl}
+						name={props.name}
+						category={props.category}
+						valueByChain={tvlByChain}
+						formatPrice={formatPrice}
+					/>
+					<KeyMetrics {...props} formatPrice={formatPrice} />
+				</div>
+				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
+					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+						<div className="flex flex-col gap-6 xl:hidden">
+							<h1 className="flex flex-wrap items-center gap-2 text-xl">
+								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+								<span className="font-bold">
+									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+								</span>
+								{props.token.symbol && props.token.symbol !== '-' ? (
+									<span className="mr-auto font-normal">({props.token.symbol})</span>
+								) : null}
+								<Bookmark readableName={props.name} />
+							</h1>
+							<PrimaryValue
+								hasTvl={props.metrics.tvl}
+								value={tvl}
+								name={props.name}
+								category={props.category}
+								formatPrice={formatPrice}
+								valueByChain={tvlByChain}
+							/>
+						</div>
+						<ProtocolChart {...props} />
+					</div>
+					{props.hasKeyMetrics ? (
+						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
+							<KeyMetrics {...props} formatPrice={formatPrice} />
+						</div>
+					) : null}
+				</div>
+				<AdditionalInfo {...props} />
+				{props.incomeStatement?.data ? (
+					<Suspense fallback={<></>}>
+						<IncomeStatement {...props} />
+					</Suspense>
+				) : null}
+			</div>
+		</ProtocolOverviewLayout>
+	)
+}
+
+function useFinalTVL(props: IProtocolOverviewPageData) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
-	const { tvl, tvlByChain, toggleOptions } = useMemo(() => {
+	return useMemo(() => {
 		let tvl = 0
 		let toggleOptions = []
 
@@ -81,144 +182,52 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			toggleOptions
 		}
 	}, [extraTvlsEnabled, props])
-
-	const router = useRouter()
-	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
-
-	const formatPrice = (value?: number | string | null): string | number | null => {
-		if (Number.isNaN(Number(value))) return null
-
-		if (
-			!fetchingChainPrice &&
-			chainPrice?.price &&
-			typeof router.query.denomination === 'string' &&
-			props.chartDenominations?.[1]?.symbol &&
-			props.chartDenominations[1].symbol === router.query.denomination
-		) {
-			return formattedNum(Number(value) / chainPrice.price, false) + ` ${chainPrice.symbol}`
-		}
-
-		return formattedNum(value, true)
-	}
-
-	return (
-		<ProtocolOverviewLayout
-			isCEX={props.isCEX}
-			name={props.name}
-			category={props.category}
-			otherProtocols={props.otherProtocols}
-			toggleOptions={toggleOptions}
-			metrics={props.metrics}
-			warningBanners={props.warningBanners}
-			tab="information"
-			seoDescription={props.seoDescription}
-			seoKeywords={props.seoKeywords}
-		>
-			<LinkPreviewCard
-				cardName={props.name}
-				token={props.name}
-				logo={tokenIconUrl(props.name)}
-				tvl={formattedNum(tvl, true)?.toString()}
-				isCEX={props.isCEX}
-			/>
-			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
-					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
-						</span>
-						{props.token.symbol && props.token.symbol !== '-' ? (
-							<span className="mr-auto font-normal">({props.token.symbol})</span>
-						) : null}
-						<Bookmark readableName={props.name} />
-					</h1>
-					<ProtocolTVL
-						hasTvl={props.metrics.tvl}
-						tvl={tvl}
-						isCEX={props.isCEX}
-						name={props.name}
-						category={props.category}
-						formatPrice={formatPrice}
-						tvlByChain={tvlByChain}
-					/>
-					<KeyMetrics {...props} formatPrice={formatPrice} />
-				</div>
-				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
-					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-						<div className="flex flex-col gap-6 xl:hidden">
-							<h1 className="flex flex-wrap items-center gap-2 text-xl">
-								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-								<span className="font-bold">
-									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
-								</span>
-								{props.token.symbol && props.token.symbol !== '-' ? (
-									<span className="mr-auto font-normal">({props.token.symbol})</span>
-								) : null}
-								<Bookmark readableName={props.name} />
-							</h1>
-							<ProtocolTVL
-								hasTvl={props.metrics.tvl}
-								tvl={tvl}
-								isCEX={props.isCEX}
-								name={props.name}
-								category={props.category}
-								formatPrice={formatPrice}
-								tvlByChain={tvlByChain}
-							/>
-						</div>
-						<ProtocolChart {...props} />
-					</div>
-					{props.hasKeyMetrics ? (
-						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
-							<KeyMetrics {...props} formatPrice={formatPrice} />
-						</div>
-					) : null}
-				</div>
-				<AdditionalInfo {...props} />
-				{props.incomeStatement?.data ? (
-					<Suspense fallback={<></>}>
-						<IncomeStatement {...props} />
-					</Suspense>
-				) : null}
-			</div>
-		</ProtocolOverviewLayout>
-	)
 }
 
-const ProtocolTVL = ({
+const getPrimaryValueLabelType = (category: string) => {
+	switch (category) {
+		case 'CEX':
+			return { title: 'Total Assets', byChainTitle: 'Total Assets by Chain', dataType: 'TotalAssets' }
+		case 'Oracle':
+			return { title: 'Total Value Secured', byChainTitle: 'TVS by Chain', dataType: 'TVS' }
+		default:
+			return { title: 'Total Value Locked', byChainTitle: 'TVL by Chain', dataType: 'TVL' }
+	}
+}
+
+const PrimaryValue = ({
 	hasTvl,
-	tvl,
-	isCEX,
+	value,
 	name,
 	category,
 	formatPrice,
-	tvlByChain
+	valueByChain
 }: {
 	hasTvl: boolean
-	tvl: number
-	isCEX: boolean
+	value: number
 	name: string
 	category: string
 	formatPrice: (value: number | string | null) => string | number | null
-	tvlByChain: [string, number][]
+	valueByChain?: [string, number][]
 }) => {
 	if (!hasTvl) return null
 
-	if (tvlByChain.length === 0) {
+	const { title, byChainTitle, dataType } = getPrimaryValueLabelType(category)
+
+	if (!valueByChain || valueByChain.length === 0) {
 		return (
 			<p className="flex flex-col">
 				<span className="flex flex-nowrap items-center gap-2">
-					{isCEX ? <span>Total Assets</span> : <span>Total Value Locked</span>}
+					<span>{title}</span>
 					<Flag
 						protocol={name}
-						dataType="TVL"
+						dataType={dataType}
 						isLending={category === 'Lending'}
 						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 					/>
 				</span>
 				<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
-					{formatPrice(tvl)}
+					{formatPrice(value)}
 				</span>
 			</p>
 		)
@@ -228,17 +237,17 @@ const ProtocolTVL = ({
 		<details className="group">
 			<summary className="flex flex-col">
 				<span className="flex flex-nowrap items-center gap-2">
-					<span className="text-(--text-label)">{isCEX ? 'Total Assets' : 'Total Value Locked'}</span>
+					<span className="text-(--text-label)">{title}</span>
 					<Flag
 						protocol={name}
-						dataType="TVL"
+						dataType={dataType}
 						isLending={category === 'Lending'}
 						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 					/>
 				</span>
 				<span className="flex flex-nowrap items-center gap-2">
 					<span className="font-jetbrains min-h-8 text-2xl font-semibold" suppressHydrationWarning>
-						{formatPrice(tvl)}
+						{formatPrice(value)}
 					</span>
 					<Icon
 						name="chevron-down"
@@ -249,8 +258,8 @@ const ProtocolTVL = ({
 				</span>
 			</summary>
 			<div className="my-3 flex max-h-[50dvh] flex-col overflow-auto">
-				<h2 className="font-semibold">{isCEX ? 'Total Assets by Chain' : 'TVL by Chain'}</h2>
-				{tvlByChain.map(([chain, tvl]) => (
+				<h2 className="font-semibold">{byChainTitle}</h2>
+				{valueByChain.map(([chain, tvl]) => (
 					<p
 						key={`${chain}-${tvl}-${name}`}
 						className="flex items-center justify-between gap-1 border-b border-dashed border-[#e6e6e6] py-1 group-last:border-none dark:border-[#222224]"
@@ -283,6 +292,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
+				{props.tvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
 				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
@@ -395,6 +405,41 @@ const Articles = (props: IProtocolOverviewPageData) => {
 	)
 }
 
+function TVL(props: IKeyMetricsProps) {
+	const { tvl, tvlByChain } = useFinalTVL(props)
+
+	const metrics = useMemo(() => {
+		const metrics = []
+		metrics.push({
+			name: 'Total Value Locked',
+			tooltipContent: "Total value locked in protocol's smart contracts",
+			value: tvl
+		})
+
+		for (const [chain, tvl] of tvlByChain) {
+			metrics.push({
+				name: chain,
+				value: tvl
+			})
+		}
+
+		return metrics
+	}, [tvl, tvlByChain])
+
+	if (metrics.length === 0) return null
+
+	return (
+		<SmolStats
+			data={metrics}
+			protocolName={props.name}
+			category={props.category ?? ''}
+			formatPrice={props.formatPrice}
+			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="TVL"
+		/>
+	)
+}
+
 function Fees(props: IKeyMetricsProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
@@ -468,6 +513,7 @@ function Fees(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Fees"
 		/>
 	)
 }
@@ -546,6 +592,7 @@ function Revenue(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Revenue"
 		/>
 	)
 }
@@ -629,6 +676,7 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Holders Revenue"
 		/>
 	)
 }
@@ -683,6 +731,7 @@ function Incentives(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Incentives"
 		/>
 	)
 }
@@ -770,6 +819,7 @@ function Earnings(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Earnings"
 		/>
 	)
 }
@@ -815,6 +865,7 @@ function DexVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="DEX Volume"
 		/>
 	)
 }
@@ -860,6 +911,7 @@ function DexAggregatorVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="DEX Aggregator Volume"
 		/>
 	)
 }
@@ -905,6 +957,7 @@ function PerpVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Perp Volume"
 		/>
 	)
 }
@@ -929,6 +982,7 @@ function OpenInterest(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Open Interest"
 		/>
 	)
 }
@@ -974,6 +1028,7 @@ function PerpAggregatorVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Perp Aggregator Volume"
 		/>
 	)
 }
@@ -1019,6 +1074,7 @@ function BridgeAggregatorVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Bridge Aggregator Volume"
 		/>
 	)
 }
@@ -1093,6 +1149,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Bridge Volume"
 		/>
 	)
 }
@@ -1138,6 +1195,7 @@ function OptionsPremiumVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Options Premium Volume"
 		/>
 	)
 }
@@ -1183,6 +1241,7 @@ function OptionsNotionalVolume(props: IKeyMetricsProps) {
 			category={props.category ?? ''}
 			formatPrice={props.formatPrice}
 			openSmolStatsSummaryByDefault={props.openSmolStatsSummaryByDefault}
+			dataType="Options Notional Volume"
 		/>
 	)
 }
@@ -1384,6 +1443,12 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					>
 						Outstanding FDV
 					</Tooltip>
+					<Flag
+						protocol={props.name}
+						dataType="Outstanding FDV"
+						isLending={props.category === 'Lending'}
+						className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+					/>
 					<span className="font-jetbrains">{props.formatPrice(props.outstandingFDV)}</span>
 				</p>
 			) : null}
@@ -1438,7 +1503,8 @@ const SmolStats = ({
 	protocolName,
 	category,
 	formatPrice,
-	openSmolStatsSummaryByDefault = false
+	openSmolStatsSummaryByDefault = false,
+	dataType
 }: {
 	data: Array<{
 		name: string
@@ -1449,6 +1515,7 @@ const SmolStats = ({
 	category: string
 	formatPrice: (value: number | string | null) => string | number | null
 	openSmolStatsSummaryByDefault?: boolean
+	dataType: string
 }) => {
 	if (data.length === 0) return null
 
@@ -1464,7 +1531,7 @@ const SmolStats = ({
 				)}
 				<Flag
 					protocol={protocolName}
-					dataType={data[0].name}
+					dataType={dataType}
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>
@@ -1491,7 +1558,7 @@ const SmolStats = ({
 				/>
 				<Flag
 					protocol={protocolName}
-					dataType={data[0].name.split(' ').slice(0, -1).join(' ')}
+					dataType={dataType}
 					isLending={category === 'Lending'}
 					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 				/>

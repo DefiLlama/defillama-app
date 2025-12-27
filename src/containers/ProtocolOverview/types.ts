@@ -268,6 +268,7 @@ export interface IProtocolOverviewPageData {
 	seoDescription: string
 	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
+	tvs?: boolean
 }
 
 interface ICredit {
