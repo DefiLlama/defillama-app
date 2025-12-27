@@ -170,6 +170,8 @@ export const RWA_STATS_API = 'https://api.llama.fi/rwa/stats'
 
 export const TRADFI_API = process.env.TRADFI_API
 
+export const RWA_ACTIVE_TVLS_API = `${SERVER_URL}/rwa/active-tvls`
+
 export const removedCategoriesFromChainTvl = [
 	'Chain',
 	'CEX',
