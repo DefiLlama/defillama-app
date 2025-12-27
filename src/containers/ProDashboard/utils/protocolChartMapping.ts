@@ -37,7 +37,8 @@ export const PROTOCOL_TO_DASHBOARD_CHART_TYPE: Record<ProtocolChartsLabels, stri
 	'Gas Used': 'gasUsed',
 	Tweets: null,
 	'NFT Volume': null,
-	'Bridge Volume': null
+	'Bridge Volume': null,
+	TVS: null
 }
 
 export function getSupportedProtocolCharts(
