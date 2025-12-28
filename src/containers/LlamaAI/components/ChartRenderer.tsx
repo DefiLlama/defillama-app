@@ -88,8 +88,6 @@ const SaveChartButton = memo(function SaveChartButton({
 	const [saved, setSaved] = useState(isAlreadySaved ?? false)
 	const [saving, setSaving] = useState(false)
 
-	console.log('[SaveChartButton]', { chartId, messageId, isSaveable, isAlreadySaved, hasUser: !!user })
-
 	if (!user || !isSaveable || !messageId) return null
 
 	const save = async () => {
@@ -127,7 +125,14 @@ const SaveChartButton = memo(function SaveChartButton({
 	)
 })
 
-const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveable, isAlreadySaved, messageId }: SingleChartProps) {
+const SingleChart = memo(function SingleChart({
+	config,
+	data,
+	isActive,
+	isSaveable,
+	isAlreadySaved,
+	messageId
+}: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -301,7 +306,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
 							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+								<SaveChartButton
+									chartId={config.id}
+									messageId={messageId}
+									isSaveable={isSaveable}
+									isAlreadySaved={isAlreadySaved}
+								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
@@ -344,7 +354,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
 							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+								<SaveChartButton
+									chartId={config.id}
+									messageId={messageId}
+									isSaveable={isSaveable}
+									isAlreadySaved={isAlreadySaved}
+								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
 							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
@@ -358,7 +373,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+							<SaveChartButton
+								chartId={config.id}
+								messageId={messageId}
+								isSaveable={isSaveable}
+								isAlreadySaved={isAlreadySaved}
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<AreaChart
@@ -375,7 +395,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+							<SaveChartButton
+								chartId={config.id}
+								messageId={messageId}
+								isSaveable={isSaveable}
+								isAlreadySaved={isAlreadySaved}
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -387,7 +412,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+							<SaveChartButton
+								chartId={config.id}
+								messageId={messageId}
+								isSaveable={isSaveable}
+								isAlreadySaved={isAlreadySaved}
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -403,7 +433,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 							{...(adaptedChart.props as IPieChartProps)}
 							customComponents={
 								<>
-									<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+									<SaveChartButton
+										chartId={config.id}
+										messageId={messageId}
+										isSaveable={isSaveable}
+										isAlreadySaved={isAlreadySaved}
+									/>
 									<CSVDownloadButton prepareCsv={prepareCsv} smol />
 								</>
 							}
@@ -416,7 +451,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveab
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+							<SaveChartButton
+								chartId={config.id}
+								messageId={messageId}
+								isSaveable={isSaveable}
+								isAlreadySaved={isAlreadySaved}
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" />
@@ -506,7 +546,6 @@ export const ChartRenderer = memo(function ChartRenderer({
 	savedChartIds,
 	messageId
 }: ChartRendererProps) {
-	console.log('[ChartRenderer]', { chartsCount: charts?.length, saveableChartIds, savedChartIds, messageId })
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 

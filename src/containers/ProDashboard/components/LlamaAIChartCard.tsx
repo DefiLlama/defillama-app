@@ -11,11 +11,9 @@ interface LlamaAIChartCardProps {
 }
 
 export default memo(function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
-	console.log('[LlamaAIChartCard] mounting', { savedChartId: config.savedChartId, config })
 	const { data, isLoading, error, refetch } = useQuery({
 		queryKey: ['saved-chart', config.savedChartId],
 		queryFn: async () => {
-			console.log('[LlamaAIChartCard] fetching', config.savedChartId)
 			const res = await fetch(`${MCP_SERVER}/charts/${config.savedChartId}`)
 			if (!res.ok) throw new Error('Failed to load chart')
 			return res.json()
@@ -45,11 +43,7 @@ export default memo(function LlamaAIChartCard({ config }: LlamaAIChartCardProps)
 	}
 
 	if (!data) {
-		return (
-			<div className="flex min-h-[300px] items-center justify-center text-(--text-form)">
-				Chart not found
-			</div>
-		)
+		return <div className="flex min-h-[300px] items-center justify-center text-(--text-form)">Chart not found</div>
 	}
 
 	return (
@@ -62,10 +56,7 @@ export default memo(function LlamaAIChartCard({ config }: LlamaAIChartCardProps)
 					</span>
 				)}
 			</div>
-			<ChartRenderer
-				charts={[data.chartConfig]}
-				chartData={data.chartData}
-			/>
+			<ChartRenderer charts={[data.chartConfig]} chartData={data.chartData} />
 		</div>
 	)
 })
