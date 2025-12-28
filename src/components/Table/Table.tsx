@@ -229,7 +229,7 @@ export function VirtualTable({
 				<div className="flex flex-col gap-2">
 					<h3 className="text-lg font-semibold text-(--text-primary)">No columns selected</h3>
 					<p className="text-sm text-(--text-secondary)">
-						Please select at least one column from the columns menu to view the table data.
+						Please select at least one column from the Columns menu to view the table data.
 					</p>
 				</div>
 			</div>
