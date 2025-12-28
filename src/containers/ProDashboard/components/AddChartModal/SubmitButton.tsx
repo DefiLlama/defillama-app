@@ -33,6 +33,7 @@ interface SubmitButtonProps {
 	selectedAdvancedTvlChartType?: string
 	selectedBorrowedProtocol?: string | null
 	selectedBorrowedChartType?: string
+	selectedLlamaAIChart?: { id: string; title: string } | null
 	onSubmit: () => void
 }
 
@@ -68,6 +69,7 @@ export function SubmitButton({
 	selectedAdvancedTvlChartType,
 	selectedBorrowedProtocol,
 	selectedBorrowedChartType,
+	selectedLlamaAIChart,
 	onSubmit
 }: SubmitButtonProps) {
 	const isStablecoinChainModeInvalid =
@@ -110,7 +112,8 @@ export function SubmitButton({
 		(selectedMainTab === 'metric' &&
 			(!metricType ||
 				(metricSubjectType === 'chain' && !metricChain) ||
-				(metricSubjectType === 'protocol' && !metricProtocol)))
+				(metricSubjectType === 'protocol' && !metricProtocol))) ||
+		(selectedMainTab === 'llamaai' && !selectedLlamaAIChart)
 
 	const getButtonText = () => {
 		if (editItem) return 'Save Changes'
@@ -144,6 +147,8 @@ export function SubmitButton({
 				return 'Add Chart'
 			case 'text':
 				return 'Add Text'
+			case 'llamaai':
+				return 'Add Chart'
 			default:
 				return 'Add Chart'
 		}

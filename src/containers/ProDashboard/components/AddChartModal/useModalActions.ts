@@ -38,6 +38,7 @@ export function useModalActions(
 		handleAddText,
 		handleAddMetric,
 		handleAddChartBuilder,
+		handleAddLlamaAIChart,
 		handleEditItem
 	} = useProDashboardEditorActions()
 
@@ -699,6 +700,8 @@ export function useModalActions(
 				}
 			} else if (state.selectedMainTab === 'charts' && state.chartMode === 'builder') {
 				handleAddChartBuilder(state.chartBuilderName.trim() || undefined, state.chartBuilder)
+			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart) {
+				handleAddLlamaAIChart(state.selectedLlamaAIChart.id, state.selectedLlamaAIChart.title)
 			}
 		}
 
@@ -720,6 +723,7 @@ export function useModalActions(
 		handleAddText,
 		handleAddMetric,
 		handleAddChartBuilder,
+		handleAddLlamaAIChart,
 		onClose
 	])
 

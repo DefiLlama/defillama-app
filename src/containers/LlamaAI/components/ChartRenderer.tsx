@@ -1,8 +1,12 @@
-import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { lazy, memo, Suspense, useEffect, useReducer, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
+import { MCP_SERVER } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { ChartConfiguration } from '../types'
 import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
@@ -23,12 +27,18 @@ interface ChartRendererProps {
 	expectedChartCount?: number
 	chartTypes?: string[]
 	resizeTrigger?: number
+	saveableChartIds?: string[]
+	savedChartIds?: string[]
+	messageId?: string
 }
 
 interface SingleChartProps {
 	config: ChartConfiguration
 	data: any[]
 	isActive: boolean
+	isSaveable?: boolean
+	isAlreadySaved?: boolean
+	messageId?: string
 }
 
 type ChartState = {
@@ -63,7 +73,61 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-const SingleChart = memo(function SingleChart({ config, data, isActive }: SingleChartProps) {
+const SaveChartButton = memo(function SaveChartButton({
+	chartId,
+	messageId,
+	isSaveable,
+	isAlreadySaved
+}: {
+	chartId: string
+	messageId?: string
+	isSaveable?: boolean
+	isAlreadySaved?: boolean
+}) {
+	const { authorizedFetch, user } = useAuthContext()
+	const [saved, setSaved] = useState(isAlreadySaved ?? false)
+	const [saving, setSaving] = useState(false)
+
+	console.log('[SaveChartButton]', { chartId, messageId, isSaveable, isAlreadySaved, hasUser: !!user })
+
+	if (!user || !isSaveable || !messageId) return null
+
+	const save = async () => {
+		if (saved || saving) return
+		setSaving(true)
+		try {
+			const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messageId, chartId })
+			})
+			if (res.ok) {
+				setSaved(true)
+				toast.success('Chart saved!')
+			} else {
+				toast.error('Failed to save chart')
+			}
+		} catch {
+			toast.error('Failed to save chart')
+		} finally {
+			setSaving(false)
+		}
+	}
+
+	return (
+		<Tooltip content={saved ? 'Saved!' : 'Save to Dashboard'}>
+			<button
+				onClick={save}
+				disabled={saving || saved}
+				className="rounded p-1 text-[#666] hover:bg-[#f7f7f7] disabled:opacity-50 dark:text-[#a3a3a3] dark:hover:bg-[#2a2a2a]"
+			>
+				<Icon name={saved ? 'check' : 'bookmark'} height={14} width={14} />
+			</button>
+		</Tooltip>
+	)
+})
+
+const SingleChart = memo(function SingleChart({ config, data, isActive, isSaveable, isAlreadySaved, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -236,6 +300,10 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				if (isTimeSeriesChart) {
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
+							<div className="flex items-center justify-end gap-1 p-2 pt-0">
+								<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+								<CSVDownloadButton prepareCsv={prepareCsv} smol />
+							</div>
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
 						</Suspense>
 					)
@@ -275,6 +343,10 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 					}
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
+							<div className="flex items-center justify-end gap-1 p-2 pt-0">
+								<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+								<CSVDownloadButton prepareCsv={prepareCsv} smol />
+							</div>
 							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
 						</Suspense>
 					)
@@ -285,6 +357,10 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'area':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
 						<AreaChart
 							key={chartKey}
 							chartData={adaptedChart.data}
@@ -298,7 +374,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'combo':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end p-2 pt-0">
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -309,7 +386,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end p-2 pt-0">
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -323,7 +401,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						<PieChart
 							key={chartKey}
 							{...(adaptedChart.props as IPieChartProps)}
-							customComponents={<CSVDownloadButton prepareCsv={prepareCsv} smol />}
+							customComponents={
+								<>
+									<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+									<CSVDownloadButton prepareCsv={prepareCsv} smol />
+								</>
+							}
 						/>
 					</Suspense>
 				)
@@ -332,6 +415,10 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<SaveChartButton chartId={config.id} messageId={messageId} isSaveable={isSaveable} isAlreadySaved={isAlreadySaved} />
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
 						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" />
 					</Suspense>
 				)
@@ -414,8 +501,12 @@ export const ChartRenderer = memo(function ChartRenderer({
 	hasError = false,
 	expectedChartCount,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	saveableChartIds,
+	savedChartIds,
+	messageId
 }: ChartRendererProps) {
+	console.log('[ChartRenderer]', { chartsCount: charts?.length, saveableChartIds, savedChartIds, messageId })
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
@@ -484,6 +575,9 @@ export const ChartRenderer = memo(function ChartRenderer({
 					config={chart}
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
+					isSaveable={saveableChartIds?.includes(chart.id)}
+					isAlreadySaved={savedChartIds?.includes(chart.id)}
+					messageId={messageId}
 				/>
 			))}
 		</div>

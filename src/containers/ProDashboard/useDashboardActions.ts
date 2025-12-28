@@ -15,6 +15,7 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
+	LlamaAIChartConfig,
 	MetricConfig,
 	MultiChartConfig,
 	ProtocolsTableConfig,
@@ -326,6 +327,23 @@ export function useDashboardActions(
 			}
 
 			dispatchItemsAndSave((prev) => [...prev, newBuilder])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddLlamaAIChart = useCallback(
+		(savedChartId: string, title?: string) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newChart: LlamaAIChartConfig = {
+				id: generateItemId('llamaai-chart', savedChartId),
+				kind: 'llamaai-chart',
+				savedChartId,
+				title,
+				colSpan: 1
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newChart])
 		},
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
@@ -669,6 +687,7 @@ export function useDashboardActions(
 		handleAddMultiChart,
 		handleAddText,
 		handleAddChartBuilder,
+		handleAddLlamaAIChart,
 		handleEditItem,
 		handleRemoveItem,
 		handleAddMetric,

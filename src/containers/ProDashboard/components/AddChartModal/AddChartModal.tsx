@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { ChartTab } from './ChartTab'
+import { LlamaAITab } from './LlamaAITab'
 import { MetricTab } from './MetricTab'
 import { ModalHeader } from './ModalHeader'
 import { SubmitButton } from './SubmitButton'
@@ -189,6 +190,13 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onTextContentChange={actions.setTextContent}
 						/>
 					)}
+
+					{state.selectedMainTab === 'llamaai' && (
+						<LlamaAITab
+							selectedChart={state.selectedLlamaAIChart}
+							onChartSelect={actions.setSelectedLlamaAIChart}
+						/>
+					)}
 				</div>
 
 				{(state.selectedMainTab !== 'table' || state.selectedTableType !== 'protocols') && (
@@ -225,6 +233,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedAdvancedTvlChartType={state.selectedAdvancedTvlChartType}
 							selectedBorrowedProtocol={state.selectedBorrowedProtocol}
 							selectedBorrowedChartType={state.selectedBorrowedChartType}
+							selectedLlamaAIChart={state.selectedLlamaAIChart}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

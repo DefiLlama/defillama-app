@@ -13,6 +13,7 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
+	LlamaAIChartConfig,
 	MetricConfig,
 	Protocol,
 	StoredColSpan,
@@ -192,6 +193,7 @@ interface ProDashboardEditorActionsContextType {
 		name: string | undefined,
 		config: ChartBuilderConfig['config']
 	) => void
+	handleAddLlamaAIChart: (savedChartId: string, title?: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
@@ -315,6 +317,7 @@ export function ProDashboardAPIProvider({
 		handleAddMultiChart,
 		handleAddText,
 		handleAddChartBuilder,
+		handleAddLlamaAIChart,
 		handleEditItem,
 		handleRemoveItem,
 		handleAddMetric,
@@ -870,6 +873,7 @@ export function ProDashboardAPIProvider({
 		handleAddMetric: typeof handleAddMetric
 		handleAddUnifiedTable: typeof handleAddUnifiedTable
 		handleAddChartBuilder: typeof handleAddChartBuilder
+		handleAddLlamaAIChart: typeof handleAddLlamaAIChart
 		handleEditItem: typeof handleEditItem
 		handleRemoveItem: typeof handleRemoveItem
 		handleChartsReordered: typeof handleChartsReordered
@@ -898,6 +902,7 @@ export function ProDashboardAPIProvider({
 			handleAddMetric,
 			handleAddUnifiedTable,
 			handleAddChartBuilder,
+			handleAddLlamaAIChart,
 			handleEditItem,
 			handleRemoveItem,
 			handleChartsReordered,
@@ -1049,6 +1054,8 @@ export function ProDashboardAPIProvider({
 				handlersRef.current.handleAddUnifiedTable(...args),
 			handleAddChartBuilder: (...args: Parameters<typeof handleAddChartBuilder>) =>
 				handlersRef.current.handleAddChartBuilder(...args),
+			handleAddLlamaAIChart: (...args: Parameters<typeof handleAddLlamaAIChart>) =>
+				handlersRef.current.handleAddLlamaAIChart(...args),
 			handleEditItem: (...args: Parameters<typeof handleEditItem>) => handlersRef.current.handleEditItem(...args),
 			handleRemoveItem: (...args: Parameters<typeof handleRemoveItem>) => handlersRef.current.handleRemoveItem(...args),
 			handleChartsReordered: (...args: Parameters<typeof handleChartsReordered>) =>
