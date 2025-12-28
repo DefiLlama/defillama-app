@@ -123,6 +123,7 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 			clearAll={clearAll}
 			nestedMenu={nestedMenu}
 			label="Columns"
+			labelType="regular"
 		/>
 	)
 }
