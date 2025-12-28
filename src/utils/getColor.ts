@@ -12,7 +12,7 @@ export const getColor = async (path: string) => {
 		}
 
 		return color
-	} catch (error) {
+	} catch {
 		return oldBlue
 	}
 }
