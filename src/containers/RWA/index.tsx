@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-table'
 import { matchSorter } from 'match-sorter'
 import { Icon } from '~/components/Icon'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
@@ -61,7 +62,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Crypto-collateralized stablecoin (non-RWA)
 	const filteredAssets = useMemo(() => {
 		return props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.category?.includes('Fiat-Backed Stablecoins')) {
+			if (!includeStablecoins && asset.stablecoin) {
 				return false
 			}
 			return (
@@ -121,79 +122,82 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	}, [instance, windowSize])
 
 	return (
-		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
-			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<label className="relative mr-auto w-full sm:max-w-[280px]">
-					<span className="sr-only">Search assets</span>
-					<Icon
-						name="search"
-						height={16}
-						width={16}
-						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-					/>
-					<input
-						value={searchValue}
-						onChange={(e) => {
-							setSearchValue(e.target.value)
+		<>
+			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
+				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
+					<label className="relative mr-auto w-full sm:max-w-[280px]">
+						<span className="sr-only">Search assets</span>
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+						/>
+						<input
+							value={searchValue}
+							onChange={(e) => {
+								setSearchValue(e.target.value)
+							}}
+							placeholder="Search assets..."
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						/>
+					</label>
+					<SelectWithCombobox
+						allValues={props.categories}
+						selectedValues={selectedCategories}
+						setSelectedValues={setSelectedCategories}
+						selectOnlyOne={selectOnlyOneCategory}
+						toggleAll={toggleAllCategories}
+						clearAll={clearAllCategories}
+						label={'Categories'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 						}}
-						placeholder="Search assets..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
 					/>
-				</label>
-				<SelectWithCombobox
-					allValues={props.categories}
-					selectedValues={selectedCategories}
-					setSelectedValues={setSelectedCategories}
-					selectOnlyOne={selectOnlyOneCategory}
-					toggleAll={toggleAllCategories}
-					clearAll={clearAllCategories}
-					label={'Categories'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
-				<SelectWithCombobox
-					allValues={props.assetClasses}
-					selectedValues={selectedAssetClasses}
-					setSelectedValues={setSelectedAssetClasses}
-					selectOnlyOne={selectOnlyOneAssetClass}
-					toggleAll={toggleAllAssetClasses}
-					clearAll={clearAllAssetClasses}
-					label={'Asset Classes'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
-				<SelectWithCombobox
-					allValues={props.issuers}
-					selectedValues={selectedIssuers}
-					setSelectedValues={setSelectedIssuers}
-					selectOnlyOne={selectOnlyOneIssuer}
-					toggleAll={toggleAllIssuers}
-					clearAll={clearAllIssuers}
-					label={'Issuers'}
-					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
-				/>
-				<label className="flex items-center gap-2">
-					<input
-						type="checkbox"
-						checked={includeStablecoins}
-						onChange={(e) => setIncludeStablecoins(e.target.checked)}
+					<SelectWithCombobox
+						allValues={props.assetClasses}
+						selectedValues={selectedAssetClasses}
+						setSelectedValues={setSelectedAssetClasses}
+						selectOnlyOne={selectOnlyOneAssetClass}
+						toggleAll={toggleAllAssetClasses}
+						clearAll={clearAllAssetClasses}
+						label={'Asset Classes'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
 					/>
-					<span>Include Stablecoins</span>
-				</label>
+					<SelectWithCombobox
+						allValues={props.issuers}
+						selectedValues={selectedIssuers}
+						setSelectedValues={setSelectedIssuers}
+						selectOnlyOne={selectOnlyOneIssuer}
+						toggleAll={toggleAllIssuers}
+						clearAll={clearAllIssuers}
+						label={'Issuers'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
+					/>
+					<label className="flex items-center gap-2">
+						<input
+							type="checkbox"
+							checked={includeStablecoins}
+							onChange={(e) => setIncludeStablecoins(e.target.checked)}
+						/>
+						<span>Include Stablecoins</span>
+					</label>
+				</div>
+				<VirtualTable instance={instance} />
 			</div>
-			<VirtualTable instance={instance} />
-		</div>
+		</>
 	)
 }
 

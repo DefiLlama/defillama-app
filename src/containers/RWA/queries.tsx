@@ -1,4 +1,5 @@
 import { RWA_ACTIVE_TVLS_API } from '~/constants'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface IFetchedRWAProject {
@@ -51,40 +52,74 @@ export interface IRWAAssetsOverview {
 	assetClasses: Array<string>
 	categories: Array<string>
 	issuers: Array<string>
+	chains: Array<{ label: string; to: string }>
+	selectedChain: string
 }
 
-export async function getRWAAssetsOverview(): Promise<IRWAAssetsOverview> {
+export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
 	try {
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+
+		// Find the actual chain name (case-insensitive match) and validate it exists
+		let actualChainName: string | null = null
+		if (selectedChain) {
+			const selectedChainLower = selectedChain.toLowerCase()
+			for (const rwaId in data) {
+				const match = data[rwaId].chain?.find((c) => c.toLowerCase() === selectedChainLower)
+				if (match) {
+					actualChainName = match
+					break
+				}
+			}
+			if (!actualChainName) {
+				return null
+			}
+		}
+
 		const assets: Array<IRWAProject> = []
 		const assetClasses = new Map<string, number>()
 		const categories = new Map<string, number>()
 		const issuers = new Map<string, number>()
+		const chains = new Map<string, number>()
 
 		for (const rwaId in data) {
 			const item = data[rwaId]
 
 			let totalOnChainTvl = 0
 			let totalDeFiActiveTvl = 0
+			let filteredOnChainTvl = 0
+			let filteredDeFiActiveTvl = 0
 			const onChainTvlBreakdown = item.onChainMarketcap ?? {}
 			const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
 			const finalOnChainTvlBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 
 			for (const chain in onChainTvlBreakdown) {
-				finalOnChainTvlBreakdown[chain] = (finalOnChainTvlBreakdown[chain] || 0) + Number(onChainTvlBreakdown[chain])
-				totalOnChainTvl += Number(onChainTvlBreakdown[chain])
+				const value = Number(onChainTvlBreakdown[chain])
+				finalOnChainTvlBreakdown[chain] = (finalOnChainTvlBreakdown[chain] || 0) + value
+				totalOnChainTvl += value
+				if (actualChainName && chain === actualChainName) {
+					filteredOnChainTvl += value
+				}
 			}
 
 			for (const chain in defiActiveTvlBreakdown) {
-				for (const protocol in defiActiveTvlBreakdown[chain]) {
-					const protocolName = metadataCache.protocolMetadata[protocol]?.displayName ?? `unknown#${protocol}`
-					finalDeFiActiveTvlBreakdown[protocolName] =
-						(finalDeFiActiveTvlBreakdown[protocolName] || 0) + Number(defiActiveTvlBreakdown[chain][protocol])
-					totalDeFiActiveTvl += Number(defiActiveTvlBreakdown[chain][protocol])
+				for (const protocolName in defiActiveTvlBreakdown[chain]) {
+					const value = Number(defiActiveTvlBreakdown[chain][protocolName])
+					finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
+					totalDeFiActiveTvl += value
+					if (actualChainName && chain === actualChainName) {
+						filteredDeFiActiveTvl += value
+					}
 				}
 			}
+
+			const itemChains = new Set(item.chain ?? [])
+			const hasChainInTvl = actualChainName ? itemChains.has(actualChainName) : true
+
+			// Use filtered values if chain is selected, otherwise use totals
+			const effectiveOnChainTvl = actualChainName ? filteredOnChainTvl : totalOnChainTvl
+			const effectiveDeFiActiveTvl = actualChainName ? filteredDeFiActiveTvl : totalDeFiActiveTvl
 
 			const asset: IRWAProject = {
 				ticker: item.ticker,
@@ -119,30 +154,41 @@ export async function getRWAAssetsOverview(): Promise<IRWAAssetsOverview> {
 				parentPlatform: item.parentPlatform,
 				stablecoin: item.stablecoin,
 				onChainMarketcap: {
-					total: totalOnChainTvl,
+					total: effectiveOnChainTvl,
 					breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
 				},
 				defiActiveTvl: {
-					total: totalDeFiActiveTvl,
+					total: effectiveDeFiActiveTvl,
 					breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
 				}
 			}
 
-			assets.push(asset)
+			// Only include asset if it exists on the selected chain (or no chain filter)
+			if (hasChainInTvl) {
+				assets.push(asset)
 
-			asset.assetClass?.forEach((assetClass) => {
-				if (assetClass) {
-					assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + totalOnChainTvl)
+				// Add to categories/issuers/assetClasses for assets on this chain
+				asset.assetClass?.forEach((assetClass) => {
+					if (assetClass) {
+						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainTvl)
+					}
+				})
+				asset.category?.forEach((category) => {
+					if (category) {
+						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainTvl)
+					}
+				})
+				if (asset.issuer) {
+					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainTvl)
 				}
-			})
-			asset.category?.forEach((category) => {
-				if (category) {
-					categories.set(category, (categories.get(category) ?? 0) + totalOnChainTvl)
-				}
-			})
-			if (asset.issuer) {
-				issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + totalOnChainTvl)
 			}
+
+			// Chains list always uses total TVL (not filtered) so order stays consistent
+			asset.chain?.forEach((chain) => {
+				if (chain) {
+					chains.set(chain, (chains.get(chain) ?? 0) + totalOnChainTvl)
+				}
+			})
 		}
 
 		return {
@@ -155,9 +201,31 @@ export async function getRWAAssetsOverview(): Promise<IRWAAssetsOverview> {
 				.map(([key]) => key),
 			issuers: Array.from(issuers.entries())
 				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key)
+				.map(([key]) => key),
+			selectedChain: actualChainName ?? 'All',
+			chains: [
+				{ label: 'All', to: '/rwa' },
+				...Array.from(chains.entries())
+					.sort((a, b) => b[1] - a[1])
+					.map(([key]) => ({ label: key, to: `/rwa/chain/${slug(key)}` }))
+			]
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
 	}
+}
+
+export async function getRWAChainsList(): Promise<string[]> {
+	const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+	const chains = new Set<string>()
+
+	for (const rwaId in data) {
+		data[rwaId].chain?.forEach((chain) => {
+			if (chain) {
+				chains.add(slug(chain))
+			}
+		})
+	}
+
+	return Array.from(chains)
 }
