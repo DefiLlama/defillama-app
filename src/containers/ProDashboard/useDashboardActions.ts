@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useRef } from 'react'
+import { Dispatch, SetStateAction, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import {
 	DEFAULT_COLUMN_ORDER,
 	DEFAULT_ROW_HEADERS,
@@ -30,6 +30,8 @@ import {
 } from './types'
 import { generateItemId } from './utils/dashboardUtils'
 
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+
 type AutoSaveOverrides = {
 	timePeriod?: TimePeriod
 	customTimePeriod?: CustomTimePeriod | null
@@ -46,12 +48,17 @@ export function useDashboardActions(
 	const { items } = state
 
 	const itemsRef = useRef(items)
-	useEffect(() => {
+	const hasHydratedRef = useRef(false)
+	useIsomorphicLayoutEffect(() => {
 		itemsRef.current = items
+		hasHydratedRef.current = true
 	}, [items])
 
 	const dispatchItemsAndSave = useCallback(
 		(updater: SetStateAction<DashboardItemConfig[]>) => {
+			if (!hasHydratedRef.current) {
+				return
+			}
 			const prevItems = itemsRef.current
 			const newItems = typeof updater === 'function' ? updater(prevItems) : updater
 			itemsRef.current = newItems
