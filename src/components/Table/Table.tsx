@@ -66,6 +66,8 @@ export function VirtualTable({
 	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
+	
+	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
@@ -219,6 +221,20 @@ export function VirtualTable({
 			}
 		}
 	}, [skipVirtualization, onScrollOrResize, totalTableWidth, rows.length])
+
+	if (hasNoVisibleColumns) {
+		return (
+			<div className="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-md bg-(--cards-bg) p-8 text-center">
+				<Icon name="eye-off" height={48} width={48} className="text-(--text-tertiary)" />
+				<div className="flex flex-col gap-2">
+					<h3 className="text-lg font-semibold text-(--text-primary)">No columns selected</h3>
+					<p className="text-sm text-(--text-secondary)">
+						Please select at least one column from the Columns menu to view the table data.
+					</p>
+				</div>
+			</div>
+		)
+	}
 
 	return (
 		<div
