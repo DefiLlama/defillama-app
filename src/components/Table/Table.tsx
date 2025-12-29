@@ -291,9 +291,9 @@ export function VirtualTable({
 													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
 												>
 													{value}
+													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 												</HeaderWithTooltip>
 											)}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 										</span>
 									</div>
 								)
@@ -401,9 +401,9 @@ export function VirtualTable({
 
 const HeaderWithTooltip = ({ children, content, onClick }) => {
 	if (onClick) {
-		if (!content) return <button onClick={onClick}>{children}</button>
+		if (!content) return <button onClick={onClick} className="flex items-center gap-1">{children}</button>
 		return (
-			<Tooltip content={content} className="underline decoration-dotted" render={<button />} onClick={onClick}>
+			<Tooltip content={content} className="underline decoration-dotted" render={<button className="flex items-center gap-1" />} onClick={onClick}>
 				{children}
 			</Tooltip>
 		)
