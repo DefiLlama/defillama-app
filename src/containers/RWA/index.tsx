@@ -14,6 +14,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { matchSorter } from 'match-sorter'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -121,6 +122,57 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 	}, [instance, windowSize])
 
+	const prepareCsv = useCallback(() => {
+		const tableRows = instance.getSortedRowModel().rows
+		const headers: Array<string | number | boolean> = [
+			'Name',
+			'Ticker',
+			'Type',
+			'Category',
+			'Asset Class',
+			'Onchain Marketcap',
+			'DeFi Active TVL',
+			'RWA Classification',
+			'Issuer',
+			'Primary Chain',
+			'Chains',
+			'Redeemable',
+			'Attestations',
+			'CEX Listed',
+			'KYC',
+			'Transferable',
+			'Self Custody'
+		]
+
+		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
+			const asset = row.original
+			return [
+				asset.name ?? '',
+				asset.ticker ?? '',
+				asset.type ?? '',
+				asset.category?.join(', ') ?? '',
+				asset.assetClass?.join(', ') ?? '',
+				asset.onChainMarketcap.total,
+				asset.defiActiveTvl.total,
+				asset.rwaClassification ?? '',
+				asset.issuer ?? '',
+				asset.primaryChain ?? '',
+				asset.chain?.join(', ') ?? '',
+				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
+				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
+				asset.cexListed != null ? (asset.cexListed ? 'Yes' : 'No') : '',
+				asset.kyc != null ? (typeof asset.kyc === 'boolean' ? (asset.kyc ? 'Yes' : 'No') : asset.kyc.join(', ')) : '',
+				asset.transferable != null ? (asset.transferable ? 'Yes' : 'No') : '',
+				asset.selfCustody != null ? (asset.selfCustody ? 'Yes' : 'No') : ''
+			]
+		})
+
+		return {
+			filename: `rwa-assets${props.selectedChain !== 'All' ? `-${props.selectedChain.toLowerCase()}` : ''}.csv`,
+			rows: [headers, ...csvData]
+		}
+	}, [instance, props.selectedChain])
+
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
@@ -194,6 +246,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						/>
 						<span>Include Stablecoins</span>
 					</label>
+					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 				<VirtualTable instance={instance} />
 			</div>
@@ -309,6 +362,23 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		),
 		meta: {
 			headerHelperText: `The subset of Active Marketcap that is deployed into third-party DeFi protocols tracked by DeFiLlama.\n\nThis captures how much of an RWA token is actually being used in the wider onchain economy—such as lending, liquidity provision, structured products, or other protocol integrations—outside its own issuer ecosystem.`,
+			align: 'end'
+		}
+	},
+	{
+		id: 'rwaClassification',
+		header: 'RWA Classification',
+		accessorFn: (asset) => asset.rwaClassification,
+		cell: (info) => {
+			const value = info.getValue() as string
+			return (
+				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{value}
+				</span>
+			)
+		},
+		size: 180,
+		meta: {
 			align: 'end'
 		}
 	},
@@ -473,6 +543,7 @@ const columnOrders = Object.entries({
 		'activeMarketcap.total',
 		'defiActiveTvl.total',
 		'type',
+		'rwaClassification',
 		'issuer',
 		'redeemable',
 		'attestations',
@@ -489,6 +560,7 @@ const columnOrders = Object.entries({
 		'onChainMarketcap.total',
 		'activeMarketcap.total',
 		'defiActiveTvl.total',
+		'rwaClassification',
 		'issuer',
 		'redeemable',
 		'attestations',

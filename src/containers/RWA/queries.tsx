@@ -51,9 +51,12 @@ export interface IRWAAssetsOverview {
 	assets: Array<IRWAProject>
 	assetClasses: Array<string>
 	categories: Array<string>
+	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
 	chains: Array<{ label: string; to: string }>
 	selectedChain: string
+	totalRwaValue: number
+	totalStablecoinValue: number
 }
 
 export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
@@ -81,6 +84,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		const categories = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const chains = new Map<string, number>()
+		let totalRwaValue = 0
+		let totalStablecoinValue = 0
 
 		for (const rwaId in data) {
 			const item = data[rwaId]
@@ -167,6 +172,12 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			if (hasChainInTvl) {
 				assets.push(asset)
 
+				// Track total values
+				totalRwaValue += effectiveOnChainTvl
+				if (item.stablecoin) {
+					totalStablecoinValue += effectiveOnChainTvl
+				}
+
 				// Add to categories/issuers/assetClasses for assets on this chain
 				asset.assetClass?.forEach((assetClass) => {
 					if (assetClass) {
@@ -199,6 +210,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			categories: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
+			categoryValues: Array.from(categories.entries())
+				.sort((a, b) => b[1] - a[1])
+				.map(([name, value]) => ({ name, value })),
 			issuers: Array.from(issuers.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
@@ -208,7 +222,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				...Array.from(chains.entries())
 					.sort((a, b) => b[1] - a[1])
 					.map(([key]) => ({ label: key, to: `/rwa/chain/${slug(key)}` }))
-			]
+			],
+			totalRwaValue,
+			totalStablecoinValue
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
