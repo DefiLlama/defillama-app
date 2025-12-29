@@ -1,7 +1,7 @@
 import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { subscribeToPinnedMetrics, WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
+import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
 import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
@@ -47,17 +47,11 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { user, isAuthenticated, hasActiveSubscription } = useAuthContext()
-
-	const hasEthWallet = Boolean(user?.walletAddress)
-	const hasSeenWalletPrompt =
-		typeof window !== 'undefined' && window?.localStorage?.getItem(WALLET_LINK_MODAL) === 'true'
-
-	const showAttentionIcon = isAuthenticated && !hasEthWallet && !hasSeenWalletPrompt
+	const { hasActiveSubscription } = useAuthContext()
 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
-			{ name: 'Pricing', route: '/subscription', icon: 'user', attention: showAttentionIcon },
+			{ name: 'Pricing', route: '/subscription', icon: 'user' },
 			{ name: 'Chains', route: '/chains', icon: 'globe' },
 			{ name: 'Yields', route: '/yields', icon: 'percent' },
 			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
@@ -69,7 +63,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'Support', route: '/support', icon: 'headset' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
-	}, [showAttentionIcon, hasActiveSubscription])
+	}, [hasActiveSubscription])
 
 	const userDashboards = useMemo(
 		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
