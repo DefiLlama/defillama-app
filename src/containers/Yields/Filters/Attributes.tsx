@@ -246,6 +246,7 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			clearAll={clearAll}
 			selectOnlyOne={setSelectedValues}
 			label="Attributes"
+			labelType="regular"
 			nestedMenu={nestedMenu}
 		/>
 	)
