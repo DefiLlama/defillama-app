@@ -3,6 +3,7 @@ import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { resolveUserEmail } from '~/components/Nav/Account'
 import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 import { WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
@@ -13,8 +14,10 @@ interface AccountStatusProps {
 	user: AuthModel
 	isVerified: boolean
 	isSubscribed: boolean
+	isAuthenticated: boolean
 	onEmailChange: () => void
 	subscription: any
+	getPortalSessionUrl: () => Promise<string | null>
 }
 
 const setSeenWalletPrompt = () => {
@@ -27,18 +30,43 @@ const getSeenWalletPrompt = () => {
 	return window.localStorage.getItem(WALLET_LINK_MODAL) === 'true'
 }
 
-export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, subscription }: AccountStatusProps) => {
+export const AccountStatus = ({
+	user,
+	isVerified,
+	isSubscribed,
+	isAuthenticated,
+	onEmailChange,
+	subscription,
+	getPortalSessionUrl
+}: AccountStatusProps) => {
 	const { addWallet, loaders, setPromotionalEmails } = useAuthContext()
 	const { address } = useAccount()
 	const { signMessageAsync } = useSignMessage()
 	const { openConnectModal } = useConnectModal()
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [portalUrl, setPortalUrl] = useState<string | null>(null)
 
 	const resolvedEmail = resolveUserEmail(user)
 	const hasEmail = Boolean(resolvedEmail)
 	const hasWallet = Boolean(user?.walletAddress)
 	const hasActiveSubscription = subscription?.status === 'active'
 	const hasSeenWalletPrompt = getSeenWalletPrompt()
+
+	useEffect(() => {
+		if (!isAuthenticated) return
+		getPortalSessionUrl()
+			.then((url) => {
+				if (url) {
+					setPortalUrl(url)
+				} else {
+					setPortalUrl(null)
+				}
+			})
+			.catch((e) => {
+				console.error('Failed to create portal session:', e)
+				setPortalUrl(null)
+			})
+	}, [isAuthenticated])
 
 	const handleCloseWalletLinkModal = useCallback(() => {
 		setIsModalOpen(false)
@@ -124,9 +152,9 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 				</div>
 				<div className="p-5">
 					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-						<div className="group flex transform flex-col rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:translate-y-[-2px] hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+						<div className="group flex transform flex-col justify-between rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:translate-y-[-2px] hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
 							<span className="mb-1.5 text-xs text-[#8a8c90]">Status</span>
-							<span className="flex items-center gap-2 text-sm font-medium">
+							<span className="flex items-center justify-between gap-2 text-sm font-medium">
 								<span className="bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-transparent transition-colors group-hover:from-white group-hover:to-white">
 									{subscription.status === 'active' ? (
 										<>
@@ -140,6 +168,20 @@ export const AccountStatus = ({ user, isVerified, isSubscribed, onEmailChange, s
 										</>
 									)}
 								</span>
+								{portalUrl && (
+									<BasicLink
+										href={portalUrl}
+										className="group flex items-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-4 py-2 text-sm shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
+									>
+										<Icon
+											name="settings"
+											height={14}
+											width={14}
+											className="text-[#5C5CF9] transition-transform group-hover:scale-110"
+										/>
+										<span>Manage stripe</span>
+									</BasicLink>
+								)}
 							</span>
 						</div>
 						<div className="group flex transform flex-col rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:translate-y-[-2px] hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">

@@ -16,7 +16,7 @@ interface SubscriberContentProps {
 	credits: number | null
 	isCreditsLoading: boolean
 	subscription: Subscription
-	createPortalSession: (type: 'llamafeed' | 'api') => Promise<string | null>
+	createPortalSession: () => Promise<string | null>
 	isPortalSessionLoading: boolean
 	apiSubscription: Subscription
 	llamafeedSubscription: Subscription
@@ -66,7 +66,7 @@ export const SubscriberContent = ({
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
 		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
 		if (sub?.provider === 'stripe') {
-			await createPortalSession(type)
+			await createPortalSession()
 		} else {
 			window.open('https://subscriptions.llamapay.io/', '_blank')
 		}
