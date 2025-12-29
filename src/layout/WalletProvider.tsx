@@ -2,12 +2,12 @@ import '@rainbow-me/rainbowkit/styles.css'
 import { ReactNode } from 'react'
 import { darkTheme, getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { WagmiProvider } from 'wagmi'
-import { optimism } from 'wagmi/chains'
+import { mainnet, optimism } from 'wagmi/chains'
 
 export const config = getDefaultConfig({
 	appName: 'DefiLlama',
 	projectId: 'abcbcfd99b02bb0d7057fc19b2f8a2ad',
-	chains: [optimism]
+	chains: [optimism, mainnet]
 })
 
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
