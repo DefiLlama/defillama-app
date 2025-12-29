@@ -76,11 +76,10 @@ export const Menu = React.memo(function Menu({
 												<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
 											</summary>
 											<div className="border-l border-black/20 pl-2 dark:border-white/20">
-												{pages.map(({ name, route, icon }) => (
+												{pages.map(({ name, route }) => (
 													<LinkToPage
 														route={route}
 														name={name}
-														icon={icon}
 														key={`mobile-nav-old-${name}-${route}`}
 														asPath={asPath}
 														setShow={setShow}
