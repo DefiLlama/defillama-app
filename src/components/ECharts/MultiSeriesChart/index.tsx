@@ -79,6 +79,7 @@ export default function MultiSeriesChart({
 					},
 					data: serie.data?.map(([x, y]: [any, number]) => (xAxisType === 'time' ? [+x * 1e3, y] : [x, y])) || [],
 					metricType: serie.metricType,
+					yAxisIndex: serie.yAxisIndex,
 					...(serie.logo && {
 						legendIcon: 'image://' + serie.logo
 					}),

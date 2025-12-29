@@ -19,6 +19,16 @@ export function RaisesFilterDropdowns({
 	nestedMenu
 }: IDropdownMenusProps) {
 	const router = useRouter()
+
+	// Check if any filters are active
+	const hasActiveFilters =
+		(selectedInvestors && selectedInvestors.length > 0) ||
+		(selectedChains && selectedChains.length > 0) ||
+		(selectedSectors && selectedSectors.length > 0) ||
+		(selectedRounds && selectedRounds.length > 0) ||
+		router.query.minRaised ||
+		router.query.maxRaised
+
 	return (
 		<>
 			{investors && investors.length > 0 && (
@@ -53,7 +63,8 @@ export function RaisesFilterDropdowns({
 				onClick={() => {
 					router.push('/raises')
 				}}
-				className="rounded-md bg-(--btn-bg) px-3 py-2 hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-sm:text-left md:text-xs"
+				disabled={!hasActiveFilters}
+				className="rounded-md bg-(--btn-bg) px-3 py-2 hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-sm:text-left disabled:cursor-not-allowed disabled:opacity-40 md:text-xs"
 			>
 				Reset all filters
 			</button>

@@ -139,6 +139,14 @@
       "oldName": "Leveraged Lending"
     },
     {
+      "name": "Yields: Halal",
+      "route": "/yields/halal",
+      "category": "Yields",
+      "description": "Shariah-compliant yield pools",
+      "oldCategory": "Yields",
+      "oldName": "Halal"
+    },
+    {
       "name": "Yields: Delta Neutral Strategies",
       "route": "/yields/strategy",
       "category": "Yields",
@@ -728,19 +736,19 @@
       "oldName": "Advanced"
     },
     {
-      "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl",
-      "category": "Tools",
-      "description": "Calculate the percentage change in token price between two dates",
-      "oldName": "Token PnL"
-    },
-    {
       "name": "Transactions by Bridge",
       "route": "/bridge-transactions",
       "category": "Tools",
       "description": "Download transaction data across different time periods by bridge",
       "oldCategory": "Bridges",
       "oldName": "Transactions"
+    },
+    {
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl",
+      "category": "Tools",
+      "description": "Calculate the percentage change in token price between two dates",
+      "oldName": "Token PnL"
     },
     {
       "name": "Report Error",
