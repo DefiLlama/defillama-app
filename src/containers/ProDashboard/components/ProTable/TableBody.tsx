@@ -56,7 +56,16 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 												columnId={header.column.id}
 												canSort={header.column.getCanSort()}
 												isSorted={header.column.getIsSorted()}
-												onSort={() => header.column.toggleSorting()}
+												onSortAsc={() => {
+													if (header.column.getIsSorted() !== 'asc') {
+														header.column.toggleSorting(false)
+													}
+												}}
+												onSortDesc={() => {
+													if (header.column.getIsSorted() !== 'desc') {
+														header.column.toggleSorting(true)
+													}
+												}}
 												onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
 												onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
 												canMoveUp={!isFirst}

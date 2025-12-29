@@ -293,7 +293,23 @@ export function VirtualTable({
 													{value}
 												</HeaderWithTooltip>
 											)}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+											{header.column.getCanSort() && (
+												<SortIcon
+													dir={header.column.getIsSorted()}
+													onClickAsc={(e) => {
+														e.stopPropagation()
+														if (header.column.getIsSorted() !== 'asc') {
+															header.column.toggleSorting(false)
+														}
+													}}
+													onClickDesc={(e) => {
+														e.stopPropagation()
+														if (header.column.getIsSorted() !== 'desc') {
+															header.column.toggleSorting(true)
+														}
+													}}
+												/>
+											)}
 										</span>
 									</div>
 								)
