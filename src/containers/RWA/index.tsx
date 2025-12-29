@@ -228,6 +228,19 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		size: 240
 	},
 	{
+		id: 'type',
+		header: 'Type',
+		accessorFn: (asset) => asset.type,
+		cell: (info) => {
+			const value = info.getValue() as string
+			return <span>{value}</span>
+		},
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		id: 'category',
 		header: 'Category',
 		accessorFn: (asset) => asset.category?.join(', ') ?? '',
@@ -292,19 +305,6 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		),
 		meta: {
 			headerHelperText: `The subset of Active Marketcap that is deployed into third-party DeFi protocols tracked by DeFiLlama.\n\nThis captures how much of an RWA token is actually being used in the wider onchain economy—such as lending, liquidity provision, structured products, or other protocol integrations—outside its own issuer ecosystem.`,
-			align: 'end'
-		}
-	},
-	{
-		id: 'asset_type',
-		header: 'Asset Type',
-		accessorFn: (asset) => asset.type,
-		cell: (info) => {
-			const value = info.getValue() as string
-			return <span>{value}</span>
-		},
-		size: 120,
-		meta: {
 			align: 'end'
 		}
 	},
@@ -468,7 +468,7 @@ const columnOrders = Object.entries({
 		'assetClass',
 		'activeMarketcap.total',
 		'defiActiveTvl.total',
-		'asset_type',
+		'type',
 		'issuer',
 		'redeemable',
 		'attestations',
@@ -479,12 +479,12 @@ const columnOrders = Object.entries({
 	],
 	640: [
 		'name',
+		'type',
 		'category',
 		'assetClass',
 		'onChainMarketcap.total',
 		'activeMarketcap.total',
 		'defiActiveTvl.total',
-		'asset_type',
 		'issuer',
 		'redeemable',
 		'attestations',
