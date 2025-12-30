@@ -253,7 +253,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 					const xValue = params.value[0]
 					const yValue = params.value[1]
 					const entityName = params.value[2] || 'Unknown'
-					return `<strong>${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue, xAxisSymbol)}<br/>${yAxisLabel}: ${formatValue(yValue, yAxisSymbol)}`
+					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue, xAxisSymbol)}<br/>${yAxisLabel}: ${formatValue(yValue, yAxisSymbol)}`
 				}
 				return ''
 			}
