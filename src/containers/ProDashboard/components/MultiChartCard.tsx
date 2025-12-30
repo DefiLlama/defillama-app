@@ -23,12 +23,8 @@ interface MultiChartCardProps {
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
-	const {
-		handleGroupingChange,
-		handleCumulativeChange,
-		handlePercentageChange,
-		handleStackedChange
-	} = useProDashboardEditorActions()
+	const { handleGroupingChange, handleCumulativeChange, handlePercentageChange, handleStackedChange } =
+		useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const showStacked = multi.showStacked !== false
@@ -314,8 +310,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 	const uniqueMetricTypes = new Set(validItems.map((item) => item.type))
 	const percentMetricTypes = new Set(['medianApy'])
 	const countMetricTypes = new Set(['txs', 'users', 'activeUsers', 'newUsers', 'gasUsed'])
+	const ratioMetricTypes = new Set(['pfRatio', 'psRatio'])
 	const allPercentMetrics = series.length > 0 && series.every((s: any) => percentMetricTypes.has(s.metricType))
 	const allCountMetrics = series.length > 0 && series.every((s: any) => countMetricTypes.has(s.metricType))
+	const allRatioMetrics = series.length > 0 && series.every((s: any) => ratioMetricTypes.has(s.metricType))
 	const hasMultipleMetrics = uniqueMetricTypes.size > 1
 
 	const allChartsGroupable = multi.items.every((item) => {
@@ -467,7 +465,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					<MultiSeriesChart
 						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
 						series={series}
-						valueSymbol={showPercentage ? '%' : allPercentMetrics ? '%' : allCountMetrics ? '' : '$'}
+						valueSymbol={showPercentage ? '%' : allPercentMetrics ? '%' : allCountMetrics || allRatioMetrics ? '' : '$'}
 						groupBy={
 							multi.grouping === 'week'
 								? 'weekly'
@@ -534,7 +532,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 												height: series.length > 5 ? 80 : 40
 											}
 										}
-									: allCountMetrics
+									: allCountMetrics || allRatioMetrics
 										? {
 												yAxis: {
 													max: undefined,
@@ -549,7 +547,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 															} else if (absValue >= 1e3) {
 																return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
 															}
-															return value.toString()
+															return value.toFixed(2)
 														}
 													}
 												},

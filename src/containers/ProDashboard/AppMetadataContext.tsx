@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
@@ -67,6 +67,10 @@ async function fetchJson<T>(url: string): Promise<T> {
 export function AppMetadataProvider({ children }: { children: React.ReactNode }) {
 	const [protocolsRaw, setProtocolsRaw] = useState<Record<string, any> | null>(null)
 	const [chainsRaw, setChainsRaw] = useState<Record<string, any> | null>(null)
+	const [pfPsProtocols, setPfPsProtocols] = useState<{ pf: Set<string>; ps: Set<string> }>({
+		pf: new Set(),
+		ps: new Set()
+	})
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | undefined>(undefined)
 
@@ -74,14 +78,30 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 		let cancelled = false
 		setLoading(true)
 		setError(undefined)
-		Promise.all<[Record<string, any>, Record<string, any>]>([
-			fetchJson('https://api.llama.fi/config/smol/appMetadata-protocols.json'),
-			fetchJson('https://api.llama.fi/config/smol/appMetadata-chains.json')
+
+		const fetchPfPs = async (): Promise<{ pf: string[]; ps: string[] }> => {
+			try {
+				const res = await fetch('/api/dashboard/pf-ps-protocols')
+				if (!res.ok) return { pf: [], ps: [] }
+				return res.json()
+			} catch {
+				return { pf: [], ps: [] }
+			}
+		}
+
+		Promise.all([
+			fetchJson<Record<string, any>>('https://api.llama.fi/config/smol/appMetadata-protocols.json'),
+			fetchJson<Record<string, any>>('https://api.llama.fi/config/smol/appMetadata-chains.json'),
+			fetchPfPs()
 		])
-			.then(([protocols, chains]) => {
+			.then(([protocols, chains, pfPs]) => {
 				if (cancelled) return
 				setProtocolsRaw(protocols)
 				setChainsRaw(chains)
+				setPfPsProtocols({
+					pf: new Set(pfPs.pf || []),
+					ps: new Set(pfPs.ps || [])
+				})
 			})
 			.catch((e) => {
 				if (cancelled) return
@@ -171,86 +191,101 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 		return { protocolsBySlug, chainsByName }
 	}, [protocolsRaw, chainsRaw])
 
-	const hasProtocolBuilderMetric = (slug: string, metric: BuilderMetric) => {
-		const rec = protocolsBySlug.get(slug) ?? protocolsBySlug.get(slug.toLowerCase())
-		return rec ? rec.builderMetrics.has(metric) : false
-	}
+	const hasProtocolBuilderMetric = useCallback(
+		(slug: string, metric: BuilderMetric) => {
+			const rec = protocolsBySlug.get(slug) ?? protocolsBySlug.get(slug.toLowerCase())
+			return rec ? rec.builderMetrics.has(metric) : false
+		},
+		[protocolsBySlug]
+	)
 
-	const availableProtocolChartTypes = (slug: string, opts?: { hasGeckoId?: boolean }) => {
-		const record = protocolsBySlug.get(slug) ?? protocolsBySlug.get(slug.toLowerCase())
-		const flags = record?.flags
-		if (!flags) return []
-		const types = new Set<string>()
-		if (flags.tvl) types.add('tvl')
-		if (flags.dexs) types.add('volume')
-		if (flags.fees) types.add('fees')
-		if (flags.revenue) types.add('revenue')
-		if (flags.emissions || flags.incentives) types.add('incentives')
-		if (flags.liquidity) types.add('liquidity')
-		if (flags.treasury) types.add('treasury')
-		if (flags.holdersRevenue) types.add('holdersRevenue')
-		if (flags.bribeRevenue) types.add('bribes')
-		if (flags.tokenTax) types.add('tokenTax')
-		if (flags.perps) types.add('perps')
-		if (flags.openInterest) types.add('openInterest')
-		if (flags.dexAggregators) types.add('aggregators')
-		if (flags.perpsAggregators) types.add('perpsAggregators')
-		if (flags.bridgeAggregators) types.add('bridgeAggregators')
-		if (flags.optionsPremiumVolume) types.add('optionsPremium')
-		if (flags.optionsNotionalVolume) types.add('optionsNotional')
-		if (flags.yields) types.add('medianApy')
-		if (flags.borrowed) types.add('borrowed')
-		if (opts?.hasGeckoId) {
-			types.add('tokenMcap')
-			types.add('tokenPrice')
-			types.add('tokenVolume')
-		}
-		const allowed = new Set(getProtocolChartTypes())
-		return Array.from(types).filter((t) => allowed.has(t))
-	}
+	const availableProtocolChartTypes = useCallback(
+		(slug: string, opts?: { hasGeckoId?: boolean }) => {
+			const record = protocolsBySlug.get(slug) ?? protocolsBySlug.get(slug.toLowerCase())
+			const flags = record?.flags
+			if (!flags) return []
+			const types = new Set<string>()
+			if (flags.tvl) types.add('tvl')
+			if (flags.dexs) types.add('volume')
+			if (flags.fees) types.add('fees')
+			if (flags.revenue) types.add('revenue')
+			if (flags.emissions || flags.incentives) types.add('incentives')
+			if (flags.liquidity) types.add('liquidity')
+			if (flags.treasury) types.add('treasury')
+			if (flags.holdersRevenue) types.add('holdersRevenue')
+			if (flags.bribeRevenue) types.add('bribes')
+			if (flags.tokenTax) types.add('tokenTax')
+			if (flags.perps) types.add('perps')
+			if (flags.openInterest) types.add('openInterest')
+			if (flags.dexAggregators) types.add('aggregators')
+			if (flags.perpsAggregators) types.add('perpsAggregators')
+			if (flags.bridgeAggregators) types.add('bridgeAggregators')
+			if (flags.optionsPremiumVolume) types.add('optionsPremium')
+			if (flags.optionsNotionalVolume) types.add('optionsNotional')
+			if (flags.yields) types.add('medianApy')
+			if (flags.borrowed) types.add('borrowed')
+			if (opts?.hasGeckoId) {
+				types.add('tokenMcap')
+				types.add('tokenPrice')
+				types.add('tokenVolume')
+			}
+			if (pfPsProtocols.pf.has(slug) || pfPsProtocols.pf.has(slug.toLowerCase())) {
+				types.add('pfRatio')
+			}
+			if (pfPsProtocols.ps.has(slug) || pfPsProtocols.ps.has(slug.toLowerCase())) {
+				types.add('psRatio')
+			}
+			const allowed = new Set(getProtocolChartTypes())
+			return Array.from(types).filter((t) => allowed.has(t))
+		},
+		[protocolsBySlug, pfPsProtocols.pf, pfPsProtocols.ps]
+	)
 
-	const availableChainChartTypes = (chainName: string, opts?: { hasGeckoId?: boolean }) => {
-		const flags = chainsByName.get(chainName)?.flags
-		if (!flags) return []
-		const types = new Set<string>()
-		types.add('tvl')
-		if (flags.dexs) types.add('volume')
-		if (flags.fees) {
-			types.add('fees')
-			types.add('bribes')
-			types.add('tokenTax')
-		}
-		if (flags.revenue) types.add('revenue')
-		if (flags.dexAggregators) types.add('aggregators')
-		if (flags.perps) types.add('perps')
-		if (flags.bridgeAggregators) types.add('bridgeAggregators')
-		if (flags.perpsAggregators) types.add('perpsAggregators')
-		if (flags.optionsNotionalVolume || flags.optionsPremiumVolume) types.add('options')
-		if (flags.activeUsers) {
-			types.add('activeUsers')
-			types.add('users')
-			types.add('newUsers')
-			types.add('txs')
-			types.add('gasUsed')
-		}
-		if (flags.chainAssets) {
-			types.add('bridgedTvl')
-		}
-		if (flags.stablecoins) {
-			types.add('stablecoins')
-		}
-		if (flags.inflows) {
-			types.add('stablecoinInflows')
-		}
-		if (flags.chainFees) types.add('chainFees')
-		if (flags.chainRevenue) types.add('chainRevenue')
-		if (opts?.hasGeckoId || flags.gecko_id) {
-			types.add('chainMcap')
-			types.add('chainPrice')
-		}
-		const allowed = new Set(getChainChartTypes())
-		return Array.from(types).filter((t) => allowed.has(t))
-	}
+	const availableChainChartTypes = useCallback(
+		(chainName: string, opts?: { hasGeckoId?: boolean }) => {
+			const flags = chainsByName.get(chainName)?.flags
+			if (!flags) return []
+			const types = new Set<string>()
+			types.add('tvl')
+			if (flags.dexs) types.add('volume')
+			if (flags.fees) {
+				types.add('fees')
+				types.add('bribes')
+				types.add('tokenTax')
+			}
+			if (flags.revenue) types.add('revenue')
+			if (flags.dexAggregators) types.add('aggregators')
+			if (flags.perps) types.add('perps')
+			if (flags.bridgeAggregators) types.add('bridgeAggregators')
+			if (flags.perpsAggregators) types.add('perpsAggregators')
+			if (flags.optionsNotionalVolume || flags.optionsPremiumVolume) types.add('options')
+			if (flags.activeUsers) {
+				types.add('activeUsers')
+				types.add('users')
+				types.add('newUsers')
+				types.add('txs')
+				types.add('gasUsed')
+			}
+			if (flags.chainAssets) {
+				types.add('bridgedTvl')
+			}
+			if (flags.stablecoins) {
+				types.add('stablecoins')
+			}
+			if (flags.inflows) {
+				types.add('stablecoinInflows')
+			}
+			if (flags.chainFees) types.add('chainFees')
+			if (flags.chainRevenue) types.add('chainRevenue')
+			if (opts?.hasGeckoId || flags.gecko_id) {
+				types.add('chainMcap')
+				types.add('chainPrice')
+			}
+			const allowed = new Set(getChainChartTypes())
+			return Array.from(types).filter((t) => allowed.has(t))
+		},
+		[chainsByName]
+	)
 
 	const value: AppMetadataContextType = useMemo(
 		() => ({
@@ -262,7 +297,15 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 			chainsByName,
 			availableChainChartTypes
 		}),
-		[loading, error, protocolsBySlug, chainsByName]
+		[
+			loading,
+			error,
+			protocolsBySlug,
+			chainsByName,
+			availableProtocolChartTypes,
+			availableChainChartTypes,
+			hasProtocolBuilderMetric
+		]
 	)
 
 	return <AppMetadataContext.Provider value={value}>{children}</AppMetadataContext.Provider>

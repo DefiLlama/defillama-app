@@ -226,6 +226,14 @@ const protocolChartHandlers: Record<
 	borrowed: (item, geckoId, timePeriod, customPeriod) => async () => {
 		const data = await ProtocolCharts.borrowed(item)
 		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
+	},
+	pfRatio: (item, geckoId, timePeriod, customPeriod) => async () => {
+		const data = await ProtocolCharts.pfRatio(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
+	},
+	psRatio: (item, geckoId, timePeriod, customPeriod) => async () => {
+		const data = await ProtocolCharts.psRatio(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 	}
 }
 

@@ -2391,7 +2391,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				</div>
 			</div>
 			<div className="relative overflow-x-auto">
-				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full" style={{ top: '50%' }}>
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 					<img
 						src="/icons/defillama-dark-neutral.webp"
 						alt="defillama"
@@ -2534,7 +2534,7 @@ const IncomeStatementByLabel = ({
 	return (
 		<>
 			<tr>
-				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
+				<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
 					{methodology ? (
 						<Tooltip
 							content={methodology}
@@ -2576,7 +2576,7 @@ const IncomeStatementByLabel = ({
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
+							<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
 								{methodologyByType[breakdownlabel] ? (
 									<Tooltip
 										content={methodologyByType[breakdownlabel]}
