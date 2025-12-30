@@ -128,12 +128,19 @@ export default function ScatterChart({
 			if (params.value && params.value.length >= 2) {
 				const xValue = params.value[0]
 				const yValue = params.value[1]
+				const entityName = params.value[2]
 				const formatValue = (val) => {
 					if (valueSymbol === '$') return formattedNum(val, true)
 					if (valueSymbol === '%') return val.toFixed(2) + '%'
 					return formattedNum(val)
 				}
-				return `X: ${formatValue(xValue)}<br/>Y: ${formatValue(yValue)}`
+				let tooltip = ''
+				if (entityName) {
+					tooltip += `<strong>${entityName}</strong><br/>`
+				}
+				tooltip += `${xAxisLabel || 'X'}: ${formatValue(xValue)}<br/>`
+				tooltip += `${yAxisLabel || 'Y'}: ${formatValue(yValue)}`
+				return tooltip
 			}
 			return ''
 		}
@@ -246,7 +253,7 @@ export default function ScatterChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark])
+	}, [id, chartData, createInstance, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title])
 
 	return (
 		<div>
