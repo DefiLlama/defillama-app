@@ -1967,6 +1967,12 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					<span>{props.methodology ?? ''}</span>
 				</p>
 			) : null}
+			{props.oracleTvs ? (
+				<p>
+					<span className="font-medium">TVS:</span>{' '}
+					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
+				</p>
+			) : null}
 			<MethodologyByAdapter adapter={props.fees} title="Fees" />
 			<MethodologyByAdapter adapter={props.revenue} title="Revenue" />
 			<MethodologyByAdapter adapter={props.holdersRevenue} title="Holders Revenue" />
