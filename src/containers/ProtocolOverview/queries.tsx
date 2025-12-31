@@ -7,7 +7,7 @@ import {
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
 	ORACLE_API,
-	oracleProtocolsSet,
+	oracleProtocols,
 	PROTOCOL_API,
 	PROTOCOL_EMISSION_API2,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
@@ -519,11 +519,12 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		getProtocolIncomeStatement({ metadata }),
-		oracleProtocolsSet.has(metadata.displayName)
+		oracleProtocols[metadata.displayName]
 			? fetchJson(ORACLE_API).then((data) => {
+					const oracleName = oracleProtocols[metadata.displayName]
 					let tvs = {}
 					for (const date in data.chainChart) {
-						tvs = data.chainChart[date]?.[metadata.displayName] ?? {}
+						tvs = data.chainChart[date]?.[oracleName] ?? {}
 					}
 					if (Object.keys(tvs).length === 0) return null
 					return tvs
