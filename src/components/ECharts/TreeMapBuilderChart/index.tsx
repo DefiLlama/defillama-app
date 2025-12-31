@@ -30,6 +30,9 @@ const formatValue = (value: number) => {
 	return '$' + value.toFixed(0)
 }
 
+const NAME_LINE_HEIGHT = 20
+const VALUE_LINE_HEIGHT = 18
+
 export default function TreeMapBuilderChart({ data, height = '450px', onReady }: TreeMapBuilderChartProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
@@ -100,6 +103,7 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 					breadcrumb: { show: false },
 					label: {
 						show: true,
+
 						formatter: function (params: any) {
 							const pct = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0'
 							return `{name|${params.name}}\n{value|${formatValue(params.value)} (${pct}%)}`
@@ -109,13 +113,26 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 								fontSize: 14,
 								fontWeight: 600,
 								color: '#fff',
-								lineHeight: 20
+								lineHeight: NAME_LINE_HEIGHT,
+								align: 'center'
 							},
 							value: {
 								fontSize: 12,
 								color: 'rgba(255,255,255,0.8)',
-								lineHeight: 18
+								lineHeight: VALUE_LINE_HEIGHT,
+								align: 'center'
 							}
+						}
+					},
+					labelLayout: function (params: any) {
+						const rect = params.rect
+						if (!rect?.height) return
+
+						const textBlockHeight = NAME_LINE_HEIGHT + VALUE_LINE_HEIGHT
+						const dy = Math.max((rect.height - textBlockHeight) / 2, 0)
+
+						return {
+							dy
 						}
 					},
 					upperLabel: {
