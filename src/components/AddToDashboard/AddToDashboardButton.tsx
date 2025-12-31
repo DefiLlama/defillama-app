@@ -20,9 +20,16 @@ export type DashboardChartConfig =
 	| StablecoinsChartConfig
 	| StablecoinAssetChartConfig
 
+export interface LlamaAIChartInput {
+	messageId: string
+	chartId: string
+	title: string
+}
+
 interface AddToDashboardButtonProps {
 	chartConfig: DashboardChartConfig | null
 	multiChart?: MultiChartConfig | null
+	llamaAIChart?: LlamaAIChartInput | null
 	unsupportedMetrics?: string[]
 	variant?: 'button' | 'icon'
 	className?: string
@@ -33,6 +40,7 @@ interface AddToDashboardButtonProps {
 export const AddToDashboardButton = memo(function AddToDashboardButton({
 	chartConfig,
 	multiChart,
+	llamaAIChart,
 	unsupportedMetrics = [],
 	variant = 'button',
 	className,
@@ -45,9 +53,10 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 	const isClient = useIsClient()
 
 	const config = chartConfig ?? multiChart
+	const hasConfig = config || llamaAIChart
 
 	const handleClick = () => {
-		if (!config || disabled) return
+		if (!hasConfig || disabled) return
 
 		if (hasActiveSubscription && isAuthenticated) {
 			dashboardDialogStore.show()
@@ -62,7 +71,7 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 	const button = (
 		<button
 			onClick={handleClick}
-			disabled={loaders.userLoading || disabled || !config}
+			disabled={loaders.userLoading || disabled || !hasConfig}
 			className={baseClassName}
 			data-umami-event="add-to-dashboard-click"
 			title="Add to Pro Dashboard"
@@ -75,11 +84,12 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 	return (
 		<>
 			{button}
-			{isClient && config && (
+			{isClient && hasConfig && (
 				<>
 					<AddToDashboardModal
 						dialogStore={dashboardDialogStore}
-						chartConfig={config}
+						chartConfig={config ?? null}
+						llamaAIChart={llamaAIChart}
 						unsupportedMetrics={unsupportedMetrics}
 					/>
 					<SubscribeProModal dialogStore={subscribeDialogStore} />

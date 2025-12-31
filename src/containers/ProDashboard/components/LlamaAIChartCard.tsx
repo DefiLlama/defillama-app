@@ -49,7 +49,7 @@ export default memo(function LlamaAIChartCard({ config }: LlamaAIChartCardProps)
 	return (
 		<div className="flex flex-col gap-2 p-2">
 			<div className="flex items-center justify-between">
-				<h3 className="font-medium">{data.title}</h3>
+				<h3 className="font-medium">{config.title || data.title}</h3>
 				{!data.dataFreshness?.isFresh && data.dataFreshness?.cachedAt && (
 					<span className="text-xs text-(--text-form)">
 						Updated {new Date(data.dataFreshness.cachedAt).toLocaleDateString()}
