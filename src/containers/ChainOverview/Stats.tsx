@@ -866,12 +866,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							smol
 						/>
 						{canAddToDashboard && (
-							<AddToDashboardButton
-								chartConfig={multiChart}
-								unsupportedMetrics={unsupportedMetrics}
-								smol
-								className="-ml-2"
-							/>
+							<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
 						)}
 					</div>
 
