@@ -37,6 +37,7 @@ type ChartState = {
 	cumulative: boolean
 	grouping: 'day' | 'week' | 'month' | 'quarter'
 	showHallmarks: boolean
+	showLabels: boolean
 }
 
 type ChartAction =
@@ -45,6 +46,7 @@ type ChartAction =
 	| { type: 'SET_CUMULATIVE'; payload: boolean }
 	| { type: 'SET_GROUPING'; payload: 'day' | 'week' | 'month' | 'quarter' }
 	| { type: 'SET_HALLMARKS'; payload: boolean }
+	| { type: 'SET_LABELS'; payload: boolean }
 
 const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	switch (action.type) {
@@ -58,6 +60,8 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 			return { ...state, grouping: action.payload }
 		case 'SET_HALLMARKS':
 			return { ...state, showHallmarks: action.payload }
+		case 'SET_LABELS':
+			return { ...state, showLabels: action.payload }
 		default:
 			return state
 	}
@@ -69,7 +73,8 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 		percentage: config.displayOptions?.defaultPercentage || false,
 		cumulative: false,
 		grouping: 'day' as const,
-		showHallmarks: true
+		showHallmarks: true,
+		showLabels: config.displayOptions?.showLabels || false
 	})
 
 	if (!isActive) return null
@@ -332,7 +337,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
-						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" />
+						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" showLabels={chartState.showLabels} />
 					</Suspense>
 				)
 				break
@@ -348,7 +353,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 
 		return (
 			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
-				{config.displayOptions && !['scatter'].includes(adaptedChart.chartType) && (
+				{config.displayOptions && (
 					<ChartControls
 						displayOptions={config.displayOptions}
 						stacked={chartState.stacked}
@@ -358,11 +363,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						dataLength={dataLength}
 						showHallmarks={chartState.showHallmarks}
 						hasHallmarks={!!config.hallmarks?.length}
+						showLabels={chartState.showLabels}
+						isScatter={adaptedChart.chartType === 'scatter'}
 						onStackedChange={(stacked) => dispatch({ type: 'SET_STACKED', payload: stacked })}
 						onPercentageChange={(percentage) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })}
 						onCumulativeChange={(cumulative) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })}
 						onGroupingChange={(grouping) => dispatch({ type: 'SET_GROUPING', payload: grouping })}
 						onHallmarksChange={(showHallmarks) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })}
+						onLabelsChange={(showLabels) => dispatch({ type: 'SET_LABELS', payload: showLabels })}
 					/>
 				)}
 				{chartContent}
