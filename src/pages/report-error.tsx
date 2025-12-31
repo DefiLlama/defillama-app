@@ -36,12 +36,10 @@ function ReportError() {
 					toast.success('Report submitted successfully', { position: 'bottom-right' })
 					form.reset()
 				} else {
-					console.log(data)
 					toast.error('Failed to report', { position: 'bottom-right' })
 				}
 			})
-			.catch((err) => {
-				console.log(err)
+			.catch(() => {
 				toast.error('Failed to report', { position: 'bottom-right' })
 			})
 	}

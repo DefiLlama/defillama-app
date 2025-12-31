@@ -84,13 +84,6 @@
       "oldName": "Forks"
     },
     {
-      "name": "Total Borrowed by Protocol",
-      "route": "/total-borrowed",
-      "category": "Total Value Locked",
-      "description": "Sum of value currently borrowed across all active loans on a lending protocol",
-      "tab": "Protocols"
-    },
-    {
       "name": "Total Staked by Protocol",
       "route": "/total-staked",
       "category": "Total Value Locked",
@@ -98,10 +91,11 @@
       "tab": "Protocols"
     },
     {
-      "name": "TVL Breakdown by Smart Contract Languages",
-      "route": "/languages",
+      "name": "Total Borrowed by Protocol",
+      "route": "/total-borrowed",
       "category": "Total Value Locked",
-      "description": "TVL breakdown by languages that the smart contracts are written in"
+      "description": "Sum of value currently borrowed across all active loans on a lending protocol",
+      "tab": "Protocols"
     },
     {
       "name": "Pool2 TVL by Protocol",
@@ -109,6 +103,12 @@
       "category": "Total Value Locked",
       "description": "Total value locked in pool2 of a protocol",
       "tab": "Protocols"
+    },
+    {
+      "name": "TVL Breakdown by Smart Contract Languages",
+      "route": "/languages",
+      "category": "Total Value Locked",
+      "description": "TVL breakdown by languages that the smart contracts are written in"
     },
     {
       "name": "Yields: All Pools",
@@ -139,6 +139,14 @@
       "oldName": "Leveraged Lending"
     },
     {
+      "name": "Yields: Halal",
+      "route": "/yields/halal",
+      "category": "Yields",
+      "description": "Shariah-compliant yield pools",
+      "oldCategory": "Yields",
+      "oldName": "Halal"
+    },
+    {
       "name": "Yields: Delta Neutral Strategies",
       "route": "/yields/strategy",
       "category": "Yields",
@@ -154,14 +162,6 @@
       "totalTrackedKey": "yields.protocols",
       "oldCategory": "Yields",
       "oldName": "All Projects"
-    },
-    {
-      "name": "Yields: Halal",
-      "route": "/yields/halal",
-      "category": "Yields",
-      "description": "Shariah-compliant yield pools",
-      "oldCategory": "Yields",
-      "oldName": "Halal"
     },
     {
       "name": "Yields: APY Overview",
@@ -510,6 +510,22 @@
       "oldName": "Calendar"
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Raises: Overview",
       "route": "/raises",
       "category": "Raises",
@@ -528,22 +544,6 @@
       "oldName": "Investors"
     },
     {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
-    },
-    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -553,6 +553,14 @@
       "oldName": "Collections"
     },
     {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
+      "oldCategory": "NFTs",
+      "oldName": "Earnings"
+    },
+    {
       "name": "NFTs: Marketplaces",
       "route": "/nfts/marketplaces",
       "category": "NFTs",
@@ -560,14 +568,6 @@
       "totalTrackedKey": "nfts.marketplaces",
       "oldCategory": "NFTs",
       "oldName": "Marketplaces"
-    },
-    {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
-      "oldCategory": "NFTs",
-      "oldName": "Earnings"
     },
     {
       "name": "NFT Volume by Chain",
@@ -617,19 +617,19 @@
       "oldName": "CEX Transparency"
     },
     {
-      "name": "Narrative Tracker",
-      "route": "/narrative-tracker",
-      "category": "Others",
-      "description": "MCap-Weighted category performance to track narrative changes in the ecosystem",
-      "oldName": "Narrative Tracker"
-    },
-    {
       "name": "Recently Listed Protocols",
       "route": "/recent",
       "category": "Others",
       "description": "List of recently listed protocols",
       "tab": "Protocols",
       "oldName": "Recently Listed"
+    },
+    {
+      "name": "Narrative Tracker",
+      "route": "/narrative-tracker",
+      "category": "Others",
+      "description": "MCap-Weighted category performance to track narrative changes in the ecosystem",
+      "oldName": "Narrative Tracker"
     },
     {
       "name": "Staked ETH by Protocol",
@@ -640,14 +640,6 @@
       "oldName": "ETH Liquid Staking"
     },
     {
-      "name": "Expenses by Protocol",
-      "route": "/expenses",
-      "category": "Others",
-      "description": "Breakdown of annual operational expenses by protocol",
-      "totalTrackedKey": "expenses.protocols",
-      "tab": "Protocols"
-    },
-    {
       "name": "Governance",
       "route": "/governance",
       "category": "Others",
@@ -655,6 +647,14 @@
       "totalTrackedKey": "governance.protocols",
       "tab": "Protocols",
       "oldName": "Governance"
+    },
+    {
+      "name": "Expenses by Protocol",
+      "route": "/expenses",
+      "category": "Others",
+      "description": "Breakdown of annual operational expenses by protocol",
+      "totalTrackedKey": "expenses.protocols",
+      "tab": "Protocols"
     },
     {
       "name": "Safe Harbor Agreements",
@@ -728,19 +728,19 @@
       "oldName": "Advanced"
     },
     {
-      "name": "Token Holder Profit and Loss",
-      "route": "/token-pnl",
-      "category": "Tools",
-      "description": "Calculate the percentage change in token price between two dates",
-      "oldName": "Token PnL"
-    },
-    {
       "name": "Transactions by Bridge",
       "route": "/bridge-transactions",
       "category": "Tools",
       "description": "Download transaction data across different time periods by bridge",
       "oldCategory": "Bridges",
       "oldName": "Transactions"
+    },
+    {
+      "name": "Token Holder Profit and Loss",
+      "route": "/token-pnl",
+      "category": "Tools",
+      "description": "Calculate the percentage change in token price between two dates",
+      "oldName": "Token PnL"
     },
     {
       "name": "Report Error",

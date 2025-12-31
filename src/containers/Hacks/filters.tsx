@@ -179,7 +179,14 @@ const Filters = ({
 			</div>
 			<button
 				onClick={onClearAll}
-				className="rounded-md bg-(--btn2-bg) px-3 py-2 text-xs hover:bg-(--btn2-hover-bg) max-sm:mx-3 max-sm:my-6"
+				disabled={
+					selectedChains.length === 0 &&
+					selectedTechniques.length === 0 &&
+					selectedClassifications.length === 0 &&
+					!minLostVal &&
+					!maxLostVal
+				}
+				className="rounded-md bg-(--btn2-bg) px-3 py-2 text-xs hover:bg-(--btn2-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 max-sm:mx-3 max-sm:my-6"
 			>
 				Reset filters
 			</button>

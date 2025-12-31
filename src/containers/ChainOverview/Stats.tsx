@@ -212,7 +212,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 								{formattedNum(totalValueUSD, true)}
 							</span>
 						</h2>
-						{change24h != null ? (
+						{change24h != null && valueChange24hUSD != null ? (
 							<Tooltip
 								content={`${formattedNum(valueChange24hUSD, true)}`}
 								render={<p />}

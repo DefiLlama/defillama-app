@@ -47,10 +47,11 @@ export const Menu = React.memo(function Menu({
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
 							<p className="mb-1 text-xs opacity-65">{category}</p>
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route, attention }) => (
+							{pages.map(({ name, route, icon, attention }) => (
 								<LinkToPage
 									route={route}
 									name={name}
+									icon={icon}
 									attention={attention}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
@@ -108,10 +109,11 @@ export const Menu = React.memo(function Menu({
 						<div className="group mb-3 flex flex-col first:mb-auto">
 							<p className="mb-1 text-xs opacity-65">Your Dashboards</p>
 							<hr className="border-black/20 dark:border-white/20" />
-							{userDashboards.map(({ name, route }) => (
+							{userDashboards.map(({ name, route, icon }) => (
 								<LinkToPage
 									route={route}
 									name={name}
+									icon={icon}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
 									setShow={setShow}
@@ -124,10 +126,11 @@ export const Menu = React.memo(function Menu({
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
 							<p className="mb-1 text-xs opacity-65">{category}</p>
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route }) => (
+							{pages.map(({ name, route, icon }) => (
 								<LinkToPage
 									route={route}
 									name={name}
+									icon={icon}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
 									setShow={setShow}
@@ -351,7 +354,7 @@ const NavItemContent = React.memo(function NavItemContent({
 			{icon ? (
 				<Icon name={icon as any} className="group-hover/link:animate-wiggle h-4 w-4 shrink-0" />
 			) : name === 'LlamaAI' ? (
-				<svg className="h-4 w-4 shrink-0">
+				<svg className="group-hover/link:animate-wiggle h-4 w-4 shrink-0">
 					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 			) : null}

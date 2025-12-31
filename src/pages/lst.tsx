@@ -347,9 +347,6 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 				const calculatedEth = ethInUsd / ethPrice
 				const diff = Math.abs(calculatedEth - eth) / eth
 				if (diff > PRICE_DIFF_THRESHOLD) {
-					console.log(
-						`Correcting ${protocol.name} stakedEth from ${eth} to ${calculatedEth} (${diff * 100}% difference)`
-					)
 					correctedEth = calculatedEth
 				}
 			}

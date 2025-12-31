@@ -20,7 +20,8 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 	const { isAuthenticated, loaders, user, resendVerification } = useAuthContext()
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
-	const { subscription, isSubscriptionLoading, apiSubscription, llamafeedSubscription } = useSubscribe()
+	const { subscription, isSubscriptionLoading, apiSubscription, llamafeedSubscription, getPortalSessionUrl } =
+		useSubscribe()
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isSubscribed = subscription?.status === 'active'
 	const [isClient, setIsClient] = useState(false)
@@ -330,11 +331,13 @@ export function SubscribeHome({ returnUrl, isTrial }: { returnUrl?: string; isTr
 								Manage Account
 							</h3>
 							<AccountStatus
+								isAuthenticated={isAuthenticated}
 								user={user}
 								isVerified={user?.verified}
 								isSubscribed={isSubscribed}
 								subscription={subscription}
 								onEmailChange={() => setShowEmailForm(true)}
+								getPortalSessionUrl={getPortalSessionUrl}
 							/>
 						</div>
 					)}

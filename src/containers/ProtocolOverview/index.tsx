@@ -22,7 +22,7 @@ import { IProtocolOverviewPageData } from './types'
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
 
-	const { tvl, tvlByChain, toggleOptions } = useFinalTVL(props)
+	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
 
 	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
 
@@ -74,14 +74,25 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
-					<PrimaryValue
-						hasTvl={props.metrics.tvl}
-						value={tvl}
-						name={props.name}
-						category={props.category}
-						valueByChain={tvlByChain}
-						formatPrice={formatPrice}
-					/>
+					{props.oracleTvs ? (
+						<PrimaryValue
+							hasTvl={true}
+							value={oracleTvs}
+							name={props.name}
+							category={'Oracle'}
+							valueByChain={oracleTvsByChain}
+							formatPrice={formatPrice}
+						/>
+					) : (
+						<PrimaryValue
+							hasTvl={props.metrics.tvl}
+							value={tvl}
+							name={props.name}
+							category={props.category === 'Oracle' ? null : props.category}
+							valueByChain={tvlByChain}
+							formatPrice={formatPrice}
+						/>
+					)}
 					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
@@ -97,14 +108,25 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>
-							<PrimaryValue
-								hasTvl={props.metrics.tvl}
-								value={tvl}
-								name={props.name}
-								category={props.category}
-								formatPrice={formatPrice}
-								valueByChain={tvlByChain}
-							/>
+							{props.oracleTvs ? (
+								<PrimaryValue
+									hasTvl={true}
+									value={oracleTvs}
+									name={props.name}
+									category={'Oracle'}
+									valueByChain={oracleTvsByChain}
+									formatPrice={formatPrice}
+								/>
+							) : (
+								<PrimaryValue
+									hasTvl={props.metrics.tvl}
+									value={tvl}
+									name={props.name}
+									category={props.category === 'Oracle' ? null : props.category}
+									valueByChain={tvlByChain}
+									formatPrice={formatPrice}
+								/>
+							)}
 						</div>
 						<ProtocolChart {...props} />
 					</div>
@@ -130,9 +152,10 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 	return useMemo(() => {
 		let tvl = 0
+		const tvlByChainMap = {}
 		let toggleOptions = []
-
-		const tvlByChain = {}
+		let oracleTvs = 0
+		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
 			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
@@ -146,18 +169,47 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 			const [chainName, extraTvlKey] = chain.split('-')
 
 			if (!extraTvlKey) {
-				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
 
 			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
-				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
 		}
 
-		for (const chain in tvlByChain) {
-			tvl += tvlByChain[chain]
+		for (const chain in tvlByChainMap) {
+			tvl += tvlByChainMap[chain]
+		}
+
+		// Process oracle TVS by chain
+		for (const chain in props.oracleTvs ?? {}) {
+			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+				const option = tvlOptionsMap.get(chain as any)
+				if (option && chain !== 'offers') {
+					if (!toggleOptions.some((o) => o.key === option.key)) {
+						toggleOptions.push(option)
+					}
+				}
+				continue
+			}
+
+			const [chainName, extraTvlKey] = chain.split('-')
+
+			if (!extraTvlKey) {
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				continue
+			}
+
+			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				continue
+			}
+		}
+
+		for (const chain in oracleTvsByChainMap) {
+			oracleTvs += oracleTvsByChainMap[chain]
 		}
 
 		if (props.bribeRevenue?.totalAllTime != null) {
@@ -176,7 +228,11 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		return {
 			tvl,
-			tvlByChain: Object.entries(tvlByChain).sort(
+			tvlByChain: Object.entries(tvlByChainMap).sort(
+				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
+			) as [string, number][],
+			oracleTvs,
+			oracleTvsByChain: Object.entries(oracleTvsByChainMap).sort(
 				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
 			) as [string, number][],
 			toggleOptions
@@ -292,7 +348,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
-				{props.tvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
+				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
 				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
@@ -1911,6 +1967,12 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					<span>{props.methodology ?? ''}</span>
 				</p>
 			) : null}
+			{props.oracleTvs ? (
+				<p>
+					<span className="font-medium">TVS:</span>{' '}
+					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
+				</p>
+			) : null}
 			<MethodologyByAdapter adapter={props.fees} title="Fees" />
 			<MethodologyByAdapter adapter={props.revenue} title="Revenue" />
 			<MethodologyByAdapter adapter={props.holdersRevenue} title="Holders Revenue" />
@@ -2391,7 +2453,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				</div>
 			</div>
 			<div className="relative overflow-x-auto">
-				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full" style={{ top: '50%' }}>
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 					<img
 						src="/icons/defillama-dark-neutral.webp"
 						alt="defillama"
@@ -2534,7 +2596,7 @@ const IncomeStatementByLabel = ({
 	return (
 		<>
 			<tr>
-				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
+				<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
 					{methodology ? (
 						<Tooltip
 							content={methodology}
@@ -2576,7 +2638,7 @@ const IncomeStatementByLabel = ({
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
+							<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
 								{methodologyByType[breakdownlabel] ? (
 									<Tooltip
 										content={methodologyByType[breakdownlabel]}

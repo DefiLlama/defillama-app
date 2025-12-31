@@ -70,12 +70,12 @@ export function Select({
 						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 							{clearAll ? (
 								<button onClick={clearAll} className="p-3">
-									Clear
+									Deselect All
 								</button>
 							) : null}
 							{toggleAll ? (
 								<button onClick={toggleAll} className="p-3">
-									Toggle all
+									Select All
 								</button>
 							) : null}
 						</span>
@@ -177,12 +177,12 @@ export function Select({
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								{clearAll ? (
 									<button onClick={clearAll} className="p-3">
-										Clear
+										Deselect All
 									</button>
 								) : null}
 								{toggleAll ? (
 									<button onClick={toggleAll} className="p-3">
-										Toggle all
+										Select All
 									</button>
 								) : null}
 							</span>

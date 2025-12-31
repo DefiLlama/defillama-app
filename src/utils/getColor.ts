@@ -8,13 +8,11 @@ export const getColor = async (path: string) => {
 		const color = await fetchJson(path)
 
 		if (!color.startsWith('#')) {
-			console.log(path, color)
 			return oldBlue
 		}
 
 		return color
-	} catch (error) {
-		console.log(path, 'rugged, but handled')
+	} catch {
 		return oldBlue
 	}
 }

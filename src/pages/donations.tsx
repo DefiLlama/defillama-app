@@ -88,19 +88,24 @@ function DonationsPage({ protocols }) {
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h1 className="text-lg font-semibold">Affiliate links</h1>
 				<hr className="border-black/20 dark:border-white/20" />
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-col gap-3">
 					<p>
 						DefiLlama has referral links for all these protocols, using them with our referral sends us some rewards:
 					</p>
-					<ul className="flex flex-col gap-1">
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
 						{protocols.map((p) => (
-							<li key={p.name}>
-								<a className="text-(--blue) hover:underline" target="_blank" rel="noopener noreferrer" href={p.url}>
-									{p.name}
-								</a>
-							</li>
+							<a
+								key={p.name}
+								className="flex items-center gap-2 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
+								target="_blank"
+								rel="noopener noreferrer"
+								href={p.url}
+							>
+								<img src={p.logo} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
+								<span className="truncate text-sm text-(--blue)">{p.name}</span>
+							</a>
 						))}
-					</ul>
+					</div>
 				</div>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">

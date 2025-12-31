@@ -66,6 +66,8 @@ export function VirtualTable({
 	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
+	
+	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
@@ -220,6 +222,20 @@ export function VirtualTable({
 		}
 	}, [skipVirtualization, onScrollOrResize, totalTableWidth, rows.length])
 
+	if (hasNoVisibleColumns) {
+		return (
+			<div className="flex min-h-[400px] flex-col items-center justify-center gap-4 rounded-md bg-(--cards-bg) p-8 text-center">
+				<Icon name="eye-off" height={48} width={48} className="text-(--text-tertiary)" />
+				<div className="flex flex-col gap-2">
+					<h3 className="text-lg font-semibold text-(--text-primary)">No columns selected</h3>
+					<p className="text-sm text-(--text-secondary)">
+						Please select at least one column from the Columns menu to view the table data.
+					</p>
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div
 			{...props}
@@ -275,9 +291,9 @@ export function VirtualTable({
 													onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : null}
 												>
 													{value}
+													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 												</HeaderWithTooltip>
 											)}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
 										</span>
 									</div>
 								)
@@ -385,9 +401,9 @@ export function VirtualTable({
 
 const HeaderWithTooltip = ({ children, content, onClick }) => {
 	if (onClick) {
-		if (!content) return <button onClick={onClick}>{children}</button>
+		if (!content) return <button onClick={onClick} className="flex items-center gap-1">{children}</button>
 		return (
-			<Tooltip content={content} className="underline decoration-dotted" render={<button />} onClick={onClick}>
+			<Tooltip content={content} className="underline decoration-dotted" render={<button className="flex items-center gap-1" />} onClick={onClick}>
 				{children}
 			</Tooltip>
 		)

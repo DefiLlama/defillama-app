@@ -44,11 +44,10 @@ function Support() {
 					form.reset()
 					setIsSubmitted(true)
 				} else {
-					console.log(data)
 					toast.error('Failed to submit support request', { position: 'bottom-right' })
 				}
 			})
-			.catch((error) => {
+			.catch(() => {
 				toast.error('Failed to submit support request', { position: 'bottom-right' })
 			})
 	}

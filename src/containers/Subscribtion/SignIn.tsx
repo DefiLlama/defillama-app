@@ -392,7 +392,7 @@ export const SignInForm = ({
 						</div>
 
 						{pendingActionMessage && (
-							<div className="mb-3 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-2.5 sm:mb-4 sm:p-3">
+							<div className="mt-3 mb-3 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-2.5 sm:mt-4 sm:mb-4 sm:p-3">
 								<p className="text-center text-xs text-[#b4b7bc] sm:text-sm">{pendingActionMessage}</p>
 							</div>
 						)}

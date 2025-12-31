@@ -205,4 +205,6 @@ export interface IScatterChartProps {
 	valueSymbol?: string
 	height?: string
 	tooltipFormatter?: (params: any) => string
+	showLabels?: boolean
+	entityType?: 'protocol' | 'chain'
 }

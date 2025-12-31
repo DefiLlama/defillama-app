@@ -308,7 +308,7 @@ export const useSubscribe = () => {
 	})
 
 	const createPortalSessionMutation = useMutation({
-		mutationFn: async (subscriptionType?: string) => {
+		mutationFn: async () => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
 			}
@@ -321,8 +321,7 @@ export const useSubscribe = () => {
 						'Content-Type': 'application/json'
 					},
 					body: JSON.stringify({
-						returnUrl: window.location.href,
-						type: subscriptionType
+						returnUrl: window.location.href
 					})
 				},
 				true
@@ -338,20 +337,13 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const createPortalSession = async (subscriptionType?: string) => {
+	const createPortalSession = async () => {
 		if (!isAuthenticated) {
-			toast.error('Please sign in to manage your subscription')
-			return null
-		}
-
-		if (!subscriptionData) {
-			toast.error('No active subscription found')
 			return null
 		}
 
 		try {
-			const typeToSend = subscriptionType || subscriptionData.type
-			const url = await createPortalSessionMutation.mutateAsync(typeToSend)
+			const url = await createPortalSessionMutation.mutateAsync()
 			if (url) {
 				window.location.href = url
 			}
@@ -359,6 +351,15 @@ export const useSubscribe = () => {
 		} catch (error) {
 			return null
 		}
+	}
+
+	const getPortalSessionUrl = async () => {
+		if (!isAuthenticated) {
+			throw new Error('Not authenticated')
+		}
+
+		const url = await createPortalSessionMutation.mutateAsync()
+		return url
 	}
 
 	const enableOverageMutation = useMutation({
@@ -425,6 +426,7 @@ export const useSubscribe = () => {
 		credits: credits?.credits,
 		isCreditsLoading,
 		refetchCredits,
+		getPortalSessionUrl,
 		createPortalSession,
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
 		enableOverage,
