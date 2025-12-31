@@ -218,15 +218,17 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 		const yField = primarySeries.dataMapping.yField
 
 		const entityField = primarySeries.dataMapping.entityFilter?.field || 'protocol'
+		const entityType = entityField === 'chain' ? 'chain' : 'protocol'
 
 		const scatterData = rawData
-			.map((row, index) => {
+			.map((row) => {
 				const xValue = parseStringNumber(row[xField])
 				const yValue = parseStringNumber(row[yField])
 				const entityName = row[entityField] || 'Unknown'
-				return [xValue, yValue, entityName]
+				const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
+				return [xValue, yValue, entityName, entitySlug]
 			})
-			.filter(([x, y]) => !isNaN(x) && !isNaN(y))
+			.filter(([x, y]) => !isNaN(x as number) && !isNaN(y as number))
 
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField
@@ -248,6 +250,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 			yAxisLabel,
 			valueSymbol: config.valueSymbol || '',
 			height: '360px',
+			entityType,
 			tooltipFormatter: (params: any) => {
 				if (params.value.length >= 2) {
 					const xValue = params.value[0]

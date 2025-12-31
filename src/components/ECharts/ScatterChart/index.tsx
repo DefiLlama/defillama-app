@@ -31,6 +31,11 @@ echarts.use([
 	DataZoomComponent
 ])
 
+const getEntityIcon = (type: string, slug: string) => {
+	if (type === 'chain') return `https://icons.llamao.fi/icons/chains/rsz_${slug}?w=48&h=48`
+	return `https://icons.llamao.fi/icons/protocols/${slug}?w=48&h=48`
+}
+
 export default function ScatterChart({
 	chartData,
 	title,
@@ -38,7 +43,9 @@ export default function ScatterChart({
 	yAxisLabel,
 	valueSymbol = '',
 	height = '600px',
-	tooltipFormatter
+	tooltipFormatter,
+	showLabels = false,
+	entityType = 'protocol'
 }: IScatterChartProps) {
 	const id = useId()
 
@@ -56,6 +63,16 @@ export default function ScatterChart({
 		let series = []
 		const isYieldData = chartData.length > 0 && chartData[0].projectName !== undefined
 
+		const labelConfig = showLabels
+			? {
+					show: true,
+					position: 'right' as const,
+					formatter: (params: any) => params.value?.[2] || '',
+					fontSize: 10,
+					color: isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
+				}
+			: undefined
+
 		if (isYieldData) {
 			const projectNames = [...new Set(chartData.map((p) => p.projectName))]
 			for (const project of projectNames) {
@@ -67,21 +84,31 @@ export default function ScatterChart({
 					emphasis: {
 						focus: 'series'
 					},
+					label: labelConfig,
 					data: chartData
 						.filter((p) => p.projectName === project)
 						.map((p) => [p.sigma, p.mu, p.count, p.symbol, p.pool, p.tvlUsd, p.apy, p.chain])
 				})
 			}
 		} else {
+			const dataWithSymbols = showLabels
+				? chartData.map((point: any) => ({
+						value: point,
+						symbol: `image://${getEntityIcon(entityType, point[3] || '')}`,
+						symbolSize: 20
+					}))
+				: chartData
+
 			series = [
 				{
 					name: title || 'Data',
 					type: 'scatter',
-					symbolSize: 8,
+					symbolSize: showLabels ? 20 : 8,
 					emphasis: {
 						focus: 'series'
 					},
-					data: chartData
+					label: labelConfig,
+					data: dataWithSymbols
 				}
 			]
 		}
@@ -238,6 +265,7 @@ export default function ScatterChart({
 					filterMode: 'none'
 				}
 			],
+			labelLayout: { hideOverlap: true },
 			series: series
 		}
 
@@ -253,7 +281,7 @@ export default function ScatterChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title])
+	}, [id, chartData, createInstance, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
 
 	return (
 		<div>
