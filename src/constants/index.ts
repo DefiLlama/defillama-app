@@ -194,7 +194,7 @@ export const removedCategoriesFromChainTvl = [
 	'RWA'
 ]
 
-export const oracleProtocolsSet = new Set(['Chainlink', 'Pyth'])
+export const oracleProtocolsSet = new Set(['Chainlink', 'Pyth', 'Api3', 'RedStone'])
 
 export const removedCategoriesFromChainTvlSet = new Set(removedCategoriesFromChainTvl)
 

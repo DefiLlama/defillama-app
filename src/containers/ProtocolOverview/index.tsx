@@ -88,7 +88,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 							hasTvl={props.metrics.tvl}
 							value={tvl}
 							name={props.name}
-							category={props.category}
+							category={props.category === 'Oracle' ? null : props.category}
 							valueByChain={tvlByChain}
 							formatPrice={formatPrice}
 						/>
@@ -122,7 +122,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 									hasTvl={props.metrics.tvl}
 									value={tvl}
 									name={props.name}
-									category={props.category}
+									category={props.category === 'Oracle' ? null : props.category}
 									valueByChain={tvlByChain}
 									formatPrice={formatPrice}
 								/>
