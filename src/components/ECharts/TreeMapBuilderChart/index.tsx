@@ -103,7 +103,11 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 					breadcrumb: { show: false },
 					label: {
 						show: true,
-
+						position: 'inside',
+						distance: 0,
+						padding: 0,
+						align: 'center',
+						verticalAlign: 'middle',
 						formatter: function (params: any) {
 							const pct = total > 0 ? ((params.value / total) * 100).toFixed(1) : '0'
 							return `{name|${params.name}}\n{value|${formatValue(params.value)} (${pct}%)}`
