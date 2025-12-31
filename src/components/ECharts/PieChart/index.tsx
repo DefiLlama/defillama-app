@@ -100,7 +100,7 @@ export default function PieChart({
 				height: 40,
 				opacity: 0.3
 			},
-			left: isSmall ? '35%' : '40%',
+			left: isSmall ? '35%' : '45%',
 			top: '160px'
 		}
 
@@ -123,7 +123,6 @@ export default function PieChart({
 				show: showLegend,
 				left: 'right', // Default
 				orient: 'vertical', // Default
-				...legendPosition, // Apply overrides from prop
 				data: chartData.map((item) => item.name),
 				icon: 'circle',
 				itemWidth: 10,
@@ -136,7 +135,8 @@ export default function PieChart({
 				formatter: function (name) {
 					const maxLength = 18 // Keep existing formatter
 					return name.length > maxLength ? name.slice(0, maxLength) + '...' : name
-				}
+				},
+				...legendPosition // Apply overrides from prop
 			},
 			series
 		})

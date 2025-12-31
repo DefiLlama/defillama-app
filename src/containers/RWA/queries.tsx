@@ -1,5 +1,5 @@
 import { RWA_ACTIVE_TVLS_API } from '~/constants'
-import { slug } from '~/utils'
+import { preparePieChartData, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface IFetchedRWAProject {
@@ -55,8 +55,9 @@ export interface IRWAAssetsOverview {
 	issuers: Array<string>
 	chains: Array<{ label: string; to: string }>
 	selectedChain: string
-	totalRwaValue: number
-	totalStablecoinValue: number
+	totalOnChainRwaValue: number
+	totalOnChainStablecoinValue: number
+	totalOnChainDeFiActiveTvl: number
 }
 
 export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
@@ -84,8 +85,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		const categories = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const chains = new Map<string, number>()
-		let totalRwaValue = 0
-		let totalStablecoinValue = 0
+		let totalOnChainRwaValue = 0
+		let totalOnChainStablecoinValue = 0
+		let totalOnChainDeFiActiveTvl = 0
 
 		for (const rwaId in data) {
 			const item = data[rwaId]
@@ -173,10 +175,11 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				assets.push(asset)
 
 				// Track total values
-				totalRwaValue += effectiveOnChainTvl
+				totalOnChainRwaValue += effectiveOnChainTvl
 				if (item.stablecoin) {
-					totalStablecoinValue += effectiveOnChainTvl
+					totalOnChainStablecoinValue += effectiveOnChainTvl
 				}
+				totalOnChainDeFiActiveTvl += effectiveDeFiActiveTvl
 
 				// Add to categories/issuers/assetClasses for assets on this chain
 				asset.assetClass?.forEach((assetClass) => {
@@ -210,9 +213,12 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			categories: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
-			categoryValues: Array.from(categories.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([name, value]) => ({ name, value })),
+			categoryValues: preparePieChartData({
+				data: Array.from(categories.entries())
+					.sort((a, b) => b[1] - a[1])
+					.map(([name, value]) => ({ name, value })),
+				limit: 4
+			}),
 			issuers: Array.from(issuers.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
@@ -223,8 +229,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 					.sort((a, b) => b[1] - a[1])
 					.map(([key]) => ({ label: key, to: `/rwa/chain/${slug(key)}` }))
 			],
-			totalRwaValue,
-			totalStablecoinValue
+			totalOnChainRwaValue,
+			totalOnChainStablecoinValue,
+			totalOnChainDeFiActiveTvl
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')

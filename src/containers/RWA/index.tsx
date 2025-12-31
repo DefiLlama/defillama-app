@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import {
 	ColumnDef,
@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-table'
 import { matchSorter } from 'match-sorter'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -24,6 +25,8 @@ import { Tooltip } from '~/components/Tooltip'
 import useWindowSize from '~/hooks/useWindowSize'
 import { formattedNum } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
+
+const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -130,7 +133,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			'Type',
 			'Category',
 			'Asset Class',
-			'Onchain Marketcap',
+			'On-chain Marketcap',
 			'DeFi Active TVL',
 			'RWA Classification',
 			'Issuer',
@@ -176,6 +179,60 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
+			<div className="flex items-center gap-2">
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content="Sum of value of all real world assets on chain"
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						Total RWA On-chain
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(props.totalOnChainRwaValue, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content="Total number of issuers of real world assets on chain"
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						Total Asset Issuers
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(props.issuers.length, false)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content="Sum of value of all stablecoins on chain"
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						Total Stablecoins Value
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">
+						{formattedNum(props.totalOnChainStablecoinValue, true)}
+					</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content="Sum of value of all real world assets on chain that are deployed into third-party DeFi protocols tracked by DeFiLlama"
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						DeFi Active TVL
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">
+						{formattedNum(props.totalOnChainDeFiActiveTvl, true)}
+					</span>
+				</p>
+			</div>
+			<div className="relative isolate flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<h2 className="px-3 text-lg font-semibold">Total RWA Value - Repartition</h2>
+				<Suspense fallback={<div className="h-[360px]" />}>
+					<PieChart
+						showLegend
+						chartData={props.categoryValues}
+						radius={pieChartRadius}
+						legendPosition={pieChartLegendPosition}
+						legendTextStyle={pieChartLegendTextStyle}
+					/>
+				</Suspense>
+			</div>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
 				<div className="flex flex-wrap items-center justify-end gap-2 p-3">
@@ -333,14 +390,14 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 	},
 	{
 		id: 'onChainMarketcap.total',
-		header: 'Onchain Marketcap',
+		header: 'On-chain Marketcap',
 		accessorFn: (asset) => asset.onChainMarketcap.total,
 		cell: (info) => (
 			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
 		),
 		size: 168,
 		meta: {
-			headerHelperText: `The value that is visibly on public blockchains at the issuer’s official contracts and addresses, and can be reconstructed directly from onchain data.`,
+			headerHelperText: `The value that is visibly on public blockchains at the issuer’s official contracts and addresses, and can be reconstructed directly from on-chain data.`,
 			align: 'end'
 		}
 	},
@@ -349,7 +406,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		header: 'Active Marketcap',
 		cell: (info) => null,
 		meta: {
-			headerHelperText: `The subset of Onchain Marketcap that is actually in circulation and taking real market risk in the hands of end users and protocols.\n\nThis is the “live” part of TVL, not just administrative balances. This is the biggest differentiator for distinguishing programmable finance from “real RWAs” even if they are KYC/whitelisted/allowlisted/permissioned tokens; just because they have to adhere to regulatory compliance law does not mean they have to simply sit idly onchain.\n\nThere is no fixed time window; it’s about how the asset is used, not just when it moved as that would invalidate holding investments.`,
+			headerHelperText: `The subset of On-chain Marketcap that is actually in circulation and taking real market risk in the hands of end users and protocols.\n\nThis is the “live” part of TVL, not just administrative balances. This is the biggest differentiator for distinguishing programmable finance from “real RWAs” even if they are KYC/whitelisted/allowlisted/permissioned tokens; just because they have to adhere to regulatory compliance law does not mean they have to simply sit idly on-chain.\n\nThere is no fixed time window; it’s about how the asset is used, not just when it moved as that would invalidate holding investments.`,
 			align: 'end'
 		}
 	},
@@ -361,7 +418,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
 		),
 		meta: {
-			headerHelperText: `The subset of Active Marketcap that is deployed into third-party DeFi protocols tracked by DeFiLlama.\n\nThis captures how much of an RWA token is actually being used in the wider onchain economy—such as lending, liquidity provision, structured products, or other protocol integrations—outside its own issuer ecosystem.`,
+			headerHelperText: `The subset of Active Marketcap that is deployed into third-party DeFi protocols tracked by DeFiLlama.\n\nThis captures how much of an RWA token is actually being used in the wider on-chain economy—such as lending, liquidity provision, structured products, or other protocol integrations—outside its own issuer ecosystem.`,
 			align: 'end'
 		}
 	},
@@ -698,3 +755,14 @@ const useRWATableQueryParams = ({
 		clearAllIssuers
 	}
 }
+
+const pieChartRadius = ['50%', '70%'] as [string, string]
+const pieChartLegendPosition = {
+	left: 'center',
+	top: 'bottom',
+	orient: 'horizontal',
+	formatter: function (name) {
+		return name
+	}
+} as any
+const pieChartLegendTextStyle = { fontSize: 14 }
