@@ -216,6 +216,8 @@ export interface ISankeyChartProps {
 		name: string
 		color?: string
 		depth?: number
+		description?: string
+		displayValue?: number | string // Override the calculated value shown in label
 	}>
 	links: Array<{
 		source: string

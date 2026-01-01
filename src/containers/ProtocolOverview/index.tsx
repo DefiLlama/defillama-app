@@ -2548,7 +2548,11 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const feesByLabelData = sankeyFeesData[periodKey]?.['by-label'] ?? {}
 		const costOfRevenueByLabelData = sankeyCostOfRevenueData[periodKey]?.['by-label'] ?? {}
 
-		const nodes: Array<{ name: string; color?: string }> = []
+		// Get methodology/descriptions for labels
+		const feesMethodology = props.incomeStatement?.methodologyByType?.['Fees'] ?? {}
+		const costOfRevenueMethodology = props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}
+
+		const nodes: Array<{ name: string; color?: string; description?: string; displayValue?: number | string }> = []
 		const links: Array<{ source: string; target: string; value: number }> = []
 
 		// Colors: gray for neutral/input, green for profit, red for costs
@@ -2558,34 +2562,50 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			red: '#ef4444'
 		}
 
-		// Add fee breakdown nodes and links (sources)
+		// Only add fee breakdown nodes if breakdown labels are available
 		if (Object.keys(feesByLabelData).length > 0) {
+			nodes.push({
+				name: 'Gross Protocol Revenue',
+				color: COLORS.gray,
+				description: props.fees?.methodology
+			})
 			for (const [label, value] of Object.entries(feesByLabelData)) {
 				if (value > 0) {
-					nodes.push({ name: label, color: COLORS.gray })
+					nodes.push({
+						name: label,
+						color: COLORS.gray,
+						description: feesMethodology[label]
+					})
 					links.push({ source: label, target: 'Gross Protocol Revenue', value })
 				}
 			}
 		} else if (fees > 0) {
-			nodes.push({ name: 'Protocol Fees', color: COLORS.gray })
-			links.push({ source: 'Protocol Fees', target: 'Gross Protocol Revenue', value: fees })
-		}
-
-		// Main income statement nodes
-		if (fees > 0) {
-			nodes.push({ name: 'Gross Protocol Revenue', color: COLORS.gray })
+			// No breakdown available, start from Gross Protocol Revenue directly
+			nodes.push({
+				name: 'Gross Protocol Revenue',
+				color: COLORS.gray,
+				description: props.fees?.methodology
+			})
 		}
 
 		if (costOfRevenue > 0) {
-			nodes.push({ name: 'Cost of Revenue', color: COLORS.red })
+			nodes.push({
+				name: 'Cost of Revenue',
+				color: COLORS.red,
+				description: props.supplySideRevenue?.methodology
+			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
 
-			// Add cost breakdown if available
+			// Only add cost breakdown if labels are available
 			if (Object.keys(costOfRevenueByLabelData).length > 0) {
 				for (const [label, value] of Object.entries(costOfRevenueByLabelData)) {
 					if (value > 0) {
 						const costLabel = `${label} (Cost)`
-						nodes.push({ name: costLabel, color: COLORS.red })
+						nodes.push({
+							name: costLabel,
+							color: COLORS.red,
+							description: costOfRevenueMethodology[label]
+						})
 						links.push({ source: 'Cost of Revenue', target: costLabel, value })
 					}
 				}
@@ -2593,32 +2613,82 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 
 		if (revenue > 0) {
-			nodes.push({ name: 'Gross Profit', color: COLORS.green })
+			const hasIncentives = incentives > 0 && props.metrics?.incentives
+
+			nodes.push({
+				name: 'Gross Profit',
+				color: COLORS.green,
+				description: props.revenue?.methodology
+			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: revenue })
-		}
 
-		if (incentives > 0 && props.metrics?.incentives) {
-			nodes.push({ name: 'Incentives', color: COLORS.red })
-			links.push({ source: 'Gross Profit', target: 'Incentives', value: incentives })
-		}
+			if (hasIncentives) {
+				// Incentives is a separate bar (not flowing from Gross Profit)
+				nodes.push({
+					name: 'Incentives',
+					color: COLORS.red,
+					description: props.incentives?.methodology
+				})
 
-		if (earnings !== 0) {
-			nodes.push({ name: 'Earnings', color: earnings >= 0 ? COLORS.green : COLORS.red })
-			if (earnings > 0) {
-				links.push({ source: 'Gross Profit', target: 'Earnings', value: Math.abs(earnings) })
+				// Both Gross Profit and Incentives flow into Earnings
+				nodes.push({
+					name: 'Earnings',
+					color: earnings >= 0 ? COLORS.green : COLORS.red,
+					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
+					displayValue: earnings // Show actual earnings value, not the sum of flows
+				})
+
+				// Gross Profit flows to Earnings
+				links.push({ source: 'Gross Profit', target: 'Earnings', value: revenue })
+				// Incentives flows to Earnings (as a cost being subtracted)
+				links.push({ source: 'Incentives', target: 'Earnings', value: incentives })
+
+				if (earnings > 0 && holdersRevenue > 0) {
+					nodes.push({
+						name: 'Token Holder Net Income',
+						color: COLORS.green,
+						description: props.holdersRevenue?.methodology
+					})
+					links.push({ source: 'Earnings', target: 'Token Holder Net Income', value: holdersRevenue })
+				}
+			} else {
+				// No incentives: Gross Profit flows directly to Earnings
+				if (earnings > 0) {
+					nodes.push({
+						name: 'Earnings',
+						color: COLORS.green,
+						description: props.revenue?.methodology
+					})
+					links.push({ source: 'Gross Profit', target: 'Earnings', value: earnings })
+
+					if (holdersRevenue > 0) {
+						nodes.push({
+							name: 'Token Holder Net Income',
+							color: COLORS.green,
+							description: props.holdersRevenue?.methodology
+						})
+						links.push({ source: 'Earnings', target: 'Token Holder Net Income', value: holdersRevenue })
+					}
+				}
 			}
-		}
-
-		if (holdersRevenue > 0) {
-			nodes.push({ name: 'Token Holder Net Income', color: COLORS.green })
-			links.push({ source: 'Earnings', target: 'Token Holder Net Income', value: holdersRevenue })
 		}
 
 		return {
 			sankeyData: { nodes, links, periodLabel },
 			sankeyPeriodOptions: periodOptions
 		}
-	}, [sankeyGroupBy, selectedSankeyPeriod, props.incomeStatement, feesSettings, props.metrics?.incentives])
+	}, [
+		sankeyGroupBy,
+		selectedSankeyPeriod,
+		props.incomeStatement,
+		feesSettings,
+		props.metrics?.incentives,
+		props.fees?.methodology,
+		props.supplySideRevenue?.methodology,
+		props.revenue?.methodology,
+		props.holdersRevenue?.methodology,
+		props.incentives?.methodology
+	])
 
 	return (
 		<div className="col-span-full flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
@@ -2765,7 +2835,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			</div>
 
 			{/* Sankey Chart Section */}
-			<div className="mt-4 border-t border-(--cards-border) pt-4">
+			<div className="border-t border-(--cards-border) pt-4">
 				{sankeyData.nodes.length > 0 ? (
 					<Suspense
 						fallback={

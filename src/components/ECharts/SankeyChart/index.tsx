@@ -34,6 +34,21 @@ export default function SankeyChart({
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'sankey-chart')
 	const exportTitle = imageExportTitle || title
 
+	// Create maps for node metadata (descriptions and display values)
+	const nodeMetadata = useMemo(() => {
+		const descriptions: Record<string, string> = {}
+		const displayValues: Record<string, number | string> = {}
+		nodes.forEach((node) => {
+			if (node.description) {
+				descriptions[node.name] = node.description
+			}
+			if (node.displayValue !== undefined) {
+				displayValues[node.name] = node.displayValue
+			}
+		})
+		return { descriptions, displayValues }
+	}, [nodes])
+
 	const series = useMemo(() => {
 		const nodeData = nodes.map((node) => ({
 			name: node.name,
@@ -51,8 +66,8 @@ export default function SankeyChart({
 			emphasis: {
 				focus: 'adjacency'
 			},
-			nodeGap: 12,
-			nodeWidth: 20,
+			nodeGap: 24,
+			nodeWidth: 16,
 			lineStyle: {
 				color: 'gradient',
 				curveness: 0.5,
@@ -62,10 +77,18 @@ export default function SankeyChart({
 				show: true,
 				position: orient === 'horizontal' ? 'right' : 'bottom',
 				fontFamily: 'sans-serif',
-				fontSize: isSmall ? 10 : 12,
+				fontSize: isSmall ? 9 : 11,
 				color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
 				formatter: (params: any) => {
-					return params.name
+					// Use displayValue if provided, otherwise use calculated value
+					const displayValue = nodeMetadata.displayValues[params.name]
+					if (displayValue !== undefined) {
+						const formattedValue =
+							typeof displayValue === 'string' ? displayValue : formatTooltipValue(displayValue, valueSymbol)
+						return `${params.name}: ${formattedValue}`
+					}
+					const formattedValue = formatTooltipValue(params.value, valueSymbol)
+					return `${params.name}: ${formattedValue}`
 				}
 			},
 			data: nodeData,
@@ -76,7 +99,7 @@ export default function SankeyChart({
 				lineStyle: link.color ? { color: link.color } : undefined
 			}))
 		}
-	}, [nodes, links, nodeColors, nodeAlign, orient, isDark, isSmall])
+	}, [nodes, links, nodeColors, nodeAlign, orient, isDark, isSmall, valueSymbol, nodeMetadata])
 
 	const createInstance = useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -113,7 +136,19 @@ export default function SankeyChart({
 					if (params.dataType === 'edge') {
 						return `${params.data.source} → ${params.data.target}<br/>${formatTooltipValue(params.data.value, valueSymbol)}`
 					}
-					return `${params.name}<br/>${formatTooltipValue(params.value, valueSymbol)}`
+					// Use displayValue if provided for tooltip value
+					const displayValue = nodeMetadata.displayValues[params.name]
+					const valueToShow =
+						displayValue !== undefined
+							? typeof displayValue === 'string'
+								? displayValue
+								: formatTooltipValue(displayValue, valueSymbol)
+							: formatTooltipValue(params.value, valueSymbol)
+					const description = nodeMetadata.descriptions[params.name]
+					if (description) {
+						return `<strong>${params.name}</strong><br/>${valueToShow}<br/><span style="color: ${isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'}; font-size: 11px;">${description}</span>`
+					}
+					return `${params.name}<br/>${valueToShow}`
 				}
 			},
 			series
@@ -132,7 +167,7 @@ export default function SankeyChart({
 			chartInstance.dispose()
 			handleChartReady(null)
 		}
-	}, [createInstance, series, isDark, title, valueSymbol, isSmall, handleChartReady])
+	}, [createInstance, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata])
 
 	return (
 		<div className="relative" {...props}>
