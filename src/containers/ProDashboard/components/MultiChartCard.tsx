@@ -148,7 +148,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 
 			return {
-				name: `${name}`,
+				name: `${name} ${meta?.title || capitalizeFirstLetter(cfg.type)}`,
 				baseType: meta?.chartType as 'bar' | 'area' | 'line' | undefined,
 				data,
 				color,
