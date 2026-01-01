@@ -82,13 +82,32 @@ export default function SankeyChart({
 				formatter: (params: any) => {
 					// Use displayValue if provided, otherwise use calculated value
 					const displayValue = nodeMetadata.displayValues[params.name]
-					if (displayValue !== undefined) {
-						const formattedValue =
-							typeof displayValue === 'string' ? displayValue : formatTooltipValue(displayValue, valueSymbol)
-						return `${params.name}: ${formattedValue}`
+					const formattedValue =
+						displayValue !== undefined
+							? typeof displayValue === 'string'
+								? displayValue
+								: formatTooltipValue(displayValue, valueSymbol)
+							: formatTooltipValue(params.value, valueSymbol)
+
+					const description = nodeMetadata.descriptions[params.name]
+					if (description && !isSmall) {
+						// Truncate description to ~50 chars for display under label
+						const truncatedDesc = description.length > 50 ? description.slice(0, 47) + '...' : description
+						return `{name|${params.name}: ${formattedValue}}\n{desc|${truncatedDesc}}`
 					}
-					const formattedValue = formatTooltipValue(params.value, valueSymbol)
 					return `${params.name}: ${formattedValue}`
+				},
+				rich: {
+					name: {
+						fontSize: isSmall ? 9 : 11,
+						fontWeight: 'normal',
+						color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+					},
+					desc: {
+						fontSize: isSmall ? 7 : 9,
+						color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+						lineHeight: 12
+					}
 				}
 			},
 			data: nodeData,
