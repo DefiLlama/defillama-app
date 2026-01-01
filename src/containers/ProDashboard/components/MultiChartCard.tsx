@@ -471,7 +471,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						<ChartExportButton
 							chartInstance={chartInstance}
 							filename={multi.name || 'multi_chart'}
-							title={multi.name || 'Multi Chart'}
+							title={showTreemap ? undefined : capitalizeFirstLetter(multi.name) || 'Multi Chart'}
 							smol
 						/>
 						<ProTableCSVButton

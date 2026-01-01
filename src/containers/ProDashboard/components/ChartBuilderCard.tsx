@@ -523,7 +523,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							<ChartExportButton
 								chartInstance={chartInstance}
 								filename={builder.name || config.metric}
-								title={builder.name || `${config.metric} by Protocol`}
+								title={config.chartType === 'treemap' ? undefined : builder.name || `${config.metric} by Protocol`}
 								smol
 								expandLegend
 							/>
