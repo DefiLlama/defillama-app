@@ -377,7 +377,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [streamingError, setStreamingError] = useState('')
 	const [isStreaming, setIsStreaming] = useState(false)
 	const [progressMessage, setProgressMessage] = useState('')
-	const [progressStage, setProgressStage] = useState('')
+	const [_progressStage, setProgressStage] = useState('')
 	const [streamingSuggestions, setStreamingSuggestions] = useState<any[] | null>(null)
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
@@ -429,23 +429,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		shouldAutoScrollRef.current = true
 		isAutoScrollingRef.current = true
 	}, [])
-
-	const createRenderInlineChart = useCallback(
-		(saveableChartIds?: string[], savedChartIds?: string[], messageId?: string) =>
-			(chart: any, data: any) => (
-				<ChartRenderer
-					charts={[chart]}
-					chartData={data}
-					isLoading={false}
-					isAnalyzing={false}
-					resizeTrigger={resizeTrigger}
-					saveableChartIds={saveableChartIds}
-					savedChartIds={savedChartIds}
-					messageId={messageId}
-				/>
-			),
-		[resizeTrigger]
-	)
 
 	useEffect(() => {
 		sessionIdRef.current = sessionId
@@ -1229,7 +1212,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		citations={item.citations}
 																		charts={hasInlineCharts ? item.charts : undefined}
 																		chartData={hasInlineCharts ? item.chartData : undefined}
-																		renderChart={hasInlineCharts ? createRenderInlineChart((readOnly || !showDebug) ? [] : item.metadata?.saveableChartIds, item.metadata?.savedChartIds, item.messageId) : undefined}
+																		inlineChartConfig={
+																			hasInlineCharts
+																				? {
+																						resizeTrigger,
+																						saveableChartIds:
+																							readOnly || !showDebug ? [] : item.metadata?.saveableChartIds,
+																						savedChartIds: item.metadata?.savedChartIds,
+																						messageId: item.messageId
+																					}
+																				: undefined
+																		}
 																		csvExports={item.csvExports}
 																	/>
 																	{!hasInlineCharts && item.charts && item.charts.length > 0 && (
@@ -1237,8 +1230,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			charts={item.charts}
 																			chartData={item.chartData || []}
 																			resizeTrigger={resizeTrigger}
-																			saveableChartIds={(readOnly || !showDebug) ? [] : item.metadata?.saveableChartIds}
-																			savedChartIds={item.metadata?.savedChartIds}
 																			messageId={item.messageId}
 																		/>
 																	)}
@@ -1250,7 +1241,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		sessionId={sessionId}
 																		readOnly={readOnly}
 																		charts={item.charts?.map((c: any) => ({ id: c.id, title: c.title }))}
-																		saveableChartIds={(readOnly || !showDebug) ? [] : (item.metadata?.saveableChartIds || [])}
 																	/>
 																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
 																		<SuggestedActions
@@ -1277,7 +1267,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			citations={item.response?.citations || item.citations}
 																			charts={hasInlineCharts ? itemCharts : undefined}
 																			chartData={hasInlineCharts ? itemChartData : undefined}
-																			renderChart={hasInlineCharts ? createRenderInlineChart((readOnly || !showDebug) ? [] : item.response?.metadata?.saveableChartIds, item.response?.metadata?.savedChartIds, item.messageId) : undefined}
+																			inlineChartConfig={
+																				hasInlineCharts
+																					? {
+																							resizeTrigger,
+																							saveableChartIds:
+																								readOnly || !showDebug ? [] : item.response?.metadata?.saveableChartIds,
+																							savedChartIds: item.response?.metadata?.savedChartIds,
+																							messageId: item.messageId
+																						}
+																					: undefined
+																			}
 																			csvExports={item.response?.csvExports || item.csvExports}
 																		/>
 																		{!hasInlineCharts &&
@@ -1287,8 +1287,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																					charts={itemCharts}
 																					chartData={itemChartData}
 																					resizeTrigger={resizeTrigger}
-																					saveableChartIds={(readOnly || !showDebug) ? [] : item.response?.metadata?.saveableChartIds}
-																					savedChartIds={item.response?.metadata?.savedChartIds}
 																					messageId={item.messageId}
 																				/>
 																			)}
@@ -1307,7 +1305,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																				id: c.id,
 																				title: c.title
 																			}))}
-																			saveableChartIds={(readOnly || !showDebug) ? [] : (item.response?.metadata?.saveableChartIds || [])}
 																		/>
 																		{!readOnly &&
 																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
@@ -1352,7 +1349,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														streamingResponse={streamingResponse}
 														isStreaming={isStreaming}
 														progressMessage={progressMessage}
-														progressStage={progressStage}
 														onSuggestionClick={handleSuggestionClick}
 														onRetry={handleRetry}
 														canRetry={!!lastFailedRequest}
@@ -1364,7 +1360,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
 														readOnly={readOnly}
-														renderChart={createRenderInlineChart((readOnly || !showDebug) ? [] : promptResponse?.response?.metadata?.saveableChartIds, promptResponse?.response?.metadata?.savedChartIds, currentMessageId ?? undefined)}
+														inlineChartConfig={{
+															resizeTrigger,
+															saveableChartIds:
+																readOnly || !showDebug ? [] : promptResponse?.response?.metadata?.saveableChartIds,
+															savedChartIds: promptResponse?.response?.metadata?.savedChartIds,
+															messageId: currentMessageId ?? undefined
+														}}
 														streamingCsvExports={streamingCsvExports}
 													/>
 												</div>
@@ -1870,7 +1872,7 @@ const PromptInput = memo(function PromptInput({
 	)
 })
 
-const PromptResponse = ({
+const PromptResponse = memo(function PromptResponse({
 	response,
 	error,
 	streamingError,
@@ -1878,7 +1880,6 @@ const PromptResponse = ({
 	streamingResponse,
 	isStreaming,
 	progressMessage,
-	progressStage,
 	onSuggestionClick,
 	onRetry,
 	canRetry,
@@ -1890,7 +1891,7 @@ const PromptResponse = ({
 	resizeTrigger = 0,
 	showMetadata = false,
 	readOnly = false,
-	renderChart,
+	inlineChartConfig,
 	streamingCsvExports
 }: {
 	response?: {
@@ -1909,7 +1910,6 @@ const PromptResponse = ({
 	streamingResponse?: string
 	isStreaming?: boolean
 	progressMessage?: string
-	progressStage?: string
 	onSuggestionClick?: (suggestion: any) => void
 	onRetry?: () => void
 	canRetry?: boolean
@@ -1921,9 +1921,14 @@ const PromptResponse = ({
 	resizeTrigger?: number
 	showMetadata?: boolean
 	readOnly?: boolean
-	renderChart?: (chart: any, data: any) => React.ReactNode
+	inlineChartConfig?: {
+		resizeTrigger?: number
+		saveableChartIds?: string[]
+		savedChartIds?: string[]
+		messageId?: string
+	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
-}) => {
+}) {
 	if (error && canRetry) {
 		return (
 			<div className="flex flex-col gap-2">
@@ -1955,7 +1960,7 @@ const PromptResponse = ({
 						isStreaming={isStreaming}
 						charts={response?.charts}
 						chartData={response?.chartData}
-						renderChart={renderChart}
+						inlineChartConfig={inlineChartConfig}
 						csvExports={streamingCsvExports || undefined}
 					/>
 				) : isStreaming && progressMessage ? (
@@ -1971,7 +1976,7 @@ const PromptResponse = ({
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
-							{/* {progressStage && <span>({progressStage})</span>} */}
+							{/* {_progressStage && <span>({_progressStage})</span>} */}
 						</span>
 					</p>
 				) : (
@@ -2029,7 +2034,7 @@ const PromptResponse = ({
 					citations={response.citations}
 					charts={response.charts}
 					chartData={response.chartData}
-					renderChart={renderChart}
+					inlineChartConfig={inlineChartConfig}
 					csvExports={response.csvExports}
 				/>
 			)}
@@ -2056,7 +2061,7 @@ const PromptResponse = ({
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
 	)
-}
+})
 
 const SuggestedActions = memo(function SuggestedActions({
 	suggestions,
@@ -2150,8 +2155,7 @@ const ResponseControls = memo(function ResponseControls({
 	initialRating,
 	sessionId,
 	readOnly = false,
-	charts = [],
-	saveableChartIds = []
+	charts = []
 }: {
 	messageId?: string
 	content?: string
@@ -2159,7 +2163,6 @@ const ResponseControls = memo(function ResponseControls({
 	sessionId?: string | null
 	readOnly?: boolean
 	charts?: Array<{ id: string; title: string }>
-	saveableChartIds?: string[]
 }) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
@@ -2352,7 +2355,7 @@ const ResponseControls = memo(function ResponseControls({
 	)
 })
 
-const FeedbackForm = ({
+const FeedbackForm = memo(function FeedbackForm({
 	messageId,
 	selectedRating,
 	setSelectedRating,
@@ -2364,7 +2367,7 @@ const FeedbackForm = ({
 	setSelectedRating: (rating: 'good' | 'bad' | null) => void
 	setShowFeedback: (show: boolean) => void
 	onRatingSubmitted: (rating: 'good' | 'bad' | null) => void
-}) => {
+}) {
 	const { authorizedFetch } = useAuthContext()
 	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
 		mutationFn: async ({ rating, feedback }: { rating: 'good' | 'bad' | null; feedback?: string }) => {
@@ -2460,9 +2463,13 @@ const FeedbackForm = ({
 			</div>
 		</form>
 	)
-}
+})
 
-const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
+const ShareModalContent = memo(function ShareModalContent({
+	shareData
+}: {
+	shareData?: { isPublic: boolean; shareToken?: string }
+}) {
 	const [copied, setCopied] = useState(false)
 	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
@@ -2521,7 +2528,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 			</div>
 		</div>
 	)
-}
+})
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
