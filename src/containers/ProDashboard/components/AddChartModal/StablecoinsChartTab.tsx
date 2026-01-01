@@ -12,7 +12,7 @@ import {
 	useStablecoinChainsList,
 	useStablecoinsChartData
 } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
-import { colorManager, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
+import { colorManager, generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -146,6 +146,21 @@ export function StablecoinsChartTab({
 		return colors
 	}, [chainsUnique])
 
+	const stackColors = useMemo(() => {
+		const colors: Record<string, string> = { ...STABLECOIN_TOKEN_COLORS }
+		for (const name of peggedAssetNames) {
+			if (!colors[name]) {
+				colors[name] = generateConsistentChartColor(name, '#8884d8', 'protocol')
+			}
+		}
+		for (const name of tokenInflowNames) {
+			if (!colors[name]) {
+				colors[name] = generateConsistentChartColor(name, '#8884d8', 'protocol')
+			}
+		}
+		return colors
+	}, [peggedAssetNames, tokenInflowNames])
+
 	const isLoading =
 		chainsLoading || assetsLoading || (stablecoinMode === 'chain' ? chainChartDataLoading : assetChartDataLoading)
 
@@ -206,7 +221,7 @@ export function StablecoinsChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hideGradient={true}
-							stackColors={STABLECOIN_TOKEN_COLORS}
+							stackColors={stackColors}
 							chartOptions={chartOptions}
 						/>
 					</Suspense>
@@ -220,7 +235,7 @@ export function StablecoinsChartTab({
 							</div>
 						}
 					>
-						<PieChart chartData={chainsCirculatingValues} stackColors={STABLECOIN_TOKEN_COLORS} />
+						<PieChart chartData={chainsCirculatingValues} stackColors={stackColors} />
 					</Suspense>
 				)
 			case 'dominance':
@@ -240,7 +255,7 @@ export function StablecoinsChartTab({
 							hideDefaultLegend={true}
 							hideGradient={true}
 							expandTo100Percent={true}
-							stackColors={STABLECOIN_TOKEN_COLORS}
+							stackColors={stackColors}
 							chartOptions={chartOptions}
 						/>
 					</Suspense>
@@ -273,7 +288,7 @@ export function StablecoinsChartTab({
 							customLegendName="Token"
 							customLegendOptions={tokenInflowNames}
 							chartOptions={inflowsChartOptions}
-							stackColors={STABLECOIN_TOKEN_COLORS}
+							stackColors={stackColors}
 						/>
 					</Suspense>
 				)
