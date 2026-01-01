@@ -1,11 +1,20 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
+import {
+	createContext,
+	ReactNode,
+	useCallback,
+	useContext,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useReducer,
+	useRef
+} from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { dashboardReducer, initDashboardState, CustomTimePeriod, TimePeriod } from './dashboardReducer'
+import { CustomTimePeriod, dashboardReducer, initDashboardState, TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
-import { useDashboardActions } from './useDashboardActions'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import { Dashboard } from './services/DashboardAPI'
 import {
@@ -20,6 +29,7 @@ import {
 	TableFilters,
 	UnifiedTableConfig
 } from './types'
+import { useDashboardActions } from './useDashboardActions'
 import { cleanItemsForSaving } from './utils/dashboardUtils'
 
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
@@ -189,10 +199,7 @@ interface ProDashboardEditorActionsContextType {
 	handleAddText: (title: string | undefined, content: string) => void
 	handleAddMetric: (config: MetricConfig) => void
 	handleAddUnifiedTable: (config?: Partial<UnifiedTableConfig>) => void
-	handleAddChartBuilder: (
-		name: string | undefined,
-		config: ChartBuilderConfig['config']
-	) => void
+	handleAddChartBuilder: (name: string | undefined, config: ChartBuilderConfig['config']) => void
 	handleAddLlamaAIChart: (savedChartId: string, title?: string) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
@@ -202,8 +209,9 @@ interface ProDashboardEditorActionsContextType {
 	handleCumulativeChange: (itemId: string, showCumulative: boolean) => void
 	handlePercentageChange: (itemId: string, showPercentage: boolean) => void
 	handleStackedChange: (itemId: string, showStacked: boolean) => void
+	handleTreemapChange: (itemId: string, showTreemap: boolean) => void
 	handleHideOthersChange: (itemId: string, hideOthers: boolean) => void
-	handleChartTypeChange: (itemId: string, chartType: 'stackedBar' | 'stackedArea' | 'line') => void
+	handleChartTypeChange: (itemId: string, chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap') => void
 	handleTableFiltersChange: (tableId: string, filters: TableFilters) => void
 	handleTableColumnsChange: (
 		tableId: string,
@@ -329,6 +337,7 @@ export function ProDashboardAPIProvider({
 		handleCumulativeChange,
 		handlePercentageChange,
 		handleStackedChange,
+		handleTreemapChange,
 		handleHideOthersChange,
 		handleChartTypeChange,
 		handleTableFiltersChange,
@@ -796,7 +805,14 @@ export function ProDashboardAPIProvider({
 					}
 				: null
 		)
-	}, [currentDashboard?.data?.aiUndoState, currentDashboard?.aiGenerated, dashboardId, saveDashboard, setItems, setCurrentDashboard])
+	}, [
+		currentDashboard?.data?.aiUndoState,
+		currentDashboard?.aiGenerated,
+		dashboardId,
+		saveDashboard,
+		setItems,
+		setCurrentDashboard
+	])
 
 	const canUndo = useMemo(() => {
 		return !!currentDashboard?.data?.aiUndoState?.items
@@ -882,6 +898,7 @@ export function ProDashboardAPIProvider({
 		handleCumulativeChange: typeof handleCumulativeChange
 		handlePercentageChange: typeof handlePercentageChange
 		handleStackedChange: typeof handleStackedChange
+		handleTreemapChange: typeof handleTreemapChange
 		handleHideOthersChange: typeof handleHideOthersChange
 		handleChartTypeChange: typeof handleChartTypeChange
 		handleTableFiltersChange: typeof handleTableFiltersChange
@@ -911,6 +928,7 @@ export function ProDashboardAPIProvider({
 			handleCumulativeChange,
 			handlePercentageChange,
 			handleStackedChange,
+			handleTreemapChange,
 			handleHideOthersChange,
 			handleChartTypeChange,
 			handleTableFiltersChange,
@@ -1070,6 +1088,8 @@ export function ProDashboardAPIProvider({
 				handlersRef.current.handlePercentageChange(...args),
 			handleStackedChange: (...args: Parameters<typeof handleStackedChange>) =>
 				handlersRef.current.handleStackedChange(...args),
+			handleTreemapChange: (...args: Parameters<typeof handleTreemapChange>) =>
+				handlersRef.current.handleTreemapChange(...args),
 			handleHideOthersChange: (...args: Parameters<typeof handleHideOthersChange>) =>
 				handlersRef.current.handleHideOthersChange(...args),
 			handleChartTypeChange: (...args: Parameters<typeof handleChartTypeChange>) =>

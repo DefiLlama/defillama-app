@@ -536,6 +536,22 @@ export function useDashboardActions(
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
 
+	const handleTreemapChange = useCallback(
+		(itemId: string, showTreemap: boolean) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			dispatchItemsAndSave((prev) =>
+				prev.map((item) => {
+					if (item.id === itemId && item.kind === 'multi') {
+						return { ...item, showTreemap }
+					}
+					return item
+				})
+			)
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
 	const handleHideOthersChange = useCallback(
 		(itemId: string, hideOthers: boolean) => {
 			if (isReadOnlyUntilDashboardLoaded) return
@@ -706,6 +722,7 @@ export function useDashboardActions(
 		handleCumulativeChange,
 		handlePercentageChange,
 		handleStackedChange,
+		handleTreemapChange,
 		handleHideOthersChange,
 		handleChartTypeChange,
 		handleTableFiltersChange,

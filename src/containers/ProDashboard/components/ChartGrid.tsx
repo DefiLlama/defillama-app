@@ -416,57 +416,55 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
-									className={`col-span-1 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
 								>
-									<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan}>
-										<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
-											<>
-												<Tooltip
-													content="Shrink width"
-													render={
-														<button
-															onClick={() => handleColSpanChange(item.id, shrinkTarget)}
-															disabled={disableShrink}
-														/>
-													}
-													className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-												>
-													<Icon name="minus" height={14} width={14} />
-													<span className="sr-only">Shrink width</span>
-												</Tooltip>
-												<Tooltip
-													content="Expand width"
-													render={
-														<button
-															onClick={() => handleColSpanChange(item.id, expandTarget)}
-															disabled={disableExpand}
-														/>
-													}
-													className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-												>
-													<Icon name="plus" height={14} width={14} />
-													<span className="sr-only">Expand width</span>
-												</Tooltip>
-											</>
-											{onEditItem && (
-												<Tooltip
-													content="Edit item"
-													render={<button onClick={() => onEditItem(item)} />}
-													className="hover:pro-btn-blue px-3 py-2"
-												>
-													<Icon name="pencil" height={14} width={14} />
-													<span className="sr-only">Edit item</span>
-												</Tooltip>
-											)}
+									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
+										<Tooltip
+											content="Shrink width"
+											render={
+												<button
+													onClick={() => handleColSpanChange(item.id, shrinkTarget)}
+													disabled={disableShrink}
+												/>
+											}
+											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+										>
+											<Icon name="minus" height={14} width={14} />
+											<span className="sr-only">Shrink width</span>
+										</Tooltip>
+										<Tooltip
+											content="Expand width"
+											render={
+												<button
+													onClick={() => handleColSpanChange(item.id, expandTarget)}
+													disabled={disableExpand}
+												/>
+											}
+											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
+										>
+											<Icon name="plus" height={14} width={14} />
+											<span className="sr-only">Expand width</span>
+										</Tooltip>
+										{onEditItem && (
 											<Tooltip
-												content="Remove item"
-												render={<button onClick={() => handleDeleteClick(item.id)} />}
-												className="rounded-tr-md px-3 py-2 hover:bg-red-500/10 hover:text-(--error)"
+												content="Edit item"
+												render={<button onClick={() => onEditItem(item)} />}
+												className="hover:pro-btn-blue px-3 py-2"
 											>
-												<Icon name="x" height={14} width={14} />
-												<span className="sr-only">Remove item</span>
+												<Icon name="pencil" height={14} width={14} />
+												<span className="sr-only">Edit item</span>
 											</Tooltip>
-										</div>
+										)}
+										<Tooltip
+											content="Remove item"
+											render={<button onClick={() => handleDeleteClick(item.id)} />}
+											className="rounded-tr-md px-3 py-2 hover:bg-red-500/10 hover:text-(--error)"
+										>
+											<Icon name="x" height={14} width={14} />
+											<span className="sr-only">Remove item</span>
+										</Tooltip>
+									</div>
+									<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan} className="min-h-0 flex-1">
 										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 									</SortableItem>
 								</div>

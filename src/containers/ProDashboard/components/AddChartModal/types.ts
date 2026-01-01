@@ -59,7 +59,7 @@ export interface ChartBuilderConfig {
 	categories: string[]
 	groupBy: 'protocol'
 	limit: number
-	chartType: 'stackedBar' | 'stackedArea' | 'line'
+	chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
 	displayAs: 'timeSeries' | 'percentage'
 	hideOthers?: boolean
 	groupByParent?: boolean

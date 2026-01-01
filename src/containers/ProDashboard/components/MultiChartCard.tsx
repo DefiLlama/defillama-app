@@ -16,6 +16,7 @@ import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
 interface MultiChartCardProps {
 	multi: MultiChartConfig
@@ -23,13 +24,19 @@ interface MultiChartCardProps {
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
-	const { handleGroupingChange, handleCumulativeChange, handlePercentageChange, handleStackedChange } =
-		useProDashboardEditorActions()
+	const {
+		handleGroupingChange,
+		handleCumulativeChange,
+		handlePercentageChange,
+		handleStackedChange,
+		handleTreemapChange
+	} = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 	const showPercentage = multi.showPercentage || false
+	const showTreemap = multi.showTreemap || false
 
 	const validItems = useMemo(
 		() =>
@@ -141,7 +148,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 
 			return {
-				name: `${name} ${meta?.title || cfg.type}`,
+				name: `${name} ${meta?.title || capitalizeFirstLetter(cfg.type)}`,
 				baseType: meta?.chartType as 'bar' | 'area' | 'line' | undefined,
 				data,
 				color,
@@ -166,6 +173,26 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			})
 		return { allBarType, allAreaType }
 	}, [validItems])
+
+	const treemapData = useMemo(() => {
+		if (!baseSeries || baseSeries.length === 0) return []
+
+		return baseSeries
+			.map((s) => {
+				const dataLength = s.data?.length || 0
+				const pointIndex = Math.max(0, dataLength - 2)
+				const value = dataLength > 0 ? s.data[pointIndex]?.[1] || 0 : 0
+
+				return {
+					name: s.name,
+					value: value,
+					itemStyle: {
+						color: s.color
+					}
+				}
+			})
+			.filter((item) => item.value > 0)
+	}, [baseSeries])
 
 	const series = useMemo(() => {
 		const { allBarType, allAreaType } = chartTypeInfo
@@ -383,7 +410,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 					/>
 				)}
-				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && (
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && !showTreemap && (
 					<Select
 						allValues={[
 							{ name: 'Show separate', key: 'Separate' },
@@ -402,7 +429,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 					/>
 				)}
-				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && !showTreemap && (
 					<Select
 						allValues={[
 							{ name: 'Show absolute ($)', key: '$ Absolute' },
@@ -421,12 +448,30 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 					/>
 				)}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
+					<Select
+						allValues={[
+							{ name: 'Time Series', key: 'chart' },
+							{ name: 'Tree Map', key: 'treemap' }
+						]}
+						selectedValues={showTreemap ? 'treemap' : 'chart'}
+						setSelectedValues={(value) => {
+							handleTreemapChange(multi.id, value === 'treemap')
+						}}
+						label={showTreemap ? 'Tree Map' : 'Time Series'}
+						labelType="none"
+						triggerProps={{
+							className:
+								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}}
+					/>
+				)}
 				{series.length > 0 && (
 					<>
 						<ChartExportButton
 							chartInstance={chartInstance}
 							filename={multi.name || 'multi_chart'}
-							title={multi.name || 'Multi Chart'}
+							title={showTreemap ? undefined : capitalizeFirstLetter(multi.name) || 'Multi Chart'}
 							smol
 						/>
 						<ProTableCSVButton
@@ -460,6 +505,10 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						{failedItems.length} of {multi.items.length} charts failed
 					</p>
 				</div>
+			) : showTreemap && treemapData.length > 0 ? (
+				<Suspense fallback={<div className="h-[360px]" />}>
+					<TreeMapBuilderChart key={multi.id} data={treemapData} height="360px" onReady={handleChartReady} />
+				</Suspense>
 			) : (
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart

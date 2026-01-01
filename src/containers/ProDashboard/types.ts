@@ -20,6 +20,7 @@ export interface MultiChartConfig {
 	showCumulative?: boolean
 	showPercentage?: boolean
 	showStacked?: boolean
+	showTreemap?: boolean
 }
 
 export interface TextConfig {
@@ -102,7 +103,7 @@ export interface ChartBuilderConfig {
 		categories: string[]
 		groupBy: 'protocol'
 		limit: number
-		chartType: 'stackedBar' | 'stackedArea' | 'line'
+		chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
 		displayAs: 'timeSeries' | 'percentage'
 		hideOthers?: boolean
 		groupByParent?: boolean
@@ -171,11 +172,7 @@ export interface AdvancedTvlChartConfig {
 	colSpan?: StoredColSpan
 }
 
-export type BorrowedChartType =
-	| 'chainsBorrowed'
-	| 'tokenBorrowedUsd'
-	| 'tokensBorrowedPie'
-	| 'tokenBorrowedRaw'
+export type BorrowedChartType = 'chainsBorrowed' | 'tokenBorrowedUsd' | 'tokensBorrowedPie' | 'tokenBorrowedRaw'
 
 export interface BorrowedChartConfig {
 	id: string
