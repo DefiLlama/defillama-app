@@ -183,6 +183,14 @@ export interface BorrowedChartConfig {
 	colSpan?: StoredColSpan
 }
 
+export interface LlamaAIChartConfig {
+	id: string
+	kind: 'llamaai-chart'
+	savedChartId: string
+	title?: string
+	colSpan?: StoredColSpan
+}
+
 export type UnifiedRowHeaderType = 'parent-protocol' | 'protocol' | 'chain' | 'category'
 
 export type DashboardItemConfig =
@@ -198,6 +206,7 @@ export type DashboardItemConfig =
 	| AdvancedTvlChartConfig
 	| BorrowedChartConfig
 	| UnifiedTableConfig
+	| LlamaAIChartConfig
 
 export interface ChartConfig {
 	id: string

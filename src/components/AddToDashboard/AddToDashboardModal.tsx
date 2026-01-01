@@ -4,19 +4,27 @@ import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { MCP_SERVER } from '~/constants'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { DashboardChartConfig } from './AddToDashboardButton'
+import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
 
 interface AddToDashboardModalProps {
 	dialogStore: Ariakit.DialogStore
-	chartConfig: DashboardChartConfig
+	chartConfig: DashboardChartConfig | null
+	llamaAIChart?: LlamaAIChartInput | null
 	unsupportedMetrics?: string[]
 }
 
-function getConfigName(config: DashboardChartConfig): string {
+function getConfigName(
+	config: DashboardChartConfig | null,
+	llamaAIChart?: LlamaAIChartInput | null
+): string {
+	if (llamaAIChart) return llamaAIChart.title
+	if (!config) return ''
 	if (config.kind === 'multi') {
 		return config.name || ''
 	}
@@ -48,7 +56,12 @@ function getConfigName(config: DashboardChartConfig): string {
 	return config.name || ''
 }
 
-export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetrics = [] }: AddToDashboardModalProps) {
+export function AddToDashboardModal({
+	dialogStore,
+	chartConfig,
+	llamaAIChart,
+	unsupportedMetrics = []
+}: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
@@ -58,7 +71,7 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)
 	const [isCreatingNew, setIsCreatingNew] = useState(false)
 	const [newDashboardName, setNewDashboardName] = useState('')
-	const [chartName, setChartName] = useState(getConfigName(chartConfig))
+	const [chartName, setChartName] = useState(getConfigName(chartConfig, llamaAIChart))
 	const [isAdding, setIsAdding] = useState(false)
 
 	const filteredDashboards = useMemo(() => {
@@ -67,7 +80,7 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 		return dashboards.filter((d) => d.name.toLowerCase().includes(q))
 	}, [dashboards, search])
 
-	const configName = getConfigName(chartConfig)
+	const configName = getConfigName(chartConfig, llamaAIChart)
 	const prevOpenRef = useRef(false)
 
 	const isOpen = dialogStore.useState('open')
@@ -97,7 +110,31 @@ export function AddToDashboardModal({ dialogStore, chartConfig, unsupportedMetri
 	const handleAdd = async () => {
 		if (!isAuthenticated || !hasActiveSubscription) return
 
-		const chartToAdd = { ...chartConfig, name: chartName || configName }
+		let chartToAdd: any
+
+		if (llamaAIChart) {
+			const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messageId: llamaAIChart.messageId, chartId: llamaAIChart.chartId })
+			})
+			if (!res.ok) {
+				toast.error('Failed to save chart')
+				return
+			}
+			const { id: savedChartId } = await res.json()
+
+			chartToAdd = {
+				id: crypto.randomUUID(),
+				kind: 'llamaai-chart',
+				savedChartId,
+				title: chartName || llamaAIChart.title
+			} satisfies LlamaAIChartConfig
+		} else if (chartConfig) {
+			chartToAdd = { ...chartConfig, name: chartName || configName }
+		} else {
+			return
+		}
 
 		if (isCreatingNew) {
 			if (!newDashboardName.trim()) {

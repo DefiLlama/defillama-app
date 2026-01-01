@@ -52,6 +52,7 @@ const AdvancedTvlChartCard = lazy(() =>
 const BorrowedChartCard = lazy(() =>
 	import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard }))
 )
+const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -216,6 +217,14 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 		return (
 			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
 				<BorrowedChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'llamaai-chart') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<LlamaAIChartCard config={item} />
 			</Suspense>
 		)
 	}

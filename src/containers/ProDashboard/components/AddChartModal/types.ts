@@ -8,7 +8,7 @@ export interface AddChartModalProps {
 	initialUnifiedFocusSection?: UnifiedTableFocusSection
 }
 
-export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder'
+export type MainTabType = 'charts' | 'metric' | 'table' | 'text' | 'builder' | 'llamaai'
 export type ChartModeType = 'manual' | 'builder'
 export type ChartTabType = 'chain' | 'protocol' | 'yields' | 'stablecoins' | 'advanced-tvl' | 'borrowed'
 export type ManualChartViewMode = 'cards' | 'form'
@@ -117,6 +117,7 @@ export interface ModalState {
 	selectedBorrowedProtocol: string | null
 	selectedBorrowedProtocolName: string | null
 	selectedBorrowedChartType: string
+	selectedLlamaAIChart: { id: string; title: string } | null
 }
 
 export interface ModalActions {
@@ -181,4 +182,5 @@ export interface ModalActions {
 	setSelectedBorrowedProtocol: (protocol: string | null) => void
 	setSelectedBorrowedProtocolName: (name: string | null) => void
 	setSelectedBorrowedChartType: (chartType: string) => void
+	setSelectedLlamaAIChart: (chart: { id: string; title: string } | null) => void
 }

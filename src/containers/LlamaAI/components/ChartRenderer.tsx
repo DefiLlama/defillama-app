@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { formatTooltipValue } from '~/components/ECharts/useDefaults'
@@ -23,12 +24,14 @@ interface ChartRendererProps {
 	expectedChartCount?: number
 	chartTypes?: string[]
 	resizeTrigger?: number
+	messageId?: string
 }
 
 interface SingleChartProps {
 	config: ChartConfiguration
 	data: any[]
 	isActive: boolean
+	messageId?: string
 }
 
 type ChartState = {
@@ -67,7 +70,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-const SingleChart = memo(function SingleChart({ config, data, isActive }: SingleChartProps) {
+const SingleChart = memo(function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -241,6 +244,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 				if (isTimeSeriesChart) {
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
+							<div className="flex items-center justify-end gap-1 p-2 pt-0">
+								<AddToDashboardButton
+									chartConfig={null}
+									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+									smol
+								/>
+								<CSVDownloadButton prepareCsv={prepareCsv} smol />
+							</div>
 							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
 						</Suspense>
 					)
@@ -280,6 +291,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 					}
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
+							<div className="flex items-center justify-end gap-1 p-2 pt-0">
+								<AddToDashboardButton
+									chartConfig={null}
+									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+									smol
+								/>
+								<CSVDownloadButton prepareCsv={prepareCsv} smol />
+							</div>
 							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
 						</Suspense>
 					)
@@ -290,6 +309,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'area':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
 						<AreaChart
 							key={chartKey}
 							chartData={adaptedChart.data}
@@ -303,7 +330,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'combo':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end p-2 pt-0">
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -314,7 +346,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end p-2 pt-0">
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
@@ -328,7 +365,16 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 						<PieChart
 							key={chartKey}
 							{...(adaptedChart.props as IPieChartProps)}
-							customComponents={<CSVDownloadButton prepareCsv={prepareCsv} smol />}
+							customComponents={
+								<>
+									<AddToDashboardButton
+										chartConfig={null}
+										llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+										smol
+									/>
+									<CSVDownloadButton prepareCsv={prepareCsv} smol />
+								</>
+							}
 						/>
 					</Suspense>
 				)
@@ -337,6 +383,14 @@ const SingleChart = memo(function SingleChart({ config, data, isActive }: Single
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
 						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" showLabels={chartState.showLabels} />
 					</Suspense>
 				)
@@ -422,7 +476,8 @@ export const ChartRenderer = memo(function ChartRenderer({
 	hasError = false,
 	expectedChartCount,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	messageId
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
@@ -492,6 +547,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 					config={chart}
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
+					messageId={messageId}
 				/>
 			))}
 		</div>

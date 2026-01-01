@@ -56,6 +56,7 @@ export type ModalAction =
 	| { type: 'SET_SELECTED_BORROWED_PROTOCOL'; payload: string | null }
 	| { type: 'SET_SELECTED_BORROWED_PROTOCOL_NAME'; payload: string | null }
 	| { type: 'SET_SELECTED_BORROWED_CHART_TYPE'; payload: string }
+	| { type: 'SET_SELECTED_LLAMAAI_CHART'; payload: { id: string; title: string } | null }
 	| { type: 'RESET_STATE' }
 	| { type: 'INITIALIZE_FROM_EDIT_ITEM'; payload: { editItem: DashboardItemConfig | null | undefined } }
 
@@ -154,7 +155,8 @@ export const INITIAL_MODAL_STATE: ModalState = {
 	selectedAdvancedTvlChartType: 'tvl',
 	selectedBorrowedProtocol: null,
 	selectedBorrowedProtocolName: null,
-	selectedBorrowedChartType: 'chainsBorrowed'
+	selectedBorrowedChartType: 'chainsBorrowed',
+	selectedLlamaAIChart: null
 }
 
 export function initializeFromEditItem(editItem: DashboardItemConfig | null | undefined): ModalState {
@@ -347,6 +349,14 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 		}
 	}
 
+	if (editItem.kind === 'llamaai-chart') {
+		return {
+			...base,
+			selectedMainTab: 'llamaai',
+			selectedLlamaAIChart: { id: editItem.savedChartId, title: editItem.title || '' }
+		}
+	}
+
 	return base
 }
 
@@ -508,6 +518,9 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 
 		case 'SET_SELECTED_BORROWED_CHART_TYPE':
 			return { ...state, selectedBorrowedChartType: action.payload }
+
+		case 'SET_SELECTED_LLAMAAI_CHART':
+			return { ...state, selectedLlamaAIChart: action.payload }
 
 		case 'RESET_STATE':
 			return INITIAL_MODAL_STATE
