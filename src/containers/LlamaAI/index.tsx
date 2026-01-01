@@ -430,23 +430,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		isAutoScrollingRef.current = true
 	}, [])
 
-	const createRenderInlineChart = useCallback(
-		(saveableChartIds?: string[], savedChartIds?: string[], messageId?: string) =>
-			(chart: any, data: any) => (
-				<ChartRenderer
-					charts={[chart]}
-					chartData={data}
-					isLoading={false}
-					isAnalyzing={false}
-					resizeTrigger={resizeTrigger}
-					saveableChartIds={saveableChartIds}
-					savedChartIds={savedChartIds}
-					messageId={messageId}
-				/>
-			),
-		[resizeTrigger]
-	)
-
 	useEffect(() => {
 		sessionIdRef.current = sessionId
 	}, [sessionId])
@@ -1229,7 +1212,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		citations={item.citations}
 																		charts={hasInlineCharts ? item.charts : undefined}
 																		chartData={hasInlineCharts ? item.chartData : undefined}
-																		renderChart={hasInlineCharts ? createRenderInlineChart((readOnly || !showDebug) ? [] : item.metadata?.saveableChartIds, item.metadata?.savedChartIds, item.messageId) : undefined}
+																		inlineChartConfig={
+																			hasInlineCharts
+																				? {
+																						resizeTrigger,
+																						saveableChartIds:
+																							readOnly || !showDebug ? [] : item.metadata?.saveableChartIds,
+																						savedChartIds: item.metadata?.savedChartIds,
+																						messageId: item.messageId
+																					}
+																				: undefined
+																		}
 																		csvExports={item.csvExports}
 																	/>
 																	{!hasInlineCharts && item.charts && item.charts.length > 0 && (
@@ -1237,8 +1230,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			charts={item.charts}
 																			chartData={item.chartData || []}
 																			resizeTrigger={resizeTrigger}
-																			saveableChartIds={(readOnly || !showDebug) ? [] : item.metadata?.saveableChartIds}
-																			savedChartIds={item.metadata?.savedChartIds}
 																			messageId={item.messageId}
 																		/>
 																	)}
@@ -1250,7 +1241,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		sessionId={sessionId}
 																		readOnly={readOnly}
 																		charts={item.charts?.map((c: any) => ({ id: c.id, title: c.title }))}
-																		saveableChartIds={(readOnly || !showDebug) ? [] : (item.metadata?.saveableChartIds || [])}
+																		saveableChartIds={
+																			readOnly || !showDebug ? [] : item.metadata?.saveableChartIds || []
+																		}
 																	/>
 																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
 																		<SuggestedActions
@@ -1277,7 +1270,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			citations={item.response?.citations || item.citations}
 																			charts={hasInlineCharts ? itemCharts : undefined}
 																			chartData={hasInlineCharts ? itemChartData : undefined}
-																			renderChart={hasInlineCharts ? createRenderInlineChart((readOnly || !showDebug) ? [] : item.response?.metadata?.saveableChartIds, item.response?.metadata?.savedChartIds, item.messageId) : undefined}
+																			inlineChartConfig={
+																				hasInlineCharts
+																					? {
+																							resizeTrigger,
+																							saveableChartIds:
+																								readOnly || !showDebug ? [] : item.response?.metadata?.saveableChartIds,
+																							savedChartIds: item.response?.metadata?.savedChartIds,
+																							messageId: item.messageId
+																						}
+																					: undefined
+																			}
 																			csvExports={item.response?.csvExports || item.csvExports}
 																		/>
 																		{!hasInlineCharts &&
@@ -1287,8 +1290,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																					charts={itemCharts}
 																					chartData={itemChartData}
 																					resizeTrigger={resizeTrigger}
-																					saveableChartIds={(readOnly || !showDebug) ? [] : item.response?.metadata?.saveableChartIds}
-																					savedChartIds={item.response?.metadata?.savedChartIds}
 																					messageId={item.messageId}
 																				/>
 																			)}
@@ -1307,7 +1308,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																				id: c.id,
 																				title: c.title
 																			}))}
-																			saveableChartIds={(readOnly || !showDebug) ? [] : (item.response?.metadata?.saveableChartIds || [])}
+																			saveableChartIds={
+																				readOnly || !showDebug ? [] : item.response?.metadata?.saveableChartIds || []
+																			}
 																		/>
 																		{!readOnly &&
 																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
@@ -1364,7 +1367,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														resizeTrigger={resizeTrigger}
 														showMetadata={showDebug}
 														readOnly={readOnly}
-														renderChart={createRenderInlineChart((readOnly || !showDebug) ? [] : promptResponse?.response?.metadata?.saveableChartIds, promptResponse?.response?.metadata?.savedChartIds, currentMessageId ?? undefined)}
+														inlineChartConfig={{
+															resizeTrigger,
+															saveableChartIds:
+																readOnly || !showDebug ? [] : promptResponse?.response?.metadata?.saveableChartIds,
+															savedChartIds: promptResponse?.response?.metadata?.savedChartIds,
+															messageId: currentMessageId ?? undefined
+														}}
 														streamingCsvExports={streamingCsvExports}
 													/>
 												</div>
@@ -1890,7 +1899,7 @@ const PromptResponse = ({
 	resizeTrigger = 0,
 	showMetadata = false,
 	readOnly = false,
-	renderChart,
+	inlineChartConfig,
 	streamingCsvExports
 }: {
 	response?: {
@@ -1921,7 +1930,12 @@ const PromptResponse = ({
 	resizeTrigger?: number
 	showMetadata?: boolean
 	readOnly?: boolean
-	renderChart?: (chart: any, data: any) => React.ReactNode
+	inlineChartConfig?: {
+		resizeTrigger?: number
+		saveableChartIds?: string[]
+		savedChartIds?: string[]
+		messageId?: string
+	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
 }) => {
 	if (error && canRetry) {
@@ -1955,7 +1969,7 @@ const PromptResponse = ({
 						isStreaming={isStreaming}
 						charts={response?.charts}
 						chartData={response?.chartData}
-						renderChart={renderChart}
+						inlineChartConfig={inlineChartConfig}
 						csvExports={streamingCsvExports || undefined}
 					/>
 				) : isStreaming && progressMessage ? (
@@ -2029,7 +2043,7 @@ const PromptResponse = ({
 					citations={response.citations}
 					charts={response.charts}
 					chartData={response.chartData}
-					renderChart={renderChart}
+					inlineChartConfig={inlineChartConfig}
 					csvExports={response.csvExports}
 				/>
 			)}

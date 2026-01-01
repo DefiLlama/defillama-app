@@ -5,22 +5,25 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import type { ChartConfiguration } from '../types'
 import { getEntityUrl } from '../utils/entityLinks'
+import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
-interface ChartConfig {
-	id: string
-	type: string
-	[key: string]: any
+interface InlineChartConfig {
+	resizeTrigger?: number
+	saveableChartIds?: string[]
+	savedChartIds?: string[]
+	messageId?: string
 }
 
 interface MarkdownRendererProps {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
-	charts?: ChartConfig[]
+	charts?: ChartConfiguration[]
 	chartData?: any[] | Record<string, any[]>
-	renderChart?: (chart: ChartConfig, data: any[]) => React.ReactNode
+	inlineChartConfig?: InlineChartConfig
 	csvExports?: CSVExport[]
 }
 
@@ -123,7 +126,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	isStreaming = false,
 	charts,
 	chartData,
-	renderChart,
+	inlineChartConfig,
 	csvExports
 }: MarkdownRendererProps) {
 	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
@@ -255,11 +258,18 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {
 							const chart = charts?.find((c) => c.id === part.chartId)
-							if (chart && renderChart) {
+							if (chart && inlineChartConfig) {
 								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
 								return (
 									<div key={`chart-${part.chartId}-${index}`} className="my-4">
-										{renderChart(chart, data)}
+										<ChartRenderer
+											charts={[chart]}
+											chartData={data}
+											isLoading={false}
+											isAnalyzing={false}
+											resizeTrigger={inlineChartConfig.resizeTrigger}
+											messageId={inlineChartConfig.messageId}
+										/>
 									</div>
 								)
 							}
