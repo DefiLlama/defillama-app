@@ -377,7 +377,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [streamingError, setStreamingError] = useState('')
 	const [isStreaming, setIsStreaming] = useState(false)
 	const [progressMessage, setProgressMessage] = useState('')
-	const [progressStage, setProgressStage] = useState('')
+	const [_progressStage, setProgressStage] = useState('')
 	const [streamingSuggestions, setStreamingSuggestions] = useState<any[] | null>(null)
 	const [streamingCharts, setStreamingCharts] = useState<any[] | null>(null)
 	const [streamingChartData, setStreamingChartData] = useState<any[] | null>(null)
@@ -1241,9 +1241,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		sessionId={sessionId}
 																		readOnly={readOnly}
 																		charts={item.charts?.map((c: any) => ({ id: c.id, title: c.title }))}
-																		saveableChartIds={
-																			readOnly || !showDebug ? [] : item.metadata?.saveableChartIds || []
-																		}
 																	/>
 																	{!readOnly && item.suggestions && item.suggestions.length > 0 && (
 																		<SuggestedActions
@@ -1308,9 +1305,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																				id: c.id,
 																				title: c.title
 																			}))}
-																			saveableChartIds={
-																				readOnly || !showDebug ? [] : item.response?.metadata?.saveableChartIds || []
-																			}
 																		/>
 																		{!readOnly &&
 																			((item.response?.suggestions && item.response.suggestions.length > 0) ||
@@ -1355,7 +1349,6 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 														streamingResponse={streamingResponse}
 														isStreaming={isStreaming}
 														progressMessage={progressMessage}
-														progressStage={progressStage}
 														onSuggestionClick={handleSuggestionClick}
 														onRetry={handleRetry}
 														canRetry={!!lastFailedRequest}
@@ -1879,7 +1872,7 @@ const PromptInput = memo(function PromptInput({
 	)
 })
 
-const PromptResponse = ({
+const PromptResponse = memo(function PromptResponse({
 	response,
 	error,
 	streamingError,
@@ -1887,7 +1880,6 @@ const PromptResponse = ({
 	streamingResponse,
 	isStreaming,
 	progressMessage,
-	progressStage,
 	onSuggestionClick,
 	onRetry,
 	canRetry,
@@ -1918,7 +1910,6 @@ const PromptResponse = ({
 	streamingResponse?: string
 	isStreaming?: boolean
 	progressMessage?: string
-	progressStage?: string
 	onSuggestionClick?: (suggestion: any) => void
 	onRetry?: () => void
 	canRetry?: boolean
@@ -1937,7 +1928,7 @@ const PromptResponse = ({
 		messageId?: string
 	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
-}) => {
+}) {
 	if (error && canRetry) {
 		return (
 			<div className="flex flex-col gap-2">
@@ -1985,7 +1976,7 @@ const PromptResponse = ({
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
-							{/* {progressStage && <span>({progressStage})</span>} */}
+							{/* {_progressStage && <span>({_progressStage})</span>} */}
 						</span>
 					</p>
 				) : (
@@ -2070,7 +2061,7 @@ const PromptResponse = ({
 			{showMetadata && response?.metadata && <QueryMetadata metadata={response.metadata} />}
 		</>
 	)
-}
+})
 
 const SuggestedActions = memo(function SuggestedActions({
 	suggestions,
@@ -2164,8 +2155,7 @@ const ResponseControls = memo(function ResponseControls({
 	initialRating,
 	sessionId,
 	readOnly = false,
-	charts = [],
-	saveableChartIds = []
+	charts = []
 }: {
 	messageId?: string
 	content?: string
@@ -2173,7 +2163,6 @@ const ResponseControls = memo(function ResponseControls({
 	sessionId?: string | null
 	readOnly?: boolean
 	charts?: Array<{ id: string; title: string }>
-	saveableChartIds?: string[]
 }) {
 	const [copied, setCopied] = useState(false)
 	const [showFeedback, setShowFeedback] = useState(false)
@@ -2366,7 +2355,7 @@ const ResponseControls = memo(function ResponseControls({
 	)
 })
 
-const FeedbackForm = ({
+const FeedbackForm = memo(function FeedbackForm({
 	messageId,
 	selectedRating,
 	setSelectedRating,
@@ -2378,7 +2367,7 @@ const FeedbackForm = ({
 	setSelectedRating: (rating: 'good' | 'bad' | null) => void
 	setShowFeedback: (show: boolean) => void
 	onRatingSubmitted: (rating: 'good' | 'bad' | null) => void
-}) => {
+}) {
 	const { authorizedFetch } = useAuthContext()
 	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
 		mutationFn: async ({ rating, feedback }: { rating: 'good' | 'bad' | null; feedback?: string }) => {
@@ -2474,9 +2463,13 @@ const FeedbackForm = ({
 			</div>
 		</form>
 	)
-}
+})
 
-const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; shareToken?: string } }) => {
+const ShareModalContent = memo(function ShareModalContent({
+	shareData
+}: {
+	shareData?: { isPublic: boolean; shareToken?: string }
+}) {
 	const [copied, setCopied] = useState(false)
 	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
@@ -2535,7 +2528,7 @@ const ShareModalContent = ({ shareData }: { shareData?: { isPublic: boolean; sha
 			</div>
 		</div>
 	)
-}
+})
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
