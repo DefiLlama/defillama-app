@@ -473,8 +473,55 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 							</p>
 						) : null}
 						{props.users.activeUsers != null ? (
-							<details className="group">
-								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
+							props.users.newUsers != null || props.users.transactions != null ? (
+								<details className="group">
+									<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
+										<Tooltip
+											content={
+												<p>
+													Number of unique addresses that have interacted with the protocol directly in the last 24
+													hours. Interactions are counted as transactions sent directly against the protocol, thus
+													transactions that go through an aggregator or some other middleman contract are not counted
+													here.
+													<br />
+													<br />
+													The reasoning for this is that this is meant to help measure stickiness/loyalty of users, and
+													users that are interacting with the protocol through another product aren't likely to be
+													sticky.
+													<br />
+													<br />
+													Updates daily at 00:00 UTC
+												</p>
+											}
+											className="text-(--text-label) underline decoration-dotted"
+										>
+											Active Addresses (24h)
+										</Tooltip>
+										<Icon
+											name="chevron-down"
+											height={16}
+											width={16}
+											className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
+										/>
+										<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
+									</summary>
+									<div className="mb-3 flex flex-col">
+										{props.users.newUsers != null ? (
+											<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+												<span className="text-(--text-label)">New Addresses (24h)</span>
+												<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
+											</p>
+										) : null}
+										{props.users.transactions != null ? (
+											<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
+												<span className="text-(--text-label)">Transactions (24h)</span>
+												<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
+											</p>
+										) : null}
+									</div>
+								</details>
+							) : (
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
 									<Tooltip
 										content={
 											<p>
@@ -494,29 +541,9 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 									>
 										Active Addresses (24h)
 									</Tooltip>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
-									/>
 									<span className="font-jetbrains ml-auto">{formattedNum(props.users.activeUsers, false)}</span>
-								</summary>
-								<div className="mb-3 flex flex-col">
-									{props.users.newUsers != null ? (
-										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">New Addresses (24h)</span>
-											<span className="font-jetbrains ml-auto">{formattedNum(props.users.newUsers, false)}</span>
-										</p>
-									) : null}
-									{props.users.transactions != null ? (
-										<p className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none">
-											<span className="text-(--text-label)">Transactions (24h)</span>
-											<span className="font-jetbrains ml-auto">{formattedNum(props.users.transactions, false)}</span>
-										</p>
-									) : null}
-								</div>
-							</details>
+								</p>
+							)
 						) : null}
 						{props.treasury ? (
 							<details className="group">
