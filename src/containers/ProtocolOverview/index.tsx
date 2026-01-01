@@ -2552,8 +2552,14 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const feesMethodology = props.incomeStatement?.methodologyByType?.['Fees'] ?? {}
 		const costOfRevenueMethodology = props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}
 
-		const nodes: Array<{ name: string; color?: string; description?: string; displayValue?: number | string }> = []
-		const links: Array<{ source: string; target: string; value: number }> = []
+		const nodes: Array<{
+			name: string
+			color?: string
+			description?: string
+			displayValue?: number | string
+			depth?: number
+		}> = []
+		const links: Array<{ source: string; target: string; value: number; color?: string }> = []
 
 		// Colors: gray for neutral/input, green for profit, red for costs
 		const COLORS = {
@@ -2567,14 +2573,16 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
-				description: props.fees?.methodology
+				description: props.fees?.methodology,
+				depth: 1
 			})
 			for (const [label, value] of Object.entries(feesByLabelData)) {
 				if (value > 0) {
 					nodes.push({
 						name: label,
 						color: COLORS.gray,
-						description: feesMethodology[label]
+						description: feesMethodology[label],
+						depth: 0
 					})
 					links.push({ source: label, target: 'Gross Protocol Revenue', value })
 				}
@@ -2584,7 +2592,8 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
-				description: props.fees?.methodology
+				description: props.fees?.methodology,
+				depth: 1
 			})
 		}
 
@@ -2592,7 +2601,8 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Cost of Revenue',
 				color: COLORS.red,
-				description: props.supplySideRevenue?.methodology
+				description: props.supplySideRevenue?.methodology,
+				depth: 2
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
 
@@ -2604,7 +2614,8 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						nodes.push({
 							name: costLabel,
 							color: COLORS.red,
-							description: costOfRevenueMethodology[label]
+							description: costOfRevenueMethodology[label],
+							depth: 3
 						})
 						links.push({ source: 'Cost of Revenue', target: costLabel, value })
 					}
@@ -2618,16 +2629,18 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Gross Profit',
 				color: COLORS.green,
-				description: props.revenue?.methodology
+				description: props.revenue?.methodology,
+				depth: 2
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: revenue })
 
 			if (hasIncentives) {
-				// Incentives is a separate bar (not flowing from Gross Profit)
+				// Incentives is at the same depth as Gross Profit so both flow horizontally into Earnings
 				nodes.push({
 					name: 'Incentives',
 					color: COLORS.red,
-					description: props.incentives?.methodology
+					description: props.incentives?.methodology,
+					depth: 2 // Same depth as Gross Profit
 				})
 
 				// Both Gross Profit and Incentives flow into Earnings
@@ -2635,21 +2648,23 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					name: 'Earnings',
 					color: earnings >= 0 ? COLORS.green : COLORS.red,
 					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
-					displayValue: earnings // Show actual earnings value, not the sum of flows
+					displayValue: earnings, // Show actual earnings value, not the sum of flows
+					depth: 3
 				})
 
-				// Gross Profit flows to Earnings
-				links.push({ source: 'Gross Profit', target: 'Earnings', value: revenue })
-				// Incentives flows to Earnings (as a cost being subtracted)
-				links.push({ source: 'Incentives', target: 'Earnings', value: incentives })
+				// Gross Profit flows to Earnings (green)
+				links.push({ source: 'Gross Profit', target: 'Earnings', value: revenue, color: COLORS.green })
+				// Incentives flows to Earnings (red - as a cost being subtracted)
+				links.push({ source: 'Incentives', target: 'Earnings', value: incentives, color: COLORS.red })
 
 				if (earnings > 0 && holdersRevenue > 0) {
 					nodes.push({
-						name: 'Token Holder Net Income',
+						name: 'Value Distributed to Token Holders',
 						color: COLORS.green,
-						description: props.holdersRevenue?.methodology
+						description: props.holdersRevenue?.methodology,
+						depth: 4
 					})
-					links.push({ source: 'Earnings', target: 'Token Holder Net Income', value: holdersRevenue })
+					links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
 				}
 			} else {
 				// No incentives: Gross Profit flows directly to Earnings
@@ -2657,17 +2672,19 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					nodes.push({
 						name: 'Earnings',
 						color: COLORS.green,
-						description: props.revenue?.methodology
+						description: props.revenue?.methodology,
+						depth: 3
 					})
 					links.push({ source: 'Gross Profit', target: 'Earnings', value: earnings })
 
 					if (holdersRevenue > 0) {
 						nodes.push({
-							name: 'Token Holder Net Income',
+							name: 'Value Distributed to Token Holders',
 							color: COLORS.green,
-							description: props.holdersRevenue?.methodology
+							description: props.holdersRevenue?.methodology,
+							depth: 4
 						})
-						links.push({ source: 'Earnings', target: 'Token Holder Net Income', value: holdersRevenue })
+						links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
 					}
 				}
 			}
