@@ -382,7 +382,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
 					displayValue: earnings, // Show actual earnings value, not the sum of flows
 					depth: 3,
-					percentageLabel: formatPercent(Math.abs(earnings), fees)
+					percentageLabel: formatPercent(Math.abs(earnings), revenue)
 				})
 
 				// Gross Profit flows to Earnings (green)
@@ -408,7 +408,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						color: COLORS.green,
 						description: props.revenue?.methodology,
 						depth: 3,
-						percentageLabel: formatPercent(earnings, fees)
+						percentageLabel: formatPercent(earnings, revenue)
 					})
 					links.push({ source: 'Gross Profit', target: 'Earnings', value: earnings })
 
