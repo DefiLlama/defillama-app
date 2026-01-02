@@ -101,7 +101,7 @@ function DonationsPage({ protocols }) {
 								rel="noopener noreferrer"
 								href={p.url}
 							>
-								<img src={p.logo} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
+								<img src={p.logo} alt={`${p.name} logo`} className="h-6 w-6 flex-shrink-0 rounded-full" />
 								<span className="truncate text-sm text-(--blue)">{p.name}</span>
 							</a>
 						))}
