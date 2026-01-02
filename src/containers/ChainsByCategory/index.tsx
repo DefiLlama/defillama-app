@@ -216,7 +216,7 @@ export const useGroupAndFormatChains = ({
 					mcaptvl: chain.mcap && finalTvl ? +formatNum(+chain.mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
 				}
 			})
-			.filter((chain) => (minTvl ? chain.tvl >= minTvl : true) && (maxTvl ? chain.tvl <= maxTvl : true))
+			.filter((chain) => (minTvl != null ? chain.tvl >= minTvl : true) && (maxTvl != null ? chain.tvl <= maxTvl : true))
 
 		if (!showByGroup) return { showByGroup, chainsTableData: data }
 		const trackedSubChains = new Set<string>()

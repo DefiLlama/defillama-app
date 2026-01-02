@@ -138,8 +138,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			const raisedAmount = raise.amount ? Number(raise.amount) * 1_000_000 : 0
 
 			const isInRange =
-				(minimumAmountRaised ? raisedAmount >= minimumAmountRaised : true) &&
-				(maximumAmountRaised ? raisedAmount <= maximumAmountRaised : true)
+				(minimumAmountRaised != null ? raisedAmount >= minimumAmountRaised : true) &&
+				(maximumAmountRaised != null ? raisedAmount <= maximumAmountRaised : true)
 
 			if (isValidTvlRange && !isInRange) {
 				toFilter = false
