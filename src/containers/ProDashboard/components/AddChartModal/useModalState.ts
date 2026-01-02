@@ -90,7 +90,9 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedBorrowedProtocolName: (name: string | null) =>
 				dispatch({ type: 'SET_SELECTED_BORROWED_PROTOCOL_NAME', payload: name }),
 			setSelectedBorrowedChartType: (chartType: string) =>
-				dispatch({ type: 'SET_SELECTED_BORROWED_CHART_TYPE', payload: chartType })
+				dispatch({ type: 'SET_SELECTED_BORROWED_CHART_TYPE', payload: chartType }),
+			setSelectedLlamaAIChart: (chart: { id: string; title: string } | null) =>
+				dispatch({ type: 'SET_SELECTED_LLAMAAI_CHART', payload: chart })
 		}),
 		[]
 	)

@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
@@ -8,6 +8,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { Select } from '~/components/Select'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -19,10 +20,12 @@ import { Flag } from './Flag'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
+const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
+
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
 
-	const { tvl, tvlByChain, toggleOptions } = useFinalTVL(props)
+	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
 
 	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
 
@@ -74,14 +77,25 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
-					<PrimaryValue
-						hasTvl={props.metrics.tvl}
-						value={tvl}
-						name={props.name}
-						category={props.category}
-						valueByChain={tvlByChain}
-						formatPrice={formatPrice}
-					/>
+					{props.oracleTvs ? (
+						<PrimaryValue
+							hasTvl={true}
+							value={oracleTvs}
+							name={props.name}
+							category={'Oracle'}
+							valueByChain={oracleTvsByChain}
+							formatPrice={formatPrice}
+						/>
+					) : (
+						<PrimaryValue
+							hasTvl={props.metrics.tvl}
+							value={tvl}
+							name={props.name}
+							category={props.category === 'Oracle' ? null : props.category}
+							valueByChain={tvlByChain}
+							formatPrice={formatPrice}
+						/>
+					)}
 					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
@@ -97,14 +111,25 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>
-							<PrimaryValue
-								hasTvl={props.metrics.tvl}
-								value={tvl}
-								name={props.name}
-								category={props.category}
-								formatPrice={formatPrice}
-								valueByChain={tvlByChain}
-							/>
+							{props.oracleTvs ? (
+								<PrimaryValue
+									hasTvl={true}
+									value={oracleTvs}
+									name={props.name}
+									category={'Oracle'}
+									valueByChain={oracleTvsByChain}
+									formatPrice={formatPrice}
+								/>
+							) : (
+								<PrimaryValue
+									hasTvl={props.metrics.tvl}
+									value={tvl}
+									name={props.name}
+									category={props.category === 'Oracle' ? null : props.category}
+									valueByChain={tvlByChain}
+									formatPrice={formatPrice}
+								/>
+							)}
 						</div>
 						<ProtocolChart {...props} />
 					</div>
@@ -130,9 +155,10 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 	return useMemo(() => {
 		let tvl = 0
+		const tvlByChainMap = {}
 		let toggleOptions = []
-
-		const tvlByChain = {}
+		let oracleTvs = 0
+		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
 			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
@@ -146,18 +172,47 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 			const [chainName, extraTvlKey] = chain.split('-')
 
 			if (!extraTvlKey) {
-				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
 
 			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
-				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
 		}
 
-		for (const chain in tvlByChain) {
-			tvl += tvlByChain[chain]
+		for (const chain in tvlByChainMap) {
+			tvl += tvlByChainMap[chain]
+		}
+
+		// Process oracle TVS by chain
+		for (const chain in props.oracleTvs ?? {}) {
+			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+				const option = tvlOptionsMap.get(chain as any)
+				if (option && chain !== 'offers') {
+					if (!toggleOptions.some((o) => o.key === option.key)) {
+						toggleOptions.push(option)
+					}
+				}
+				continue
+			}
+
+			const [chainName, extraTvlKey] = chain.split('-')
+
+			if (!extraTvlKey) {
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				continue
+			}
+
+			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				continue
+			}
+		}
+
+		for (const chain in oracleTvsByChainMap) {
+			oracleTvs += oracleTvsByChainMap[chain]
 		}
 
 		if (props.bribeRevenue?.totalAllTime != null) {
@@ -176,7 +231,11 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		return {
 			tvl,
-			tvlByChain: Object.entries(tvlByChain).sort(
+			tvlByChain: Object.entries(tvlByChainMap).sort(
+				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
+			) as [string, number][],
+			oracleTvs,
+			oracleTvsByChain: Object.entries(oracleTvsByChainMap).sort(
 				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
 			) as [string, number][],
 			toggleOptions
@@ -292,7 +351,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
-				{props.tvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
+				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
 				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
@@ -1911,6 +1970,12 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					<span>{props.methodology ?? ''}</span>
 				</p>
 			) : null}
+			{props.oracleTvs ? (
+				<p>
+					<span className="font-medium">TVS:</span>{' '}
+					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
+				</p>
+			) : null}
 			<MethodologyByAdapter adapter={props.fees} title="Fees" />
 			<MethodologyByAdapter adapter={props.revenue} title="Revenue" />
 			<MethodologyByAdapter adapter={props.holdersRevenue} title="Holders Revenue" />
@@ -2241,6 +2306,8 @@ function mergeIncomeStatementData(
 const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
+	const [sankeyGroupBy, setSankeyGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
+	const [selectedSankeyPeriod, setSelectedSankeyPeriod] = useState<string | null>(null)
 
 	const {
 		tableHeaders,
@@ -2362,8 +2429,286 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 	}, [groupBy, props.incomeStatement, feesSettings])
 
+	// Compute Sankey chart data for the selected period
+	const { sankeyData, sankeyPeriodOptions } = useMemo(() => {
+		const sankeyGroupKey = sankeyGroupBy.toLowerCase()
+		const sankeyHeaders = [] as [string, string, number][]
+		const sankeyFeesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyCostOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyIncentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyHoldersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyEarningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+
+		for (const key in props.incomeStatement?.data?.[sankeyGroupKey] ?? {}) {
+			sankeyHeaders.push([
+				key,
+				sankeyGroupKey === 'monthly'
+					? dayjs.utc(key).format('MMM YYYY')
+					: sankeyGroupKey === 'quarterly'
+						? key.split('-').reverse().join(' ')
+						: key,
+				props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.timestamp ?? 0
+			])
+
+			sankeyFeesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.df ?? { value: 0, 'by-label': {} }
+			if (feesSettings.bribes) {
+				sankeyFeesData[key] = mergeIncomeStatementData(
+					sankeyFeesData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				sankeyFeesData[key] = mergeIncomeStatementData(
+					sankeyFeesData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
+				)
+			}
+
+			sankeyCostOfRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dssr ?? {
+				value: 0,
+				'by-label': {}
+			}
+
+			sankeyRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dr ?? { value: 0, 'by-label': {} }
+			if (feesSettings.bribes) {
+				sankeyRevenueData[key] = mergeIncomeStatementData(
+					sankeyRevenueData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				sankeyRevenueData[key] = mergeIncomeStatementData(
+					sankeyRevenueData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
+				)
+			}
+
+			sankeyIncentivesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.incentives ?? {
+				value: 0,
+				'by-label': {}
+			}
+
+			sankeyHoldersRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dhr ?? {
+				value: 0,
+				'by-label': {}
+			}
+			if (feesSettings.bribes) {
+				sankeyHoldersRevenueData[key] = mergeIncomeStatementData(
+					sankeyHoldersRevenueData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				sankeyHoldersRevenueData[key] = mergeIncomeStatementData(
+					sankeyHoldersRevenueData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
+				)
+			}
+
+			sankeyEarningsData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.earnings ?? {
+				value: 0,
+				'by-label': {}
+			}
+			if (feesSettings.bribes) {
+				sankeyEarningsData[key] = mergeIncomeStatementData(
+					sankeyEarningsData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
+				)
+			}
+			if (feesSettings.tokentax) {
+				sankeyEarningsData[key] = mergeIncomeStatementData(
+					sankeyEarningsData[key],
+					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
+				)
+			}
+		}
+
+		const sortedSankeyHeaders = sankeyHeaders.sort((a, b) => b[2] - a[2])
+		const periodOptions = sortedSankeyHeaders.map((h) => ({ key: h[0], label: h[1] }))
+
+		if (sortedSankeyHeaders.length === 0) return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: [] }
+
+		// Use selected period or default to most recent complete period (index 1, since 0 is incomplete)
+		const periodKey = selectedSankeyPeriod ?? sortedSankeyHeaders[1]?.[0] ?? sortedSankeyHeaders[0]?.[0]
+		const periodLabel =
+			sortedSankeyHeaders.find((h) => h[0] === periodKey)?.[1] ??
+			sortedSankeyHeaders[1]?.[1] ??
+			sortedSankeyHeaders[0]?.[1]
+		if (!periodKey) return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: periodOptions }
+
+		const fees = sankeyFeesData[periodKey]?.value ?? 0
+		const costOfRevenue = sankeyCostOfRevenueData[periodKey]?.value ?? 0
+		const revenue = sankeyRevenueData[periodKey]?.value ?? 0
+		const incentives = sankeyIncentivesData[periodKey]?.value ?? 0
+		const earnings = sankeyEarningsData[periodKey]?.value ?? 0
+		const holdersRevenue = sankeyHoldersRevenueData[periodKey]?.value ?? 0
+
+		// Get breakdown by labels for fees
+		const feesByLabelData = sankeyFeesData[periodKey]?.['by-label'] ?? {}
+		const costOfRevenueByLabelData = sankeyCostOfRevenueData[periodKey]?.['by-label'] ?? {}
+
+		// Get methodology/descriptions for labels
+		const feesMethodology = props.incomeStatement?.methodologyByType?.['Fees'] ?? {}
+		const costOfRevenueMethodology = props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}
+
+		const nodes: Array<{
+			name: string
+			color?: string
+			description?: string
+			displayValue?: number | string
+			depth?: number
+		}> = []
+		const links: Array<{ source: string; target: string; value: number; color?: string }> = []
+
+		// Colors: gray for neutral/input, green for profit, red for costs
+		const COLORS = {
+			gray: '#6b7280',
+			green: '#22c55e',
+			red: '#ef4444'
+		}
+
+		// Only add fee breakdown nodes if breakdown labels are available
+		if (Object.keys(feesByLabelData).length > 0) {
+			nodes.push({
+				name: 'Gross Protocol Revenue',
+				color: COLORS.gray,
+				description: props.fees?.methodology,
+				depth: 1
+			})
+			for (const [label, value] of Object.entries(feesByLabelData)) {
+				if (value > 0) {
+					nodes.push({
+						name: label,
+						color: COLORS.gray,
+						description: feesMethodology[label],
+						depth: 0
+					})
+					links.push({ source: label, target: 'Gross Protocol Revenue', value })
+				}
+			}
+		} else if (fees > 0) {
+			// No breakdown available, start from Gross Protocol Revenue directly
+			nodes.push({
+				name: 'Gross Protocol Revenue',
+				color: COLORS.gray,
+				description: props.fees?.methodology,
+				depth: 1
+			})
+		}
+
+		if (costOfRevenue > 0) {
+			nodes.push({
+				name: 'Cost of Revenue',
+				color: COLORS.red,
+				description: props.supplySideRevenue?.methodology,
+				depth: 2
+			})
+			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
+
+			// Only add cost breakdown if labels are available
+			if (Object.keys(costOfRevenueByLabelData).length > 0) {
+				for (const [label, value] of Object.entries(costOfRevenueByLabelData)) {
+					if (value > 0) {
+						const costLabel = `${label} (Cost)`
+						nodes.push({
+							name: costLabel,
+							color: COLORS.red,
+							description: costOfRevenueMethodology[label],
+							depth: 3
+						})
+						links.push({ source: 'Cost of Revenue', target: costLabel, value })
+					}
+				}
+			}
+		}
+
+		if (revenue > 0) {
+			const hasIncentives = incentives > 0 && props.metrics?.incentives
+
+			nodes.push({
+				name: 'Gross Profit',
+				color: COLORS.green,
+				description: props.revenue?.methodology,
+				depth: 2
+			})
+			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: revenue })
+
+			if (hasIncentives) {
+				// Incentives is at the same depth as Gross Profit so both flow horizontally into Earnings
+				nodes.push({
+					name: 'Incentives',
+					color: COLORS.red,
+					description: props.incentives?.methodology,
+					depth: 2 // Same depth as Gross Profit
+				})
+
+				// Both Gross Profit and Incentives flow into Earnings
+				nodes.push({
+					name: 'Earnings',
+					color: earnings >= 0 ? COLORS.green : COLORS.red,
+					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
+					displayValue: earnings, // Show actual earnings value, not the sum of flows
+					depth: 3
+				})
+
+				// Gross Profit flows to Earnings (green)
+				links.push({ source: 'Gross Profit', target: 'Earnings', value: revenue, color: COLORS.green })
+				// Incentives flows to Earnings (red - as a cost being subtracted)
+				links.push({ source: 'Incentives', target: 'Earnings', value: incentives, color: COLORS.red })
+
+				if (earnings > 0 && holdersRevenue > 0) {
+					nodes.push({
+						name: 'Value Distributed to Token Holders',
+						color: COLORS.green,
+						description: props.holdersRevenue?.methodology,
+						depth: 4
+					})
+					links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
+				}
+			} else {
+				// No incentives: Gross Profit flows directly to Earnings
+				if (earnings > 0) {
+					nodes.push({
+						name: 'Earnings',
+						color: COLORS.green,
+						description: props.revenue?.methodology,
+						depth: 3
+					})
+					links.push({ source: 'Gross Profit', target: 'Earnings', value: earnings })
+
+					if (holdersRevenue > 0) {
+						nodes.push({
+							name: 'Value Distributed to Token Holders',
+							color: COLORS.green,
+							description: props.holdersRevenue?.methodology,
+							depth: 4
+						})
+						links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
+					}
+				}
+			}
+		}
+
+		return {
+			sankeyData: { nodes, links, periodLabel },
+			sankeyPeriodOptions: periodOptions
+		}
+	}, [
+		sankeyGroupBy,
+		selectedSankeyPeriod,
+		props.incomeStatement,
+		feesSettings,
+		props.metrics?.incentives,
+		props.fees?.methodology,
+		props.supplySideRevenue?.methodology,
+		props.revenue?.methodology,
+		props.holdersRevenue?.methodology,
+		props.incentives?.methodology
+	])
+
 	return (
-		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+		<div className="col-span-full flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-1">
 				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="income-statement">
 					Income Statement for {props.name}
@@ -2391,7 +2736,7 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				</div>
 			</div>
 			<div className="relative overflow-x-auto">
-				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full" style={{ top: '50%' }}>
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 					<img
 						src="/icons/defillama-dark-neutral.webp"
 						alt="defillama"
@@ -2505,6 +2850,74 @@ const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					</tbody>
 				</table>
 			</div>
+
+			{/* Sankey Chart Section */}
+			<div className="border-t border-(--cards-border) pt-4">
+				{sankeyData.nodes.length > 0 ? (
+					<Suspense
+						fallback={
+							<div className="flex h-[450px] items-center justify-center text-(--text-secondary)">Loading chart...</div>
+						}
+					>
+						<SankeyChart
+							nodes={sankeyData.nodes}
+							links={sankeyData.links}
+							height="450px"
+							title="Income Flow Visualization"
+							enableImageExport
+							imageExportFilename={`${props.name}-income-statement-sankey-chart`}
+							imageExportTitle="Income Statement Sankey Chart"
+							customComponents={
+								<div className="flex items-center gap-2">
+									<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+										{incomeStatementGroupByOptions.map((groupOption) => (
+											<button
+												key={`sankey-group-${groupOption}`}
+												className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+												data-active={groupOption === sankeyGroupBy}
+												onClick={() => {
+													setSankeyGroupBy(groupOption)
+													setSelectedSankeyPeriod(null)
+												}}
+											>
+												{groupOption}
+											</button>
+										))}
+									</div>
+									{sankeyPeriodOptions.length > 0 && (
+										<Select
+											allValues={sankeyPeriodOptions.map((option, idx) => ({
+												key: option.key,
+												name: idx === 0 ? `${option.label} *` : option.label
+											}))}
+											selectedValues={
+												selectedSankeyPeriod ?? sankeyPeriodOptions[1]?.key ?? sankeyPeriodOptions[0]?.key ?? ''
+											}
+											setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
+											label={
+												sankeyPeriodOptions.find(
+													(o) =>
+														o.key ===
+														(selectedSankeyPeriod ?? sankeyPeriodOptions[1]?.key ?? sankeyPeriodOptions[0]?.key)
+												)?.label ?? 'Select Period'
+											}
+											labelType="none"
+											triggerProps={{
+												className:
+													'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-sm text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+											}}
+										/>
+									)}
+								</div>
+							}
+						/>
+					</Suspense>
+				) : (
+					<div className="flex h-[200px] items-center justify-center text-(--text-secondary)">
+						No data available for the selected period
+					</div>
+				)}
+			</div>
 		</div>
 	)
 }
@@ -2534,7 +2947,7 @@ const IncomeStatementByLabel = ({
 	return (
 		<>
 			<tr>
-				<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
+				<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
 					{methodology ? (
 						<Tooltip
 							content={methodology}
@@ -2576,7 +2989,7 @@ const IncomeStatementByLabel = ({
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
-							<th className="overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
+							<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
 								{methodologyByType[breakdownlabel] ? (
 									<Tooltip
 										content={methodologyByType[breakdownlabel]}

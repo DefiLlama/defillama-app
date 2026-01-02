@@ -1184,6 +1184,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 		const chains = allChains.map((chain, index) => {
 			const chainFees = chainFeesData.protocols.find((p) => p.slug === chain)
 			const protocols = protocolsByChainsData[index].status === 'fulfilled' ? protocolsByChainsData[index].value : null
+			const chainRevProtocols = new Set(REV_PROTOCOLS[chain] ?? [])
 			return {
 				name: metadataCache.chainMetadata[chain].name,
 				slug: chain,
@@ -1191,12 +1192,12 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 				total24h:
 					(chainFees?.total24h ?? 0) +
 					(protocols?.protocols ?? []).reduce((acc, curr) => {
-						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total24h ?? 0) : acc
+						return chainRevProtocols.has(curr.slug) ? acc + (curr.total24h ?? 0) : acc
 					}, 0),
 				total30d:
 					(chainFees?.total30d ?? 0) +
 					(protocols?.protocols ?? []).reduce((acc, curr) => {
-						return REV_PROTOCOLS[chain]?.includes(curr.slug) ? acc + (curr.total30d ?? 0) : acc
+						return chainRevProtocols.has(curr.slug) ? acc + (curr.total30d ?? 0) : acc
 					}, 0)
 			}
 		})

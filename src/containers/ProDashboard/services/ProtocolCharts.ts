@@ -252,4 +252,30 @@ export default class ProtocolCharts {
 			return []
 		}
 	}
+
+	static async pfRatio(protocol: string): Promise<[number, number][]> {
+		if (!protocol) return []
+		try {
+			const res = await fetch(`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=pf`)
+			if (!res.ok) return []
+			const data = await res.json()
+			return Array.isArray(data) ? data : []
+		} catch (e) {
+			console.log('Error fetching protocol P/F ratio', e)
+			return []
+		}
+	}
+
+	static async psRatio(protocol: string): Promise<[number, number][]> {
+		if (!protocol) return []
+		try {
+			const res = await fetch(`/api/dashboard/pf-ps-chart?protocol=${encodeURIComponent(protocol)}&type=ps`)
+			if (!res.ok) return []
+			const data = await res.json()
+			return Array.isArray(data) ? data : []
+		} catch (e) {
+			console.log('Error fetching protocol P/S ratio', e)
+			return []
+		}
+	}
 }

@@ -738,7 +738,7 @@ export const formatProtocolsList2 = ({
 					const mcaptvl =
 						child.mcap && defaultTvl.tvl ? +formatNum(+child.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) : null
 
-					if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
+					if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
 						childProtocols.push({
 							...child,
 							strikeTvl,
@@ -748,7 +748,7 @@ export const formatProtocolsList2 = ({
 						})
 					}
 				}
-				if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
+				if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
 					final.push({
 						...protocol,
 						strikeTvl,
@@ -759,7 +759,7 @@ export const formatProtocolsList2 = ({
 					})
 				}
 			} else {
-				if ((minTvl ? defaultTvl.tvl >= minTvl : true) && (maxTvl ? defaultTvl.tvl <= maxTvl : true)) {
+				if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
 					final.push({
 						...protocol,
 						strikeTvl,

@@ -12,9 +12,49 @@ import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
-import { getPercentChange, getPrevTvlFromChart, slug } from '~/utils'
+import { getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
+
+const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Get TVL values for 24h change calculation.
+ * Finds timestamps that are at least 24 hours apart (not just consecutive entries).
+ * Returns null for tvlPrevDay if chart data is stale (last update > 24 hours ago).
+ */
+const getTvl24hChange = (
+	chart: Array<[number, number]>
+): { totalValueUSD: number | null; tvlPrevDay: number | null } => {
+	if (!chart || chart.length === 0) {
+		return { totalValueUSD: null, tvlPrevDay: null }
+	}
+
+	const lastEntry = chart[chart.length - 1]
+	if (!lastEntry) {
+		return { totalValueUSD: null, tvlPrevDay: null }
+	}
+
+	const [lastTimestamp, lastValue] = lastEntry
+	const now = Date.now()
+
+	// Check if data is stale (last timestamp is more than 24 hours old)
+	if (now - lastTimestamp > TWENTY_FOUR_HOURS_IN_MS) {
+		return { totalValueUSD: lastValue, tvlPrevDay: null }
+	}
+
+	// Find an entry that is at least 24 hours before the last entry
+	let tvlPrevDay: number | null = null
+	for (let i = chart.length - 2; i >= 0; i--) {
+		const [timestamp, value] = chart[i]
+		if (lastTimestamp - timestamp >= TWENTY_FOUR_HOURS_IN_MS) {
+			tvlPrevDay = value
+			break
+		}
+	}
+
+	return { totalValueUSD: lastValue, tvlPrevDay }
+}
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -252,10 +292,9 @@ export const useFetchChainChartData = ({
 			.map(([key]) => key)
 
 		if (toggledTvlSettings.length === 0) {
-			const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)
-			const tvlPrevDay = getPrevTvlFromChart(tvlChart, 1)
-			const valueChange24hUSD = totalValueUSD - tvlPrevDay
-			const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
+			const { totalValueUSD, tvlPrevDay } = getTvl24hChange(tvlChart)
+			const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
+			const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
 			return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
 		}
 
@@ -275,15 +314,15 @@ export const useFetchChainChartData = ({
 			}
 		}
 
-		const finalTvlChart = []
+		const finalTvlChart: Array<[number, number]> = []
 		for (const date in store) {
 			finalTvlChart.push([+date, store[date]])
 		}
+		finalTvlChart.sort((a, b) => a[0] - b[0])
 
-		const totalValueUSD = getPrevTvlFromChart(finalTvlChart, 0)
-		const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1)
-		const valueChange24hUSD = totalValueUSD - tvlPrevDay
-		const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
+		const { totalValueUSD, tvlPrevDay } = getTvl24hChange(finalTvlChart)
+		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
+		const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
 		const isGovTokensEnabled = tvlSettings?.govtokens ? true : false
 		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
 	}, [tvlChart, extraTvlCharts, tvlSettings])

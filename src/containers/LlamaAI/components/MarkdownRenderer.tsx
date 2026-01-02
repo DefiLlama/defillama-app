@@ -5,29 +5,31 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import type { ChartConfiguration } from '../types'
 import { getEntityUrl } from '../utils/entityLinks'
+import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
-interface ChartConfig {
-	id: string
-	type: string
-	[key: string]: any
+interface InlineChartConfig {
+	resizeTrigger?: number
+	saveableChartIds?: string[]
+	savedChartIds?: string[]
+	messageId?: string
 }
 
 interface MarkdownRendererProps {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
-	charts?: ChartConfig[]
+	charts?: ChartConfiguration[]
 	chartData?: any[] | Record<string, any[]>
-	renderChart?: (chart: ChartConfig, data: any[]) => React.ReactNode
+	inlineChartConfig?: InlineChartConfig
 	csvExports?: CSVExport[]
 }
 
 interface EntityLinkProps {
 	href?: string
 	children?: any
-	node?: any
 	[key: string]: any
 }
 
@@ -43,7 +45,13 @@ function getEntityIcon(type: string, slug: string): string {
 	}
 }
 
-function TableWrapper({ children, isStreaming = false }: { children: React.ReactNode; isStreaming: boolean }) {
+const TableWrapper = memo(function TableWrapper({
+	children,
+	isStreaming = false
+}: {
+	children: React.ReactNode
+	isStreaming: boolean
+}) {
 	const tableRef = useRef<HTMLDivElement>(null)
 
 	const prepareCsv = () => {
@@ -84,9 +92,9 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 			</div>
 		</div>
 	)
-}
+})
 
-function EntityLinkRenderer({ href, children, node, ...props }: EntityLinkProps) {
+function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
@@ -123,7 +131,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	isStreaming = false,
 	charts,
 	chartData,
-	renderChart,
+	inlineChartConfig,
 	csvExports
 }: MarkdownRendererProps) {
 	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
@@ -212,39 +220,39 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 		return { content: processCitations(content), linkMap }
 	}, [content, processCitations])
 
-	const LinkRenderer = useMemo(() => {
-		return (props: any) => {
-			if (!props.href && props.children && processedData.linkMap.has(props.children)) {
-				const llamaUrl = processedData.linkMap.get(props.children)
-				return EntityLinkRenderer({ ...props, href: llamaUrl })
-			}
+	const linkMapRef = useRef(processedData.linkMap)
+	linkMapRef.current = processedData.linkMap
 
-			return EntityLinkRenderer(props)
-		}
-	}, [processedData.linkMap])
+	const markdownComponents = useMemo(
+		() => ({
+			a: (props: any) => {
+				if (!props.href && props.children && linkMapRef.current.has(props.children)) {
+					const llamaUrl = linkMapRef.current.get(props.children)
+					return EntityLinkRenderer({ ...props, href: llamaUrl })
+				}
+				return EntityLinkRenderer(props)
+			},
+			table: ({ children }: { children: React.ReactNode }) => (
+				<TableWrapper isStreaming={isStreaming}>{children}</TableWrapper>
+			),
+			th: ({ children }: { children: React.ReactNode }) => (
+				<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
+					{children}
+				</th>
+			),
+			td: ({ children }: { children: React.ReactNode }) => (
+				<td className="border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C]">
+					{children}
+				</td>
+			),
+			ul: ({ children }: { children: React.ReactNode }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
+			ol: ({ children }: { children: React.ReactNode }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
+		}),
+		[isStreaming]
+	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (
-		<ReactMarkdown
-			key={key}
-			remarkPlugins={[remarkGfm]}
-			rehypePlugins={[rehypeRaw]}
-			components={{
-				a: LinkRenderer,
-				table: ({ children }) => <TableWrapper isStreaming={isStreaming}>{children}</TableWrapper>,
-				th: ({ children }) => (
-					<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
-						{children}
-					</th>
-				),
-				td: ({ children }) => (
-					<td className="border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C]">
-						{children}
-					</td>
-				),
-				ul: ({ children }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
-				ol: ({ children }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
-			}}
-		>
+		<ReactMarkdown key={key} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>
 			{markdownContent}
 		</ReactMarkdown>
 	)
@@ -255,11 +263,18 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {
 							const chart = charts?.find((c) => c.id === part.chartId)
-							if (chart && renderChart) {
+							if (chart && inlineChartConfig) {
 								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
 								return (
 									<div key={`chart-${part.chartId}-${index}`} className="my-4">
-										{renderChart(chart, data)}
+										<ChartRenderer
+											charts={[chart]}
+											chartData={data}
+											isLoading={false}
+											isAnalyzing={false}
+											resizeTrigger={inlineChartConfig.resizeTrigger}
+											messageId={inlineChartConfig.messageId}
+										/>
 									</div>
 								)
 							}

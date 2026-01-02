@@ -205,4 +205,34 @@ export interface IScatterChartProps {
 	valueSymbol?: string
 	height?: string
 	tooltipFormatter?: (params: any) => string
+	showLabels?: boolean
+	entityType?: 'protocol' | 'chain'
+}
+
+export interface ISankeyChartProps {
+	title?: string
+	height?: string
+	nodes: Array<{
+		name: string
+		color?: string
+		depth?: number
+		description?: string
+		displayValue?: number | string // Override the calculated value shown in label
+	}>
+	links: Array<{
+		source: string
+		target: string
+		value: number
+		color?: string
+	}>
+	nodeColors?: {
+		[name: string]: string
+	}
+	valueSymbol?: string
+	nodeAlign?: 'left' | 'right' | 'justify'
+	orient?: 'horizontal' | 'vertical'
+	customComponents?: React.ReactNode
+	enableImageExport?: boolean
+	imageExportFilename?: string
+	imageExportTitle?: string
 }

@@ -6,6 +6,8 @@ import {
 	HACKS_API,
 	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
+	ORACLE_API,
+	oracleProtocols,
 	PROTOCOL_API,
 	PROTOCOL_EMISSION_API2,
 	PROTOCOL_GOVERNANCE_COMPOUND_API,
@@ -199,7 +201,8 @@ export const getProtocolOverviewPageData = async ({
 		liteProtocolsData,
 		hacksData,
 		bridgeVolumeData,
-		incomeStatement
+		incomeStatement,
+		oracleTvs
 	]: [
 		IUpdatedProtocol & {
 			tokenCGData?: {
@@ -261,7 +264,8 @@ export const getProtocolOverviewPageData = async ({
 		any,
 		Array<IHack>,
 		any,
-		IProtocolOverviewPageData['incomeStatement']
+		IProtocolOverviewPageData['incomeStatement'],
+		Record<string, number> | null
 	] = await Promise.all([
 		getProtocol(slug(metadata.displayName)).then(async (data) => {
 			try {
@@ -514,7 +518,18 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => data.dailyVolumes || null)
 					.catch(() => null)
 			: null,
-		getProtocolIncomeStatement({ metadata })
+		getProtocolIncomeStatement({ metadata }),
+		oracleProtocols[metadata.displayName]
+			? fetchJson(ORACLE_API).then((data) => {
+					const oracleName = oracleProtocols[metadata.displayName]
+					let tvs = {}
+					for (const date in data.chainChart) {
+						tvs = data.chainChart[date]?.[oracleName] ?? {}
+					}
+					if (Object.keys(tvs).length === 0) return null
+					return tvs
+				})
+			: null
 	])
 
 	const otherProtocols = protocolData.otherProtocols?.map((p) => slug(p)) ?? []
@@ -693,6 +708,10 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push(isCEX ? 'Total Assets' : 'TVL')
 	}
 
+	if (oracleTvs) {
+		// availableCharts.push('TVS')
+	}
+
 	if (protocolData.gecko_id) {
 		availableCharts.push('Mcap')
 		availableCharts.push('Token Price')
@@ -837,7 +856,6 @@ export const getProtocolOverviewPageData = async ({
 
 	const defaultToggledCharts: ProtocolChartsLabels[] = []
 	if (protocolMetrics.tvl) {
-		defaultToggledCharts.push(isCEX ? 'Total Assets' : 'TVL')
 		if (tvlChartData.length === 0 || tvlChartData.every(([date, value]) => value === 0)) {
 			let hasStaking = false
 			for (const date in extraTvlCharts?.staking) {
@@ -860,6 +878,8 @@ export const getProtocolOverviewPageData = async ({
 			if (!hasStaking && hasBorrowed) {
 				defaultToggledCharts.push('Borrowed' as any)
 			}
+		} else {
+			defaultToggledCharts.push(isCEX ? 'Total Assets' : 'TVL')
 		}
 		defaultToggledCharts.push('Events' as any)
 	}
@@ -1017,7 +1037,8 @@ export const getProtocolOverviewPageData = async ({
 			'daily',
 		seoDescription,
 		seoKeywords,
-		defaultToggledCharts
+		defaultToggledCharts,
+		oracleTvs
 	}
 }
 

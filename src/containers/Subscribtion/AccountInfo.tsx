@@ -21,6 +21,7 @@ export const AccountInfo = () => {
 		credits,
 		isCreditsLoading,
 		createPortalSession,
+		getPortalSessionUrl,
 		isPortalSessionLoading,
 		apiSubscription,
 		llamafeedSubscription,
@@ -129,11 +130,13 @@ export const AccountInfo = () => {
 
 			<div className="space-y-6">
 				<AccountStatus
+					isAuthenticated={isAuthenticated}
 					user={user}
 					isVerified={isVerified}
 					isSubscribed={isSubscribed}
 					onEmailChange={() => setShowEmailForm(true)}
 					subscription={subscription}
+					getPortalSessionUrl={getPortalSessionUrl}
 				/>
 
 				{!isVerified && !isWalletUser && (

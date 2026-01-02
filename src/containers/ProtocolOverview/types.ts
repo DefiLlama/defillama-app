@@ -268,7 +268,7 @@ export interface IProtocolOverviewPageData {
 	seoDescription: string
 	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
-	tvs?: boolean
+	oracleTvs?: Record<string, number> | null
 }
 
 interface ICredit {
