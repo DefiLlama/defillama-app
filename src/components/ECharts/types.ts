@@ -218,6 +218,7 @@ export interface ISankeyChartProps {
 		depth?: number
 		description?: string
 		displayValue?: number | string // Override the calculated value shown in label
+		percentageLabel?: string // Percentage to show next to value, e.g. "(20%)"
 	}>
 	links: Array<{
 		source: string
