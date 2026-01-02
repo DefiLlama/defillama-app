@@ -585,8 +585,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							height="450px"
 							title="Income Flow Visualization"
 							enableImageExport
-							imageExportFilename={`${props.name}-income-statement-sankey-chart`}
-							imageExportTitle="Income Statement Sankey Chart"
+							imageExportFilename={`${props.name}-income-statement`}
+							imageExportTitle={`Income Statement for ${props.name}`}
 							customComponents={
 								<div className="flex items-center gap-2">
 									<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">

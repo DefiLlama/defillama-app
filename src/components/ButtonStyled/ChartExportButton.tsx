@@ -180,6 +180,40 @@ export const ChartExportButton = memo(function ChartExportButton({
 						})
 					}
 
+					// Handle Sankey chart series - scale up labels for export
+					const isSankeyChart =
+						Array.isArray(currentOptions.series) && currentOptions.series.some((s: any) => s.type === 'sankey')
+
+					if (isSankeyChart && Array.isArray(currentOptions.series)) {
+						currentOptions.series = currentOptions.series.map((series: any) => {
+							if (series.type === 'sankey') {
+								return {
+									...series,
+									top: title ? 60 : 30, // Add top padding to avoid collision with title
+									label: {
+										...(series.label ?? {}),
+										fontSize: 14, // Slightly larger than default for export readability
+										rich: {
+											name: {
+												fontSize: 14,
+												fontWeight: 'normal',
+												color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+											},
+											desc: {
+												fontSize: 11,
+												color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+												lineHeight: 14
+											}
+										}
+									},
+									nodeGap: 28, // Slightly increase node gap for better spacing
+									nodeWidth: 20 // Slightly increase node width for better visibility
+								}
+							}
+							return series
+						})
+					}
+
 					// Legend layout calculations
 					const legendConfig = currentOptions.legend as any
 					const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
@@ -234,13 +268,16 @@ export const ChartExportButton = memo(function ChartExportButton({
 								(hasLegend ? legendHeight + verticalGap + (expandLegend ? 16 : 0) : 0))
 
 					currentOptions.animation = false
-					currentOptions.grid = {
-						left: 16,
-						bottom: expandLegend ? 32 : 16,
-						top: gridTop,
-						right: 16,
-						outerBoundsMode: 'same',
-						outerBoundsContain: 'axisLabel'
+					// Only set grid for non-Sankey charts (Sankey doesn't use grid layout)
+					if (!isSankeyChart) {
+						currentOptions.grid = {
+							left: 16,
+							bottom: expandLegend ? 32 : 16,
+							top: gridTop,
+							right: 16,
+							outerBoundsMode: 'same',
+							outerBoundsContain: 'axisLabel'
+						}
 					}
 
 					currentOptions.title = {
@@ -268,24 +305,27 @@ export const ChartExportButton = memo(function ChartExportButton({
 					// Set options on the temporary chart with any modifications you want
 					tempChart.setOption(currentOptions)
 
-					tempChart.setOption({
-						legend: {
-							show: true,
-							textStyle: {
-								fontSize: 24,
-								color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-							},
-							itemHeight: 24,
-							itemWidth: 48,
-							itemGap: legendItemGap,
-							top: legendTop,
-							right: 16,
-							...(expandLegend
-								? { type: 'plain', padding: [0, 0, 0, 0], ...(canShareRow ? {} : { left: 16 }) }
-								: { type: 'scroll', padding: [0, 0, 0, 18] }),
-							pageButtonPosition: 'end'
-						}
-					})
+					// Only set legend for non-Sankey charts (Sankey doesn't use legends)
+					if (!isSankeyChart) {
+						tempChart.setOption({
+							legend: {
+								show: true,
+								textStyle: {
+									fontSize: 24,
+									color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+								},
+								itemHeight: 24,
+								itemWidth: 48,
+								itemGap: legendItemGap,
+								top: legendTop,
+								right: 16,
+								...(expandLegend
+									? { type: 'plain', padding: [0, 0, 0, 0], ...(canShareRow ? {} : { left: 16 }) }
+									: { type: 'scroll', padding: [0, 0, 0, 18] }),
+								pageButtonPosition: 'end'
+							}
+						})
+					}
 
 					// Wait for the chart (including async image loading) to finish rendering.
 					// In some cases (many series, large data) the render event may not fire reliably,
