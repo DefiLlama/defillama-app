@@ -293,7 +293,9 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const formatPercent = (value: number, total: number) => {
 			if (total === 0) return '0%'
 			const pct = (value / total) * 100
-			return pct >= 1 ? `${pct.toFixed(0)}%` : pct >= 0.1 ? `${pct.toFixed(1)}%` : '<0.1%'
+			const absPct = Math.abs(pct)
+			const sign = pct < 0 ? '-' : ''
+			return absPct >= 1 ? `${sign}${absPct.toFixed(0)}%` : absPct >= 0.1 ? `${sign}${absPct.toFixed(1)}%` : '<0.1%'
 		}
 
 		// Only add fee breakdown nodes if breakdown labels are available
@@ -382,7 +384,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
 					displayValue: earnings, // Show actual earnings value, not the sum of flows
 					depth: 3,
-					percentageLabel: formatPercent(Math.abs(earnings), revenue)
+					percentageLabel: formatPercent(earnings, revenue)
 				})
 
 				// Gross Profit flows to Earnings (green)
