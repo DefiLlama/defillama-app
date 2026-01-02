@@ -16,6 +16,7 @@ import { AriakitVirtualizedSelect } from '../AriakitVirtualizedSelect'
 import { ChartBuilderConfig } from './types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
 const DEFAULT_SERIES_COLOR = '#3366ff'
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
@@ -56,9 +57,10 @@ const METRIC_OPTIONS = [
 const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
 
 const CHART_TYPE_OPTIONS = [
-	{ value: 'stackedBar', label: 'Stacked Bar', icon: 'bar-chart-2' },
-	{ value: 'stackedArea', label: 'Stacked Area', icon: 'trending-up' },
-	{ value: 'line', label: 'Line Chart', icon: 'activity' }
+	{ value: 'stackedBar', label: 'Bar', icon: 'bar-chart-2' },
+	{ value: 'stackedArea', label: 'Area', icon: 'trending-up' },
+	{ value: 'line', label: 'Line', icon: 'activity' },
+	{ value: 'treemap', label: 'Tree Map', icon: 'layout-grid' }
 ]
 
 const DISPLAY_OPTIONS = [
@@ -249,6 +251,26 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		}
 		return DEFAULT_SERIES_COLOR
 	}
+
+	const treemapData = useMemo(() => {
+		if (!visibleSeries || visibleSeries.length === 0) return []
+
+		return visibleSeries
+			.map((s) => {
+				const dataLength = s.data?.length || 0
+				const pointIndex = Math.max(0, dataLength - 2)
+				const value = dataLength > 0 ? s.data[pointIndex]?.[1] || 0 : 0
+
+				return {
+					name: s.name,
+					value: value,
+					itemStyle: {
+						color: resolveSeriesColor(s.name, s.color)
+					}
+				}
+			})
+			.filter((item) => item.value > 0)
+	}, [visibleSeries, seriesColors])
 
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
@@ -622,7 +644,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Chart type</h4>
-						<div className="grid grid-cols-3 gap-1">
+						<div className="grid grid-cols-4 gap-1">
 							{CHART_TYPE_OPTIONS.map((option) => (
 								<button
 									key={option.value}
@@ -687,49 +709,67 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 										<div className="h-full w-full animate-pulse rounded-md border border-(--cards-border) bg-(--cards-bg)"></div>
 									}
 								>
-									<MultiSeriesChart
-										height="450px"
-										key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}
-										series={(() => {
-											let filteredSeries = visibleSeries
+									{chartBuilder.chartType === 'treemap' ? (
+										<TreeMapBuilderChart data={treemapData} height="450px" />
+									) : (
+										<MultiSeriesChart
+											height="450px"
+											key={`chart-${chartBuilder.displayAs}-${chartBuilder.chartType}-${chartBuilder.hideOthers}`}
+											series={(() => {
+												let filteredSeries = visibleSeries
 
-											if (chartBuilder.metric !== 'tvl' && chartBuilder.mode === 'chains') {
-												filteredSeries = filteredSeries.map((s) => {
-													const aggregatedData: Map<number, number> = new Map()
+												if (chartBuilder.metric !== 'tvl' && chartBuilder.mode === 'chains') {
+													filteredSeries = filteredSeries.map((s) => {
+														const aggregatedData: Map<number, number> = new Map()
 
-													s.data.forEach(([timestamp, value]: [number, number]) => {
-														const date = new Date(timestamp * 1000)
-														const weekDate = new Date(date)
-														const day = weekDate.getDay()
-														const diff = weekDate.getDate() - day + (day === 0 ? -6 : 1)
-														weekDate.setDate(diff)
-														weekDate.setHours(0, 0, 0, 0)
-														const weekKey = Math.floor(weekDate.getTime() / 1000)
+														s.data.forEach(([timestamp, value]: [number, number]) => {
+															const date = new Date(timestamp * 1000)
+															const weekDate = new Date(date)
+															const day = weekDate.getDay()
+															const diff = weekDate.getDate() - day + (day === 0 ? -6 : 1)
+															weekDate.setDate(diff)
+															weekDate.setHours(0, 0, 0, 0)
+															const weekKey = Math.floor(weekDate.getTime() / 1000)
 
-														aggregatedData.set(weekKey, (aggregatedData.get(weekKey) || 0) + value)
+															aggregatedData.set(weekKey, (aggregatedData.get(weekKey) || 0) + value)
+														})
+
+														return {
+															...s,
+															data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
+														}
+													})
+												}
+
+												if (chartBuilder.displayAs === 'percentage') {
+													const timestampTotals = new Map<number, number>()
+													filteredSeries.forEach((s) => {
+														s.data.forEach(([timestamp, value]) => {
+															timestampTotals.set(timestamp, (timestampTotals.get(timestamp) || 0) + value)
+														})
 													})
 
-													return {
-														...s,
-														data: Array.from(aggregatedData.entries()).sort((a, b) => a[0] - b[0])
-													}
-												})
-											}
-
-											if (chartBuilder.displayAs === 'percentage') {
-												const timestampTotals = new Map<number, number>()
-												filteredSeries.forEach((s) => {
-													s.data.forEach(([timestamp, value]) => {
-														timestampTotals.set(timestamp, (timestampTotals.get(timestamp) || 0) + value)
-													})
-												})
+													return filteredSeries.map((s) => ({
+														name: s.name,
+														data: s.data.map(([timestamp, value]) => {
+															const total = timestampTotals.get(timestamp) || 0
+															return [timestamp, total > 0 ? (value / total) * 100 : 0]
+														}),
+														color: resolveSeriesColor(s.name, s.color),
+														type: chartBuilder.chartType === 'stackedBar' ? 'bar' : 'line',
+														...(chartBuilder.chartType === 'stackedArea' && {
+															areaStyle: { opacity: 0.7 },
+															stack: 'total'
+														}),
+														...(chartBuilder.chartType === 'stackedBar' && {
+															stack: 'total'
+														})
+													}))
+												}
 
 												return filteredSeries.map((s) => ({
 													name: s.name,
-													data: s.data.map(([timestamp, value]) => {
-														const total = timestampTotals.get(timestamp) || 0
-														return [timestamp, total > 0 ? (value / total) * 100 : 0]
-													}),
+													data: s.data,
 													color: resolveSeriesColor(s.name, s.color),
 													type: chartBuilder.chartType === 'stackedBar' ? 'bar' : 'line',
 													...(chartBuilder.chartType === 'stackedArea' && {
@@ -740,104 +780,90 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 														stack: 'total'
 													})
 												}))
-											}
+											})()}
+											valueSymbol={chartBuilder.displayAs === 'percentage' ? '%' : '$'}
+											hideDataZoom={true}
+											chartOptions={{
+												grid: {
+													top: 40,
+													bottom: 40,
+													left: 12,
+													right: 12,
+													outerBoundsMode: 'same',
+													outerBoundsContain: 'axisLabel'
+												},
+												legend: {
+													show: true,
+													top: 10,
+													type: 'scroll',
+													selectedMode: 'multiple',
+													pageButtonItemGap: 5,
+													pageButtonGap: 20,
+													data: visibleSeries.map((s) => s.name)
+												},
+												tooltip: {
+													formatter: function (params: any) {
+														const chartdate = new Date(params[0].value[0]).toLocaleDateString()
 
-											return filteredSeries.map((s) => ({
-												name: s.name,
-												data: s.data,
-												color: resolveSeriesColor(s.name, s.color),
-												type: chartBuilder.chartType === 'stackedBar' ? 'bar' : 'line',
-												...(chartBuilder.chartType === 'stackedArea' && {
-													areaStyle: { opacity: 0.7 },
-													stack: 'total'
-												}),
-												...(chartBuilder.chartType === 'stackedBar' && {
-													stack: 'total'
-												})
-											}))
-										})()}
-										valueSymbol={chartBuilder.displayAs === 'percentage' ? '%' : '$'}
-										hideDataZoom={true}
-										chartOptions={{
-											grid: {
-												top: 40,
-												bottom: 40,
-												left: 12,
-												right: 12,
-												outerBoundsMode: 'same',
-												outerBoundsContain: 'axisLabel'
-											},
-											legend: {
-												show: true,
-												top: 10,
-												type: 'scroll',
-												selectedMode: 'multiple',
-												pageButtonItemGap: 5,
-												pageButtonGap: 20,
-												data: visibleSeries.map((s) => s.name)
-											},
-											tooltip: {
-												formatter: function (params: any) {
-													const chartdate = new Date(params[0].value[0]).toLocaleDateString()
+														let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+														filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
-													let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
-													filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
-
-													const formatValue = (value: number) => {
-														if (chartBuilder.displayAs === 'percentage') {
-															return `${Math.round(value * 100) / 100}%`
-														}
-														const absValue = Math.abs(value)
-														if (absValue >= 1e9) {
-															return '$' + (value / 1e9).toFixed(2) + 'B'
-														} else if (absValue >= 1e6) {
-															return '$' + (value / 1e6).toFixed(2) + 'M'
-														} else if (absValue >= 1e3) {
-															return '$' + (value / 1e3).toFixed(2) + 'K'
-														}
-														return '$' + value.toFixed(2)
-													}
-
-													const vals = filteredParams.reduce((prev: string, curr: any) => {
-														return (prev +=
-															'<li style="list-style:none">' +
-															curr.marker +
-															curr.seriesName +
-															'&nbsp;&nbsp;' +
-															formatValue(curr.value[1]) +
-															'</li>')
-													}, '')
-
-													return chartdate + vals
-												}
-											},
-											yAxis:
-												chartBuilder.displayAs === 'percentage'
-													? {
-															max: 100,
-															min: 0,
-															axisLabel: {
-																formatter: '{value}%'
+														const formatValue = (value: number) => {
+															if (chartBuilder.displayAs === 'percentage') {
+																return `${Math.round(value * 100) / 100}%`
 															}
+															const absValue = Math.abs(value)
+															if (absValue >= 1e9) {
+																return '$' + (value / 1e9).toFixed(2) + 'B'
+															} else if (absValue >= 1e6) {
+																return '$' + (value / 1e6).toFixed(2) + 'M'
+															} else if (absValue >= 1e3) {
+																return '$' + (value / 1e3).toFixed(2) + 'K'
+															}
+															return '$' + value.toFixed(2)
 														}
-													: {
-															type: 'value',
-															axisLabel: {
-																formatter: (value: number) => {
-																	const absValue = Math.abs(value)
-																	if (absValue >= 1e9) {
-																		return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-																	} else if (absValue >= 1e6) {
-																		return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-																	} else if (absValue >= 1e3) {
-																		return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-																	}
-																	return '$' + value.toFixed(0)
+
+														const vals = filteredParams.reduce((prev: string, curr: any) => {
+															return (prev +=
+																'<li style="list-style:none">' +
+																curr.marker +
+																curr.seriesName +
+																'&nbsp;&nbsp;' +
+																formatValue(curr.value[1]) +
+																'</li>')
+														}, '')
+
+														return chartdate + vals
+													}
+												},
+												yAxis:
+													chartBuilder.displayAs === 'percentage'
+														? {
+																max: 100,
+																min: 0,
+																axisLabel: {
+																	formatter: '{value}%'
 																}
 															}
-														}
-										}}
-									/>
+														: {
+																type: 'value',
+																axisLabel: {
+																	formatter: (value: number) => {
+																		const absValue = Math.abs(value)
+																		if (absValue >= 1e9) {
+																			return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+																		} else if (absValue >= 1e6) {
+																			return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+																		} else if (absValue >= 1e3) {
+																			return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+																		}
+																		return '$' + value.toFixed(0)
+																	}
+																}
+															}
+											}}
+										/>
+									)}
 								</Suspense>
 							</div>
 						) : (

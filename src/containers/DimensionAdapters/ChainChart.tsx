@@ -211,7 +211,7 @@ export const AdapterByChainChart = ({
 					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 					smol
 				/>
-				{chain && <AddToDashboardButton chartConfig={multiChart} smol className="-ml-2" />}
+				{chain && <AddToDashboardButton chartConfig={multiChart} smol />}
 			</div>
 			<React.Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 				<LineAndBarChart

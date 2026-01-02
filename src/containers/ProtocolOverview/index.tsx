@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
@@ -19,10 +19,12 @@ import { Flag } from './Flag'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
+const IncomeStatement = lazy(() => import('./IncomeStatement').then((module) => ({ default: module.IncomeStatement })))
+
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
 
-	const { tvl, tvlByChain, toggleOptions } = useFinalTVL(props)
+	const { tvl, tvlByChain, oracleTvs, oracleTvsByChain, toggleOptions } = useFinalTVL(props)
 
 	const { data: chainPrice, isLoading: fetchingChainPrice } = useGetTokenPrice(props.chartDenominations?.[1]?.geckoId)
 
@@ -74,14 +76,25 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						) : null}
 						<Bookmark readableName={props.name} />
 					</h1>
-					<PrimaryValue
-						hasTvl={props.metrics.tvl}
-						value={tvl}
-						name={props.name}
-						category={props.category}
-						valueByChain={tvlByChain}
-						formatPrice={formatPrice}
-					/>
+					{props.oracleTvs ? (
+						<PrimaryValue
+							hasTvl={true}
+							value={oracleTvs}
+							name={props.name}
+							category={'Oracle'}
+							valueByChain={oracleTvsByChain}
+							formatPrice={formatPrice}
+						/>
+					) : (
+						<PrimaryValue
+							hasTvl={props.metrics.tvl}
+							value={tvl}
+							name={props.name}
+							category={props.category === 'Oracle' ? null : props.category}
+							valueByChain={tvlByChain}
+							formatPrice={formatPrice}
+						/>
+					)}
 					<KeyMetrics {...props} formatPrice={formatPrice} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
@@ -97,14 +110,25 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								) : null}
 								<Bookmark readableName={props.name} />
 							</h1>
-							<PrimaryValue
-								hasTvl={props.metrics.tvl}
-								value={tvl}
-								name={props.name}
-								category={props.category}
-								formatPrice={formatPrice}
-								valueByChain={tvlByChain}
-							/>
+							{props.oracleTvs ? (
+								<PrimaryValue
+									hasTvl={true}
+									value={oracleTvs}
+									name={props.name}
+									category={'Oracle'}
+									valueByChain={oracleTvsByChain}
+									formatPrice={formatPrice}
+								/>
+							) : (
+								<PrimaryValue
+									hasTvl={props.metrics.tvl}
+									value={tvl}
+									name={props.name}
+									category={props.category === 'Oracle' ? null : props.category}
+									valueByChain={tvlByChain}
+									formatPrice={formatPrice}
+								/>
+							)}
 						</div>
 						<ProtocolChart {...props} />
 					</div>
@@ -130,9 +154,10 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 	return useMemo(() => {
 		let tvl = 0
+		const tvlByChainMap = {}
 		let toggleOptions = []
-
-		const tvlByChain = {}
+		let oracleTvs = 0
+		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
 			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
@@ -146,18 +171,47 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 			const [chainName, extraTvlKey] = chain.split('-')
 
 			if (!extraTvlKey) {
-				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
 
 			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
-				tvlByChain[chainName] = (tvlByChain[chainName] ?? 0) + props.currentTvlByChain[chain]
+				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
 		}
 
-		for (const chain in tvlByChain) {
-			tvl += tvlByChain[chain]
+		for (const chain in tvlByChainMap) {
+			tvl += tvlByChainMap[chain]
+		}
+
+		// Process oracle TVS by chain
+		for (const chain in props.oracleTvs ?? {}) {
+			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+				const option = tvlOptionsMap.get(chain as any)
+				if (option && chain !== 'offers') {
+					if (!toggleOptions.some((o) => o.key === option.key)) {
+						toggleOptions.push(option)
+					}
+				}
+				continue
+			}
+
+			const [chainName, extraTvlKey] = chain.split('-')
+
+			if (!extraTvlKey) {
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				continue
+			}
+
+			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
+				continue
+			}
+		}
+
+		for (const chain in oracleTvsByChainMap) {
+			oracleTvs += oracleTvsByChainMap[chain]
 		}
 
 		if (props.bribeRevenue?.totalAllTime != null) {
@@ -176,7 +230,11 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		return {
 			tvl,
-			tvlByChain: Object.entries(tvlByChain).sort(
+			tvlByChain: Object.entries(tvlByChainMap).sort(
+				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
+			) as [string, number][],
+			oracleTvs,
+			oracleTvsByChain: Object.entries(oracleTvsByChainMap).sort(
 				(a, b) => (b as [string, number])[1] - (a as [string, number])[1]
 			) as [string, number][],
 			toggleOptions
@@ -292,7 +350,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 			<div className="flex flex-col">
-				{props.tvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
+				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
 				<HoldersRevenue formatPrice={props.formatPrice} {...props} />
@@ -1911,6 +1969,12 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					<span>{props.methodology ?? ''}</span>
 				</p>
 			) : null}
+			{props.oracleTvs ? (
+				<p>
+					<span className="font-medium">TVS:</span>{' '}
+					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
+				</p>
+			) : null}
 			<MethodologyByAdapter adapter={props.fees} title="Fees" />
 			<MethodologyByAdapter adapter={props.revenue} title="Revenue" />
 			<MethodologyByAdapter adapter={props.holdersRevenue} title="Holders Revenue" />
@@ -2221,437 +2285,6 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 				))}
 			</div>
 		</div>
-	)
-}
-
-const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
-
-function mergeIncomeStatementData(
-	data: { value: number; 'by-label': Record<string, number> },
-	newData?: { value: number; 'by-label': Record<string, number> }
-) {
-	const current = { ...data }
-	current.value += newData?.value ?? 0
-	for (const label in newData?.['by-label'] ?? {}) {
-		current['by-label'][label] = (current['by-label'][label] ?? 0) + newData['by-label'][label]
-	}
-	return current
-}
-
-const IncomeStatement = (props: IProtocolOverviewPageData) => {
-	const [feesSettings] = useLocalStorageSettingsManager('fees')
-	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
-
-	const {
-		tableHeaders,
-		feesData,
-		costOfRevenueData,
-		revenueData,
-		incentivesData,
-		holdersRevenueData,
-		feesByLabels,
-		costOfRevenueByLabels,
-		revenueByLabels,
-		holdersRevenueByLabels,
-		earningsData
-	} = useMemo(() => {
-		const groupKey = groupBy.toLowerCase()
-		const tableHeaders = [] as [string, string, number][]
-		const feesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const revenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const holdersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const costOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
-			tableHeaders.push([
-				key,
-				groupKey === 'monthly'
-					? dayjs.utc(key).format('MMM YYYY')
-					: groupKey === 'quarterly'
-						? key.split('-').reverse().join(' ')
-						: key,
-				props.incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
-			])
-
-			feesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.df ?? {
-				value: 0,
-				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dbr)
-			}
-			if (feesSettings.tokentax) {
-				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dtt)
-			}
-
-			costOfRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dssr ?? {
-				value: 0,
-				'by-label': {}
-			}
-
-			revenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dr ?? {
-				value: 0,
-				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				revenueData[key] = mergeIncomeStatementData(
-					revenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				revenueData[key] = mergeIncomeStatementData(
-					revenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
-				)
-			}
-
-			incentivesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.incentives ?? {
-				value: 0,
-				'by-label': {}
-			}
-
-			holdersRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dhr ?? {
-				value: 0,
-				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				holdersRevenueData[key] = mergeIncomeStatementData(
-					holdersRevenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				holdersRevenueData[key] = mergeIncomeStatementData(
-					holdersRevenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
-				)
-			}
-
-			earningsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.earnings ?? {
-				value: 0,
-				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				earningsData[key] = mergeIncomeStatementData(
-					earningsData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				earningsData[key] = mergeIncomeStatementData(
-					earningsData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
-				)
-			}
-		}
-
-		return {
-			tableHeaders: tableHeaders.sort((a, b) => b[2] - a[2]),
-			feesData,
-			costOfRevenueData,
-			revenueData,
-			incentivesData,
-			holdersRevenueData,
-			feesByLabels: props.incomeStatement?.labelsByType?.df ?? [],
-			costOfRevenueByLabels: props.incomeStatement?.labelsByType?.dssr ?? [],
-			revenueByLabels: props.incomeStatement?.labelsByType?.dr ?? [],
-			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? [],
-			earningsData
-		}
-	}, [groupBy, props.incomeStatement, feesSettings])
-
-	return (
-		<div className="col-span-full flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-			<div className="flex flex-wrap items-center justify-between gap-1">
-				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="income-statement">
-					Income Statement for {props.name}
-					<a
-						aria-hidden="true"
-						tabIndex={-1}
-						href="#income-statement"
-						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
-					/>
-					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-				</h2>
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{incomeStatementGroupByOptions.map((groupOption) => (
-						<button
-							key={`income-statement-${groupOption}`}
-							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-							data-active={groupOption === groupBy}
-							onClick={() => {
-								setGroupBy(groupOption)
-							}}
-						>
-							{groupOption}
-						</button>
-					))}
-				</div>
-			</div>
-			<div className="relative overflow-x-auto">
-				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
-					<img
-						src="/icons/defillama-dark-neutral.webp"
-						alt="defillama"
-						height={40}
-						width={155}
-						className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
-					/>
-					<img
-						src="/icons/defillama-light-neutral.webp"
-						alt="defillama"
-						height={40}
-						width={155}
-						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
-					/>
-				</div>
-				<table className="z-10 w-full border-collapse">
-					<thead>
-						<tr>
-							<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10"></th>
-							{tableHeaders.map((header, i) => (
-								<th
-									key={`${props.name}-${groupBy}-income-statement-${header[0]}`}
-									className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{i === 0 ? (
-										<span className="-mr-2 flex items-center justify-start gap-1">
-											<span className="overflow-hidden text-ellipsis whitespace-nowrap">{header[1]}</span>
-											<Tooltip
-												content={`Current ${groupBy.toLowerCase()} data is incomplete`}
-												className="text-xs text-(--error)"
-											>
-												*
-											</Tooltip>
-										</span>
-									) : (
-										header[1]
-									)}
-								</th>
-							))}
-						</tr>
-					</thead>
-					<tbody>
-						<IncomeStatementByLabel
-							protocolName={props.name}
-							groupBy={groupBy}
-							data={feesData}
-							dataType="fees"
-							label="Gross Protocol Revenue"
-							methodology={props.fees?.methodology ?? ''}
-							tableHeaders={tableHeaders}
-							breakdownByLabels={feesByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Fees'] ?? {}}
-						/>
-						<IncomeStatementByLabel
-							protocolName={props.name}
-							groupBy={groupBy}
-							data={costOfRevenueData}
-							dataType="cost of revenue"
-							label="Cost of Revenue"
-							methodology={props.supplySideRevenue?.methodology ?? ''}
-							tableHeaders={tableHeaders}
-							breakdownByLabels={costOfRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}}
-						/>
-						<IncomeStatementByLabel
-							protocolName={props.name}
-							groupBy={groupBy}
-							data={revenueData}
-							dataType="revenue"
-							label="Gross Profit"
-							methodology={props.revenue?.methodology ?? ''}
-							tableHeaders={tableHeaders}
-							breakdownByLabels={[]}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Revenue'] ?? {}}
-						/>
-						{props.metrics?.incentives ? (
-							<IncomeStatementByLabel
-								protocolName={props.name}
-								groupBy={groupBy}
-								data={incentivesData}
-								dataType="incentives"
-								label="Incentives"
-								methodology={props.incentives?.methodology ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={[]}
-								methodologyByType={{}}
-							/>
-						) : null}
-						<IncomeStatementByLabel
-							protocolName={props.name}
-							groupBy={groupBy}
-							data={earningsData}
-							dataType="earnings"
-							label="Earnings"
-							methodology={'Gross Profit minus Incentives'}
-							tableHeaders={tableHeaders}
-							breakdownByLabels={[]}
-							methodologyByType={{}}
-						/>
-						<IncomeStatementByLabel
-							protocolName={props.name}
-							groupBy={groupBy}
-							data={holdersRevenueData}
-							dataType="token holders net income"
-							label="Token Holder Net Income"
-							methodology={props.holdersRevenue?.methodology ?? ''}
-							tableHeaders={tableHeaders}
-							breakdownByLabels={holdersRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['HoldersRevenue'] ?? {}}
-						/>
-					</tbody>
-				</table>
-			</div>
-		</div>
-	)
-}
-
-const IncomeStatementByLabel = ({
-	protocolName,
-	groupBy,
-	data,
-	dataType,
-	label,
-	methodology,
-	tableHeaders,
-	breakdownByLabels,
-	methodologyByType
-}: {
-	protocolName: string
-	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
-	data: Record<string, { value: number; 'by-label': Record<string, number> }>
-	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income' | 'cost of revenue'
-	label: string
-	methodology: string
-	tableHeaders: [string, string, number][]
-	breakdownByLabels: string[]
-	methodologyByType: Record<string, string>
-}) => {
-	const isEarnings = dataType === 'earnings'
-	return (
-		<>
-			<tr>
-				<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
-					{methodology ? (
-						<Tooltip
-							content={methodology}
-							className="flex items-center justify-start gap-1 underline decoration-black/60 decoration-dotted dark:decoration-white/60"
-						>
-							{label}
-							<Icon name="help-circle" height={14} width={14} className="relative top-0.25 shrink-0" />
-						</Tooltip>
-					) : (
-						<>{label}</>
-					)}
-				</th>
-				{tableHeaders.map((header, i) => (
-					<td
-						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`overflow-hidden border border-black/10 p-2 text-left font-medium text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
-					>
-						{data[header[0]]?.value == null ? null : i !== 0 && tableHeaders[i + 1] ? (
-							<Tooltip
-								content={
-									<PerformanceTooltipContent
-										currentValue={data[header[0]].value}
-										previousValue={tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]].value : null}
-										groupBy={groupBy}
-										dataType={dataType}
-									/>
-								}
-								className={`justify-start underline decoration-dotted ${isEarnings ? (data[header[0]]?.value >= 0 ? 'decoration-(--success)/60' : 'decoration-(--error)/60') : 'decoration-black/60 dark:decoration-white/60'}`}
-							>
-								{formattedNum(data[header[0]].value, true)}
-							</Tooltip>
-						) : (
-							<>{formattedNum(data[header[0]].value, true)}</>
-						)}
-					</td>
-				))}
-			</tr>
-			{breakdownByLabels.length > 0 ? (
-				<>
-					{breakdownByLabels.map((breakdownlabel) => (
-						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
-							<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
-								{methodologyByType[breakdownlabel] ? (
-									<Tooltip
-										content={methodologyByType[breakdownlabel]}
-										className="flex justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
-									>
-										{breakdownlabel}
-									</Tooltip>
-								) : (
-									<>{breakdownlabel}</>
-								)}
-							</th>
-							{tableHeaders.map((header, i) => (
-								<td
-									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
-									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
-									  tableHeaders[i + 1] &&
-									  data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] ? (
-										<Tooltip
-											content={
-												<PerformanceTooltipContent
-													currentValue={data[header[0]]['by-label']?.[breakdownlabel]}
-													previousValue={
-														tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] : null
-													}
-													groupBy={groupBy}
-													dataType={dataType}
-												/>
-											}
-											className="justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
-										>
-											{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}
-										</Tooltip>
-									) : (
-										<>{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}</>
-									)}
-								</td>
-							))}
-						</tr>
-					))}
-				</>
-			) : null}
-		</>
-	)
-}
-
-const PerformanceTooltipContent = ({
-	currentValue,
-	previousValue,
-	groupBy,
-	dataType
-}: {
-	currentValue: number
-	previousValue: number
-	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
-	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income' | 'cost of revenue'
-}) => {
-	if (previousValue == null) return null
-	const valueChange = currentValue - previousValue
-	const percentageChange = previousValue !== 0 ? (valueChange / Math.abs(previousValue)) * 100 : 0
-	const percentageChangeText =
-		percentageChange > 0
-			? `+${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
-			: `${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
-	return (
-		<p className="text-xs">
-			<span className={`${percentageChange > 0 ? 'text-(--success)' : 'text-(--error)'}`}>
-				{`${percentageChangeText}`}
-			</span>{' '}
-			<span>
-				compared to previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'} total{' '}
-				{dataType}
-			</span>
-		</p>
 	)
 }
 

@@ -77,8 +77,7 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
-				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -356,14 +355,13 @@ export function chainIconUrl(chain) {
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_CDN}/protocols/${
-		x
+	return `${ICONS_CDN}/protocols/${x
 			.trim()
 			.toLowerCase()
 			.replace(/[()'"]/g, '') // Remove parentheses and quotes
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
 			.replace(/[^\w.!&-]/g, '') // Remove any other non-word chars except hyphens, !, & and .
-	}?w=48&h=48`
+		}?w=48&h=48`
 }
 
 /**
@@ -463,7 +461,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 	return adjustedPercentChange
 }
 
-export const capitalizeFirstLetter = (word) => word.charAt(0).toUpperCase() + word.slice(1)
+export const capitalizeFirstLetter = (word) => word ? word.charAt(0).toUpperCase() + word.slice(1) : ''
 
 export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 

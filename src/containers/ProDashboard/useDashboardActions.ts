@@ -15,6 +15,7 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
+	LlamaAIChartConfig,
 	MetricConfig,
 	MultiChartConfig,
 	ProtocolsTableConfig,
@@ -337,6 +338,23 @@ export function useDashboardActions(
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
 
+	const handleAddLlamaAIChart = useCallback(
+		(savedChartId: string, title?: string) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newChart: LlamaAIChartConfig = {
+				id: generateItemId('llamaai-chart', savedChartId),
+				kind: 'llamaai-chart',
+				savedChartId,
+				title,
+				colSpan: 1
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
 	const handleEditItem = useCallback(
 		(itemId: string, newItem: DashboardItemConfig) => {
 			if (isReadOnlyUntilDashboardLoaded) return
@@ -518,6 +536,22 @@ export function useDashboardActions(
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
 
+	const handleTreemapChange = useCallback(
+		(itemId: string, showTreemap: boolean) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			dispatchItemsAndSave((prev) =>
+				prev.map((item) => {
+					if (item.id === itemId && item.kind === 'multi') {
+						return { ...item, showTreemap }
+					}
+					return item
+				})
+			)
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
 	const handleHideOthersChange = useCallback(
 		(itemId: string, hideOthers: boolean) => {
 			if (isReadOnlyUntilDashboardLoaded) return
@@ -676,6 +710,7 @@ export function useDashboardActions(
 		handleAddMultiChart,
 		handleAddText,
 		handleAddChartBuilder,
+		handleAddLlamaAIChart,
 		handleEditItem,
 		handleRemoveItem,
 		handleAddMetric,
@@ -687,6 +722,7 @@ export function useDashboardActions(
 		handleCumulativeChange,
 		handlePercentageChange,
 		handleStackedChange,
+		handleTreemapChange,
 		handleHideOthersChange,
 		handleChartTypeChange,
 		handleTableFiltersChange,

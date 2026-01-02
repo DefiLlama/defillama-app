@@ -13,11 +13,14 @@ interface ChartControlsProps {
 	dataLength: number
 	showHallmarks: boolean
 	hasHallmarks: boolean
+	showLabels: boolean
+	isScatter: boolean
 	onStackedChange: (stacked: boolean) => void
 	onPercentageChange: (percentage: boolean) => void
 	onCumulativeChange: (cumulative: boolean) => void
 	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter') => void
 	onHallmarksChange: (showHallmarks: boolean) => void
+	onLabelsChange: (showLabels: boolean) => void
 }
 
 export const ChartControls = memo(function ChartControls({
@@ -29,11 +32,14 @@ export const ChartControls = memo(function ChartControls({
 	dataLength,
 	showHallmarks,
 	hasHallmarks,
+	showLabels,
+	isScatter,
 	onStackedChange,
 	onPercentageChange,
 	onCumulativeChange,
 	onGroupingChange,
-	onHallmarksChange
+	onHallmarksChange,
+	onLabelsChange
 }: ChartControlsProps) {
 	if (!displayOptions) return null
 
@@ -48,7 +54,7 @@ export const ChartControls = memo(function ChartControls({
 
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
 
-	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks)
+	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks && !isScatter)
 		return null
 
 	return (
@@ -142,6 +148,25 @@ export const ChartControls = memo(function ChartControls({
 						onHallmarksChange(value === 'Show Hallmarks')
 					}}
 					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
+					labelType="none"
+					triggerProps={{
+						className:
+							'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+					}}
+				/>
+			)}
+
+			{isScatter && (
+				<Select
+					allValues={[
+						{ name: 'Show labels', key: 'Show' },
+						{ name: 'Hide labels', key: 'Hide' }
+					]}
+					selectedValues={showLabels ? 'Show' : 'Hide'}
+					setSelectedValues={(value) => {
+						onLabelsChange(value === 'Show')
+					}}
+					label={showLabels ? 'Labels: On' : 'Labels: Off'}
 					labelType="none"
 					triggerProps={{
 						className:

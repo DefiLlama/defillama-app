@@ -462,15 +462,18 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			return [+date, finalTokens]
 		}) as Array<[number, Record<string, number>]>
 
+		const chainRevProtocols = new Set(REV_PROTOCOLS[slug(metadata.name)] ?? [])
+
 		const chainREV =
-			chainFees && fees
-				? (fees?.protocols?.reduce((acc, curr) => {
-						if (REV_PROTOCOLS[slug(metadata.name)]?.includes(curr.slug)) {
+			chainFees?.total24h == null && chainRevProtocols.size === 0
+				? null
+				: (chainFees?.total24h ?? 0) +
+					(fees?.protocols?.reduce((acc, curr) => {
+						if (chainRevProtocols.has(curr.slug)) {
 							acc += curr.total24h || 0
 						}
 						return acc
-					}, 0) ?? 0) + (chainFees?.total24h ?? 0)
-				: null
+					}, 0) ?? 0)
 
 		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
 

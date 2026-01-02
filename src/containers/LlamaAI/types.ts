@@ -54,5 +54,6 @@ export interface ChartConfiguration {
 		supportsGrouping: boolean
 		defaultStacked?: boolean
 		defaultPercentage?: boolean
+		showLabels?: boolean
 	}
 }

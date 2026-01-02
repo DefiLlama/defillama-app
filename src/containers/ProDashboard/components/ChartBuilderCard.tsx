@@ -15,6 +15,7 @@ import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
 const DEFAULT_SERIES_COLOR = '#3366ff'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
@@ -54,7 +55,7 @@ interface ChartBuilderCardProps {
 			categories: string[]
 			groupBy: 'protocol'
 			limit: number
-			chartType: 'stackedBar' | 'stackedArea' | 'line'
+			chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
 			displayAs: 'timeSeries' | 'percentage'
 			hideOthers?: boolean
 			groupByParent?: boolean
@@ -292,6 +293,33 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		}))
 	}, [chartData, config.displayAs, config.chartType, config.seriesColors, builder.grouping, isTvlChart, seriesColors])
 
+	const treemapData = useMemo(() => {
+		if (!chartData?.series || chartData.series.length === 0) return []
+
+		const resolveColor = (name: string, fallback?: string) => {
+			const override = seriesColors[name]
+			if (override) return override
+			if (fallback && HEX_COLOR_REGEX.test(fallback)) return fallback
+			return DEFAULT_SERIES_COLOR
+		}
+
+		return chartData.series
+			.map((s: any) => {
+				const dataLength = s.data?.length || 0
+				const pointIndex = Math.max(0, dataLength - 2)
+				const value = dataLength > 0 ? s.data[pointIndex]?.[1] || 0 : 0
+
+				return {
+					name: s.name,
+					value: value,
+					itemStyle: {
+						color: resolveColor(s.name, s.color)
+					}
+				}
+			})
+			.filter((item: any) => item.value > 0)
+	}, [chartData, seriesColors])
+
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
 
@@ -412,18 +440,21 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							allValues={[
 								{ name: 'Stacked Bar', key: 'stackedBar' },
 								{ name: 'Stacked Area', key: 'stackedArea' },
-								{ name: 'Line', key: 'line' }
+								{ name: 'Line', key: 'line' },
+								{ name: 'Tree Map', key: 'treemap' }
 							]}
 							selectedValues={config.chartType}
 							setSelectedValues={(value) => {
-								handleChartTypeChange(builder.id, value as 'stackedBar' | 'stackedArea' | 'line')
+								handleChartTypeChange(builder.id, value as 'stackedBar' | 'stackedArea' | 'line' | 'treemap')
 							}}
 							label={
 								config.chartType === 'stackedBar'
 									? 'Stacked Bar'
 									: config.chartType === 'stackedArea'
 										? 'Stacked Area'
-										: 'Line'
+										: config.chartType === 'treemap'
+											? 'Tree Map'
+											: 'Line'
 							}
 							labelType="none"
 							triggerProps={{
@@ -432,7 +463,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							}}
 						/>
 					)}
-					{!isReadOnly && (
+					{!isReadOnly && config.chartType !== 'treemap' && (
 						<Select
 							allValues={[
 								{ name: 'Show absolute ($)', key: '$ Absolute' },
@@ -492,7 +523,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							<ChartExportButton
 								chartInstance={chartInstance}
 								filename={builder.name || config.metric}
-								title={builder.name || `${config.metric} by Protocol`}
+								title={config.chartType === 'treemap' ? undefined : builder.name || `${config.metric} by Protocol`}
 								smol
 								expandLegend
 							/>
@@ -588,141 +619,145 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					<div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)"></div>
 					<p className="text-sm text-(--text-form)">Loading chart...</p>
 				</div>
-			) : chartSeries.length > 0 ? (
+			) : chartSeries.length > 0 || treemapData.length > 0 ? (
 				<Suspense fallback={<div className="min-h-[300px]" />}>
-					<MultiSeriesChart
-						key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}-${config.limit}`}
-						series={chartSeries as any}
-						valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
-						groupBy={
-							builder.grouping === 'week'
-								? 'weekly'
-								: builder.grouping === 'month'
-									? 'monthly'
-									: builder.grouping === 'quarter'
-										? 'quarterly'
-										: 'daily'
-						}
-						hideDataZoom={true}
-						onReady={handleChartReady}
-						chartOptions={{
-							grid: {
-								top: 40,
-								bottom: 12,
-								left: 12,
-								right: 12,
-								outerBoundsMode: 'same',
-								outerBoundsContain: 'axisLabel'
-							},
-							legend: {
-								show: true,
-								top: 0,
-								type: 'scroll',
-								selectedMode: 'multiple',
-								pageButtonItemGap: 5,
-								pageButtonGap: 20,
-								data: chartSeries?.map((s) => s.name) || []
-							},
-							tooltip: {
-								formatter: function (params: any) {
-									const date = new Date(params[0].value[0])
-									const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+					{config.chartType === 'treemap' ? (
+						<TreeMapBuilderChart data={treemapData} height="350px" onReady={handleChartReady} />
+					) : (
+						<MultiSeriesChart
+							key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}-${config.limit}`}
+							series={chartSeries as any}
+							valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
+							groupBy={
+								builder.grouping === 'week'
+									? 'weekly'
+									: builder.grouping === 'month'
+										? 'monthly'
+										: builder.grouping === 'quarter'
+											? 'quarterly'
+											: 'daily'
+							}
+							hideDataZoom={true}
+							onReady={handleChartReady}
+							chartOptions={{
+								grid: {
+									top: 40,
+									bottom: 12,
+									left: 12,
+									right: 12,
+									outerBoundsMode: 'same',
+									outerBoundsContain: 'axisLabel'
+								},
+								legend: {
+									show: true,
+									top: 0,
+									type: 'scroll',
+									selectedMode: 'multiple',
+									pageButtonItemGap: 5,
+									pageButtonGap: 20,
+									data: chartSeries?.map((s) => s.name) || []
+								},
+								tooltip: {
+									formatter: function (params: any) {
+										const date = new Date(params[0].value[0])
+										const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
 
-									let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
-									filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
+										let filteredParams = params.filter((item: any) => item.value[1] !== '-' && item.value[1])
+										filteredParams.sort((a: any, b: any) => Math.abs(b.value[1]) - Math.abs(a.value[1]))
 
-									const formatValue = (value: number) => {
-										if (config.displayAs === 'percentage') {
-											return `${Math.round(value * 100) / 100}%`
+										const formatValue = (value: number) => {
+											if (config.displayAs === 'percentage') {
+												return `${Math.round(value * 100) / 100}%`
+											}
+											const absValue = Math.abs(value)
+											if (absValue >= 1e9) {
+												return '$' + (value / 1e9).toFixed(1) + 'B'
+											} else if (absValue >= 1e6) {
+												return '$' + (value / 1e6).toFixed(1) + 'M'
+											} else if (absValue >= 1e3) {
+												return '$' + (value / 1e3).toFixed(0) + 'K'
+											}
+											return '$' + value.toFixed(0)
 										}
-										const absValue = Math.abs(value)
-										if (absValue >= 1e9) {
-											return '$' + (value / 1e9).toFixed(1) + 'B'
-										} else if (absValue >= 1e6) {
-											return '$' + (value / 1e6).toFixed(1) + 'M'
-										} else if (absValue >= 1e3) {
-											return '$' + (value / 1e3).toFixed(0) + 'K'
+
+										const useTwoColumns = config.limit > 10
+
+										const createItem = (curr: any, nameLength: number = 20) => {
+											let name = curr.seriesName
+											if (name.length > nameLength) {
+												name = name.substring(0, nameLength - 2) + '..'
+											}
+
+											return (
+												'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
+												curr.marker +
+												'<span style="margin-right:4px">' +
+												name +
+												'</span>' +
+												'<span style="margin-left:auto;font-weight:500">' +
+												formatValue(curr.value[1]) +
+												'</span>' +
+												'</div>'
+											)
 										}
-										return '$' + value.toFixed(0)
-									}
 
-									const useTwoColumns = config.limit > 10
+										let content = ''
 
-									const createItem = (curr: any, nameLength: number = 20) => {
-										let name = curr.seriesName
-										if (name.length > nameLength) {
-											name = name.substring(0, nameLength - 2) + '..'
+										if (useTwoColumns) {
+											const midpoint = Math.ceil(filteredParams.length / 2)
+											const leftColumn = filteredParams.slice(0, midpoint)
+											const rightColumn = filteredParams.slice(midpoint)
+
+											const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
+											const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
+
+											content =
+												`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+												`<div>${leftColumnHtml}</div>` +
+												`<div>${rightColumnHtml}</div>` +
+												`</div>`
+										} else {
+											const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
+											content = `<div>${singleColumnHtml}</div>`
 										}
 
 										return (
-											'<div style="display:flex;align-items:center;font-size:11px;line-height:1.4;white-space:nowrap">' +
-											curr.marker +
-											'<span style="margin-right:4px">' +
-											name +
-											'</span>' +
-											'<span style="margin-left:auto;font-weight:500">' +
-											formatValue(curr.value[1]) +
-											'</span>' +
-											'</div>'
-										)
-									}
-
-									let content = ''
-
-									if (useTwoColumns) {
-										const midpoint = Math.ceil(filteredParams.length / 2)
-										const leftColumn = filteredParams.slice(0, midpoint)
-										const rightColumn = filteredParams.slice(midpoint)
-
-										const leftColumnHtml = leftColumn.map((item: any) => createItem(item, 15)).join('')
-										const rightColumnHtml = rightColumn.map((item: any) => createItem(item, 15)).join('')
-
-										content =
-											`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
-											`<div>${leftColumnHtml}</div>` +
-											`<div>${rightColumnHtml}</div>` +
+											`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
+											`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
+											content +
 											`</div>`
-									} else {
-										const singleColumnHtml = filteredParams.map((item: any) => createItem(item, 20)).join('')
-										content = `<div>${singleColumnHtml}</div>`
-									}
-
-									return (
-										`<div style="max-width:${useTwoColumns ? '400px' : '300px'}">` +
-										`<div style="font-size:12px;margin-bottom:4px;font-weight:500">${chartdate}</div>` +
-										content +
-										`</div>`
-									)
+										)
+									},
+									confine: true
 								},
-								confine: true
-							},
-							yAxis:
-								config.displayAs === 'percentage'
-									? {
-											max: 100,
-											min: 0,
-											axisLabel: {
-												formatter: '{value}%'
-											}
-										}
-									: {
-											type: 'value',
-											axisLabel: {
-												formatter: (value: number) => {
-													const absValue = Math.abs(value)
-													if (absValue >= 1e9) {
-														return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
-													} else if (absValue >= 1e6) {
-														return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
-													} else if (absValue >= 1e3) {
-														return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
-													}
-													return '$' + value.toFixed(0)
+								yAxis:
+									config.displayAs === 'percentage'
+										? {
+												max: 100,
+												min: 0,
+												axisLabel: {
+													formatter: '{value}%'
 												}
 											}
-										}
-						}}
-					/>
+										: {
+												type: 'value',
+												axisLabel: {
+													formatter: (value: number) => {
+														const absValue = Math.abs(value)
+														if (absValue >= 1e9) {
+															return '$' + (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B'
+														} else if (absValue >= 1e6) {
+															return '$' + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+														} else if (absValue >= 1e3) {
+															return '$' + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+														}
+														return '$' + value.toFixed(0)
+													}
+												}
+											}
+							}}
+						/>
+					)}
 				</Suspense>
 			) : (
 				<div className="flex flex-1 flex-col items-center justify-center">
