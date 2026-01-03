@@ -249,3 +249,100 @@ export async function getRWAChainsList(): Promise<string[]> {
 
 	return Array.from(chains)
 }
+
+export interface IRWAAssetData extends IRWAProject {
+	slug: string
+}
+
+export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
+	try {
+		const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+
+		// Find the asset by comparing ticker slugs
+		for (const rwaId in data) {
+			const item = data[rwaId]
+			if (slug(item.ticker) === assetSlug) {
+				let totalOnChainTvl = 0
+				let totalDeFiActiveTvl = 0
+				const onChainTvlBreakdown = item.onChainMarketcap ?? {}
+				const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
+				const finalOnChainTvlBreakdown: Record<string, number> = {}
+				const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
+
+				for (const chain in onChainTvlBreakdown) {
+					const value = Number(onChainTvlBreakdown[chain])
+					finalOnChainTvlBreakdown[chain] = (finalOnChainTvlBreakdown[chain] || 0) + value
+					totalOnChainTvl += value
+				}
+
+				for (const chain in defiActiveTvlBreakdown) {
+					for (const protocolName in defiActiveTvlBreakdown[chain]) {
+						const value = Number(defiActiveTvlBreakdown[chain][protocolName])
+						finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
+						totalDeFiActiveTvl += value
+					}
+				}
+
+				return {
+					slug: assetSlug,
+					ticker: item.ticker,
+					name: item.name,
+					website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
+					twitter: item.twitter,
+					primaryChain: item.primaryChain,
+					chain: item.chain,
+					contracts: item.contracts,
+					category: item.category,
+					assetClass: item.assetClass,
+					type: item.type,
+					rwaClassification: item.rwaClassification,
+					accessModel: item.accessModel,
+					issuer: item.issuer,
+					issuerSourceLink: item.issuerSourceLink,
+					issuerRegistryInfo:
+						item.issuerRegistryInfo == null
+							? null
+							: Array.isArray(item.issuerRegistryInfo)
+								? item.issuerRegistryInfo
+								: [item.issuerRegistryInfo],
+					isin: item.isin,
+					attestationLinks: item.attestationLinks,
+					attestations: item.attestations,
+					redeemable: item.redeemable,
+					cexListed: item.cexListed,
+					kyc: item.kyc,
+					transferable: item.transferable,
+					selfCustody: item.selfCustody,
+					descriptionNotes: item.descriptionNotes,
+					parentPlatform: item.parentPlatform,
+					stablecoin: item.stablecoin,
+					onChainMarketcap: {
+						total: totalOnChainTvl,
+						breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
+					},
+					defiActiveTvl: {
+						total: totalDeFiActiveTvl,
+						breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
+					}
+				}
+			}
+		}
+
+		return null
+	} catch (error) {
+		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')
+	}
+}
+
+export async function getRWAAssetsList(): Promise<string[]> {
+	const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+	const assets: string[] = []
+
+	for (const rwaId in data) {
+		if (data[rwaId].ticker) {
+			assets.push(slug(data[rwaId].ticker))
+		}
+	}
+
+	return assets
+}

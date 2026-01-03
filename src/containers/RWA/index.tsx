@@ -17,13 +17,14 @@ import { matchSorter } from 'match-sorter'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import useWindowSize from '~/hooks/useWindowSize'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -373,13 +374,28 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				<span className="flex items-center gap-2">
 					<span className="shrink-0">{index + 1}</span>
 					<span className="-my-1.5 flex flex-col overflow-hidden">
-						{info.row.original.name && (
-							<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline">
-								{info.row.original.name}
-							</span>
-						)}
-						{info.row.original.ticker && (
-							<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
+						{info.row.original.ticker ? (
+							<>
+								{info.row.original.name && (
+									<BasicLink
+										href={`/rwa/asset/${slug(info.row.original.ticker)}`}
+										className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+									>
+										{info.row.original.name ?? info.row.original.ticker}
+									</BasicLink>
+								)}
+								{!info.row.original.name ? null : (
+									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
+								)}
+							</>
+						) : (
+							<>
+								{info.row.original.name && (
+									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline">
+										{info.row.original.name}
+									</span>
+								)}
+							</>
 						)}
 					</span>
 				</span>
