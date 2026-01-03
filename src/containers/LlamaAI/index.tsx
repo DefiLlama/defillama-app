@@ -18,6 +18,7 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
+import { ResearchProgress } from './components/ResearchProgress'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
 import { convertLlamaLinksToDefillama } from './utils/entityLinks'
@@ -42,6 +43,24 @@ class StreamingContent {
 	}
 }
 
+/**
+ * Streams a chat response from the backend for a given user question and aggregates the final response.
+ *
+ * Streams server-sent events from the chatbot backend, invokes `onProgress` for incremental updates (tokens, progress, charts, suggestions, etc.), and returns the accumulated response payload when the stream completes.
+ *
+ * @param userQuestion - The user's question/message to send to the chatbot.
+ * @param onProgress - Optional callback invoked for intermediate streaming events. Events may include:
+ *   - `token`: incremental text content.
+ *   - `progress`: status updates and optional `researchProgress` with { iteration, totalIterations, phase, dimensionsCovered, dimensionsPending, discoveries, toolsExecuted }.
+ *   - `session`, `message_id`, `inline_suggestions`, `suggestions`, `charts`, `citations`, `csv_export`, `title`, `error`, `reset`.
+ * @param abortSignal - Optional AbortSignal to cancel the streaming request.
+ * @param sessionId - Optional existing session ID; if omitted a new session will be created server-side.
+ * @param mode - Request mode, either `'auto'` or `'sql_only'`.
+ * @param authorizedFetch - Fetch-like function already configured with authorization to call the backend.
+ * @returns An object containing:
+ *   - `prompt`: the effective prompt string (either the provided `prompt` or `userQuestion`).
+ *   - `response`: an object with `answer` (concatenated streamed tokens) and any of `metadata`, `inlineSuggestions`, `suggestions`, `charts`, `chartData`, `citations`, `csvExports`.
+ */
 async function fetchPromptResponse({
 	prompt,
 	userQuestion,
@@ -81,6 +100,15 @@ async function fetchPromptResponse({
 		title?: string
 		messageId?: string
 		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+		researchProgress?: {
+			iteration: number
+			totalIterations: number
+			phase: string
+			dimensionsCovered: string[]
+			dimensionsPending: string[]
+			discoveries: string[]
+			toolsExecuted: number
+		}
 	}) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
@@ -187,7 +215,7 @@ async function fetchPromptResponse({
 							}
 						} else if (data.type === 'progress') {
 							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'progress', content: data.content, stage: data.stage })
+								onProgress({ type: 'progress', content: data.content, stage: data.stage, researchProgress: data.researchProgress })
 							}
 						} else if (data.type === 'session') {
 							if (onProgress && !abortSignal?.aborted) {
@@ -321,6 +349,18 @@ interface LlamaAIProps {
 	showDebug?: boolean
 }
 
+/**
+ * Render the LlamaAI chat interface and manage chat sessions, streaming responses, user interactions, and research progress.
+ *
+ * Manages session lifecycle (restore, create, switch, reset), message history pagination, submitting prompts with streaming backend handling,
+ * incremental UI updates for tokens/progress/suggestions/charts/citations/csv exports, stop/retry behavior, and research progress state.
+ *
+ * @param initialSessionId - Optional session id to open on mount; when provided prevents creating a new session.
+ * @param sharedSession - Optional publicly shared session data to display in read-only mode.
+ * @param readOnly - When true, disable interactive inputs and actions (default: false).
+ * @param showDebug - When true, expose debugging UI such as metadata and research controls (default: false).
+ * @returns The React element for the LlamaAI chat application UI.
+ */
 export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, showDebug = false }: LlamaAIProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
 	const {
@@ -400,6 +440,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [researchState, setResearchState] = useState<{
+		isActive: boolean
+		startTime: number
+		currentIteration: number
+		totalIterations: number
+		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	} | null>(null)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
 		suggestionContext?: any
@@ -417,6 +468,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
+	const researchStartTimeRef = useRef<number | null>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
 	const rafIdRef = useRef<number | null>(null)
@@ -555,6 +607,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							}
 						} else if (data.stage === 'suggestions_loading') {
 							setIsGeneratingSuggestions(true)
+						} else if (data.stage === 'research' && (data as any).researchProgress) {
+							const rp = (data as any).researchProgress
+							if (!researchStartTimeRef.current) {
+								researchStartTimeRef.current = Date.now()
+							}
+							setResearchState({
+								isActive: true,
+								startTime: researchStartTimeRef.current,
+								currentIteration: rp.iteration,
+								totalIterations: rp.totalIterations,
+								phase: rp.phase,
+								dimensionsCovered: rp.dimensionsCovered || [],
+								dimensionsPending: rp.dimensionsPending || [],
+								discoveries: rp.discoveries || [],
+								toolsExecuted: rp.toolsExecuted || 0
+							})
 						}
 					} else if (data.type === 'session' && data.sessionId) {
 						newlyCreatedSessionsRef.current.add(data.sessionId)
@@ -601,6 +669,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
+			setResearchState(null)
+			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
 			lastInputRef.current = null
@@ -641,6 +711,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onError: (error, variables) => {
 			setIsStreaming(false)
+			setResearchState(null)
+			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 
 			const finalContent = streamingContentRef.current.getContent()
@@ -1368,6 +1440,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															messageId: currentMessageId ?? undefined
 														}}
 														streamingCsvExports={streamingCsvExports}
+														researchState={researchState}
 													/>
 												</div>
 											)}
@@ -1892,7 +1965,8 @@ const PromptResponse = memo(function PromptResponse({
 	showMetadata = false,
 	readOnly = false,
 	inlineChartConfig,
-	streamingCsvExports
+	streamingCsvExports,
+	researchState
 }: {
 	response?: {
 		answer: string
@@ -1928,6 +2002,17 @@ const PromptResponse = memo(function PromptResponse({
 		messageId?: string
 	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
+	researchState?: {
+		isActive: boolean
+		startTime: number
+		currentIteration: number
+		totalIterations: number
+		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	} | null
 }) {
 	if (error && canRetry) {
 		return (
@@ -1962,6 +2047,19 @@ const PromptResponse = memo(function PromptResponse({
 						chartData={response?.chartData}
 						inlineChartConfig={inlineChartConfig}
 						csvExports={streamingCsvExports || undefined}
+					/>
+				) : isStreaming && researchState?.isActive ? (
+					<ResearchProgress
+						isActive={researchState.isActive}
+						startTime={researchState.startTime}
+						currentIteration={researchState.currentIteration}
+						totalIterations={researchState.totalIterations}
+						phase={researchState.phase}
+						dimensionsCovered={researchState.dimensionsCovered}
+						dimensionsPending={researchState.dimensionsPending}
+						discoveries={researchState.discoveries}
+						toolsExecuted={researchState.toolsExecuted}
+						progressMessage={progressMessage || ''}
 					/>
 				) : isStreaming && progressMessage ? (
 					<p
