@@ -1,5 +1,5 @@
 import { RWA_ACTIVE_TVLS_API } from '~/constants'
-import { preparePieChartData, slug } from '~/utils'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface IFetchedRWAProject {
@@ -213,12 +213,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			categories: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
-			categoryValues: preparePieChartData({
-				data: Array.from(categories.entries())
-					.sort((a, b) => b[1] - a[1])
-					.map(([name, value]) => ({ name, value })),
-				limit: 4
-			}),
+			categoryValues: Array.from(categories.entries())
+				.sort((a, b) => b[1] - a[1])
+				.map(([name, value]) => ({ name, value })),
 			issuers: Array.from(issuers.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),

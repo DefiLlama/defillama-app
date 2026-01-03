@@ -7,6 +7,7 @@ import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useMedia } from '~/hooks/useMedia'
+import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
 import { formatTooltipValue } from '../useDefaults'
 
@@ -44,6 +45,17 @@ export default function PieChart({
 	const exportTitle = imageExportTitle || title
 
 	const series = useMemo(() => {
+		const total = chartData.reduce((acc, item) => acc + item.value, 0)
+
+		const formatPercent = (value: number) => {
+			if (total === 0) return '0%'
+			const pct = (value / total) * 100
+			if (pct === 0) return '0%'
+			if (pct < 0.0001) return '< 0.0001%'
+			if (pct < 0.01) return formattedNum(pct) + '%'
+			return pct.toFixed(2) + '%'
+		}
+
 		const series: Record<string, any> = {
 			name: '',
 			type: 'pie',
@@ -51,7 +63,7 @@ export default function PieChart({
 				fontFamily: 'sans-serif',
 				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 				formatter: (x) => {
-					return `${x.name}: (${x.percent}%)`
+					return `${x.name}: (${formatPercent(x.value)})`
 				},
 				show: showLegend ? false : true
 			},

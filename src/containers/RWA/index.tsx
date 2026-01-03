@@ -35,6 +35,38 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
+	// Pie chart category selection
+	const allPieCategories = useMemo(() => props.categoryValues.map((c) => c.name), [props.categoryValues])
+	const [selectedPieCategories, setSelectedPieCategories] = useState<string[]>(allPieCategories)
+
+	const pieChartData = useMemo(() => {
+		const selectedSet = new Set(selectedPieCategories)
+		const mainSlices: Array<{ name: string; value: number }> = []
+		let othersValue = 0
+
+		for (const category of props.categoryValues) {
+			if (selectedSet.has(category.name)) {
+				mainSlices.push(category)
+			} else {
+				othersValue += category.value
+			}
+		}
+
+		if (othersValue > 0) {
+			mainSlices.push({ name: 'Others', value: othersValue })
+		}
+
+		return mainSlices
+	}, [props.categoryValues, selectedPieCategories])
+
+	const toggleAllPieCategories = useCallback(() => {
+		setSelectedPieCategories(allPieCategories)
+	}, [allPieCategories])
+
+	const clearAllPieCategories = useCallback(() => {
+		setSelectedPieCategories([])
+	}, [])
+
 	const {
 		selectedCategories,
 		selectedAssetClasses,
@@ -221,12 +253,26 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					</span>
 				</p>
 			</div>
-			<div className="relative isolate flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-				<h2 className="px-3 text-lg font-semibold">Total RWA Value - Repartition</h2>
+			<div className="relative flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
+				<div className="flex items-center justify-between gap-2 px-3">
+					<h2 className="text-lg font-semibold">Total RWA Value - Repartition</h2>
+					<SelectWithCombobox
+						allValues={allPieCategories}
+						selectedValues={selectedPieCategories}
+						setSelectedValues={setSelectedPieCategories}
+						toggleAll={toggleAllPieCategories}
+						clearAll={clearAllPieCategories}
+						label={'Categories'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
+					/>
+				</div>
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<PieChart
-						showLegend
-						chartData={props.categoryValues}
+						chartData={pieChartData}
 						radius={pieChartRadius}
 						legendPosition={pieChartLegendPosition}
 						legendTextStyle={pieChartLegendTextStyle}
