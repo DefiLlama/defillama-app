@@ -18,6 +18,7 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
+import { ResearchProgress } from './components/ResearchProgress'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
 import { convertLlamaLinksToDefillama } from './utils/entityLinks'
@@ -81,6 +82,15 @@ async function fetchPromptResponse({
 		title?: string
 		messageId?: string
 		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+		researchProgress?: {
+			iteration: number
+			totalIterations: number
+			phase: string
+			dimensionsCovered: string[]
+			dimensionsPending: string[]
+			discoveries: string[]
+			toolsExecuted: number
+		}
 	}) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
@@ -187,7 +197,7 @@ async function fetchPromptResponse({
 							}
 						} else if (data.type === 'progress') {
 							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'progress', content: data.content, stage: data.stage })
+								onProgress({ type: 'progress', content: data.content, stage: data.stage, researchProgress: data.researchProgress })
 							}
 						} else if (data.type === 'session') {
 							if (onProgress && !abortSignal?.aborted) {
@@ -400,6 +410,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [researchState, setResearchState] = useState<{
+		isActive: boolean
+		startTime: number
+		currentIteration: number
+		totalIterations: number
+		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	} | null>(null)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
 		suggestionContext?: any
@@ -417,6 +438,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
+	const researchStartTimeRef = useRef<number | null>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
 	const rafIdRef = useRef<number | null>(null)
@@ -555,6 +577,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							}
 						} else if (data.stage === 'suggestions_loading') {
 							setIsGeneratingSuggestions(true)
+						} else if (data.stage === 'research' && (data as any).researchProgress) {
+							const rp = (data as any).researchProgress
+							if (!researchStartTimeRef.current) {
+								researchStartTimeRef.current = Date.now()
+							}
+							setResearchState({
+								isActive: true,
+								startTime: researchStartTimeRef.current,
+								currentIteration: rp.iteration,
+								totalIterations: rp.totalIterations,
+								phase: rp.phase,
+								dimensionsCovered: rp.dimensionsCovered || [],
+								dimensionsPending: rp.dimensionsPending || [],
+								discoveries: rp.discoveries || [],
+								toolsExecuted: rp.toolsExecuted || 0
+							})
 						}
 					} else if (data.type === 'session' && data.sessionId) {
 						newlyCreatedSessionsRef.current.add(data.sessionId)
@@ -601,6 +639,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
+			setResearchState(null)
+			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
 			lastInputRef.current = null
@@ -641,6 +681,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onError: (error, variables) => {
 			setIsStreaming(false)
+			setResearchState(null)
+			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 
 			const finalContent = streamingContentRef.current.getContent()
@@ -1368,6 +1410,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															messageId: currentMessageId ?? undefined
 														}}
 														streamingCsvExports={streamingCsvExports}
+														researchState={researchState}
 													/>
 												</div>
 											)}
@@ -1892,7 +1935,8 @@ const PromptResponse = memo(function PromptResponse({
 	showMetadata = false,
 	readOnly = false,
 	inlineChartConfig,
-	streamingCsvExports
+	streamingCsvExports,
+	researchState
 }: {
 	response?: {
 		answer: string
@@ -1928,6 +1972,17 @@ const PromptResponse = memo(function PromptResponse({
 		messageId?: string
 	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
+	researchState?: {
+		isActive: boolean
+		startTime: number
+		currentIteration: number
+		totalIterations: number
+		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	} | null
 }) {
 	if (error && canRetry) {
 		return (
@@ -1962,6 +2017,19 @@ const PromptResponse = memo(function PromptResponse({
 						chartData={response?.chartData}
 						inlineChartConfig={inlineChartConfig}
 						csvExports={streamingCsvExports || undefined}
+					/>
+				) : isStreaming && researchState?.isActive ? (
+					<ResearchProgress
+						isActive={researchState.isActive}
+						startTime={researchState.startTime}
+						currentIteration={researchState.currentIteration}
+						totalIterations={researchState.totalIterations}
+						phase={researchState.phase}
+						dimensionsCovered={researchState.dimensionsCovered}
+						dimensionsPending={researchState.dimensionsPending}
+						discoveries={researchState.discoveries}
+						toolsExecuted={researchState.toolsExecuted}
+						progressMessage={progressMessage || ''}
 					/>
 				) : isStreaming && progressMessage ? (
 					<p
