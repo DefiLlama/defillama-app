@@ -23,16 +23,13 @@ function formatTime(seconds: number): string {
 }
 
 function AnimatedDots() {
-	const [dots, setDots] = useState(1)
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setDots((d) => (d % 3) + 1)
-		}, 500)
-		return () => clearInterval(interval)
-	}, [])
-
-	return <span className="inline-block w-4">{'.'.repeat(dots)}</span>
+	return (
+		<span className="inline-flex w-4">
+			<span className="animate-[dot1_1.5s_steps(1)_infinite]">.</span>
+			<span className="animate-[dot2_1.5s_steps(1)_infinite]">.</span>
+			<span className="animate-[dot3_1.5s_steps(1)_infinite]">.</span>
+		</span>
+	)
 }
 
 export const ResearchProgress = memo(function ResearchProgress({
