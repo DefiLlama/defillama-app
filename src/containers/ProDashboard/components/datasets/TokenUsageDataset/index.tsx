@@ -566,13 +566,26 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 										className="border-r border-b border-(--divider) bg-transparent px-2 py-2 font-medium last:border-r-0"
 									>
 										{header.isPlaceholder ? null : (
-											<a
-												style={{ display: 'flex', gap: '4px', cursor: 'pointer' }}
-												onClick={() => header.column.toggleSorting()}
-											>
+											<div style={{ display: 'flex', gap: '4px' }}>
 												{flexRender(header.column.columnDef.header, header.getContext())}
-												{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-											</a>
+												{header.column.getCanSort() && (
+													<SortIcon
+														dir={header.column.getIsSorted()}
+														onClickAsc={(e) => {
+															e.stopPropagation()
+															if (header.column.getIsSorted() !== 'asc') {
+																header.column.toggleSorting(false)
+															}
+														}}
+														onClickDesc={(e) => {
+															e.stopPropagation()
+															if (header.column.getIsSorted() !== 'desc') {
+																header.column.toggleSorting(true)
+															}
+														}}
+													/>
+												)}
+											</div>
 										)}
 									</th>
 								))}
