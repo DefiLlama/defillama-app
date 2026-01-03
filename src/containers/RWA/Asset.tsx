@@ -54,15 +54,23 @@ const SectionCard = ({ title, children }: { title: string; children: React.React
 	</div>
 )
 
-const ChainBadge = ({ chain, isPrimary = false }: { chain: string; isPrimary?: boolean }) => (
+const ChainBadge = ({
+	chain,
+	isPrimary = false,
+	showPrimaryStyle = true
+}: {
+	chain: string
+	isPrimary?: boolean
+	showPrimaryStyle?: boolean
+}) => (
 	<div
 		className={`flex items-center gap-1.5 rounded-md border p-2 ${
-			isPrimary ? 'border-blue-500/30 bg-blue-500/10' : 'border-(--cards-border) bg-(--cards-bg)'
+			isPrimary && showPrimaryStyle ? 'border-blue-500/30 bg-blue-500/10' : 'border-(--cards-border) bg-(--cards-bg)'
 		}`}
 	>
 		<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
 		<span className="text-sm font-medium">{chain}</span>
-		{isPrimary && <span className="ml-auto text-[10px] text-(--text-disabled)">Primary</span>}
+		{isPrimary && showPrimaryStyle && <span className="ml-auto text-[10px] text-(--text-disabled)">Primary</span>}
 	</div>
 )
 
@@ -208,7 +216,11 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							/>
 							<ClassificationItem
 								label="KYC Required"
-								positive={asset.kyc === true || (Array.isArray(asset.kyc) && asset.kyc.length > 0)}
+								positive={
+									asset.kyc == null
+										? undefined
+										: asset.kyc === true || (Array.isArray(asset.kyc) && asset.kyc.length > 0)
+								}
 								description="Required to mint and redeem"
 							/>
 							<ClassificationItem
@@ -291,10 +303,17 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									</div>
 								)}
 								<div>
-									<span className="text-xs text-(--text-label)">Available on {asset.chain.length} chains</span>
+									<span className="text-xs text-(--text-label)">
+										Available on {asset.chain.length} {asset.chain.length === 1 ? 'chain' : 'chains'}
+									</span>
 									<div className="mt-1 grid grid-cols-2 gap-1.5">
 										{asset.chain.map((chain) => (
-											<ChainBadge key={chain} chain={chain} isPrimary={chain === asset.primaryChain} />
+											<ChainBadge
+												key={chain}
+												chain={chain}
+												isPrimary={chain === asset.primaryChain}
+												showPrimaryStyle={asset.chain!.length > 1}
+											/>
 										))}
 									</div>
 								</div>

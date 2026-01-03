@@ -571,7 +571,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		header: 'KYC',
 		accessorFn: (asset) => asset.kyc,
 		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--error)' : 'text-(--success)'}>
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
