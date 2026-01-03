@@ -12,10 +12,9 @@ interface ClassificationItemProps {
 }
 
 const ClassificationItem = ({ label, value, positive, description }: ClassificationItemProps) => {
-	if (value === undefined && positive === undefined) return null
-	if (value === null && positive === null) return null
+	if (value == null && positive == null) return null
 
-	const isBoolean = positive !== undefined
+	const isBoolean = positive != null
 	const displayValue = isBoolean ? (positive ? 'Yes' : 'No') : value
 
 	return (
