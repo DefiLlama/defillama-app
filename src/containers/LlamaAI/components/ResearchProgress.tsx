@@ -170,7 +170,10 @@ export const ResearchProgress = memo(function ResearchProgress({
 							</span>
 							<ul className="flex max-h-24 flex-col gap-0.5 overflow-y-auto pl-3">
 								{recentDiscoveries.map((discovery, i) => (
-									<li key={i} className="text-xs text-[#666] before:mr-1.5 before:content-['-'] dark:text-[#919296]">
+									<li
+										key={`recent-discovery-${discoveries.length - recentDiscoveries.length + i}`}
+										className="text-xs text-[#666] before:mr-1.5 before:content-['-'] dark:text-[#919296]"
+									>
 										{discovery}
 									</li>
 								))}
