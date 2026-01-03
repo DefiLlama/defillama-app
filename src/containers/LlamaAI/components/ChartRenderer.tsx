@@ -252,7 +252,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
-							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
+							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} hideDownloadButton={true} />
 						</Suspense>
 					)
 				} else {
@@ -322,6 +322,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 							chartData={adaptedChart.data}
 							{...(adaptedChart.props as IChartProps)}
 							connectNulls={true}
+							hideDownloadButton={true}
 						/>
 					</Suspense>
 				)
