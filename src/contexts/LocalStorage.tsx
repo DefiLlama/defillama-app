@@ -6,8 +6,6 @@ import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
 const DEFILLAMA = 'DEFILLAMA'
 export const DARK_MODE = 'DARK_MODE'
 
-export const WALLET_LINK_MODAL = 'wallet-link-modal-shown'
-
 // DEFI
 const POOL2 = 'pool2'
 const STAKING = 'staking'

@@ -5,8 +5,7 @@ import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { resolveUserEmail } from '~/components/Nav/Account'
-import { PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
-import { WALLET_LINK_MODAL } from '~/contexts/LocalStorage'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { formatEthAddress } from '~/utils'
 import { AuthModel } from '~/utils/pocketbase'
 
@@ -20,26 +19,15 @@ interface AccountStatusProps {
 	getPortalSessionUrl: () => Promise<string | null>
 }
 
-const setSeenWalletPrompt = () => {
-	if (typeof window === 'undefined') return
-	window.localStorage.setItem(WALLET_LINK_MODAL, 'true')
-}
-
-const getSeenWalletPrompt = () => {
-	if (typeof window === 'undefined') return false
-	return window.localStorage.getItem(WALLET_LINK_MODAL) === 'true'
-}
-
 export const AccountStatus = ({
 	user,
 	isVerified,
 	isSubscribed,
-	isAuthenticated,
 	onEmailChange,
 	subscription,
 	getPortalSessionUrl
 }: AccountStatusProps) => {
-	const { addWallet, loaders, setPromotionalEmails } = useAuthContext()
+	const { addWallet, loaders, setPromotionalEmails, isAuthenticated } = useAuthContext()
 	const { address } = useAccount()
 	const { signMessageAsync } = useSignMessage()
 	const { openConnectModal } = useConnectModal()
@@ -49,8 +37,6 @@ export const AccountStatus = ({
 	const resolvedEmail = resolveUserEmail(user)
 	const hasEmail = Boolean(resolvedEmail)
 	const hasWallet = Boolean(user?.walletAddress)
-	const hasActiveSubscription = subscription?.status === 'active'
-	const hasSeenWalletPrompt = getSeenWalletPrompt()
 
 	useEffect(() => {
 		if (!isAuthenticated) return
@@ -70,12 +56,10 @@ export const AccountStatus = ({
 
 	const handleCloseWalletLinkModal = useCallback(() => {
 		setIsModalOpen(false)
-		setSeenWalletPrompt()
 	}, [])
 
 	const handleOpenWalletLinkModal = useCallback(() => {
 		setIsModalOpen(true)
-		setSeenWalletPrompt()
 	}, [])
 
 	const handleLinkWallet = useCallback(() => {
@@ -91,17 +75,7 @@ export const AccountStatus = ({
 			.catch(() => {
 				return
 			})
-			.finally(() => {
-				setSeenWalletPrompt()
-			})
 	}, [address, addWallet, openConnectModal, signMessageAsync])
-
-	useEffect(() => {
-		if (!hasActiveSubscription || hasWallet || hasSeenWalletPrompt) return
-
-		setIsModalOpen(true)
-		setSeenWalletPrompt()
-	}, [hasActiveSubscription, hasWallet, hasSeenWalletPrompt])
 
 	return (
 		<>
