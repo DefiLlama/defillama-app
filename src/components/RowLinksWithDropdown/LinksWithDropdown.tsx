@@ -105,7 +105,7 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 			{/* max-height: link height + wrapper padding top + padding bottom */}
 			{linksInRow ? (
 				<div
-					className="flex max-h-[calc(1.5rem+0.5rem)] flex-1 flex-wrap gap-2 overflow-hidden p-1"
+					className="flex max-h-[calc(1.5rem+0.5rem)] flex-1 flex-wrap items-center gap-4 overflow-hidden p-1"
 					id="priority-nav"
 					{...props}
 				>
@@ -141,7 +141,11 @@ export const LinkItem = React.memo(function LinkItem({
 	return (
 		<BasicLink
 			href={option.to}
-			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
+			className={`flex items-center text-xs font-medium whitespace-nowrap text-(--link-text) ${
+				isActive
+					? 'rounded-md bg-(--link-active-bg) px-2.5 py-1 text-white'
+					: 'hover:text-(--link-text) focus-visible:text-(--link-text)'
+			}`}
 			data-active={isActive}
 			{...props}
 		>
