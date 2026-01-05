@@ -10,28 +10,14 @@ import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { RANK_COLUMN_CONFIG } from '~/utils/rankCell'
 import { formatColumnOrder } from '../../utils'
 import { IProtocolRow, IProtocolRowWithCompare } from './types'
 
 const columnHelper = createColumnHelper<IProtocolRow>()
 
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
-	{
-		id: 'rank',
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		id: 'name',
 		header: 'Name',
@@ -947,21 +933,7 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 ]
 
 export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -1113,21 +1085,7 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 ]
 
 export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -1234,21 +1192,7 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 ]
 
 export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Compare',
 		accessorKey: 'compare',
@@ -1419,21 +1363,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 ]
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Name',
 		accessorKey: 'name',

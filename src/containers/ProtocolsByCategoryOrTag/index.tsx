@@ -12,6 +12,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { RANK_COLUMN_CONFIG } from '~/utils/rankCell'
 import { protocolCategories } from './constants'
 import { IProtocolByCategoryOrTagPageData } from './types'
 
@@ -279,22 +280,7 @@ type Column = ColumnDef<ProtocolRow>
 // Base Columns (used by most categories)
 // ============================================================================
 
-const rankColumn: Column = {
-	id: 'rank',
-	header: 'Rank',
-	accessorFn: (protocol) => protocol.name,
-	size: 60,
-	enableSorting: false,
-	cell: ({ row, table }) => {
-		// Only show ranks for top-level protocols (depth 0), not for child protocols
-		if (row.depth > 0) return null
-		const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-		return <span className="font-bold">{index + 1}</span>
-	},
-	meta: {
-		align: 'center' as const
-	}
-}
+const rankColumn: Column = RANK_COLUMN_CONFIG
 
 const nameColumn: Column = {
 	id: 'name',

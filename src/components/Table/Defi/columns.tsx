@@ -9,6 +9,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { formattedNum, formattedPercent, slug, tokenIconUrl, toNiceDayMonthAndYear, toNiceDayMonthYear } from '~/utils'
+import { RANK_COLUMN_CONFIG } from '~/utils/rankCell'
 import { formatColumnOrder } from '../utils'
 import type { AirdropRow, IEmission, IForksRow, IGovernance, ILSDRow } from './types'
 
@@ -16,21 +17,7 @@ const UnconstrainedSmolLineChart = lazy(() =>
 	import('~/components/Charts/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
 )
 export const forksColumn: ColumnDef<IForksRow>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -378,21 +365,7 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 ]
 
 export const governanceColumns: ColumnDef<IGovernance>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Name',
 		accessorKey: 'name',
@@ -479,21 +452,7 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 ]
 
 export const LSDColumn: ColumnDef<ILSDRow>[] = [
-	{
-		header: 'Rank',
-		accessorKey: 'rank',
-		size: 60,
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		}
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		header: 'Name',
 		accessorKey: 'name',

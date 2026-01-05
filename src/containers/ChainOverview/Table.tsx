@@ -29,6 +29,7 @@ import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManag
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
+import { RANK_COLUMN_CONFIG } from '~/utils/rankCell'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -606,22 +607,7 @@ const columnOptions = [
 const columnHelper = createColumnHelper<IProtocol>()
 
 const columns: ColumnDef<IProtocol>[] = [
-	{
-		id: 'rank',
-		header: 'Rank',
-		accessorKey: 'name',
-		enableSorting: false,
-		cell: ({ row, table }) => {
-			// Only show ranks for top-level protocols (depth 0), not for child protocols
-			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
-		},
-		meta: {
-			align: 'center' as const
-		},
-		size: 60
-	},
+	RANK_COLUMN_CONFIG,
 	{
 		id: 'name',
 		header: 'Name',
