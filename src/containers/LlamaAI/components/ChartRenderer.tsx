@@ -11,6 +11,7 @@ import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -303,6 +304,31 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 						</Suspense>
 					)
 				}
+				break
+
+			case 'hbar':
+				const hbarData = adaptedChart.data as Array<[any, number]>
+				const hbarCategories = hbarData.map(([cat]) => cat)
+				const hbarValues = hbarData.map(([, val]) => val)
+				chartContent = (
+					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<HBarChart
+							key={chartKey}
+							categories={hbarCategories}
+							values={hbarValues}
+							valueSymbol={config.valueSymbol || '$'}
+							color={config.series[0]?.styling?.color || '#1f77b4'}
+						/>
+					</Suspense>
+				)
 				break
 
 			case 'line':

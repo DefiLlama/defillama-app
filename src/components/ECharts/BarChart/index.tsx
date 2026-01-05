@@ -31,7 +31,8 @@ export default function BarChart({
 	onReady,
 	enableImageExport,
 	imageExportFilename,
-	imageExportTitle
+	imageExportTitle,
+	orientation = 'vertical'
 }: IBarChartProps) {
 	const id = useId()
 	const shouldEnableExport = enableImageExport ?? (!!title && !hideDownloadButton)
@@ -174,6 +175,8 @@ export default function BarChart({
 		const shouldHideDataZoom =
 			(Array.isArray(series) ? series.every((s) => s.data.length < 2) : series.data.length < 2) || hideDataZoom
 
+		const isHorizontal = orientation === 'horizontal'
+
 		chartInstance.setOption({
 			graphic: {
 				...graphic
@@ -182,7 +185,7 @@ export default function BarChart({
 				...tooltip
 			},
 			grid: {
-				left: 12,
+				left: isHorizontal ? 120 : 12,
 				bottom: shouldHideDataZoom ? 12 : 68,
 				top: 12,
 				right: 12,
@@ -190,12 +193,8 @@ export default function BarChart({
 				outerBoundsContain: 'axisLabel',
 				...grid
 			},
-			xAxis: {
-				...xAxis
-			},
-			yAxis: {
-				...yAxis
-			},
+			xAxis: isHorizontal ? { ...yAxis, type: 'value' } : { ...xAxis },
+			yAxis: isHorizontal ? { ...xAxis, type: 'category' } : { ...yAxis },
 			...(!hideLegend && {
 				legend: {
 					...legend,
@@ -217,7 +216,7 @@ export default function BarChart({
 			chartInstance.dispose()
 			updateExportInstance(null)
 		}
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, updateExportInstance])
+	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, updateExportInstance, orientation])
 
 	useEffect(() => {
 		return () => {

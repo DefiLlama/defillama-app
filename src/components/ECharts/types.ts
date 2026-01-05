@@ -73,6 +73,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 		[stack: string]: string
 	}
 	customComponents?: React.ReactNode
+	orientation?: 'vertical' | 'horizontal'
 }
 
 export interface ILineAndBarChartProps {
