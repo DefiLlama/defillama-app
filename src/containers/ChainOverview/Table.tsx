@@ -612,7 +612,9 @@ const columns: ColumnDef<IProtocol>[] = [
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			// Only show ranks for top-level protocols (depth 0), not for child protocols
+			if (row.depth > 0) return null
+			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
 			return <span className="font-bold">{index + 1}</span>
 		},
 		meta: {
