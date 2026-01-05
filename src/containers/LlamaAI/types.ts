@@ -57,3 +57,11 @@ export interface ChartConfiguration {
 		showLabels?: boolean
 	}
 }
+
+export interface UploadedImage {
+	id: string
+	url: string
+	mimeType: string
+	filename?: string
+	size: number
+}
