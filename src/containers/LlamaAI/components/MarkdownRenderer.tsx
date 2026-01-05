@@ -325,6 +325,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 							<line x1="8" x2="16" y1="12" y2="12" />
 						</svg>
 						<span>Sources</span>
+						<Icon name="chevron-down" height={14} width={14} />
 					</summary>
 					<div className="flex flex-col gap-2.5 pt-2.5">
 						{citations.map((url, index) => (

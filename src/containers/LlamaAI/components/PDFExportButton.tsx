@@ -27,7 +27,8 @@ export const PDFExportButton = memo(function PDFExportButton({
 }: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const [isDark] = useDarkModeManager()
 
 	const loading = loaders.userLoading || isLoading
@@ -117,9 +118,11 @@ export const PDFExportButton = memo(function PDFExportButton({
 					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={14} width={14} />}
 				</button>
 			</Tooltip>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal && (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			)}
 		</>
 	)
 })
