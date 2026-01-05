@@ -94,7 +94,7 @@ export function useDefaults({
 				opacity: 0.3
 			},
 			left: isSmall ? '40%' : '45%',
-			top: '130px'
+			top: 'center'
 		}
 
 		const titleDefaults = title
