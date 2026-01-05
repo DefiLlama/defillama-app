@@ -150,7 +150,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	}, [groupBy, props.incomeStatement, feesSettings])
 
 	// Compute Sankey chart data for the selected period
-	const { sankeyData, sankeyPeriodOptions } = useMemo(() => {
+	const { sankeyData, sankeyPeriodOptions, validSankeyPeriod } = useMemo(() => {
 		const sankeyGroupKey = sankeyGroupBy.toLowerCase()
 		const sankeyHeaders = [] as [string, string, number][]
 		const sankeyFeesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
@@ -247,15 +247,21 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const sortedSankeyHeaders = sankeyHeaders.sort((a, b) => b[2] - a[2])
 		const periodOptions = sortedSankeyHeaders.map((h) => ({ key: h[0], label: h[1] }))
 
-		if (sortedSankeyHeaders.length === 0) return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: [] }
+		if (sortedSankeyHeaders.length === 0)
+			return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: [], validSankeyPeriod: null }
 
-		// Use selected period or default to most recent complete period (index 1, since 0 is incomplete)
-		const periodKey = selectedSankeyPeriod ?? sortedSankeyHeaders[1]?.[0] ?? sortedSankeyHeaders[0]?.[0]
+		// Use selected period if it's valid for current grouping, otherwise default to most recent complete period (index 1, since 0 is incomplete)
+		const validSelectedPeriod =
+			selectedSankeyPeriod && sortedSankeyHeaders.some((h) => h[0] === selectedSankeyPeriod)
+				? selectedSankeyPeriod
+				: null
+		const periodKey = validSelectedPeriod ?? sortedSankeyHeaders[1]?.[0] ?? sortedSankeyHeaders[0]?.[0]
 		const periodLabel =
 			sortedSankeyHeaders.find((h) => h[0] === periodKey)?.[1] ??
 			sortedSankeyHeaders[1]?.[1] ??
 			sortedSankeyHeaders[0]?.[1]
-		if (!periodKey) return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: periodOptions }
+		if (!periodKey)
+			return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: periodOptions, validSankeyPeriod: null }
 
 		const fees = sankeyFeesData[periodKey]?.value ?? 0
 		const costOfRevenue = sankeyCostOfRevenueData[periodKey]?.value ?? 0
@@ -294,6 +300,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
 				description: props.fees?.methodology,
+				displayValue: fees, // Show actual fees value, not sum of flows
 				depth: 1
 			})
 			for (const [label, value] of Object.entries(feesByLabelData)) {
@@ -313,6 +320,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
 				description: props.fees?.methodology,
+				displayValue: fees, // Show actual fees value, not sum of flows
 				depth: 1
 			})
 		}
@@ -322,6 +330,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				name: 'Cost of Revenue',
 				color: COLORS.red,
 				description: props.supplySideRevenue?.methodology,
+				displayValue: costOfRevenue, // Show actual cost of revenue value
 				depth: 2
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
@@ -350,6 +359,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				name: 'Gross Profit',
 				color: COLORS.green,
 				description: props.revenue?.methodology,
+				displayValue: revenue, // Show actual revenue value
 				depth: 2
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: revenue })
@@ -412,7 +422,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 
 		return {
 			sankeyData: { nodes, links, periodLabel },
-			sankeyPeriodOptions: periodOptions
+			sankeyPeriodOptions: periodOptions,
+			validSankeyPeriod: periodKey
 		}
 	}, [
 		sankeyGroupBy,
@@ -610,17 +621,9 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 												key: option.key,
 												name: idx === 0 ? `${option.label} *` : option.label
 											}))}
-											selectedValues={
-												selectedSankeyPeriod ?? sankeyPeriodOptions[1]?.key ?? sankeyPeriodOptions[0]?.key ?? ''
-											}
+											selectedValues={validSankeyPeriod ?? ''}
 											setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
-											label={
-												sankeyPeriodOptions.find(
-													(o) =>
-														o.key ===
-														(selectedSankeyPeriod ?? sankeyPeriodOptions[1]?.key ?? sankeyPeriodOptions[0]?.key)
-												)?.label ?? 'Select Period'
-											}
+											label={sankeyPeriodOptions.find((o) => o.key === validSankeyPeriod)?.label ?? 'Select Period'}
 											labelType="none"
 											triggerProps={{
 												className:
