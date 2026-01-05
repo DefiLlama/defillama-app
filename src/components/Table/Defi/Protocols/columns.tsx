@@ -17,13 +17,26 @@ const columnHelper = createColumnHelper<IProtocolRow>()
 
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		id: 'name',
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
@@ -62,8 +75,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 					) : (
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
-
-					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -935,12 +946,24 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
@@ -979,8 +1002,6 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 					) : (
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
-
-					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -1089,12 +1110,24 @@ export const protocolsColumns: ColumnDef<IProtocolRow>[] = [
 
 export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
@@ -1133,8 +1166,6 @@ export const protocolsOracleColumns: ColumnDef<IProtocolRow>[] = [
 					) : (
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
-
-					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 
@@ -1200,7 +1231,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 	{
 		header: 'Rank',
 		accessorKey: 'rank',
-		size: 80,
+		size: 60,
 		enableSorting: false,
 		cell: ({ row, table }) => {
 			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
@@ -1381,12 +1412,24 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 
 export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span
@@ -1394,7 +1437,6 @@ export const topGainersAndLosersColumns: ColumnDef<IProtocolRow>[] = [
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}

@@ -279,6 +279,21 @@ type Column = ColumnDef<ProtocolRow>
 // Base Columns (used by most categories)
 // ============================================================================
 
+const rankColumn: Column = {
+	id: 'rank',
+	header: 'Rank',
+	accessorFn: (protocol) => protocol.name,
+	size: 60,
+	enableSorting: false,
+	cell: ({ row, table }) => {
+		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		return <span className="font-bold">{index + 1}</span>
+	},
+	meta: {
+		align: 'center' as const
+	}
+}
+
 const nameColumn: Column = {
 	id: 'name',
 	header: 'Name',
@@ -286,7 +301,6 @@ const nameColumn: Column = {
 	enableSorting: false,
 	cell: ({ getValue, row, table }) => {
 		const value = getValue() as string
-		const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 		const Chains = () => (
 			<span className="flex flex-col gap-1">
 				{row.original.chains.map((chain) => (
@@ -320,10 +334,6 @@ const nameColumn: Column = {
 						)}
 					</button>
 				) : null}
-
-				<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-					{index + 1}
-				</span>
 
 				<TokenLogo logo={row.original.logo} data-lgonly />
 
@@ -1050,6 +1060,7 @@ const columns = (
 ): Column[] =>
 	[
 		// Base
+		rankColumn,
 		nameColumn,
 
 		// RWA Asset Class

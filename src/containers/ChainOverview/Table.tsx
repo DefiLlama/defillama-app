@@ -352,7 +352,7 @@ export const ChainProtocolsTable = ({
 		const newColumns = Object.fromEntries(
 			columnOptions.map((column) => [
 				column.key,
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
+				['rank', 'name', 'category'].includes(column.key) ? true : column[key] === newState
 			])
 		)
 
@@ -501,6 +501,7 @@ enum TABLE_PERIODS {
 }
 
 const columnOptions = [
+	{ name: 'Rank', key: 'rank' },
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
@@ -606,13 +607,26 @@ const columnHelper = createColumnHelper<IProtocol>()
 
 const columns: ColumnDef<IProtocol>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'name',
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		},
+		size: 60
+	},
+	{
 		id: 'name',
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
@@ -648,8 +662,6 @@ const columns: ColumnDef<IProtocol>[] = [
 					) : (
 						<Bookmark readableName={value} data-lgonly data-bookmark />
 					)}
-
-					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
@@ -1264,6 +1276,7 @@ const columns: ColumnDef<IProtocol>[] = [
 	})
 ]
 const defaultColumns = JSON.stringify({
+	rank: true,
 	name: true,
 	category: true,
 	tvl: true,

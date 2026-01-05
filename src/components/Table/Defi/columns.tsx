@@ -17,16 +17,25 @@ const UnconstrainedSmolLineChart = lazy(() =>
 )
 export const forksColumn: ColumnDef<IForksRow>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 
 					<BasicLink
@@ -368,12 +377,23 @@ export const emissionsColumns: ColumnDef<IEmission>[] = [
 
 export const governanceColumns: ColumnDef<IGovernance>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
 				<span
 					className="relative flex items-center gap-2"
@@ -399,7 +419,6 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 							)}
 						</button>
 					) : null}
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
 					<BasicLink
 						href={`/governance/${slug(getValue() as string)}`}
@@ -457,16 +476,28 @@ export const bridgedChainColumns: ColumnDef<any>[] = [
 
 export const LSDColumn: ColumnDef<ILSDRow>[] = [
 	{
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row, table }) => {
+			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span> <TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo logo={row.original.logo} data-lgonly />
 					<BasicLink
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
