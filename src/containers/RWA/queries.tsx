@@ -9,7 +9,7 @@ interface IFetchedRWAProject {
 	twitter: string | null
 	primaryChain: string | null
 	chain: string[] | null
-	contracts: string[] | null
+	contracts: Record<string, Array<string>> | null
 	category: string[] | null
 	assetClass: string[] | null
 	type: string | null

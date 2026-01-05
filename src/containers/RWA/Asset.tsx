@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -101,12 +102,6 @@ const ContractItem = ({ chain, address }: { chain: string; address: string }) =>
 }
 
 export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
-	// Parse contracts - they come as "chain:address" format
-	const parsedContracts = (asset.contracts ?? []).map((contract) => {
-		const [chain, address] = contract.split(':')
-		return { chain: chain || 'Unknown', address: address || contract }
-	})
-
 	// Get attestation links as array
 	const attestationLinks = asset.attestationLinks
 		? Array.isArray(asset.attestationLinks)
@@ -247,11 +242,19 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</SectionCard>
 
 					{/* Contracts */}
-					{parsedContracts.length > 0 && (
+					{asset.contracts && (
 						<SectionCard title="Contracts">
 							<div className="grid grid-cols-2 gap-2">
-								{parsedContracts.map((contract, idx) => (
-									<ContractItem key={idx} chain={contract.chain} address={contract.address} />
+								{Object.entries(asset.contracts).map(([chain, contracts]) => (
+									<Fragment key={`${asset.name}-contracts-${chain}`}>
+										{contracts.map((contract) => (
+											<ContractItem
+												key={`${asset.name}-contract-${chain}-${contract}`}
+												chain={chain}
+												address={contract}
+											/>
+										))}
+									</Fragment>
 								))}
 							</div>
 						</SectionCard>
