@@ -1,7 +1,7 @@
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
@@ -9,6 +9,8 @@ import { useDebounce } from '~/hooks/useDebounce'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+
+const SEARCH_PAGE_SIZE = 20
 
 async function getDefaultSearchList() {
 	try {
@@ -18,7 +20,27 @@ async function getDefaultSearchList() {
 		throw new Error(error instanceof Error ? error.message : 'Unknown error')
 	}
 }
-async function fetchSearchList(query: string) {
+
+interface SearchQueryBody {
+	indexUid: string
+	limit: number
+	offset: number
+	q: string
+	filter?: string[][]
+}
+
+async function fetchSearchList(query: string, offset: number = 0, filterType?: SearchFilter) {
+	const queryBody: SearchQueryBody = {
+		indexUid: 'pages',
+		limit: SEARCH_PAGE_SIZE,
+		offset: offset,
+		q: query
+	}
+
+	if (filterType && filterType !== 'all') {
+		queryBody.filter = [[`type = "${filterType}"`]]
+	}
+
 	const response: Array<ISearchItem> = await fetch('https://search.defillama.com/multi-search', {
 		method: 'POST',
 		headers: {
@@ -26,14 +48,7 @@ async function fetchSearchList(query: string) {
 			Authorization: `Bearer ee4d49e767f84c0d1c4eabd841e015f02d403e5abf7ea2a523827a46b02d5ad5`
 		},
 		body: JSON.stringify({
-			queries: [
-				{
-					indexUid: 'pages',
-					limit: 20,
-					offset: 0,
-					q: query
-				}
-			]
+			queries: [queryBody]
 		})
 	})
 		.then(handleSimpleFetchResponse)
@@ -54,19 +69,158 @@ interface ISearchItem {
 	subName?: string
 }
 
+type SearchFilter = 'all' | 'Protocol' | 'Chain' | 'Category' | 'Stablecoin' | 'Metric' | 'Tool' | 'Tag'
+
+const FILTER_OPTIONS: { value: SearchFilter; label: string }[] = [
+	{ value: 'all', label: 'All' },
+	{ value: 'Chain', label: 'Chains' },
+	{ value: 'Protocol', label: 'Protocols' },
+	{ value: 'Stablecoin', label: 'Stablecoins' },
+	{ value: 'Metric', label: 'Metrics' },
+	{ value: 'Category', label: 'Categories' },
+	{ value: 'Tool', label: 'Tools' },
+	{ value: 'Tag', label: 'Tags' }
+]
+
 const hideLlamaAI = new Set(['/ai'])
 
-export const MobileSearch = () => {
-	const router = useRouter()
-
-	const { hasActiveSubscription } = useAuthContext()
-
+function useSearchUIState(debouncedSearchValue: string) {
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
 
+	const [searchFilter, setSearchFilter] = useState<SearchFilter>('all')
+
+	const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useSearch(
+		debouncedSearchValue,
+		searchFilter
+	)
+	const {
+		data: filteredDefaultData,
+		isLoading: isLoadingFilteredDefault,
+		fetchNextPage: fetchNextFilteredDefault,
+		hasNextPage: hasNextFilteredDefault,
+		isFetchingNextPage: isFetchingNextFilteredDefault
+	} = useFilteredDefaultResults(searchFilter)
+
+	const filteredResults = useMemo(() => {
+		if (!data?.pages) return []
+		return data.pages.flat()
+	}, [data])
+
+	const filteredDefaultResults = useMemo(() => {
+		if (debouncedSearchValue) return []
+
+		if (searchFilter === 'all') {
+			return defaultSearchList || []
+		}
+
+		if (filteredDefaultData?.pages) {
+			return filteredDefaultData.pages.flat()
+		}
+
+		if (!defaultSearchList?.length) return []
+		return defaultSearchList.filter((item) => item.type === searchFilter)
+	}, [defaultSearchList, searchFilter, filteredDefaultData, debouncedSearchValue])
+
+	const filteredRecentResults = useMemo(() => {
+		if (!recentSearchList?.length) return []
+		if (searchFilter === 'all') return recentSearchList
+		return recentSearchList.filter((item) => item.type === searchFilter)
+	}, [recentSearchList, searchFilter])
+
+	const hasMoreResults = debouncedSearchValue ? hasNextPage : searchFilter !== 'all' && hasNextFilteredDefault
+
+	const fetchMoreResults = debouncedSearchValue ? fetchNextPage : fetchNextFilteredDefault
+	const isFetchingMore = debouncedSearchValue ? isFetchingNextPage : isFetchingNextFilteredDefault
+
+	return {
+		searchFilter,
+		setSearchFilter,
+		filteredResults,
+		filteredDefaultResults,
+		filteredRecentResults,
+		isLoading,
+		error,
+		fetchNextPage: fetchMoreResults,
+		hasNextPage: hasMoreResults,
+		isFetchingNextPage: isFetchingMore,
+		isLoadingDefaultSearchList,
+		errorDefaultSearchList,
+		isLoadingFilteredDefault
+	}
+}
+
+function SearchFiltersBar({
+	searchFilter,
+	setSearchFilter
+}: {
+	searchFilter: SearchFilter
+	setSearchFilter: (filter: SearchFilter) => void
+}) {
+	return (
+		<div className="flex flex-wrap items-center gap-2 border-b border-(--cards-border) px-2 pt-2 pb-2 lg:px-4">
+			{FILTER_OPTIONS.map((filter) => (
+				<button
+					key={filter.value}
+					onClick={() => setSearchFilter(filter.value)}
+					className={`rounded-md px-2 py-1 text-xs transition-colors ${
+						searchFilter === filter.value
+							? 'bg-(--primary) text-white'
+							: 'bg-(--link-bg) text-(--link-text) hover:bg-(--link-bg-hover)'
+					}`}
+				>
+					{filter.label}
+				</button>
+			))}
+		</div>
+	)
+}
+
+export const MobileSearch = () => {
+	const router = useRouter()
+	const { hasActiveSubscription } = useAuthContext()
 	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
-	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const loadMoreRef = useRef<HTMLDivElement>(null)
+
+	const {
+		searchFilter,
+		setSearchFilter,
+		filteredResults,
+		filteredDefaultResults,
+		filteredRecentResults,
+		isLoading,
+		error,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoadingDefaultSearchList,
+		errorDefaultSearchList,
+		isLoadingFilteredDefault
+	} = useSearchUIState(debouncedSearchValue)
+
+	useEffect(() => {
+		if (!hasNextPage || !scrollContainerRef.current || !loadMoreRef.current) return
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage()
+				}
+			},
+			{
+				root: scrollContainerRef.current,
+				rootMargin: '100px'
+			}
+		)
+
+		observer.observe(loadMoreRef.current)
+
+		return () => {
+			observer.disconnect()
+		}
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
 	return (
 		<>
@@ -112,7 +266,9 @@ export const MobileSearch = () => {
 							</Ariakit.DialogDismiss>
 						</span>
 
-						<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
+						<SearchFiltersBar searchFilter={searchFilter} setSearchFilter={setSearchFilter} />
+
+						<Ariakit.ComboboxList ref={scrollContainerRef} className="flex flex-col gap-1 overflow-auto" alwaysVisible>
 							{debouncedSearchValue ? (
 								isLoading ? (
 									<p className="flex items-center justify-center gap-1 p-4">
@@ -121,30 +277,46 @@ export const MobileSearch = () => {
 									</p>
 								) : error ? (
 									<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-								) : !data?.length ? (
+								) : !filteredResults.length ? (
 									<p className="flex items-center justify-center p-4">No results found</p>
 								) : (
-									data.map((route: ISearchItem) => (
-										<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
-									))
+									<>
+										{filteredResults.map((route: ISearchItem) => (
+											<SearchItem key={`global-search-${route.name}-${route.route}`} route={route} />
+										))}
+										{hasNextPage && <div ref={loadMoreRef} className="h-1" />}
+										{isFetchingNextPage && (
+											<p className="flex items-center justify-center gap-1 p-4">
+												Loading more
+												<LoadingDots />
+											</p>
+										)}
+									</>
 								)
-							) : isLoadingDefaultSearchList ? (
+							) : isLoadingDefaultSearchList || isLoadingFilteredDefault ? (
 								<p className="flex items-center justify-center gap-1 p-4">
 									Loading
 									<LoadingDots />
 								</p>
 							) : errorDefaultSearchList ? (
 								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorDefaultSearchList.message}`}</p>
-							) : !defaultSearchList?.length ? (
+							) : !filteredDefaultResults.length && !filteredRecentResults.length ? (
 								<p className="flex items-center justify-center p-4">No results found</p>
 							) : (
 								<>
-									{recentSearchList.map((route: ISearchItem) => (
+									{filteredRecentResults.map((route: ISearchItem) => (
 										<SearchItem key={`global-search-recent-${route.name}-${route.route}`} route={route} recent />
 									))}
-									{defaultSearchList.map((route: ISearchItem) => (
+									{filteredDefaultResults.map((route: ISearchItem) => (
 										<SearchItem key={`global-search-dl-${route.name}-${route.route}`} route={route} />
 									))}
+									{hasNextPage && <div ref={loadMoreRef} />}
+									{isFetchingNextPage && (
+										<p className="flex items-center justify-center gap-1 p-4">
+											Loading more
+											<LoadingDots />
+										</p>
+									)}
 								</>
 							)}
 						</Ariakit.ComboboxList>
@@ -157,11 +329,11 @@ export const MobileSearch = () => {
 
 export const DesktopSearch = () => {
 	const router = useRouter()
-
 	const { hasActiveSubscription } = useAuthContext()
-
 	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
+	const scrollContainerRef = useRef<HTMLDivElement>(null)
+
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
@@ -172,16 +344,51 @@ export const DesktopSearch = () => {
 		}
 
 		window.addEventListener('keydown', focusSearchBar)
-
 		return () => window.removeEventListener('keydown', focusSearchBar)
 	}, [setOpen])
 
-	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
-		useDefaultSearchList()
-
 	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebounce(searchValue, 200)
-	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+
+	const {
+		searchFilter,
+		setSearchFilter,
+		filteredResults,
+		filteredDefaultResults,
+		filteredRecentResults,
+		isLoading,
+		error,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoadingDefaultSearchList,
+		errorDefaultSearchList,
+		isLoadingFilteredDefault
+	} = useSearchUIState(debouncedSearchValue)
+
+	const loadMoreRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!hasNextPage || !scrollContainerRef.current || !loadMoreRef.current) return
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage()
+				}
+			},
+			{
+				root: scrollContainerRef.current,
+				rootMargin: '100px'
+			}
+		)
+
+		observer.observe(loadMoreRef.current)
+
+		return () => {
+			observer.disconnect()
+		}
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
 	return (
 		<>
@@ -224,10 +431,15 @@ export const DesktopSearch = () => {
 					hideOnInteractOutside
 					gutter={6}
 					sameWidth
-					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-auto overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
+					className="max-sm:drawer thin-scrollbar z-10 flex max-h-[min(var(--popover-available-height),60vh)] flex-col overflow-hidden overscroll-contain rounded-b-md border border-t-0 border-(--cards-border) bg-(--cards-bg) max-sm:h-[calc(100dvh-80px)]"
 					portal
 				>
-					<Ariakit.ComboboxList alwaysVisible>
+					<SearchFiltersBar searchFilter={searchFilter} setSearchFilter={setSearchFilter} />
+					<Ariakit.ComboboxList
+						ref={scrollContainerRef}
+						className="thin-scrollbar flex flex-col overflow-auto"
+						alwaysVisible
+					>
 						{debouncedSearchValue ? (
 							isLoading ? (
 								<p className="flex items-center justify-center gap-1 p-4">
@@ -236,30 +448,46 @@ export const DesktopSearch = () => {
 								</p>
 							) : error ? (
 								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-							) : !data?.length ? (
+							) : !filteredResults.length ? (
 								<p className="flex items-center justify-center p-4">No results found</p>
 							) : (
-								data.map((route: ISearchItem) => (
-									<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
-								))
+								<>
+									{filteredResults.map((route: ISearchItem) => (
+										<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
+									))}
+									{hasNextPage && <div ref={loadMoreRef} />}
+									{isFetchingNextPage && (
+										<p className="flex items-center justify-center gap-1 p-4">
+											Loading more
+											<LoadingDots />
+										</p>
+									)}
+								</>
 							)
-						) : isLoadingDefaultSearchList ? (
+						) : isLoadingDefaultSearchList || isLoadingFilteredDefault ? (
 							<p className="flex items-center justify-center gap-1 p-4">
 								Loading
 								<LoadingDots />
 							</p>
 						) : errorDefaultSearchList ? (
 							<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorDefaultSearchList.message}`}</p>
-						) : !defaultSearchList?.length ? (
+						) : !filteredDefaultResults.length && !filteredRecentResults.length ? (
 							<p className="flex items-center justify-center p-4">No results found</p>
 						) : (
 							<>
-								{recentSearchList.map((route: ISearchItem) => (
+								{filteredRecentResults.map((route: ISearchItem) => (
 									<SearchItem key={`gs-r-${route.name}-${route.route}-${route.subName}`} route={route} recent />
 								))}
-								{defaultSearchList.map((route: ISearchItem) => (
+								{filteredDefaultResults.map((route: ISearchItem) => (
 									<SearchItem key={`gs-dl-${route.name}-${route.route}-${route.subName}`} route={route} />
 								))}
+								{hasNextPage && <div ref={loadMoreRef} />}
+								{isFetchingNextPage && (
+									<p className="flex items-center justify-center gap-1 p-4">
+										Loading more
+										<LoadingDots />
+									</p>
+								)}
 							</>
 						)}
 					</Ariakit.ComboboxList>
@@ -371,12 +599,36 @@ const useDefaultSearchList = () => {
 	}
 }
 
-function useSearch(searchValue: string) {
-	return useQuery({
-		queryKey: ['search-list', searchValue],
-		queryFn: () => fetchSearchList(searchValue),
+function useSearch(searchValue: string, filterType: SearchFilter = 'all') {
+	return useInfiniteQuery({
+		queryKey: ['search-list', searchValue, filterType],
+		queryFn: ({ pageParam = 0 }) => fetchSearchList(searchValue, pageParam, filterType),
 		enabled: searchValue.length > 0,
 		staleTime: 5 * 60 * 1000,
-		refetchOnWindowFocus: false
+		refetchOnWindowFocus: false,
+		initialPageParam: 0,
+		getNextPageParam: (lastPage, allPages) => {
+			if (lastPage.length < SEARCH_PAGE_SIZE) {
+				return undefined
+			}
+			return allPages.length * SEARCH_PAGE_SIZE
+		}
+	})
+}
+
+function useFilteredDefaultResults(filterType: SearchFilter) {
+	return useInfiniteQuery({
+		queryKey: ['filtered-default-results', filterType],
+		queryFn: ({ pageParam = 0 }) => fetchSearchList('', pageParam, filterType),
+		enabled: filterType !== 'all',
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		initialPageParam: 0,
+		getNextPageParam: (lastPage, allPages) => {
+			if (lastPage.length < SEARCH_PAGE_SIZE) {
+				return undefined
+			}
+			return allPages.length * SEARCH_PAGE_SIZE
+		}
 	})
 }
