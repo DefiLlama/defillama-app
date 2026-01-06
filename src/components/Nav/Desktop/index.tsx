@@ -184,7 +184,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<div
 					className={`sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg) ${isCollapsed ? 'items-center' : ''}`}
 				>
-					<hr className={`border-black/20 pb-1 dark:border-white/20 ${isCollapsed ? '-ml-1.5' : '-ml-1.5'}`} />
+					<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
 					<Account isCollapsed={isCollapsed} />
 					<ThemeSwitch isCollapsed={isCollapsed} />
 				</div>
