@@ -2060,7 +2060,7 @@ const PromptInput = memo(function PromptInput({
 										data-active={!isResearchMode}
 									/>
 								}
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
 							>
 								<Icon name="sparkles" height={12} width={12} />
 								<span>Quick</span>
@@ -2075,7 +2075,7 @@ const PromptInput = memo(function PromptInput({
 										data-active={isResearchMode}
 									/>
 								}
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
 							>
 								<Icon name="search" height={12} width={12} />
 								<span>Research</span>
@@ -2089,17 +2089,17 @@ const PromptInput = memo(function PromptInput({
 								<button
 									type="button"
 									onClick={() => fileInputRef.current?.click()}
-									className="group flex h-7 w-7 items-center justify-center rounded-sm border border-dashed border-[#9ca3af] text-[#6b7280] transition-all hover:border-solid hover:border-(--old-blue) hover:bg-(--old-blue)/10 hover:text-(--old-blue) active:scale-95 dark:border-[#6b7280] dark:text-[#9ca3af] dark:hover:border-(--old-blue) dark:hover:text-[#78A4E4]"
+									className="group flex h-7 w-7 items-center justify-center rounded-lg border border-[#DEDEDE] hover:bg-(--old-blue)/10 disabled:opacity-25 dark:border-[#2F3336] dark:hover:bg-(--old-blue)/15"
 								/>
 							}
 						>
-							<Icon name="plus" height={14} width={14} />
+							<Icon name="image-plus" height={14} width={14} />
 						</Tooltip>
 						{isStreaming ? (
 							<Tooltip
 								content="Stop"
 								render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-								className="group flex h-7 w-7 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+								className="group flex h-7 w-7 items-center justify-center rounded-lg bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 							>
 								<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 								<span className="sr-only">Stop</span>
@@ -2108,7 +2108,7 @@ const PromptInput = memo(function PromptInput({
 							<button
 								type="submit"
 								data-umami-event="llamaai-prompt-submit"
-								className="flex h-7 w-7 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+								className="flex h-7 w-7 items-center justify-center gap-2 rounded-lg bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 								disabled={isPending || isStreaming}
 							>
 								<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />

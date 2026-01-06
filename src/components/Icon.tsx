@@ -98,6 +98,7 @@ type Name =
 	| 'headset'
 	| 'sheets'
 	| 'eye-off'
+	| 'image-plus'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -105,7 +106,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export const Icon = memo(function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v31.svg#${name}`} />
+			<use href={`/icons/v32.svg#${name}`} />
 		</svg>
 	)
 })
