@@ -46,7 +46,7 @@ export class ChartDataTransformer {
 		})
 	}
 
-	static toStacked(series: any[], chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'): any[] {
+	static toStacked(series: any[], chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar'): any[] {
 		const allTimestamps = new Set<number>()
 		series.forEach((s) => {
 			s.data.forEach(([timestamp]: [number, number]) => allTimestamps.add(timestamp))
