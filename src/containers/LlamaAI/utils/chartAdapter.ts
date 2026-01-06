@@ -15,7 +15,7 @@ const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Arr
 }
 
 interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter'
+	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter' | 'hbar'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
@@ -358,7 +358,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 				tooltip: {
 					confine: false,
 					appendToBody: true,
-					...(config.type === 'bar' &&
+					...((config.type === 'bar' || config.type === 'hbar') &&
 						config.axes.x.type !== 'time' && {
 							formatter: (params: any) => {
 								const value = params[0].value
