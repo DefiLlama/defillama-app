@@ -63,7 +63,8 @@ async function fetchPromptResponse({
 	preResolvedEntities,
 	mode,
 	forceIntent,
-	authorizedFetch
+	authorizedFetch,
+	resume
 }: {
 	prompt?: string
 	userQuestion: string
@@ -109,6 +110,7 @@ async function fetchPromptResponse({
 	mode: 'auto' | 'sql_only'
 	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
+	resume?: boolean
 }) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
 
@@ -117,6 +119,10 @@ async function fetchPromptResponse({
 			message: userQuestion,
 			stream: true,
 			mode: mode
+		}
+
+		if (resume) {
+			requestBody.resume = true
 		}
 
 		if (sessionId) {
@@ -487,6 +493,73 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [sharedSession, resetScrollState])
 
+	const reconnectToStream = useCallback((sid: string, initialContent: string) => {
+		setIsStreaming(true)
+		setStreamingResponse(initialContent)
+
+		fetchPromptResponse({
+			userQuestion: '',
+			sessionId: sid,
+			mode: 'auto',
+			resume: true,
+			authorizedFetch,
+			onProgress: (data) => {
+				if (data.type === 'token') {
+					setStreamingResponse(prev => prev + data.content)
+				} else if (data.type === 'progress') {
+					setProgressMessage(data.content || '')
+					if (data.stage) setProgressStage(data.stage)
+					if (data.stage === 'research' && (data as any).researchProgress) {
+						const rp = (data as any).researchProgress
+						const serverStartTime = (data as any).startedAt ? new Date((data as any).startedAt).getTime() : null
+						if (!researchStartTimeRef.current || serverStartTime) {
+							researchStartTimeRef.current = serverStartTime || Date.now()
+						}
+						setResearchState({
+							isActive: true,
+							startTime: researchStartTimeRef.current,
+							currentIteration: rp.iteration,
+							totalIterations: rp.totalIterations,
+							phase: rp.phase,
+							dimensionsCovered: rp.dimensionsCovered || [],
+							dimensionsPending: rp.dimensionsPending || [],
+							discoveries: rp.discoveries || [],
+							toolsExecuted: rp.toolsExecuted || 0
+						})
+					}
+				} else if (data.type === 'suggestions' && data.suggestions) {
+					setStreamingSuggestions(data.suggestions)
+				} else if (data.type === 'charts' && data.charts) {
+					setStreamingCharts(data.charts)
+					if (data.chartData) setStreamingChartData(data.chartData)
+				} else if (data.type === 'citations' && data.citations) {
+					setStreamingCitations(data.citations)
+				} else if (data.type === 'error') {
+					setIsStreaming(false)
+					setStreamingError(data.content || 'Generation failed')
+				} else if (data.type === 'title') {
+					updateSessionTitle({ sessionId: sid, title: data.title || data.content })
+				}
+			}
+		}).then((result) => {
+			setIsStreaming(false)
+			if (result?.response) {
+				setMessages(prev => [...prev, {
+					role: 'assistant',
+					content: result.response.answer,
+					charts: result.response.charts,
+					chartData: result.response.chartData,
+					suggestions: result.response.suggestions,
+					citations: result.response.citations,
+					timestamp: Date.now()
+				}])
+			}
+		}).catch((err) => {
+			console.log('Reconnect stream error:', err)
+			setIsStreaming(false)
+		})
+	}, [authorizedFetch])
+
 	useEffect(() => {
 		if (
 			sessionId &&
@@ -500,15 +573,29 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			resetScrollState()
 			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
-				.then((result) => {
+				.then((result: any) => {
 					setMessages(result.messages)
 					setPaginationState(result.pagination)
+
+					if (result.streaming?.status === 'streaming') {
+						reconnectToStream(sessionId, result.streaming.content || '')
+					} else if (result.streaming?.status === 'completed' && result.streaming.result) {
+						setMessages(prev => [...prev, {
+							role: 'assistant',
+							content: result.streaming.result.response,
+							charts: result.streaming.result.charts,
+							chartData: result.streaming.result.chartData,
+							suggestions: result.streaming.result.suggestions,
+							citations: result.streaming.result.citations,
+							timestamp: Date.now()
+						}])
+					}
 				})
 				.catch((error) => {
 					console.log('Failed to restore session:', error)
 				})
 		}
-	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState, isStreaming])
+	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState, isStreaming, reconnectToStream])
 
 	const {
 		data: promptResponse,
