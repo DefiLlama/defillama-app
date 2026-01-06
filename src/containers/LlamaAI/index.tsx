@@ -1955,7 +1955,10 @@ const PromptInput = memo(function PromptInput({
 				{selectedImages.length > 0 && (
 					<div className="flex flex-wrap gap-2">
 						{selectedImages.map((file, idx) => (
-							<div key={idx} className="relative h-20 w-20 overflow-hidden rounded-lg">
+							<div
+								key={`selected-image-${URL.createObjectURL(file)}`}
+								className="relative h-20 w-20 overflow-hidden rounded-lg"
+							>
 								<img src={URL.createObjectURL(file)} alt={file.name} className="h-full w-full object-cover" />
 								<button
 									type="button"
@@ -2427,9 +2430,9 @@ const SentPrompt = memo(function SentPrompt({
 		<div className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{images && images.length > 0 && (
 				<div className="mb-2 flex flex-wrap gap-2">
-					{images.map((img, idx) => (
+					{images.map((img) => (
 						<img
-							key={idx}
+							key={`sent-prompt-image-${img.url}`}
 							src={img.url}
 							alt={img.filename || 'Uploaded image'}
 							className="max-h-48 max-w-full rounded-lg object-contain"
