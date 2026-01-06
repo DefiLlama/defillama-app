@@ -11,10 +11,12 @@ import { LinkToPage, NavItemContent } from './shared'
 
 export const PinnedPages = React.memo(function PinnedPages({
 	pinnedPages,
-	asPath
+	asPath,
+	isCollapsed = false
 }: {
 	pinnedPages: Array<TNavLink>
 	asPath: string
+	isCollapsed?: boolean
 }) {
 	const [isReordering, setIsReordering] = React.useState(false)
 
@@ -48,24 +50,30 @@ export const PinnedPages = React.memo(function PinnedPages({
 
 	return (
 		<div className="group/pinned flex flex-col">
-			<div
-				className="group flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65"
-				data-reordering={isReordering}
-			>
-				<span>Pinned Pages</span>
-				{pinnedPages.length > 1 ? (
-					<button
-						type="button"
-						className={`inline-flex rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${
-							isReordering ? '' : 'invisible group-focus-within/pinned:visible group-hover/pinned:visible'
-						}`}
-						onClick={() => setIsReordering((value) => !value)}
+			{!isCollapsed && (
+				<>
+					<div
+						className="group flex items-center justify-between gap-3 rounded-md pt-1.5 text-xs opacity-65 transition-opacity duration-300"
+						data-reordering={isReordering}
 					>
-						{isReordering ? 'Done' : 'Reorder'}
-					</button>
-				) : null}
-			</div>
-			{isReordering ? <p className="text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p> : null}
+						<span>Pinned Pages</span>
+						{pinnedPages.length > 1 ? (
+							<button
+								type="button"
+								className={`inline-flex rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${
+									isReordering ? '' : 'invisible group-focus-within/pinned:visible group-hover/pinned:visible'
+								}`}
+								onClick={() => setIsReordering((value) => !value)}
+							>
+								{isReordering ? 'Done' : 'Reorder'}
+							</button>
+						) : null}
+					</div>
+					{isReordering ? (
+						<p className="text-[11px] text-(--text-tertiary)">Drag to reorder, click X to unpin</p>
+					) : null}
+				</>
+			)}
 			<DndContext
 				sensors={sensors}
 				onDragEnd={handleDragEnd}
@@ -79,6 +87,7 @@ export const PinnedPages = React.memo(function PinnedPages({
 								page={page}
 								asPath={asPath}
 								isReordering={isReordering}
+								isCollapsed={isCollapsed}
 							/>
 						))}
 					</div>
@@ -91,11 +100,13 @@ export const PinnedPages = React.memo(function PinnedPages({
 export const PinnedPageRow = ({
 	page,
 	asPath,
-	isReordering
+	isReordering,
+	isCollapsed = false
 }: {
 	page: TNavLink
 	asPath: string
 	isReordering: boolean
+	isCollapsed?: boolean
 }) => {
 	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: page.route,
@@ -138,7 +149,14 @@ export const PinnedPageRow = ({
 					</div>
 				</div>
 			) : (
-				<LinkToPage route={page.route} name={page.name} icon={page.icon} attention={page.attention} asPath={asPath} />
+				<LinkToPage
+					route={page.route}
+					name={page.name}
+					icon={page.icon}
+					attention={page.attention}
+					asPath={asPath}
+					isCollapsed={isCollapsed}
+				/>
 			)}
 			<Tooltip
 				content="Unpin from navigation"

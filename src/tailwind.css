@@ -29,6 +29,8 @@
 
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
+	--animate-slideleft: slideleft 300ms ease-out;
+	--animate-slideright: slideright 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
 	--animate-slideup: slideup 300ms ease-out;
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
@@ -87,6 +89,28 @@
 		}
 		100% {
 			transform: rotate(0);
+		}
+	}
+	@keyframes slideleft {
+		0% {
+			transform: translateX(0);
+		}
+		50% {
+			transform: translateX(-2px);
+		}
+		100% {
+			transform: translateX(0);
+		}
+	}
+	@keyframes slideright {
+		0% {
+			transform: translateX(0);
+		}
+		50% {
+			transform: translateX(2px);
+		}
+		100% {
+			transform: translateX(0);
 		}
 	}
 	@keyframes slidein {
@@ -638,7 +662,14 @@
 
 	#__next,
 	#__next > [data-rk] {
-		@apply relative isolate col-span-full grid min-h-full grid-cols-[228px_1fr] lg:gap-4;
+		@apply relative isolate col-span-full grid min-h-full lg:gap-4;
+		grid-template-columns: 228px 1fr;
+		transition: grid-template-columns 0.3s ease-in-out;
+	}
+
+	.sidebar-collapsed #__next,
+	.sidebar-collapsed #__next > [data-rk] {
+		grid-template-columns: 56px 1fr;
 	}
 
 	#__next > *:only-child,
