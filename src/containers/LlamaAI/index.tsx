@@ -1890,26 +1890,36 @@ const PromptInput = memo(function PromptInput({
 				<div className="flex flex-wrap items-center justify-between gap-4 p-0">
 					{showResearchButton && (
 						<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
-							<button
-								type="button"
-								onClick={() => setIsResearchMode(false)}
-								data-umami-event="llamaai-quick-mode-toggle"
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
-								data-active={!isResearchMode}
+							<Tooltip
+								content="Fast responses for most queries"
+								render={
+									<button
+										type="button"
+										onClick={() => setIsResearchMode(false)}
+										data-umami-event="llamaai-quick-mode-toggle"
+										data-active={!isResearchMode}
+									/>
+								}
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
 							>
 								<Icon name="sparkles" height={12} width={12} />
 								<span>Quick</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => setIsResearchMode(true)}
-								data-umami-event="llamaai-research-mode-toggle"
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
-								data-active={isResearchMode}
+							</Tooltip>
+							<Tooltip
+								content="Generate a comprehensive research report with detailed analysis"
+								render={
+									<button
+										type="button"
+										onClick={() => setIsResearchMode(true)}
+										data-umami-event="llamaai-research-mode-toggle"
+										data-active={isResearchMode}
+									/>
+								}
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
 							>
 								<Icon name="search" height={12} width={12} />
 								<span>Research</span>
-							</button>
+							</Tooltip>
 						</div>
 					)}
 					{isStreaming ? (
