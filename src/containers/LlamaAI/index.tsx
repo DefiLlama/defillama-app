@@ -1957,15 +1957,16 @@ const PromptInput = memo(function PromptInput({
 						{selectedImages.map((file, idx) => (
 							<div
 								key={`selected-image-${URL.createObjectURL(file)}`}
-								className="relative h-20 w-20 overflow-hidden rounded-lg"
+								className="relative h-16 w-16 overflow-hidden rounded-lg"
 							>
 								<img src={URL.createObjectURL(file)} alt={file.name} className="h-full w-full object-cover" />
 								<button
 									type="button"
 									onClick={() => removeImage(idx)}
-									className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+									className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
 								>
-									×
+									<Icon name="x" height={12} width={12} />
+									<span className="sr-only">Remove image</span>
 								</button>
 							</div>
 						))}
