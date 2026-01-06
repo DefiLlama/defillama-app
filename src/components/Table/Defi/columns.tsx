@@ -21,11 +21,10 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		accessorKey: 'rank',
 		size: 60,
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			// Only show ranks for top-level protocols (depth 0), not for child protocols
 			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
+			return <span className="font-bold">{row.index + 1}</span>
 		},
 		meta: {
 			align: 'center' as const
@@ -383,11 +382,10 @@ export const governanceColumns: ColumnDef<IGovernance>[] = [
 		accessorKey: 'rank',
 		size: 60,
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			// Only show ranks for top-level protocols (depth 0), not for child protocols
 			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
+			return <span className="font-bold">{row.index + 1}</span>
 		},
 		meta: {
 			align: 'center' as const
@@ -484,11 +482,10 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'rank',
 		size: 60,
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			// Only show ranks for top-level protocols (depth 0), not for child protocols
 			if (row.depth > 0) return null
-			const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
-			return <span className="font-bold">{index + 1}</span>
+			return <span className="font-bold">{row.index + 1}</span>
 		},
 		meta: {
 			align: 'center' as const

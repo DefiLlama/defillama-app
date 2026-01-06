@@ -233,14 +233,26 @@ interface CoinPerformanceRow {
 
 const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Coin',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<span className="relative flex items-center gap-2">
-					<span>{index + 1}.</span>
 					<BasicLink
 						href={`https://www.coingecko.com/en/coins/${row.original.id}`}
 						target="_blank"
@@ -285,15 +297,26 @@ const CoinPerformanceColumn: ColumnDef<CoinPerformanceRow>[] = [
 
 const CategoryPerformanceColumn: ColumnDef<CategoryPerformanceRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Category',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
 					{['bitcoin', 'ethereum', 'solana'].includes(row.original.id) ? (
 						<BasicLink
 							href={`https://www.coingecko.com/en/coins/${row.original.id}`}

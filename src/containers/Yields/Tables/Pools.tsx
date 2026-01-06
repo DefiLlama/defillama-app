@@ -15,17 +15,29 @@ const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% f
 
 const columns: ColumnDef<IYieldTableRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+		cell: ({ getValue, row }) => {
 			return (
 				<NameYieldPool
 					value={getValue() as string}
 					configID={row.original.configID}
 					url={row.original.url}
-					index={index + 1}
 					poolMeta={row.original.poolMeta}
 				/>
 			)
@@ -437,6 +449,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 // values: table columns order
 const columnOrders = {
 	0: [
+		'rank',
 		'pool',
 		'apy',
 		'apyIncludingLsdApy',
@@ -463,6 +476,7 @@ const columnOrders = {
 		'totalAvailableUsd'
 	],
 	400: [
+		'rank',
 		'pool',
 		'project',
 		'apy',
@@ -489,6 +503,7 @@ const columnOrders = {
 		'totalAvailableUsd'
 	],
 	640: [
+		'rank',
 		'pool',
 		'project',
 		'tvl',
@@ -515,6 +530,7 @@ const columnOrders = {
 		'totalAvailableUsd'
 	],
 	1280: [
+		'rank',
 		'pool',
 		'project',
 		'chains',
@@ -544,6 +560,7 @@ const columnOrders = {
 
 const columnSizes = {
 	0: {
+		rank: 60,
 		pool: 120,
 		project: 200,
 		chain: 60,
@@ -570,6 +587,7 @@ const columnSizes = {
 		totalAvailableUsd: 120
 	},
 	812: {
+		rank: 60,
 		pool: 200,
 		project: 200,
 		chain: 60,
@@ -596,6 +614,7 @@ const columnSizes = {
 		totalAvailableUsd: 120
 	},
 	1280: {
+		rank: 60,
 		pool: 240,
 		project: 200,
 		chain: 60,
@@ -622,6 +641,7 @@ const columnSizes = {
 		totalAvailableUsd: 120
 	},
 	1536: {
+		rank: 60,
 		pool: 280,
 		project: 200,
 		chain: 60,
@@ -648,6 +668,7 @@ const columnSizes = {
 		totalAvailableUsd: 120
 	},
 	1600: {
+		rank: 60,
 		pool: 320,
 		project: 200,
 		chain: 60,
@@ -674,6 +695,7 @@ const columnSizes = {
 		totalAvailableUsd: 120
 	},
 	1640: {
+		rank: 60,
 		pool: 360,
 		project: 200,
 		chain: 60,
@@ -700,6 +722,7 @@ const columnSizes = {
 		totalAvailableUsd: 120
 	},
 	1720: {
+		rank: 60,
 		pool: 420,
 		project: 200,
 		chain: 60,

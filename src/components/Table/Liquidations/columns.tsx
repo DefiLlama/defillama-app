@@ -11,13 +11,25 @@ import { ILiquidablePositionsRow, ILiquidableProtocolRow } from './types'
 
 export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			return <NameCell value={value} index={index} />
+			return <NameCell value={value} />
 		},
 		size: 120
 	},
@@ -88,13 +100,25 @@ export const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] =
 ]
 export const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Protocol',
 		accessorKey: 'protocolName',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-			return <ProtocolName value={value} index={index} />
+			return <ProtocolName value={value} />
 		},
 		size: 120
 	},
@@ -174,7 +198,7 @@ const fetchApi = async (url: string) => {
 		throw new Error(error instanceof Error ? error.message : `Failed to fetch ${url}`)
 	}
 }
-const ProtocolName = ({ value, index }: { value: string; index: number }) => {
+const ProtocolName = ({ value }: { value: string }) => {
 	let _value: string
 
 	switch (value) {
@@ -218,7 +242,6 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 
 	return (
 		<span className="flex items-center gap-2">
-			<span className="shrink-0">{index + 1}</span>
 			<TokenLogo logo={data.logo} data-lgonly />
 			<BasicLink
 				href={`/protocol/${_value}`}
@@ -230,7 +253,7 @@ const ProtocolName = ({ value, index }: { value: string; index: number }) => {
 	)
 }
 
-const ChainName = ({ value, index }: { value: string; index?: number }) => {
+const ChainName = ({ value }: { value: string }) => {
 	const { data } = useQuery({
 		queryKey: [`${CHAINS_API}`],
 		queryFn: () => fetchApi(`${CHAINS_API}`),
@@ -255,7 +278,6 @@ const ChainName = ({ value, index }: { value: string; index?: number }) => {
 
 	return (
 		<span className="flex items-center gap-2">
-			{(index || index === 0) && <span className="shrink-0">{index + 1}</span>}
 			<TokenLogo logo={chainIconUrl(name)} data-lgonly />
 			<BasicLink
 				href={`/chain/${_name}`}
@@ -267,7 +289,7 @@ const ChainName = ({ value, index }: { value: string; index?: number }) => {
 	)
 }
 
-const NameCell = (props: { value: string; index: number }) => {
+const NameCell = (props: { value: string }) => {
 	const stackBy = useStackBy()
 
 	if (stackBy === 'protocols') {

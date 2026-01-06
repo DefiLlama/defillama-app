@@ -5,18 +5,28 @@ import type { INftMarketplace } from '../types'
 
 export const columns: ColumnDef<INftMarketplace>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'exchangeName',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			const name = getValue()
 			const icon = row.original.exchangeName.toLowerCase().replace(' aggregator', '').replace(' ', '-')
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name as string}</span>
 				</span>

@@ -60,12 +60,27 @@ interface IEarnings {
 
 const earningsColumns: ColumnDef<IEarnings>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			if (row.depth === 0) {
+				return <span className="font-bold">{row.index + 1}</span>
+			}
+			return null
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
 			return (
@@ -93,8 +108,6 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 							)}
 						</button>
 					) : null}
-
-					<span className="shrink-0">{index + 1}</span>
 
 					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
 

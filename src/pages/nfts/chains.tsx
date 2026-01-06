@@ -60,18 +60,29 @@ export default function NftsOnAllChains(props) {
 
 const columns: ColumnDef<any>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		id: 'name',
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<span className="relative flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
-
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<BasicLink

@@ -183,9 +183,9 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
+			const index = row.index
 
 			return (
 				<span className="relative flex items-center gap-2">

@@ -285,10 +285,10 @@ const rankColumn: Column = {
 	accessorFn: (protocol) => protocol.name,
 	size: 60,
 	enableSorting: false,
-	cell: ({ row, table }) => {
+	cell: ({ row }) => {
 		// Only show ranks for top-level protocols (depth 0), not for child protocols
 		if (row.depth > 0) return null
-		const index = table.getSortedRowModel().rows.findIndex((x) => x.id === row.id)
+		const index = row.index
 		return <span className="font-bold">{index + 1}</span>
 	},
 	meta: {

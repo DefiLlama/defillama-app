@@ -13,13 +13,25 @@ import type { IYieldsOptimizerTableRow } from './types'
 
 const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Pool',
 		accessorKey: 'pool',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
-
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<NameYieldPool
@@ -27,7 +39,6 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 					value={name}
 					configID={row.original.configID}
 					url={row.original.url}
-					index={index + 1}
 					borrow={true}
 				/>
 			)
@@ -306,6 +317,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 // values: table columns order
 const columnOrders = {
 	0: [
+		'rank',
 		'pool',
 		'project',
 		'chains',
@@ -323,6 +335,7 @@ const columnOrders = {
 		'totalBorrowUsd'
 	],
 	400: [
+		'rank',
 		'pool',
 		'project',
 		'chains',
@@ -340,6 +353,7 @@ const columnOrders = {
 		'totalBorrowUsd'
 	],
 	640: [
+		'rank',
 		'pool',
 		'project',
 		'chains',
@@ -357,6 +371,7 @@ const columnOrders = {
 		'totalBorrowUsd'
 	],
 	1280: [
+		'rank',
 		'pool',
 		'project',
 		'chains',
@@ -377,6 +392,7 @@ const columnOrders = {
 
 const columnSizes = {
 	0: {
+		rank: 60,
 		pool: 160,
 		project: 180,
 		chain: 60,
@@ -392,6 +408,7 @@ const columnSizes = {
 		totalBorrowUsd: 100
 	},
 	812: {
+		rank: 60,
 		pool: 210,
 		project: 180,
 		chain: 60,
@@ -407,6 +424,7 @@ const columnSizes = {
 		totalBorrowUsd: 120
 	},
 	1536: {
+		rank: 60,
 		pool: 240,
 		project: 180,
 		chain: 60,
@@ -422,6 +440,7 @@ const columnSizes = {
 		totalBorrowUsd: 120
 	},
 	1600: {
+		rank: 60,
 		pool: 280,
 		project: 180,
 		chain: 60,
@@ -437,6 +456,7 @@ const columnSizes = {
 		totalBorrowUsd: 120
 	},
 	1640: {
+		rank: 60,
 		pool: 320,
 		project: 180,
 		chain: 60,
@@ -452,6 +472,7 @@ const columnSizes = {
 		totalBorrowUsd: 120
 	},
 	1720: {
+		rank: 60,
 		pool: 420,
 		project: 180,
 		chain: 60,

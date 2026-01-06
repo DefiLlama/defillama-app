@@ -67,13 +67,26 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 
 const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		id: 'name',
 		header: 'Name',
 		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
@@ -86,7 +99,7 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 			)
 
 			return (
-				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
+				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : ''}`}>
 					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-0.5"
@@ -107,8 +120,6 @@ const columns: ColumnDef<ITotalBorrowedByChainPageData['protocols'][0]>[] = [
 							)}
 						</button>
 					) : null}
-
-					<span className="shrink-0">{index + 1}</span>
 
 					<TokenLogo logo={row.original.logo} data-lgonly />
 

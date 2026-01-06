@@ -18,13 +18,25 @@ import type { IBridge, IBridgeChain } from './types'
 
 export const bridgesColumn: ColumnDef<IBridge>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'displayName',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
 			const linkValue = slug(value)
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const rowValues = row.original
 			const icon = rowValues.icon
 			let iconLink
@@ -35,7 +47,6 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
 					{icon && <TokenLogo logo={iconLink} data-lgonly />}
 					<BasicLink
 						href={`/bridge/${linkValue}`}
@@ -107,15 +118,26 @@ export const bridgesColumn: ColumnDef<IBridge>[] = [
 
 export const bridgeChainsColumn: ColumnDef<IBridgeChain>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<span className="flex items-center gap-2">
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
 					<BasicLink
 						href={`/bridges/${value}`}
@@ -445,12 +467,13 @@ export const bridgeAddressesColumn: ColumnDef<IBridge>[] = [
 // key: min width of window/screen
 // values: table columns order
 export const bridgesColumnOrders = formatColumnOrder({
-	0: ['displayName', 'lastDailyVolume', 'change_1d', 'weeklyVolume', 'monthlyVolume', 'chains', 'txsPrevDay'],
-	1024: ['displayName', 'chains', 'change_1d', 'lastDailyVolume', 'weeklyVolume', 'monthlyVolume', 'txsPrevDay']
+	0: ['rank', 'displayName', 'lastDailyVolume', 'change_1d', 'weeklyVolume', 'monthlyVolume', 'chains', 'txsPrevDay'],
+	1024: ['rank', 'displayName', 'chains', 'change_1d', 'lastDailyVolume', 'weeklyVolume', 'monthlyVolume', 'txsPrevDay']
 })
 
 export const bridgeChainsColumnOrders = formatColumnOrder({
 	0: [
+		'rank',
 		'name',
 		'prevDayUsdWithdrawals',
 		'prevDayUsdDeposits',
@@ -461,6 +484,7 @@ export const bridgeChainsColumnOrders = formatColumnOrder({
 		'topTokenWithdrawnSymbol'
 	],
 	1024: [
+		'rank',
 		'name',
 		'topTokenWithdrawnSymbol',
 		'prevDayUsdWithdrawals',
