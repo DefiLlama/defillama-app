@@ -81,7 +81,7 @@ export default function SankeyChart({
 				show: true,
 				position: orient === 'horizontal' ? 'right' : 'bottom',
 				fontFamily: 'sans-serif',
-				fontSize: isSmall ? 9 : 11,
+				fontSize: 14,
 				color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
 				formatter: (params: any) => {
 					// Use displayValue if provided, otherwise use calculated value
@@ -107,14 +107,13 @@ export default function SankeyChart({
 				},
 				rich: {
 					name: {
-						fontSize: isSmall ? 9 : 11,
+						fontSize: 14,
 						fontWeight: 'normal',
 						color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
 					},
 					desc: {
-						fontSize: isSmall ? 7 : 9,
-						color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-						lineHeight: 12
+						fontSize: 10,
+						color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
 					}
 				}
 			},

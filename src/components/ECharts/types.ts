@@ -73,6 +73,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 		[stack: string]: string
 	}
 	customComponents?: React.ReactNode
+	orientation?: 'vertical' | 'horizontal'
 }
 
 export interface ILineAndBarChartProps {
@@ -142,6 +143,13 @@ export interface IMultiSeriesChart2Props {
 
 export interface ICandlestickChartProps {
 	data: Array<[number, number, number, number, number, number]>
+	indicators?: Array<{
+		name: string
+		category: 'overlay' | 'panel'
+		data: Array<[number, number | null]>
+		values?: Array<[number, Record<string, number | null>]>
+		color?: string
+	}>
 }
 
 export interface IMultiSeriesChartProps {

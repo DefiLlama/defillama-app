@@ -1,4 +1,14 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import {
+	Dispatch,
+	memo,
+	RefObject,
+	SetStateAction,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useRef,
+	useState
+} from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -1248,7 +1258,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											restoreRequest={restoreRequest}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 											isResearchMode={isResearchMode}
-											onResearchModeToggle={() => setIsResearchMode(!isResearchMode)}
+											setIsResearchMode={setIsResearchMode}
 											showResearchButton={showDebug}
 											onPendingImages={setPendingImages}
 										/>
@@ -1509,7 +1519,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										restoreRequest={restoreRequest}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										isResearchMode={isResearchMode}
-										onResearchModeToggle={() => setIsResearchMode(!isResearchMode)}
+										setIsResearchMode={setIsResearchMode}
 										showResearchButton={showDebug}
 										onPendingImages={setPendingImages}
 									/>
@@ -1532,7 +1542,7 @@ const PromptInput = memo(function PromptInput({
 	placeholder,
 	restoreRequest,
 	isResearchMode,
-	onResearchModeToggle,
+	setIsResearchMode,
 	showResearchButton,
 	onPendingImages
 }: {
@@ -1551,8 +1561,8 @@ const PromptInput = memo(function PromptInput({
 		text: string
 		entities?: Array<{ term: string; slug: string }>
 	} | null
-	isResearchMode?: boolean
-	onResearchModeToggle?: () => void
+	isResearchMode: boolean
+	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	showResearchButton?: boolean
 	onPendingImages?: (images: Array<{ url: string; mimeType: string; filename?: string }>) => void
 }) {
@@ -2038,24 +2048,40 @@ const PromptInput = memo(function PromptInput({
 					</Ariakit.ComboboxPopover>
 				)}
 				<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-					<div className="flex items-center gap-2">
-						{showResearchButton && (
-							<button
-								type="button"
-								onClick={onResearchModeToggle}
-								data-umami-event="llamaai-research-mode-toggle"
-								className={`flex min-h-7 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors ${
-									isResearchMode
-										? 'border-(--old-blue) bg-(--old-blue) text-white'
-										: 'border-[#1853A8] text-[#1853A8] hover:bg-(--old-blue)/10 dark:border-(--old-blue) dark:text-[#78A4E4] dark:hover:bg-(--old-blue)/30'
-								}`}
+					{showResearchButton && (
+						<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
+							<Tooltip
+								content="Fast responses for most queries"
+								render={
+									<button
+										type="button"
+										onClick={() => setIsResearchMode(false)}
+										data-umami-event="llamaai-quick-mode-toggle"
+										data-active={!isResearchMode}
+									/>
+								}
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+							>
+								<Icon name="sparkles" height={12} width={12} />
+								<span>Quick</span>
+							</Tooltip>
+							<Tooltip
+								content="Generate a comprehensive research report with detailed analysis"
+								render={
+									<button
+										type="button"
+										onClick={() => setIsResearchMode(true)}
+										data-umami-event="llamaai-research-mode-toggle"
+										data-active={isResearchMode}
+									/>
+								}
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
 							>
 								<Icon name="search" height={12} width={12} />
 								<span>Research</span>
-								{isResearchMode ? <Icon name="x" height={12} width={12} /> : null}
-							</button>
-						)}
-					</div>
+							</Tooltip>
+						</div>
+					)}
 					<div className="flex items-center gap-2">
 						<Tooltip
 							content="Add image (or paste with Ctrl+V)"
@@ -2506,7 +2532,7 @@ const ResponseControls = memo(function ResponseControls({
 						messageId={messageId}
 						charts={charts}
 						exportType="single_message"
-						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+						className="flex items-center gap-1 rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					/>
 				)}
 				{!readOnly && (

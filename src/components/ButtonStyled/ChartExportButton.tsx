@@ -192,17 +192,16 @@ export const ChartExportButton = memo(function ChartExportButton({
 									top: title ? 60 : 30, // Add top padding to avoid collision with title
 									label: {
 										...(series.label ?? {}),
-										fontSize: 14, // Slightly larger than default for export readability
+										fontSize: 18, // Slightly larger than default for export readability
 										rich: {
 											name: {
-												fontSize: 14,
+												fontSize: 18,
 												fontWeight: 'normal',
 												color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
 											},
 											desc: {
-												fontSize: 11,
-												color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-												lineHeight: 14
+												fontSize: 12,
+												color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
 											}
 										}
 									},
