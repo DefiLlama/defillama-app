@@ -2,7 +2,7 @@ export class ChartDataTransformer {
 	static groupByInterval(
 		series: any[],
 		interval: 'day' | 'week' | 'month' | 'quarter',
-		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter'
+		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar'
 	): any[] {
 		return series.map((s) => {
 			const isFlowMetric = s.metricClass === 'flow'
