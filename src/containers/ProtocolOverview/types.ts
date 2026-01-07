@@ -336,5 +336,6 @@ export interface IDenominationPriceHistory {
 export interface IToggledMetrics
 	extends Record<(typeof protocolCharts)[keyof typeof protocolCharts], 'true' | 'false'> {
 	events: 'true' | 'false'
+	hacks: 'true' | 'false'
 	denomination: string | null
 }

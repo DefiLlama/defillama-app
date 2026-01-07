@@ -21,7 +21,7 @@ import {
 	YIELD_POOLS_API
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { CHART_COLORS } from '~/constants/colors'
+import { CHART_COLORS, HACKS_COLOR } from '~/constants/colors'
 import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
@@ -820,12 +820,12 @@ export const getProtocolOverviewPageData = async ({
 	availableCharts.forEach((chart, index) => {
 		chartColors[chart] = CHART_COLORS[index]
 	})
+	if (hacks) {
+		chartColors['Hacks'] = HACKS_COLOR
+	}
 
 	const hallmarks = {}
 	const rangeHallmarks = []
-	for (const hack of hacks ?? []) {
-		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
-	}
 	for (const mark of protocolData.hallmarks ?? []) {
 		if (Array.isArray(mark[0])) {
 			rangeHallmarks.push(mark)

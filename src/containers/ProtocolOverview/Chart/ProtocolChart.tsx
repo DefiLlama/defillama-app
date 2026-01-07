@@ -77,7 +77,9 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 
 		const toggledMetrics = {
 			...chartsByVisibility,
-			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
+			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null,
+			events: queryParams.events === 'true' ? 'true' : 'false',
+			hacks: queryParams.hacks === 'true' ? 'true' : 'false'
 		} as IToggledMetrics
 
 		for (const chartLabel of props.defaultToggledCharts) {
@@ -184,6 +186,36 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 										)}
 									</button>
 								))}
+								{props.hacks && props.hacks.length > 0 ? (
+									<button
+										onClick={() => {
+											router
+												.push(
+													updateQueryParamInUrl(
+														router.asPath,
+														'hacks',
+														toggledMetrics.hacks === 'true' ? 'false' : 'true'
+													),
+													undefined,
+													{
+														shallow: true
+													}
+												)
+												.then(() => {
+													metricsDialogStore.toggle()
+												})
+										}}
+										data-active={toggledMetrics.hacks === 'true'}
+										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+									>
+										<span>Hacks</span>
+										{toggledMetrics.hacks === 'true' ? (
+											<Icon name="x" className="h-3.5 w-3.5" />
+										) : (
+											<Icon name="plus" className="h-3.5 w-3.5" />
+										)}
+									</button>
+								) : null}
 								{props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0 ? (
 									<button
 										onClick={() => {
@@ -253,6 +285,34 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 						</span>
 					</label>
 				))}
+				{toggledMetrics.hacks === 'true' && props.hacks && props.hacks.length > 0 ? (
+					<label className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto">
+						<input
+							type="checkbox"
+							value="hacks"
+							checked={true}
+							onChange={() => {
+								router.push(
+									updateQueryParamInUrl(router.asPath, 'hacks', toggledMetrics.hacks === 'true' ? 'false' : 'true'),
+									undefined,
+									{
+										shallow: true
+									}
+								)
+							}}
+							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+						/>
+						<span
+							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue) px-2 py-1 text-xs"
+							style={{
+								borderColor: props.chartColors['Hacks'] || '#dc2626'
+							}}
+						>
+							<span>Hacks</span>
+							<Icon name="x" className="h-3.5 w-3.5" />
+						</span>
+					</label>
+				) : null}
 				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
 					<label className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto">
 						<input
@@ -378,7 +438,8 @@ export const useFetchAndFormatChartData = ({
 	governanceApis,
 	tvlSettings,
 	feesSettings,
-	isCEX
+	isCEX,
+	hacks
 }: IProtocolOverviewPageData & {
 	toggledMetrics: IToggledMetrics
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
@@ -1399,6 +1460,10 @@ export const useFetchAndFormatChartData = ({
 			})
 		}
 
+		if (toggledMetrics.hacks === 'true' && hacks && hacks.length > 0) {
+			charts['Hacks'] = hacks.map((hack) => [hack.date * 1000, hack.amount] as [number, number])
+		}
+
 		return { finalCharts: charts, valueSymbol, loadingCharts: '' }
 	}, [
 		toggledMetrics,
@@ -1460,7 +1525,8 @@ export const useFetchAndFormatChartData = ({
 		groupBy,
 		extraTvlCharts,
 		valueSymbol,
-		isCEX
+		isCEX,
+		hacks
 	])
 
 	return chartData

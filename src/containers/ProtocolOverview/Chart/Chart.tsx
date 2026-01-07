@@ -3,6 +3,7 @@ import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
+import { HACKS_COLOR } from '~/constants/colors'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 
@@ -127,29 +128,57 @@ export default function ProtocolLineBarChart({
 			}
 		})
 
-		if (series.length > 0 && hallmarks?.length > 0) {
+		const allHallmarks: Array<[number, string]> = []
+		if (hallmarks) {
+			allHallmarks.push(...hallmarks)
+		}
+		// Sort by date
+		allHallmarks.sort((a, b) => a[0] - b[0])
+
+		if (series.length > 0 && allHallmarks.length > 0) {
+			// Build markLine data for regular hallmarks only
+			const markLineData: any[] = []
+
+			// Add regular hallmarks with labels
+			allHallmarks.forEach(([date, event], index) => {
+				markLineData.push([
+					{
+						name: event,
+						xAxis: date,
+						yAxis: 0,
+						label: {
+							color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+							fontFamily: 'sans-serif',
+							fontSize: 14,
+							fontWeight: 500
+						}
+					},
+					{
+						name: 'end',
+						xAxis: date,
+						yAxis: 'max',
+						y: Math.max(allHallmarks.length * 20 - index * 20, 20)
+					}
+				])
+			})
+
 			series[0] = {
 				...series[0],
 				markLine: {
-					data: hallmarks.map(([date, event], index) => [
-						{
-							name: event,
-							xAxis: date,
-							yAxis: 0,
-							label: {
-								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-								fontFamily: 'sans-serif',
-								fontSize: 14,
-								fontWeight: 500
-							}
-						},
-						{
-							name: 'end',
-							xAxis: date,
-							yAxis: 'max',
-							y: Math.max(hallmarks.length * 20 - index * 20, 20)
+					symbol: ['none', 'none'],
+					silent: false,
+					animation: false,
+					lineStyle: {
+						type: 'dashed',
+						color: isThemeDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+						width: 1
+					},
+					emphasis: {
+						lineStyle: {
+							width: 2
 						}
-					])
+					},
+					data: markLineData
 				}
 			}
 		}
@@ -508,6 +537,20 @@ export default function ProtocolLineBarChart({
 					}
 				})
 			}
+
+			if (type === 'Hacks') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: 'dashed',
+							dashOffset: 5,
+							color: chartColors['Hacks'] || HACKS_COLOR
+						}
+					}
+				})
+			}
 		})
 
 		if (allYAxis.length === 0) {
@@ -553,6 +596,7 @@ export default function ProtocolLineBarChart({
 		chartColors,
 		allYAxis,
 		rangeHallmarks,
+		hideDataZoom,
 		onReady
 	])
 

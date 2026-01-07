@@ -37,7 +37,8 @@ export const protocolCharts = {
 	'Gas Used': 'gasUsed',
 	Tweets: 'tweets',
 	'NFT Volume': 'nftVolume',
-	'Bridge Volume': 'bridgeVolume'
+	'Bridge Volume': 'bridgeVolume',
+	Hacks: 'hacks'
 } as const
 
 export type ProtocolChartsLabels = keyof typeof protocolCharts
@@ -84,7 +85,8 @@ export const yAxisByChart: {
 	Treasury: 'Treasury',
 	Tweets: 'Tweets',
 	'NFT Volume': 'NFT Volume',
-	'Bridge Volume': 'DEX Volume'
+	'Bridge Volume': 'DEX Volume',
+	Hacks: 'Hacks'
 }
 
 export const BAR_CHARTS: ProtocolChartsLabels[] = [
@@ -112,5 +114,6 @@ export const BAR_CHARTS: ProtocolChartsLabels[] = [
 	'Options Notional Volume',
 	'Perp Aggregator Volume',
 	'Bridge Aggregator Volume',
-	'Bridge Volume'
+	'Bridge Volume',
+	'Hacks'
 ]

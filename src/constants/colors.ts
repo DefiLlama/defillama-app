@@ -2,6 +2,8 @@ export const oldBlue = '#1f67d2'
 
 export const purple = '#9333ea' // Purple color for negative values
 
+export const HACKS_COLOR = '#DC2626' // Red color for hacks
+
 export const CHART_COLORS = [
 	oldBlue,
 	'#E91E63', // Hot Pink
