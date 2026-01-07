@@ -884,7 +884,11 @@ export const getProtocolOverviewPageData = async ({
 		defaultToggledCharts.push('Events' as any)
 	}
 
-	if (protocolData.category && protocolCategories[protocolData.category]?.defaultChart) {
+	if (
+		protocolData.category &&
+		protocolCategories[protocolData.category]?.defaultChart &&
+		availableCharts.includes(protocolCategories[protocolData.category].defaultChart as any)
+	) {
 		let defaultChartLabel = null
 		for (const chartLabel in protocolCharts) {
 			if (protocolCharts[chartLabel] === protocolCategories[protocolData.category].defaultChart) {

@@ -593,7 +593,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 			align: 'end',
 			headerHelperText: 'Whether the asset requires KYC to mint or redeem'
 		},
-		size: 180
+		size: 196
 	},
 	{
 		id: 'kycAllowlistedWhitelistedToTransferHold',
@@ -609,7 +609,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 			align: 'end',
 			headerHelperText: 'Whether the asset requires KYC to be whitelisted to transfer or hold'
 		},
-		size: 180
+		size: 196
 	},
 	{
 		id: 'transferable',
