@@ -403,16 +403,14 @@ export default function LlamaAIGetStarted() {
 								</p>
 							</FAQ>
 							<FAQ question="What can it do right now?">
-								<p className="mb-2">
-									Across protocols, chains, categories, and tokens, LlamaAI can:
-								</p>
+								<p className="mb-2">Across protocols, chains, categories, and tokens, LlamaAI can:</p>
 								<ul className="flex list-disc flex-col gap-1.5 pl-4">
 									<li>Run complex multi-factor queries (e.g., growing TVL + revenue but declining token price)</li>
 									<li>Generate custom charts and export data as CSV</li>
 									<li>Write in-depth research reports on any topic</li>
 									<li>
-										Provide speculative guidance using technical indicators, statistical models (e.g., Monte Carlo),
-										and prediction market data
+										Provide speculative guidance using technical indicators, statistical models (e.g., Monte Carlo), and
+										prediction market data
 									</li>
 								</ul>
 							</FAQ>
