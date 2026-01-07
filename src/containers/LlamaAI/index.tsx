@@ -1226,7 +1226,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											setIsResearchMode={setIsResearchMode}
 											showResearchButton={showDebug}
 										/>
-										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										<RecommendedPrompts
+											setPrompt={setPrompt}
+											submitPrompt={submitPrompt}
+											isPending={isPending}
+											isResearchMode={isResearchMode}
+										/>
 									</>
 								)}
 							</div>

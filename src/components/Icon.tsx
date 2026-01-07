@@ -98,6 +98,7 @@ type Name =
 	| 'headset'
 	| 'sheets'
 	| 'eye-off'
+	| 'graduation-cap'
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
