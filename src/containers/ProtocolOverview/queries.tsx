@@ -1188,6 +1188,8 @@ const governanceApis = (governanceID) =>
 		) ?? []
 	).map((g) => g.toLowerCase())
 
+const protocolsWithFalsyBreakdownMetrics = new Set(['Jupiter'])
+
 export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }) {
 	try {
 		if (!metadata.fees || !metadata.revenue) {
@@ -1242,6 +1244,16 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				incentives: {
 					value: (aggregates.yearly[yearKey]?.incentives?.value ?? 0) + value,
 					'by-label': {}
+				}
+			}
+		}
+
+		if (protocolsWithFalsyBreakdownMetrics.has(metadata.displayName)) {
+			for (const groupBy in aggregates) {
+				for (const period in aggregates[groupBy]) {
+					for (const label in aggregates[groupBy][period]) {
+						aggregates[groupBy][period][label]['by-label'] = {}
+					}
 				}
 			}
 		}

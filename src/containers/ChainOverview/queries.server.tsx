@@ -1048,11 +1048,17 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 
 			if (parentTvl?.excludeParent) {
 				parentTvl.default.tvl = (parentTvl.default.tvl ?? 0) - (parentTvl.excludeParent.tvl ?? 0)
-				parentTvl.default.tvlPrevDay = (parentTvl.default.tvlPrevDay ?? 0) - (parentTvl.excludeParent.tvlPrevDay ?? 0)
-				parentTvl.default.tvlPrevWeek =
-					(parentTvl.default.tvlPrevWeek ?? 0) - (parentTvl.excludeParent.tvlPrevWeek ?? 0)
-				parentTvl.default.tvlPrevMonth =
-					(parentTvl.default.tvlPrevMonth ?? 0) - (parentTvl.excludeParent.tvlPrevMonth ?? 0)
+				// Only subtract excludeParent from prev values if they're not null
+				// (null means incomplete data, so we shouldn't compute a change)
+				if (parentTvl.default.tvlPrevDay != null) {
+					parentTvl.default.tvlPrevDay = parentTvl.default.tvlPrevDay - (parentTvl.excludeParent.tvlPrevDay ?? 0)
+				}
+				if (parentTvl.default.tvlPrevWeek != null) {
+					parentTvl.default.tvlPrevWeek = parentTvl.default.tvlPrevWeek - (parentTvl.excludeParent.tvlPrevWeek ?? 0)
+				}
+				if (parentTvl.default.tvlPrevMonth != null) {
+					parentTvl.default.tvlPrevMonth = parentTvl.default.tvlPrevMonth - (parentTvl.excludeParent.tvlPrevMonth ?? 0)
+				}
 			}
 
 			const prevKeys = ['tvlPrevDay', 'tvlPrevWeek', 'tvlPrevMonth'] as const

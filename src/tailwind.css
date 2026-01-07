@@ -35,6 +35,38 @@
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
 
+	@keyframes dot1 {
+		0%,
+		100% {
+			opacity: 0;
+		}
+		25%,
+		75% {
+			opacity: 1;
+		}
+	}
+	@keyframes dot2 {
+		0%,
+		25%,
+		100% {
+			opacity: 0;
+		}
+		50%,
+		75% {
+			opacity: 1;
+		}
+	}
+	@keyframes dot3 {
+		0%,
+		50%,
+		100% {
+			opacity: 0;
+		}
+		75% {
+			opacity: 1;
+		}
+	}
+
 	@keyframes loader {
 		0% {
 			transform: scale(1);

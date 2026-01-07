@@ -284,7 +284,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 										key={`chart-loading-${part.chartId}-${index}`}
 										className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
 									>
-										<span className="text-gray-500">Loading chart...</span>
+										<p className="text-sm text-gray-500">Loading chart...</p>
 									</div>
 								)
 							}
@@ -325,6 +325,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 							<line x1="8" x2="16" y1="12" y2="12" />
 						</svg>
 						<span>Sources</span>
+						<Icon name="chevron-down" height={14} width={14} />
 					</summary>
 					<div className="flex flex-col gap-2.5 pt-2.5">
 						{citations.map((url, index) => (

@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinsChartData } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
-import { STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
+import { generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
 import { download, formattedNum, toNiceCsvDate } from '~/utils'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
@@ -64,6 +64,21 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		peggedAssetNames,
 		isLoading
 	} = useStablecoinsChartData(chain)
+
+	const stackColors = useMemo(() => {
+		const colors: Record<string, string> = { ...STABLECOIN_TOKEN_COLORS }
+		for (const name of peggedAssetNames) {
+			if (!colors[name]) {
+				colors[name] = generateConsistentChartColor(name, '#8884d8', 'protocol')
+			}
+		}
+		for (const name of tokenInflowNames) {
+			if (!colors[name]) {
+				colors[name] = generateConsistentChartColor(name, '#8884d8', 'protocol')
+			}
+		}
+		return colors
+	}, [peggedAssetNames, tokenInflowNames])
 
 	const filteredChartData = useMemo(() => {
 		if (!timePeriod || timePeriod === 'all') {
@@ -228,7 +243,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hideDefaultLegend={true}
 							hideDownloadButton={true}
 							hideGradient={true}
-							stackColors={STABLECOIN_TOKEN_COLORS}
+							stackColors={stackColors}
 							chartOptions={chartOptions}
 							onReady={setChartInstance}
 						/>
@@ -243,7 +258,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							</div>
 						}
 					>
-						<PieChart chartData={chainsCirculatingValues} stackColors={STABLECOIN_TOKEN_COLORS} />
+						<PieChart chartData={chainsCirculatingValues} stackColors={stackColors} />
 					</Suspense>
 				)
 			case 'dominance':
@@ -264,7 +279,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hideDownloadButton={true}
 							hideGradient={true}
 							expandTo100Percent={true}
-							stackColors={STABLECOIN_TOKEN_COLORS}
+							stackColors={stackColors}
 							chartOptions={chartOptions}
 							onReady={setChartInstance}
 						/>
@@ -305,7 +320,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							customLegendName="Token"
 							customLegendOptions={tokenInflowNames}
 							chartOptions={inflowsChartOptions}
-							stackColors={STABLECOIN_TOKEN_COLORS}
+							stackColors={stackColors}
 							onReady={setChartInstance}
 						/>
 					</Suspense>

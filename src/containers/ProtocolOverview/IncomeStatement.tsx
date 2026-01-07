@@ -284,6 +284,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			description?: string
 			displayValue?: number | string
 			depth?: number
+			percentageLabel?: string
 		}> = []
 		const links: Array<{ source: string; target: string; value: number; color?: string }> = []
 
@@ -292,6 +293,15 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			gray: '#6b7280',
 			green: '#22c55e',
 			red: '#ef4444'
+		}
+
+		// Helper to format percentage
+		const formatPercent = (value: number, total: number) => {
+			if (total === 0) return '0%'
+			const pct = (value / total) * 100
+			const absPct = Math.abs(pct)
+			const sign = pct < 0 ? '-' : ''
+			return absPct >= 1 ? `${sign}${absPct.toFixed(0)}%` : absPct >= 0.1 ? `${sign}${absPct.toFixed(1)}%` : '<0.1%'
 		}
 
 		// Only add fee breakdown nodes if breakdown labels are available
@@ -309,7 +319,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						name: label,
 						color: COLORS.gray,
 						description: feesMethodology[label],
-						depth: 0
+						depth: 0,
+						percentageLabel: formatPercent(value, fees)
 					})
 					links.push({ source: label, target: 'Gross Protocol Revenue', value })
 				}
@@ -331,7 +342,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				color: COLORS.red,
 				description: props.supplySideRevenue?.methodology,
 				displayValue: costOfRevenue, // Show actual cost of revenue value
-				depth: 2
+				depth: 2,
+				percentageLabel: formatPercent(costOfRevenue, fees)
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
 
@@ -344,7 +356,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							name: costLabel,
 							color: COLORS.red,
 							description: costOfRevenueMethodology[label],
-							depth: 3
+							depth: 3,
+							percentageLabel: formatPercent(value, costOfRevenue)
 						})
 						links.push({ source: 'Cost of Revenue', target: costLabel, value })
 					}
@@ -360,7 +373,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				color: COLORS.green,
 				description: props.revenue?.methodology,
 				displayValue: revenue, // Show actual revenue value
-				depth: 2
+				depth: 2,
+				percentageLabel: formatPercent(revenue, fees)
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: revenue })
 
@@ -379,7 +393,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					color: earnings >= 0 ? COLORS.green : COLORS.red,
 					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
 					displayValue: earnings, // Show actual earnings value, not the sum of flows
-					depth: 3
+					depth: 3,
+					percentageLabel: formatPercent(earnings, revenue)
 				})
 
 				// Gross Profit flows to Earnings (green)
@@ -392,7 +407,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						name: 'Value Distributed to Token Holders',
 						color: COLORS.green,
 						description: props.holdersRevenue?.methodology,
-						depth: 4
+						depth: 4,
+						percentageLabel: formatPercent(holdersRevenue, earnings)
 					})
 					links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
 				}
@@ -403,7 +419,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						name: 'Earnings',
 						color: COLORS.green,
 						description: props.revenue?.methodology,
-						depth: 3
+						depth: 3,
+						percentageLabel: formatPercent(earnings, revenue)
 					})
 					links.push({ source: 'Gross Profit', target: 'Earnings', value: earnings })
 
@@ -412,7 +429,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							name: 'Value Distributed to Token Holders',
 							color: COLORS.green,
 							description: props.holdersRevenue?.methodology,
-							depth: 4
+							depth: 4,
+							percentageLabel: formatPercent(holdersRevenue, earnings)
 						})
 						links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
 					}
@@ -596,8 +614,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							height="450px"
 							title="Income Flow Visualization"
 							enableImageExport
-							imageExportFilename={`${props.name}-income-statement-sankey-chart`}
-							imageExportTitle="Income Statement Sankey Chart"
+							imageExportFilename={`${props.name}-income-statement`}
+							imageExportTitle={`Income Statement for ${props.name}`}
 							customComponents={
 								<div className="flex items-center gap-2">
 									<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">

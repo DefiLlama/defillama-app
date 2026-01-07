@@ -114,14 +114,20 @@ export const colorManager = {
 
 export const STABLECOIN_TOKEN_COLORS: Record<string, string> = {
 	USDT: '#009393',
-	USDC: '#0B53BF',
+	Tether: '#009393',
+	USDC: '#2775CA',
+	'USD Coin': '#2775CA',
 	DAI: '#F4B731',
+	Dai: '#F4B731',
 	USDe: '#3A3A3A',
+	'Ethena USDe': '#3A3A3A',
 	BUIDL: '#111111',
 	USD1: '#D2B48C',
-	USDS: '#E67E22',
-	PYUSD: '#4A90E2',
+	USDS: '#1BAB9B',
+	'Sky Dollar': '#1BAB9B',
+	PYUSD: '#0070E0',
+	'PayPal USD': '#0070E0',
 	USDTB: '#C0C0C0',
-	FDUSD: '#00FF00',
+	FDUSD: '#00D395',
 	Others: '#FF1493'
 }

@@ -370,7 +370,7 @@ export const ChainProtocolsTable = ({
 	}
 
 	const prepareCsv = useCallback(() => {
-		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
+		const visibleColumns = instance.getVisibleLeafColumns().filter((col) => col.id !== 'custom_columns')
 		const headers = visibleColumns.map((col) => {
 			if (typeof col.columnDef.header === 'string') {
 				return col.columnDef.header

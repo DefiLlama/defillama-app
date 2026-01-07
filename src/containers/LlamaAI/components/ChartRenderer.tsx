@@ -1,16 +1,18 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
+import type { IBarChartProps, ICandlestickChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { formatTooltipValue } from '~/components/ECharts/useDefaults'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
-import { adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
+import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
 import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
+const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
@@ -81,6 +83,17 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 	})
 
 	if (!isActive) return null
+
+	if (config.type === 'candlestick') {
+		const candlestickData = adaptCandlestickData(config, data)
+		return (
+			<div className="flex flex-col" data-chart-id={config.id}>
+				<Suspense fallback={<div className="h-[480px]" />}>
+					<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
+				</Suspense>
+			</div>
+		)
+	}
 
 	try {
 		const isMultiSeries = config.series && config.series.length > 1
@@ -252,7 +265,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
-							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} />
+							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} hideDownloadButton={true} />
 						</Suspense>
 					)
 				} else {
@@ -305,6 +318,31 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 				}
 				break
 
+			case 'hbar':
+				const hbarData = adaptedChart.data as Array<[any, number]>
+				const hbarCategories = hbarData.map(([cat]) => cat)
+				const hbarValues = hbarData.map(([, val]) => val)
+				chartContent = (
+					<Suspense fallback={<div className="h-[338px]" />}>
+						<div className="flex items-center justify-end gap-1 p-2 pt-0">
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
+								smol
+							/>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						</div>
+						<HBarChart
+							key={chartKey}
+							categories={hbarCategories}
+							values={hbarValues}
+							valueSymbol={config.valueSymbol || '$'}
+							color={config.series[0]?.styling?.color || '#1f77b4'}
+						/>
+					</Suspense>
+				)
+				break
+
 			case 'line':
 			case 'area':
 				chartContent = (
@@ -322,6 +360,7 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 							chartData={adaptedChart.data}
 							{...(adaptedChart.props as IChartProps)}
 							connectNulls={true}
+							hideDownloadButton={true}
 						/>
 					</Suspense>
 				)

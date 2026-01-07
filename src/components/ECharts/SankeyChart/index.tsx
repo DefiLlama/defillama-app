@@ -34,10 +34,11 @@ export default function SankeyChart({
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'sankey-chart')
 	const exportTitle = imageExportTitle || title
 
-	// Create maps for node metadata (descriptions and display values)
+	// Create maps for node metadata (descriptions, display values, and percentage labels)
 	const nodeMetadata = useMemo(() => {
 		const descriptions: Record<string, string> = {}
 		const displayValues: Record<string, number | string> = {}
+		const percentageLabels: Record<string, string> = {}
 		nodes.forEach((node) => {
 			if (node.description) {
 				descriptions[node.name] = node.description
@@ -45,8 +46,11 @@ export default function SankeyChart({
 			if (node.displayValue !== undefined) {
 				displayValues[node.name] = node.displayValue
 			}
+			if (node.percentageLabel) {
+				percentageLabels[node.name] = node.percentageLabel
+			}
 		})
-		return { descriptions, displayValues }
+		return { descriptions, displayValues, percentageLabels }
 	}, [nodes])
 
 	const series = useMemo(() => {
@@ -89,13 +93,17 @@ export default function SankeyChart({
 								: formatTooltipValue(displayValue, valueSymbol)
 							: formatTooltipValue(params.value, valueSymbol)
 
+					// Add percentage label if provided
+					const percentageLabel = nodeMetadata.percentageLabels[params.name]
+					const valueWithPercent = percentageLabel ? `${formattedValue} (${percentageLabel})` : formattedValue
+
 					const description = nodeMetadata.descriptions[params.name]
 					if (description && !isSmall) {
 						// Truncate description to ~50 chars for display under label
 						const truncatedDesc = description.length > 50 ? description.slice(0, 47) + '...' : description
-						return `{name|${params.name}: ${formattedValue}}\n{desc|${truncatedDesc}}`
+						return `{name|${params.name}: ${valueWithPercent}}\n{desc|${truncatedDesc}}`
 					}
-					return `${params.name}: ${formattedValue}`
+					return `${params.name}: ${valueWithPercent}`
 				},
 				rich: {
 					name: {
@@ -162,11 +170,14 @@ export default function SankeyChart({
 								? displayValue
 								: formatTooltipValue(displayValue, valueSymbol)
 							: formatTooltipValue(params.value, valueSymbol)
+					// Add percentage label if provided
+					const percentageLabel = nodeMetadata.percentageLabels[params.name]
+					const valueWithPercent = percentageLabel ? `${valueToShow} (${percentageLabel})` : valueToShow
 					const description = nodeMetadata.descriptions[params.name]
 					if (description) {
-						return `<strong>${params.name}</strong><br/>${valueToShow}<br/><span style="color: ${isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'}; font-size: 11px;">${description}</span>`
+						return `<strong>${params.name}</strong><br/>${valueWithPercent}<br/><span style="color: ${isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'}; font-size: 11px;">${description}</span>`
 					}
-					return `${params.name}<br/>${valueToShow}`
+					return `${params.name}<br/>${valueWithPercent}`
 				}
 			},
 			series

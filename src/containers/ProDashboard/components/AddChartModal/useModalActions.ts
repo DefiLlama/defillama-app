@@ -1,9 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import {
-	useProDashboardCatalog,
-	useProDashboardEditorActions,
-	useProDashboardTime
-} from '../../ProDashboardAPIContext'
+import { useProDashboardCatalog, useProDashboardEditorActions, useProDashboardTime } from '../../ProDashboardAPIContext'
 import {
 	Chain,
 	CHART_TYPES,
@@ -285,7 +281,61 @@ export function useModalActions(
 	const handleSubmit = useCallback(() => {
 		if (editItem) {
 			let newItem: DashboardItemConfig | null = null
-			if (
+			if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'yields' && state.selectedYieldPool) {
+				newItem = {
+					...editItem,
+					kind: 'yields',
+					poolConfigId: state.selectedYieldPool.configID,
+					poolName: state.selectedYieldPool.name,
+					project: state.selectedYieldPool.project,
+					chain: state.selectedYieldPool.chain,
+					chartType: state.selectedYieldChartType
+				} as any
+			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'stablecoins') {
+				if (state.stablecoinMode === 'asset' && state.selectedStablecoinAsset && state.selectedStablecoinAssetId) {
+					newItem = {
+						...editItem,
+						kind: 'stablecoin-asset',
+						stablecoin: state.selectedStablecoinAsset,
+						stablecoinId: state.selectedStablecoinAssetId,
+						chartType: state.selectedStablecoinAssetChartType
+					} as any
+				} else {
+					newItem = {
+						...editItem,
+						kind: 'stablecoins',
+						chain: state.selectedStablecoinChain,
+						chartType: state.selectedStablecoinChartType
+					} as any
+				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'advanced-tvl' &&
+				state.selectedAdvancedTvlProtocol &&
+				state.selectedAdvancedTvlProtocolName
+			) {
+				newItem = {
+					...editItem,
+					kind: 'advanced-tvl',
+					protocol: state.selectedAdvancedTvlProtocol,
+					protocolName: state.selectedAdvancedTvlProtocolName,
+					chartType: state.selectedAdvancedTvlChartType
+				} as any
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.selectedChartTab === 'borrowed' &&
+				state.selectedBorrowedProtocol &&
+				state.selectedBorrowedProtocolName &&
+				state.selectedBorrowedChartType
+			) {
+				newItem = {
+					...editItem,
+					kind: 'advanced-borrowed',
+					protocol: state.selectedBorrowedProtocol,
+					protocolName: state.selectedBorrowedProtocolName,
+					chartType: state.selectedBorrowedChartType
+				} as any
+			} else if (
 				state.selectedMainTab === 'charts' &&
 				state.chartCreationMode === 'combined' &&
 				state.composerItems.length > 0
@@ -492,60 +542,6 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
-			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'yields' && state.selectedYieldPool) {
-				newItem = {
-					...editItem,
-					kind: 'yields',
-					poolConfigId: state.selectedYieldPool.configID,
-					poolName: state.selectedYieldPool.name,
-					project: state.selectedYieldPool.project,
-					chain: state.selectedYieldPool.chain,
-					chartType: state.selectedYieldChartType
-				} as any
-			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'stablecoins') {
-				if (state.stablecoinMode === 'asset' && state.selectedStablecoinAsset && state.selectedStablecoinAssetId) {
-					newItem = {
-						...editItem,
-						kind: 'stablecoin-asset',
-						stablecoin: state.selectedStablecoinAsset,
-						stablecoinId: state.selectedStablecoinAssetId,
-						chartType: state.selectedStablecoinAssetChartType
-					} as any
-				} else {
-					newItem = {
-						...editItem,
-						kind: 'stablecoins',
-						chain: state.selectedStablecoinChain,
-						chartType: state.selectedStablecoinChartType
-					} as any
-				}
-			} else if (
-				state.selectedMainTab === 'charts' &&
-				state.selectedChartTab === 'advanced-tvl' &&
-				state.selectedAdvancedTvlProtocol &&
-				state.selectedAdvancedTvlProtocolName
-			) {
-				newItem = {
-					...editItem,
-					kind: 'advanced-tvl',
-					protocol: state.selectedAdvancedTvlProtocol,
-					protocolName: state.selectedAdvancedTvlProtocolName,
-					chartType: state.selectedAdvancedTvlChartType
-				} as any
-			} else if (
-				state.selectedMainTab === 'charts' &&
-				state.selectedChartTab === 'borrowed' &&
-				state.selectedBorrowedProtocol &&
-				state.selectedBorrowedProtocolName &&
-				state.selectedBorrowedChartType
-			) {
-				newItem = {
-					...editItem,
-					kind: 'advanced-borrowed',
-					protocol: state.selectedBorrowedProtocol,
-					protocolName: state.selectedBorrowedProtocolName,
-					chartType: state.selectedBorrowedChartType
-				} as any
 			}
 
 			if (newItem) {

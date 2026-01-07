@@ -1,4 +1,14 @@
-import { memo, RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
+import {
+	Dispatch,
+	memo,
+	RefObject,
+	SetStateAction,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useRef,
+	useState
+} from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
@@ -18,6 +28,7 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
+import { ResearchProgress } from './components/ResearchProgress'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
 import { convertLlamaLinksToDefillama } from './utils/entityLinks'
@@ -81,6 +92,15 @@ async function fetchPromptResponse({
 		title?: string
 		messageId?: string
 		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+		researchProgress?: {
+			iteration: number
+			totalIterations: number
+			phase: string
+			dimensionsCovered: string[]
+			dimensionsPending: string[]
+			discoveries: string[]
+			toolsExecuted: number
+		}
 	}) => void
 	abortSignal?: AbortSignal
 	sessionId?: string | null
@@ -187,7 +207,12 @@ async function fetchPromptResponse({
 							}
 						} else if (data.type === 'progress') {
 							if (onProgress && !abortSignal?.aborted) {
-								onProgress({ type: 'progress', content: data.content, stage: data.stage })
+								onProgress({
+									type: 'progress',
+									content: data.content,
+									stage: data.stage,
+									researchProgress: data.researchProgress
+								})
 							}
 						} else if (data.type === 'session') {
 							if (onProgress && !abortSignal?.aborted) {
@@ -400,6 +425,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [researchState, setResearchState] = useState<{
+		isActive: boolean
+		startTime: number
+		currentIteration: number
+		totalIterations: number
+		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	} | null>(null)
 	const [lastFailedRequest, setLastFailedRequest] = useState<{
 		userQuestion: string
 		suggestionContext?: any
@@ -417,6 +453,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
+	const researchStartTimeRef = useRef<number | null>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const shouldAutoScrollRef = useRef(true)
 	const rafIdRef = useRef<number | null>(null)
@@ -555,6 +592,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							}
 						} else if (data.stage === 'suggestions_loading') {
 							setIsGeneratingSuggestions(true)
+						} else if (data.stage === 'research' && (data as any).researchProgress) {
+							const rp = (data as any).researchProgress
+							if (!researchStartTimeRef.current) {
+								researchStartTimeRef.current = Date.now()
+							}
+							setResearchState({
+								isActive: true,
+								startTime: researchStartTimeRef.current,
+								currentIteration: rp.iteration,
+								totalIterations: rp.totalIterations,
+								phase: rp.phase,
+								dimensionsCovered: rp.dimensionsCovered || [],
+								dimensionsPending: rp.dimensionsPending || [],
+								discoveries: rp.discoveries || [],
+								toolsExecuted: rp.toolsExecuted || 0
+							})
 						}
 					} else if (data.type === 'session' && data.sessionId) {
 						newlyCreatedSessionsRef.current.add(data.sessionId)
@@ -601,6 +654,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onSuccess: (data, variables) => {
 			setIsStreaming(false)
+			setResearchState(null)
+			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 			setLastFailedRequest(null)
 			lastInputRef.current = null
@@ -641,6 +696,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		},
 		onError: (error, variables) => {
 			setIsStreaming(false)
+			setResearchState(null)
+			researchStartTimeRef.current = null
 			abortControllerRef.current = null
 
 			const finalContent = streamingContentRef.current.getContent()
@@ -1166,7 +1223,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											restoreRequest={restoreRequest}
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 											isResearchMode={isResearchMode}
-											onResearchModeToggle={() => setIsResearchMode(!isResearchMode)}
+											setIsResearchMode={setIsResearchMode}
 											showResearchButton={showDebug}
 										/>
 										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
@@ -1368,6 +1425,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															messageId: currentMessageId ?? undefined
 														}}
 														streamingCsvExports={streamingCsvExports}
+														researchState={researchState}
 													/>
 												</div>
 											)}
@@ -1419,7 +1477,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										restoreRequest={restoreRequest}
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										isResearchMode={isResearchMode}
-										onResearchModeToggle={() => setIsResearchMode(!isResearchMode)}
+										setIsResearchMode={setIsResearchMode}
 										showResearchButton={showDebug}
 									/>
 								)}
@@ -1441,7 +1499,7 @@ const PromptInput = memo(function PromptInput({
 	placeholder,
 	restoreRequest,
 	isResearchMode,
-	onResearchModeToggle,
+	setIsResearchMode,
 	showResearchButton
 }: {
 	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
@@ -1455,8 +1513,8 @@ const PromptInput = memo(function PromptInput({
 		text: string
 		entities?: Array<{ term: string; slug: string }>
 	} | null
-	isResearchMode?: boolean
-	onResearchModeToggle?: () => void
+	isResearchMode: boolean
+	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	showResearchButton?: boolean
 }) {
 	const [value, setValue] = useState('')
@@ -1831,20 +1889,38 @@ const PromptInput = memo(function PromptInput({
 				)}
 				<div className="flex flex-wrap items-center justify-between gap-4 p-0">
 					{showResearchButton && (
-						<button
-							type="button"
-							onClick={onResearchModeToggle}
-							data-umami-event="llamaai-research-mode-toggle"
-							className={`flex min-h-7 items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium transition-colors ${
-								isResearchMode
-									? 'border-(--old-blue) bg-(--old-blue) text-white'
-									: 'border-[#1853A8] text-[#1853A8] hover:bg-(--old-blue)/10 dark:border-(--old-blue) dark:text-[#78A4E4] dark:hover:bg-(--old-blue)/30'
-							}`}
-						>
-							<Icon name="search" height={12} width={12} />
-							<span>Research</span>
-							{isResearchMode ? <Icon name="x" height={12} width={12} /> : null}
-						</button>
+						<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
+							<Tooltip
+								content="Fast responses for most queries"
+								render={
+									<button
+										type="button"
+										onClick={() => setIsResearchMode(false)}
+										data-umami-event="llamaai-quick-mode-toggle"
+										data-active={!isResearchMode}
+									/>
+								}
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+							>
+								<Icon name="sparkles" height={12} width={12} />
+								<span>Quick</span>
+							</Tooltip>
+							<Tooltip
+								content="Generate a comprehensive research report with detailed analysis"
+								render={
+									<button
+										type="button"
+										onClick={() => setIsResearchMode(true)}
+										data-umami-event="llamaai-research-mode-toggle"
+										data-active={isResearchMode}
+									/>
+								}
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#999] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#666] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+							>
+								<Icon name="search" height={12} width={12} />
+								<span>Research</span>
+							</Tooltip>
+						</div>
 					)}
 					{isStreaming ? (
 						<Tooltip
@@ -1892,7 +1968,8 @@ const PromptResponse = memo(function PromptResponse({
 	showMetadata = false,
 	readOnly = false,
 	inlineChartConfig,
-	streamingCsvExports
+	streamingCsvExports,
+	researchState
 }: {
 	response?: {
 		answer: string
@@ -1928,6 +2005,17 @@ const PromptResponse = memo(function PromptResponse({
 		messageId?: string
 	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
+	researchState?: {
+		isActive: boolean
+		startTime: number
+		currentIteration: number
+		totalIterations: number
+		phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
+		dimensionsCovered: string[]
+		dimensionsPending: string[]
+		discoveries: string[]
+		toolsExecuted: number
+	} | null
 }) {
 	if (error && canRetry) {
 		return (
@@ -1962,6 +2050,19 @@ const PromptResponse = memo(function PromptResponse({
 						chartData={response?.chartData}
 						inlineChartConfig={inlineChartConfig}
 						csvExports={streamingCsvExports || undefined}
+					/>
+				) : isStreaming && researchState?.isActive ? (
+					<ResearchProgress
+						isActive={researchState.isActive}
+						startTime={researchState.startTime}
+						currentIteration={researchState.currentIteration}
+						totalIterations={researchState.totalIterations}
+						phase={researchState.phase}
+						dimensionsCovered={researchState.dimensionsCovered}
+						dimensionsPending={researchState.dimensionsPending}
+						discoveries={researchState.discoveries}
+						toolsExecuted={researchState.toolsExecuted}
+						progressMessage={progressMessage || ''}
 					/>
 				) : isStreaming && progressMessage ? (
 					<p
@@ -2239,7 +2340,7 @@ const ResponseControls = memo(function ResponseControls({
 						messageId={messageId}
 						charts={charts}
 						exportType="single_message"
-						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+						className="flex items-center gap-1 rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					/>
 				)}
 				{!readOnly && (
