@@ -76,6 +76,19 @@ export const ChainProtocolsTable = ({
 		() => null
 	)
 
+	const setDefaultColumns = () => {
+		const allKeys = [...columnOptions.map(col => col.key), ...customColumns.map((_, idx) => `custom_formula_${idx}`)]
+		const defaultKeys = JSON.parse(defaultColumns)
+		const ops = Object.fromEntries(
+			allKeys.map((key) => [key, defaultKeys[key] === true])
+		)
+		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+		window.dispatchEvent(new Event('storage'))
+		if (instance && instance.setColumnVisibility) {
+			instance.setColumnVisibility(ops)
+		}
+	}
+
 	const clearAllColumns = () => {
 		const ops = JSON.stringify(
 			Object.fromEntries(
@@ -91,6 +104,33 @@ export const ChainProtocolsTable = ({
 			instance.setColumnVisibility(JSON.parse(ops))
 		}
 	}
+
+	// Check if current selection matches default columns
+	const isDefaultSelection = useMemo(() => {
+		const storage = JSON.parse(columnsInStorage)
+		const defaults = JSON.parse(defaultColumns)
+		const allKeys = [...columnOptions.map(col => col.key), ...customColumns.map((_, idx) => `custom_formula_${idx}`)]
+		
+		// Get default keys (the 8 default columns)
+		const defaultKeys = Object.keys(defaults).filter(key => defaults[key] === true)
+		// Get currently selected keys
+		const selectedKeys = allKeys.filter(key => storage[key] === true)
+		
+		// If no columns are selected, it's not the default selection
+		if (selectedKeys.length === 0) return false
+		
+		// Check if selected keys exactly match default keys (same length and same keys)
+		if (selectedKeys.length !== defaultKeys.length) return false
+		
+		return defaultKeys.every(key => selectedKeys.includes(key)) && 
+		       selectedKeys.every(key => defaultKeys.includes(key))
+	}, [columnsInStorage, customColumns])
+
+	// Conditional clearAll function and label
+	// If on default selection, show "Deselect All" to deselect everything
+	// If not on default selection, show "Default" to select default 8 columns
+	const clearAllHandler = isDefaultSelection ? clearAllColumns : setDefaultColumns
+	const clearAllLabel = isDefaultSelection ? 'Deselect All' : 'Default'
 	const toggleAllColumns = () => {
 		const ops = JSON.stringify(
 			Object.fromEntries(
@@ -613,7 +653,8 @@ export const ChainProtocolsTable = ({
 					setSelectedValues={addColumn}
 					selectOnlyOne={addOnlyOneColumn}
 					toggleAll={toggleAllColumns}
-					clearAll={clearAllColumns}
+					clearAll={clearAllHandler}
+					clearAllLabel={clearAllLabel}
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
