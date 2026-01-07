@@ -403,14 +403,20 @@ export default function LlamaAIGetStarted() {
 								</p>
 							</FAQ>
 							<FAQ question="What can it do right now?">
+								<p className="mb-2">
+									Across protocols, chains, categories, and tokens, LlamaAI can:
+								</p>
 								<ul className="flex list-disc flex-col gap-1.5 pl-4">
-									<li>Analyze protocols with complex multi-factor queries</li>
+									<li>Run complex multi-factor queries (e.g., growing TVL + revenue but declining token price)</li>
 									<li>Generate custom charts and export data as CSV</li>
-									<li>Write in-depth research reports</li>
-									<li>Provide speculative guidance using technical indicators</li>
+									<li>Write in-depth research reports on any topic</li>
+									<li>
+										Provide speculative guidance using technical indicators, statistical models (e.g., Monte Carlo),
+										and prediction market data
+									</li>
 								</ul>
 							</FAQ>
-							<FAQ question="Where does the data come from?">
+							<FAQ question="What data does LlamaAI have access to?">
 								<p>DefiLlama's complete dataset enriched with real-time web search for the latest context.</p>
 							</FAQ>
 							<FAQ question="Who has access?">
@@ -421,9 +427,11 @@ export default function LlamaAIGetStarted() {
 							</FAQ>
 							<FAQ question="What sort of prompts can it answer?">
 								<ul className="flex list-disc flex-col gap-1.5 pl-4">
-									<li>"Which protocols have growing TVL but declining prices?"</li>
-									<li>"Deep dive into Hyperliquid's competitive positioning"</li>
-									<li>"Is ETH a good buy right now?"</li>
+									<li>"Which protocols have growing TVL and revenue but declining token prices?"</li>
+									<li>"Give me a chart of total app revenue divided by category"</li>
+									<li>"What are the best stablecoin yields with at least $10M TVL?"</li>
+									<li>"Deep dive into Hyperliquid"</li>
+									<li>"What are the probabilities that ETH price will go lower?"</li>
 								</ul>
 							</FAQ>
 							<FAQ question="Can I export results?">
