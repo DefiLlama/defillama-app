@@ -64,26 +64,26 @@ export function ChainOverview(props: IChainOverviewData) {
 				<div className="thin-scrollbar relative isolate flex shrink-0 flex-nowrap items-center gap-1 overflow-x-auto overflow-y-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5">
 					{linksToOtherLlamaApps.map((app, index) => (
 						<Fragment key={`llama-app-${app.href}`}>
-							<a
-								target="_blank"
-								rel="noreferrer noopener"
-								href={app.href}
+						<a
+							target="_blank"
+							rel="noreferrer noopener"
+							href={app.href}
 								className="relative flex max-h-[64px] w-full max-w-[70vw] min-w-[270px] flex-1 items-center gap-2.5 overflow-hidden"
-							>
-								{app.background}
-								<>{app.icon}</>
-								<span className="flex flex-1 flex-col gap-0.5">
-									<span className="col-span-1 row-span-1 overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap">
-										{app.name}
-									</span>
-									{app.description === '' ? null : (
-										<span className="col-span-1 row-span-1 overflow-hidden text-sm font-light text-ellipsis whitespace-nowrap">
-											{app.description}
-										</span>
-									)}
+						>
+							{app.background}
+							<>{app.icon}</>
+							<span className="flex flex-1 flex-col gap-0.5">
+								<span className="col-span-1 row-span-1 overflow-hidden text-sm font-semibold text-ellipsis whitespace-nowrap">
+									{app.name}
 								</span>
-								<Icon name="arrow-up-right-2" className="h-6 w-6 shrink-0" />
-							</a>
+								{app.description === '' ? null : (
+									<span className="col-span-1 row-span-1 overflow-hidden text-sm font-light text-ellipsis whitespace-nowrap">
+										{app.description}
+									</span>
+								)}
+							</span>
+							<Icon name="arrow-up-right-2" className="h-6 w-6 shrink-0" />
+						</a>
 							{index < linksToOtherLlamaApps.length - 1 && (
 								<span className="flex h-12 items-center mx-2 text-(--text-tertiary)" style={{ transform: 'scaleY(2)' }}>|</span>
 							)}

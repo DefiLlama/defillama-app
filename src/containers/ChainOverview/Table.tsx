@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
@@ -179,6 +179,12 @@ export const ChainProtocolsTable = ({
 		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
 		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 
+		// Remove manual resize tracking for columns that are being hidden
+		const hiddenColumns = allKeys.filter(key => !newColumns.includes(key))
+		hiddenColumns.forEach(colId => {
+			manuallyResizedColumns.current.delete(colId)
+		})
+
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
 		} else {
@@ -207,8 +213,12 @@ export const ChainProtocolsTable = ({
 	const [sorting, setSorting] = useState<SortingState>([
 		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
 	])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
+	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({
+		__spacer: 0
+	})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
+	const manuallyResizedColumns = useRef<Set<string>>(new Set())
+	const tableContainerRef = useRef<HTMLDivElement>(null)
 
 	const customColumnDefs = useMemo(() => {
 		return customColumns.map((col, idx) => {
@@ -304,10 +314,50 @@ export const ChainProtocolsTable = ({
 							columns: customColumnDefs
 						}
 					]
-				: [])
+				: []),
+			// Invisible spacer column that expands/contracts to fill remaining space
+			columnHelper.display({
+				id: '__spacer',
+				header: '',
+				cell: () => null,
+				size: 0,
+				minSize: 0,
+				maxSize: 10000,
+				enableResizing: true,
+				enableSorting: false,
+				meta: { hidden: true }
+			})
 		],
-		[customColumnDefs]
+		[customColumnDefs, columns]
 	)
+
+	const columnVisibility = useMemo(() => {
+		const stored = JSON.parse(columnsInStorage)
+		const defaults = JSON.parse(defaultColumns)
+		
+		// Get all column keys from columnOptions and customColumns
+		const allColumnKeys = [
+			...columnOptions.map(col => col.key),
+			...customColumns.map((_, idx) => `custom_formula_${idx}`)
+		]
+		
+		// Merge: use stored value if exists, otherwise use default, otherwise false
+		const merged: Record<string, boolean> = {}
+		allColumnKeys.forEach((key) => {
+			if (key in stored) {
+				merged[key] = stored[key] === true
+			} else if (key in defaults) {
+				merged[key] = defaults[key] === true
+			} else {
+				merged[key] = false
+			}
+		})
+		
+		// Always show the spacer column
+		merged['__spacer'] = true
+		
+		return merged
+	}, [columnsInStorage, customColumns])
 
 	const instance = useReactTable({
 		data: finalProtocols,
@@ -316,7 +366,13 @@ export const ChainProtocolsTable = ({
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
+		},
+		enableColumnResizing: true,
+		columnResizeMode: 'onChange',
+		defaultColumn: {
+			enableResizing: true,
+			minSize: 50
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => alphanumericFalsyLast(rowA, rowB, columnId, sorting)
@@ -342,7 +398,18 @@ export const ChainProtocolsTable = ({
 				return newSorting
 			})
 		},
-		onColumnSizingChange: setColumnSizing,
+		onColumnSizingChange: (updater) => {
+			setColumnSizing((old) => {
+				const newSizing = updater instanceof Function ? updater(old) : updater
+				// Track which columns have been manually resized
+				Object.keys(newSizing).forEach((colId) => {
+					if (colId !== '__spacer' && newSizing[colId] !== undefined && newSizing[colId] !== old[colId]) {
+						manuallyResizedColumns.current.add(colId)
+					}
+				})
+				return newSizing
+			})
+		},
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -413,6 +480,111 @@ export const ChainProtocolsTable = ({
 		}
 	}, [instance, router.query.chain])
 
+	// Calculate column sizes to fill screen when columns are visible
+	useEffect(() => {
+		if (!instance || !tableContainerRef.current) return
+
+		const calculateColumnSizes = () => {
+			const container = tableContainerRef.current
+			if (!container) return
+
+			const containerWidth = container.clientWidth
+			if (containerWidth === 0) return
+
+			const visibleColumns = instance.getVisibleLeafColumns().filter(
+				(col) => col.id !== '__spacer' && col.id !== 'custom_columns'
+			)
+
+			if (visibleColumns.length === 0) return
+
+			// Get default sizes from column definitions
+			const defaultSizes: Record<string, number> = {}
+			visibleColumns.forEach((col) => {
+				const defSize = col.columnDef.size ?? 100
+				defaultSizes[col.id] = defSize
+			})
+
+			// Get current manually resized sizes from state
+			const currentSizing = instance.getState().columnSizing
+			const manuallyResized: Record<string, number> = {}
+			visibleColumns.forEach((col) => {
+				if (manuallyResizedColumns.current.has(col.id) && currentSizing[col.id] !== undefined) {
+					manuallyResized[col.id] = currentSizing[col.id]
+				}
+			})
+
+			// Calculate width for auto-sized columns
+			const manuallyResizedWidth = Object.values(manuallyResized).reduce((sum, size) => sum + size, 0)
+			const autoSizedColumns = visibleColumns.filter((col) => !manuallyResizedColumns.current.has(col.id))
+			const availableWidth = containerWidth - manuallyResizedWidth
+
+			if (autoSizedColumns.length === 0) {
+				// All columns are manually resized, just ensure spacer is 0
+				setColumnSizing((old) => ({
+					...old,
+					__spacer: 0
+				}))
+				return
+			}
+
+			// Calculate proportional sizes for auto-sized columns
+			const autoSizedDefaultWidth = autoSizedColumns.reduce(
+				(sum, col) => sum + (defaultSizes[col.id] ?? 100),
+				0
+			)
+			const scaleFactor = availableWidth / autoSizedDefaultWidth
+
+			// Build new sizing state
+			const newSizing: ColumnSizingState = {
+				__spacer: 0
+			}
+
+			// Set manually resized columns
+			Object.entries(manuallyResized).forEach(([colId, size]) => {
+				newSizing[colId] = size
+			})
+
+			// Calculate auto-sized columns
+			autoSizedColumns.forEach((col) => {
+				const defaultSize = defaultSizes[col.id] ?? 100
+				newSizing[col.id] = Math.max(50, defaultSize * scaleFactor) // Ensure minimum 50px
+			})
+
+			setColumnSizing(newSizing)
+		}
+
+		// Clean up manual resize tracking for columns that are no longer visible
+		const visibleColumnIds = new Set(
+			instance.getVisibleLeafColumns()
+				.filter(col => col.id !== '__spacer' && col.id !== 'custom_columns')
+				.map(col => col.id)
+		)
+		
+		// Remove tracking for columns that are no longer visible
+		manuallyResizedColumns.current.forEach((colId) => {
+			if (!visibleColumnIds.has(colId)) {
+				manuallyResizedColumns.current.delete(colId)
+			}
+		})
+
+		// Always recalculate when column visibility changes to fill screen
+		// This will preserve manually resized columns but recalculate others
+		const timeoutId = setTimeout(() => {
+			calculateColumnSizes()
+		}, 100)
+
+		// Also recalculate on window resize (preserve manual resizes)
+		const handleResize = () => {
+			calculateColumnSizes()
+		}
+		window.addEventListener('resize', handleResize)
+		
+		return () => {
+			clearTimeout(timeoutId)
+			window.removeEventListener('resize', handleResize)
+		}
+	}, [instance, columnVisibility]) // Recalculate whenever column visibility changes
+
 	return (
 		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
@@ -465,7 +637,12 @@ export const ChainProtocolsTable = ({
 				<TVLRange triggerClassName="w-full sm:w-auto" />
 				<CSVDownloadButton prepareCsv={prepareCsv} />
 			</div>
-			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
+			<VirtualTable 
+				instance={instance} 
+				useStickyHeader={useStickyHeader} 
+				columnResizeMode="onChange"
+				containerRef={tableContainerRef}
+			/>
 			<CustomColumnModal
 				dialogStore={customColumnDialogStore}
 				onSave={handleSaveCustomColumn}
@@ -653,15 +830,14 @@ const columns: ColumnDef<IProtocol>[] = [
 
 					<TokenLogo logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`} data-lgonly />
 
-					<span className="-my-2 flex flex-col">
+					<span className="flex items-center gap-2 flex-1 min-w-0">
 						<BasicLink
 							href={`/protocol/${row.original.slug}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline flex-shrink"
 						>
 							{value}
 						</BasicLink>
-
-						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled)">
+						<Tooltip content={<Chains />} className="text-[0.7rem] text-(--text-disabled) flex-shrink-0">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>

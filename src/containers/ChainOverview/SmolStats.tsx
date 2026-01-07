@@ -198,22 +198,22 @@ export const SmolStats = (props: IChainOverviewData) => {
 							) : null}
 						</div>
 					) : null} */}
-					<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-						<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
-							<Tooltip
-								render={<BasicLink href="/digital-asset-treasuries" />}
-								className="text-sm font-semibold"
-								content="Daily net inflows/outflows into Digital Asset Treasury Companies"
-							>
-								DAT Inflows
-							</Tooltip>
+						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+							<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
+								<Tooltip
+									render={<BasicLink href="/digital-asset-treasuries" />}
+									className="text-sm font-semibold"
+									content="Daily net inflows/outflows into Digital Asset Treasury Companies"
+								>
+									DAT Inflows
+								</Tooltip>
 							{props.datInflows?.chart?.length > 0 ? (
-								<p className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-form)">{`${formattedNum(
-									props.datInflows.total30d,
-									true
-								)} (30d)`}</p>
-							) : null}
-						</div>
+									<p className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-form)">{`${formattedNum(
+										props.datInflows.total30d,
+										true
+									)} (30d)`}</p>
+								) : null}
+							</div>
 						{props.datInflows?.chart?.length > 0 ? (
 							<Suspense fallback={<></>}>
 								<SmolBarChart
@@ -228,7 +228,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 								No data available
 							</div>
 						)}
-					</div>
+						</div>
 				</>
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
