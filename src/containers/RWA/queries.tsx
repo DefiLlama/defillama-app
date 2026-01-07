@@ -23,12 +23,14 @@ interface IFetchedRWAProject {
 	attestations: boolean | null
 	redeemable: boolean | null
 	cexListed: boolean | null
-	kyc: boolean | string[] | null
+	kycForMintRedeem: boolean | null
+	kycAllowlistedWhitelistedToTransferHold: boolean | null
 	transferable: boolean | null
 	selfCustody: boolean | null
 	descriptionNotes: string | null
 	parentPlatform: string | null
 	stablecoin: boolean | null
+	governance: boolean | null
 	defiActiveTvl: Record<string, Record<string, string>> | null
 	onChainMarketcap: Record<string, string> | null
 }
@@ -62,14 +64,14 @@ export interface IRWAAssetsOverview {
 
 export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
 	try {
-		const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+		const res: { data: Record<string, IFetchedRWAProject> } = await fetchJson(RWA_ACTIVE_TVLS_API)
 
 		// Find the actual chain name (case-insensitive match) and validate it exists
 		let actualChainName: string | null = null
 		if (selectedChain) {
 			const selectedChainLower = selectedChain.toLowerCase()
-			for (const rwaId in data) {
-				const match = data[rwaId].chain?.find((c) => c.toLowerCase() === selectedChainLower)
+			for (const rwaId in res.data) {
+				const match = res.data[rwaId].chain?.find((c) => c.toLowerCase() === selectedChainLower)
 				if (match) {
 					actualChainName = match
 					break
@@ -89,8 +91,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		let totalOnChainStablecoinValue = 0
 		let totalOnChainDeFiActiveTvl = 0
 
-		for (const rwaId in data) {
-			const item = data[rwaId]
+		for (const rwaId in res.data) {
+			const item = res.data[rwaId]
 
 			let totalOnChainTvl = 0
 			let totalDeFiActiveTvl = 0
@@ -121,15 +123,15 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				}
 			}
 
-			const itemChains = new Set(item.chain ?? [])
-			const hasChainInTvl = actualChainName ? itemChains.has(actualChainName) : true
+			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
+			const hasChainInTvl = actualChainName ? filteredOnChainTvl > 0 || filteredDeFiActiveTvl > 0 : true
 
 			// Use filtered values if chain is selected, otherwise use totals
 			const effectiveOnChainTvl = actualChainName ? filteredOnChainTvl : totalOnChainTvl
 			const effectiveDeFiActiveTvl = actualChainName ? filteredDeFiActiveTvl : totalDeFiActiveTvl
 
 			const asset: IRWAProject = {
-				ticker: item.ticker,
+				ticker: item.ticker || null,
 				name: item.name,
 				website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
 				twitter: item.twitter,
@@ -154,12 +156,14 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				attestations: item.attestations,
 				redeemable: item.redeemable,
 				cexListed: item.cexListed,
-				kyc: item.kyc,
+				kycForMintRedeem: item.kycForMintRedeem,
+				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold,
 				transferable: item.transferable,
 				selfCustody: item.selfCustody,
 				descriptionNotes: item.descriptionNotes,
 				parentPlatform: item.parentPlatform,
 				stablecoin: item.stablecoin,
+				governance: item.governance,
 				onChainMarketcap: {
 					total: effectiveOnChainTvl,
 					breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
@@ -171,7 +175,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			}
 
 			// Only include asset if it exists on the selected chain (or no chain filter)
-			if (hasChainInTvl) {
+			if (hasChainInTvl && asset.name) {
 				assets.push(asset)
 
 				// Track total values
@@ -256,11 +260,11 @@ export interface IRWAAssetData extends IRWAProject {
 
 export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
 	try {
-		const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+		const res: { data: Record<string, IFetchedRWAProject> } = await fetchJson(RWA_ACTIVE_TVLS_API)
 
 		// Find the asset by comparing ticker slugs
-		for (const rwaId in data) {
-			const item = data[rwaId]
+		for (const rwaId in res.data) {
+			const item = res.data[rwaId]
 			if (slug(item.ticker) === assetSlug) {
 				let totalOnChainTvl = 0
 				let totalDeFiActiveTvl = 0
@@ -285,7 +289,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 
 				return {
 					slug: assetSlug,
-					ticker: item.ticker,
+					ticker: item.ticker || null,
 					name: item.name,
 					website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
 					twitter: item.twitter,
@@ -310,12 +314,14 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					attestations: item.attestations,
 					redeemable: item.redeemable,
 					cexListed: item.cexListed,
-					kyc: item.kyc,
+					kycForMintRedeem: item.kycForMintRedeem,
+					kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold,
 					transferable: item.transferable,
 					selfCustody: item.selfCustody,
 					descriptionNotes: item.descriptionNotes,
 					parentPlatform: item.parentPlatform,
 					stablecoin: item.stablecoin,
+					governance: item.governance,
 					onChainMarketcap: {
 						total: totalOnChainTvl,
 						breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])

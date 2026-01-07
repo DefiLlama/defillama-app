@@ -73,10 +73,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedAssetClasses,
 		selectedIssuers,
 		includeStablecoins,
+		includeGovernance,
 		setSelectedCategories,
 		setSelectedAssetClasses,
 		setSelectedIssuers,
 		setIncludeStablecoins,
+		setIncludeGovernance,
 		selectOnlyOneCategory,
 		toggleAllCategories,
 		clearAllCategories,
@@ -102,13 +104,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			if (!includeStablecoins && asset.stablecoin) {
 				return false
 			}
+			if (!includeGovernance && asset.governance) {
+				return false
+			}
 			return (
 				asset.category?.some((category) => selectedCategories.includes(category)) &&
 				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
 				selectedIssuers.includes(asset.issuer)
 			)
 		})
-	}, [props.assets, selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins])
+	}, [props.assets, selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins, includeGovernance])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets
@@ -350,6 +355,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						/>
 						<span>Include Stablecoins</span>
 					</label>
+					<label className="flex items-center gap-2">
+						<input
+							type="checkbox"
+							checked={includeGovernance}
+							onChange={(e) => setIncludeGovernance(e.target.checked)}
+						/>
+						<span>Include Governance Tokens</span>
+					</label>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
 				<VirtualTable instance={instance} />
@@ -567,9 +580,9 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		size: 120
 	},
 	{
-		id: 'kyc',
-		header: 'KYC',
-		accessorFn: (asset) => asset.kyc,
+		id: 'kycForMintRedeem',
+		header: 'KYC to Mint or Redeem',
+		accessorFn: (asset) => asset.kycForMintRedeem,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
@@ -578,9 +591,25 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset requires KYC to mint and redeem'
+			headerHelperText: 'Whether the asset requires KYC to mint or redeem'
 		},
-		size: 80
+		size: 180
+	},
+	{
+		id: 'kycAllowlistedWhitelistedToTransferHold',
+		header: 'KYC to Transfer or Hold',
+		accessorFn: (asset) => asset.kycAllowlistedWhitelistedToTransferHold,
+		cell: (info) => (
+			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+			</span>
+		),
+		sortUndefined: 'last',
+		meta: {
+			align: 'end',
+			headerHelperText: 'Whether the asset requires KYC to be whitelisted to transfer or hold'
+		},
+		size: 180
 	},
 	{
 		id: 'transferable',
@@ -718,32 +747,34 @@ const useRWATableQueryParams = ({
 }) => {
 	const router = useRouter()
 
-	const { selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins } = useMemo(() => {
-		const {
-			categories: categoriesQ,
-			assetClasses: assetClassesQ,
-			issuers: issuersQ,
-			includeStablecoins: stablecoinsQ
-		} = router.query
+	const { selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins, includeGovernance } =
+		useMemo(() => {
+			const {
+				categories: categoriesQ,
+				assetClasses: assetClassesQ,
+				issuers: issuersQ,
+				includeStablecoins: stablecoinsQ,
+				includeGovernance: governanceQ
+			} = router.query
 
-		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
-		const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
-			if (param === 'None') return []
-			if (!param) return allValues
-			const arr = toArrayParam(param)
-			const validSet = new Set(allValues)
-			return arr.filter((v) => validSet.has(v))
-		}
+			// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
+			const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
+				if (param === 'None') return []
+				if (!param) return allValues
+				const arr = toArrayParam(param)
+				const validSet = new Set(allValues)
+				return arr.filter((v) => validSet.has(v))
+			}
 
-		const selectedCategories = parseArrayParam(categoriesQ, categories)
-		const selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
-		const selectedIssuers = parseArrayParam(issuersQ, issuers)
+			const selectedCategories = parseArrayParam(categoriesQ, categories)
+			const selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
+			const selectedIssuers = parseArrayParam(issuersQ, issuers)
 
-		// includeStablecoins is true by default, unless explicitly set to 'false'
-		const includeStablecoins = stablecoinsQ !== 'false'
-
-		return { selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins }
-	}, [router.query, categories, assetClasses, issuers])
+			// includeStablecoins is true by default, unless explicitly set to 'false'
+			const includeStablecoins = stablecoinsQ !== 'false'
+			const includeGovernance = governanceQ !== 'false'
+			return { selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins, includeGovernance }
+		}, [router.query, categories, assetClasses, issuers])
 
 	const setSelectedCategories = useCallback(
 		(values: string[]) => updateArrayQuery('categories', values, router),
@@ -797,15 +828,30 @@ const useRWATableQueryParams = ({
 		[router]
 	)
 
+	const setIncludeGovernance = useCallback(
+		(value: boolean) => {
+			const nextQuery: Record<string, any> = { ...router.query }
+			if (value) {
+				delete nextQuery.includeGovernance
+			} else {
+				nextQuery.includeGovernance = 'false'
+			}
+			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		},
+		[router]
+	)
+
 	return {
 		selectedCategories,
 		selectedAssetClasses,
 		selectedIssuers,
 		includeStablecoins,
+		includeGovernance,
 		setSelectedCategories,
 		setSelectedAssetClasses,
 		setSelectedIssuers,
 		setIncludeStablecoins,
+		setIncludeGovernance,
 		selectOnlyOneCategory,
 		toggleAllCategories,
 		clearAllCategories,

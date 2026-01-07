@@ -210,13 +210,25 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								description="Can be exchanged for underlying asset"
 							/>
 							<ClassificationItem
-								label="KYC Required"
+								label="KYC to Mint or Redeem"
 								positive={
-									asset.kyc == null
+									asset.kycForMintRedeem == null
 										? undefined
-										: asset.kyc === true || (Array.isArray(asset.kyc) && asset.kyc.length > 0)
+										: asset.kycForMintRedeem === true ||
+											(Array.isArray(asset.kycForMintRedeem) && asset.kycForMintRedeem.length > 0)
 								}
-								description="Required to mint and redeem"
+								description="Whether the asset requires KYC to mint and redeem"
+							/>
+							<ClassificationItem
+								label="KYC to Transfer or Hold"
+								positive={
+									asset.kycAllowlistedWhitelistedToTransferHold == null
+										? undefined
+										: asset.kycAllowlistedWhitelistedToTransferHold === true ||
+											(Array.isArray(asset.kycAllowlistedWhitelistedToTransferHold) &&
+												asset.kycAllowlistedWhitelistedToTransferHold.length > 0)
+								}
+								description="Whether the asset requires KYC to be whitelisted to transfer/hold the asset"
 							/>
 							<ClassificationItem
 								label="Transferable"
