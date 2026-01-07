@@ -898,20 +898,21 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 					</div>
 
 					{isFetchingChartData ? (
-						<div className="m-auto flex min-h-[360px] items-center justify-center">
+						<div className={`m-auto flex items-center justify-center ${props.metadata.name !== 'All' ? 'min-h-[720px]' : 'min-h-[360px]'}`}>
 							<p className="flex items-center gap-1">
 								Loading
 								<LoadingDots />
 							</p>
 						</div>
 					) : (
-						<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+						<Suspense fallback={<div className={`m-auto flex items-center justify-center ${props.metadata.name !== 'All' ? 'min-h-[720px]' : 'min-h-[360px]'}`} />}>
 							<ChainChart
 								chartData={finalCharts}
 								valueSymbol={valueSymbol}
 								isThemeDark={darkMode}
 								groupBy={groupBy}
 								onReady={handleChartReady}
+								height={props.metadata.name !== 'All' ? '720px' : undefined}
 							/>
 						</Suspense>
 					)}

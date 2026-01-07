@@ -198,7 +198,6 @@ export const SmolStats = (props: IChainOverviewData) => {
 							) : null}
 						</div>
 					) : null} */}
-					{props.datInflows?.chart?.length > 0 ? (
 						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 							<div className="flex flex-col gap-1 xl:flex-row xl:items-start xl:justify-between">
 								<Tooltip
@@ -208,13 +207,14 @@ export const SmolStats = (props: IChainOverviewData) => {
 								>
 									DAT Inflows
 								</Tooltip>
-								{props.datInflows.chart?.length > 0 ? (
+							{props.datInflows?.chart?.length > 0 ? (
 									<p className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-form)">{`${formattedNum(
 										props.datInflows.total30d,
 										true
 									)} (30d)`}</p>
 								) : null}
 							</div>
+						{props.datInflows?.chart?.length > 0 ? (
 							<Suspense fallback={<></>}>
 								<SmolBarChart
 									series={props.datInflows.chart}
@@ -223,8 +223,12 @@ export const SmolStats = (props: IChainOverviewData) => {
 									groupBy="weekly"
 								/>
 							</Suspense>
+						) : (
+							<div className="flex flex-1 items-center justify-center text-sm text-(--text-tertiary)">
+								No data available
+							</div>
+						)}
 						</div>
-					) : null}
 				</>
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
