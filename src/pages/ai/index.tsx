@@ -308,7 +308,7 @@ export default function LlamaAIGetStarted() {
 					<h2 className="text-center text-[2rem] leading-8 font-extrabold text-black dark:text-white">FAQ</h2>
 					<FAQ question="What is LlamaAI?">
 						<p>
-							An onchain analyst. You ask in plain language. It compiles the exact query against DefiLlama data and
+							An on-chain analyst. You ask in plain language. It compiles the exact query against DefiLlama data and
 							returns ranked tables, custom charts, and analysis. Since LlamaAI has access to the entire DefiLlama
 							dataset, it excels at performing more detailed analysis than is possible on the main DefiLlama site.
 						</p>
