@@ -48,6 +48,40 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 	)
 }
 
+// KYC items: true = warning (amber), false = green (no KYC required is good)
+const KYCItem = ({
+	label,
+	required,
+	description
+}: {
+	label: string
+	required: boolean | null
+	description?: string
+}) => {
+	if (required == null) return null
+
+	return (
+		<div
+			className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
+				required ? 'border-amber-600/30 bg-amber-600/10' : 'border-green-600/30 bg-green-600/10'
+			}`}
+		>
+			<div className="flex flex-col">
+				<span
+					className={`text-xs ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
+				>
+					{label}
+				</span>
+				{description && <span className="text-[10px] text-(--text-disabled)">{description}</span>}
+			</div>
+			<Icon
+				name={required ? 'alert-triangle' : 'check-circle'}
+				className={`h-4 w-4 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
+			/>
+		</div>
+	)
+}
+
 const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
 	<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 		<h2 className="font-semibold">{title}</h2>
@@ -184,6 +218,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								<span className="text-xs text-(--text-label)">RWA Classification</span>
 								<span className="text-sm font-medium">{asset.rwaClassification || '-'}</span>
 							</p>
+							<p className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+								<span className="text-xs text-(--text-label)">Access Model</span>
+								<span className="text-sm font-medium">{asset.accessModel || '-'}</span>
+							</p>
 						</div>
 					</SectionCard>
 
@@ -209,26 +247,15 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								positive={asset.redeemable}
 								description="Can be exchanged for underlying asset"
 							/>
-							<ClassificationItem
+							<KYCItem
 								label="KYC to Mint or Redeem"
-								positive={
-									asset.kycForMintRedeem == null
-										? undefined
-										: asset.kycForMintRedeem === true ||
-											(Array.isArray(asset.kycForMintRedeem) && asset.kycForMintRedeem.length > 0)
-								}
-								description="Whether the asset requires KYC to mint and redeem"
+								required={asset.kycForMintRedeem}
+								description="Identity verification required to mint or redeem"
 							/>
-							<ClassificationItem
+							<KYCItem
 								label="KYC to Transfer or Hold"
-								positive={
-									asset.kycAllowlistedWhitelistedToTransferHold == null
-										? undefined
-										: asset.kycAllowlistedWhitelistedToTransferHold === true ||
-											(Array.isArray(asset.kycAllowlistedWhitelistedToTransferHold) &&
-												asset.kycAllowlistedWhitelistedToTransferHold.length > 0)
-								}
-								description="Whether the asset requires KYC to be whitelisted to transfer/hold the asset"
+								required={asset.kycAllowlistedWhitelistedToTransferHold}
+								description="Whitelist required to transfer or hold"
 							/>
 							<ClassificationItem
 								label="Transferable"

@@ -36,7 +36,11 @@ interface IFetchedRWAProject {
 }
 
 export interface IRWAProject
-	extends Omit<IFetchedRWAProject, 'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo'> {
+	extends Omit<
+		IFetchedRWAProject,
+		'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
+	> {
+	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
 	issuerRegistryInfo: string[] | null
 	onChainMarketcap: {
@@ -142,7 +146,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				assetClass: item.assetClass,
 				type: item.type,
 				rwaClassification: item.rwaClassification,
-				accessModel: item.accessModel,
+				accessModel: getAccessModel(item),
 				issuer: item.issuer,
 				issuerSourceLink: item.issuerSourceLink,
 				issuerRegistryInfo:
@@ -300,7 +304,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					assetClass: item.assetClass,
 					type: item.type,
 					rwaClassification: item.rwaClassification,
-					accessModel: item.accessModel,
+					accessModel: getAccessModel(item),
 					issuer: item.issuer,
 					issuerSourceLink: item.issuerSourceLink,
 					issuerRegistryInfo:
@@ -351,4 +355,26 @@ export async function getRWAAssetsList(): Promise<string[]> {
 	}
 
 	return assets
+}
+
+function getAccessModel(
+	asset: IFetchedRWAProject
+): 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown' {
+	if (asset.kycAllowlistedWhitelistedToTransferHold) {
+		return 'Permissioned'
+	}
+
+	if (asset.transferable && asset.selfCustody) {
+		return 'Permissionless'
+	}
+
+	if (!asset.transferable && asset.selfCustody) {
+		return 'Non-transferable'
+	}
+
+	if (asset.transferable != null && !asset.transferable && asset.selfCustody != null && !asset.selfCustody) {
+		return 'Custodial Only'
+	}
+
+	return 'Unknown'
 }

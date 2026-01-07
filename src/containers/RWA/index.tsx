@@ -13,6 +13,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import clsx from 'clsx'
 import { matchSorter } from 'match-sorter'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
@@ -515,6 +516,35 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		}
 	},
 	{
+		id: 'accessModel',
+		header: 'Access Model',
+		accessorFn: (asset) => asset.accessModel,
+		cell: (info) => {
+			const value = info.getValue() as
+				| 'Permissioned'
+				| 'Permissionless'
+				| 'Non-transferable'
+				| 'Custodial Only'
+				| 'Unknown'
+			return (
+				<span
+					className={clsx(
+						value === 'Permissioned' && 'text-(--warning)',
+						value === 'Permissionless' && 'text-(--success)',
+						value === 'Non-transferable' && 'text-(--error)',
+						value === 'Custodial Only' && 'text-(--error)'
+					)}
+				>
+					{value}
+				</span>
+			)
+		},
+		size: 180,
+		meta: {
+			align: 'end'
+		}
+	},
+	{
 		id: 'issuer',
 		header: 'Issuer',
 		accessorFn: (asset) => asset.issuer,
@@ -584,7 +614,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		header: 'KYC to Mint or Redeem',
 		accessorFn: (asset) => asset.kycForMintRedeem,
 		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
@@ -600,7 +630,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		header: 'KYC to Transfer or Hold',
 		accessorFn: (asset) => asset.kycAllowlistedWhitelistedToTransferHold,
 		cell: (info) => (
-			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
+			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
 				{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
 			</span>
 		),
@@ -692,6 +722,7 @@ const columnOrders = Object.entries({
 		'defiActiveTvl.total',
 		'type',
 		'rwaClassification',
+		'accessModel',
 		'issuer',
 		'redeemable',
 		'attestations',
@@ -709,6 +740,7 @@ const columnOrders = Object.entries({
 		'activeMarketcap.total',
 		'defiActiveTvl.total',
 		'rwaClassification',
+		'accessModel',
 		'issuer',
 		'redeemable',
 		'attestations',
