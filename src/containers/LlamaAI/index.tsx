@@ -1910,7 +1910,7 @@ const PromptInput = memo(function PromptInput({
 	return (
 		<>
 			<form
-				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 focus-within:border-(--old-blue) dark:border-[#222324]"
+				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 has-[textarea:focus]:border-(--old-blue) dark:border-[#222324]"
 				onSubmit={(e) => {
 					e.preventDefault()
 					trackSubmit()
@@ -1919,6 +1919,12 @@ const PromptInput = memo(function PromptInput({
 					const promptValue = form.prompt.value
 					resetInput()
 					handleSubmit(promptValue, finalEntities)
+				}}
+				onClick={(e) => {
+					const target = e.target as HTMLElement
+					if (!target.closest('button')) {
+						promptInputRef.current?.focus()
+					}
 				}}
 			>
 				<div className="relative w-full">
@@ -2049,7 +2055,7 @@ const PromptInput = memo(function PromptInput({
 							type="submit"
 							data-umami-event="llamaai-prompt-submit"
 							className="flex h-7 w-7 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
-							disabled={isPending || isStreaming}
+							disabled={isPending || isStreaming || !value.trim()}
 						>
 							<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 							<span className="sr-only">Submit prompt</span>
