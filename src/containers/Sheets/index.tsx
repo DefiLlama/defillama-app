@@ -134,8 +134,8 @@ export default function SheetsContainer() {
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md">
 					<h2 className="mb-4 text-xl font-bold">Data You Can Access</h2>
 					<ul className="space-y-6 text-[#b4b7bc]">
-						{dataPoints.map((point, idx) => (
-							<li key={idx} className="flex items-center gap-3">
+						{dataPoints.map((point) => (
+							<li key={`sheets-${point}`} className="flex items-center gap-3">
 								<Icon name="check-circle" height={16} width={16} className="shrink-0 text-[#5C5CF9]" />
 								<span>{point}</span>
 							</li>
@@ -146,8 +146,8 @@ export default function SheetsContainer() {
 				<div className="rounded-xl border border-[#4a4a50] bg-[#22242930] p-6 shadow-md backdrop-blur-md">
 					<h2 className="mb-4 text-xl font-bold">Examples</h2>
 					<div className="space-y-4">
-						{examples.map((func, idx) => (
-							<div key={idx}>
+						{examples.map((func) => (
+							<div key={`sheets-${func.signature}`}>
 								<div className="mb-2 rounded bg-[#13141a] px-3 py-2 font-mono text-sm text-[#5C5CF9]">
 									{func.signature}
 								</div>

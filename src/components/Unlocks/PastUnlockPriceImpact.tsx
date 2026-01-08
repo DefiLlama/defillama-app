@@ -164,13 +164,16 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 								<hr className="border-(--bg-border)" />
 
 								<span className="flex flex-col gap-4">
-									{impact.unlockBreakdown.map((item, idx) => {
+									{impact.unlockBreakdown.map((item) => {
 										const percentage = impact.maxSupply ? (item.amount / impact.maxSupply) * 100 : null
 										const percentageFloat = impact.mcap ? ((item.amount * impact.price) / impact.mcap) * 100 : null
 										const usdValue = item.amount * impact.price
 
 										return (
-											<span className="flex flex-col gap-1" key={idx}>
+											<span
+												className="flex flex-col gap-1"
+												key={`unlock-${item.name}-${percentage}-${percentageFloat}-${usdValue}`}
+											>
 												<span className="flex items-center justify-between gap-2">
 													<span className="flex items-center gap-2">
 														{item.name}
