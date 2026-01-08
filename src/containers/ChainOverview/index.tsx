@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import Link from 'next/link'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -14,16 +15,11 @@ const pageName = ['Overview']
 
 const Announcement = () => (
 	<>
-		Check out the{' '}
-		<a
-			href="https://x.com/dl_research/status/2001362971893862851"
-			className="underline"
-			target="_blank"
-			rel="noreferrer noopener"
-		>
-			2025 State of DeFi Report
-		</a>{' '}
-		by DL Research
+		Free{' '}
+		<Link href="/subscription" target="_blank" rel="noreferrer noopener" className="underline">
+			7-day trials
+		</Link>{' '}
+		are now available.
 	</>
 )
 
