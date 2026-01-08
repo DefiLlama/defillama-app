@@ -17,7 +17,7 @@ export const PaymentButton = ({
 	billingInterval = 'month'
 }: {
 	paymentMethod: 'stripe' | 'llamapay'
-	type?: 'api' | 'contributor' | 'llamafeed'
+	type?: 'api' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
 }) => {
 	const { handleSubscribe, loading } = useSubscribe()

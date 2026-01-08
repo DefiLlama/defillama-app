@@ -20,7 +20,6 @@ interface SubscriberContentProps {
 	isPortalSessionLoading: boolean
 	apiSubscription: Subscription
 	llamafeedSubscription: Subscription
-	legacySubscription: Subscription
 	enableOverage: () => void
 	isEnableOverageLoading: boolean
 }

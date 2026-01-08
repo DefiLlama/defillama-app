@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -48,20 +48,16 @@ interface Credits {
 	maxCredits: number
 	monthKey: string
 }
-const defaultInactiveSubscription: SubscriptionResponse = {
-	subscription: {
-		status: 'inactive',
-		id: '',
-		PK: '',
-		checkoutUrl: '',
-		updatedAt: '',
-		expires_at: '',
-		type: '',
-		provider: ''
-	}
+const defaultInactiveSubscription: Subscription = {
+	status: 'inactive',
+	id: '',
+	PK: '',
+	checkoutUrl: '',
+	updatedAt: '',
+	expires_at: '',
+	type: '',
+	provider: ''
 }
-
-const SUBSCRIPTION_TYPES = ['api', 'llamafeed', 'legacy'] as const
 
 const API_KEY_LOCAL_STORAGE_KEY = 'pro_apikey'
 const API_KEY_CHANGE_LISTENER_KEY = 'apiKeyChange'
@@ -74,13 +70,7 @@ function subscribeToApiKeyInLocalStorage(callback: () => void) {
 	}
 }
 
-async function fetchSubscription({
-	type,
-	isAuthenticated
-}: {
-	type: 'api' | 'llamafeed' | 'legacy'
-	isAuthenticated: boolean
-}): Promise<SubscriptionResponse> {
+async function fetchSubscription({ isAuthenticated }: { isAuthenticated: boolean }): Promise<Subscription> {
 	if (!isAuthenticated) {
 		return defaultInactiveSubscription
 	}
@@ -91,20 +81,16 @@ async function fetchSubscription({
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${pb.authStore.token}`
-			},
-			body: JSON.stringify({ subscriptionType: type })
+			}
 		})
 
 		if (!response.ok) {
 			return defaultInactiveSubscription
 		}
 
-		const data = await response.json()
-		if (type === 'llamafeed' && (data?.subscription?.type === 'api' || data?.subscription?.type === 'legacy')) {
-			return defaultInactiveSubscription
-		}
+		const data: SubscriptionResponse = await response.json()
 
-		return data
+		return data?.subscription
 	} catch (error) {
 		console.log('Error fetching subscription:', error)
 		return defaultInactiveSubscription
@@ -147,7 +133,7 @@ export const useSubscribe = () => {
 
 	const handleSubscribe = async (
 		paymentMethod: 'stripe' | 'llamapay',
-		type: 'api' | 'contributor' | 'llamafeed',
+		type: 'api' | 'llamafeed',
 		onSuccess?: (checkoutUrl: string) => void,
 		billingInterval: 'year' | 'month' = 'month',
 		useEmbedded: boolean = false,
@@ -198,28 +184,22 @@ export const useSubscribe = () => {
 		}
 	}
 
-	const subscriptionsQueries = useQueries({
-		queries: SUBSCRIPTION_TYPES.map((type) => ({
-			queryKey: ['subscription', user?.id, type],
-			queryFn: () => fetchSubscription({ type, isAuthenticated }),
-			retry: false,
-			refetchOnWindowFocus: false,
-			enabled: isAuthenticated,
-			staleTime: 1000 * 60 * 15
-		}))
+	const subscriptionQuery = useQuery({
+		queryKey: ['subscription', user?.id],
+		queryFn: () => fetchSubscription({ isAuthenticated }),
+		retry: false,
+		refetchOnWindowFocus: false,
+		enabled: isAuthenticated,
+		staleTime: 1000 * 60 * 15
 	})
 
-	const apiSubscription = subscriptionsQueries[0]?.data
-	const llamafeedSubscription = subscriptionsQueries[1]?.data
-	const legacySubscription = subscriptionsQueries[2]?.data
+	const subscriptionData = subscriptionQuery?.data ?? null
 
-	const subscriptionData = useMemo(() => {
-		return (
-			[apiSubscription, llamafeedSubscription, legacySubscription].find(
-				(subscription) => subscription?.subscription?.status === 'active'
-			)?.subscription ?? null
-		)
-	}, [apiSubscription, llamafeedSubscription, legacySubscription])
+	const apiSubscription = subscriptionData?.type === 'api' ? subscriptionData : defaultInactiveSubscription
+
+	const llamafeedSubscription = subscriptionData?.type === 'llamafeed' ? subscriptionData : defaultInactiveSubscription
+
+	const legacySubscription = subscriptionData?.provider === 'legacy' ? subscriptionData : defaultInactiveSubscription
 
 	useEffect(() => {
 		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
@@ -227,9 +207,8 @@ export const useSubscribe = () => {
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
-	const isSubscriptionLoading =
-		subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null ? true : false
-	const isSubscriptionError = subscriptionsQueries.some((query) => query.isError) && !subscriptionData ? true : false
+	const isSubscriptionLoading = subscriptionQuery.isLoading && subscriptionData == null ? true : false
+	const isSubscriptionError = subscriptionQuery.isError && !subscriptionData ? true : false
 
 	const trialAvailabilityQuery = useQuery({
 		queryKey: ['trialAvailable', user?.id],
@@ -266,7 +245,7 @@ export const useSubscribe = () => {
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours
 		refetchOnWindowFocus: false,
-		enabled: isAuthenticated && apiSubscription?.subscription?.status === 'active' && router.pathname === '/account'
+		enabled: isAuthenticated && apiSubscription?.status === 'active' && router.pathname === '/account'
 	})
 
 	const generateNewKeyMutation = useMutation({
@@ -420,7 +399,7 @@ export const useSubscribe = () => {
 			return
 		}
 
-		if (apiSubscription ? apiSubscription.subscription.status !== 'active' : true) {
+		if (apiSubscription.status !== 'active') {
 			toast.error('No active API subscription found')
 			return
 		}
@@ -436,7 +415,7 @@ export const useSubscribe = () => {
 		handleSubscribe,
 		isLoading: createSubscription.isPending,
 		error: createSubscription.error,
-		subscription: subscriptionData ?? defaultInactiveSubscription.subscription,
+		subscription: subscriptionData ?? defaultInactiveSubscription,
 		hasActiveSubscription: subscriptionData?.status === 'active',
 		loading: isPayingWithStripe ? 'stripe' : isPayingWithLlamapay ? 'llamapay' : null,
 		isSubscriptionLoading,
@@ -452,10 +431,9 @@ export const useSubscribe = () => {
 		isPortalSessionLoading: createPortalSessionMutation.isPending,
 		enableOverage,
 		isEnableOverageLoading: enableOverageMutation.isPending,
-		isContributor: false,
-		apiSubscription: apiSubscription?.subscription,
-		llamafeedSubscription: llamafeedSubscription?.subscription,
-		legacySubscription: legacySubscription?.subscription,
+		apiSubscription: apiSubscription,
+		llamafeedSubscription: llamafeedSubscription,
+		legacySubscription: legacySubscription,
 		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false
 	}
 }
