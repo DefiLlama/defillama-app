@@ -89,7 +89,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 				customFilters={
 					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
 				}
-				sortingState={[{ id: 'cleanTvl', desc: true }]}
+				sortingState={[{ id: 'cleanAssetsTvl', desc: true }]}
 			/>
 		</>
 	)
