@@ -22,6 +22,7 @@ interface StripeCheckoutModalProps {
 	paymentMethod: 'stripe'
 	type: 'api' | 'contributor' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
+	isTrial?: boolean
 }
 
 export function StripeCheckoutModal({
@@ -29,7 +30,8 @@ export function StripeCheckoutModal({
 	onClose,
 	paymentMethod,
 	type,
-	billingInterval = 'month'
+	billingInterval = 'month',
+	isTrial = false
 }: StripeCheckoutModalProps) {
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
@@ -53,7 +55,8 @@ export function StripeCheckoutModal({
 				cancelUrl: `${window.location.origin}/subscription`,
 				provider: paymentMethod,
 				subscriptionType: type || 'api',
-				billingInterval
+				billingInterval,
+				isTrial
 			}
 
 			const response = await authorizedFetch(
@@ -115,7 +118,7 @@ export function StripeCheckoutModal({
 			setError(errorMessage)
 			throw err
 		}
-	}, [authorizedFetch, paymentMethod, type, billingInterval, onClose, queryClient])
+	}, [authorizedFetch, paymentMethod, type, billingInterval, isTrial, onClose, queryClient])
 
 	const options = { fetchClientSecret }
 

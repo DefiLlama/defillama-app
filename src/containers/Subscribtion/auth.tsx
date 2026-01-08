@@ -113,6 +113,7 @@ interface AuthContextType {
 	isAuthenticated: boolean
 	user: AuthModel
 	hasActiveSubscription: boolean
+	isTrial: boolean
 	loaders: {
 		login: boolean
 		signup: boolean
@@ -602,6 +603,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
+		isTrial: userData?.flags?.isTrial ?? false,
 		loaders: {
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,

@@ -49,7 +49,7 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 }: CSVDownloadButtonPropsUnion) {
 	const [staticLoading, setStaticLoading] = useState(false)
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const { isAuthenticated, loaders, hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated, loaders, hasActiveSubscription, isTrial } = useAuthContext()
 	const isLoading = loaders.userLoading || loading || staticLoading ? true : false
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const isClient = useIsClient()
@@ -69,6 +69,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 				}
 				onClick={async () => {
 					if (isLoading) return
+
+					if (isTrial) {
+						toast.error('CSV downloads are not available during the trial period')
+						return
+					}
 
 					if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
 						if (onClick) {

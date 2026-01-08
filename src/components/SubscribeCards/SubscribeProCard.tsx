@@ -3,11 +3,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { BasicLink } from '../Link'
+import { QuestionHelper } from '../QuestionHelper'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
@@ -108,8 +110,10 @@ export function SubscribeProCard({
 	billingInterval = 'month',
 	currentBillingInterval
 }: SubscribeProCardProps) {
-	const { loading } = useSubscribe()
+	const { loading, isTrialAvailable } = useSubscribe()
+	const { isAuthenticated } = useAuthContext()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
+	const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
 
 	const handleUpgradeToYearly = () => {
 		setIsUpgradeModalOpen(true)
@@ -146,6 +150,17 @@ export function SubscribeProCard({
 				) : (
 					<>
 						<SignInModal text="Already a subscriber? Sign In" />
+						{isAuthenticated && isTrialAvailable && (
+							<div className="flex flex-col gap-1.5">
+								<button
+									onClick={() => setIsTrialModalOpen(true)}
+									className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9]/50 bg-[#5C5CF9]/10 px-4 py-2.5 text-sm font-medium text-[#5C5CF9] transition-all hover:border-[#5C5CF9] hover:bg-[#5C5CF9]/20"
+								>
+									Free trial for 7 days
+									<QuestionHelper text="CSV downloads are disabled during the trial period." />
+								</button>
+							</div>
+						)}
 						<div
 							className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 						>
@@ -176,6 +191,18 @@ export function SubscribeProCard({
 						paymentMethod="stripe"
 						type="llamafeed"
 						billingInterval="year"
+					/>
+				</Suspense>
+			)}
+			{isTrialModalOpen && (
+				<Suspense fallback={<></>}>
+					<StripeCheckoutModal
+						isOpen={isTrialModalOpen}
+						onClose={() => setIsTrialModalOpen(false)}
+						paymentMethod="stripe"
+						type="llamafeed"
+						billingInterval="month"
+						isTrial
 					/>
 				</Suspense>
 			)}
