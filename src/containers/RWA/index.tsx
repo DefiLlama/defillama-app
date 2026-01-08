@@ -37,38 +37,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
-	// Pie chart category selection
-	const allPieCategories = useMemo(() => props.categoryValues.map((c) => c.name), [props.categoryValues])
-	const [selectedPieCategories, setSelectedPieCategories] = useState<string[]>(allPieCategories)
-
-	const pieChartData = useMemo(() => {
-		const selectedSet = new Set(selectedPieCategories)
-		const mainSlices: Array<{ name: string; value: number }> = []
-		let othersValue = 0
-
-		for (const category of props.categoryValues) {
-			if (selectedSet.has(category.name)) {
-				mainSlices.push(category)
-			} else {
-				othersValue += category.value
-			}
-		}
-
-		if (othersValue > 0) {
-			mainSlices.push({ name: 'Others', value: othersValue })
-		}
-
-		return mainSlices
-	}, [props.categoryValues, selectedPieCategories])
-
-	const toggleAllPieCategories = useCallback(() => {
-		setSelectedPieCategories(allPieCategories)
-	}, [allPieCategories])
-
-	const clearAllPieCategories = useCallback(() => {
-		setSelectedPieCategories([])
-	}, [])
-
 	const {
 		selectedCategories,
 		selectedAssetClasses,
@@ -94,6 +62,70 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetClasses: props.assetClasses,
 		issuers: props.issuers
 	})
+
+	// Recalculate summary values based on stablecoin/governance toggles
+	const { totalOnChainRwaValue, totalOnChainStablecoinValue, totalOnChainDeFiActiveTvl, issuersCount, categoryValues } =
+		useMemo(() => {
+			// Filter assets based only on stablecoin/governance toggles (not category/issuer filters)
+			const baseFilteredAssets = props.assets.filter((asset) => {
+				if (!includeStablecoins && asset.stablecoin) return false
+				if (!includeGovernance && asset.governance) return false
+				return true
+			})
+
+			let rwaValue = 0
+			let stablecoinValue = 0
+			let defiTvl = 0
+			const issuersSet = new Set<string>()
+			const categoryMap = new Map<string, number>()
+
+			for (const asset of baseFilteredAssets) {
+				rwaValue += asset.onChainMarketcap.total
+				if (asset.stablecoin) {
+					stablecoinValue += asset.onChainMarketcap.total
+				}
+				defiTvl += asset.defiActiveTvl.total
+				if (asset.issuer) {
+					issuersSet.add(asset.issuer)
+				}
+				asset.category?.forEach((category) => {
+					if (category) {
+						categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.onChainMarketcap.total)
+					}
+				})
+			}
+
+			return {
+				totalOnChainRwaValue: rwaValue,
+				totalOnChainStablecoinValue: stablecoinValue,
+				totalOnChainDeFiActiveTvl: defiTvl,
+				issuersCount: issuersSet.size,
+				categoryValues: Array.from(categoryMap.entries())
+					.sort((a, b) => b[1] - a[1])
+					.map(([name, value]) => ({ name, value }))
+			}
+		}, [props.assets, includeStablecoins, includeGovernance])
+
+	// Pie chart uses the same selectedCategories as the table filter
+	const pieChartData = useMemo(() => {
+		const selectedSet = new Set(selectedCategories)
+		const mainSlices: Array<{ name: string; value: number }> = []
+		let othersValue = 0
+
+		for (const category of categoryValues) {
+			if (selectedSet.has(category.name)) {
+				mainSlices.push(category)
+			} else {
+				othersValue += category.value
+			}
+		}
+
+		if (othersValue > 0) {
+			mainSlices.push({ name: 'Others', value: othersValue })
+		}
+
+		return mainSlices
+	}, [categoryValues, selectedCategories])
 
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
@@ -218,7 +250,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
-			<div className="flex items-center gap-2">
+			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
 						content="Sum of value of all real world assets on chain"
@@ -226,7 +258,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					>
 						Total RWA On-chain
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(props.totalOnChainRwaValue, true)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainRwaValue, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -235,7 +267,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					>
 						Total Asset Issuers
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(props.issuers.length, false)}</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(issuersCount, false)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -244,9 +276,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					>
 						Total Stablecoins Value
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">
-						{formattedNum(props.totalOnChainStablecoinValue, true)}
-					</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainStablecoinValue, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -255,28 +285,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					>
 						DeFi Active TVL
 					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">
-						{formattedNum(props.totalOnChainDeFiActiveTvl, true)}
-					</span>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
 			</div>
 			<div className="relative flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-				<div className="flex items-center justify-between gap-2 px-3">
-					<h2 className="text-lg font-semibold">Total RWA Value - Repartition</h2>
-					<SelectWithCombobox
-						allValues={allPieCategories}
-						selectedValues={selectedPieCategories}
-						setSelectedValues={setSelectedPieCategories}
-						toggleAll={toggleAllPieCategories}
-						clearAll={clearAllPieCategories}
-						label={'Categories'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-				</div>
+				<h2 className="px-3 text-lg font-semibold">Total RWA Value - Repartition</h2>
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<PieChart
 						chartData={pieChartData}
