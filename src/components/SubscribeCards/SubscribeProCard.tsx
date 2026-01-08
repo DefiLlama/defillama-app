@@ -22,9 +22,16 @@ interface SubscribeProCardProps {
 	onCancelSubscription?: () => void
 	billingInterval?: 'year' | 'month'
 	currentBillingInterval?: 'year' | 'month'
+	isTrialAvailable?: boolean
 }
 
-function SubscribeProCardContent({ billingInterval = 'month' }: { billingInterval?: 'year' | 'month' }) {
+function SubscribeProCardContent({
+	billingInterval = 'month',
+	isTrialAvailable = false
+}: {
+	billingInterval?: 'year' | 'month'
+	isTrialAvailable?: boolean
+}) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
@@ -34,12 +41,19 @@ function SubscribeProCardContent({ billingInterval = 'month' }: { billingInterva
 		<>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">Pro</h2>
 			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
-				<div className="flex items-center">
+				<div
+					className={`relative flex items-center ${isTrialAvailable ? 'after:absolute after:top-1/2 after:right-0 after:left-0 after:h-[1.5px] after:bg-[#8a8c90]' : ''}`}
+				>
 					<span className="bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-center text-2xl font-medium text-transparent">
 						{displayPrice} USD
 					</span>
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
+				{isTrialAvailable && (
+					<div className="flex items-center">
+						<span className="text-sm font-bold">Free 7-day trial available</span>
+					</div>
+				)}
 				{billingInterval === 'year' && (
 					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
 				)}
@@ -121,7 +135,7 @@ export function SubscribeProCard({
 
 	return (
 		<>
-			<SubscribeProCardContent billingInterval={billingInterval} />
+			<SubscribeProCardContent billingInterval={billingInterval} isTrialAvailable={isTrialAvailable} />
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
 					<div className="flex flex-col gap-2">
@@ -154,7 +168,7 @@ export function SubscribeProCard({
 							<div className="flex flex-col gap-1.5">
 								<button
 									onClick={() => setIsTrialModalOpen(true)}
-									className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9]/50 bg-[#5C5CF9]/10 px-4 py-2.5 text-sm font-medium text-[#5C5CF9] transition-all hover:border-[#5C5CF9] hover:bg-[#5C5CF9]/20"
+									className="flex w-full items-center justify-center gap-2 rounded-lg border border-white bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white shadow-md transition-all hover:bg-[#4A4AF0] hover:shadow-lg"
 								>
 									Free trial for 7 days
 									<QuestionHelper text="CSV downloads are disabled during the trial period." />
@@ -217,6 +231,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
+	const { isAuthenticated } = useAuthContext()
 
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -246,24 +261,24 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 									<Icon name="x" height={18} width={18} />
 									<span className="sr-only">Close</span>
 								</Ariakit.DialogDismiss>
-								<SubscribeProCardContent billingInterval={props.billingInterval} />
+								<SubscribeProCardContent billingInterval={props.billingInterval} isTrialAvailable={true} />
 								<div className="flex flex-col gap-3">
 									<BasicLink
-										href={
-											finalReturnUrl ? `/subscription?returnUrl=${encodeURIComponent(finalReturnUrl)}` : '/subscription'
-										}
+										href="/subscription"
 										data-umami-event="subscribe-modal-goto-page"
 										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 									>
 										Unlock Pro Features
 									</BasicLink>
 
-									<button
-										className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
-										onClick={() => setIsSignInModalOpen(true)}
-									>
-										Already a subscriber? Sign In
-									</button>
+									{!isAuthenticated && (
+										<button
+											className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
+											onClick={() => setIsSignInModalOpen(true)}
+										>
+											Already a subscriber? Sign In
+										</button>
+									)}
 								</div>
 							</>
 						)}

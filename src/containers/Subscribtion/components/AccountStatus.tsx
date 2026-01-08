@@ -153,7 +153,7 @@ export const AccountStatus = ({
 											width={14}
 											className="text-[#5C5CF9] transition-transform group-hover:scale-110"
 										/>
-										<span>Manage stripe</span>
+										<span>Manage subscription</span>
 									</BasicLink>
 								)}
 							</span>

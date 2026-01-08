@@ -73,8 +73,6 @@ export function StripeCheckoutModal({
 
 			const data = await response.json()
 
-			console.log('data', data)
-
 			if (!response.ok) {
 				throw new Error(data.message || 'Failed to create subscription')
 			}

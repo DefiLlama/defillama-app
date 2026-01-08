@@ -234,13 +234,8 @@ export const useSubscribe = () => {
 	const trialAvailabilityQuery = useQuery({
 		queryKey: ['trialAvailable', user?.id],
 		queryFn: async () => {
-			const response = await fetch(`${AUTH_SERVER}/subscription/trial-available`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${pb.authStore.token}`
-				}
-			})
+			const response = await authorizedFetch(`${AUTH_SERVER}/subscription/trial-available`)
+
 			if (!response.ok) {
 				return { trialAvailable: false }
 			}

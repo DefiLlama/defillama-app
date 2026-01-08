@@ -603,7 +603,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,
-		isTrial: userData?.flags?.isTrial ?? false,
+		isTrial: userData?.flags?.is_trial ?? false,
 		loaders: {
 			login: loginMutation.isPending,
 			signup: signupMutation.isPending,
