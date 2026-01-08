@@ -133,7 +133,7 @@ export default function LlamaAIGetStarted() {
 		) : null
 
 	const CTAButton = ({ className = '', label }: { className?: string; label?: string }) => {
-		const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Go to LlamaAI' : 'Try LlamaAI for free'
+		const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI for free'
 		const displayLabel = label ?? defaultLabel
 
 		return isAuthenticated && hasActiveSubscription ? (
@@ -503,7 +503,7 @@ export default function LlamaAIGetStarted() {
 
 							<div className="relative z-10 px-6 py-10 text-center md:px-10 md:py-12">
 								<h3 className="mb-3 text-xl font-extrabold tracking-[-0.02em] text-black md:text-2xl dark:text-white">
-									Ready to try LlamaAI?
+									Ready to use LlamaAI?
 								</h3>
 								<p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-[#555] md:text-base dark:text-[#9a9a9f]">
 									Research protocols, generate charts, and stay ahead of the market.
