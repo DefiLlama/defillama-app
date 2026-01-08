@@ -1689,6 +1689,11 @@ const PromptInput = memo(function PromptInput({
 
 	const addImages = (files: File[]) => {
 		const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && f.type.startsWith('image/'))
+		const currentCount = selectedImages.length
+		const totalCount = currentCount + valid.length
+		if (totalCount > 4) {
+			toast.error('Maximum 4 images allowed')
+		}
 		setSelectedImages((prev) => [...prev, ...valid].slice(0, 4))
 	}
 
@@ -1706,7 +1711,8 @@ const PromptInput = memo(function PromptInput({
 
 	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault()
-		addImages(Array.from(e.dataTransfer.files))
+		const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+		if (files.length) addImages(files)
 	}
 
 	const removeImage = (idx: number) => {
