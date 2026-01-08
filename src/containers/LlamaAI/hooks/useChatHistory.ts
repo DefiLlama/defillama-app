@@ -186,7 +186,8 @@ export function useChatHistory() {
 						isLoadingMore: false,
 						cursor: result.nextCursor,
 						totalMessages: result.totalMessages
-					}
+					},
+					streaming: result.streaming
 				}
 			} catch (error) {
 				console.log('Failed to restore session:', error)

@@ -164,20 +164,20 @@
       "oldName": "All Projects"
     },
     {
-      "name": "Yields: APY Overview",
-      "route": "/yields/overview",
-      "category": "Yields",
-      "description": "Find APY trends, volatility, and other metrics across all our tracked pools",
-      "oldCategory": "Yields",
-      "oldName": "Trends"
-    },
-    {
       "name": "Yields: Long/Short Strategies",
       "route": "/yields/strategyLongShort",
       "category": "Yields",
       "description": "Find 'long-short' strategies across all our tracked pools",
       "oldCategory": "Yields",
       "oldName": "Long/Short Strategies"
+    },
+    {
+      "name": "Yields: APY Overview",
+      "route": "/yields/overview",
+      "category": "Yields",
+      "description": "Find APY trends, volatility, and other metrics across all our tracked pools",
+      "oldCategory": "Yields",
+      "oldName": "Trends"
     },
     {
       "name": "Revenue by Protocol",
@@ -220,16 +220,6 @@
       "oldName": "Fees (Chains)"
     },
     {
-      "name": "Earnings by Protocol",
-      "route": "/earnings",
-      "category": "Fees & Revenue",
-      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself",
-      "totalTrackedKey": "revenue.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Fees & Revenue",
-      "oldName": "Earnings"
-    },
-    {
       "name": "Revenue by Chain",
       "route": "/revenue/chains",
       "category": "Fees & Revenue",
@@ -238,6 +228,16 @@
       "tab": "Chains",
       "oldCategory": "Fees & Revenue",
       "oldName": "Revenue (Chains)"
+    },
+    {
+      "name": "Earnings by Protocol",
+      "route": "/earnings",
+      "category": "Fees & Revenue",
+      "description": "Net revenue retained by the protocol after subtracting token incentives distributed to users. Calculated as Revenue minus Incentives (emissions paid out through liquidity mining, farming programs, or similar rewards). Reflects the actual economic value accrued to the protocol itself",
+      "totalTrackedKey": "revenue.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "Earnings"
     },
     {
       "name": "App Revenue by Chain",
@@ -485,65 +485,6 @@
       "oldName": "Chains"
     },
     {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
-    },
-    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -577,6 +518,65 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
+    },
+    {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
     },
     {
       "name": "Treasuries",

@@ -45,7 +45,7 @@ export const ResearchProgress = memo(function ResearchProgress({
 	progressMessage
 }: ResearchProgressProps) {
 	const [elapsed, setElapsed] = useState(0)
-	const [isExpanded, setIsExpanded] = useState(false)
+	const [isExpanded, setIsExpanded] = useState(true)
 
 	useEffect(() => {
 		if (!isActive) return
@@ -58,7 +58,7 @@ export const ResearchProgress = memo(function ResearchProgress({
 	if (!isActive) return null
 
 	const phaseIndex = PHASES.indexOf(phase)
-	const recentDiscoveries = discoveries.slice(-3)
+	const recentDiscoveries = discoveries.slice(-10)
 
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]">
@@ -81,10 +81,6 @@ export const ResearchProgress = memo(function ResearchProgress({
 				<span className="hidden shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:flex sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
 					<span className="capitalize">{phase}</span>
 					<AnimatedDots />
-				</span>
-
-				<span className="shrink-0 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] font-medium text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
-					{currentIteration}/{totalIterations}
 				</span>
 
 				<span className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 font-mono text-[10px] text-[#666] tabular-nums sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">

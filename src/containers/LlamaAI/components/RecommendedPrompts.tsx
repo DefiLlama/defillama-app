@@ -6,42 +6,46 @@ import { LoadingSpinner } from '~/components/Loaders'
 
 const promptCategories = [
 	{
+		name: 'Find Alpha',
+		icon: 'trending-up',
+		prompts: [
+			'Which protocols have growing TVL and revenue but declining token prices?',
+			'What are the best stablecoin yields with at least $10M TVL?',
+			'Find protocols under $500M market cap with low P/S ratios and growing revenue',
+			'Which tokens are seeing the fastest TVL growth while their price decreased?',
+			'For protocols with >$50M TVL, show me those with growing fundamentals (TVL+fees up 30d) but declining token prices - potential value traps or opportunities?'
+		]
+	},
+	{
 		name: 'Analytics',
 		icon: 'bar-chart-2',
 		prompts: [
-			'Give me a chart of total app revenue divided by category',
-			'Show me a chart of total TVL of all forked projects vs non-forked projects',
 			'Chart Pump.fun percentage share of total revenue across all launchpads',
-			'Generate a line chart of BTC deposited into DeFi over time',
-			'Which 5 protocols have the most stable revenue streams?',
-			'Create a chart showing which chains capture the most fees per dollar of TVL'
-		]
-	},
-	{
-		name: 'Deep Dive',
-		icon: 'eye',
-		prompts: [
+			'Give me a chart of total app revenue divided by category',
+			'Which chains have the highest innovation ratio (original protocol TVL / forked protocol TVL)?',
 			"What's the correlation between protocol token unlock schedules and 30-day price performance for top 20 protocols with upcoming unlocks?",
-			'For protocols with >$50M TVL, show me those with growing fundamentals (TVL+fees up 30d) but declining token prices - potential value traps or opportunities?',
-			'Do chains that launch with new protocols achieve better long-term TVL growth than chains that launch with mostly forked protocols?',
-			'Which categories show the highest revenue stability?'
-		]
-	},
-	{
-		name: 'Risk Analysis',
-		icon: 'alert-triangle',
-		prompts: [
-			'Create a chart of total capital raised vs total value lost to hacks by year',
 			'Which categories have the highest protocol failure rate (protocols that launched but dropped below $100k TVL within 6 months)?'
 		]
 	},
 	{
-		name: 'Forks',
-		icon: 'repeat',
+		name: 'Speculative Guidance',
+		icon: 'dollar-sign',
 		prompts: [
-			'Show me the top 10 original protocols by fork TVL, then break down what percentage of each fork ecosystem is controlled by the largest fork',
-			'Which successful fork surpassed its original protocol in TVL?',
-			'Which chains have the highest innovation ratio (original protocol TVL / forked protocol TVL)?'
+			'Provide a price estimate for BTC using a blended methodology that includes technical indicators, Monte Carlo simulations, and time-series momentum with a 180-day lookback. Incorporate relevant prediction-market bets or implied probabilities where available, and conclude with a synthesized investment recommendation that integrates all signals.',
+			'Is the current market sentiment bullish or bearish based on on-chain data?',
+			'What are the probabilities that ETH price will go lower?',
+			'Should I short Virtuals Protocol?'
+		]
+	},
+	{
+		name: 'Learn',
+		icon: 'graduation-cap',
+		prompts: [
+			'What are the technical differences btw Hyperliquid and Lighter?',
+			'Explain Ethereum staking',
+			'How does polymarket work?',
+			"How could quantum computers compromise Bitcoin's security?",
+			'What makes Base different from other L2s?'
 		]
 	}
 	// {
@@ -49,6 +53,18 @@ const promptCategories = [
 	// 	icon: 'sparkles',
 	// }
 ] as const
+
+const researchCategory = {
+	name: 'Research Report',
+	icon: 'file-text',
+	prompts: [
+		'Analysis of prediction markets: Polymarket dominance and growth potential post-election cycle',
+		'Deep dive into Hyperliquid',
+		'State of the stablecoin landscape with focus on CBDCs',
+		'Research the crypto AI agent ecosystem',
+		'Analyze Ethena USDe: the funding rate arbitrage mechanism, collateral composition, risks during negative funding periods, and comparison to other synthetic dollars'
+	]
+} as const
 
 async function getRecommendedPrompts() {
 	try {
@@ -62,11 +78,13 @@ async function getRecommendedPrompts() {
 export const RecommendedPrompts = ({
 	setPrompt,
 	submitPrompt,
-	isPending
+	isPending,
+	isResearchMode
 }: {
 	setPrompt: (prompt: string) => void
 	submitPrompt: (prompt: { userQuestion: string }) => void
 	isPending: boolean
+	isResearchMode?: boolean
 }) => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['recommended-prompts'],
@@ -114,11 +132,13 @@ export const RecommendedPrompts = ({
 		}
 	}, [])
 
+	const categories = isResearchMode ? [researchCategory] : promptCategories
+
 	return (
 		<>
 			<Ariakit.TabProvider store={store}>
 				<Ariakit.TabList className="flex w-full flex-wrap items-center justify-center gap-2.5">
-					{promptCategories.map((category) => (
+					{categories.map((category) => (
 						<Ariakit.Tab
 							key={`prompt-category-${category.name}`}
 							id={`tab-${category.name}`}
@@ -130,7 +150,7 @@ export const RecommendedPrompts = ({
 						</Ariakit.Tab>
 					))}
 				</Ariakit.TabList>
-				{promptCategories.map((category) => (
+				{categories.map((category) => (
 					<Ariakit.TabPanel
 						key={`prompt-category-content-${category.name}`}
 						tabId={`tab-${category.name}`}
@@ -150,7 +170,21 @@ export const RecommendedPrompts = ({
 								<span className="sr-only">Close</span>
 							</button>
 						</div>
-						{isLoading ? (
+						{isResearchMode ? (
+							category.prompts.map((prompt) => (
+								<button
+									key={`${category.name}-${prompt}`}
+									onClick={() => {
+										setPrompt(prompt)
+										submitPrompt({ userQuestion: prompt })
+									}}
+									disabled={isPending}
+									className="w-full border-t border-[#e6e6e6] p-2.5 text-left last:rounded-b-lg hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white dark:border-[#222324]"
+								>
+									{prompt}
+								</button>
+							))
+						) : isLoading ? (
 							<div className="my-[40px] flex items-center justify-center p-2.5">
 								<LoadingSpinner size={16} />
 							</div>

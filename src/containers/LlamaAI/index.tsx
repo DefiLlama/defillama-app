@@ -65,7 +65,8 @@ async function fetchPromptResponse({
 	mode,
 	forceIntent,
 	authorizedFetch,
-	images
+	images,
+	resume
 }: {
 	prompt?: string
 	userQuestion: string
@@ -114,6 +115,7 @@ async function fetchPromptResponse({
 	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	resume?: boolean
 }) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
 
@@ -122,6 +124,10 @@ async function fetchPromptResponse({
 			message: userQuestion,
 			stream: true,
 			mode: mode
+		}
+
+		if (resume) {
+			requestBody.resume = true
 		}
 
 		if (sessionId) {
@@ -506,6 +512,81 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [sharedSession, resetScrollState])
 
+	const reconnectToStream = useCallback(
+		(sid: string, initialContent: string) => {
+			setIsStreaming(true)
+			setStreamingResponse(initialContent)
+
+			fetchPromptResponse({
+				userQuestion: '',
+				sessionId: sid,
+				mode: 'auto',
+				resume: true,
+				authorizedFetch,
+				onProgress: (data) => {
+					if (data.type === 'token') {
+						setStreamingResponse((prev) => prev + data.content)
+					} else if (data.type === 'progress') {
+						setProgressMessage(data.content || '')
+						if (data.stage) setProgressStage(data.stage)
+						if (data.stage === 'research' && (data as any).researchProgress) {
+							const rp = (data as any).researchProgress
+							const serverStartTime = (data as any).startedAt ? new Date((data as any).startedAt).getTime() : null
+							if (!researchStartTimeRef.current || serverStartTime) {
+								researchStartTimeRef.current = serverStartTime || Date.now()
+							}
+							setResearchState({
+								isActive: true,
+								startTime: researchStartTimeRef.current,
+								currentIteration: rp.iteration,
+								totalIterations: rp.totalIterations,
+								phase: rp.phase,
+								dimensionsCovered: rp.dimensionsCovered || [],
+								dimensionsPending: rp.dimensionsPending || [],
+								discoveries: rp.discoveries || [],
+								toolsExecuted: rp.toolsExecuted || 0
+							})
+						}
+					} else if (data.type === 'suggestions' && data.suggestions) {
+						setStreamingSuggestions(data.suggestions)
+					} else if (data.type === 'charts' && data.charts) {
+						setStreamingCharts(data.charts)
+						if (data.chartData) setStreamingChartData(data.chartData)
+					} else if (data.type === 'citations' && data.citations) {
+						setStreamingCitations(data.citations)
+					} else if (data.type === 'error') {
+						setIsStreaming(false)
+						setStreamingError(data.content || 'Generation failed')
+					} else if (data.type === 'title') {
+						updateSessionTitle({ sessionId: sid, title: data.title || data.content })
+					}
+				}
+			})
+				.then((result) => {
+					setIsStreaming(false)
+					if (result?.response) {
+						setMessages((prev) => [
+							...prev,
+							{
+								role: 'assistant',
+								content: result.response.answer,
+								charts: result.response.charts,
+								chartData: result.response.chartData,
+								suggestions: result.response.suggestions,
+								citations: result.response.citations,
+								timestamp: Date.now()
+							}
+						])
+					}
+				})
+				.catch((err) => {
+					console.log('Reconnect stream error:', err)
+					setIsStreaming(false)
+				})
+		},
+		[authorizedFetch]
+	)
+
 	useEffect(() => {
 		if (
 			sessionId &&
@@ -519,15 +600,42 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			resetScrollState()
 			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
-				.then((result) => {
+				.then((result: any) => {
 					setMessages(result.messages)
 					setPaginationState(result.pagination)
+
+					if (result.streaming?.status === 'streaming') {
+						reconnectToStream(sessionId, result.streaming.content || '')
+					} else if (result.streaming?.status === 'completed' && result.streaming.result) {
+						setMessages((prev) => [
+							...prev,
+							{
+								role: 'assistant',
+								content: result.streaming.result.response,
+								charts: result.streaming.result.charts,
+								chartData: result.streaming.result.chartData,
+								suggestions: result.streaming.result.suggestions,
+								citations: result.streaming.result.citations,
+								timestamp: Date.now()
+							}
+						])
+					}
 				})
 				.catch((error) => {
 					console.log('Failed to restore session:', error)
 				})
 		}
-	}, [sessionId, user, sharedSession, readOnly, hasRestoredSession, restoreSession, resetScrollState, isStreaming])
+	}, [
+		sessionId,
+		user,
+		sharedSession,
+		readOnly,
+		hasRestoredSession,
+		restoreSession,
+		resetScrollState,
+		isStreaming,
+		reconnectToStream
+	])
 
 	const {
 		data: promptResponse,
@@ -1262,7 +1370,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											showResearchButton={showDebug}
 											onPendingImages={setPendingImages}
 										/>
-										<RecommendedPrompts setPrompt={setPrompt} submitPrompt={submitPrompt} isPending={isPending} />
+										<RecommendedPrompts
+											setPrompt={setPrompt}
+											submitPrompt={submitPrompt}
+											isPending={isPending}
+											isResearchMode={isResearchMode}
+										/>
 									</>
 								)}
 							</div>
@@ -1908,7 +2021,7 @@ const PromptInput = memo(function PromptInput({
 	return (
 		<>
 			<form
-				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 focus-within:border-(--old-blue) dark:border-[#222324]"
+				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 has-[textarea:focus]:border-(--old-blue) dark:border-[#222324]"
 				onSubmit={(e) => {
 					e.preventDefault()
 					trackSubmit()
@@ -1941,6 +2054,12 @@ const PromptInput = memo(function PromptInput({
 						})
 					} else {
 						handleSubmit(promptValue, finalEntities)
+					}
+				}}
+				onClick={(e) => {
+					const target = e.target as HTMLElement
+					if (!target.closest('button')) {
+						promptInputRef.current?.focus()
 					}
 				}}
 			>
@@ -2064,7 +2183,7 @@ const PromptInput = memo(function PromptInput({
 										data-active={!isResearchMode}
 									/>
 								}
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
 							>
 								<Icon name="sparkles" height={12} width={12} />
 								<span>Quick</span>
@@ -2079,7 +2198,7 @@ const PromptInput = memo(function PromptInput({
 										data-active={isResearchMode}
 									/>
 								}
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-(--old-blue)"
+								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
 							>
 								<Icon name="search" height={12} width={12} />
 								<span>Research</span>
@@ -2103,7 +2222,7 @@ const PromptInput = memo(function PromptInput({
 							<Tooltip
 								content="Stop"
 								render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-								className="group flex h-7 w-7 items-center justify-center rounded-lg bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+								className="group flex h-7 w-7 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
 							>
 								<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
 								<span className="sr-only">Stop</span>
@@ -2112,8 +2231,8 @@ const PromptInput = memo(function PromptInput({
 							<button
 								type="submit"
 								data-umami-event="llamaai-prompt-submit"
-								className="flex h-7 w-7 items-center justify-center gap-2 rounded-lg bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
-								disabled={isPending || isStreaming}
+								className="flex h-7 w-7 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+								disabled={isPending || isStreaming || !value.trim()}
 							>
 								<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
 								<span className="sr-only">Submit prompt</span>

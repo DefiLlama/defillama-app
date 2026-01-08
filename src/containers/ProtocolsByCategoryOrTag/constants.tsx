@@ -194,7 +194,7 @@ export const protocolCategories = {
 			'Decentralized Offered Rates - The DOR mechanism provides a decentralized benchmark rate for crypto assets'
 	},
 	'Collateral Management': {
-		description: 'Protocols that manage or leverage onchain collateral for financial applications'
+		description: 'Protocols that manage or leverage on-chain collateral for financial applications'
 	},
 	Meme: {
 		description:
@@ -224,7 +224,7 @@ export const protocolCategories = {
 	},
 	DePIN: {
 		description:
-			'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via onchain rewards and governance'
+			'Protocols that provide decentralized infrastructure for physical assets, such as sensors, devices, or networks, enabling real-world data collection and processing via on-chain rewards and governance'
 	},
 	'Dual-Token Stablecoin': {
 		description:
