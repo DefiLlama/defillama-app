@@ -27,29 +27,33 @@ interface SubscribeProCardProps {
 
 function SubscribeProCardContent({
 	billingInterval = 'month',
-	isTrialAvailable = false
+	isTrialAvailable = false,
+	isAuthenticated = false
 }: {
 	billingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
+	isAuthenticated?: boolean
 }) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
 
+	const showTrialAvailable = !isAuthenticated || isTrialAvailable
+
 	return (
 		<>
 			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">Pro</h2>
 			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
 				<div
-					className={`relative flex items-center ${isTrialAvailable ? 'after:absolute after:top-1/2 after:right-0 after:left-0 after:h-[1.5px] after:bg-[#8a8c90]' : ''}`}
+					className={`relative flex items-center ${showTrialAvailable ? 'after:absolute after:top-1/2 after:right-0 after:left-0 after:h-[1.5px] after:bg-[#8a8c90]' : ''}`}
 				>
 					<span className="bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-center text-2xl font-medium text-transparent">
 						{displayPrice} USD
 					</span>
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
-				{isTrialAvailable && (
+				{showTrialAvailable && (
 					<div className="flex items-center">
 						<span className="text-sm font-bold">Free 7-day trial available</span>
 					</div>
@@ -135,7 +139,11 @@ export function SubscribeProCard({
 
 	return (
 		<>
-			<SubscribeProCardContent billingInterval={billingInterval} isTrialAvailable={isTrialAvailable} />
+			<SubscribeProCardContent
+				billingInterval={billingInterval}
+				isTrialAvailable={isTrialAvailable}
+				isAuthenticated={isAuthenticated}
+			/>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
 					<div className="flex flex-col gap-2">
@@ -261,7 +269,11 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 									<Icon name="x" height={18} width={18} />
 									<span className="sr-only">Close</span>
 								</Ariakit.DialogDismiss>
-								<SubscribeProCardContent billingInterval={props.billingInterval} isTrialAvailable={true} />
+								<SubscribeProCardContent
+									isAuthenticated={isAuthenticated}
+									billingInterval={props.billingInterval}
+									isTrialAvailable={true}
+								/>
 								<div className="flex flex-col gap-3">
 									<BasicLink
 										href="/subscription"
