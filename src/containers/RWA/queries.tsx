@@ -56,6 +56,8 @@ export interface IRWAProject
 export interface IRWAAssetsOverview {
 	assets: Array<IRWAProject>
 	assetClasses: Array<string>
+	rwaClassifications: Array<string>
+	accessModels: Array<string>
 	categories: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
@@ -88,6 +90,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 
 		const assets: Array<IRWAProject> = []
 		const assetClasses = new Map<string, number>()
+		const rwaClassifications = new Map<string, number>()
+		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const chains = new Map<string, number>()
@@ -189,7 +193,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				}
 				totalOnChainDeFiActiveTvl += effectiveDeFiActiveTvl
 
-				// Add to categories/issuers/assetClasses for assets on this chain
+				// Add to categories/issuers/assetClasses/rwaClassifications/accessModels for assets on this chain
 				asset.assetClass?.forEach((assetClass) => {
 					if (assetClass) {
 						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainTvl)
@@ -200,6 +204,15 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainTvl)
 					}
 				})
+				if (asset.rwaClassification) {
+					rwaClassifications.set(
+						asset.rwaClassification,
+						(rwaClassifications.get(asset.rwaClassification) ?? 0) + effectiveOnChainTvl
+					)
+				}
+				if (asset.accessModel) {
+					accessModels.set(asset.accessModel, (accessModels.get(asset.accessModel) ?? 0) + effectiveOnChainTvl)
+				}
 				if (asset.issuer) {
 					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainTvl)
 				}
@@ -216,6 +229,12 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		return {
 			assets: assets.sort((a, b) => b.onChainMarketcap.total - a.onChainMarketcap.total),
 			assetClasses: Array.from(assetClasses.entries())
+				.sort((a, b) => b[1] - a[1])
+				.map(([key]) => key),
+			rwaClassifications: Array.from(rwaClassifications.entries())
+				.sort((a, b) => b[1] - a[1])
+				.map(([key]) => key),
+			accessModels: Array.from(accessModels.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
 			categories: Array.from(categories.entries())

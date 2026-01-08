@@ -40,11 +40,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const {
 		selectedCategories,
 		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
 		selectedIssuers,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
 		setSelectedAssetClasses,
+		setSelectedRwaClassifications,
+		setSelectedAccessModels,
 		setSelectedIssuers,
 		setIncludeStablecoins,
 		setIncludeGovernance,
@@ -54,78 +58,109 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectOnlyOneAssetClass,
 		toggleAllAssetClasses,
 		clearAllAssetClasses,
+		selectOnlyOneRwaClassification,
+		toggleAllRwaClassifications,
+		clearAllRwaClassifications,
+		selectOnlyOneAccessModel,
+		toggleAllAccessModels,
+		clearAllAccessModels,
 		selectOnlyOneIssuer,
 		toggleAllIssuers,
 		clearAllIssuers
 	} = useRWATableQueryParams({
 		categories: props.categories,
 		assetClasses: props.assetClasses,
+		rwaClassifications: props.rwaClassifications,
+		accessModels: props.accessModels,
 		issuers: props.issuers
 	})
 
-	// Recalculate summary values based on stablecoin/governance toggles
-	const { totalOnChainRwaValue, totalOnChainStablecoinValue, totalOnChainDeFiActiveTvl, issuersCount, categoryValues } =
-		useMemo(() => {
-			// Filter assets based only on stablecoin/governance toggles (not category/issuer filters)
-			const baseFilteredAssets = props.assets.filter((asset) => {
-				if (!includeStablecoins && asset.stablecoin) return false
-				if (!includeGovernance && asset.governance) return false
-				return true
-			})
+	// Recalculate summary values based on all filters
+	const { totalOnChainRwaValue, totalOnChainStablecoinValue, totalOnChainDeFiActiveTvl, issuersCount } = useMemo(() => {
+		// Filter assets based on all filters
+		const filteredAssets = props.assets.filter((asset) => {
+			if (!includeStablecoins && asset.stablecoin) return false
+			if (!includeGovernance && asset.governance) return false
+			return (
+				asset.category?.some((category) => selectedCategories.includes(category)) &&
+				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
+				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
+				selectedIssuers.includes(asset.issuer)
+			)
+		})
 
-			let rwaValue = 0
-			let stablecoinValue = 0
-			let defiTvl = 0
-			const issuersSet = new Set<string>()
-			const categoryMap = new Map<string, number>()
+		let rwaValue = 0
+		let stablecoinValue = 0
+		let defiTvl = 0
+		const issuersSet = new Set<string>()
 
-			for (const asset of baseFilteredAssets) {
-				rwaValue += asset.onChainMarketcap.total
-				if (asset.stablecoin) {
-					stablecoinValue += asset.onChainMarketcap.total
-				}
-				defiTvl += asset.defiActiveTvl.total
-				if (asset.issuer) {
-					issuersSet.add(asset.issuer)
-				}
-				asset.category?.forEach((category) => {
-					if (category) {
-						categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.onChainMarketcap.total)
-					}
-				})
+		for (const asset of filteredAssets) {
+			rwaValue += asset.onChainMarketcap.total
+			if (asset.stablecoin) {
+				stablecoinValue += asset.onChainMarketcap.total
 			}
-
-			return {
-				totalOnChainRwaValue: rwaValue,
-				totalOnChainStablecoinValue: stablecoinValue,
-				totalOnChainDeFiActiveTvl: defiTvl,
-				issuersCount: issuersSet.size,
-				categoryValues: Array.from(categoryMap.entries())
-					.sort((a, b) => b[1] - a[1])
-					.map(([name, value]) => ({ name, value }))
+			defiTvl += asset.defiActiveTvl.total
+			if (asset.issuer) {
+				issuersSet.add(asset.issuer)
 			}
-		}, [props.assets, includeStablecoins, includeGovernance])
+		}
 
-	// Pie chart uses the same selectedCategories as the table filter
+		return {
+			totalOnChainRwaValue: rwaValue,
+			totalOnChainStablecoinValue: stablecoinValue,
+			totalOnChainDeFiActiveTvl: defiTvl,
+			issuersCount: issuersSet.size
+		}
+	}, [
+		props.assets,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance
+	])
+
+	// Pie chart data - recalculate category values based on all filters
 	const pieChartData = useMemo(() => {
-		const selectedSet = new Set(selectedCategories)
-		const mainSlices: Array<{ name: string; value: number }> = []
-		let othersValue = 0
+		// Filter assets based on all filters (same as filteredAssets but we need to calculate category breakdown)
+		const filteredForPie = props.assets.filter((asset) => {
+			if (!includeStablecoins && asset.stablecoin) return false
+			if (!includeGovernance && asset.governance) return false
+			return (
+				asset.category?.some((category) => selectedCategories.includes(category)) &&
+				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
+				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
+				selectedIssuers.includes(asset.issuer)
+			)
+		})
 
-		for (const category of categoryValues) {
-			if (selectedSet.has(category.name)) {
-				mainSlices.push(category)
-			} else {
-				othersValue += category.value
-			}
+		// Build category breakdown from filtered assets
+		const categoryMap = new Map<string, number>()
+		for (const asset of filteredForPie) {
+			asset.category?.forEach((category) => {
+				if (category && selectedCategories.includes(category)) {
+					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.onChainMarketcap.total)
+				}
+			})
 		}
 
-		if (othersValue > 0) {
-			mainSlices.push({ name: 'Others', value: othersValue })
-		}
-
-		return mainSlices
-	}, [categoryValues, selectedCategories])
+		return Array.from(categoryMap.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([name, value]) => ({ name, value }))
+	}, [
+		props.assets,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance
+	])
 
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
@@ -143,10 +178,21 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			return (
 				asset.category?.some((category) => selectedCategories.includes(category)) &&
 				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
+				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
 				selectedIssuers.includes(asset.issuer)
 			)
 		})
-	}, [props.assets, selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins, includeGovernance])
+	}, [
+		props.assets,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance
+	])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets
@@ -341,6 +387,34 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						toggleAll={toggleAllAssetClasses}
 						clearAll={clearAllAssetClasses}
 						label={'Asset Classes'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
+					/>
+					<SelectWithCombobox
+						allValues={props.rwaClassifications}
+						selectedValues={selectedRwaClassifications}
+						setSelectedValues={setSelectedRwaClassifications}
+						selectOnlyOne={selectOnlyOneRwaClassification}
+						toggleAll={toggleAllRwaClassifications}
+						clearAll={clearAllRwaClassifications}
+						label={'RWA Classification'}
+						labelType="smol"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+						}}
+					/>
+					<SelectWithCombobox
+						allValues={props.accessModels}
+						selectedValues={selectedAccessModels}
+						setSelectedValues={setSelectedAccessModels}
+						selectOnlyOne={selectOnlyOneAccessModel}
+						toggleAll={toggleAllAccessModels}
+						clearAll={clearAllAccessModels}
+						label={'Access Model'}
 						labelType="smol"
 						triggerProps={{
 							className:
@@ -636,11 +710,11 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 			align: 'end',
 			headerHelperText: 'Whether the asset requires KYC to mint or redeem'
 		},
-		size: 196
+		size: 180
 	},
 	{
 		id: 'kycAllowlistedWhitelistedToTransferHold',
-		header: 'KYC to Transfer or Hold',
+		header: 'KYC/Allowlisted/Whitelisted to Transfer/Hold',
 		accessorFn: (asset) => asset.kycAllowlistedWhitelistedToTransferHold,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
@@ -652,7 +726,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 			align: 'end',
 			headerHelperText: 'Whether the asset requires KYC to be whitelisted to transfer or hold'
 		},
-		size: 196
+		size: 332
 	},
 	{
 		id: 'transferable',
@@ -740,7 +814,8 @@ const columnOrders = Object.entries({
 		'redeemable',
 		'attestations',
 		'cex_listed',
-		'kyc',
+		'kycForMintRedeem',
+		'kycAllowlistedWhitelistedToTransferHold',
 		'transferable',
 		'self_custody'
 	],
@@ -758,7 +833,8 @@ const columnOrders = Object.entries({
 		'redeemable',
 		'attestations',
 		'cex_listed',
-		'kyc',
+		'kycForMintRedeem',
+		'kycAllowlistedWhitelistedToTransferHold',
 		'transferable',
 		'self_custody'
 	]
@@ -784,42 +860,65 @@ const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRo
 const useRWATableQueryParams = ({
 	categories,
 	assetClasses,
+	rwaClassifications,
+	accessModels,
 	issuers
 }: {
 	categories: string[]
 	assetClasses: string[]
+	rwaClassifications: string[]
+	accessModels: string[]
 	issuers: string[]
 }) => {
 	const router = useRouter()
 
-	const { selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins, includeGovernance } =
-		useMemo(() => {
-			const {
-				categories: categoriesQ,
-				assetClasses: assetClassesQ,
-				issuers: issuersQ,
-				includeStablecoins: stablecoinsQ,
-				includeGovernance: governanceQ
-			} = router.query
+	const {
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance
+	} = useMemo(() => {
+		const {
+			categories: categoriesQ,
+			assetClasses: assetClassesQ,
+			rwaClassifications: rwaClassificationsQ,
+			accessModels: accessModelsQ,
+			issuers: issuersQ,
+			includeStablecoins: stablecoinsQ,
+			includeGovernance: governanceQ
+		} = router.query
 
-			// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
-			const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
-				if (param === 'None') return []
-				if (!param) return allValues
-				const arr = toArrayParam(param)
-				const validSet = new Set(allValues)
-				return arr.filter((v) => validSet.has(v))
-			}
+		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
+		const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
+			if (param === 'None') return []
+			if (!param) return allValues
+			const arr = toArrayParam(param)
+			const validSet = new Set(allValues)
+			return arr.filter((v) => validSet.has(v))
+		}
 
-			const selectedCategories = parseArrayParam(categoriesQ, categories)
-			const selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
-			const selectedIssuers = parseArrayParam(issuersQ, issuers)
+		const selectedCategories = parseArrayParam(categoriesQ, categories)
+		const selectedAssetClasses = parseArrayParam(assetClassesQ, assetClasses)
+		const selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
+		const selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
+		const selectedIssuers = parseArrayParam(issuersQ, issuers)
 
-			// includeStablecoins is true by default, unless explicitly set to 'false'
-			const includeStablecoins = stablecoinsQ !== 'false'
-			const includeGovernance = governanceQ !== 'false'
-			return { selectedCategories, selectedAssetClasses, selectedIssuers, includeStablecoins, includeGovernance }
-		}, [router.query, categories, assetClasses, issuers])
+		// includeStablecoins is true by default, unless explicitly set to 'false'
+		const includeStablecoins = stablecoinsQ !== 'false'
+		const includeGovernance = governanceQ !== 'false'
+		return {
+			selectedCategories,
+			selectedAssetClasses,
+			selectedRwaClassifications,
+			selectedAccessModels,
+			selectedIssuers,
+			includeStablecoins,
+			includeGovernance
+		}
+	}, [router.query, categories, assetClasses, rwaClassifications, accessModels, issuers])
 
 	const setSelectedCategories = useCallback(
 		(values: string[]) => updateArrayQuery('categories', values, router),
@@ -850,6 +949,36 @@ const useRWATableQueryParams = ({
 		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 	}, [router])
 	const clearAllAssetClasses = useCallback(() => updateArrayQuery('assetClasses', 'None', router), [router])
+
+	const setSelectedRwaClassifications = useCallback(
+		(values: string[]) => updateArrayQuery('rwaClassifications', values, router),
+		[router]
+	)
+	const selectOnlyOneRwaClassification = useCallback(
+		(rwaClassification: string) => updateArrayQuery('rwaClassifications', [rwaClassification], router),
+		[router]
+	)
+	const toggleAllRwaClassifications = useCallback(() => {
+		const nextQuery: Record<string, any> = { ...router.query }
+		delete nextQuery.rwaClassifications
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [router])
+	const clearAllRwaClassifications = useCallback(() => updateArrayQuery('rwaClassifications', 'None', router), [router])
+
+	const setSelectedAccessModels = useCallback(
+		(values: string[]) => updateArrayQuery('accessModels', values, router),
+		[router]
+	)
+	const selectOnlyOneAccessModel = useCallback(
+		(accessModel: string) => updateArrayQuery('accessModels', [accessModel], router),
+		[router]
+	)
+	const toggleAllAccessModels = useCallback(() => {
+		const nextQuery: Record<string, any> = { ...router.query }
+		delete nextQuery.accessModels
+		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [router])
+	const clearAllAccessModels = useCallback(() => updateArrayQuery('accessModels', 'None', router), [router])
 
 	const setSelectedIssuers = useCallback((values: string[]) => updateArrayQuery('issuers', values, router), [router])
 	const selectOnlyOneIssuer = useCallback((issuer: string) => updateArrayQuery('issuers', [issuer], router), [router])
@@ -889,11 +1018,15 @@ const useRWATableQueryParams = ({
 	return {
 		selectedCategories,
 		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
 		selectedIssuers,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
 		setSelectedAssetClasses,
+		setSelectedRwaClassifications,
+		setSelectedAccessModels,
 		setSelectedIssuers,
 		setIncludeStablecoins,
 		setIncludeGovernance,
@@ -903,6 +1036,12 @@ const useRWATableQueryParams = ({
 		selectOnlyOneAssetClass,
 		toggleAllAssetClasses,
 		clearAllAssetClasses,
+		selectOnlyOneRwaClassification,
+		toggleAllRwaClassifications,
+		clearAllRwaClassifications,
+		selectOnlyOneAccessModel,
+		toggleAllAccessModels,
+		clearAllAccessModels,
 		selectOnlyOneIssuer,
 		toggleAllIssuers,
 		clearAllIssuers

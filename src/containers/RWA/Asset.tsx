@@ -253,9 +253,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								description="Identity verification required to mint or redeem"
 							/>
 							<KYCItem
-								label="KYC to Transfer or Hold"
+								label="KYC/Allowlisted/Whitelisted to Transfer or Hold"
 								required={asset.kycAllowlistedWhitelistedToTransferHold}
-								description="Whitelist required to transfer or hold"
+								description="KYC/Allowlisted/Whitelisted required to transfer or hold"
 							/>
 							<ClassificationItem
 								label="Transferable"
