@@ -122,8 +122,21 @@ export default function LlamaAIGetStarted() {
 		setMounted(true)
 	}, [])
 
-	const CTAButton = ({ className = '', label = 'Try LlamaAI' }: { className?: string; label?: string }) =>
-		isAuthenticated && hasActiveSubscription ? (
+	const TrialBadge = ({ centered = false }: { centered?: boolean }) =>
+		!isAuthenticated || !hasActiveSubscription ? (
+			<div className={cn('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
+				<span className="inline-flex items-center rounded-full border border-[#C99A4A]/40 bg-gradient-to-r from-[#C99A4A]/10 via-[#C99A4A]/5 to-[#C99A4A]/10 px-3.5 py-2 text-[13px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/40 dark:from-[#FDE0A9]/10 dark:via-[#FDE0A9]/5 dark:to-[#FDE0A9]/10 dark:text-[#FDE0A9]">
+					7 days free · Cancel anytime
+				</span>
+				<span className="text-[13px] text-[#666] dark:text-[#919296]">No charge until trial ends</span>
+			</div>
+		) : null
+
+	const CTAButton = ({ className = '', label }: { className?: string; label?: string }) => {
+		const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI for free'
+		const displayLabel = label ?? defaultLabel
+
+		return isAuthenticated && hasActiveSubscription ? (
 			<BasicLink
 				href="/ai/chat"
 				data-umami-event="llamaai-landing-cta-subscribed"
@@ -135,23 +148,24 @@ export default function LlamaAIGetStarted() {
 				<svg className="h-4 w-4 shrink-0">
 					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 				</svg>
-				<span className="whitespace-nowrap">{label}</span>
+				<span className="whitespace-nowrap">{displayLabel}</span>
 			</BasicLink>
 		) : (
 			<button
 				onClick={() => subscribeModalStore.show()}
 				data-umami-event="llamaai-landing-cta-unsubscribed"
 				className={cn(
-					'llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_40px_0px_rgba(253,224,169,0.7)]',
+					'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),_0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
 					className
 				)}
 			>
 				<svg className="h-4 w-4 shrink-0">
 					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
 				</svg>
-				<span className="whitespace-nowrap">{label}</span>
+				<span className="whitespace-nowrap">{displayLabel}</span>
 			</button>
 		)
+	}
 
 	return (
 		<>
@@ -161,6 +175,15 @@ export default function LlamaAIGetStarted() {
 				keywords="LlamaAI, DefiLlama AI, DeFi AI"
 				canonicalUrl="https://defillama.com/ai"
 			/>
+			<style>{`
+				@keyframes cta-glow-pulse {
+					0%, 100% { box-shadow: 0px 0px 30px 0px rgba(253,224,169,0.5), 0px 0px 1px 2px rgba(255,255,255,0.1); }
+					50% { box-shadow: 0px 0px 45px 5px rgba(253,224,169,0.7), 0px 0px 1px 2px rgba(255,255,255,0.1); }
+				}
+				.animate-cta-glow {
+					animation: cta-glow-pulse 2s ease-in-out infinite;
+				}
+			`}</style>
 			<div className="col-span-full flex min-h-screen flex-col overflow-x-hidden bg-[#FAFAFA] dark:bg-[#131416]">
 				{/* Header */}
 				<header className="relative z-20 px-4 pt-4 md:px-8 md:pt-6">
@@ -235,6 +258,7 @@ export default function LlamaAIGetStarted() {
 							</p>
 							<div className="relative z-20">
 								<CTAButton />
+								<TrialBadge />
 							</div>
 						</div>
 
@@ -479,12 +503,13 @@ export default function LlamaAIGetStarted() {
 
 							<div className="relative z-10 px-6 py-10 text-center md:px-10 md:py-12">
 								<h3 className="mb-3 text-xl font-extrabold tracking-[-0.02em] text-black md:text-2xl dark:text-white">
-									Ready to try LlamaAI?
+									Ready to use LlamaAI?
 								</h3>
 								<p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-[#555] md:text-base dark:text-[#9a9a9f]">
 									Research protocols, generate charts, and stay ahead of the market.
 								</p>
 								<CTAButton />
+								<TrialBadge centered />
 							</div>
 						</div>
 					</div>
