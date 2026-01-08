@@ -524,7 +524,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 		if (chain === 'All') {
 			charts.push('Raises')
 		}
-		if (inflowsData?.netInflows != null) {
+		if (inflowsData?.netInflows != null && inflowsData.netInflows !== 0) {
 			charts.push('Net Inflows')
 		}
 		if (chain !== 'All' && metadata.gecko_id != null) {

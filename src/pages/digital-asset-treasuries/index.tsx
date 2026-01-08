@@ -221,7 +221,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 				columns={columns}
 				placeholder="Search institutions"
 				columnToSearch="name"
-				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
+				sortingState={[{ id: 'totalUsdValue', desc: true }]}
 				customFilters={<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />}
 			/>
 		</Layout>

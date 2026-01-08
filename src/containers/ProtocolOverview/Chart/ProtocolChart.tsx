@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
@@ -67,8 +67,11 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 		return JSON.stringify(router.query ? (tvl === 'true' ? rest : router.query) : { protocol: [slug(props.name)] })
 	}, [router.query, props.name])
 
+	// Defer expensive chart recalculations to keep UI responsive
+	const deferredQueryParamsString = useDeferredValue(queryParamsString)
+
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
-		const queryParams = JSON.parse(queryParamsString)
+		const queryParams = JSON.parse(deferredQueryParamsString)
 		const chartsByVisibility = {}
 		for (const chartLabel in protocolCharts) {
 			const chartKey = protocolCharts[chartLabel]
@@ -105,7 +108,7 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 			defaultToggledCharts: props.defaultToggledCharts
 		}
 	}, [
-		queryParamsString,
+		deferredQueryParamsString,
 		props.hallmarks,
 		props.rangeHallmarks,
 		props.defaultToggledCharts,
