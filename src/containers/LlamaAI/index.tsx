@@ -29,6 +29,7 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
+import { ResearchLimitModal } from './components/ResearchLimitModal'
 import { ResearchProgress } from './components/ResearchProgress'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
@@ -160,11 +161,15 @@ async function fetchPromptResponse({
 			},
 			body: JSON.stringify(requestBody),
 			signal: abortSignal
+		}).then(async (res) => {
+			if (res.status === 403) {
+				const errorData = await res.json()
+				if (errorData.code === 'USAGE_LIMIT_EXCEEDED') {
+					throw errorData
+				}
+			}
+			return handleSimpleFetchResponse(res)
 		})
-			.then(handleSimpleFetchResponse)
-			.catch((err) => {
-				throw new Error(err.message)
-			})
 
 		if (!response.ok) {
 			throw new Error(`HTTP error status: ${response.status}`)
@@ -322,11 +327,14 @@ async function fetchPromptResponse({
 				csvExports
 			}
 		}
-	} catch (error) {
+	} catch (error: any) {
 		if (reader && !reader.closed) {
 			try {
 				reader.releaseLock()
 			} catch (releaseError) {}
+		}
+		if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
+			throw error
 		}
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
 	} finally {
@@ -380,7 +388,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		moveSessionToTop,
 		updateSessionTitle,
 		restoreSession,
-		isRestoringSession
+		isRestoringSession,
+		researchUsage,
+		decrementResearchUsage
 	} = useChatHistory()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -451,6 +461,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [showRateLimitModal, setShowRateLimitModal] = useState(false)
+	const [rateLimitDetails, setRateLimitDetails] = useState<{
+		period: string
+		limit: number
+		resetTime: string | null
+	} | null>(null)
 	const [researchState, setResearchState] = useState<{
 		isActive: boolean
 		startTime: number
@@ -794,6 +810,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setLastFailedRequest(null)
 			lastInputRef.current = null
 
+			if (isResearchMode) {
+				decrementResearchUsage()
+			}
+
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
 				setStreamingResponse(finalContent)
@@ -831,11 +851,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				promptInputRef.current?.focus()
 			}, 100)
 		},
-		onError: (error, variables) => {
+		onError: (error: any, variables) => {
 			setIsStreaming(false)
 			setResearchState(null)
 			researchStartTimeRef.current = null
 			abortControllerRef.current = null
+
+			if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
+				setRateLimitDetails({
+					period: error.details?.period || 'lifetime',
+					limit: error.details?.limit || 0,
+					resetTime: error.details?.resetTime || null
+				})
+				setShowRateLimitModal(true)
+				setLastFailedRequest(null)
+				return
+			}
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -1368,6 +1399,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 											isResearchMode={isResearchMode}
 											setIsResearchMode={setIsResearchMode}
+											researchUsage={researchUsage}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1632,6 +1664,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										isResearchMode={isResearchMode}
 										setIsResearchMode={setIsResearchMode}
+										researchUsage={researchUsage}
 									/>
 								)}
 							</div>
@@ -1639,6 +1672,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					)}
 				</div>
 			</div>
+			{showRateLimitModal && rateLimitDetails && (
+				<ResearchLimitModal
+					isOpen={showRateLimitModal}
+					onClose={() => setShowRateLimitModal(false)}
+					period={rateLimitDetails.period}
+					limit={rateLimitDetails.limit}
+					resetTime={rateLimitDetails.resetTime}
+				/>
+			)}
 		</Layout>
 	)
 }
@@ -1652,7 +1694,8 @@ const PromptInput = memo(function PromptInput({
 	placeholder,
 	restoreRequest,
 	isResearchMode,
-	setIsResearchMode
+	setIsResearchMode,
+	researchUsage
 }: {
 	handleSubmit: (
 		prompt: string,
@@ -1671,6 +1714,12 @@ const PromptInput = memo(function PromptInput({
 	} | null
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	researchUsage?: {
+		remainingUsage: number
+		limit: number
+		period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
+		resetTime: string | null
+	} | null
 }) {
 	const [value, setValue] = useState('')
 	const [selectedImages, setSelectedImages] = useState<Array<{ file: File; url: string }>>([])
@@ -2239,7 +2288,13 @@ const PromptInput = memo(function PromptInput({
 										Comprehensive reports with in-depth analysis and citations
 									</span>
 									<span className="border-t border-[#eee] pt-1.5 text-[11px] text-[#555] dark:border-[#333] dark:text-[#aaa]">
-										5 reports/day · Free trial: 3 total
+										{researchUsage?.period === 'unlimited'
+											? 'Unlimited reports'
+											: researchUsage?.period === 'blocked'
+												? 'Sign in to use research'
+												: researchUsage
+													? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : ''}`
+													: '5 reports/day · Free trial: 3 total'}
 									</span>
 								</div>
 							}
@@ -2255,6 +2310,11 @@ const PromptInput = memo(function PromptInput({
 						>
 							<Icon name="search" height={12} width={12} />
 							<span>Research</span>
+							{researchUsage && researchUsage.limit > 0 && researchUsage.period !== 'unlimited' && (
+								<span className="text-[10px] opacity-70">
+									{researchUsage.remainingUsage}/{researchUsage.limit}
+								</span>
+							)}
 						</Tooltip>
 					</div>
 					<div className="flex items-center gap-2">

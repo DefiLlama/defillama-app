@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { ChartTab } from './ChartTab'
 import { LlamaAITab } from './LlamaAITab'
 import { MetricTab } from './MetricTab'
@@ -13,9 +12,7 @@ import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
 
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
-	const { user } = useAuthContext()
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
-	const isLlama = user?.flags?.['is_llama'] ?? false
 
 	const getCurrentItemType = () => {
 		if (state.selectedMainTab === 'charts') {
@@ -60,7 +57,6 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					selectedMainTab={state.selectedMainTab}
 					editItem={editItem}
 					onTabChange={actions.handleMainTabChange}
-					isLlama={isLlama}
 				/>
 
 				<div className="-mx-4 flex flex-1 flex-col overflow-y-auto px-4 md:mx-0 md:px-0">
@@ -195,7 +191,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 						/>
 					)}
 
-					{state.selectedMainTab === 'llamaai' && isLlama && (
+					{state.selectedMainTab === 'llamaai' && (
 						<LlamaAITab
 							selectedChart={state.selectedLlamaAIChart}
 							onChartSelect={actions.setSelectedLlamaAIChart}
