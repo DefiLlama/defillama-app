@@ -1680,7 +1680,7 @@ const PromptInput = memo(function PromptInput({
 	onPendingImages?: (images: Array<{ url: string; mimeType: string; filename?: string }>) => void
 }) {
 	const [value, setValue] = useState('')
-	const [selectedImages, setSelectedImages] = useState<File[]>([])
+	const [selectedImages, setSelectedImages] = useState<Array<{ file: File; url: string }>>([])
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
@@ -1694,7 +1694,8 @@ const PromptInput = memo(function PromptInput({
 		if (totalCount > 4) {
 			toast.error('Maximum 4 images allowed')
 		}
-		setSelectedImages((prev) => [...prev, ...valid].slice(0, 4))
+		const newImages = valid.map((file) => ({ file, url: URL.createObjectURL(file) }))
+		setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4))
 	}
 
 	const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1716,7 +1717,11 @@ const PromptInput = memo(function PromptInput({
 	}
 
 	const removeImage = (idx: number) => {
-		setSelectedImages((prev) => prev.filter((_, i) => i !== idx))
+		setSelectedImages((prev) => {
+			const removed = prev[idx]
+			if (removed) URL.revokeObjectURL(removed.url)
+			return prev.filter((_, i) => i !== idx)
+		})
 	}
 
 	const fileToBase64 = (file: File): Promise<string> =>
@@ -1805,8 +1810,11 @@ const PromptInput = memo(function PromptInput({
 		}>
 	}
 
-	const resetInput = () => {
+	const resetInput = (revokeImageUrls = true) => {
 		setValue('')
+		if (revokeImageUrls) {
+			selectedImages.forEach(({ url }) => URL.revokeObjectURL(url))
+		}
 		setSelectedImages([])
 		combobox.setValue('')
 		combobox.hide()
@@ -1900,19 +1908,20 @@ const PromptInput = memo(function PromptInput({
 
 			if (imagesToSend.length > 0 && onPendingImages) {
 				onPendingImages(
-					imagesToSend.map((file) => ({
-						url: URL.createObjectURL(file),
+					imagesToSend.map(({ file, url }) => ({
+						url,
 						mimeType: file.type,
 						filename: file.name
 					}))
 				)
 			}
 
-			resetInput()
+			// Don't revoke URLs if we're passing them to onPendingImages for display
+			resetInput(imagesToSend.length === 0)
 
 			if (imagesToSend.length > 0) {
 				Promise.all(
-					imagesToSend.map(async (file) => ({
+					imagesToSend.map(async ({ file }) => ({
 						data: await fileToBase64(file),
 						mimeType: file.type,
 						filename: file.name
@@ -2038,19 +2047,20 @@ const PromptInput = memo(function PromptInput({
 
 					if (imagesToSend.length > 0 && onPendingImages) {
 						onPendingImages(
-							imagesToSend.map((file) => ({
-								url: URL.createObjectURL(file),
+							imagesToSend.map(({ file, url }) => ({
+								url,
 								mimeType: file.type,
 								filename: file.name
 							}))
 						)
 					}
 
-					resetInput()
+					// Don't revoke URLs if we're passing them to onPendingImages for display
+					resetInput(imagesToSend.length === 0)
 
 					if (imagesToSend.length > 0) {
 						Promise.all(
-							imagesToSend.map(async (file) => ({
+							imagesToSend.map(async ({ file }) => ({
 								data: await fileToBase64(file),
 								mimeType: file.type,
 								filename: file.name
@@ -2079,12 +2089,9 @@ const PromptInput = memo(function PromptInput({
 				/>
 				{selectedImages.length > 0 && (
 					<div className="flex flex-wrap gap-2">
-						{selectedImages.map((file, idx) => (
-							<div
-								key={`selected-image-${URL.createObjectURL(file)}`}
-								className="relative h-16 w-16 overflow-hidden rounded-lg"
-							>
-								<img src={URL.createObjectURL(file)} alt={file.name} className="h-full w-full object-cover" />
+						{selectedImages.map(({ file, url }, idx) => (
+							<div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg">
+								<img src={url} alt={file.name} className="h-full w-full object-cover" />
 								<button
 									type="button"
 									onClick={() => removeImage(idx)}
@@ -2555,13 +2562,13 @@ const SentPrompt = memo(function SentPrompt({
 	return (
 		<div className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{images && images.length > 0 && (
-				<div className="mb-2 flex flex-wrap gap-2">
+				<div className="mb-2.5 flex flex-wrap gap-3">
 					{images.map((img) => (
 						<img
 							key={`sent-prompt-image-${img.url}`}
 							src={img.url}
 							alt={img.filename || 'Uploaded image'}
-							className="max-h-48 max-w-full rounded-lg object-contain"
+							className="h-16 w-16 rounded-lg object-cover"
 						/>
 					))}
 				</div>
