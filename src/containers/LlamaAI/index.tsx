@@ -15,6 +15,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
+import { errorToast } from '~/components/Toast'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
@@ -1692,7 +1693,7 @@ const PromptInput = memo(function PromptInput({
 		const currentCount = selectedImages.length
 		const totalCount = currentCount + valid.length
 		if (totalCount > 4) {
-			toast.error('Maximum 4 images allowed')
+			errorToast({ title: 'Image upload limit', description: 'You may upload only 4 images at a time' })
 		}
 		const newImages = valid.map((file) => ({ file, url: URL.createObjectURL(file) }))
 		setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4))
