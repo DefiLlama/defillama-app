@@ -1540,7 +1540,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</div>
 											)}
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-214px)]">
+												<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
 													{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
 													<PromptResponse
 														response={
