@@ -15,11 +15,11 @@ const pageName = ['Overview']
 
 const Announcement = () => (
 	<>
-		Free{' '}
+		Free 7-day{' '}
 		<Link href="/subscription" target="_blank" rel="noreferrer noopener" className="underline">
-			7-day trials
+			Pro subscription
 		</Link>{' '}
-		are now available.
+		trials are now available.
 	</>
 )
 
