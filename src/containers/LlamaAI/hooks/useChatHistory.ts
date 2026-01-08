@@ -34,25 +34,38 @@ export interface PaginationState {
 	totalMessages?: number
 }
 
+export interface ResearchUsage {
+	remainingUsage: number
+	limit: number
+	period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
+	resetTime: string | null
+}
+
 export function useChatHistory() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const queryClient = useQueryClient()
 
-	const { data: sessions = [], isLoading } = useQuery({
+	const { data = { sessions: [], usage: null }, isLoading } = useQuery({
 		queryKey: ['chat-sessions', user?.id],
-		queryFn: async () => {
+		queryFn: async (): Promise<{ sessions: ChatSession[]; usage: ResearchUsage | null }> => {
 			try {
-				if (!user) return []
+				if (!user) return { sessions: [], usage: null }
 				const data = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
-				const existingData = (queryClient.getQueryData(['chat-sessions', user.id]) as ChatSession[]) || []
-				const fakeSessions = existingData.filter(
+				const existingData = queryClient.getQueryData(['chat-sessions', user.id]) as
+					| { sessions: ChatSession[]; usage: ResearchUsage | null }
+					| undefined
+				const existingSessions = existingData?.sessions || []
+				const fakeSessions = existingSessions.filter(
 					(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
 				)
 
-				return [...fakeSessions, ...data.sessions]
+				return {
+					sessions: [...fakeSessions, ...data.sessions],
+					usage: data.usage?.research_report || null
+				}
 			} catch (error) {
 				console.log('Failed to fetch sessions:', error)
 				throw new Error('Failed to fetch sessions')
@@ -61,6 +74,9 @@ export function useChatHistory() {
 		enabled: isAuthenticated && !!user,
 		staleTime: 30000
 	})
+
+	const sessions = data.sessions
+	const researchUsage = data.usage
 
 	const createSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
@@ -120,9 +136,13 @@ export function useChatHistory() {
 			}
 		},
 		onMutate: async (sessionId) => {
-			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
-				return old.filter((session) => session.sessionId !== sessionId)
-			})
+			queryClient.setQueryData(
+				['chat-sessions', user.id],
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
+					...old,
+					sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
+				})
+			)
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
@@ -142,14 +162,18 @@ export function useChatHistory() {
 			return response
 		},
 		onMutate: async ({ sessionId, title }) => {
-			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => {
-				return old.map((session) => {
-					if (session.sessionId === sessionId) {
-						return { ...session, title }
-					}
-					return session
+			queryClient.setQueryData(
+				['chat-sessions', user.id],
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
+					...old,
+					sessions: old.sessions.map((session) => {
+						if (session.sessionId === sessionId) {
+							return { ...session, title }
+						}
+						return session
+					})
 				})
-			})
+			)
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
@@ -169,7 +193,13 @@ export function useChatHistory() {
 				isActive: true
 			}
 
-			queryClient.setQueryData(['chat-sessions', user.id], (old: ChatSession[] = []) => [fakeSession, ...old])
+			queryClient.setQueryData(
+				['chat-sessions', user.id],
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
+					...old,
+					sessions: [fakeSession, ...old.sessions]
+				})
+			)
 		}
 
 		return sessionId
@@ -234,19 +264,40 @@ export function useChatHistory() {
 		(sessionId: string) => {
 			if (!user) return
 
-			queryClient.setQueryData(['chat-sessions', user.id], (oldSessions: ChatSession[] = []) => {
-				const sessionIndex = oldSessions.findIndex((s) => s.sessionId === sessionId)
-				if (sessionIndex === -1) return oldSessions
+			queryClient.setQueryData(
+				['chat-sessions', user.id],
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => {
+					const sessionIndex = old.sessions.findIndex((s) => s.sessionId === sessionId)
+					if (sessionIndex === -1) return old
 
-				const updatedSessions = [...oldSessions]
-				const [movedSession] = updatedSessions.splice(sessionIndex, 1)
-				movedSession.lastActivity = new Date().toISOString()
+					const updatedSessions = [...old.sessions]
+					const [movedSession] = updatedSessions.splice(sessionIndex, 1)
+					movedSession.lastActivity = new Date().toISOString()
 
-				return [movedSession, ...updatedSessions]
-			})
+					return { ...old, sessions: [movedSession, ...updatedSessions] }
+				}
+			)
 		},
 		[user, queryClient]
 	)
+
+	const decrementResearchUsage = useCallback(() => {
+		if (!user) return
+
+		queryClient.setQueryData(
+			['chat-sessions', user.id],
+			(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => {
+				if (!old?.usage) return old
+				return {
+					...old,
+					usage: {
+						...old.usage,
+						remainingUsage: Math.max(0, old.usage.remainingUsage - 1)
+					}
+				}
+			}
+		)
+	}, [user, queryClient])
 
 	const toggleSidebar = useCallback(() => {
 		const currentVisible = localStorage.getItem('llamaai-sidebar-hidden') === 'true'
@@ -269,6 +320,7 @@ export function useChatHistory() {
 
 	return {
 		sessions,
+		researchUsage,
 		isLoading,
 		sidebarVisible: isMobile ? sidebarHiddenMobile !== 'true' : sidebarHidden !== 'true',
 		createFakeSession,
@@ -277,6 +329,7 @@ export function useChatHistory() {
 		deleteSession: deleteSessionMutation.mutateAsync,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		moveSessionToTop,
+		decrementResearchUsage,
 		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebar,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,

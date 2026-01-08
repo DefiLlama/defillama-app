@@ -15,6 +15,7 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LoadingSpinner } from '~/components/Loaders'
+import { errorToast } from '~/components/Toast'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
@@ -28,9 +29,11 @@ import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { PDFExportButton } from './components/PDFExportButton'
 import { RecommendedPrompts } from './components/RecommendedPrompts'
+import { ResearchLimitModal } from './components/ResearchLimitModal'
 import { ResearchProgress } from './components/ResearchProgress'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
+import type { UploadedImage } from './types'
 import { convertLlamaLinksToDefillama } from './utils/entityLinks'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
 import { parseChartInfo } from './utils/parseChartInfo'
@@ -64,6 +67,7 @@ async function fetchPromptResponse({
 	mode,
 	forceIntent,
 	authorizedFetch,
+	images,
 	resume
 }: {
 	prompt?: string
@@ -82,6 +86,7 @@ async function fetchPromptResponse({
 			| 'message_id'
 			| 'reset'
 			| 'csv_export'
+			| 'images'
 		content: string
 		stage?: string
 		sessionId?: string
@@ -93,6 +98,7 @@ async function fetchPromptResponse({
 		title?: string
 		messageId?: string
 		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+		images?: UploadedImage[]
 		researchProgress?: {
 			iteration: number
 			totalIterations: number
@@ -110,6 +116,7 @@ async function fetchPromptResponse({
 	mode: 'auto' | 'sql_only'
 	forceIntent?: 'comprehensive_report'
 	authorizedFetch: any
+	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	resume?: boolean
 }) {
 	let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
@@ -143,6 +150,10 @@ async function fetchPromptResponse({
 			requestBody.forceIntent = forceIntent
 		}
 
+		if (images && images.length > 0) {
+			requestBody.images = images
+		}
+
 		const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent`, {
 			method: 'POST',
 			headers: {
@@ -150,11 +161,15 @@ async function fetchPromptResponse({
 			},
 			body: JSON.stringify(requestBody),
 			signal: abortSignal
+		}).then(async (res) => {
+			if (res.status === 403) {
+				const errorData = await res.json()
+				if (errorData.code === 'USAGE_LIMIT_EXCEEDED') {
+					throw errorData
+				}
+			}
+			return handleSimpleFetchResponse(res)
 		})
-			.then(handleSimpleFetchResponse)
-			.catch((err) => {
-				throw new Error(err.message)
-			})
 
 		if (!response.ok) {
 			throw new Error(`HTTP error status: ${response.status}`)
@@ -262,6 +277,14 @@ async function fetchPromptResponse({
 									csvExports: data.exports
 								})
 							}
+						} else if (data.type === 'images') {
+							if (onProgress && !abortSignal?.aborted) {
+								onProgress({
+									type: 'images',
+									content: '',
+									images: data.images
+								})
+							}
 						} else if (data.type === 'error') {
 							if (onProgress && !abortSignal?.aborted) {
 								onProgress({ type: 'error', content: data.content })
@@ -304,11 +327,14 @@ async function fetchPromptResponse({
 				csvExports
 			}
 		}
-	} catch (error) {
+	} catch (error: any) {
 		if (reader && !reader.closed) {
 			try {
 				reader.releaseLock()
 			} catch (releaseError) {}
+		}
+		if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
+			throw error
 		}
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch prompt response')
 	} finally {
@@ -362,7 +388,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		moveSessionToTop,
 		updateSessionTitle,
 		restoreSession,
-		isRestoringSession
+		isRestoringSession,
+		researchUsage,
+		decrementResearchUsage
 	} = useChatHistory()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -374,6 +402,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			role?: string
 			content?: string
 			question?: string
+			images?: Array<{ url: string; mimeType: string; filename?: string }>
 			response?: {
 				answer: string
 				metadata?: any
@@ -420,6 +449,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		rowCount: number
 		filename: string
 	}> | null>(null)
+	const [pendingImages, setPendingImages] = useState<Array<{ url: string; mimeType: string; filename?: string }>>([])
 	const [isGeneratingCharts, setIsGeneratingCharts] = useState(false)
 	const [isAnalyzingForCharts, setIsAnalyzingForCharts] = useState(false)
 	const [hasChartError, setHasChartError] = useState(false)
@@ -431,6 +461,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [showRateLimitModal, setShowRateLimitModal] = useState(false)
+	const [rateLimitDetails, setRateLimitDetails] = useState<{
+		period: string
+		limit: number
+		resetTime: string | null
+	} | null>(null)
 	const [researchState, setResearchState] = useState<{
 		isActive: boolean
 		startTime: number
@@ -628,11 +664,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		mutationFn: ({
 			userQuestion,
 			suggestionContext,
-			preResolvedEntities
+			preResolvedEntities,
+			images
 		}: {
 			userQuestion: string
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
+			images?: Array<{ data: string; mimeType: string; filename?: string }>
 		}) => {
 			let currentSessionId = sessionId
 
@@ -672,6 +710,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				sessionId: currentSessionId,
 				suggestionContext,
 				preResolvedEntities,
+				images,
 				mode: 'auto',
 				forceIntent: isResearchMode ? 'comprehensive_report' : undefined,
 				authorizedFetch,
@@ -735,6 +774,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						setStreamingCitations(data.citations)
 					} else if (data.type === 'csv_export') {
 						setStreamingCsvExports(data.csvExports || null)
+					} else if (data.type === 'images') {
+						setPendingImages(data.images || [])
 					} else if (data.type === 'error') {
 						setStreamingError(data.content)
 					} else if (data.type === 'title') {
@@ -757,6 +798,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			userQuestion: string
 			suggestionContext?: any
 			preResolvedEntities?: Array<{ term: string; slug: string }>
+			image?: any
 		}) => {
 			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
 		},
@@ -768,16 +810,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setLastFailedRequest(null)
 			lastInputRef.current = null
 
+			if (isResearchMode) {
+				decrementResearchUsage()
+			}
+
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
 				setStreamingResponse(finalContent)
 			}
 
+			const currentImages = pendingImages.length > 0 ? [...pendingImages] : undefined
 			setMessages((prev) => [
 				...prev,
 				{
 					role: 'user',
 					content: variables.userQuestion,
+					images: currentImages,
 					timestamp: Date.now()
 				},
 				{
@@ -795,6 +843,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				}
 			])
 
+			setPendingImages([])
 			setPrompt('')
 			resetPrompt()
 			setCurrentMessageId(null)
@@ -802,11 +851,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				promptInputRef.current?.focus()
 			}, 100)
 		},
-		onError: (error, variables) => {
+		onError: (error: any, variables) => {
 			setIsStreaming(false)
 			setResearchState(null)
 			researchStartTimeRef.current = null
 			abortControllerRef.current = null
+
+			if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
+				setRateLimitDetails({
+					period: error.details?.period || 'lifetime',
+					limit: error.details?.limit || 0,
+					resetTime: error.details?.resetTime || null
+				})
+				setShowRateLimitModal(true)
+				setLastFailedRequest(null)
+				return
+			}
 
 			const finalContent = streamingContentRef.current.getContent()
 			if (finalContent !== streamingResponse) {
@@ -818,11 +878,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			if (wasUserStopped && finalContent.trim()) {
 				setLastFailedRequest(null)
 				lastInputRef.current = null
+				const stoppedImages = pendingImages.length > 0 ? [...pendingImages] : undefined
 				setMessages((prev) => [
 					...prev,
 					{
 						role: 'user',
 						content: variables.userQuestion,
+						images: stoppedImages,
 						timestamp: Date.now()
 					},
 					{
@@ -837,6 +899,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					}
 				])
 
+				setPendingImages([])
 				setStreamingResponse('')
 				setStreamingSuggestions(null)
 				setStreamingCharts(null)
@@ -844,10 +907,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				setStreamingCitations(null)
 				setPrompt('')
 			} else if (wasUserStopped && !finalContent.trim()) {
+				setPendingImages([])
 				setPrompt(variables.userQuestion)
 				setLastFailedRequest(null)
 			} else if (!wasUserStopped) {
 				console.log('Request failed:', error)
+				setPendingImages([])
 				setLastFailedRequest(null)
 				lastInputRef.current = null
 			}
@@ -969,7 +1034,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const handleSubmit = useCallback(
 		(
 			prompt: string,
-			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>
+			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>,
+			images?: Array<{ data: string; mimeType: string; filename?: string }>
 		) => {
 			if (isStreaming) {
 				return
@@ -986,7 +1052,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			submitPrompt({
 				userQuestion: finalPrompt,
-				preResolvedEntities: preResolved
+				preResolvedEntities: preResolved,
+				images
 			})
 		},
 		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
@@ -1332,7 +1399,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 											isResearchMode={isResearchMode}
 											setIsResearchMode={setIsResearchMode}
-											showResearchButton={showDebug}
+											researchUsage={researchUsage}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1368,7 +1435,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												<div className="flex flex-col gap-2.5">
 													{messages.map((item, index) => {
 														if (item.role === 'user') {
-															return <SentPrompt key={`user-${item.timestamp}-${index}`} prompt={item.content} />
+															return (
+																<SentPrompt
+																	key={`user-${item.timestamp}-${index}`}
+																	prompt={item.content}
+																	images={item.images}
+																/>
+															)
 														}
 														if (item.role === 'assistant') {
 															const hasInlineCharts = item.content?.includes('[CHART:')
@@ -1430,7 +1503,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															const itemChartData = item.response?.chartData || item.chartData
 															return (
 																<div key={`${item.messageId}-${item.timestamp}`} className="flex flex-col gap-2.5">
-																	<SentPrompt prompt={item.question} />
+																	<SentPrompt prompt={item.question} images={item.images} />
 																	<div className="flex flex-col gap-2.5">
 																		<MarkdownRenderer
 																			content={item.response?.answer || ''}
@@ -1498,8 +1571,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 												</div>
 											)}
 											{(isPending || isStreaming || promptResponse || error) && (
-												<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-214px)]">
-													{prompt && <SentPrompt prompt={prompt} />}
+												<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
+													{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
 													<PromptResponse
 														response={
 															promptResponse?.response ||
@@ -1591,7 +1664,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 										isResearchMode={isResearchMode}
 										setIsResearchMode={setIsResearchMode}
-										showResearchButton={showDebug}
+										researchUsage={researchUsage}
 									/>
 								)}
 							</div>
@@ -1599,6 +1672,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					)}
 				</div>
 			</div>
+			{showRateLimitModal && rateLimitDetails && (
+				<ResearchLimitModal
+					isOpen={showRateLimitModal}
+					onClose={() => setShowRateLimitModal(false)}
+					period={rateLimitDetails.period}
+					limit={rateLimitDetails.limit}
+					resetTime={rateLimitDetails.resetTime}
+				/>
+			)}
 		</Layout>
 	)
 }
@@ -1613,9 +1695,13 @@ const PromptInput = memo(function PromptInput({
 	restoreRequest,
 	isResearchMode,
 	setIsResearchMode,
-	showResearchButton
+	researchUsage
 }: {
-	handleSubmit: (prompt: string, preResolvedEntities?: Array<{ term: string; slug: string }>) => void
+	handleSubmit: (
+		prompt: string,
+		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string }>
+	) => void
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
@@ -1628,13 +1714,95 @@ const PromptInput = memo(function PromptInput({
 	} | null
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
-	showResearchButton?: boolean
+	researchUsage?: {
+		remainingUsage: number
+		limit: number
+		period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
+		resetTime: string | null
+	} | null
 }) {
 	const [value, setValue] = useState('')
+	const [selectedImages, setSelectedImages] = useState<Array<{ file: File; url: string }>>([])
+	const [isDragging, setIsDragging] = useState(false)
+	const dragCounterRef = useRef(0)
 	const highlightRef = useRef<HTMLDivElement>(null)
+	const fileInputRef = useRef<HTMLInputElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, { id: string; name: string; type: string }>>(new Map())
 	const isProgrammaticUpdateRef = useRef(false)
+
+	const addImages = (files: File[]) => {
+		const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && f.type.startsWith('image/'))
+		if (valid.length === 0) return
+
+		const newImages = valid.map((file) => ({ file, url: URL.createObjectURL(file) }))
+
+		setSelectedImages((prev) => {
+			const totalCount = prev.length + newImages.length
+			if (totalCount > 4) {
+				// Defer toast to avoid side effect during state update
+				queueMicrotask(() => {
+					errorToast({ title: 'Image upload limit', description: 'You may upload only 4 images at a time' })
+				})
+			}
+			return [...prev, ...newImages].slice(0, 4)
+		})
+	}
+
+	const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files) addImages(Array.from(e.target.files))
+	}
+
+	const handlePaste = (e: React.ClipboardEvent) => {
+		const files = Array.from(e.clipboardData.items)
+			.filter((item) => item.type.startsWith('image/'))
+			.map((item) => item.getAsFile())
+			.filter(Boolean) as File[]
+		if (files.length) addImages(files)
+	}
+
+	const handleDragEnter = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		dragCounterRef.current++
+		if (e.dataTransfer.types.includes('Files')) {
+			setIsDragging(true)
+		}
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		dragCounterRef.current--
+		if (dragCounterRef.current === 0) {
+			setIsDragging(false)
+		}
+	}
+
+	const handleDrop = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		dragCounterRef.current = 0
+		setIsDragging(false)
+		const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+		if (files.length) addImages(files)
+	}
+
+	const removeImage = (idx: number) => {
+		setSelectedImages((prev) => {
+			const removed = prev[idx]
+			if (removed) URL.revokeObjectURL(removed.url)
+			return prev.filter((_, i) => i !== idx)
+		})
+	}
+
+	const fileToBase64 = (file: File): Promise<string> =>
+		new Promise((resolve, reject) => {
+			const reader = new FileReader()
+			reader.onload = () => resolve(reader.result as string)
+			reader.onerror = reject
+			reader.readAsDataURL(file)
+		})
 
 	// Use different placeholder for mobile devices
 	const isMobile = useMedia('(max-width: 640px)')
@@ -1714,8 +1882,12 @@ const PromptInput = memo(function PromptInput({
 		}>
 	}
 
-	const resetInput = () => {
+	const resetInput = (revokeImageUrls = true) => {
 		setValue('')
+		if (revokeImageUrls) {
+			selectedImages.forEach(({ url }) => URL.revokeObjectURL(url))
+		}
+		setSelectedImages([])
 		combobox.setValue('')
 		combobox.hide()
 		const textarea = promptInputRef.current
@@ -1804,8 +1976,23 @@ const PromptInput = memo(function PromptInput({
 			trackSubmit()
 			const finalEntities = getFinalEntities()
 			const promptValue = promptInputRef.current?.value ?? ''
-			resetInput()
-			handleSubmit(promptValue, finalEntities)
+			const imagesToSend = [...selectedImages]
+
+			resetInput(imagesToSend.length === 0)
+
+			if (imagesToSend.length > 0) {
+				Promise.all(
+					imagesToSend.map(async ({ file }) => ({
+						data: await fileToBase64(file),
+						mimeType: file.type,
+						filename: file.name
+					}))
+				).then((images) => {
+					handleSubmit(promptValue, finalEntities, images)
+				})
+			} else {
+				handleSubmit(promptValue, finalEntities)
+			}
 		}
 	}
 
@@ -1911,14 +2098,33 @@ const PromptInput = memo(function PromptInput({
 		<>
 			<form
 				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 has-[textarea:focus]:border-(--old-blue) dark:border-[#222324]"
+				onDragEnter={handleDragEnter}
+				onDragLeave={handleDragLeave}
+				onDragOver={(e) => e.preventDefault()}
+				onDrop={handleDrop}
 				onSubmit={(e) => {
 					e.preventDefault()
 					trackSubmit()
 					const form = e.target as HTMLFormElement
 					const finalEntities = getFinalEntities()
 					const promptValue = form.prompt.value
-					resetInput()
-					handleSubmit(promptValue, finalEntities)
+					const imagesToSend = [...selectedImages]
+
+					resetInput(imagesToSend.length === 0)
+
+					if (imagesToSend.length > 0) {
+						Promise.all(
+							imagesToSend.map(async ({ file }) => ({
+								data: await fileToBase64(file),
+								mimeType: file.type,
+								filename: file.name
+							}))
+						).then((images) => {
+							handleSubmit(promptValue, finalEntities, images)
+						})
+					} else {
+						handleSubmit(promptValue, finalEntities)
+					}
 				}}
 				onClick={(e) => {
 					const target = e.target as HTMLElement
@@ -1927,6 +2133,54 @@ const PromptInput = memo(function PromptInput({
 					}
 				}}
 			>
+				{/* Drag and drop overlay */}
+				{isDragging && (
+					<div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center rounded-lg border-2 border-dashed border-(--old-blue) bg-(--old-blue)/10 backdrop-blur-[2px]">
+						<div className="flex items-center gap-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+								<path
+									d="M6 18C6 24.6274 11.3726 30 18 30C24.6274 30 30 24.6274 30 18"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+								/>
+								<path
+									d="M18 6L18 21M18 21L22.5 16.5M18 21L13.5 16.5"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+							<span className="text-lg">Drop images here</span>
+						</div>
+					</div>
+				)}
+				<input
+					ref={fileInputRef}
+					type="file"
+					accept="image/png,image/jpeg,image/gif,image/webp"
+					multiple
+					onChange={handleImageSelect}
+					className="hidden"
+				/>
+				{selectedImages.length > 0 && (
+					<div className="flex flex-wrap gap-2">
+						{selectedImages.map(({ file, url }, idx) => (
+							<div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg">
+								<img src={url} alt={file.name} className="h-full w-full object-cover" />
+								<button
+									type="button"
+									onClick={() => removeImage(idx)}
+									className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+								>
+									<Icon name="x" height={12} width={12} />
+									<span className="sr-only">Remove image</span>
+								</button>
+							</div>
+						))}
+					</div>
+				)}
 				<div className="relative w-full">
 					<Ariakit.Combobox
 						store={combobox}
@@ -1946,13 +2200,11 @@ const PromptInput = memo(function PromptInput({
 								rows={1}
 								maxLength={2000}
 								placeholder={finalPlaceholder}
-								// We need to re-calculate the position of the combobox popover
-								// when the textarea contents are scrolled, and sync highlightRef scroll.
 								onScroll={handleScroll}
-								// Hide the combobox popover whenever the selection changes.
 								onPointerDown={combobox.hide}
 								onChange={onChange}
 								onKeyDown={onKeyDown}
+								onPaste={handlePaste}
 								name="prompt"
 								className="thin-scrollbar relative z-[1] block min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
 								autoCorrect="off"
@@ -2007,60 +2259,98 @@ const PromptInput = memo(function PromptInput({
 					</Ariakit.ComboboxPopover>
 				)}
 				<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-					{showResearchButton && (
-						<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
-							<Tooltip
-								content="Fast responses for most queries"
-								render={
-									<button
-										type="button"
-										onClick={() => setIsResearchMode(false)}
-										data-umami-event="llamaai-quick-mode-toggle"
-										data-active={!isResearchMode}
-									/>
-								}
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
-							>
-								<Icon name="sparkles" height={12} width={12} />
-								<span>Quick</span>
-							</Tooltip>
-							<Tooltip
-								content="Generate a comprehensive research report with detailed analysis"
-								render={
-									<button
-										type="button"
-										onClick={() => setIsResearchMode(true)}
-										data-umami-event="llamaai-research-mode-toggle"
-										data-active={isResearchMode}
-									/>
-								}
-								className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
-							>
-								<Icon name="search" height={12} width={12} />
-								<span>Research</span>
-							</Tooltip>
-						</div>
-					)}
-					{isStreaming ? (
+					<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
 						<Tooltip
-							content="Stop"
-							render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
-							className="group flex h-7 w-7 items-center justify-center rounded-sm bg-(--old-blue)/12 hover:bg-(--old-blue) max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
+							content={
+								<div className="flex max-w-[200px] flex-col gap-1">
+									<span className="font-medium text-[#1a1a1a] dark:text-white">Quick Mode</span>
+									<span className="text-[#666] dark:text-[#999]">Fast responses for most queries</span>
+								</div>
+							}
+							render={
+								<button
+									type="button"
+									onClick={() => setIsResearchMode(false)}
+									data-umami-event="llamaai-quick-mode-toggle"
+									data-active={!isResearchMode}
+								/>
+							}
+							className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
 						>
-							<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
-							<span className="sr-only">Stop</span>
+							<Icon name="sparkles" height={12} width={12} />
+							<span>Quick</span>
 						</Tooltip>
-					) : (
-						<button
-							type="submit"
-							data-umami-event="llamaai-prompt-submit"
-							className="flex h-7 w-7 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-50 max-sm:top-0 max-sm:bottom-0 max-sm:my-auto sm:h-7 sm:w-7"
-							disabled={isPending || isStreaming || !value.trim()}
+						<Tooltip
+							content={
+								<div className="flex max-w-[220px] flex-col gap-1.5">
+									<span className="font-medium text-[#1a1a1a] dark:text-white">Research Mode</span>
+									<span className="text-[#666] dark:text-[#999]">
+										Comprehensive reports with in-depth analysis and citations
+									</span>
+									<span className="border-t border-[#eee] pt-1.5 text-[11px] text-[#555] dark:border-[#333] dark:text-[#aaa]">
+										{researchUsage?.period === 'unlimited'
+											? 'Unlimited reports'
+											: researchUsage?.period === 'blocked'
+												? 'Sign in to use research'
+												: researchUsage
+													? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : ''}`
+													: '5 reports/day · Free trial: 3 total'}
+									</span>
+								</div>
+							}
+							render={
+								<button
+									type="button"
+									onClick={() => setIsResearchMode(true)}
+									data-umami-event="llamaai-research-mode-toggle"
+									data-active={isResearchMode}
+								/>
+							}
+							className="flex min-h-6 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-[#878787] data-[active=true]:bg-(--old-blue)/10 data-[active=true]:text-[#1853A8] dark:text-[#878787] dark:data-[active=true]:bg-(--old-blue)/15 dark:data-[active=true]:text-[#4B86DB]"
 						>
-							<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-							<span className="sr-only">Submit prompt</span>
-						</button>
-					)}
+							<Icon name="search" height={12} width={12} />
+							<span>Research</span>
+							{researchUsage && researchUsage.limit > 0 && researchUsage.period !== 'unlimited' && (
+								<span className="text-[10px] opacity-70">
+									{researchUsage.remainingUsage}/{researchUsage.limit}
+								</span>
+							)}
+						</Tooltip>
+					</div>
+					<div className="flex items-center gap-2">
+						<Tooltip
+							content="Add image (or paste with Ctrl+V)"
+							render={
+								<button
+									type="button"
+									onClick={() => fileInputRef.current?.click()}
+									className="group flex h-7 w-7 items-center justify-center rounded-lg border border-[#DEDEDE] hover:bg-(--old-blue)/10 disabled:opacity-25 dark:border-[#2F3336] dark:hover:bg-(--old-blue)/15"
+								/>
+							}
+						>
+							<Icon name="image-plus" height={14} width={14} />
+						</Tooltip>
+						{isStreaming ? (
+							<Tooltip
+								content="Stop"
+								render={<button onClick={handleStopRequest} data-umami-event="llamaai-stop-generation" />}
+								className="group flex h-7 w-7 items-center justify-center rounded-lg bg-(--old-blue)/12 hover:bg-(--old-blue)"
+							>
+								<span className="block h-2 w-2 bg-(--old-blue) group-hover:bg-white group-focus-visible:bg-white sm:h-2.5 sm:w-2.5" />
+								<span className="sr-only">Stop</span>
+							</Tooltip>
+						) : (
+							<button
+								type="submit"
+								data-umami-event="llamaai-prompt-submit"
+								className="flex h-7 w-7 items-center justify-center gap-2 rounded-lg bg-(--old-blue) text-white hover:bg-(--old-blue)/80 focus-visible:bg-(--old-blue)/80 disabled:opacity-25"
+								disabled={isPending || isStreaming || !value.trim()}
+							>
+								<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+								<span className="sr-only">Submit prompt</span>
+							</button>
+						)}
+					</div>
 				</div>
 			</form>
 		</>
@@ -2361,11 +2651,29 @@ const QueryMetadata = memo(function QueryMetadata({ metadata }: { metadata: any 
 	)
 })
 
-const SentPrompt = memo(function SentPrompt({ prompt }: { prompt: string }) {
+const SentPrompt = memo(function SentPrompt({
+	prompt,
+	images
+}: {
+	prompt: string
+	images?: Array<{ url: string; mimeType: string; filename?: string }>
+}) {
 	return (
-		<p className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
-			{prompt}
-		</p>
+		<div className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
+			{images && images.length > 0 && (
+				<div className="mb-2.5 flex flex-wrap gap-3">
+					{images.map((img) => (
+						<img
+							key={`sent-prompt-image-${img.url}`}
+							src={img.url}
+							alt={img.filename || 'Uploaded image'}
+							className="h-16 w-16 rounded-lg object-cover"
+						/>
+					))}
+				</div>
+			)}
+			<p>{prompt}</p>
+		</div>
 	)
 })
 
