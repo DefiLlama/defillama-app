@@ -705,6 +705,19 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			streamingContentRef.current.reset()
 
+			// et pendingImages immediately so they display during streaming
+			if (images && images.length > 0) {
+				setPendingImages(
+					images.map((img) => ({
+						url: img.data,
+						mimeType: img.mimeType,
+						filename: img.filename
+					}))
+				)
+			} else {
+				setPendingImages([])
+			}
+
 			return fetchPromptResponse({
 				userQuestion,
 				sessionId: currentSessionId,
