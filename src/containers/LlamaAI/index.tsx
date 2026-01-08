@@ -1682,6 +1682,8 @@ const PromptInput = memo(function PromptInput({
 }) {
 	const [value, setValue] = useState('')
 	const [selectedImages, setSelectedImages] = useState<Array<{ file: File; url: string }>>([])
+	const [isDragging, setIsDragging] = useState(false)
+	const dragCounterRef = useRef(0)
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const entitiesRef = useRef<Set<string>>(new Set())
@@ -1690,13 +1692,20 @@ const PromptInput = memo(function PromptInput({
 
 	const addImages = (files: File[]) => {
 		const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && f.type.startsWith('image/'))
-		const currentCount = selectedImages.length
-		const totalCount = currentCount + valid.length
-		if (totalCount > 4) {
-			errorToast({ title: 'Image upload limit', description: 'You may upload only 4 images at a time' })
-		}
+		if (valid.length === 0) return
+
 		const newImages = valid.map((file) => ({ file, url: URL.createObjectURL(file) }))
-		setSelectedImages((prev) => [...prev, ...newImages].slice(0, 4))
+
+		setSelectedImages((prev) => {
+			const totalCount = prev.length + newImages.length
+			if (totalCount > 4) {
+				// Defer toast to avoid side effect during state update
+				queueMicrotask(() => {
+					errorToast({ title: 'Image upload limit', description: 'You may upload only 4 images at a time' })
+				})
+			}
+			return [...prev, ...newImages].slice(0, 4)
+		})
 	}
 
 	const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1711,8 +1720,29 @@ const PromptInput = memo(function PromptInput({
 		if (files.length) addImages(files)
 	}
 
+	const handleDragEnter = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		dragCounterRef.current++
+		if (e.dataTransfer.types.includes('Files')) {
+			setIsDragging(true)
+		}
+	}
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		dragCounterRef.current--
+		if (dragCounterRef.current === 0) {
+			setIsDragging(false)
+		}
+	}
+
 	const handleDrop = (e: React.DragEvent) => {
 		e.preventDefault()
+		e.stopPropagation()
+		dragCounterRef.current = 0
+		setIsDragging(false)
 		const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
 		if (files.length) addImages(files)
 	}
@@ -2038,6 +2068,10 @@ const PromptInput = memo(function PromptInput({
 		<>
 			<form
 				className="relative flex w-full flex-col gap-4 rounded-lg border border-[#e6e6e6] bg-(--app-bg) p-4 has-[textarea:focus]:border-(--old-blue) dark:border-[#222324]"
+				onDragEnter={handleDragEnter}
+				onDragLeave={handleDragLeave}
+				onDragOver={(e) => e.preventDefault()}
+				onDrop={handleDrop}
 				onSubmit={(e) => {
 					e.preventDefault()
 					trackSubmit()
@@ -2080,6 +2114,29 @@ const PromptInput = memo(function PromptInput({
 					}
 				}}
 			>
+				{/* Drag and drop overlay */}
+				{isDragging && (
+					<div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center rounded-lg border-2 border-dashed border-(--old-blue) bg-(--old-blue)/10 backdrop-blur-[2px]">
+						<div className="flex items-center gap-2">
+							<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+								<path
+									d="M6 18C6 24.6274 11.3726 30 18 30C24.6274 30 30 24.6274 30 18"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+								/>
+								<path
+									d="M18 6L18 21M18 21L22.5 16.5M18 21L13.5 16.5"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								/>
+							</svg>
+							<span className="text-lg">Drop images here</span>
+						</div>
+					</div>
+				)}
 				<input
 					ref={fileInputRef}
 					type="file"
@@ -2129,8 +2186,6 @@ const PromptInput = memo(function PromptInput({
 								onChange={onChange}
 								onKeyDown={onKeyDown}
 								onPaste={handlePaste}
-								onDrop={handleDrop}
-								onDragOver={(e) => e.preventDefault()}
 								name="prompt"
 								className="thin-scrollbar relative z-[1] block min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal break-words whitespace-pre-wrap text-transparent caret-black outline-none placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
 								autoCorrect="off"
