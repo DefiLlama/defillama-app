@@ -13,6 +13,7 @@ export interface SubscriptionRequest {
 	provider: string
 	subscriptionType: string
 	billingInterval?: 'year' | 'month'
+	isTrial?: boolean
 }
 
 export interface SubscriptionCreateResponse {
@@ -33,7 +34,7 @@ export interface Subscription {
 	billing_interval?: 'year' | 'month'
 	overage?: boolean
 	metadata?: {
-		is_trial?: boolean
+		isTrial?: boolean
 		trial_started_at?: string
 	}
 }
@@ -149,7 +150,8 @@ export const useSubscribe = () => {
 		type: 'api' | 'contributor' | 'llamafeed',
 		onSuccess?: (checkoutUrl: string) => void,
 		billingInterval: 'year' | 'month' = 'month',
-		useEmbedded: boolean = false
+		useEmbedded: boolean = false,
+		isTrial: boolean = false
 	) => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to subscribe')
@@ -168,7 +170,8 @@ export const useSubscribe = () => {
 				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 				provider: paymentMethod,
 				subscriptionType: type || 'api',
-				billingInterval
+				billingInterval,
+				isTrial
 			}
 
 			queryClient.setQueryData(['subscription', user?.id, type], defaultInactiveSubscription)
@@ -227,6 +230,21 @@ export const useSubscribe = () => {
 	const isSubscriptionLoading =
 		subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null ? true : false
 	const isSubscriptionError = subscriptionsQueries.some((query) => query.isError) && !subscriptionData ? true : false
+
+	const trialAvailabilityQuery = useQuery({
+		queryKey: ['trialAvailable', user?.id],
+		queryFn: async () => {
+			const response = await authorizedFetch(`${AUTH_SERVER}/subscription/trial-available`)
+
+			if (!response.ok) {
+				return { trialAvailable: false }
+			}
+			return response.json()
+		},
+		enabled: isAuthenticated,
+		staleTime: 1000 * 60 * 15,
+		refetchOnWindowFocus: false
+	})
 
 	const apiKeyQuery = useQuery({
 		queryKey: ['apiKey', user?.id],
@@ -328,12 +346,15 @@ export const useSubscribe = () => {
 			)
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
+				.catch((error) => {
+					console.log('Failed to create portal session:', error)
+					return null
+				})
 
-			return data.url
+			return data?.url
 		},
 		onError: (error) => {
 			console.log('Failed to create portal session:', error)
-			toast.error('Failed to access subscription management. Please try again.')
 		}
 	})
 
@@ -434,6 +455,7 @@ export const useSubscribe = () => {
 		isContributor: false,
 		apiSubscription: apiSubscription?.subscription,
 		llamafeedSubscription: llamafeedSubscription?.subscription,
-		legacySubscription: legacySubscription?.subscription
+		legacySubscription: legacySubscription?.subscription,
+		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false
 	}
 }
