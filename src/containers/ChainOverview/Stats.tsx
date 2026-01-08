@@ -97,7 +97,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			groupBy,
 			denomination
 		}
-	}, [props, queryParamsString])
+	}, [queryParamsString, props.chainTokenInfo, props.metadata.name, props.charts])
 
 	const { totalValueUSD, change24h, valueChange24hUSD, finalCharts, valueSymbol, isFetchingChartData } =
 		useFetchChainChartData({

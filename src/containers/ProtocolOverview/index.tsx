@@ -239,7 +239,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 			) as [string, number][],
 			toggleOptions
 		}
-	}, [extraTvlsEnabled, props])
+	}, [extraTvlsEnabled, props.currentTvlByChain, props.oracleTvs, props.bribeRevenue, props.tokenTax])
 }
 
 const getPrimaryValueLabelType = (category: string) => {

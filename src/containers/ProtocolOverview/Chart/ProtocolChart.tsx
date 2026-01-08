@@ -77,7 +77,11 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 
 		const toggledMetrics = {
 			...chartsByVisibility,
-			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null
+			denomination: typeof queryParams.denomination === 'string' ? queryParams.denomination : null,
+			events:
+				(props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) && queryParams.events !== 'false'
+					? 'true'
+					: 'false'
 		} as IToggledMetrics
 
 		for (const chartLabel of props.defaultToggledCharts) {
@@ -100,7 +104,14 @@ export const ProtocolChart = memo(function ProtocolChart(props: IProtocolOvervie
 				: 'daily',
 			defaultToggledCharts: props.defaultToggledCharts
 		}
-	}, [queryParamsString, props])
+	}, [
+		queryParamsString,
+		props.hallmarks,
+		props.rangeHallmarks,
+		props.defaultToggledCharts,
+		props.availableCharts,
+		props.defaultChartView
+	])
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
