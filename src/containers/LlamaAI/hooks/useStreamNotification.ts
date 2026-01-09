@@ -11,18 +11,23 @@ export function useStreamNotification() {
 		return () => document.removeEventListener('visibilitychange', handler)
 	}, [])
 
+	const showNotification = useCallback(() => {
+		new Notification('LlamaAI', { body: 'Llama has answered your question!', icon: '/favicon.ico' })
+		new Audio('/assets/notification.mp3').play().catch(() => {})
+	}, [])
+
 	const notify = useCallback(() => {
 		if (!isHiddenRef.current) return
 		if (typeof Notification === 'undefined') return
-		if (Notification.permission === 'default') {
-			Notification.requestPermission()
-			return
-		}
+
 		if (Notification.permission === 'granted') {
-			new Notification('LlamaAI', { body: 'Llama has answered your question!', icon: '/favicon.ico' })
-			new Audio('/assets/notification.mp3').play().catch(() => {})
+			showNotification()
+		} else if (Notification.permission === 'default') {
+			Notification.requestPermission().then((permission) => {
+				if (permission === 'granted') showNotification()
+			})
 		}
-	}, [])
+	}, [showNotification])
 
 	const requestPermission = useCallback(() => {
 		if (typeof Notification === 'undefined') return
