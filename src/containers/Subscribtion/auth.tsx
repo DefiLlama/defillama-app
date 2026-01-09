@@ -548,7 +548,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 			return { value }
 		},
-		onSuccess: (data) => {
+		onSuccess: async (data) => {
 			queryClient.setQueryData(['currentUserAuthStatus'], (oldData: any) => {
 				if (!oldData) return oldData
 				return {
@@ -556,6 +556,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					promotionalEmails: data.value
 				}
 			})
+			try {
+				await pb.collection('users').authRefresh()
+			} catch (error) {
+				console.log('Error refreshing auth after promotional emails update:', error)
+			}
 			toast.success('Email preferences updated successfully')
 		},
 		onError: (error: any) => {
@@ -583,7 +588,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			expand: authStoreState.record.expand,
 			has_active_subscription: authStoreState.record.has_active_subscription,
 			flags: authStoreState.record.flags ?? {},
-			ethereum_email: authStoreState.record.ethereum_email
+			ethereum_email: authStoreState.record.ethereum_email,
+			promotionalEmails: authStoreState.record.promotionalEmails as PromotionalEmailsValue | undefined
 		} as AuthModel
 	}, [authStoreState])
 
