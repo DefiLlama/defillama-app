@@ -161,7 +161,9 @@ export interface IChain {
 }
 
 export interface IChainData {
-	[key: string]: [number, number][]
+	date: number
+	Deposits: number
+	Withdrawals: number
 }
 
 export interface IChainGeckoId {

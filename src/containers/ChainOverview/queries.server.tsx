@@ -187,10 +187,16 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? Promise.resolve(null)
 				: getBridgeOverviewPageData(metadata.name)
 						.then((data) => {
+							const netInflows = data?.chainVolumeData?.length
+								? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
+								: null
+
+							if (netInflows === 0) {
+								return null
+							}
+
 							return {
-								netInflows: data?.chainVolumeData?.length
-									? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
-									: null
+								netInflows
 							}
 						})
 						.catch(() => null),
