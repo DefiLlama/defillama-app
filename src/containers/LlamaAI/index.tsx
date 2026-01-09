@@ -33,6 +33,7 @@ import { ResearchLimitModal } from './components/ResearchLimitModal'
 import { ResearchProgress } from './components/ResearchProgress'
 import { useChatHistory } from './hooks/useChatHistory'
 import { useGetEntities } from './hooks/useGetEntities'
+import { useStreamNotification } from './hooks/useStreamNotification'
 import type { UploadedImage } from './types'
 import { convertLlamaLinksToDefillama } from './utils/entityLinks'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from './utils/entitySuggestions'
@@ -392,6 +393,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		researchUsage,
 		decrementResearchUsage
 	} = useChatHistory()
+	const { notify, requestPermission } = useStreamNotification()
 
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const sessionIdRef = useRef<string | null>(null)
@@ -687,6 +689,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 			abortControllerRef.current = new AbortController()
 
+			requestPermission()
 			setIsStreaming(true)
 			setStreamingResponse('')
 			setStreamingError('')
@@ -831,6 +834,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			if (finalContent !== streamingResponse) {
 				setStreamingResponse(finalContent)
 			}
+
+			notify()
 
 			const currentImages = pendingImages.length > 0 ? [...pendingImages] : undefined
 			setMessages((prev) => [
