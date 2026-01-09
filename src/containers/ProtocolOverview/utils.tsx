@@ -55,6 +55,69 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 	return result
 }
 
+// For CEX pages: calculate TVL by chain by summing tokensInUsd instead of using tvl array
+// This also supports excluding specific tokens (e.g., the CEX's own token)
+export const formatTvlsByChainFromTokens = ({
+	historicalChainTvls,
+	extraTvlsEnabled,
+	tokenToExclude
+}: {
+	historicalChainTvls: Record<string, any>
+	extraTvlsEnabled: Record<string, boolean>
+	tokenToExclude?: string | null
+}) => {
+	const tvlDictionary: { [date: number]: { [chain: string]: number } } = {}
+
+	for (const section in historicalChainTvls) {
+		let sectionName = section
+		const name = section.toLowerCase()
+
+		let toSumSection = false
+
+		// sum keys like ethereum-staking, arbitrum-vesting only if chain is present
+		if (name.includes('-')) {
+			const formattedName = name.split('-')
+
+			if (extraTvlsEnabled[formattedName[1]]) {
+				toSumSection = true
+				sectionName = section.split('-').slice(0, -1).join('-')
+			}
+		} else {
+			// sum key with staking, ethereum, arbitrum etc but ethereum-staking, arbitrum-vesting
+			if (!(name in extraTvlsEnabled)) {
+				toSumSection = true
+			}
+		}
+
+		if (toSumSection) {
+			const tokensInUsd = historicalChainTvls[section].tokensInUsd
+			if (tokensInUsd && tokensInUsd.length > 0) {
+				for (const { date, tokens } of tokensInUsd) {
+					if (!tvlDictionary[date]) {
+						tvlDictionary[date] = {}
+					}
+
+					// Sum all token values, excluding the specified token if any
+					let chainTotal = 0
+					for (const token in tokens) {
+						if (tokenToExclude && token === tokenToExclude) continue
+						chainTotal += tokens[token] || 0
+					}
+
+					tvlDictionary[date][sectionName] = (tvlDictionary[date][sectionName] || 0) + chainTotal
+				}
+			}
+		}
+	}
+
+	const result = []
+	for (const date in tvlDictionary) {
+		result.push({ ...tvlDictionary[date], date: Number(date) })
+	}
+	result.sort((a, b) => a.date - b.date)
+	return result
+}
+
 function buildInflows({
 	chainTvls,
 	extraTvlsEnabled,

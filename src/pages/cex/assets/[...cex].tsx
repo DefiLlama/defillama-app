@@ -7,7 +7,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocol } from '~/containers/ProtocolOverview/queries'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import { formatTvlsByChainFromTokens, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -83,10 +83,12 @@ export default function Protocols(props) {
 
 	const { chainsSplit, chainsUnique } = React.useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+		// For CEX, calculate TVL by chain from tokensInUsd (summing all token values per chain)
+		// This also respects the tokenToExclude filter
+		const chainsSplit = formatTvlsByChainFromTokens({ historicalChainTvls, extraTvlsEnabled, tokenToExclude })
 		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
 		return { chainsSplit, chainsUnique }
-	}, [historicalChainTvls, extraTvlsEnabled])
+	}, [historicalChainTvls, extraTvlsEnabled, tokenToExclude])
 
 	return (
 		<ProtocolOverviewLayout
