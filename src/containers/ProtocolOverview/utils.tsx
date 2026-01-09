@@ -712,20 +712,23 @@ export const useFetchProtocolAddlChartsData = (
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
+	// Normalize to null for consistent caching
+	const normalizedTokenToExclude = tokenToExclude || null
+
 	const data = useQuery({
 		queryKey: [
 			'protocols-addl-chart-data',
 			protocolName,
 			addlProtocolData ? true : false,
 			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled),
-			tokenToExclude ?? null
+			normalizedTokenToExclude
 		],
 		queryFn: () =>
 			buildProtocolAddlChartsData({
 				protocolData: addlProtocolData as any,
 				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
 				isBorrowed,
-				tokenToExclude
+				tokenToExclude: normalizedTokenToExclude
 			}),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000,

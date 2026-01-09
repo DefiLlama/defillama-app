@@ -64,7 +64,8 @@ export default function Protocols(props) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	// includeOwnTokens is true by default, unless explicitly set to 'false' in query params
-	const includeOwnTokens = router.query.includeOwnTokens !== 'false'
+	// Only read query params after router is ready to avoid hydration mismatch
+	const includeOwnTokens = !router.isReady || router.query.includeOwnTokens !== 'false'
 	const tokenToExclude = !includeOwnTokens ? props.ownToken : null
 
 	const {
@@ -72,8 +73,19 @@ export default function Protocols(props) {
 		historicalChainTvls,
 		isLoading
 	} = useFetchProtocolAddlChartsData(props.name, false, tokenToExclude)
-	const { usdInflows, tokenInflows, tokensUnique, tokenBreakdown, tokenBreakdownUSD, tokenBreakdownPieChart } =
-		addlProtocolData || {}
+	const {
+		usdInflows,
+		tokenInflows,
+		tokensUnique: rawTokensUnique,
+		tokenBreakdown,
+		tokenBreakdownUSD,
+		tokenBreakdownPieChart
+	} = addlProtocolData || {}
+
+	const tokensUnique = rawTokensUnique ?? []
+
+	// Key to force chart remount when toggle changes, resetting internal selection state
+	const chartKey = includeOwnTokens ? 'with-own-token' : 'without-own-token'
 
 	const toggleIncludeOwnTokens = React.useCallback(() => {
 		const { cex: _cex, includeOwnTokens: _inc, ...restQuery } = router.query
@@ -134,35 +146,38 @@ export default function Protocols(props) {
 						)}
 
 						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-							<>
-								<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-									<React.Suspense fallback={<></>}>
-										<AreaChart
-											chartData={tokenBreakdownUSD}
-											title="Token Values (USD)"
-											customLegendName="Token"
-											customLegendOptions={tokensUnique}
-											valueSymbol="$"
-										/>
-									</React.Suspense>
-								</LazyChart>
-							</>
+							<LazyChart
+								key={`token-usd-${chartKey}`}
+								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
+							>
+								<React.Suspense fallback={<></>}>
+									<AreaChart
+										chartData={tokenBreakdownUSD}
+										title="Token Values (USD)"
+										customLegendName="Token"
+										customLegendOptions={tokensUnique}
+										valueSymbol="$"
+									/>
+								</React.Suspense>
+							</LazyChart>
 						)}
 
-						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && (
-							<>
-								{tokenBreakdownPieChart?.length > 0 && (
-									<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-										<React.Suspense fallback={<></>}>
-											<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
-										</React.Suspense>
-									</LazyChart>
-								)}
-							</>
+						{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 && (
+							<LazyChart
+								key={`token-pie-${chartKey}`}
+								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
+							>
+								<React.Suspense fallback={<></>}>
+									<PieChart title="Tokens Breakdown" chartData={tokenBreakdownPieChart} />
+								</React.Suspense>
+							</LazyChart>
 						)}
 
 						{tokenBreakdown?.length > 1 && tokensUnique?.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart
+								key={`token-raw-${chartKey}`}
+								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
+							>
 								<React.Suspense fallback={<></>}>
 									<AreaChart
 										chartData={tokenBreakdown}
@@ -182,7 +197,10 @@ export default function Protocols(props) {
 							</LazyChart>
 						)}
 						{tokenInflows?.length > 0 && tokensUnique?.length > 0 && (
-							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<LazyChart
+								key={`token-inflows-${chartKey}`}
+								className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full"
+							>
 								<React.Suspense fallback={<></>}>
 									<BarChart
 										chartData={tokenInflows}
