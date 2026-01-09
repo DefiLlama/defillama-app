@@ -6,6 +6,7 @@ import { useIsClient } from '~/hooks/useIsClient'
 import { formatEthAddress } from '~/utils'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'
+import { Tooltip } from '../Tooltip'
 
 export const resolveUserEmail = (user: any): string | null => {
 	if (!user) return null
@@ -19,7 +20,7 @@ const resolveUserHandle = (user: any): string => {
 	return resolveUserEmail(user) || formatEthAddress(user?.walletAddress) || ''
 }
 
-export const Account = memo(function Account() {
+export const Account = memo(function Account({ isCollapsed = false }: { isCollapsed?: boolean }) {
 	const { asPath } = useRouter()
 	const { isAuthenticated, user, logout, loaders, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
@@ -30,6 +31,61 @@ export const Account = memo(function Account() {
 		return <div className="flex min-h-7 w-full items-center justify-center" />
 	}
 
+	if (isCollapsed) {
+		if (loaders?.userLoading) {
+			return (
+				<div className="flex min-h-10 w-10 items-center justify-center">
+					<LoadingDots />
+				</div>
+			)
+		}
+
+		if (isAuthenticated && user) {
+			return (
+				<div className="flex flex-col gap-2">
+					<Tooltip content={userHandle} placement="right">
+						<BasicLink
+							href="/account"
+							className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 relative flex h-10 w-10 items-center justify-center rounded-md"
+						>
+							<Icon name="users" className="h-5 w-5 shrink-0" />
+							{hasActiveSubscription ? (
+								<span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-(--app-bg) bg-green-600 dark:bg-green-500">
+									<Icon name="check-circle" className="h-2.5 w-2.5 text-white" />
+								</span>
+							) : (
+								<span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-(--app-bg) bg-(--error)">
+									<Icon name="x" className="h-2 w-2 text-white" />
+								</span>
+							)}
+						</BasicLink>
+					</Tooltip>
+					<Tooltip content="Logout" placement="right">
+						<button
+							onClick={logout}
+							className="flex h-10 w-10 items-center justify-center rounded-md bg-red-500/10 hover:bg-red-500/20"
+						>
+							<Icon name="x" className="h-5 w-5 shrink-0 text-(--error)" />
+						</button>
+					</Tooltip>
+				</div>
+			)
+		}
+
+		// Signed out - show icon with purple background and tooltip
+		return (
+			<Tooltip content="Sign In / Subscribe" placement="right">
+				<BasicLink
+					href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
+					className="bg-pro-purple-100 text-pro-purple-400 hover:bg-pro-purple-300/20 dark:bg-pro-purple-300/20 dark:text-pro-purple-200 hover:dark:bg-pro-purple-300/30 flex h-10 w-10 items-center justify-center rounded-md"
+				>
+					<Icon name="users" className="h-5 w-5 shrink-0" />
+				</BasicLink>
+			</Tooltip>
+		)
+	}
+
+	// Expanded state
 	return (
 		<>
 			{loaders?.userLoading ? (

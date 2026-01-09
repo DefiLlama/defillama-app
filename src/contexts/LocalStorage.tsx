@@ -86,6 +86,7 @@ const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS'
 // Pro Dashboard
 export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS'
 export const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN'
+export const SIDEBAR_COLLAPSED = 'SIDEBAR_COLLAPSED'
 
 export const DEFI_SETTINGS = { POOL2, STAKING, BORROWED, DOUBLE_COUNT, LIQUID_STAKING, VESTING, GOV_TOKENS } as const
 
@@ -537,4 +538,51 @@ export function useLlamaAIWelcome(): [boolean, () => void] {
 	}
 
 	return [shown, setShown]
+}
+
+const safeParse = (value: string) => {
+	try {
+		return JSON.parse(value)
+	} catch {
+		return {}
+	}
+}
+
+export function useSidebarCollapsed(): [boolean, () => void] {
+	const store = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => '{}'
+	)
+
+	const parsed = useMemo(() => safeParse(store), [store])
+	const isCollapsed = parsed[SIDEBAR_COLLAPSED] ?? false
+
+	useEffect(() => {
+		if (typeof window === 'undefined' || typeof document === 'undefined') return
+
+		if (isCollapsed) {
+			document.documentElement.classList.add('sidebar-collapsed')
+		} else {
+			document.documentElement.classList.remove('sidebar-collapsed')
+		}
+
+		// Trigger resize after transition completes to ensure charts resize properly
+		const timeoutId = setTimeout(() => {
+			window.dispatchEvent(new Event('resize'))
+		}, 350)
+
+		return () => {
+			clearTimeout(timeoutId)
+		}
+	}, [isCollapsed])
+
+	const toggleCollapsed = () => {
+		const current = safeParse(localStorage.getItem(DEFILLAMA) ?? '{}')
+		const newState = !isCollapsed
+		localStorage.setItem(DEFILLAMA, JSON.stringify({ ...current, [SIDEBAR_COLLAPSED]: newState }))
+		window.dispatchEvent(new Event('storage'))
+	}
+
+	return [isCollapsed, toggleCollapsed]
 }
