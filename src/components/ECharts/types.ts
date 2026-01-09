@@ -103,6 +103,7 @@ export interface ILineAndBarChartProps {
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	hideDefaultLegend?: boolean
+	hideDownloadButton?: boolean
 	enableImageExport?: boolean
 	imageExportFilename?: string
 	imageExportTitle?: string
