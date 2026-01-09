@@ -21,6 +21,17 @@ export default function Protocols() {
 						2022 EOY Report
 					</a>
 				</li>
+				<li className="text-center text-base font-medium">
+					23 December 2025:{' '}
+					<a
+						href="https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="underline"
+					>
+						State of DeFi 2025
+					</a>
+				</li>
 			</ul>
 		</Layout>
 	)
