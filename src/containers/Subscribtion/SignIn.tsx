@@ -68,6 +68,7 @@ export const SignInModal = ({
 				style={{
 					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
 				}}
+				unmountOnHide
 			>
 				<SignInForm
 					text={text}
@@ -265,7 +266,7 @@ export const SignInForm = ({
 			</div>
 
 			<Ariakit.TabPanel tabId="signin">
-				{flow === 'signin' ? (
+				{flow !== 'forgot' ? (
 					<>
 						<form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleEmailSignIn}>
 							<div className="space-y-1">
