@@ -9,7 +9,6 @@ import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
 import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
 import defillamaPages from '~/public/pages.json'
-import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
 import { TagGroup } from './TagGroup'
 import { Tooltip } from './Tooltip'
@@ -21,13 +20,99 @@ interface IPage {
 	tags?: string[]
 	tab?: string
 	totalTrackedKey?: string
+	addedAt?: number
 }
 
-const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage> }]
+// Filter metrics added in the last 30 days (or with "New" tag)
+const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000
 
-export const metricsByCategory = trending.concat(
+// Routes that are already directly linked in the left sidebar navigation - exclude these from entire metrics page
+// Only includes Main section and additional main pages (not footer links like More/About Us)
+const getSidebarRoutes = () => {
+	const routes = new Set<string>()
+	
+	// Main section routes (Home, Metrics, Tools)
+	if (defillamaPages.Main) {
+		defillamaPages.Main.forEach((page: any) => {
+			if (page.route && !page.route.startsWith('http')) {
+				routes.add(page.route)
+			}
+		})
+	}
+	
+	// Additional main pages (from Nav component - directly clickable in sidebar)
+	routes.add('/subscription') // Pricing
+	routes.add('/chains') // Chains
+	routes.add('/yields') // Yields
+	routes.add('/stablecoins') // Stablecoins
+	routes.add('/pro') // Custom Dashboards
+	routes.add('/ai') // LlamaAI
+	routes.add('/ai/chat') // LlamaAI Chat
+	routes.add('/sheets') // Sheets
+	routes.add('/support') // Support
+	
+	return routes
+}
+
+const sidebarRoutes = getSidebarRoutes()
+
+// Helper to check if a metric should be excluded (route is in sidebar)
+const isExcludedFromMetrics = (metric: any) => {
+	return metric.route && sidebarRoutes.has(metric.route)
+}
+
+// Routes that were added in the last 30 days (detected via git history)
+const recentlyAddedRoutes = new Set([
+	'/total-staked',
+	'/languages',
+	'/yields/loop',
+	'/yields/halal',
+	'/hacks',
+	'/hacks/total-value-lost',
+	'/nfts',
+	'/nfts/earnings',
+	'/nfts/marketplaces',
+	'/nfts/chains',
+	'/narrative-tracker',
+	'/expenses',
+	'/token-pnl'
+])
+
+const isNewMetric = (metric: any) => {
+	// Skip if route is already in sidebar
+	if (metric.route && sidebarRoutes.has(metric.route)) {
+		return false
+	}
+	// Check if metric has "New" tag
+	if (metric.tags?.includes('New')) {
+		return true
+	}
+	// Check if metric route was added in the last 30 days
+	if (metric.route && recentlyAddedRoutes.has(metric.route)) {
+		return true
+	}
+	// Check if metric was added in the last 30 days (if addedAt field exists)
+	if (metric.addedAt && metric.addedAt >= thirtyDaysAgo) {
+		return true
+	}
+	return false
+}
+
+const newMetrics = [
+	...defillamaPages.Metrics.filter(isNewMetric),
+	...defillamaPages.Tools.filter(isNewMetric)
+].map((metric) => ({
+	...metric,
+	name: metric.name.includes(': ') ? metric.name.split(': ')[1] : metric.name,
+	description: metric.description ?? ''
+}))
+
+// Always show "New" category, even if empty
+const newCategory = [{ category: 'New', metrics: newMetrics as Array<IPage> }]
+
+export const metricsByCategory = newCategory.concat(
 	Object.entries(
-		defillamaPages.Metrics.reduce((acc, metric) => {
+		defillamaPages.Metrics.filter((metric) => !isExcludedFromMetrics(metric)).reduce((acc, metric) => {
 			const category = metric.category || 'Others'
 			acc[category] = acc[category] || []
 			acc[category].push({
@@ -55,6 +140,7 @@ export function Metrics({
 	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
+	const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
 	const router = useRouter()
 
@@ -62,7 +148,7 @@ export function Metrics({
 		if (router.pathname === '/') return null
 		return metricsByCategory.find(
 			(category) =>
-				category.category !== 'Trending' && category.metrics.some((metric) => metric.route === router.pathname)
+				category.category !== 'New' && category.metrics.some((metric) => metric.route === router.pathname)
 		)?.category
 	}, [router.pathname])
 
@@ -106,7 +192,7 @@ export function Metrics({
 					return metric.tab === tab
 				})
 			}))
-			.filter((page) => page.metrics.length > 0)
+			.filter((page) => page.metrics.length > 0 || page.category === 'New')
 	}, [tab, canDismiss])
 
 	const pages = useMemo(() => {
@@ -173,41 +259,95 @@ export function Metrics({
 						onChange={(e) => setSearchValue(e.target.value)}
 					/>
 				</label>
-				<div className="flex flex-wrap gap-2">
-					{pages.map(({ category }) => (
-						<button
-							key={category}
-							className="flex items-center gap-1 rounded-full border-2 border-(--old-blue)/60 px-2 py-1 text-xs hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-							onClick={() => {
-								const element = document.querySelector(`[data-category="${category}"]`)
-								if (element) {
-									element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-								}
-							}}
-						>
-							{category}
-						</button>
-					))}
-				</div>
 			</div>
-			<div className="thin-scrollbar flex flex-col gap-4">
+			<div className="thin-scrollbar grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
 				{pages.map(({ category, metrics }) => (
-					<div key={category} className="relative flex flex-col gap-2">
-						<div className="absolute -top-4" data-category={category} />
-						<div className="flex flex-row items-center gap-2">
-							<h2 className="text-lg font-bold">{category}</h2>
-							<hr className="flex-1 border-black/20 dark:border-white/20" />
-						</div>
-						<div
-							className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canDismiss ? 'lg:grid-cols-3 xl:grid-cols-4' : 'xl:grid-cols-3 2xl:grid-cols-4'}`}
-						>
-							{metrics.map((metric) => (
-								<LinkToMetricOrToolPage
-									key={`metric-${metric.name}-${metric.route}`}
-									page={metric}
-									totalTrackedByMetric={totalTrackedByMetric}
-								/>
-							))}
+					<div key={category} className="relative" data-category={category}>
+						<div className="absolute -top-4" />
+						<div className="flex min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[196px]">
+							<Tooltip
+								render={
+									<BasicLink
+										href={`#${category}`}
+										className="text-sm font-semibold"
+										onClick={(e) => {
+											e.preventDefault()
+											const element = document.querySelector(`[data-category="${category}"]`)
+											if (element) {
+												element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+											}
+										}}
+									>
+										{category}
+									</BasicLink>
+								}
+								content={`${metrics.length} metric${metrics.length !== 1 ? 's' : ''} in this category`}
+							/>
+							<div className="flex flex-1 flex-col gap-1 overflow-hidden">
+								<p className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-form)">
+									{metrics.length} metric{metrics.length !== 1 ? 's' : ''}
+								</p>
+								<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
+									{(expandedCategories.has(category) ? metrics : metrics.slice(0, 4)).map((metric) => {
+										const trackedCount = totalTrackedByMetric && metric.totalTrackedKey
+											? getTotalTracked(totalTrackedByMetric, metric.totalTrackedKey)
+											: null
+										return (
+											<BasicLink
+												key={`metric-${metric.name}-${metric.route}`}
+												href={metric.route}
+												className="flex items-center gap-1 rounded px-1.5 py-0.5 text-xs hover:bg-(--link-button) truncate"
+											>
+												<Tooltip
+													content={metric.description || ''}
+													placement="right-start"
+													className="truncate flex items-center gap-1"
+												>
+													<span className="truncate flex items-center gap-1">
+														{metric.name}
+														{trackedCount && (
+															<span className="text-(--text-tertiary) shrink-0">({trackedCount})</span>
+														)}
+													</span>
+												</Tooltip>
+												<Icon name="arrow-right" height={12} width={12} className="ml-auto shrink-0" />
+											</BasicLink>
+										)
+									})}
+									{metrics.length > 4 && !expandedCategories.has(category) && (
+										<button
+											onClick={(e) => {
+												e.preventDefault()
+												e.stopPropagation()
+												setExpandedCategories((prev) => {
+													const newSet = new Set(prev)
+													newSet.add(category)
+													return newSet
+												})
+											}}
+											className="text-xs text-(--old-blue) px-1.5 py-0.5 hover:bg-(--link-button) rounded cursor-pointer text-left"
+										>
+											+{metrics.length - 4} more
+										</button>
+									)}
+									{expandedCategories.has(category) && metrics.length > 4 && (
+										<button
+											onClick={(e) => {
+												e.preventDefault()
+												e.stopPropagation()
+												setExpandedCategories((prev) => {
+													const newSet = new Set(prev)
+													newSet.delete(category)
+													return newSet
+												})
+											}}
+											className="text-xs text-(--old-blue) px-1.5 py-0.5 hover:bg-(--link-button) rounded cursor-pointer text-left"
+										>
+											Show less
+										</button>
+									)}
+								</div>
+							</div>
 						</div>
 					</div>
 				))}
