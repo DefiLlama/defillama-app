@@ -1,13 +1,15 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	createColumnHelper,
 	getCoreRowModel,
 	getExpandedRowModel,
+	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable,
 	type ColumnDef,
+	type ColumnFiltersState,
 	type ColumnSizingState,
 	type ExpandedState,
 	type SortingState
@@ -209,6 +211,8 @@ export const ChainProtocolsTable = ({
 	])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+	const [searchQuery, setSearchQuery] = useState('')
 
 	const customColumnDefs = useMemo(() => {
 		return customColumns.map((col, idx) => {
@@ -316,6 +320,7 @@ export const ChainProtocolsTable = ({
 			sorting,
 			expanded,
 			columnSizing,
+			columnFilters,
 			columnVisibility: JSON.parse(columnsInStorage)
 		},
 		sortingFns: {
@@ -343,10 +348,22 @@ export const ChainProtocolsTable = ({
 			})
 		},
 		onColumnSizingChange: setColumnSizing,
+		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	})
+
+	// Update name column filter when search query changes
+	React.useEffect(() => {
+		const nameColumn = instance.getColumn('name')
+		const id = setTimeout(() => {
+			nameColumn?.setFilterValue(searchQuery)
+		}, 200)
+
+		return () => clearTimeout(id)
+	}, [searchQuery, instance])
 
 	const setFilter = (key) => (newState) => {
 		const newColumns = Object.fromEntries(
@@ -419,6 +436,24 @@ export const ChainProtocolsTable = ({
 				{borderless ? null : (
 					<div className="mr-auto flex w-full grow text-lg font-semibold md:w-auto">Protocol Rankings</div>
 				)}
+
+				<label className="relative w-full sm:max-w-[280px]">
+					<span className="sr-only">Search protocols...</span>
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+					/>
+					<input
+						value={searchQuery}
+						onChange={(e) => {
+							setSearchQuery(e.target.value)
+						}}
+						placeholder="Search protocols..."
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+					/>
+				</label>
 
 				<TagGroup
 					setValue={setFilter('category')}
