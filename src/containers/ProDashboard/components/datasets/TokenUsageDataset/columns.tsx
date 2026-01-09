@@ -18,16 +18,28 @@ export const getColumns = (tokenSymbols: string[]): ColumnDef<TokenUsageRow>[] =
 
 	const baseColumns: ColumnDef<TokenUsageRow>[] = [
 		{
+			id: 'rank',
+			header: 'Rank',
+			accessorKey: 'rank',
+			size: 60,
+			enableSorting: false,
+			cell: ({ row }) => {
+				const index = row.index
+				return <span className="font-bold">{index + 1}</span>
+			},
+			meta: {
+				align: 'center' as const
+			}
+		},
+		{
 			header: 'Protocol',
 			accessorKey: 'name',
 			enableSorting: false,
-			cell: ({ getValue, row, table }) => {
+			cell: ({ getValue, row }) => {
 				const value = getValue() as string
-				const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 				return (
 					<div className="flex items-center gap-2">
-						<span className="min-w-[30px] shrink-0 text-sm font-medium text-(--text-tertiary)">{index + 1}</span>
 						<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
 						<BasicLink
 							href={`/protocol/${slug(value)}`}

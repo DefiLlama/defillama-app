@@ -26,6 +26,7 @@ const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']
 
 export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
 	const [selectedColumns, setSelectedColumns] = React.useState<Array<string>>([
+		'Rank',
 		'Name',
 		'Total Hacked',
 		'Returned Funds',
@@ -90,17 +91,26 @@ export default function TotalLostInHacks({ protocols }: IProtocolTotalValueLostI
 
 const columns: ColumnDef<IProtocolTotalValueLostInHacksByProtocol['protocols'][number]>[] = [
 	{
+		id: 'Rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		accessorFn: (row) => row.name,
 		id: 'Name',
 		cell: ({ row, getValue, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
-					</span>
-
 					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly />
 
 					<BasicLink

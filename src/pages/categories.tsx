@@ -386,12 +386,24 @@ interface ICategoryRow {
 
 const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Category',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
-
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
 					{row.subRows?.length > 0 ? (
@@ -414,7 +426,6 @@ const categoriesColumn: ColumnDef<ICategoryRow>[] = [
 							)}
 						</button>
 					) : null}
-					<span className="shrink-0">{index + 1}</span>{' '}
 					{row.depth > 0 ? (
 						<BasicLink
 							href={`/protocols/${slug(getValue() as string)}`}

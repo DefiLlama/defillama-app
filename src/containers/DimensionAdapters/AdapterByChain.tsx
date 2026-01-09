@@ -547,8 +547,8 @@ const columnSizes = Object.entries({
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const columnOrders = Object.entries({
-	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
+	0: ['rank', 'name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
+	640: ['rank', 'name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
@@ -629,7 +629,6 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 		enableSorting: false,
 		cell: ({ getValue, row, table }) => {
 			const value = getValue() as string
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 			const Chains = () => (
 				<span className="flex flex-col gap-1">
 					{row.original.chains.map((chain) => (
@@ -673,10 +672,6 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 						</button>
 					) : null}
 
-					<span className="shrink-0" onClick={row.getToggleExpandedHandler()}>
-						{index + 1}
-					</span>
-
 					<TokenLogo logo={row.original.logo} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
@@ -703,6 +698,20 @@ const getColumnsByType = (
 ): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
 	return {
 		Fees: [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Fees'),
 			{
 				id: 'category',
@@ -777,6 +786,20 @@ const getColumnsByType = (
 			}
 		],
 		Revenue: [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Revenue'),
 			{
 				id: 'category',
@@ -851,6 +874,20 @@ const getColumnsByType = (
 			}
 		],
 		'Holders Revenue': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Holders Revenue'),
 			{
 				id: 'category',
@@ -925,6 +962,20 @@ const getColumnsByType = (
 			}
 		],
 		'Options Premium Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Options Premium Volume'),
 			{
 				id: 'total24h',
@@ -967,6 +1018,20 @@ const getColumnsByType = (
 			}
 		],
 		'Options Notional Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Options Notional Volume'),
 			{
 				id: 'total24h',
@@ -1009,6 +1074,20 @@ const getColumnsByType = (
 			}
 		],
 		'DEX Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('DEX Volume'),
 			{
 				id: 'total24h',
@@ -1081,6 +1160,20 @@ const getColumnsByType = (
 			}
 		],
 		'Perp Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Perp Volume'),
 			{
 				id: 'total24h',
@@ -1214,6 +1307,20 @@ const getColumnsByType = (
 			}
 		],
 		'Open Interest': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Open Interest'),
 			{
 				id: 'total24h',
@@ -1230,6 +1337,20 @@ const getColumnsByType = (
 			}
 		],
 		'Perp Aggregator Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Perp Aggregator Volume'),
 			{
 				id: 'total24h',
@@ -1282,6 +1403,20 @@ const getColumnsByType = (
 			}
 		],
 		'Bridge Aggregator Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Bridge Aggregator Volume'),
 			{
 				id: 'total24h',
@@ -1334,6 +1469,20 @@ const getColumnsByType = (
 			}
 		],
 		'DEX Aggregator Volume': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('DEX Aggregator Volume'),
 			{
 				id: 'total24h',
@@ -1386,6 +1535,20 @@ const getColumnsByType = (
 			}
 		],
 		Earnings: [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Earnings'),
 			{
 				id: 'category',
@@ -1446,6 +1609,20 @@ const getColumnsByType = (
 			}
 		],
 		'P/F': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Fees'),
 			{
 				id: 'category',
@@ -1483,6 +1660,20 @@ const getColumnsByType = (
 			}
 		],
 		'P/S': [
+			{
+				id: 'rank',
+				header: 'Rank',
+				accessorKey: 'rank',
+				size: 60,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const index = row.index
+					return <span className="font-bold">{index + 1}</span>
+				},
+				meta: {
+					align: 'center' as const
+				}
+			},
 			NameColumn('Revenue'),
 			{
 				id: 'category',

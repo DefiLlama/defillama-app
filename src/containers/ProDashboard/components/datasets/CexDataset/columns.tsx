@@ -26,20 +26,29 @@ interface ICexRow {
 
 export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		id: 'name',
 		accessorFn: (row) => row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			// Use row.index which is already calculated by tanstack table
-			const index = row.index
 			const name = getValue() as string
 			const coinSymbol = row.original.coinSymbol
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="shrink-0">{index + 1}</span>
-
 					<BasicLink
 						href={`/cex/${row.original.slug || name}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

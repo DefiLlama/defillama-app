@@ -12,13 +12,25 @@ import type { IYieldsStrategyTableRow } from './types'
 
 const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Strategy',
 		accessorKey: 'strategy',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
-
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<div className="flex flex-col gap-2 text-xs">
@@ -27,7 +39,6 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						// in case of cdp row.original.pool === row.original.borrow.pool
 						configID={`${row.original.pool}_${row.original.borrow.pool}_${row.original.farmPool}`}
 						url={row.original.url}
-						index={index + 1}
 						strategy={true}
 						maxCharacters={50}
 						bookmark={false}
@@ -38,7 +49,6 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						project2={row.original.farmProjectName}
 						airdropProject2={false}
 						chain={row.original.chains[0]}
-						index={index + 1}
 					/>
 				</div>
 			)
@@ -170,14 +180,15 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
-	400: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
-	640: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
-	1280: ['strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
+	0: ['rank', 'strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	400: ['rank', 'strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	640: ['rank', 'strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd'],
+	1280: ['rank', 'strategy', 'totalApy', 'delta', 'ltv', 'borrowAvailableUsd', 'farmTvlUsd']
 }
 
 const columnSizes = {
 	0: {
+		rank: 60,
 		strategy: 250,
 		totalApy: 150,
 		delta: 100,
@@ -186,6 +197,7 @@ const columnSizes = {
 		farmTvlUsd: 100
 	},
 	812: {
+		rank: 60,
 		strategy: 300,
 		totalApy: 150,
 		delta: 100,

@@ -22,16 +22,27 @@ interface IFeesRow {
 
 export const feesDatasetColumns: ColumnDef<IFeesRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			return <span className="font-bold">{row.index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Name',
 		id: 'name',
 		accessorFn: (row) => row.displayName || row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const index = row.index
 			const name = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
 					<BasicLink
 						href={`/fees/${row.original.slug}`}

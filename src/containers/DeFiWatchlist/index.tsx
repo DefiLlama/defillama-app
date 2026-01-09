@@ -797,7 +797,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 										className="flex items-center justify-between rounded bg-(--bg-main) p-2 transition-colors"
 									>
 										<div className="flex min-w-0 flex-1 items-center gap-2">
-											<span className="w-4 shrink-0 text-xs font-medium text-(--text-secondary)">#{index + 1}</span>
+											<span className="w-4 shrink-0 text-xs font-bold text-(--text-secondary)">{index + 1}</span>
 											<span className="truncate text-sm font-medium text-(--text-primary)">{mover.name}</span>
 										</div>
 										<div className="ml-2 flex shrink-0 items-center gap-1">

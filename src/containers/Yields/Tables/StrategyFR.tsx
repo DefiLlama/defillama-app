@@ -12,13 +12,25 @@ import type { IYieldsStrategyTableRow } from './types'
 
 const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 	{
+		id: 'rank',
+		header: 'Rank',
+		accessorKey: 'rank',
+		size: 60,
+		enableSorting: false,
+		cell: ({ row }) => {
+			const index = row.index
+			return <span className="font-bold">{index + 1}</span>
+		},
+		meta: {
+			align: 'center' as const
+		}
+	},
+	{
 		header: 'Strategy',
 		accessorKey: 'strategy',
 		enableSorting: false,
-		cell: ({ row, table }) => {
+		cell: ({ row }) => {
 			const name = `Long ${row.original.symbol} | Short ${row.original.symbolPerp}`
-
-			const index = row.depth === 0 ? table.getSortedRowModel().rows.findIndex((x) => x.id === row.id) : row.index
 
 			return (
 				<div className="flex flex-col gap-2 text-xs">
@@ -27,7 +39,6 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						configID={row.original.pool}
 						withoutLink={true}
 						url={row.original.url}
-						index={index + 1}
 						strategy={true}
 						maxCharacters={50}
 						bookmark={false}
@@ -38,7 +49,6 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						project2={row.original.marketplace}
 						airdropProject2={false}
 						chain={row.original.chains[0]}
-						index={index + 1}
 					/>
 				</div>
 			)
@@ -191,14 +201,15 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 // key: min width of window/screen
 // values: table columns order
 const columnOrders = {
-	0: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
-	400: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
-	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
-	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
+	0: ['rank', 'strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	400: ['rank', 'strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	640: ['rank', 'strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
+	1280: ['rank', 'strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
 
 const columnSizes = {
 	0: {
+		rank: 60,
 		strategy: 250,
 		strategyAPY: 145,
 		apy: 125,
@@ -209,6 +220,7 @@ const columnSizes = {
 		openInterest: 140
 	},
 	812: {
+		rank: 60,
 		strategy: 300,
 		strategyAPY: 145,
 		apy: 125,
