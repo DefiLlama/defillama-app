@@ -184,13 +184,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const earningsByLabelData = sankeyEarningsData[periodKey]?.['by-label'] ?? {}
 		const tokenHolderNetIncomeByLabelData = sankeyTokenHolderNetIncomeData[periodKey]?.['by-label'] ?? {}
 
-		// Get methodology/descriptions for labels
-		const grossProtocolRevenueMethodology = props.incomeStatement?.methodologyByType?.['Gross Protocol Revenue'] ?? {}
-		const costOfRevenueMethodology = props.incomeStatement?.methodologyByType?.['Cost Of Revenue'] ?? {}
-		const grossProfitMethodology = props.incomeStatement?.methodologyByType?.['Gross Profit'] ?? {}
-		const incentivesMethodology = props.incomeStatement?.methodologyByType?.['Incentives'] ?? {}
-		const earningsMethodology = props.incomeStatement?.methodologyByType?.['Earnings'] ?? {}
-		const tokenHolderNetIncomeMethodology = props.incomeStatement?.methodologyByType?.['Token Holder Net Income'] ?? {}
 		const nodes: Array<{
 			name: string
 			color?: string
@@ -222,8 +215,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
-				description: props.fees?.methodology,
-				displayValue: grossProtocolRevenue, // Show actual fees value, not sum of flows
+				description: props.incomeStatement?.methodology?.['Gross Protocol Revenue'] ?? '',
+				displayValue: grossProtocolRevenue, // Show actual gross protocol revenue value, not sum of flows
 				depth: 1
 			})
 			for (const [label, value] of Object.entries(grossProtocolRevenueByLabelData)) {
@@ -231,7 +224,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					nodes.push({
 						name: label,
 						color: COLORS.gray,
-						description: grossProtocolRevenueMethodology[label],
+						description: props.incomeStatement?.breakdownMethodology?.['Gross Protocol Revenue']?.[label] ?? '',
 						depth: 0,
 						percentageLabel: formatPercent(value, grossProtocolRevenue)
 					})
@@ -243,8 +236,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
-				description: props.fees?.methodology,
-				displayValue: grossProtocolRevenue, // Show actual fees value, not sum of flows
+				description: props.incomeStatement?.methodology?.['Gross Protocol Revenue'] ?? '',
+				displayValue: grossProtocolRevenue, // Show actual gross protocol revenue value, not sum of flows
 				depth: 1
 			})
 		}
@@ -253,7 +246,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Cost of Revenue',
 				color: COLORS.red,
-				description: props.supplySideRevenue?.methodology,
+				description: props.incomeStatement?.methodology?.['Cost Of Revenue'] ?? '',
 				displayValue: costOfRevenue, // Show actual cost of revenue value
 				depth: 2,
 				percentageLabel: formatPercent(costOfRevenue, grossProtocolRevenue)
@@ -268,7 +261,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						nodes.push({
 							name: costLabel,
 							color: COLORS.red,
-							description: costOfRevenueMethodology[label],
+							description: props.incomeStatement?.breakdownMethodology?.['Cost Of Revenue']?.[label] ?? '',
 							depth: 3,
 							percentageLabel: formatPercent(value, costOfRevenue)
 						})
@@ -284,7 +277,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			nodes.push({
 				name: 'Gross Profit',
 				color: COLORS.green,
-				description: props.revenue?.methodology,
+				description: props.incomeStatement?.methodology?.['Gross Profit'] ?? '',
 				displayValue: grossProfit, // Show actual revenue value
 				depth: 2,
 				percentageLabel: formatPercent(grossProfit, grossProtocolRevenue)
@@ -296,7 +289,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				nodes.push({
 					name: 'Incentives',
 					color: COLORS.red,
-					description: props.incentives?.methodology,
+					description: props.incomeStatement?.methodology?.['Incentives'] ?? '',
 					depth: 2 // Same depth as Gross Profit
 				})
 
@@ -319,7 +312,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					nodes.push({
 						name: 'Value Distributed to Token Holders',
 						color: COLORS.green,
-						description: props.holdersRevenue?.methodology,
+						description: props.incomeStatement?.methodology?.['Token Holder Net Income'] ?? '',
 						depth: 4,
 						percentageLabel: formatPercent(tokenHolderNetIncome, earnings)
 					})
@@ -331,7 +324,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 					nodes.push({
 						name: 'Earnings',
 						color: COLORS.green,
-						description: props.revenue?.methodology,
+						description: props.incomeStatement?.methodology?.['Gross Profit'] ?? '',
 						depth: 3,
 						percentageLabel: formatPercent(earnings, grossProfit)
 					})
@@ -341,7 +334,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						nodes.push({
 							name: 'Value Distributed to Token Holders',
 							color: COLORS.green,
-							description: props.holdersRevenue?.methodology,
+							description: props.incomeStatement?.methodology?.['Token Holder Net Income'] ?? '',
 							depth: 4,
 							percentageLabel: formatPercent(tokenHolderNetIncome, earnings)
 						})
@@ -360,17 +353,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			sankeyPeriodOptions: periodOptions,
 			validSankeyPeriod: periodKey
 		}
-	}, [
-		sankeyGroupBy,
-		selectedSankeyPeriod,
-		props.incomeStatement,
-		props.metrics?.incentives,
-		props.fees?.methodology,
-		props.supplySideRevenue?.methodology,
-		props.revenue?.methodology,
-		props.holdersRevenue?.methodology,
-		props.incentives?.methodology
-	])
+	}, [sankeyGroupBy, selectedSankeyPeriod, props.incomeStatement, props.metrics?.incentives])
 
 	return (
 		<div className="col-span-full flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
@@ -450,10 +433,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							data={grossProtocolRevenueData}
 							dataType="gross protocol revenue"
 							label="Gross Protocol Revenue"
-							methodology=""
+							methodology={props.incomeStatement?.methodology?.['Gross Protocol Revenue'] ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={grossProtocolRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Gross Protocol Revenue'] ?? {}}
+							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Gross Protocol Revenue'] ?? {}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
@@ -461,10 +444,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							data={costOfRevenueData}
 							dataType="cost of revenue"
 							label="Cost of Revenue"
-							methodology=""
+							methodology={props.incomeStatement?.methodology?.['Cost Of Revenue'] ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={costOfRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Cost Of Revenue'] ?? {}}
+							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Cost Of Revenue'] ?? {}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
@@ -472,10 +455,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							data={grossProfitData}
 							dataType="gross profit"
 							label="Gross Profit"
-							methodology=""
+							methodology={props.incomeStatement?.methodology?.['Gross Profit'] ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={grossProfitByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Gross Profit'] ?? {}}
+							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Gross Profit'] ?? {}}
 						/>
 						{props.metrics?.incentives ? (
 							<IncomeStatementByLabel
@@ -484,10 +467,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								data={incentivesData}
 								dataType="incentives"
 								label="Incentives"
-								methodology=""
+								methodology={props.incomeStatement?.methodology?.['Incentives'] ?? ''}
 								tableHeaders={tableHeaders}
 								breakdownByLabels={incentivesByLabels}
-								methodologyByType={props.incomeStatement?.methodologyByType?.['Incentives'] ?? {}}
+								breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Incentives'] ?? {}}
 							/>
 						) : null}
 						<IncomeStatementByLabel
@@ -499,18 +482,18 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							methodology={'Gross Profit minus Incentives'}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={[]}
-							methodologyByType={{}}
+							breakdownMethodology={{}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
 							groupBy={groupBy}
 							data={tokenHolderNetIncomeData}
-							dataType="token holders net income"
+							dataType="token holder net income"
 							label="Token Holder Net Income"
-							methodology=""
+							methodology={props.incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={tokenHolderNetIncomeByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Token Holder Net Income'] ?? {}}
+							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
 						/>
 					</tbody>
 				</table>
@@ -588,7 +571,7 @@ const IncomeStatementByLabel = ({
 	methodology,
 	tableHeaders,
 	breakdownByLabels,
-	methodologyByType
+	breakdownMethodology
 }: {
 	protocolName: string
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
@@ -599,12 +582,12 @@ const IncomeStatementByLabel = ({
 		| 'gross profit'
 		| 'incentives'
 		| 'earnings'
-		| 'token holders net income'
+		| 'token holder net income'
 	label: string
 	methodology: string
 	tableHeaders: [string, string, number][]
 	breakdownByLabels: string[]
-	methodologyByType: Record<string, string>
+	breakdownMethodology: Record<string, string>
 }) => {
 	const isEarnings = dataType === 'earnings'
 	return (
@@ -653,9 +636,9 @@ const IncomeStatementByLabel = ({
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
 							<th className="w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10">
-								{methodologyByType[breakdownlabel] ? (
+								{breakdownMethodology[breakdownlabel] ? (
 									<Tooltip
-										content={methodologyByType[breakdownlabel]}
+										content={breakdownMethodology[breakdownlabel]}
 										className="flex justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
 									>
 										{breakdownlabel}
@@ -715,7 +698,7 @@ const PerformanceTooltipContent = ({
 		| 'gross profit'
 		| 'incentives'
 		| 'earnings'
-		| 'token holders net income'
+		| 'token holder net income'
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue
