@@ -716,7 +716,9 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Mcap')
 		availableCharts.push('Token Price')
 		availableCharts.push('Token Volume')
-		availableCharts.push('Token Liquidity')
+		if (metadata.liquidity) {
+			availableCharts.push('Token Liquidity')
+		}
 		availableCharts.push('FDV')
 	}
 
