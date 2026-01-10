@@ -754,7 +754,7 @@
 
 			this.stop()
 			this.crashed = true
-			this.distanceMeter.acheivement = false
+			this.distanceMeter.achievement = false
 
 			this.tRex.update(100, Trex.status.CRASHED)
 
@@ -1823,7 +1823,7 @@
 		this.container = null
 
 		this.digits = []
-		this.acheivement = false
+		this.achievement = false
 		this.defaultString = ''
 		this.flashTimer = 0
 		this.flashIterations = 0
@@ -1969,7 +1969,7 @@
 			var paint = true
 			var playSound = false
 
-			if (!this.acheivement) {
+			if (!this.achievement) {
 				distance = this.getActualDistance(distance)
 				// Score has gone beyond the initial digit count.
 				if (distance > this.maxScore && this.maxScoreUnits == this.config.MAX_DISTANCE_UNITS) {
@@ -1983,7 +1983,7 @@
 					// Achievement unlocked
 					if (distance % this.config.ACHIEVEMENT_DISTANCE == 0) {
 						// Flash score and play sound.
-						this.acheivement = true
+						this.achievement = true
 						this.flashTimer = 0
 						playSound = true
 					}
@@ -2006,7 +2006,7 @@
 						this.flashIterations++
 					}
 				} else {
-					this.acheivement = false
+					this.achievement = false
 					this.flashIterations = 0
 					this.flashTimer = 0
 				}
@@ -2052,7 +2052,7 @@
 		 */
 		reset: function () {
 			this.update(0)
-			this.acheivement = false
+			this.achievement = false
 		}
 	}
 
