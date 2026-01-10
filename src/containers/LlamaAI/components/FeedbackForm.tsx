@@ -39,6 +39,10 @@ export const FeedbackForm = memo(function FeedbackForm({
 			onRatingSubmitted(variables.rating)
 			setShowFeedback(false)
 			toast.success('Thank you for your feedback!')
+		},
+		onError: (error) => {
+			console.error('Failed to submit feedback:', error)
+			toast.error(error instanceof Error ? error.message : 'Failed to submit feedback. Please try again.')
 		}
 	})
 
