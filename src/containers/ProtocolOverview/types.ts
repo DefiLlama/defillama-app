@@ -260,7 +260,8 @@ export interface IProtocolOverviewPageData {
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
-		methodologyByType: Record<string, Record<string, string>>
+		methodology: string
+		breakdownMethodology: Record<string, Record<string, string>>
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
