@@ -1231,22 +1231,22 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 			aggregates.monthly[monthKey] = {
 				...(aggregates.monthly[monthKey] ?? {}),
-				incentives: {
-					value: (aggregates.monthly[monthKey]?.incentives?.value ?? 0) + value,
+				Incentives: {
+					value: (aggregates.monthly[monthKey]?.['Incentives']?.value ?? 0) + value,
 					'by-label': {}
 				}
 			}
 			aggregates.quarterly[quarterKey] = {
 				...(aggregates.quarterly[quarterKey] ?? {}),
-				incentives: {
-					value: (aggregates.quarterly[quarterKey]?.incentives?.value ?? 0) + value,
+				Incentives: {
+					value: (aggregates.quarterly[quarterKey]?.['Incentives']?.value ?? 0) + value,
 					'by-label': {}
 				}
 			}
 			aggregates.yearly[yearKey] = {
 				...(aggregates.yearly[yearKey] ?? {}),
-				incentives: {
-					value: (aggregates.yearly[yearKey]?.incentives?.value ?? 0) + value,
+				Incentives: {
+					value: (aggregates.yearly[yearKey]?.['Incentives']?.value ?? 0) + value,
 					'by-label': {}
 				}
 			}
@@ -1278,8 +1278,10 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 					}
 				}
 
-				aggregates[group][date].earnings = {
-					value: (aggregates[group][date].dr?.value ?? 0) - (aggregates[group][date].incentives?.value ?? 0),
+				aggregates[group][date]['Earnings'] = {
+					value:
+						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
+						(aggregates[group][date]?.['Incentives']?.value ?? 0),
 					'by-label': {}
 				}
 			}
@@ -1290,18 +1292,10 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			finalLabelsByType[label] = Array.from(labelsByType[label])
 		}
 
-		const labelMap = {
-			df: 'Fees',
-			dr: 'Revenue',
-			dhr: 'HoldersRevenue',
-			dssr: 'SupplySideRevenue'
-		}
 		const methodologyByType = {}
-		for (const shortLabel in finalLabelsByType) {
-			const label = labelMap[shortLabel]
-			if (!label) continue
+		for (const label in finalLabelsByType) {
 			methodologyByType[label] = methodologyByType[label] ?? {}
-			for (const type of finalLabelsByType[shortLabel]) {
+			for (const type of finalLabelsByType[label]) {
 				for (const childProtocol of incomeStatement.childProtocols ?? []) {
 					if (childProtocol.breakdownMethodology?.[label]?.[type]) {
 						methodologyByType[label][type] = childProtocol.breakdownMethodology[label][type]
@@ -1317,7 +1311,8 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		return {
 			data: aggregates,
 			labelsByType: finalLabelsByType,
-			methodologyByType
+			methodologyByType,
+			incomeStatement
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)

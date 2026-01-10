@@ -24,32 +24,33 @@ function mergeIncomeStatementData(
 }
 
 export const IncomeStatement = (props: IProtocolOverviewPageData) => {
-	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [sankeyGroupBy, setSankeyGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [selectedSankeyPeriod, setSelectedSankeyPeriod] = useState<string | null>(null)
 
 	const {
 		tableHeaders,
-		feesData,
+		grossProtocolRevenueData,
 		costOfRevenueData,
-		revenueData,
+		grossProfitData,
 		incentivesData,
-		holdersRevenueData,
-		feesByLabels,
+		earningsData,
+		tokenHolderNetIncomeData,
+		grossProtocolRevenueByLabels,
 		costOfRevenueByLabels,
-		revenueByLabels,
-		holdersRevenueByLabels,
-		earningsData
+		grossProfitByLabels,
+		incentivesByLabels,
+		tokenHolderNetIncomeByLabels
 	} = useMemo(() => {
 		const groupKey = groupBy.toLowerCase()
 		const tableHeaders = [] as [string, string, number][]
-		const feesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const revenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const holdersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const grossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const costOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const grossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const tokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+
 		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
 			tableHeaders.push([
 				key,
@@ -61,93 +62,52 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				props.incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
 			])
 
-			feesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.df ?? {
-				value: 0,
-				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dbr)
-			}
-			if (feesSettings.tokentax) {
-				feesData[key] = mergeIncomeStatementData(feesData[key], props.incomeStatement?.data?.[groupKey]?.[key]?.dtt)
-			}
-
-			costOfRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dssr ?? {
+			grossProtocolRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Gross Protocol Revenue'] ?? {
 				value: 0,
 				'by-label': {}
 			}
 
-			revenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dr ?? {
-				value: 0,
-				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				revenueData[key] = mergeIncomeStatementData(
-					revenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				revenueData[key] = mergeIncomeStatementData(
-					revenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
-				)
-			}
-
-			incentivesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.incentives ?? {
+			costOfRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Cost Of Revenue'] ?? {
 				value: 0,
 				'by-label': {}
 			}
 
-			holdersRevenueData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.dhr ?? {
+			grossProfitData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Gross Profit'] ?? {
 				value: 0,
 				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				holdersRevenueData[key] = mergeIncomeStatementData(
-					holdersRevenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				holdersRevenueData[key] = mergeIncomeStatementData(
-					holdersRevenueData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
-				)
 			}
 
-			earningsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.earnings ?? {
+			incentivesData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Incentives'] ?? {
 				value: 0,
 				'by-label': {}
 			}
-			if (feesSettings.bribes) {
-				earningsData[key] = mergeIncomeStatementData(
-					earningsData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dbr
-				)
+
+			earningsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Earnings'] ?? {
+				value: 0,
+				'by-label': {}
 			}
-			if (feesSettings.tokentax) {
-				earningsData[key] = mergeIncomeStatementData(
-					earningsData[key],
-					props.incomeStatement?.data?.[groupKey]?.[key]?.dtt
-				)
+
+			tokenHolderNetIncomeData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Token Holder Net Income'] ?? {
+				value: 0,
+				'by-label': {}
 			}
 		}
 
 		return {
 			tableHeaders: tableHeaders.sort((a, b) => b[2] - a[2]),
-			feesData,
+			grossProtocolRevenueData,
 			costOfRevenueData,
-			revenueData,
+			grossProfitData,
 			incentivesData,
-			holdersRevenueData,
-			feesByLabels: props.incomeStatement?.labelsByType?.df ?? [],
-			costOfRevenueByLabels: props.incomeStatement?.labelsByType?.dssr ?? [],
-			revenueByLabels: props.incomeStatement?.labelsByType?.dr ?? [],
-			holdersRevenueByLabels: props.incomeStatement?.labelsByType?.dhr ?? [],
-			earningsData
+			earningsData,
+			tokenHolderNetIncomeData,
+			grossProtocolRevenueByLabels: props.incomeStatement?.labelsByType?.['Gross Protocol Revenue'] ?? [],
+			costOfRevenueByLabels: props.incomeStatement?.labelsByType?.['Cost Of Revenue'] ?? [],
+			grossProfitByLabels: props.incomeStatement?.labelsByType?.['Gross Profit'] ?? [],
+			incentivesByLabels: props.incomeStatement?.labelsByType?.['Incentives'] ?? [],
+			tokenHolderNetIncomeByLabels: props.incomeStatement?.labelsByType?.['Token Holder Net Income'] ?? []
 		}
-	}, [groupBy, props.incomeStatement, feesSettings])
+	}, [groupBy, props.incomeStatement])
 
 	// Compute Sankey chart data for the selected period
 	const { sankeyData, sankeyPeriodOptions, validSankeyPeriod } = useMemo(() => {
@@ -172,18 +132,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			])
 
 			sankeyFeesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.df ?? { value: 0, 'by-label': {} }
-			if (feesSettings.bribes) {
-				sankeyFeesData[key] = mergeIncomeStatementData(
-					sankeyFeesData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				sankeyFeesData[key] = mergeIncomeStatementData(
-					sankeyFeesData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
-				)
-			}
 
 			sankeyCostOfRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dssr ?? {
 				value: 0,
@@ -191,18 +139,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			}
 
 			sankeyRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dr ?? { value: 0, 'by-label': {} }
-			if (feesSettings.bribes) {
-				sankeyRevenueData[key] = mergeIncomeStatementData(
-					sankeyRevenueData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				sankeyRevenueData[key] = mergeIncomeStatementData(
-					sankeyRevenueData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
-				)
-			}
 
 			sankeyIncentivesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.incentives ?? {
 				value: 0,
@@ -213,34 +149,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				value: 0,
 				'by-label': {}
 			}
-			if (feesSettings.bribes) {
-				sankeyHoldersRevenueData[key] = mergeIncomeStatementData(
-					sankeyHoldersRevenueData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				sankeyHoldersRevenueData[key] = mergeIncomeStatementData(
-					sankeyHoldersRevenueData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
-				)
-			}
 
 			sankeyEarningsData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.earnings ?? {
 				value: 0,
 				'by-label': {}
-			}
-			if (feesSettings.bribes) {
-				sankeyEarningsData[key] = mergeIncomeStatementData(
-					sankeyEarningsData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dbr
-				)
-			}
-			if (feesSettings.tokentax) {
-				sankeyEarningsData[key] = mergeIncomeStatementData(
-					sankeyEarningsData[key],
-					props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dtt
-				)
 			}
 		}
 
@@ -447,7 +359,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		sankeyGroupBy,
 		selectedSankeyPeriod,
 		props.incomeStatement,
-		feesSettings,
 		props.metrics?.incentives,
 		props.fees?.methodology,
 		props.supplySideRevenue?.methodology,
@@ -531,13 +442,13 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						<IncomeStatementByLabel
 							protocolName={props.name}
 							groupBy={groupBy}
-							data={feesData}
-							dataType="fees"
+							data={grossProtocolRevenueData}
+							dataType="gross protocol revenue"
 							label="Gross Protocol Revenue"
-							methodology={props.fees?.methodology ?? ''}
+							methodology=""
 							tableHeaders={tableHeaders}
-							breakdownByLabels={feesByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Fees'] ?? {}}
+							breakdownByLabels={grossProtocolRevenueByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Gross Protocol Revenue'] ?? {}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
@@ -545,21 +456,21 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							data={costOfRevenueData}
 							dataType="cost of revenue"
 							label="Cost of Revenue"
-							methodology={props.supplySideRevenue?.methodology ?? ''}
+							methodology=""
 							tableHeaders={tableHeaders}
 							breakdownByLabels={costOfRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Cost Of Revenue'] ?? {}}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
 							groupBy={groupBy}
-							data={revenueData}
-							dataType="revenue"
+							data={grossProfitData}
+							dataType="gross profit"
 							label="Gross Profit"
-							methodology={props.revenue?.methodology ?? ''}
+							methodology=""
 							tableHeaders={tableHeaders}
-							breakdownByLabels={[]}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['Revenue'] ?? {}}
+							breakdownByLabels={grossProfitByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Gross Profit'] ?? {}}
 						/>
 						{props.metrics?.incentives ? (
 							<IncomeStatementByLabel
@@ -568,10 +479,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 								data={incentivesData}
 								dataType="incentives"
 								label="Incentives"
-								methodology={props.incentives?.methodology ?? ''}
+								methodology=""
 								tableHeaders={tableHeaders}
-								breakdownByLabels={[]}
-								methodologyByType={{}}
+								breakdownByLabels={incentivesByLabels}
+								methodologyByType={props.incomeStatement?.methodologyByType?.['Incentives'] ?? {}}
 							/>
 						) : null}
 						<IncomeStatementByLabel
@@ -588,13 +499,13 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						<IncomeStatementByLabel
 							protocolName={props.name}
 							groupBy={groupBy}
-							data={holdersRevenueData}
+							data={tokenHolderNetIncomeData}
 							dataType="token holders net income"
 							label="Token Holder Net Income"
-							methodology={props.holdersRevenue?.methodology ?? ''}
+							methodology=""
 							tableHeaders={tableHeaders}
-							breakdownByLabels={holdersRevenueByLabels}
-							methodologyByType={props.incomeStatement?.methodologyByType?.['HoldersRevenue'] ?? {}}
+							breakdownByLabels={tokenHolderNetIncomeByLabels}
+							methodologyByType={props.incomeStatement?.methodologyByType?.['Token Holder Net Income'] ?? {}}
 						/>
 					</tbody>
 				</table>
@@ -677,7 +588,13 @@ const IncomeStatementByLabel = ({
 	protocolName: string
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
 	data: Record<string, { value: number; 'by-label': Record<string, number> }>
-	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income' | 'cost of revenue'
+	dataType:
+		| 'gross protocol revenue'
+		| 'cost of revenue'
+		| 'gross profit'
+		| 'incentives'
+		| 'earnings'
+		| 'token holders net income'
 	label: string
 	methodology: string
 	tableHeaders: [string, string, number][]
@@ -787,7 +704,13 @@ const PerformanceTooltipContent = ({
 	currentValue: number
 	previousValue: number
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
-	dataType: 'fees' | 'revenue' | 'incentives' | 'earnings' | 'token holders net income' | 'cost of revenue'
+	dataType:
+		| 'gross protocol revenue'
+		| 'cost of revenue'
+		| 'gross profit'
+		| 'incentives'
+		| 'earnings'
+		| 'token holders net income'
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue
