@@ -113,12 +113,12 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const { sankeyData, sankeyPeriodOptions, validSankeyPeriod } = useMemo(() => {
 		const sankeyGroupKey = sankeyGroupBy.toLowerCase()
 		const sankeyHeaders = [] as [string, string, number][]
-		const sankeyFeesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyGrossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const sankeyCostOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyGrossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const sankeyIncentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyHoldersRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const sankeyEarningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyTokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 
 		for (const key in props.incomeStatement?.data?.[sankeyGroupKey] ?? {}) {
 			sankeyHeaders.push([
@@ -131,26 +131,33 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.timestamp ?? 0
 			])
 
-			sankeyFeesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.df ?? { value: 0, 'by-label': {} }
+			sankeyGrossProtocolRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.[
+				'Gross Protocol Revenue'
+			] ?? { value: 0, 'by-label': {} }
 
-			sankeyCostOfRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dssr ?? {
+			sankeyCostOfRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Cost Of Revenue'] ?? {
 				value: 0,
 				'by-label': {}
 			}
 
-			sankeyRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dr ?? { value: 0, 'by-label': {} }
-
-			sankeyIncentivesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.incentives ?? {
+			sankeyGrossProfitData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Gross Profit'] ?? {
 				value: 0,
 				'by-label': {}
 			}
 
-			sankeyHoldersRevenueData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.dhr ?? {
+			sankeyIncentivesData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Incentives'] ?? {
 				value: 0,
 				'by-label': {}
 			}
 
-			sankeyEarningsData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.earnings ?? {
+			sankeyEarningsData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Earnings'] ?? {
+				value: 0,
+				'by-label': {}
+			}
+
+			sankeyTokenHolderNetIncomeData[key] = props.incomeStatement?.data?.[sankeyGroupKey]?.[key]?.[
+				'Token Holder Net Income'
+			] ?? {
 				value: 0,
 				'by-label': {}
 			}
@@ -175,21 +182,28 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		if (!periodKey)
 			return { sankeyData: { nodes: [], links: [] }, sankeyPeriodOptions: periodOptions, validSankeyPeriod: null }
 
-		const fees = sankeyFeesData[periodKey]?.value ?? 0
+		const grossProtocolRevenue = sankeyGrossProtocolRevenueData[periodKey]?.value ?? 0
 		const costOfRevenue = sankeyCostOfRevenueData[periodKey]?.value ?? 0
-		const revenue = sankeyRevenueData[periodKey]?.value ?? 0
+		const grossProfit = sankeyGrossProfitData[periodKey]?.value ?? 0
 		const incentives = sankeyIncentivesData[periodKey]?.value ?? 0
 		const earnings = sankeyEarningsData[periodKey]?.value ?? 0
-		const holdersRevenue = sankeyHoldersRevenueData[periodKey]?.value ?? 0
+		const tokenHolderNetIncome = sankeyTokenHolderNetIncomeData[periodKey]?.value ?? 0
 
 		// Get breakdown by labels for fees
-		const feesByLabelData = sankeyFeesData[periodKey]?.['by-label'] ?? {}
+		const grossProtocolRevenueByLabelData = sankeyGrossProtocolRevenueData[periodKey]?.['by-label'] ?? {}
 		const costOfRevenueByLabelData = sankeyCostOfRevenueData[periodKey]?.['by-label'] ?? {}
+		const grossProfitByLabelData = sankeyGrossProfitData[periodKey]?.['by-label'] ?? {}
+		const incentivesByLabelData = sankeyIncentivesData[periodKey]?.['by-label'] ?? {}
+		const earningsByLabelData = sankeyEarningsData[periodKey]?.['by-label'] ?? {}
+		const tokenHolderNetIncomeByLabelData = sankeyTokenHolderNetIncomeData[periodKey]?.['by-label'] ?? {}
 
 		// Get methodology/descriptions for labels
-		const feesMethodology = props.incomeStatement?.methodologyByType?.['Fees'] ?? {}
-		const costOfRevenueMethodology = props.incomeStatement?.methodologyByType?.['SupplySideRevenue'] ?? {}
-
+		const grossProtocolRevenueMethodology = props.incomeStatement?.methodologyByType?.['Gross Protocol Revenue'] ?? {}
+		const costOfRevenueMethodology = props.incomeStatement?.methodologyByType?.['Cost Of Revenue'] ?? {}
+		const grossProfitMethodology = props.incomeStatement?.methodologyByType?.['Gross Profit'] ?? {}
+		const incentivesMethodology = props.incomeStatement?.methodologyByType?.['Incentives'] ?? {}
+		const earningsMethodology = props.incomeStatement?.methodologyByType?.['Earnings'] ?? {}
+		const tokenHolderNetIncomeMethodology = props.incomeStatement?.methodologyByType?.['Token Holder Net Income'] ?? {}
 		const nodes: Array<{
 			name: string
 			color?: string
@@ -217,33 +231,33 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 
 		// Only add fee breakdown nodes if breakdown labels are available
-		if (Object.keys(feesByLabelData).length > 0) {
+		if (Object.keys(grossProtocolRevenueByLabelData).length > 0) {
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
 				description: props.fees?.methodology,
-				displayValue: fees, // Show actual fees value, not sum of flows
+				displayValue: grossProtocolRevenue, // Show actual fees value, not sum of flows
 				depth: 1
 			})
-			for (const [label, value] of Object.entries(feesByLabelData)) {
+			for (const [label, value] of Object.entries(grossProtocolRevenueByLabelData)) {
 				if (value > 0) {
 					nodes.push({
 						name: label,
 						color: COLORS.gray,
-						description: feesMethodology[label],
+						description: grossProtocolRevenueMethodology[label],
 						depth: 0,
-						percentageLabel: formatPercent(value, fees)
+						percentageLabel: formatPercent(value, grossProtocolRevenue)
 					})
 					links.push({ source: label, target: 'Gross Protocol Revenue', value })
 				}
 			}
-		} else if (fees > 0) {
+		} else if (grossProtocolRevenue > 0) {
 			// No breakdown available, start from Gross Protocol Revenue directly
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
 				description: props.fees?.methodology,
-				displayValue: fees, // Show actual fees value, not sum of flows
+				displayValue: grossProtocolRevenue, // Show actual fees value, not sum of flows
 				depth: 1
 			})
 		}
@@ -255,7 +269,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				description: props.supplySideRevenue?.methodology,
 				displayValue: costOfRevenue, // Show actual cost of revenue value
 				depth: 2,
-				percentageLabel: formatPercent(costOfRevenue, fees)
+				percentageLabel: formatPercent(costOfRevenue, grossProtocolRevenue)
 			})
 			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
 
@@ -277,18 +291,18 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			}
 		}
 
-		if (revenue > 0) {
+		if (grossProfit > 0) {
 			const hasIncentives = incentives > 0 && props.metrics?.incentives
 
 			nodes.push({
 				name: 'Gross Profit',
 				color: COLORS.green,
 				description: props.revenue?.methodology,
-				displayValue: revenue, // Show actual revenue value
+				displayValue: grossProfit, // Show actual revenue value
 				depth: 2,
-				percentageLabel: formatPercent(revenue, fees)
+				percentageLabel: formatPercent(grossProfit, grossProtocolRevenue)
 			})
-			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: revenue })
+			links.push({ source: 'Gross Protocol Revenue', target: 'Gross Profit', value: grossProfit })
 
 			if (hasIncentives) {
 				// Incentives is at the same depth as Gross Profit so both flow horizontally into Earnings
@@ -303,26 +317,26 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				nodes.push({
 					name: 'Earnings',
 					color: earnings >= 0 ? COLORS.green : COLORS.red,
-					description: `Gross Profit (${formattedNum(revenue, true)}) minus Incentives (${formattedNum(incentives, true)})`,
+					description: `Gross Profit (${formattedNum(grossProfit, true)}) minus Incentives (${formattedNum(incentives, true)})`,
 					displayValue: earnings, // Show actual earnings value, not the sum of flows
 					depth: 3,
-					percentageLabel: formatPercent(earnings, revenue)
+					percentageLabel: formatPercent(earnings, grossProfit)
 				})
 
 				// Gross Profit flows to Earnings (green)
-				links.push({ source: 'Gross Profit', target: 'Earnings', value: revenue, color: COLORS.green })
+				links.push({ source: 'Gross Profit', target: 'Earnings', value: grossProfit, color: COLORS.green })
 				// Incentives flows to Earnings (red - as a cost being subtracted)
 				links.push({ source: 'Incentives', target: 'Earnings', value: incentives, color: COLORS.red })
 
-				if (earnings > 0 && holdersRevenue > 0) {
+				if (earnings > 0 && tokenHolderNetIncome > 0) {
 					nodes.push({
 						name: 'Value Distributed to Token Holders',
 						color: COLORS.green,
 						description: props.holdersRevenue?.methodology,
 						depth: 4,
-						percentageLabel: formatPercent(holdersRevenue, earnings)
+						percentageLabel: formatPercent(tokenHolderNetIncome, earnings)
 					})
-					links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
+					links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: tokenHolderNetIncome })
 				}
 			} else {
 				// No incentives: Gross Profit flows directly to Earnings
@@ -332,19 +346,23 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 						color: COLORS.green,
 						description: props.revenue?.methodology,
 						depth: 3,
-						percentageLabel: formatPercent(earnings, revenue)
+						percentageLabel: formatPercent(earnings, grossProfit)
 					})
 					links.push({ source: 'Gross Profit', target: 'Earnings', value: earnings })
 
-					if (holdersRevenue > 0) {
+					if (tokenHolderNetIncome > 0) {
 						nodes.push({
 							name: 'Value Distributed to Token Holders',
 							color: COLORS.green,
 							description: props.holdersRevenue?.methodology,
 							depth: 4,
-							percentageLabel: formatPercent(holdersRevenue, earnings)
+							percentageLabel: formatPercent(tokenHolderNetIncome, earnings)
 						})
-						links.push({ source: 'Earnings', target: 'Value Distributed to Token Holders', value: holdersRevenue })
+						links.push({
+							source: 'Earnings',
+							target: 'Value Distributed to Token Holders',
+							value: tokenHolderNetIncome
+						})
 					}
 				}
 			}
