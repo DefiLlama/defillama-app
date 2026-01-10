@@ -26,7 +26,7 @@ export const ShareModalContent = memo(function ShareModalContent({ shareData }: 
 	const handleShareToX = () => {
 		const text = encodeURIComponent('Check out this conversation from LlamaAI')
 		const url = encodeURIComponent(shareLink)
-		window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, '_blank')
+		window.open(`https://x.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'noopener,noreferrer')
 	}
 
 	return (
