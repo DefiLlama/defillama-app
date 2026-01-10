@@ -1201,7 +1201,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		}
 
 		const [incomeStatement, incentives] = await Promise.all([
-			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}`).catch(
+			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=26`).catch(
 				() => null
 			),
 			getProtocolEmissons(slug(metadata.displayName))
@@ -1280,7 +1280,8 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 				aggregates[group][date]['Earnings'] = {
 					value:
-						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
+						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) +
+						(aggregates[group][date]?.['Others Profit']?.value ?? 0) -
 						(aggregates[group][date]?.['Incentives']?.value ?? 0),
 					'by-label': {}
 				}
