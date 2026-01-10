@@ -1311,8 +1311,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		return {
 			data: aggregates,
 			labelsByType: finalLabelsByType,
-			methodologyByType,
-			incomeStatement
+			methodologyByType
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)
