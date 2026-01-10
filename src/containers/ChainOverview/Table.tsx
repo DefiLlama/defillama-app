@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
@@ -355,8 +355,7 @@ export const ChainProtocolsTable = ({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	// Update name column filter when search query changes
-	React.useEffect(() => {
+	useEffect(() => {
 		const nameColumn = instance.getColumn('name')
 		const id = setTimeout(() => {
 			nameColumn?.setFilterValue(searchQuery)
