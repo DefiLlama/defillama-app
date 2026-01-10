@@ -3,25 +3,12 @@ import dayjs from 'dayjs'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import { IProtocolOverviewPageData } from './types'
 
 const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
 
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
-
-function mergeIncomeStatementData(
-	data: { value: number; 'by-label': Record<string, number> },
-	newData?: { value: number; 'by-label': Record<string, number> }
-) {
-	const current = { ...data }
-	current.value += newData?.value ?? 0
-	for (const label in newData?.['by-label'] ?? {}) {
-		current['by-label'][label] = (current['by-label'][label] ?? 0) + newData['by-label'][label]
-	}
-	return current
-}
 
 export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
