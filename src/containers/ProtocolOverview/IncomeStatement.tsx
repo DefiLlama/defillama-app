@@ -20,7 +20,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		grossProtocolRevenueData,
 		costOfRevenueData,
 		grossProfitData,
-		othersProfitData,
 		incentivesData,
 		earningsData,
 		tokenHolderNetIncomeData,
@@ -28,7 +27,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		grossProtocolRevenueByLabels,
 		costOfRevenueByLabels,
 		grossProfitByLabels,
-		othersProfitByLabels,
 		incentivesByLabels,
 		tokenHolderNetIncomeByLabels,
 		othersTokenHolderFlowsByLabels
@@ -38,7 +36,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const grossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const costOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const grossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const othersProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const tokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
@@ -66,11 +63,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			}
 
 			grossProfitData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Gross Profit'] ?? {
-				value: 0,
-				'by-label': {}
-			}
-
-			othersProfitData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.['Others Profit'] ?? {
 				value: 0,
 				'by-label': {}
 			}
@@ -103,7 +95,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			grossProtocolRevenueData,
 			costOfRevenueData,
 			grossProfitData,
-			othersProfitData,
 			incentivesData,
 			earningsData,
 			tokenHolderNetIncomeData,
@@ -111,7 +102,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			grossProtocolRevenueByLabels: props.incomeStatement?.labelsByType?.['Gross Protocol Revenue'] ?? [],
 			costOfRevenueByLabels: props.incomeStatement?.labelsByType?.['Cost Of Revenue'] ?? [],
 			grossProfitByLabels: props.incomeStatement?.labelsByType?.['Gross Profit'] ?? [],
-			othersProfitByLabels: props.incomeStatement?.labelsByType?.['Others Profit'] ?? [],
 			incentivesByLabels: props.incomeStatement?.labelsByType?.['Incentives'] ?? [],
 			tokenHolderNetIncomeByLabels: props.incomeStatement?.labelsByType?.['Token Holder Net Income'] ?? [],
 			othersTokenHolderFlowsByLabels: props.incomeStatement?.labelsByType?.['Others Token Holder Flows'] ?? []
@@ -478,17 +468,6 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							breakdownByLabels={grossProfitByLabels}
 							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Gross Profit'] ?? {}}
 						/>
-						<IncomeStatementByLabel
-							protocolName={props.name}
-							groupBy={groupBy}
-							data={othersProfitData}
-							dataType="others profit"
-							label="Others Profit"
-							methodology={props.incomeStatement?.methodology?.['Others Profit'] ?? ''}
-							tableHeaders={tableHeaders}
-							breakdownByLabels={othersProfitByLabels}
-							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Others Profit'] ?? {}}
-						/>
 						{props.metrics?.incentives ? (
 							<IncomeStatementByLabel
 								protocolName={props.name}
@@ -622,7 +601,6 @@ const IncomeStatementByLabel = ({
 		| 'gross protocol revenue'
 		| 'cost of revenue'
 		| 'gross profit'
-		| 'others profit'
 		| 'incentives'
 		| 'earnings'
 		| 'token holder net income'
@@ -740,7 +718,6 @@ const PerformanceTooltipContent = ({
 		| 'gross protocol revenue'
 		| 'cost of revenue'
 		| 'gross profit'
-		| 'others profit'
 		| 'incentives'
 		| 'earnings'
 		| 'token holder net income'
