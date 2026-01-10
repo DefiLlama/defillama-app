@@ -1282,8 +1282,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 				aggregates[group][date]['Earnings'] = {
 					value:
-						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) +
-						(aggregates[group][date]?.['Others Profit']?.value ?? 0) -
+						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
 						(aggregates[group][date]?.['Incentives']?.value ?? 0),
 					'by-label': {}
 				}
