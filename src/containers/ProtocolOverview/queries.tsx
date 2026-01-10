@@ -1280,8 +1280,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 				aggregates[group][date]['Earnings'] = {
 					value:
-						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) +
-						(aggregates[group][date]?.['Others Profit']?.value ?? 0) -
+						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
 						(aggregates[group][date]?.['Incentives']?.value ?? 0),
 					'by-label': {}
 				}
@@ -1291,22 +1290,6 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		const finalLabelsByType = {}
 		for (const label in labelsByType) {
 			finalLabelsByType[label] = Array.from(labelsByType[label])
-		}
-
-		const methodologyByType = {}
-		for (const label in finalLabelsByType) {
-			methodologyByType[label] = methodologyByType[label] ?? {}
-			for (const type of finalLabelsByType[label]) {
-				for (const childProtocol of incomeStatement.childProtocols ?? []) {
-					if (childProtocol.breakdownMethodology?.[label]?.[type]) {
-						methodologyByType[label][type] = childProtocol.breakdownMethodology[label][type]
-						break
-					}
-				}
-				if (incomeStatement.breakdownMethodology?.[label]?.[type]) {
-					methodologyByType[label][type] = incomeStatement.breakdownMethodology[label][type]
-				}
-			}
 		}
 
 		return {
