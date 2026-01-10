@@ -24,12 +24,14 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		incentivesData,
 		earningsData,
 		tokenHolderNetIncomeData,
+		othersTokenHolderFlowsData,
 		grossProtocolRevenueByLabels,
 		costOfRevenueByLabels,
 		grossProfitByLabels,
 		othersProfitByLabels,
 		incentivesByLabels,
-		tokenHolderNetIncomeByLabels
+		tokenHolderNetIncomeByLabels,
+		othersTokenHolderFlowsByLabels
 	} = useMemo(() => {
 		const groupKey = groupBy.toLowerCase()
 		const tableHeaders = [] as [string, string, number][]
@@ -40,6 +42,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 		const tokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const othersTokenHolderFlowsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
 
 		for (const key in props.incomeStatement?.data?.[groupKey] ?? {}) {
 			tableHeaders.push([
@@ -86,6 +89,13 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				value: 0,
 				'by-label': {}
 			}
+
+			othersTokenHolderFlowsData[key] = props.incomeStatement?.data?.[groupKey]?.[key]?.[
+				'Others Token Holder Flows'
+			] ?? {
+				value: 0,
+				'by-label': {}
+			}
 		}
 
 		return {
@@ -97,12 +107,14 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			incentivesData,
 			earningsData,
 			tokenHolderNetIncomeData,
+			othersTokenHolderFlowsData,
 			grossProtocolRevenueByLabels: props.incomeStatement?.labelsByType?.['Gross Protocol Revenue'] ?? [],
 			costOfRevenueByLabels: props.incomeStatement?.labelsByType?.['Cost Of Revenue'] ?? [],
 			grossProfitByLabels: props.incomeStatement?.labelsByType?.['Gross Profit'] ?? [],
 			othersProfitByLabels: props.incomeStatement?.labelsByType?.['Others Profit'] ?? [],
 			incentivesByLabels: props.incomeStatement?.labelsByType?.['Incentives'] ?? [],
-			tokenHolderNetIncomeByLabels: props.incomeStatement?.labelsByType?.['Token Holder Net Income'] ?? []
+			tokenHolderNetIncomeByLabels: props.incomeStatement?.labelsByType?.['Token Holder Net Income'] ?? [],
+			othersTokenHolderFlowsByLabels: props.incomeStatement?.labelsByType?.['Others Token Holder Flows'] ?? []
 		}
 	}, [groupBy, props.incomeStatement])
 
@@ -496,7 +508,7 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							data={earningsData}
 							dataType="earnings"
 							label="Earnings"
-							methodology={'Gross Profit minus Incentives'}
+							methodology={props.incomeStatement?.methodology?.['Earnings'] ?? ''}
 							tableHeaders={tableHeaders}
 							breakdownByLabels={[]}
 							breakdownMethodology={{}}
@@ -512,6 +524,19 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							breakdownByLabels={tokenHolderNetIncomeByLabels}
 							breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
 						/>
+						{props.incomeStatement?.hasOtherTokenHolderFlows ? (
+							<IncomeStatementByLabel
+								protocolName={props.name}
+								groupBy={groupBy}
+								data={othersTokenHolderFlowsData}
+								dataType="others token holder flows"
+								label="Others Token Holder Flows"
+								methodology={props.incomeStatement?.methodology?.['Others Token Holder Flows'] ?? ''}
+								tableHeaders={tableHeaders}
+								breakdownByLabels={othersTokenHolderFlowsByLabels}
+								breakdownMethodology={props.incomeStatement?.breakdownMethodology?.['Others Token Holder Flows'] ?? {}}
+							/>
+						) : null}
 					</tbody>
 				</table>
 			</div>
@@ -601,6 +626,7 @@ const IncomeStatementByLabel = ({
 		| 'incentives'
 		| 'earnings'
 		| 'token holder net income'
+		| 'others token holder flows'
 	label: string
 	methodology: string
 	tableHeaders: [string, string, number][]
@@ -718,6 +744,7 @@ const PerformanceTooltipContent = ({
 		| 'incentives'
 		| 'earnings'
 		| 'token holder net income'
+		| 'others token holder flows'
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue

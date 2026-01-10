@@ -262,6 +262,7 @@ export interface IProtocolOverviewPageData {
 		labelsByType: Record<string, Array<string>>
 		methodology: string
 		breakdownMethodology: Record<string, Record<string, string>>
+		hasOtherTokenHolderFlows: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IUpdatedProtocol['warningBanners']
