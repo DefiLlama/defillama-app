@@ -10,7 +10,7 @@ const adapterType = ADAPTER_TYPES.BRIDGE_AGGREGATORS
 const dataType = ADAPTER_DATA_TYPES.DAILY_BRIDGE_VOLUME
 const type = 'Bridge Aggregator Volume'
 
-export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
+export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
 	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {
