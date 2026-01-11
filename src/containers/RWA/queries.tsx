@@ -1,4 +1,5 @@
 import { RWA_ACTIVE_TVLS_API } from '~/constants'
+import definitions from '~/public/rwa-definitions.json'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -58,7 +59,9 @@ export interface IRWAAssetsOverview {
 	assets: Array<IRWAProject>
 	assetClasses: Array<string>
 	rwaClassifications: Array<string>
+	rwaClassificationOptions: Array<{ key: string; name: string; help?: string }>
 	accessModels: Array<string>
+	accessModelOptions: Array<{ key: string; name: string; help?: string }>
 	categories: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
@@ -229,17 +232,31 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			})
 		}
 
+		const formattedRwaClassifications = Array.from(rwaClassifications.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+
+		const formattedAccessModels = Array.from(accessModels.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+
 		return {
 			assets: assets.sort((a, b) => b.onChainMarketcap.total - a.onChainMarketcap.total),
 			assetClasses: Array.from(assetClasses.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
-			rwaClassifications: Array.from(rwaClassifications.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key),
-			accessModels: Array.from(accessModels.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key),
+			rwaClassifications: formattedRwaClassifications,
+			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
+				key: classification,
+				name: classification,
+				help: definitions.rwaClassification.values?.[classification]
+			})),
+			accessModels: formattedAccessModels,
+			accessModelOptions: formattedAccessModels.map((accessModel) => ({
+				key: accessModel,
+				name: accessModel,
+				help: definitions.accessModel.values?.[accessModel]
+			})),
 			categories: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
@@ -282,6 +299,8 @@ export async function getRWAChainsList(): Promise<string[]> {
 
 export interface IRWAAssetData extends IRWAProject {
 	slug: string
+	rwaClassificationDescription: string | null
+	accessModelDescription: string | null
 }
 
 export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
@@ -314,6 +333,14 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 				}
 
 				const isTrueRWA = item.rwaClassification === 'True RWA'
+				// Get the classification description - use True RWA definition if trueRWA flag
+				const classificationKey = isTrueRWA ? 'True RWA' : item.rwaClassification
+				const rwaClassificationDescription = classificationKey
+					? (definitions.rwaClassification.values?.[classificationKey] ?? null)
+					: null
+				// Get access model and its description
+				const accessModel = getAccessModel(item)
+				const accessModelDescription = definitions.accessModel.values?.[accessModel] ?? null
 				return {
 					slug: assetSlug,
 					ticker: item.ticker || null,
@@ -327,8 +354,10 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					assetClass: item.assetClass,
 					type: item.type,
 					rwaClassification: isTrueRWA ? 'RWA' : item.rwaClassification,
+					rwaClassificationDescription,
 					trueRWA: isTrueRWA,
-					accessModel: getAccessModel(item),
+					accessModel,
+					accessModelDescription,
 					issuer: item.issuer,
 					issuerSourceLink: item.issuerSourceLink,
 					issuerRegistryInfo:

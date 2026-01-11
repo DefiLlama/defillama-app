@@ -395,7 +395,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						}}
 					/>
 					<SelectWithCombobox
-						allValues={props.rwaClassifications}
+						allValues={props.rwaClassificationOptions}
 						selectedValues={selectedRwaClassifications}
 						setSelectedValues={setSelectedRwaClassifications}
 						selectOnlyOne={selectOnlyOneRwaClassification}
@@ -409,7 +409,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						}}
 					/>
 					<SelectWithCombobox
-						allValues={props.accessModels}
+						allValues={props.accessModelOptions}
 						selectedValues={selectedAccessModels}
 						setSelectedValues={setSelectedAccessModels}
 						selectOnlyOne={selectOnlyOneAccessModel}
@@ -595,8 +595,20 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		accessorFn: (asset) => asset.rwaClassification,
 		cell: (info) => {
 			const value = info.getValue() as string
-			if (info.row.original.trueRWA) {
-				return <span className="text-(--success)">{value}</span>
+			const isTrueRWA = info.row.original.trueRWA
+			// If trueRWA flag, show green color with True RWA definition but display "RWA"
+			const tooltipContent = isTrueRWA
+				? definitions.rwaClassification.values?.['True RWA']
+				: definitions.rwaClassification.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className={`justify-end underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
+					>
+						{value}
+					</Tooltip>
+				)
 			}
 			return value
 		},
@@ -617,18 +629,21 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				| 'Non-transferable'
 				| 'Custodial Only'
 				| 'Unknown'
-			return (
-				<span
-					className={clsx(
-						value === 'Permissioned' && 'text-(--warning)',
-						value === 'Permissionless' && 'text-(--success)',
-						value === 'Non-transferable' && 'text-(--error)',
-						value === 'Custodial Only' && 'text-(--error)'
-					)}
-				>
-					{value}
-				</span>
+			const valueDescription = definitions.accessModel.values?.[value]
+			const colorClass = clsx(
+				value === 'Permissioned' && 'text-(--warning)',
+				value === 'Permissionless' && 'text-(--success)',
+				value === 'Non-transferable' && 'text-(--error)',
+				value === 'Custodial Only' && 'text-(--error)'
 			)
+			if (valueDescription) {
+				return (
+					<Tooltip content={valueDescription} className={`justify-end underline decoration-dotted ${colorClass}`}>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className={colorClass}>{value}</span>
 		},
 		size: 180,
 		meta: {

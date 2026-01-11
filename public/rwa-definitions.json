@@ -25,11 +25,25 @@
 	},
 	"rwaClassification": {
 		"label": "RWA Classification",
-		"description": "High level classification describing the economic nature of the entry"
+		"description": "High level classification describing the economic nature of the entry",
+		"values": {
+			"True RWA": "Tokenized real-world asset that is transferable and self-custodial, with both documented redemption and reserve or asset verification",
+			"RWA": "Tokenized real-world asset that is transferable and self-custodial, with either documented redemption or reserve or asset verification",
+			"Programmable Finance": "RWA-linked onchain products like wrappers, strategy/pool tokens, synthetics, or restricted fund tokens that aren't transferable or self-custodial",
+			"Non-RWA (Platform)": "Platform or infrastructure item related to RWAs, not an asset token or RWA exposure instrument",
+			"Non-RWA (Gov/Utility)": "Governance or utility token that is not a tokenized real-world asset or RWA exposure instrument"
+		}
 	},
 	"accessModel": {
 		"label": "Access Model",
-		"description": "Indicates how users interact with the asset"
+		"description": "Indicates how users interact with the asset",
+		"values": {
+			"Permissioned": "Requires KYC/AML verification to hold or transfer the asset",
+			"Permissionless": "Open to any wallet address without identity verification",
+			"Non-transferable": "Locked to the original wallet; cannot be transferred to other addresses",
+			"Custodial Only": "Must be held through an authorized custodian; no self-custody option",
+			"Unknown": "Access requirements have not been disclosed"
+		}
 	},
 	"issuer": {
 		"label": "Issuer",

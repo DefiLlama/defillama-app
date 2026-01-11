@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -248,7 +249,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								>
 									{definitions.rwaClassification.label}
 								</Tooltip>
-								<span className="font-medium">{asset.rwaClassification || '-'}</span>
+								<span className={`flex items-center gap-1 font-medium ${asset.trueRWA ? 'text-(--success)' : ''}`}>
+									{asset.rwaClassification || '-'}
+									{asset.rwaClassificationDescription && <QuestionHelper text={asset.rwaClassificationDescription} />}
+								</span>
 							</p>
 							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 								<Tooltip
@@ -257,7 +261,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								>
 									{definitions.accessModel.label}
 								</Tooltip>
-								<span className="font-medium">{asset.accessModel || '-'}</span>
+								<span className="flex items-center gap-1 font-medium">
+									{asset.accessModel || '-'}
+									{asset.accessModelDescription && <QuestionHelper text={asset.accessModelDescription} />}
+								</span>
 							</p>
 							{asset.parentPlatform && (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
