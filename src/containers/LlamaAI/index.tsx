@@ -1402,7 +1402,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-									<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
@@ -1636,7 +1636,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										</div>
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-											<img src="/icons/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+											<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
@@ -2500,7 +2500,7 @@ const PromptResponse = memo(function PromptResponse({
 						{progressMessage.includes('encountered an issue') ? (
 							<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
 						) : (
-							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
+							<img src="/assets/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 						)}
 						<span className="flex flex-wrap items-center gap-1">
 							{progressMessage}
@@ -2529,7 +2529,7 @@ const PromptResponse = memo(function PromptResponse({
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
+							<img src="/assets/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 							<span>Generating follow-up suggestions...</span>
 						</p>
 					</div>

@@ -1,7 +1,7 @@
 import { Icon } from '~/components/Icon'
+import type { UnifiedRowHeaderType } from '../../../types'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import type { ActiveFilterChip } from '../utils/filterChips'
-import type { UnifiedRowHeaderType } from '../../../types'
 import { CsvExportDropdown, type CsvExportLevel } from './CsvExportDropdown'
 
 export interface GroupingOption {

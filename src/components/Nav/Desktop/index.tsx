@@ -30,7 +30,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<BasicLink href="/" className="mb-4 w-fit shrink-0">
 					<span className="sr-only">Navigate to Home Page</span>
 					<img
-						src="/icons/defillama.webp"
+						src="/assets/defillama.webp"
 						height={53}
 						width={155}
 						className="mr-auto hidden object-contain object-left dark:block"
@@ -38,7 +38,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 						fetchPriority="high"
 					/>
 					<img
-						src="/icons/defillama-dark.webp"
+						src="/assets/defillama-dark.webp"
 						height={53}
 						width={155}
 						className="mr-auto object-contain object-left dark:hidden"

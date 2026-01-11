@@ -738,7 +738,10 @@ export const formatProtocolsList2 = ({
 					const mcaptvl =
 						child.mcap && defaultTvl.tvl ? +formatNum(+child.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) : null
 
-					if ((minTvl != null ? defaultTvl.tvl >= minTvl : true) && (maxTvl != null ? defaultTvl.tvl <= maxTvl : true)) {
+					if (
+						(minTvl != null ? defaultTvl.tvl >= minTvl : true) &&
+						(maxTvl != null ? defaultTvl.tvl <= maxTvl : true)
+					) {
 						childProtocols.push({
 							...child,
 							strikeTvl,

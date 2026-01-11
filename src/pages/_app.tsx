@@ -65,6 +65,14 @@ function App({ Component, pageProps }: AppProps) {
 
 	return (
 		<>
+			{/* Analytics script - loaded after page becomes interactive to reduce TBT */}
+			<Script
+				src="/script2.js"
+				strategy="afterInteractive"
+				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
+				data-host-url="https://tasty.defillama.com"
+			/>
+
 			{userHash &&
 			typeof window !== 'undefined' &&
 			!(window as any).FrontChat &&

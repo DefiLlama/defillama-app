@@ -69,7 +69,7 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 			type: 'image',
 			z: 100,
 			style: {
-				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},

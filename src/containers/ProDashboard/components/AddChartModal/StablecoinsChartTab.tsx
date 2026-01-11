@@ -12,7 +12,11 @@ import {
 	useStablecoinChainsList,
 	useStablecoinsChartData
 } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
-import { colorManager, generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
+import {
+	colorManager,
+	generateConsistentChartColor,
+	STABLECOIN_TOKEN_COLORS
+} from '~/containers/ProDashboard/utils/colorManager'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'

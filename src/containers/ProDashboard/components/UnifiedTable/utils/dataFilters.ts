@@ -1,6 +1,6 @@
+import { normalizeChainSlug } from '~/utils/chainNormalizer'
 import type { TableFilters } from '../../../types'
 import type { NormalizedRow } from '../types'
-import { normalizeChainSlug } from '~/utils/chainNormalizer'
 
 const normalize = (value: string | null | undefined) => value?.toLowerCase().trim()
 

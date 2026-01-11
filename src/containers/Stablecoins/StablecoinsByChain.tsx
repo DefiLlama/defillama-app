@@ -116,7 +116,8 @@ export function StablecoinsByChain({
 			const isValidMcapRange = minMcap != null && maxMcap != null
 
 			if (isValidMcapRange) {
-				toFilter = toFilter && (minMcap != null ? curr.mcap > minMcap : true) && (maxMcap != null ? curr.mcap < maxMcap : true)
+				toFilter =
+					toFilter && (minMcap != null ? curr.mcap > minMcap : true) && (maxMcap != null ? curr.mcap < maxMcap : true)
 			}
 
 			if (toFilter) {

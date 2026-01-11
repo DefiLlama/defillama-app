@@ -105,7 +105,7 @@ const linksToOtherLlamaApps = [
 		description: 'No fees DEX aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
-			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -114,7 +114,7 @@ const linksToOtherLlamaApps = [
 		description: 'The ultimate crypto feed',
 		href: 'https://llamafeed.io/',
 		icon: (
-			<img src="/icons/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamafeed.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -123,7 +123,7 @@ const linksToOtherLlamaApps = [
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
-			<img src="/icons/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},

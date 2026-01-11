@@ -19,10 +19,7 @@ interface AddToDashboardModalProps {
 	unsupportedMetrics?: string[]
 }
 
-function getConfigName(
-	config: DashboardChartConfig | null,
-	llamaAIChart?: LlamaAIChartInput | null
-): string {
+function getConfigName(config: DashboardChartConfig | null, llamaAIChart?: LlamaAIChartInput | null): string {
 	if (llamaAIChart) return llamaAIChart.title
 	if (!config) return ''
 	if (config.kind === 'multi') {

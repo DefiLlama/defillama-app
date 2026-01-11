@@ -673,8 +673,9 @@ export const getProtocolOverviewPageData = async ({
 		tvlChartData.push([date, tvlChart[date]])
 	}
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const { chainMetadata } = metadataCache
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const { chainMetadata } = metadataModule.default
 
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {

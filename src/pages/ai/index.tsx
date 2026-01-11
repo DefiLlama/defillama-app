@@ -193,7 +193,7 @@ export default function LlamaAIGetStarted() {
 					>
 						<span className="sr-only">Navigate to Home Page</span>
 						<img
-							src="/icons/defillama.webp"
+							src="/assets/defillama.webp"
 							height={36}
 							width={105}
 							className="hidden object-contain object-left dark:block"
@@ -201,7 +201,7 @@ export default function LlamaAIGetStarted() {
 							fetchPriority="high"
 						/>
 						<img
-							src="/icons/defillama-dark.webp"
+							src="/assets/defillama-dark.webp"
 							height={36}
 							width={105}
 							className="object-contain object-left dark:hidden"
@@ -243,7 +243,7 @@ export default function LlamaAIGetStarted() {
 									}}
 								/>
 								<img
-									src="/icons/llama-ai.svg"
+									src="/assets/llama-ai.svg"
 									alt=""
 									className="relative h-20 w-20 object-contain drop-shadow-[0_0_20px_rgba(253,224,169,0.4)] md:h-24 md:w-24"
 								/>

@@ -192,10 +192,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					)}
 
 					{state.selectedMainTab === 'llamaai' && (
-						<LlamaAITab
-							selectedChart={state.selectedLlamaAIChart}
-							onChartSelect={actions.setSelectedLlamaAIChart}
-						/>
+						<LlamaAITab selectedChart={state.selectedLlamaAIChart} onChartSelect={actions.setSelectedLlamaAIChart} />
 					)}
 				</div>
 

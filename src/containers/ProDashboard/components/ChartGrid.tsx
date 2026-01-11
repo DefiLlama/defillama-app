@@ -49,9 +49,7 @@ const StablecoinAssetChartCard = lazy(() =>
 const AdvancedTvlChartCard = lazy(() =>
 	import('./AdvancedTvlChartCard').then((mod) => ({ default: mod.AdvancedTvlChartCard }))
 )
-const BorrowedChartCard = lazy(() =>
-	import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard }))
-)
+const BorrowedChartCard = lazy(() => import('./BorrowedChartCard').then((mod) => ({ default: mod.BorrowedChartCard })))
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
@@ -309,7 +307,8 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 
 export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const { chartsWithData } = useProDashboardChartsData()
-	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } = useProDashboardEditorActions()
+	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } =
+		useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const { getCurrentRatingSession, autoSkipOlderSessionsForRating, submitRating, skipRating } =
 		useProDashboardDashboard()
@@ -422,10 +421,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 										<Tooltip
 											content="Shrink width"
 											render={
-												<button
-													onClick={() => handleColSpanChange(item.id, shrinkTarget)}
-													disabled={disableShrink}
-												/>
+												<button onClick={() => handleColSpanChange(item.id, shrinkTarget)} disabled={disableShrink} />
 											}
 											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 										>
@@ -435,10 +431,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 										<Tooltip
 											content="Expand width"
 											render={
-												<button
-													onClick={() => handleColSpanChange(item.id, expandTarget)}
-													disabled={disableExpand}
-												/>
+												<button onClick={() => handleColSpanChange(item.id, expandTarget)} disabled={disableExpand} />
 											}
 											className="hover:pro-btn-blue px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 										>
@@ -464,7 +457,12 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 											<span className="sr-only">Remove item</span>
 										</Tooltip>
 									</div>
-									<SortableItem id={item.id} isTable={item.kind === 'table'} data-col={item.colSpan} className="min-h-0 flex-1">
+									<SortableItem
+										id={item.id}
+										isTable={item.kind === 'table'}
+										data-col={item.colSpan}
+										className="min-h-0 flex-1"
+									>
 										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 									</SortableItem>
 								</div>
