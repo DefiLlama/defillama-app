@@ -71,7 +71,10 @@ const CHAIN_MAPPINGS: Record<string, ChainMapping> = {
 	hydradx: { display: 'HydraDX', dimensions: 'hydradx', internal: 'hydradx' },
 
 	opbnb: { display: 'opBNB', dimensions: 'opbnb', internal: 'opbnb' },
-	'op_bnb': { display: 'opBNB', dimensions: 'opbnb', internal: 'opbnb' }
+	op_bnb: { display: 'opBNB', dimensions: 'opbnb', internal: 'opbnb' },
+
+	rsk: { display: 'Rootstock', dimensions: 'rsk', internal: 'rootstock' },
+	rootstock: { display: 'Rootstock', dimensions: 'rsk', internal: 'rootstock' }
 }
 
 const DISPLAY_TO_ALIASES: Record<string, string[]> = {
@@ -93,7 +96,8 @@ const DISPLAY_TO_ALIASES: Record<string, string[]> = {
 	TAC: ['Tac'],
 	WEMIX: ['Wemix'],
 	Starknet: ['StarkNet'],
-	HydraDX: ['Hydradx']
+	HydraDX: ['Hydradx'],
+	Rootstock: ['RSK']
 }
 
 function normalizeKey(chain: string): string {
