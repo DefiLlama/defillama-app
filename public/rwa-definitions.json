@@ -1,0 +1,82 @@
+{
+	"type": {
+		"label": "Type",
+		"description": "Structural designation for the entry (Asset, Platform, or Wrapper)"
+	},
+	"category": {
+		"label": "Category",
+		"description": "High level economic bucket describing the type of RWA or financial product represented"
+	},
+	"assetClass": {
+		"label": "Asset Class",
+		"description": "Granular economic type within a Category describing how the exposure is structured"
+	},
+	"onChainMarketcap": {
+		"label": "On-chain Marketcap",
+		"description": "Total USD value of the asset that exists on chain across tracked chains"
+	},
+	"activeMarketcap": {
+		"label": "Active Marketcap",
+		"description": "Portion of on chain TVL taking real market risk in user or protocol hands"
+	},
+	"defiActiveTvl": {
+		"label": "DeFi Active TVL",
+		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
+	},
+	"rwaClassification": {
+		"label": "RWA Classification",
+		"description": "High level classification describing the economic nature of the entry"
+	},
+	"accessModel": {
+		"label": "Access Model",
+		"description": "Indicates how users interact with the asset"
+	},
+	"issuer": {
+		"label": "Issuer",
+		"description": "Legal entity or organization responsible for issuing or controlling the asset"
+	},
+	"isin": {
+		"label": "ISIN",
+		"description": "International Securities Identification Number - a 12-character alphanumeric code that uniquely identifies a specific security"
+	},
+	"registryInformation": {
+		"label": "Registry Information",
+		"description": "Identifiers or registry data for the issuer from corporate or regulatory databases"
+	},
+	"source": {
+		"label": "Source",
+		"description": "Primary public reference confirming issuer information"
+	},
+	"primaryChain": {
+		"label": "Primary Chain",
+		"description": "Single chain slug representing the chain where the asset or platform is primarily issued or anchored"
+	},
+	"redeemable": {
+		"label": "Redeemable",
+		"description": "Indicates whether the token can be redeemed for underlying assets"
+	},
+	"attestations": {
+		"label": "Attestations",
+		"description": "Indicates whether the issuer provides periodic attestations or assurance reports regarding reserves or backing"
+	},
+	"cexListed": {
+		"label": "CEX Listed",
+		"description": "Indicates whether the token is listed on a centralized exchange"
+	},
+	"kycForMintRedeem": {
+		"label": "KYC to Mint or Redeem",
+		"description": "Indicates whether minting or redeeming the token through the issuer or primary market requires KYC/AML verification (KYC/KYB/onboarding)"
+	},
+	"kycAllowlistedWhitelistedToTransferHold": {
+		"label": "KYC/Allowlisted/Whitelisted to Transfer/Hold",
+		"description": "Indicates whether holding or transferring the token requires prior verification or allowlisting/whitelisting (issuer or transfer-agent permissioning), enforced at the token, contract, or venue level"
+	},
+	"transferable": {
+		"label": "Transferable",
+		"description": "Indicates whether the token can be transferred freely between on chain addresses"
+	},
+	"selfCustody": {
+		"label": "Self Custody",
+		"description": "Indicates whether the token can be held in a user controlled wallet"
+	}
+}

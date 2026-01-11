@@ -25,6 +25,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import useWindowSize from '~/hooks/useWindowSize'
+import definitions from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
 
@@ -506,7 +507,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 	},
 	{
 		id: 'type',
-		header: 'Type',
+		header: definitions.type.label,
 		accessorFn: (asset) => asset.type,
 		cell: (info) => {
 			const value = info.getValue() as string
@@ -514,12 +515,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.type.description
 		}
 	},
 	{
 		id: 'category',
-		header: 'Category',
+		header: definitions.category.label,
 		accessorFn: (asset) => asset.category?.join(', ') ?? '',
 		cell: (info) => {
 			const value = info.getValue() as string
@@ -531,12 +533,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		},
 		size: 168,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.category.description
 		}
 	},
 	{
 		id: 'assetClass',
-		header: 'Asset Class',
+		header: definitions.assetClass.label,
 		accessorFn: (asset) => asset.assetClass?.join(', ') ?? '',
 		cell: (info) => {
 			const value = info.getValue() as string
@@ -548,63 +551,64 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		},
 		size: 168,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.assetClass.description
 		}
 	},
 	{
 		id: 'onChainMarketcap.total',
-		header: 'On-chain Marketcap',
+		header: definitions.onChainMarketcap.label,
 		accessorFn: (asset) => asset.onChainMarketcap.total,
 		cell: (info) => (
 			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
 		),
 		size: 168,
 		meta: {
-			headerHelperText: `The value that is visibly on public blockchains at the issuer’s official contracts and addresses, and can be reconstructed directly from on-chain data.`,
+			headerHelperText: definitions.onChainMarketcap.description,
 			align: 'end'
 		}
 	},
 	{
 		id: 'activeMarketcap.total',
-		header: 'Active Marketcap',
-		cell: (info) => null,
+		header: definitions.activeMarketcap.label,
+		cell: () => null,
 		meta: {
-			headerHelperText: `The subset of On-chain Marketcap that is actually in circulation and taking real market risk in the hands of end users and protocols.\n\nThis is the “live” part of TVL, not just administrative balances. This is the biggest differentiator for distinguishing programmable finance from “real RWAs” even if they are KYC/whitelisted/allowlisted/permissioned tokens; just because they have to adhere to regulatory compliance law does not mean they have to simply sit idly on-chain.\n\nThere is no fixed time window; it’s about how the asset is used, not just when it moved as that would invalidate holding investments.`,
+			headerHelperText: definitions.activeMarketcap.description,
 			align: 'end'
 		}
 	},
 	{
 		id: 'defiActiveTvl.total',
-		header: 'DeFi Active TVL',
+		header: definitions.defiActiveTvl.label,
 		accessorFn: (asset) => asset.defiActiveTvl.total,
 		cell: (info) => (
 			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
 		),
 		meta: {
-			headerHelperText: `The subset of Active Marketcap that is deployed into third-party DeFi protocols tracked by DeFiLlama.\n\nThis captures how much of an RWA token is actually being used in the wider on-chain economy—such as lending, liquidity provision, structured products, or other protocol integrations—outside its own issuer ecosystem.`,
+			headerHelperText: definitions.defiActiveTvl.description,
 			align: 'end'
 		}
 	},
 	{
 		id: 'rwaClassification',
-		header: 'RWA Classification',
+		header: definitions.rwaClassification.label,
 		accessorFn: (asset) => asset.rwaClassification,
 		cell: (info) => {
 			const value = info.getValue() as string
-			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
-				</span>
-			)
+			if (info.row.original.trueRWA) {
+				return <span className="text-(--success)">{value}</span>
+			}
+			return value
 		},
 		size: 180,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.rwaClassification.description
 		}
 	},
 	{
 		id: 'accessModel',
-		header: 'Access Model',
+		header: definitions.accessModel.label,
 		accessorFn: (asset) => asset.accessModel,
 		cell: (info) => {
 			const value = info.getValue() as
@@ -628,12 +632,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		},
 		size: 180,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.accessModel.description
 		}
 	},
 	{
 		id: 'issuer',
-		header: 'Issuer',
+		header: definitions.issuer.label,
 		accessorFn: (asset) => asset.issuer,
 		cell: (info) => {
 			const value = info.getValue() as string
@@ -645,12 +650,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		},
 		size: 120,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.issuer.description
 		}
 	},
 	{
 		id: 'redeemable',
-		header: 'Redeemable',
+		header: definitions.redeemable.label,
 		accessorFn: (asset) => asset.redeemable,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
@@ -660,13 +666,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset can be redeemed for the underlying'
+			headerHelperText: definitions.redeemable.description
 		},
 		size: 120
 	},
 	{
 		id: 'attestations',
-		header: 'Attestations',
+		header: definitions.attestations.label,
 		accessorFn: (asset) => asset.attestations,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
@@ -676,13 +682,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the platform publishes holdings reports'
+			headerHelperText: definitions.attestations.description
 		},
 		size: 120
 	},
 	{
 		id: 'cex_listed',
-		header: 'CEX Listed',
+		header: definitions.cexListed.label,
 		accessorFn: (asset) => asset.cexListed,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
@@ -692,13 +698,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset is listed on a CEX'
+			headerHelperText: definitions.cexListed.description
 		},
 		size: 120
 	},
 	{
 		id: 'kycForMintRedeem',
-		header: 'KYC to Mint or Redeem',
+		header: definitions.kycForMintRedeem.label,
 		accessorFn: (asset) => asset.kycForMintRedeem,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
@@ -708,13 +714,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset requires KYC to mint or redeem'
+			headerHelperText: definitions.kycForMintRedeem.description
 		},
-		size: 180
+		size: 188
 	},
 	{
 		id: 'kycAllowlistedWhitelistedToTransferHold',
-		header: 'KYC/Allowlisted/Whitelisted to Transfer/Hold',
+		header: definitions.kycAllowlistedWhitelistedToTransferHold.label,
 		accessorFn: (asset) => asset.kycAllowlistedWhitelistedToTransferHold,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
@@ -724,13 +730,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset requires KYC to be whitelisted to transfer or hold'
+			headerHelperText: definitions.kycAllowlistedWhitelistedToTransferHold.description
 		},
 		size: 332
 	},
 	{
 		id: 'transferable',
-		header: 'Transferable',
+		header: definitions.transferable.label,
 		accessorFn: (asset) => asset.transferable,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
@@ -740,13 +746,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset can be transferred freely to third parties'
+			headerHelperText: definitions.transferable.description
 		},
 		size: 120
 	},
 	{
 		id: 'self_custody',
-		header: 'Self Custody',
+		header: definitions.selfCustody.label,
 		accessorFn: (asset) => asset.selfCustody,
 		cell: (info) => (
 			<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
@@ -756,7 +762,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		sortUndefined: 'last',
 		meta: {
 			align: 'end',
-			headerHelperText: 'Whether the asset can be self-custodied'
+			headerHelperText: definitions.selfCustody.description
 		},
 		size: 120
 	}

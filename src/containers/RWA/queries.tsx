@@ -43,6 +43,7 @@ export interface IRWAProject
 	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
 	issuerRegistryInfo: string[] | null
+	trueRWA: boolean
 	onChainMarketcap: {
 		total: number
 		breakdown: Array<[string, number]>
@@ -138,6 +139,7 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			const effectiveOnChainTvl = actualChainName ? filteredOnChainTvl : totalOnChainTvl
 			const effectiveDeFiActiveTvl = actualChainName ? filteredDeFiActiveTvl : totalDeFiActiveTvl
 
+			const isTrueRWA = item.rwaClassification === 'True RWA'
 			const asset: IRWAProject = {
 				ticker: item.ticker || null,
 				name: item.name,
@@ -149,7 +151,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				category: item.category,
 				assetClass: item.assetClass,
 				type: item.type,
-				rwaClassification: item.rwaClassification,
+				rwaClassification: isTrueRWA ? 'RWA' : item.rwaClassification,
+				trueRWA: isTrueRWA,
 				accessModel: getAccessModel(item),
 				issuer: item.issuer,
 				issuerSourceLink: item.issuerSourceLink,
@@ -310,6 +313,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					}
 				}
 
+				const isTrueRWA = item.rwaClassification === 'True RWA'
 				return {
 					slug: assetSlug,
 					ticker: item.ticker || null,
@@ -322,7 +326,8 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					category: item.category,
 					assetClass: item.assetClass,
 					type: item.type,
-					rwaClassification: item.rwaClassification,
+					rwaClassification: isTrueRWA ? 'RWA' : item.rwaClassification,
+					trueRWA: isTrueRWA,
 					accessModel: getAccessModel(item),
 					issuer: item.issuer,
 					issuerSourceLink: item.issuerSourceLink,
