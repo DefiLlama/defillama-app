@@ -15,7 +15,9 @@ export const getStaticProps = withPerformanceLogging(
 		}
 	}) => {
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
