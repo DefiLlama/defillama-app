@@ -231,7 +231,21 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								>
 									{definitions.assetClass.label}
 								</Tooltip>
-								<span className="font-medium">{asset.assetClass?.join(', ') || '-'}</span>
+								{asset.assetClass && asset.assetClass.length > 0 ? (
+									<span className="flex flex-wrap items-center gap-1 font-medium">
+										{asset.assetClass.map((ac, idx) => (
+											<span key={ac} className="flex items-center gap-0.5">
+												{ac}
+												{asset.assetClassDescriptions?.[ac] && (
+													<QuestionHelper text={asset.assetClassDescriptions[ac]} />
+												)}
+												{idx < asset.assetClass!.length - 1 && ','}
+											</span>
+										))}
+									</span>
+								) : (
+									<span className="font-medium">-</span>
+								)}
 							</p>
 							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 								<Tooltip

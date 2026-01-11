@@ -381,7 +381,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						}}
 					/>
 					<SelectWithCombobox
-						allValues={props.assetClasses}
+						allValues={props.assetClassOptions}
 						selectedValues={selectedAssetClasses}
 						setSelectedValues={setSelectedAssetClasses}
 						selectOnlyOne={selectOnlyOneAssetClass}
@@ -542,11 +542,44 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		header: definitions.assetClass.label,
 		accessorFn: (asset) => asset.assetClass?.join(', ') ?? '',
 		cell: (info) => {
-			const value = info.getValue() as string
-			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
+			const assetClasses = info.row.original.assetClass
+			if (!assetClasses || assetClasses.length === 0) return null
+			// For single asset class with definition, show tooltip
+			if (assetClasses.length === 1) {
+				const ac = assetClasses[0]
+				const description = definitions.assetClass.values?.[ac]
+				if (description) {
+					return (
+						<Tooltip
+							content={description}
+							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+						>
+							{ac}
+						</Tooltip>
+					)
+				}
+				return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{ac}</span>
+			}
+			// For multiple asset classes, show combined tooltip
+			const tooltipContent = (
+				<span className="flex flex-col gap-1">
+					{assetClasses.map((ac) => {
+						const description = definitions.assetClass.values?.[ac]
+						return (
+							<span key={ac}>
+								<strong>{ac}</strong>: {description || 'No description'}
+							</span>
+						)
+					})}
 				</span>
+			)
+			return (
+				<Tooltip
+					content={tooltipContent}
+					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
+				>
+					{assetClasses.join(', ')}
+				</Tooltip>
 			)
 		},
 		size: 168,
@@ -604,13 +637,13 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				return (
 					<Tooltip
 						content={tooltipContent}
-						className={`justify-end underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
+						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
 					>
 						{value}
 					</Tooltip>
 				)
 			}
-			return value
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
 		size: 180,
 		meta: {
