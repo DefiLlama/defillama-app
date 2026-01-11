@@ -91,8 +91,7 @@ export function dashboardReducer(state: DashboardState, action: DashboardAction)
 		case 'SET_CURRENT_DASHBOARD':
 			return {
 				...state,
-				currentDashboard:
-					typeof action.payload === 'function' ? action.payload(state.currentDashboard) : action.payload
+				currentDashboard: typeof action.payload === 'function' ? action.payload(state.currentDashboard) : action.payload
 			}
 
 		case 'SET_DASHBOARD_VISIBILITY':

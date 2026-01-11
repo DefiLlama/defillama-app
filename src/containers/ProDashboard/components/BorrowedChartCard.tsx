@@ -229,12 +229,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				{hasChartData && (
 					<div className="flex gap-2">
 						{chartType !== 'tokensBorrowedPie' && (
-							<ChartExportButton
-								chartInstance={chartInstance}
-								filename={imageFilename}
-								title={imageTitle}
-								smol
-							/>
+							<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						)}
 						<ProTableCSVButton
 							onClick={handleCsvExport}

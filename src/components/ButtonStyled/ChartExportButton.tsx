@@ -162,7 +162,7 @@ export const ChartExportButton = memo(function ChartExportButton({
 						currentOptions.graphic = currentOptions.graphic.map((graphic) => {
 							if (graphic.elements) {
 								graphic.elements = graphic.elements.map((element) => {
-									if (element.style?.image?.startsWith('/icons/defillama-')) {
+									if (element.style?.image?.startsWith('/assets/defillama-')) {
 										const originalWidth = 389
 										const originalHeight = 133
 										const targetHeight = 80

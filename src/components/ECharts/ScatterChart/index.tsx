@@ -281,7 +281,19 @@ export default function ScatterChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
+	}, [
+		id,
+		chartData,
+		createInstance,
+		isDark,
+		tooltipFormatter,
+		xAxisLabel,
+		yAxisLabel,
+		valueSymbol,
+		title,
+		showLabels,
+		entityType
+	])
 
 	return (
 		<div>

@@ -373,9 +373,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			</div>
 
 			<div className="flex-1">
-				<Suspense fallback={<div className="h-[360px]" />}>
-					{renderChart()}
-				</Suspense>
+				<Suspense fallback={<div className="h-[360px]" />}>{renderChart()}</Suspense>
 			</div>
 		</div>
 	)

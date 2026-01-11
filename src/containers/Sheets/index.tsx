@@ -67,7 +67,7 @@ export default function SheetsContainer() {
 					className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
 				/>
 				<img
-					src="/icons/llama.webp"
+					src="/assets/llama.webp"
 					height={118}
 					width={118}
 					className="z-10 mx-auto aspect-square rounded-full object-contain"

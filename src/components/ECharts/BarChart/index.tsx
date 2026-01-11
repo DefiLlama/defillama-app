@@ -216,7 +216,17 @@ export default function BarChart({
 			chartInstance.dispose()
 			updateExportInstance(null)
 		}
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, updateExportInstance, orientation])
+	}, [
+		defaultChartSettings,
+		series,
+		stackKeys,
+		hideLegend,
+		chartOptions,
+		hideDataZoom,
+		id,
+		updateExportInstance,
+		orientation
+	])
 
 	useEffect(() => {
 		return () => {

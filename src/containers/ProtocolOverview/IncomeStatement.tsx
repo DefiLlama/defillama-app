@@ -394,14 +394,14 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			<div className="relative overflow-x-auto">
 				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 					<img
-						src="/icons/defillama-dark-neutral.webp"
+						src="/assets/defillama-dark-neutral.webp"
 						alt="defillama"
 						height={40}
 						width={155}
 						className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
 					/>
 					<img
-						src="/icons/defillama-light-neutral.webp"
+						src="/assets/defillama-light-neutral.webp"
 						alt="defillama"
 						height={40}
 						width={155}
