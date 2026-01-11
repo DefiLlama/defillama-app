@@ -83,11 +83,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			if (!includeStablecoins && asset.stablecoin) return false
 			if (!includeGovernance && asset.governance) return false
 			return (
-				asset.category?.some((category) => selectedCategories.includes(category)) &&
-				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
+				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.assetClass?.length
+					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					: true) &&
 				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				selectedIssuers.includes(asset.issuer)
+				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
 			)
 		})
 
@@ -131,11 +133,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			if (!includeStablecoins && asset.stablecoin) return false
 			if (!includeGovernance && asset.governance) return false
 			return (
-				asset.category?.some((category) => selectedCategories.includes(category)) &&
-				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
+				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.assetClass?.length
+					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					: true) &&
 				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				selectedIssuers.includes(asset.issuer)
+				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
 			)
 		})
 
@@ -177,11 +181,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				return false
 			}
 			return (
-				asset.category?.some((category) => selectedCategories.includes(category)) &&
-				asset.assetClass?.some((assetClass) => selectedAssetClasses.includes(assetClass)) &&
+				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.assetClass?.length
+					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					: true) &&
 				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				selectedIssuers.includes(asset.issuer)
+				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
 			)
 		})
 	}, [
