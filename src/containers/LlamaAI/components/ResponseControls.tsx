@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'react-hot-toast'
@@ -31,6 +31,12 @@ export const ResponseControls = memo(function ResponseControls({
 	charts = []
 }: ResponseControlsProps) {
 	const [copied, setCopied] = useState(false)
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
 	const [showFeedback, setShowFeedback] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const { authorizedFetch } = useAuthContext()
@@ -75,7 +81,8 @@ export const ResponseControls = memo(function ResponseControls({
 			const convertedContent = convertLlamaLinksToDefillama(content)
 			await navigator.clipboard.writeText(convertedContent)
 			setCopied(true)
-			setTimeout(() => setCopied(false), 2000)
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
 			console.log('Failed to copy content:', error)
 		}

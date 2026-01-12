@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -9,14 +9,22 @@ interface ShareModalContentProps {
 
 export const ShareModalContent = memo(function ShareModalContent({ shareData }: ShareModalContentProps) {
 	const [copied, setCopied] = useState(false)
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
+
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
 
 	const handleCopy = async () => {
 		if (!shareLink) return
 		try {
 			await navigator.clipboard.writeText(shareLink)
 			setCopied(true)
-			setTimeout(() => setCopied(false), 2000)
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
 			console.log(error)
 			toast.error('Failed to copy link')

@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -96,13 +96,19 @@ export const SuggestedActions = memo(function SuggestedActions({
 
 export const QueryMetadata = memo(function QueryMetadata({ metadata }: { metadata: any }) {
 	const [copied, setCopied] = useState(false)
-
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
 	const handleCopy = async () => {
 		if (!metadata) return
 		try {
 			await navigator.clipboard.writeText(JSON.stringify(metadata, null, 2))
 			setCopied(true)
-			setTimeout(() => setCopied(false), 2000)
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
 			console.log('Failed to copy content:', error)
 		}

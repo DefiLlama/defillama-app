@@ -304,9 +304,13 @@ export const PromptInput = memo(function PromptInput({
 						mimeType: file.type,
 						filename: file.name
 					}))
-				).then((images) => {
-					handleSubmit(promptValue, finalEntities, images)
-				})
+				)
+					.then((images) => {
+						handleSubmit(promptValue, finalEntities, images)
+					})
+					.catch((error) => {
+						console.error('Image upload failed', error)
+					})
 			} else {
 				handleSubmit(promptValue, finalEntities)
 			}
@@ -416,9 +420,13 @@ export const PromptInput = memo(function PromptInput({
 								mimeType: file.type,
 								filename: file.name
 							}))
-						).then((images) => {
-							handleSubmit(promptValue, finalEntities, images)
-						})
+						)
+							.then((images) => {
+								handleSubmit(promptValue, finalEntities, images)
+							})
+							.catch((error) => {
+								console.error('Image upload failed', error)
+							})
 					} else {
 						handleSubmit(promptValue, finalEntities)
 					}
@@ -538,7 +546,7 @@ export const PromptInput = memo(function PromptInput({
 										className={`rounded px-1.5 py-0.5 text-xs font-medium ${
 											type === 'Chain'
 												? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-												: type == 'protocol'
+												: type == 'Protocol'
 													? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
 													: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
 										}`}

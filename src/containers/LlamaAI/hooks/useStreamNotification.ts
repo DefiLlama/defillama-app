@@ -69,11 +69,15 @@ export function useStreamNotification() {
 		if (audioRef.current) {
 			const vol = audioRef.current.volume
 			audioRef.current.volume = 0
-			audioRef.current.play().then(() => {
-				audioRef.current!.pause()
-				audioRef.current!.currentTime = 0
-				audioRef.current!.volume = vol
-			}).catch(() => {})
+			audioRef.current
+				.play()
+				.then(() => {
+					if (!audioRef.current) return
+					audioRef.current.pause()
+					audioRef.current.currentTime = 0
+					audioRef.current.volume = vol
+				})
+				.catch(() => {})
 		}
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'default') {
