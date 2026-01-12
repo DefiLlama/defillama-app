@@ -89,7 +89,7 @@ export function useDefaults({
 			type: 'image',
 			z: 0,
 			style: {
-				image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				image: isThemeDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},

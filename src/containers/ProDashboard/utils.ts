@@ -117,9 +117,7 @@ export const groupData = (
 	return Object.entries(groupedData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
 }
 
-export const convertToCumulative = <T extends string | number>(
-	data: [T, number][] | undefined
-): [T, number][] => {
+export const convertToCumulative = <T extends string | number>(data: [T, number][] | undefined): [T, number][] => {
 	if (!data || data.length === 0) return []
 
 	const sorted = [...data].sort((a, b) => {

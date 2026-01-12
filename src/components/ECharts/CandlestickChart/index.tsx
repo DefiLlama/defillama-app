@@ -5,9 +5,9 @@ import {
 	DataZoomComponent,
 	GraphicComponent,
 	GridComponent,
+	LegendComponent,
 	MarkLineComponent,
-	TooltipComponent,
-	LegendComponent
+	TooltipComponent
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
@@ -31,9 +31,7 @@ echarts.use([
 	LegendComponent
 ])
 
-const INDICATOR_COLORS = [
-	'#ff7f0e', '#2ca02c', '#9467bd', '#e377c2', '#17becf', '#bcbd22', '#7f7f7f'
-]
+const INDICATOR_COLORS = ['#ff7f0e', '#2ca02c', '#9467bd', '#e377c2', '#17becf', '#bcbd22', '#7f7f7f']
 
 const PANEL_HEIGHT = 60
 const VOLUME_HEIGHT = 80
@@ -67,7 +65,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			{
 				type: 'time',
 				boundaryGap: false,
-				axisLine: { onZero: false, lineStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)', opacity: 0.2 } },
+				axisLine: {
+					onZero: false,
+					lineStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)', opacity: 0.2 }
+				},
 				splitLine: { show: false },
 				min: 'dataMin',
 				max: 'dataMax',
@@ -77,7 +78,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 				type: 'time',
 				gridIndex: 1,
 				boundaryGap: false,
-				axisLine: { onZero: false, lineStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)', opacity: 0.2 } },
+				axisLine: {
+					onZero: false,
+					lineStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)', opacity: 0.2 }
+				},
 				axisTick: { show: false },
 				splitLine: { show: false },
 				axisLabel: { show: false },
@@ -89,8 +93,14 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 		const yAxes: any[] = [
 			{
 				scale: true,
-				splitArea: { show: true, areaStyle: { color: [isThemeDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', ''] } },
-				axisLabel: { formatter: (v) => formatTooltipValue(v, '$'), color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)' },
+				splitArea: {
+					show: true,
+					areaStyle: { color: [isThemeDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', ''] }
+				},
+				axisLabel: {
+					formatter: (v) => formatTooltipValue(v, '$'),
+					color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)'
+				},
 				axisLine: { lineStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)', opacity: 0.1 } },
 				splitLine: { lineStyle: { color: isThemeDark ? '#fff' : '#000', opacity: isThemeDark ? 0.02 : 0.03 } }
 			},
@@ -144,7 +154,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 				type: 'image',
 				z: 0,
 				style: {
-					image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+					image: isThemeDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},
@@ -192,7 +202,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					end: 100,
 					textStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)' },
 					borderColor: isThemeDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)',
-					handleStyle: { borderColor: isThemeDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)', color: isThemeDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)' },
+					handleStyle: {
+						borderColor: isThemeDark ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+						color: isThemeDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.4)'
+					},
 					moveHandleStyle: { color: isThemeDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' },
 					selectedDataBackground: { lineStyle: { color: oldBlue }, areaStyle: { color: oldBlue } },
 					fillerColor: isThemeDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',

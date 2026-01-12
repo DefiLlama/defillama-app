@@ -91,10 +91,7 @@ export function SubmitButton({
 			chartMode === 'manual' &&
 			selectedChartTab === 'advanced-tvl' &&
 			isAdvancedTvlInvalid) ||
-		(selectedMainTab === 'charts' &&
-			chartMode === 'manual' &&
-			selectedChartTab === 'borrowed' &&
-			isBorrowedInvalid) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'borrowed' && isBorrowedInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&

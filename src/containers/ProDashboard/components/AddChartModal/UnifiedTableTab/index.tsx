@@ -87,7 +87,8 @@ const TABLE_TYPE_CARDS: Array<{
 	{
 		value: 'protocols',
 		label: 'Protocols',
-		description: 'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
+		description:
+			'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
 		icon: 'layers',
 		tags: ['Grouping', 'Chains', 'Categories', 'Custom Columns', '30+ Filters', 'Presets']
 	},

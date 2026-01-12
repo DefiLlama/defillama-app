@@ -96,11 +96,16 @@ const metadataCache: {
 	cexs
 }
 
-setInterval(
-	async () => {
-		const fetchJson = async (url) => fetch(url).then((res) => res.json())
+// On-demand refresh with TTL (1 hour) and concurrency-safe deduplication
+const REFRESH_TTL_MS = 60 * 60 * 1000 // 1 hour
+let lastRefreshMs = 0
+let refreshInFlight: Promise<void> | null = null
 
-		const [protocols, chains, categoriesAndTags, cexData] = await Promise.all([
+async function doRefresh(): Promise<void> {
+	const fetchJson = async (url: string) => fetch(url).then((res) => res.json())
+
+	try {
+		const [protocols, chains, catAndTags, cexData] = await Promise.all([
 			fetchJson(PROTOCOLS_DATA_URL),
 			fetchJson(CHAINS_DATA_URL),
 			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
@@ -109,10 +114,37 @@ setInterval(
 
 		metadataCache.protocolMetadata = protocols
 		metadataCache.chainMetadata = chains
-		metadataCache.categoriesAndTags = categoriesAndTags
+		metadataCache.categoriesAndTags = catAndTags
 		metadataCache.cexs = cexData.cexs
-	},
-	60 * 60 * 1000
-)
+
+		lastRefreshMs = Date.now()
+	} catch (err) {
+		// On failure, keep old cache and log error; don't update lastRefreshMs so next call retries
+		console.error('[metadata] refresh failed, keeping stale cache:', err)
+	}
+}
+
+/**
+ * Refresh metadata cache if stale (older than TTL).
+ * Safe to call from multiple concurrent requests—only one refresh runs at a time.
+ */
+export async function refreshMetadataIfStale(): Promise<void> {
+	const now = Date.now()
+	if (now - lastRefreshMs < REFRESH_TTL_MS) {
+		// Cache is fresh
+		return
+	}
+
+	if (refreshInFlight) {
+		// Another refresh is already running; wait for it
+		return refreshInFlight
+	}
+
+	refreshInFlight = doRefresh().finally(() => {
+		refreshInFlight = null
+	})
+
+	return refreshInFlight
+}
 
 export default metadataCache

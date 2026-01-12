@@ -317,14 +317,21 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 		<>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
-					<img
-						src="/icons/metrics-l.svg"
-						width={92}
-						height={40}
-						alt=""
-						className="absolute top-0 left-0 hidden h-full w-auto rounded-l-md object-cover md:block"
-						fetchPriority="high"
-					/>
+					{/* Left decorative dot pattern */}
+					<div
+						className="absolute top-[1px] left-[1px] hidden h-[calc(100%-2px)] w-48 overflow-hidden rounded-l-[6px] md:block"
+						aria-hidden="true"
+					>
+						<div
+							className="absolute inset-0"
+							style={{
+								backgroundImage: `radial-gradient(circle, rgba(31, 103, 210, 0.6) 0.8px, transparent 0.8px)`,
+								backgroundSize: '3px 3px',
+								maskImage: 'linear-gradient(to right, black 0%, transparent 100%)',
+								WebkitMaskImage: 'linear-gradient(to right, black 0%, transparent 100%)'
+							}}
+						/>
+					</div>
 					<div className="flex h-full flex-wrap items-center justify-center gap-1">
 						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
 							<Icon name="sparkles" height={12} width={12} />
@@ -346,14 +353,21 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 							<span className="hidden sm:block">Click to browse & search</span>
 						</Ariakit.DialogDisclosure>
 					</div>
-					<img
-						src="/icons/metrics-r.svg"
-						width={92}
-						height={40}
-						alt=""
-						className="absolute top-0 right-0 hidden h-full w-auto rounded-r-md object-cover md:block"
-						fetchPriority="high"
-					/>
+					{/* Right decorative dot pattern */}
+					<div
+						className="absolute top-[1px] right-[1px] hidden h-[calc(100%-2px)] w-48 overflow-hidden rounded-r-[6px] md:block"
+						aria-hidden="true"
+					>
+						<div
+							className="absolute inset-0"
+							style={{
+								backgroundImage: `radial-gradient(circle, rgba(31, 103, 210, 0.6) 0.8px, transparent 0.8px)`,
+								backgroundSize: '3px 3px',
+								maskImage: 'linear-gradient(to left, black 0%, transparent 100%)',
+								WebkitMaskImage: 'linear-gradient(to left, black 0%, transparent 100%)'
+							}}
+						/>
+					</div>
 					<svg
 						width="100%"
 						height="100%"

@@ -250,6 +250,16 @@
       "oldName": "App Revenue (Chains)"
     },
     {
+      "name": "App Fees by Chain",
+      "route": "/app-fees/chains",
+      "category": "Fees & Revenue",
+      "description": "Sum of all fees paid by users when using the apps on the chain. Excludes stablecoins, liquid staking apps, and gas fees",
+      "totalTrackedKey": "fees.chains",
+      "tab": "Chains",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "App Fees (Chains)"
+    },
+    {
       "name": "P/F by Protocol",
       "route": "/pf",
       "category": "Fees & Revenue",

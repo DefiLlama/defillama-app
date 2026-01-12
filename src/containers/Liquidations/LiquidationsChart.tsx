@@ -69,7 +69,7 @@ export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartDa
 					...(bobo && {
 						height: '80%',
 						width: '90%',
-						backgroundImage: 'url("/icons/bobo.png")',
+						backgroundImage: 'url("/assets/bobo.png")',
 						backgroundSize: '100% 360px',
 						backgroundRepeat: 'no-repeat',
 						backgroundPosition: 'bottom',

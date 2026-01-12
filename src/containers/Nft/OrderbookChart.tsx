@@ -121,7 +121,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				type: 'image',
 				z: 0,
 				style: {
-					image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+					image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},

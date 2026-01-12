@@ -15,7 +15,7 @@ export default function Sheets() {
 				<header className="sticky top-0 z-50 border-b border-[#39393E]/40 bg-[#13141a]/80 backdrop-blur-md">
 					<div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 xl:max-w-7xl 2xl:max-w-[1440px]">
 						<BasicLink href="/" className="flex items-center gap-3">
-							<img src="/icons/llama.webp" alt="DefiLlama" width={32} height={32} className="rounded-full" />
+							<img src="/assets/llama.webp" alt="DefiLlama" width={32} height={32} className="rounded-full" />
 							<span className="hidden text-lg font-bold sm:inline-block">DefiLlama</span>
 						</BasicLink>
 

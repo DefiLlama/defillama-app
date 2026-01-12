@@ -276,8 +276,7 @@ const getTvlData = async (
 	const categoriesFilterSet = new Set(categoriesFilter)
 
 	const hasRealExcludedChains =
-		filterMode === 'exclude' &&
-		Array.from(excludedChainSetForProtocols).some((chain) => chain.toLowerCase() !== 'all')
+		filterMode === 'exclude' && Array.from(excludedChainSetForProtocols).some((chain) => chain.toLowerCase() !== 'all')
 
 	for (const p of protocols) {
 		const cat = (p.category || '').toLowerCase()
@@ -387,9 +386,7 @@ const getTvlData = async (
 					const opts: any = {}
 					if (hasRealExcludedChains) {
 						opts.filterMode = 'exclude'
-						opts.excludeChains = Array.from(excludedChainSetForProtocols).filter(
-							(c) => c.toLowerCase() !== 'all'
-						)
+						opts.excludeChains = Array.from(excludedChainSetForProtocols).filter((c) => c.toLowerCase() !== 'all')
 					}
 					if (filterMode === 'include' && !isAll && includedChainSetForProtocols.size > 0) {
 						opts.filterMode = 'include'

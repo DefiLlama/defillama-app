@@ -1,6 +1,9 @@
 import { Fragment } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { QuestionHelper } from '~/components/QuestionHelper'
+import { Tooltip } from '~/components/Tooltip'
+import definitions from '~/public/rwa-definitions.json'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { getBlockExplorer } from '~/utils/blockExplorers'
 import type { IRWAAssetData } from './queries'
@@ -20,7 +23,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 
 	return (
 		<div
-			className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
+			className={`flex items-start justify-between gap-2 rounded-md border p-2 ${
 				isBoolean
 					? positive
 						? 'border-green-600/30 bg-green-600/10'
@@ -28,21 +31,21 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 					: 'border-(--cards-border) bg-(--cards-bg)'
 			}`}
 		>
-			<div className="flex flex-col">
+			<div className="flex flex-col gap-1">
 				<span
-					className={`text-xs ${isBoolean ? (positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-(--text-label)'}`}
+					className={`font-medium ${isBoolean ? (positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-(--text-label)'}`}
 				>
 					{label}
 				</span>
-				{description && <span className="text-[10px] text-(--text-disabled)">{description}</span>}
+				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
 			</div>
 			{isBoolean ? (
 				<Icon
 					name={positive ? 'check-circle' : 'x'}
-					className={`h-4 w-4 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
+					className={`h-5 w-5 shrink-0 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
 				/>
 			) : (
-				<span className="text-sm font-medium">{displayValue}</span>
+				<span className="font-medium">{displayValue}</span>
 			)}
 		</div>
 	)
@@ -62,27 +65,27 @@ const KYCItem = ({
 
 	return (
 		<div
-			className={`flex items-center justify-between gap-2 rounded-md border p-2 ${
+			className={`flex items-start justify-between gap-2 rounded-md border p-2 ${
 				required ? 'border-amber-600/30 bg-amber-600/10' : 'border-green-600/30 bg-green-600/10'
 			}`}
 		>
-			<div className="flex flex-col">
+			<div className="flex flex-col gap-1">
 				<span
-					className={`text-xs ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
+					className={`font-medium ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 				>
 					{label}
 				</span>
-				{description && <span className="text-[10px] text-(--text-disabled)">{description}</span>}
+				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
 			</div>
 			<Icon
 				name={required ? 'alert-triangle' : 'check-circle'}
-				className={`h-4 w-4 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
+				className={`h-5 w-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 			/>
 		</div>
 	)
 }
 
-const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const SectionCard = ({ title, children }: { title: React.ReactNode; children: React.ReactNode }) => (
 	<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 		<h2 className="font-semibold">{title}</h2>
 		{children}
@@ -105,7 +108,7 @@ const ChainBadge = ({
 	>
 		<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
 		<span className="text-sm font-medium">{chain}</span>
-		{isPrimary && showPrimaryStyle && <span className="ml-auto text-[10px] text-(--text-disabled)">Primary</span>}
+		{isPrimary && showPrimaryStyle && <span className="ml-auto text-xs text-(--text-disabled)">Primary</span>}
 	</div>
 )
 
@@ -147,7 +150,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 		<div className="flex flex-col gap-2">
 			{/* Header */}
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center gap-2">
 					<h1 className="text-xl font-bold">{asset.name}</h1>
 					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
 				</div>
@@ -180,20 +183,30 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 
 			{/* Stats Row */}
 			<div className="flex flex-wrap gap-2">
-				<div className="flex flex-1 flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-xs text-(--text-label)">On-chain Marketcap</span>
-					<span className="font-jetbrains text-lg font-semibold">
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<Tooltip
+						content={definitions.onChainMarketcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.onChainMarketcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-xl font-semibold">
 						{formattedNum(asset.onChainMarketcap.total, true)}
 					</span>
-				</div>
-				<div className="flex flex-1 flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-xs text-(--text-label)">DeFi Active TVL</span>
-					<span className="font-jetbrains text-lg font-semibold">{formattedNum(asset.defiActiveTvl.total, true)}</span>
-				</div>
-				<div className="flex flex-1 flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-xs text-(--text-label)">Chains</span>
-					<span className="font-jetbrains text-lg font-semibold">{asset.chain?.length ?? 0}</span>
-				</div>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<Tooltip
+						content={definitions.defiActiveTvl.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.defiActiveTvl.label}
+					</Tooltip>
+					<span className="font-jetbrains text-xl font-semibold">{formattedNum(asset.defiActiveTvl.total, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<span className="text-(--text-label)">Chains</span>
+					<span className="font-jetbrains text-xl font-semibold">{asset.chain?.length ?? 0}</span>
+				</p>
 			</div>
 
 			<div className="grid gap-2 lg:grid-cols-2">
@@ -202,80 +215,117 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					{/* Token Properties */}
 					<SectionCard title="Token Properties">
 						<div className="grid grid-cols-2 gap-2">
-							<p className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-								<span className="text-xs text-(--text-label)">Category</span>
-								<span className="text-sm font-medium">{asset.category?.join(', ') || '-'}</span>
+							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+								<Tooltip
+									content={definitions.category.description}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									{definitions.category.label}
+								</Tooltip>
+								<span className="font-medium">{asset.category?.join(', ') || '-'}</span>
 							</p>
-							<p className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-								<span className="text-xs text-(--text-label)">Asset Class</span>
-								<span className="text-sm font-medium">{asset.assetClass?.join(', ') || '-'}</span>
+							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+								<Tooltip
+									content={definitions.assetClass.description}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									{definitions.assetClass.label}
+								</Tooltip>
+								{asset.assetClass && asset.assetClass.length > 0 ? (
+									<span className="flex flex-wrap items-center gap-1 font-medium">
+										{asset.assetClass.map((ac, idx) => (
+											<span key={ac} className="flex items-center gap-0.5">
+												{ac}
+												{asset.assetClassDescriptions?.[ac] && (
+													<QuestionHelper text={asset.assetClassDescriptions[ac]} />
+												)}
+												{idx < asset.assetClass!.length - 1 && ','}
+											</span>
+										))}
+									</span>
+								) : (
+									<span className="font-medium">-</span>
+								)}
 							</p>
-							<p className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-								<span className="text-xs text-(--text-label)">Type</span>
-								<span className="text-sm font-medium">{asset.type || '-'}</span>
+							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+								<Tooltip
+									content={definitions.type.description}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									{definitions.type.label}
+								</Tooltip>
+								<span className="font-medium">{asset.type || '-'}</span>
 							</p>
-							<p className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-								<span className="text-xs text-(--text-label)">RWA Classification</span>
-								<span className="text-sm font-medium">{asset.rwaClassification || '-'}</span>
+							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+								<Tooltip
+									content={definitions.rwaClassification.description}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									{definitions.rwaClassification.label}
+								</Tooltip>
+								<span className={`flex items-center gap-1 font-medium ${asset.trueRWA ? 'text-(--success)' : ''}`}>
+									{asset.rwaClassification || '-'}
+									{asset.rwaClassificationDescription && <QuestionHelper text={asset.rwaClassificationDescription} />}
+								</span>
 							</p>
-							<p className="flex flex-col gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-								<span className="text-xs text-(--text-label)">Access Model</span>
-								<span className="text-sm font-medium">{asset.accessModel || '-'}</span>
+							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+								<Tooltip
+									content={definitions.accessModel.description}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									{definitions.accessModel.label}
+								</Tooltip>
+								<span className="flex items-center gap-1 font-medium">
+									{asset.accessModel || '-'}
+									{asset.accessModelDescription && <QuestionHelper text={asset.accessModelDescription} />}
+								</span>
 							</p>
+							{asset.parentPlatform && (
+								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+									<span className="text-(--text-label)">Parent Platform</span>
+									<span className="font-medium">{asset.parentPlatform}</span>
+								</p>
+							)}
 						</div>
 					</SectionCard>
 
 					{/* Classification Flags */}
 					<SectionCard title="Classification">
-						{asset.accessModel && (
-							<div className="flex flex-col gap-0.5 rounded-md border border-blue-600/30 bg-blue-600/10 p-2">
-								<div className="flex items-center gap-1.5">
-									<Icon name="layers" className="h-3.5 w-3.5 text-blue-700 dark:text-blue-400" />
-									<span className="text-xs text-blue-700 dark:text-blue-400">Access Model</span>
-								</div>
-								<span className="text-sm font-medium">{asset.accessModel}</span>
-								{asset.accessModel === 'Permissionless' && (
-									<span className="text-xs text-(--text-disabled)">
-										Anyone can access and interact with this asset without restrictions
-									</span>
-								)}
-							</div>
-						)}
 						<div className="grid grid-cols-2 gap-2">
 							<ClassificationItem
-								label="Redeemable"
+								label={definitions.redeemable.label}
 								positive={asset.redeemable}
-								description="Can be exchanged for underlying asset"
+								description={definitions.redeemable.description}
 							/>
 							<KYCItem
-								label="KYC to Mint or Redeem"
+								label={definitions.kycForMintRedeem.label}
 								required={asset.kycForMintRedeem}
-								description="Identity verification required to mint or redeem"
+								description={definitions.kycForMintRedeem.description}
 							/>
 							<KYCItem
-								label="KYC/Allowlisted/Whitelisted to Transfer or Hold"
+								label={definitions.kycAllowlistedWhitelistedToTransferHold.label}
 								required={asset.kycAllowlistedWhitelistedToTransferHold}
-								description="KYC/Allowlisted/Whitelisted required to transfer or hold"
+								description={definitions.kycAllowlistedWhitelistedToTransferHold.description}
 							/>
 							<ClassificationItem
-								label="Transferable"
+								label={definitions.transferable.label}
 								positive={asset.transferable}
-								description="Can be sent to other wallets"
+								description={definitions.transferable.description}
 							/>
 							<ClassificationItem
-								label="Self Custody"
+								label={definitions.selfCustody.label}
 								positive={asset.selfCustody}
-								description="Hold in your own wallet"
+								description={definitions.selfCustody.description}
 							/>
 							<ClassificationItem
-								label="CEX Listed"
+								label={definitions.cexListed.label}
 								positive={asset.cexListed}
-								description="Available on centralized exchanges"
+								description={definitions.cexListed.description}
 							/>
 							<ClassificationItem
-								label="Attestations"
+								label={definitions.attestations.label}
 								positive={asset.attestations}
-								description="Third-party verification available"
+								description={definitions.attestations.description}
 							/>
 						</div>
 					</SectionCard>
@@ -305,29 +355,55 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					{/* Issuer Information */}
 					<SectionCard title="Issuer Information">
 						<div className="flex flex-col gap-2">
-							<div>
-								<span className="text-xs text-(--text-label)">Issuer Name</span>
-								<p className="text-sm font-medium">{asset.issuer || '-'}</p>
-							</div>
+							<p className="flex flex-col gap-1">
+								<Tooltip
+									content={definitions.issuer.description}
+									className="text-(--text-label) underline decoration-dotted"
+								>
+									{definitions.issuer.label}
+								</Tooltip>
+								<span className="font-medium">{asset.issuer || '-'}</span>
+							</p>
+							{asset.isin && (
+								<p className="flex flex-col gap-1">
+									<Tooltip
+										content={definitions.isin.description}
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										{definitions.isin.label}
+									</Tooltip>
+									<span className="font-mono font-medium">{asset.isin}</span>
+								</p>
+							)}
 							{asset.issuerRegistryInfo && asset.issuerRegistryInfo.length > 0 && (
-								<div>
-									<span className="text-xs text-(--text-label)">Registry Information</span>
-									<p className="text-xs">{asset.issuerRegistryInfo.join('; ')}</p>
-								</div>
+								<p className="flex flex-col gap-1">
+									<Tooltip
+										content={definitions.registryInformation.description}
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										{definitions.registryInformation.label}
+									</Tooltip>
+									<span className="font-medium">{asset.issuerRegistryInfo.join('; ')}</span>
+								</p>
 							)}
 							{asset.issuerSourceLink && (
-								<div>
-									<span className="text-xs text-(--text-label)">Source</span>
+								<p className="flex flex-col gap-1">
+									<Tooltip
+										content={definitions.source.description}
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										{definitions.source.label}
+									</Tooltip>
 									<a
 										href={asset.issuerSourceLink}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="flex items-center gap-1 text-xs break-all text-(--link-text) hover:underline"
+										className="flex items-center gap-1 font-medium break-all text-(--link-text) hover:underline"
 									>
-										<Icon name="external-link" className="h-3 w-3 shrink-0" />
+										<Icon name="external-link" className="h-4 w-4 shrink-0" />
 										{asset.issuerSourceLink}
 									</a>
-								</div>
+								</p>
 							)}
 						</div>
 					</SectionCard>
@@ -338,7 +414,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							<div className="flex flex-col gap-2">
 								{asset.primaryChain && (
 									<div>
-										<span className="text-xs text-(--text-label)">Primary Chain</span>
+										<Tooltip
+											content={definitions.primaryChain.description}
+											className="text-(--text-label) underline decoration-dotted"
+										>
+											{definitions.primaryChain.label}
+										</Tooltip>
 										<div className="mt-1">
 											<ChainBadge chain={asset.primaryChain} isPrimary />
 										</div>
@@ -365,7 +446,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 
 					{/* Attestations */}
 					{attestationLinks.length > 0 && (
-						<SectionCard title="Attestations">
+						<SectionCard
+							title={
+								<Tooltip content={definitions.attestations.description} className="underline decoration-dotted">
+									Attestations
+								</Tooltip>
+							}
+						>
 							{attestationLinks.map((link, idx) => (
 								<a
 									key={idx}
@@ -392,7 +479,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			{/* Description Notes */}
 			{asset.descriptionNotes && (
 				<SectionCard title="Notes">
-					<p className="text-xs text-(--text-secondary)">{asset.descriptionNotes}</p>
+					<p className="text-sm text-(--text-secondary)">{asset.descriptionNotes}</p>
 				</SectionCard>
 			)}
 		</div>

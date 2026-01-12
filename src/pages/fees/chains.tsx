@@ -10,7 +10,7 @@ const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_FEES
 const type = 'Fees'
 
-export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
+export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
 	const data = await getChainsByFeesAdapterPageData({ adapterType, dataType })
 
 	return {

@@ -33,7 +33,7 @@ export function ProDashboardLoader() {
 				<div className="absolute inset-0 flex items-center justify-center">
 					<div className="relative">
 						<img
-							src="/icons/llama.webp"
+							src="/assets/llama.webp"
 							alt="Loading"
 							className="z-10 h-16 w-16 object-contain [animation-duration:1.5s]"
 						/>

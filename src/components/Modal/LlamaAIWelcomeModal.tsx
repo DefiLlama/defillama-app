@@ -30,7 +30,7 @@ export function LlamaAIWelcomeModal({ isOpen, onClose }: LlamaAIWelcomeModalProp
 								className="absolute block h-24.5 w-24.5 shrink-0"
 								style={{ background: 'linear-gradient(90deg, #FEE2AD 0%, #FEE2AD 100%)', filter: 'blur(32px)' }}
 							></span>
-							<img src="/icons/llama-ai.svg" alt="LlamaAI" className="z-10 object-contain" width={83} height={99} />
+							<img src="/assets/llama-ai.svg" alt="LlamaAI" className="z-10 object-contain" width={83} height={99} />
 						</span>
 					</div>
 

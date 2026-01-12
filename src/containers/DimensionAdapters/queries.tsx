@@ -1003,6 +1003,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		for (const chain of bribesData) {
 			bribesByChain[chain.name] = {
 				total24h: chain.total24h ?? null,
+				total7d: chain.total7d ?? null,
 				total30d: chain.total30d ?? null
 			}
 		}
@@ -1010,6 +1011,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		for (const chain of tokenTaxesData) {
 			tokenTaxesByChain[chain.name] = {
 				total24h: chain.total24h ?? null,
+				total7d: chain.total7d ?? null,
 				total30d: chain.total30d ?? null
 			}
 		}
@@ -1020,6 +1022,7 @@ export const getChainsByFeesAdapterPageData = async ({
 					name: c.name,
 					logo: chainIconUrl(c.name),
 					total24h: c.total24h ?? null,
+					total7d: c.total7d ?? null,
 					total30d: c.total30d ?? null,
 					...(bribesByChain[c.name] ? { bribes: bribesByChain[c.name] } : {}),
 					...(tokenTaxesByChain[c.name] ? { tokenTax: tokenTaxesByChain[c.name] } : {})
@@ -1111,6 +1114,7 @@ export const getChainsByAdapterPageData = async ({
 		for (const chain in bribesData) {
 			bribesByChain[chain] = {
 				total24h: bribesData[chain]?.['24h'] ?? null,
+				total7d: bribesData[chain]?.['7d'] ?? null,
 				total30d: bribesData[chain]?.['30d'] ?? null
 			}
 		}
@@ -1118,6 +1122,7 @@ export const getChainsByAdapterPageData = async ({
 		for (const chain in tokenTaxesData) {
 			tokenTaxesByChain[chain] = {
 				total24h: tokenTaxesData[chain]?.['24h'] ?? null,
+				total7d: tokenTaxesData[chain]?.['7d'] ?? null,
 				total30d: tokenTaxesData[chain]?.['30d'] ?? null
 			}
 		}
@@ -1132,6 +1137,7 @@ export const getChainsByAdapterPageData = async ({
 					name: chain,
 					logo: chainIconUrl(chain),
 					total24h: chainsData[chain]?.['24h'] ?? null,
+					total7d: chainsData[chain]?.['7d'] ?? null,
 					total30d: chainsData[chain]?.['30d'] ?? null,
 					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
 					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),

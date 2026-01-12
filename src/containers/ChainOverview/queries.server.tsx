@@ -45,7 +45,9 @@ import type {
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const metadataCache = metadataModule.default
 	const metadata: IChainMetadata =
 		chain === 'All'
 			? { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
@@ -655,7 +657,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 }
 
 export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const metadataCache = metadataModule.default
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,

@@ -10,7 +10,7 @@ const adapterType = ADAPTER_TYPES.OPTIONS
 const dataType = ADAPTER_DATA_TYPES.DAILY_PREMIUM_VOLUME
 const type = 'Options Premium Volume'
 
-export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
+export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
 	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {

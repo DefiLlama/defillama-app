@@ -673,8 +673,9 @@ export const getProtocolOverviewPageData = async ({
 		tvlChartData.push([date, tvlChart[date]])
 	}
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const { chainMetadata } = metadataCache
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const { chainMetadata } = metadataModule.default
 
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {
@@ -716,7 +717,9 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts.push('Mcap')
 		availableCharts.push('Token Price')
 		availableCharts.push('Token Volume')
-		availableCharts.push('Token Liquidity')
+		if (metadata.liquidity) {
+			availableCharts.push('Token Liquidity')
+		}
 		availableCharts.push('FDV')
 	}
 
@@ -1201,7 +1204,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		}
 
 		const [incomeStatement, incentives] = await Promise.all([
-			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}`).catch(
+			fetchJson(`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`).catch(
 				() => null
 			),
 			getProtocolEmissons(slug(metadata.displayName))
@@ -1231,22 +1234,22 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 			aggregates.monthly[monthKey] = {
 				...(aggregates.monthly[monthKey] ?? {}),
-				incentives: {
-					value: (aggregates.monthly[monthKey]?.incentives?.value ?? 0) + value,
+				Incentives: {
+					value: (aggregates.monthly[monthKey]?.['Incentives']?.value ?? 0) + value,
 					'by-label': {}
 				}
 			}
 			aggregates.quarterly[quarterKey] = {
 				...(aggregates.quarterly[quarterKey] ?? {}),
-				incentives: {
-					value: (aggregates.quarterly[quarterKey]?.incentives?.value ?? 0) + value,
+				Incentives: {
+					value: (aggregates.quarterly[quarterKey]?.['Incentives']?.value ?? 0) + value,
 					'by-label': {}
 				}
 			}
 			aggregates.yearly[yearKey] = {
 				...(aggregates.yearly[yearKey] ?? {}),
-				incentives: {
-					value: (aggregates.yearly[yearKey]?.incentives?.value ?? 0) + value,
+				Incentives: {
+					value: (aggregates.yearly[yearKey]?.['Incentives']?.value ?? 0) + value,
 					'by-label': {}
 				}
 			}
@@ -1278,8 +1281,10 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 					}
 				}
 
-				aggregates[group][date].earnings = {
-					value: (aggregates[group][date].dr?.value ?? 0) - (aggregates[group][date].incentives?.value ?? 0),
+				aggregates[group][date]['Earnings'] = {
+					value:
+						(aggregates[group][date]?.['Gross Profit']?.value ?? 0) -
+						(aggregates[group][date]?.['Incentives']?.value ?? 0),
 					'by-label': {}
 				}
 			}
@@ -1290,26 +1295,100 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			finalLabelsByType[label] = Array.from(labelsByType[label])
 		}
 
-		const labelMap = {
-			df: 'Fees',
-			dr: 'Revenue',
-			dhr: 'HoldersRevenue',
-			dssr: 'SupplySideRevenue'
-		}
-		const methodologyByType = {}
-		for (const shortLabel in finalLabelsByType) {
-			const label = labelMap[shortLabel]
-			if (!label) continue
-			methodologyByType[label] = methodologyByType[label] ?? {}
-			for (const type of finalLabelsByType[shortLabel]) {
-				for (const childProtocol of incomeStatement.childProtocols ?? []) {
-					if (childProtocol.breakdownMethodology?.[label]?.[type]) {
-						methodologyByType[label][type] = childProtocol.breakdownMethodology[label][type]
-						break
+		const methodology = incomeStatement.methodology ?? {}
+		const breakdownMethodology = incomeStatement.breakdownMethodology ?? {}
+
+		methodology['Earnings'] = 'Gross Profit minus Incentives'
+
+		// If parent has no methodology, aggregate unique methodologies from child protocols
+		if (incomeStatement.methodology == null && incomeStatement.childProtocols != null) {
+			// Collect unique methodologies for each label type using Sets
+			const methodologyByLabel: Record<string, Set<string>> = {}
+			const breakdownMethodologyByLabel: Record<string, Record<string, Set<string>>> = {}
+
+			for (const childProtocol of incomeStatement.childProtocols) {
+				// Aggregate methodology
+				if (childProtocol.methodology) {
+					for (const label in childProtocol.methodology) {
+						const methodologyText = childProtocol.methodology[label]
+						if (methodologyText) {
+							if (!methodologyByLabel[label]) {
+								methodologyByLabel[label] = new Set()
+							}
+							methodologyByLabel[label].add(methodologyText)
+						}
 					}
 				}
-				if (incomeStatement.breakdownMethodology?.[label]?.[type]) {
-					methodologyByType[label][type] = incomeStatement.breakdownMethodology[label][type]
+
+				// Aggregate breakdownMethodology
+				if (childProtocol.breakdownMethodology) {
+					for (const label in childProtocol.breakdownMethodology) {
+						if (!breakdownMethodologyByLabel[label]) {
+							breakdownMethodologyByLabel[label] = {}
+						}
+						const breakdowns = childProtocol.breakdownMethodology[label]
+						for (const breakdownLabel in breakdowns) {
+							const breakdownText = breakdowns[breakdownLabel]
+							if (breakdownText) {
+								if (!breakdownMethodologyByLabel[label][breakdownLabel]) {
+									breakdownMethodologyByLabel[label][breakdownLabel] = new Set()
+								}
+								breakdownMethodologyByLabel[label][breakdownLabel].add(breakdownText)
+							}
+						}
+					}
+				}
+			}
+
+			// Convert Sets/Maps to strings
+			for (const label in methodologyByLabel) {
+				const uniqueMethodologies = Array.from(methodologyByLabel[label])
+				if (uniqueMethodologies.length === 1) {
+					methodology[label] = uniqueMethodologies[0]
+				} else {
+					// Multiple unique methodologies - show with child protocol names
+					const parts: string[] = []
+					for (const childProtocol of incomeStatement.childProtocols) {
+						const childMethodology = childProtocol.methodology?.[label]
+						if (childMethodology) {
+							parts.push(`${childProtocol.displayName}: ${childMethodology}`)
+						}
+					}
+					methodology[label] = parts.join('\n')
+				}
+			}
+
+			for (const label in breakdownMethodologyByLabel) {
+				if (!breakdownMethodology[label]) {
+					breakdownMethodology[label] = {}
+				}
+				for (const breakdownLabel in breakdownMethodologyByLabel[label]) {
+					const uniqueBreakdowns = Array.from(breakdownMethodologyByLabel[label][breakdownLabel])
+					if (uniqueBreakdowns.length === 1) {
+						breakdownMethodology[label][breakdownLabel] = uniqueBreakdowns[0]
+					} else {
+						// Multiple unique breakdown methodologies - show with child protocol names
+						const parts: string[] = []
+						for (const childProtocol of incomeStatement.childProtocols) {
+							const childBreakdown = childProtocol.breakdownMethodology?.[label]?.[breakdownLabel]
+							if (childBreakdown) {
+								parts.push(`${childProtocol.displayName}: ${childBreakdown}`)
+							}
+						}
+						breakdownMethodology[label][breakdownLabel] = parts.join('\n')
+					}
+				}
+			}
+		}
+
+		let hasOtherTokenHolderFlows = false
+		for (const groupBy in aggregates) {
+			for (const period in aggregates[groupBy]) {
+				for (const label in aggregates[groupBy][period]) {
+					if (label === 'Others Token Holder Flows') {
+						hasOtherTokenHolderFlows = true
+						break
+					}
 				}
 			}
 		}
@@ -1317,7 +1396,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		return {
 			data: aggregates,
 			labelsByType: finalLabelsByType,
-			methodologyByType
+			methodology: methodology,
+			breakdownMethodology: breakdownMethodology,
+			hasOtherTokenHolderFlows
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)
