@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useDebounce } from '~/hooks/useDebounce'
 import { handleSimpleFetchResponse } from '~/utils/async'
@@ -75,15 +74,16 @@ export async function fetchCoins(query: string, limit: number = 10) {
 export function useGetEntities(q: string) {
 	const debouncedQuery = useDebounce(q, 200)
 
-	// Check if query starts with $ to determine if we should fetch coins
 	const isCoins = debouncedQuery.startsWith('$')
-	// Remove $ prefix before making the API call
-	const queryWithoutTrigger = isCoins ? debouncedQuery.slice(1) : debouncedQuery
+	const isEntities = debouncedQuery.startsWith('@')
+	const queryWithoutTrigger = isCoins || isEntities ? debouncedQuery.slice(1) : debouncedQuery
+	const isBareTrigger = debouncedQuery === '$' || debouncedQuery === '@'
 
 	return useQuery({
 		queryKey: ['get-entities', debouncedQuery],
 		queryFn: () => (isCoins ? fetchCoins(queryWithoutTrigger) : fetchEntities(queryWithoutTrigger)),
-		enabled: queryWithoutTrigger.length > 0, // Only fetch when there's a query (after removing trigger)
+		// Fetch defaults when user typed a bare trigger (@ / $), otherwise only fetch when there's a query.
+		enabled: queryWithoutTrigger.length > 0 || isBareTrigger,
 		staleTime: 5 * 60 * 1000, // Cache results for 5 minutes
 		refetchOnWindowFocus: false
 	})
