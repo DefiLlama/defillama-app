@@ -145,8 +145,8 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 
 			const isTrueRWA = item.rwaClassification === 'True RWA'
 			const asset: IRWAProject = {
-				ticker: item.ticker || null,
-				name: item.name,
+				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
+				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 				website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
 				twitter: item.twitter,
 				primaryChain: item.primaryChain,
@@ -360,8 +360,8 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 				})
 				return {
 					slug: assetSlug,
-					ticker: item.ticker || null,
-					name: item.name,
+					ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
+					name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 					website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
 					twitter: item.twitter,
 					primaryChain: item.primaryChain,

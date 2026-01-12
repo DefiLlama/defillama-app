@@ -470,7 +470,7 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 	{
 		id: 'name',
 		header: 'Name',
-		accessorFn: (asset) => asset.name,
+		accessorFn: (asset) => asset.name ?? asset.ticker,
 		enableSorting: false,
 		cell: (info) => {
 			const index =
@@ -484,22 +484,20 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 					<span className="-my-1.5 flex flex-col overflow-hidden">
 						{info.row.original.ticker ? (
 							<>
-								{info.row.original.name && (
-									<BasicLink
-										href={`/rwa/asset/${slug(info.row.original.ticker)}`}
-										className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-									>
-										{info.row.original.name ?? info.row.original.ticker}
-									</BasicLink>
-								)}
-								{!info.row.original.name ? null : (
+								<BasicLink
+									href={`/rwa/asset/${slug(info.row.original.ticker)}`}
+									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+								>
+									{info.row.original.name ?? info.row.original.ticker}
+								</BasicLink>
+								{info.row.original.name ? (
 									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
-								)}
+								) : null}
 							</>
 						) : (
 							<>
 								{info.row.original.name && (
-									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline">
+									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
 										{info.row.original.name}
 									</span>
 								)}
