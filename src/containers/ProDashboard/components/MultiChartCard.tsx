@@ -9,6 +9,7 @@ import {
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
@@ -32,11 +33,22 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		handleTreemapChange
 	} = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 	const showPercentage = multi.showPercentage || false
 	const showTreemap = multi.showTreemap || false
+
+	const timeKey = useMemo(() => {
+		if (timePeriod === 'custom' && customTimePeriod) {
+			if (customTimePeriod.type === 'relative') {
+				return `custom-relative-${customTimePeriod.relativeDays ?? ''}`
+			}
+			return `custom-absolute-${customTimePeriod.startDate ?? ''}-${customTimePeriod.endDate ?? ''}`
+		}
+		return timePeriod || 'all'
+	}, [timePeriod, customTimePeriod])
 
 	const validItems = useMemo(
 		() =>
@@ -512,7 +524,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			) : (
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart
-						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
+						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}-${timeKey}`}
 						series={series}
 						valueSymbol={showPercentage ? '%' : allPercentMetrics ? '%' : allCountMetrics || allRatioMetrics ? '' : '$'}
 						groupBy={

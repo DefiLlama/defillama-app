@@ -96,6 +96,16 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 	const isTvlChart = config.metric === 'tvl' || config.metric === 'stablecoins'
 
+	const timeKey = useMemo(() => {
+		if (timePeriod === 'custom' && customTimePeriod) {
+			if (customTimePeriod.type === 'relative') {
+				return `custom-relative-${customTimePeriod.relativeDays ?? ''}`
+			}
+			return `custom-absolute-${customTimePeriod.startDate ?? ''}-${customTimePeriod.endDate ?? ''}`
+		}
+		return timePeriod || 'all'
+	}, [timePeriod, customTimePeriod])
+
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
 			'chartBuilder',
@@ -291,7 +301,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				stack: 'total'
 			})
 		}))
-	}, [chartData, config.displayAs, config.chartType, config.seriesColors, builder.grouping, isTvlChart, seriesColors])
+	}, [chartData, config.displayAs, config.chartType, builder.grouping, isTvlChart, seriesColors])
 
 	const treemapData = useMemo(() => {
 		if (!chartData?.series || chartData.series.length === 0) return []
@@ -625,7 +635,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						<TreeMapBuilderChart data={treemapData} height="350px" onReady={handleChartReady} />
 					) : (
 						<MultiSeriesChart
-							key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}-${config.limit}`}
+							key={`${builder.id}-${config.displayAs}-${builder.grouping || 'day'}-${config.hideOthers}-${config.limit}-${timeKey}`}
 							series={chartSeries as any}
 							valueSymbol={config.displayAs === 'percentage' ? '%' : '$'}
 							groupBy={
