@@ -146,7 +146,7 @@ export interface ModalActions {
 	handleProtocolChange: (option: any) => void
 	handleDatasetChainChange: (value: string | null) => void
 	handleTokensChange: (tokens: string[]) => void
-	handleAddToComposer: (typesToAdd?: string[]) => void
+	handleAddToComposer: (typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleUpdateComposerItemColor: (id: string, color: string) => void
 	handleMainTabChange: (tab: MainTabType) => void
