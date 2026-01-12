@@ -51,6 +51,7 @@ export const PromptInput = memo(function PromptInput({
 	const [value, setValue] = useState('')
 	const [selectedImages, setSelectedImages] = useState<Array<{ file: File; url: string }>>([])
 	const [isDragging, setIsDragging] = useState(false)
+	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
 	const dragCounterRef = useRef(0)
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
@@ -139,7 +140,7 @@ export const PromptInput = memo(function PromptInput({
 	const combobox = Ariakit.useComboboxStore()
 	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
-	const { data: matches } = useGetEntities(searchValue)
+	const { data: matches, isFetching, isLoading } = useGetEntities(searchValue)
 
 	const hasMatches = matches && matches.length > 0
 
@@ -203,6 +204,7 @@ export const PromptInput = memo(function PromptInput({
 
 	const resetInput = (revokeImageUrls = true) => {
 		setValue('')
+		setIsTriggerOnly(false)
 		if (revokeImageUrls) {
 			selectedImages.forEach(({ url }) => URL.revokeObjectURL(url))
 		}
@@ -319,6 +321,17 @@ export const PromptInput = memo(function PromptInput({
 
 	const handleScroll = () => {
 		syncHighlightScroll(promptInputRef, highlightRef)
+		const textarea = promptInputRef.current
+		if (textarea && typeof window !== 'undefined') {
+			const anchor = getAnchorRect(textarea)
+			const spaceBelow = window.innerHeight - (anchor.y + anchor.height)
+			const spaceAbove = anchor.y
+			// Prefer the side with more room to avoid rendering "below" when we're near the bottom of the viewport.
+			const nextPlacement = spaceBelow < 220 && spaceAbove > spaceBelow ? 'top-start' : 'bottom-start'
+			if (combobox.getState().placement !== nextPlacement) {
+				combobox.setState('placement', nextPlacement)
+			}
+		}
 		combobox.render()
 	}
 
@@ -343,19 +356,31 @@ export const PromptInput = memo(function PromptInput({
 		const searchValue = getSearchValue(event.target)
 		const triggerOffset = getTriggerOffset(event.target)
 		const actualTrigger = triggerOffset !== -1 ? event.target.value[triggerOffset] : null
-		const searchValueWithTrigger = actualTrigger === '$' ? `$${searchValue}` : searchValue
+		const searchValueWithTrigger =
+		actualTrigger === '$' ? `$${searchValue}` : actualTrigger === '@' ? `@${searchValue}` : searchValue
+
+		if (typeof window !== 'undefined') {
+			const anchor = getAnchorRect(event.target)
+			const spaceBelow = window.innerHeight - (anchor.y + anchor.height)
+			const spaceAbove = anchor.y
+			const nextPlacement = spaceBelow < 220 && spaceAbove > spaceBelow ? 'top-start' : 'bottom-start'
+			if (combobox.getState().placement !== nextPlacement) {
+				combobox.setState('placement', nextPlacement)
+			}
+		}
 
 		if (triggerOffset !== -1 && searchValue.length > 0) {
+			setIsTriggerOnly(false)
 			combobox.show()
 			combobox.setValue(searchValueWithTrigger)
 		} else if (trigger && searchValue.length === 0) {
-			if (actualTrigger === '$') {
-				combobox.setValue('$')
-			} else {
-				combobox.setValue('')
-			}
-			combobox.hide()
+			// Open suggestions immediately after typing a trigger, but don't fetch until there's a query.
+			// If the user types whitespace after the trigger, `getTriggerOffset` returns -1 and we'll hide.
+			setIsTriggerOnly(true)
+			combobox.show()
+			combobox.setValue(actualTrigger === '$' ? '$' : '@')
 		} else if (triggerOffset === -1) {
+			setIsTriggerOnly(false)
 			combobox.setValue('')
 			combobox.hide()
 		}
@@ -519,10 +544,12 @@ export const PromptInput = memo(function PromptInput({
 						ref={highlightRef}
 					/>
 				</div>
-				{hasMatches && (
+				{(hasMatches || (isTriggerOnly && (isLoading || isFetching))) && (
 					<Ariakit.ComboboxPopover
 						store={combobox}
 						unmountOnHide
+						portal={true}
+						flip={true}
 						fitViewport
 						getAnchorRect={() => {
 							const textarea = promptInputRef.current
@@ -531,31 +558,35 @@ export const PromptInput = memo(function PromptInput({
 						}}
 						className="relative z-50 flex max-h-(--popover-available-height) max-w-[280px] min-w-[100px] flex-col overflow-auto overscroll-contain rounded-lg border border-[#e6e6e6] bg-(--app-bg) shadow-lg dark:border-[#222324]"
 					>
-						{matches.map(({ id, name, logo, type }) => (
-							<Ariakit.ComboboxItem
-								key={id}
-								value={id}
-								focusOnHover
-								onClick={onItemClick({ id, name, type })}
-								className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
-							>
-								{logo && <TokenLogo logo={logo} size={20} />}
-								<span className="flex items-center gap-1.5">
-									<span className="text-sm font-medium">{name}</span>
-									<span
-										className={`rounded px-1.5 py-0.5 text-xs font-medium ${
-											type === 'Chain'
-												? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-												: type == 'Protocol'
-													? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-													: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-										}`}
-									>
-										{type}
+						{hasMatches ? (
+							matches.map(({ id, name, logo, type }) => (
+								<Ariakit.ComboboxItem
+									key={id}
+									value={id}
+									focusOnHover
+									onClick={onItemClick({ id, name, type })}
+									className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-[active-item]:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-[active-item]:bg-[#222324]"
+								>
+									{logo && <TokenLogo logo={logo} size={20} />}
+									<span className="flex items-center gap-1.5">
+										<span className="text-sm font-medium">{name}</span>
+										<span
+											className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+												type === 'Chain'
+													? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+													: type == 'Protocol'
+														? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+														: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+											}`}
+										>
+											{type}
+										</span>
 									</span>
-								</span>
-							</Ariakit.ComboboxItem>
-						))}
+								</Ariakit.ComboboxItem>
+							))
+						) : (
+							<div className="px-3 py-2 text-sm text-[#666] dark:text-[#999]">Loading…</div>
+						)}
 					</Ariakit.ComboboxPopover>
 				)}
 				<div className="flex flex-wrap items-center justify-between gap-4 p-0">
