@@ -5,6 +5,12 @@ export function useStreamNotification() {
 	const originalTitleRef = useRef('')
 	const originalFaviconRef = useRef('')
 	const hasBadgeRef = useRef(false)
+	const audioRef = useRef<HTMLAudioElement | null>(null)
+
+	useEffect(() => {
+		audioRef.current = new Audio('/assets/notification.mp3')
+		audioRef.current.load()
+	}, [])
 
 	const clearBadge = useCallback(() => {
 		if (!hasBadgeRef.current) return
@@ -33,10 +39,16 @@ export function useStreamNotification() {
 		return () => document.removeEventListener('visibilitychange', handler)
 	}, [clearBadge])
 
-	const showNotification = useCallback(() => {
-		new Notification('LlamaAI', { body: 'Llama has answered your question!', icon: '/favicon.ico' })
-		new Audio('/assets/notification.mp3').play().catch(() => {})
+	const playSound = useCallback(() => {
+		if (!audioRef.current) return
+		audioRef.current.currentTime = 0
+		audioRef.current.play().catch(() => {})
 	}, [])
+
+	const showNotification = useCallback(() => {
+		new Notification('LlamaAI', { body: 'Llama has answered your question!', icon: '/favicon-badge.png' })
+		playSound()
+	}, [playSound])
 
 	const notify = useCallback(() => {
 		if (!isHiddenRef.current) return
@@ -54,6 +66,19 @@ export function useStreamNotification() {
 	}, [showNotification, setBadge])
 
 	const requestPermission = useCallback(() => {
+		if (audioRef.current) {
+			const vol = audioRef.current.volume
+			audioRef.current.volume = 0
+			audioRef.current
+				.play()
+				.then(() => {
+					if (!audioRef.current) return
+					audioRef.current.pause()
+					audioRef.current.currentTime = 0
+					audioRef.current.volume = vol
+				})
+				.catch(() => {})
+		}
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'default') {
 			Notification.requestPermission()

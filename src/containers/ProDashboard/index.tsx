@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -449,6 +449,12 @@ const CopyDashboardLinkButton = ({
 	dashboardId: string
 }) => {
 	const [copied, setCopied] = useState(false)
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
 	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
 
 	const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/pro/${dashboardId}`
@@ -457,7 +463,8 @@ const CopyDashboardLinkButton = ({
 		try {
 			await navigator.clipboard.writeText(shareUrl)
 			setCopied(true)
-			setTimeout(() => setCopied(false), 2000)
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
 			console.log('Failed to copy link:', error)
 		}
