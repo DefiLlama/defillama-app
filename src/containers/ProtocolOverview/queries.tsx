@@ -4,7 +4,6 @@ import {
 	BRIDGEVOLUME_API_SLUG,
 	CEXS_API,
 	HACKS_API,
-	HOURLY_PROTOCOL_API,
 	LIQUIDITY_API,
 	ORACLE_API,
 	oracleProtocols,
@@ -49,32 +48,34 @@ export const getProtocol = async (protocolName: string): Promise<IUpdatedProtoco
 			timeout: ['uniswap', 'portal', 'curve', 'aave', 'raydium'].some((p) => name.includes(p)) ? 3 * 60 * 1000 : 60_000
 		})
 
-		let isNewlyListedProtocol = true
+		// let isNewlyListedProtocol = true
 
-		Object.values(data.chainTvls).forEach((chain) => {
-			if (chain.tvl?.length > 7) {
-				isNewlyListedProtocol = false
-			}
-		})
+		// Object.values(data.chainTvls).forEach((chain) => {
+		// 	if (chain.tvl?.length > 7) {
+		// 		isNewlyListedProtocol = false
+		// 	}
+		// })
 
 		// if (data?.listedAt && new Date(data.listedAt * 1000).getTime() < Date.now() - 1000 * 60 * 60 * 24 * 7) {
 		// 	isNewlyListedProtocol = false
 		// }
 
-		if (isNewlyListedProtocol && !data.isParentProtocol && data.module !== 'dummy.js') {
-			try {
-				const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
+		// if (isNewlyListedProtocol && !data.isParentProtocol && data.module !== 'dummy.js') {
+		// 	try {
+		// 		const hourlyData = await fetchJson(`${HOURLY_PROTOCOL_API}/${slug(protocolName)}`).catch(() => null)
 
-				if (!hourlyData) {
-					return data
-				}
+		// 		if (!hourlyData) {
+		// 			return data
+		// 		}
 
-				return { ...hourlyData, isHourlyChart: true }
-			} catch (e) {
-				postRuntimeLogs(`[ERROR] [${Date.now() - start}ms] < ${HOURLY_PROTOCOL_API}/${slug(protocolName)} > ${e}`)
-				return data
-			}
-		} else return data
+		// 		return { ...hourlyData, isHourlyChart: true }
+		// 	} catch (e) {
+		// 		postRuntimeLogs(`[ERROR] [${Date.now() - start}ms] < ${HOURLY_PROTOCOL_API}/${slug(protocolName)} > ${e}`)
+		// 		return data
+		// 	}
+		// } else return data
+
+		return data
 	} catch (e) {
 		postRuntimeLogs(`[ERROR] [${Date.now() - start}ms] < ${PROTOCOL_API}/${slug(protocolName)} > ${e}`)
 
