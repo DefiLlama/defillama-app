@@ -356,7 +356,8 @@ export const PromptInput = memo(function PromptInput({
 		const searchValue = getSearchValue(event.target)
 		const triggerOffset = getTriggerOffset(event.target)
 		const actualTrigger = triggerOffset !== -1 ? event.target.value[triggerOffset] : null
-		const searchValueWithTrigger = actualTrigger === '$' ? `$${searchValue}` : searchValue
+		const searchValueWithTrigger =
+		actualTrigger === '$' ? `$${searchValue}` : actualTrigger === '@' ? `@${searchValue}` : searchValue
 
 		if (typeof window !== 'undefined') {
 			const anchor = getAnchorRect(event.target)
