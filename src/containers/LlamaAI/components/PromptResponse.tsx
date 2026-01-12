@@ -218,7 +218,7 @@ export const PromptResponse = memo(function PromptResponse({
 						{progressMessage.includes('encountered an issue') ? (
 							<Icon name="alert-triangle" height={16} width={16} className="text-(--error)" />
 						) : (
-							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
+							<img src="/assets/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 						)}
 						<span className="flex flex-wrap items-center gap-1">{progressMessage}</span>
 					</p>
@@ -244,7 +244,7 @@ export const PromptResponse = memo(function PromptResponse({
 					<div className="mt-4 grid gap-2">
 						<h1 className="text-[#666] dark:text-[#919296]">Suggested actions:</h1>
 						<p className="flex items-center gap-2 text-[#666] dark:text-[#919296]">
-							<img src="/icons/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
+							<img src="/assets/llamaai_animation.webp" alt="Loading" className="h-24 w-24 shrink-0" />
 							<span>Generating follow-up suggestions...</span>
 						</p>
 					</div>
