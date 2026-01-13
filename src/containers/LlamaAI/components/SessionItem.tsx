@@ -9,7 +9,12 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
-import { isSessionPinned, subscribeToPinnedSessions, togglePinSession } from '../utils/pinnedSessions'
+import {
+	isSessionPinned,
+	PINNED_SESSIONS_KEY,
+	subscribeToPinnedSessions,
+	togglePinSession
+} from '../utils/pinnedSessions'
 
 interface SessionItemProps {
 	session: ChatSession
@@ -27,7 +32,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 	// Subscribe to pinned sessions changes to trigger re-renders
 	useSyncExternalStore(
 		subscribeToPinnedSessions,
-		() => localStorage.getItem('llamaai-pinned-sessions') ?? '[]',
+		() => localStorage.getItem(PINNED_SESSIONS_KEY) ?? '[]',
 		() => '[]'
 	)
 

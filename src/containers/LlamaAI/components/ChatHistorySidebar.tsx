@@ -5,7 +5,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
-import { isSessionPinned, subscribeToPinnedSessions } from '../utils/pinnedSessions'
+import { isSessionPinned, PINNED_SESSIONS_KEY, subscribeToPinnedSessions } from '../utils/pinnedSessions'
 import { SessionItem } from './SessionItem'
 
 interface ChatHistorySidebarProps {
@@ -47,7 +47,7 @@ export function ChatHistorySidebar({
 	// Subscribe to pinned sessions changes to trigger re-renders
 	const _pinnedSessions = useSyncExternalStore(
 		subscribeToPinnedSessions,
-		() => localStorage.getItem('llamaai-pinned-sessions') ?? '[]',
+		() => localStorage.getItem(PINNED_SESSIONS_KEY) ?? '[]',
 		() => '[]'
 	)
 
