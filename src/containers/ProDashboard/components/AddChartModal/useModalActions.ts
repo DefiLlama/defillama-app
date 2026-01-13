@@ -5,6 +5,7 @@ import {
 	CHART_TYPES,
 	ChartConfig,
 	DashboardItemConfig,
+	LlamaAIChartConfig,
 	MultiChartConfig,
 	Protocol,
 	ProtocolsTableConfig,
@@ -550,6 +551,13 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
+			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart) {
+				newItem = {
+					...editItem,
+					kind: 'llamaai-chart',
+					savedChartId: state.selectedLlamaAIChart.id,
+					title: state.selectedLlamaAIChart.title || undefined
+				} as LlamaAIChartConfig
 			}
 
 			if (newItem) {
