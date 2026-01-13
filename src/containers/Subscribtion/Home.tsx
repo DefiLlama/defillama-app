@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { LogosCarousel } from '~/components/LogosCarousel'
+import { ServiceFAQ } from '~/components/ServiceFAQ'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
@@ -336,6 +337,9 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					)}
 				</div>
 			</div>
+
+			{/* Service FAQ Section */}
+			<ServiceFAQ />
 
 			{returnUrl && (
 				<ReturnModal isOpen={showReturnModal} onClose={() => setShowReturnModal(false)} returnUrl={returnUrl} />
