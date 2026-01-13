@@ -5,6 +5,7 @@ import type { UploadedImage } from '../types'
 export interface FetchPromptResponseParams {
 	prompt?: string
 	userQuestion: string
+	timezone?: string
 	onProgress?: (data: {
 		type:
 			| 'token'
@@ -56,6 +57,7 @@ export interface FetchPromptResponseParams {
 export async function fetchPromptResponse({
 	prompt,
 	userQuestion,
+	timezone,
 	onProgress,
 	abortSignal,
 	sessionId,
@@ -73,7 +75,8 @@ export async function fetchPromptResponse({
 		const requestBody: any = {
 			message: userQuestion,
 			stream: true,
-			mode: mode
+			mode: mode,
+			timezone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
 		}
 
 		if (resume) {

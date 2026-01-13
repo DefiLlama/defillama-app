@@ -101,6 +101,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			citations?: string[]
 			inlineSuggestions?: string
 			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+			savedAlertIds?: string[]
 		}>
 	>([])
 	const [paginationState, setPaginationState] = useState<{
@@ -1150,13 +1151,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																		charts={hasInlineCharts ? item.charts : undefined}
 																		chartData={hasInlineCharts ? item.chartData : undefined}
 																		inlineChartConfig={
-																			hasInlineCharts
+																			hasInlineCharts || item.content?.includes('[ALERT:')
 																				? {
 																						resizeTrigger,
 																						saveableChartIds:
 																							readOnly || !showDebug ? [] : item.metadata?.saveableChartIds,
 																						savedChartIds: item.metadata?.savedChartIds,
-																						messageId: item.messageId
+																						messageId: item.messageId,
+																						alertIntent: item.metadata?.alertIntent,
+																						savedAlertIds: item.savedAlertIds || item.metadata?.savedAlertIds
 																					}
 																				: undefined
 																		}
@@ -1205,13 +1208,15 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 																			charts={hasInlineCharts ? itemCharts : undefined}
 																			chartData={hasInlineCharts ? itemChartData : undefined}
 																			inlineChartConfig={
-																				hasInlineCharts
+																				hasInlineCharts || item.response?.answer?.includes('[ALERT:')
 																					? {
 																							resizeTrigger,
 																							saveableChartIds:
 																								readOnly || !showDebug ? [] : item.response?.metadata?.saveableChartIds,
 																							savedChartIds: item.response?.metadata?.savedChartIds,
-																							messageId: item.messageId
+																							messageId: item.messageId,
+																							alertIntent: item.response?.metadata?.alertIntent,
+																							savedAlertIds: item.savedAlertIds || item.response?.metadata?.savedAlertIds
 																						}
 																					: undefined
 																			}
@@ -1302,7 +1307,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															saveableChartIds:
 																readOnly || !showDebug ? [] : promptResponse?.response?.metadata?.saveableChartIds,
 															savedChartIds: promptResponse?.response?.metadata?.savedChartIds,
-															messageId: currentMessageId ?? undefined
+															messageId: currentMessageId ?? undefined,
+															alertIntent: promptResponse?.response?.metadata?.alertIntent,
+															savedAlertIds: promptResponse?.response?.metadata?.savedAlertIds
 														}}
 														streamingCsvExports={streamingCsvExports}
 														researchState={researchState}

@@ -5,8 +5,9 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import type { ChartConfiguration } from '../types'
+import type { AlertIntent, ChartConfiguration } from '../types'
 import { getEntityUrl } from '../utils/entityLinks'
+import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
@@ -15,6 +16,8 @@ interface InlineChartConfig {
 	saveableChartIds?: string[]
 	savedChartIds?: string[]
 	messageId?: string
+	alertIntent?: AlertIntent
+	savedAlertIds?: string[]
 }
 
 interface MarkdownRendererProps {
@@ -134,14 +137,22 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	inlineChartConfig,
 	csvExports
 }: MarkdownRendererProps) {
-	const { contentParts, inlineChartIds, inlineCsvIds } = useMemo(() => {
+	const { contentParts, inlineChartIds, inlineCsvIds, inlineAlertIds } = useMemo(() => {
 		const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 		const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
-		const parts: Array<{ type: 'text' | 'chart' | 'csv'; content: string; chartId?: string; csvId?: string }> = []
+		const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
+		const parts: Array<{
+			type: 'text' | 'chart' | 'csv' | 'alert'
+			content: string
+			chartId?: string
+			csvId?: string
+			alertId?: string
+		}> = []
 		const foundChartIds = new Set<string>()
 		const foundCsvIds = new Set<string>()
+		const foundAlertIds = new Set<string>()
 
-		const allMatches: Array<{ index: number; length: number; type: 'chart' | 'csv'; id: string }> = []
+		const allMatches: Array<{ index: number; length: number; type: 'chart' | 'csv' | 'alert'; id: string }> = []
 
 		let match: RegExpExecArray | null
 		while ((match = chartPlaceholderPattern.exec(content)) !== null) {
@@ -151,6 +162,10 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 		while ((match = csvPlaceholderPattern.exec(content)) !== null) {
 			allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
 			foundCsvIds.add(match[1])
+		}
+		while ((match = alertPlaceholderPattern.exec(content)) !== null) {
+			allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
+			foundAlertIds.add(match[1])
 		}
 
 		allMatches.sort((a, b) => a.index - b.index)
@@ -162,8 +177,10 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 			}
 			if (m.type === 'chart') {
 				parts.push({ type: 'chart', content: '', chartId: m.id })
-			} else {
+			} else if (m.type === 'csv') {
 				parts.push({ type: 'csv', content: '', csvId: m.id })
+			} else {
+				parts.push({ type: 'alert', content: '', alertId: m.id })
 			}
 			lastIndex = m.index + m.length
 		}
@@ -176,7 +193,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 			parts.push({ type: 'text', content })
 		}
 
-		return { contentParts: parts, inlineChartIds: foundChartIds, inlineCsvIds: foundCsvIds }
+		return { contentParts: parts, inlineChartIds: foundChartIds, inlineCsvIds: foundCsvIds, inlineAlertIds: foundAlertIds }
 	}, [content])
 
 	const processCitations = useMemo(() => {
@@ -259,7 +276,7 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 
 	return (
 		<div className="prose llamaai-prose prose-sm dark:prose-invert prose-a:no-underline flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal">
-			{inlineChartIds.size > 0 || inlineCsvIds.size > 0
+			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
 				? contentParts.map((part, index) => {
 						if (part.type === 'chart' && part.chartId) {
 							const chart = charts?.find((c) => c.id === part.chartId)
@@ -299,6 +316,22 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 								return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
 							}
 							return null
+						}
+						if (part.type === 'alert' && part.alertId) {
+							if (inlineChartConfig?.alertIntent) {
+								return (
+									<AlertArtifact
+										key={`alert-${part.alertId}-${index}`}
+										alertId={part.alertId}
+										alertIntent={inlineChartConfig.alertIntent}
+										messageId={inlineChartConfig.messageId}
+										savedAlertIds={inlineChartConfig.savedAlertIds}
+									/>
+								)
+							}
+							if (isStreaming || !inlineChartConfig?.alertIntent) {
+								return <AlertArtifactLoading key={`alert-loading-${part.alertId}-${index}`} />
+							}
 						}
 						if (part.content.trim()) {
 							return renderMarkdownSection(processCitations(part.content), `text-${index}`)

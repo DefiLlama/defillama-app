@@ -40,6 +40,8 @@ interface PromptResponseProps {
 		saveableChartIds?: string[]
 		savedChartIds?: string[]
 		messageId?: string
+		alertIntent?: import('../types').AlertIntent
+		savedAlertIds?: string[]
 	}
 	streamingCsvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }> | null
 	researchState?: {

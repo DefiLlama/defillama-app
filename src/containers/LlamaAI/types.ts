@@ -65,3 +65,24 @@ export interface UploadedImage {
 	filename?: string
 	size: number
 }
+
+// Alert-related types for scheduled data delivery
+export interface AlertIntent {
+	detected: boolean
+	frequency: 'daily' | 'weekly'
+	hour: number
+	timezone: string
+	dayOfWeek?: number
+	toolExecutions: Array<{
+		toolName: string
+		arguments: Record<string, any>
+		sqlQuery: string | null
+	}>
+}
+
+export interface AlertConfig {
+	frequency: 'daily' | 'weekly'
+	hour: number
+	timezone: string
+	dayOfWeek?: number
+}
