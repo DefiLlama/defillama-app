@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
+import { isSessionPinned, subscribeToPinnedSessions } from '../utils/pinnedSessions'
 import { SessionItem } from './SessionItem'
 
 interface ChatHistorySidebarProps {
@@ -43,9 +45,32 @@ export function ChatHistorySidebar({
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 
+	// Subscribe to pinned sessions changes to trigger re-renders
+	const _pinnedSessions = useSyncExternalStore(
+		subscribeToPinnedSessions,
+		() => localStorage.getItem('llamaai-pinned-sessions') ?? '[]',
+		() => '[]'
+	)
+
 	const groupedSessions = useMemo(() => {
-		return Object.entries(
-			sessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
+		// Separate pinned and unpinned sessions
+		const pinnedSessions: ChatSession[] = []
+		const unpinnedSessions: ChatSession[] = []
+
+		sessions.forEach((session) => {
+			if (isSessionPinned(session.sessionId)) {
+				pinnedSessions.push(session)
+			} else {
+				unpinnedSessions.push(session)
+			}
+		})
+
+		// Sort pinned sessions by last activity (most recent first)
+		pinnedSessions.sort((a, b) => Date.parse(b.lastActivity) - Date.parse(a.lastActivity))
+
+		// Group unpinned sessions by date
+		const unpinnedGrouped = Object.entries(
+			unpinnedSessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
 				const groupName = getGroupName(session.lastActivity)
 				acc[groupName] = [...(acc[groupName] || []), session]
 				return acc
@@ -53,7 +78,18 @@ export function ChatHistorySidebar({
 		).sort((a, b) => Date.parse(b[1][0].lastActivity) - Date.parse(a[1][0].lastActivity)) as Array<
 			[string, Array<ChatSession>]
 		>
-	}, [sessions])
+
+		// Combine: pinned first, then unpinned grouped by date
+		const result: Array<[string, Array<ChatSession>]> = []
+		
+		if (pinnedSessions.length > 0) {
+			result.push(['Pinned', pinnedSessions])
+		}
+		
+		result.push(...unpinnedGrouped)
+		
+		return result
+	}, [sessions, _pinnedSessions])
 
 	const virtualItems = useMemo(() => {
 		const items: VirtualItem[] = []

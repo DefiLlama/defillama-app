@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -9,6 +10,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
+import { isSessionPinned, togglePinSession, subscribeToPinnedSessions } from '../utils/pinnedSessions'
 
 interface SessionItemProps {
 	session: ChatSession
@@ -22,6 +24,20 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
+
+	// Subscribe to pinned sessions changes to trigger re-renders
+	useSyncExternalStore(
+		subscribeToPinnedSessions,
+		() => localStorage.getItem('llamaai-pinned-sessions') ?? '[]',
+		() => '[]'
+	)
+	
+	const isPinned = isSessionPinned(session.sessionId)
+
+	const handleTogglePin = (e: React.MouseEvent) => {
+		e.stopPropagation()
+		togglePinSession(session.sessionId)
+	}
 
 	const handleSessionClick = async (sessionId: string) => {
 		if (isActive) return
@@ -150,11 +166,29 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 					handleSessionClick(session.sessionId)
 				}}
 				aria-disabled={isEditing || isDeletingSession || isRestoringSession}
-				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
+				className="min-w-0 flex-1 overflow-hidden p-1.5 pr-0 text-left text-ellipsis whitespace-nowrap group-hover:pr-20 aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.title}
 			</button>
-			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
+			<div className="absolute right-0 flex shrink-0 items-center justify-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+				<Tooltip
+					content={isPinned ? 'Unpin Chat' : 'Pin Chat'}
+					render={
+						<button
+							onClick={handleTogglePin}
+							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
+						/>
+					}
+					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				>
+					<Icon
+						name="pin"
+						height={12}
+						width={12}
+						className={`shrink-0 ${isPinned ? 'rotate-45' : ''}`}
+						style={{ '--icon-fill': isPinned ? 'currentColor' : 'none' } as React.CSSProperties}
+					/>
+				</Tooltip>
 				<Tooltip
 					content="Edit Session Title"
 					render={
