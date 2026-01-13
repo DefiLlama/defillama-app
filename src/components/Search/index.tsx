@@ -78,7 +78,7 @@ export const MobileSearch = () => {
 					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
-						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
@@ -273,7 +273,7 @@ export const DesktopSearch = () => {
 					data-umami-event-subscribed={hasActiveSubscription ? 'true' : 'false'}
 				>
 					<svg className="h-4 w-4 shrink-0">
-						<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
 					<span className="whitespace-nowrap">Ask LlamaAI</span>
 				</BasicLink>

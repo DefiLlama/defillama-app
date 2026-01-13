@@ -572,7 +572,7 @@ const nextConfig: NextConfig = {
 				]
 			},
 			{
-				source: '/assets/llamaai.mp4',
+				source: '/assets/llamaai/llamaai.mp4',
 				headers: [
 					{
 						key: 'Accept-Ranges',

@@ -1078,7 +1078,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-									<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<img
+										src="/assets/llamaai/llama-ai.svg"
+										alt="LlamaAI"
+										className="object-contain"
+										width={64}
+										height={77}
+									/>
 									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
@@ -1312,7 +1318,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										</div>
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-											<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+											<img
+												src="/assets/llamaai/llama-ai.svg"
+												alt="LlamaAI"
+												className="object-contain"
+												width={64}
+												height={77}
+											/>
 											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}

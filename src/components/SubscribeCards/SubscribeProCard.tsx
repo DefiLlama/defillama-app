@@ -76,7 +76,7 @@ function SubscribeProCardContent({
 								LlamaAI
 							</Link>{' '}
 							<svg className="relative mx-1 inline-block h-4 w-4">
-								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 							</svg>{' '}
 							- conversational analysis of DefiLlama data
 						</span>

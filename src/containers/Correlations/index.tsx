@@ -63,7 +63,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 									width={'24px'}
 									loading="lazy"
 									onError={(e) => {
-										e.currentTarget.src = '/icons/placeholder.png'
+										e.currentTarget.src = '/assets/placeholder.png'
 									}}
 									className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 								/>
@@ -209,7 +209,7 @@ export default function Correlations({ coinsData }) {
 										width={'24px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/icons/placeholder.png'
+											e.currentTarget.src = '/assets/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -260,7 +260,7 @@ export default function Correlations({ coinsData }) {
 													width={'24px'}
 													loading="lazy"
 													onError={(e) => {
-														e.currentTarget.src = '/icons/placeholder.png'
+														e.currentTarget.src = '/assets/placeholder.png'
 													}}
 													className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 												/>
