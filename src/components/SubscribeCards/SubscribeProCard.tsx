@@ -28,18 +28,20 @@ interface SubscribeProCardProps {
 function SubscribeProCardContent({
 	billingInterval = 'month',
 	isTrialAvailable = false,
-	isAuthenticated = false
+	isAuthenticated = false,
+	isTrialActive = false
 }: {
 	billingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
 	isAuthenticated?: boolean
+	isTrialActive?: boolean
 }) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
 
-	const showTrialAvailable = !isAuthenticated || isTrialAvailable
+	const showTrialAvailable = !isAuthenticated || isTrialAvailable || isTrialActive
 
 	return (
 		<>
@@ -81,13 +83,21 @@ function SubscribeProCardContent({
 							- conversational analysis of DefiLlama data
 						</span>
 					</li>
+					<li className="group ml-6 flex items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
+						<span>Deep research: {showTrialAvailable ? '3' : '5'}/day</span>
+						{showTrialAvailable ? (
+							<QuestionHelper text="During trial, deep research is limited to 3/day. Full subscription includes 5/day." />
+						) : null}
+					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 						<span>DefiLlama Pro Dashboards - build custom dashboards</span>
 					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<li className="flex flex-nowrap items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
 						<span>CSV Downloads - export any dataset</span>
+						{showTrialAvailable ? <QuestionHelper text="CSV downloads are disabled during the trial period." /> : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -129,7 +139,7 @@ export function SubscribeProCard({
 	currentBillingInterval
 }: SubscribeProCardProps) {
 	const { loading, isTrialAvailable } = useSubscribe()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, isTrial } = useAuthContext()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 	const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
 
@@ -142,6 +152,7 @@ export function SubscribeProCard({
 			<SubscribeProCardContent
 				billingInterval={billingInterval}
 				isTrialAvailable={isTrialAvailable}
+				isTrialActive={isTrial}
 				isAuthenticated={isAuthenticated}
 			/>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
@@ -239,7 +250,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, isTrial } = useAuthContext()
 
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -271,6 +282,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 								</Ariakit.DialogDismiss>
 								<SubscribeProCardContent
 									isAuthenticated={isAuthenticated}
+									isTrialActive={isTrial}
 									billingInterval={props.billingInterval}
 									isTrialAvailable={true}
 								/>
