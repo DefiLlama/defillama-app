@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -10,7 +9,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
-import { isSessionPinned, togglePinSession, subscribeToPinnedSessions } from '../utils/pinnedSessions'
+import { isSessionPinned, subscribeToPinnedSessions, togglePinSession } from '../utils/pinnedSessions'
 
 interface SessionItemProps {
 	session: ChatSession
@@ -31,7 +30,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 		() => localStorage.getItem('llamaai-pinned-sessions') ?? '[]',
 		() => '[]'
 	)
-	
+
 	const isPinned = isSessionPinned(session.sessionId)
 
 	const handleTogglePin = (e: React.MouseEvent) => {
@@ -174,10 +173,7 @@ export function SessionItem({ session, isActive, onSessionSelect, handleSidebarT
 				<Tooltip
 					content={isPinned ? 'Unpin Chat' : 'Pin Chat'}
 					render={
-						<button
-							onClick={handleTogglePin}
-							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
-						/>
+						<button onClick={handleTogglePin} disabled={isUpdatingTitle || isDeletingSession || isRestoringSession} />
 					}
 					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>

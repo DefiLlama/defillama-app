@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
-import { useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -81,13 +80,13 @@ export function ChatHistorySidebar({
 
 		// Combine: pinned first, then unpinned grouped by date
 		const result: Array<[string, Array<ChatSession>]> = []
-		
+
 		if (pinnedSessions.length > 0) {
 			result.push(['Pinned', pinnedSessions])
 		}
-		
+
 		result.push(...unpinnedGrouped)
-		
+
 		return result
 	}, [sessions, _pinnedSessions])
 

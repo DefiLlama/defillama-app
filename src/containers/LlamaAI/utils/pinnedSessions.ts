@@ -18,20 +18,24 @@ export const isSessionPinned = (sessionId: string): boolean => {
 }
 
 export const togglePinSession = (sessionId: string): boolean => {
+	if (typeof window === 'undefined') return false
+
 	const currentPinned = getStoredPinnedSessions()
 	const isPinned = currentPinned.includes(sessionId)
-	
-	const nextPinned = isPinned
-		? currentPinned.filter((id) => id !== sessionId)
-		: [...currentPinned, sessionId]
+
+	const nextPinned = isPinned ? currentPinned.filter((id) => id !== sessionId) : [...currentPinned, sessionId]
 
 	window.localStorage.setItem(PINNED_SESSIONS_KEY, JSON.stringify(nextPinned))
 	window.dispatchEvent(new Event('pinnedSessionsChange'))
-	
+
 	return !isPinned
 }
 
 export const subscribeToPinnedSessions = (callback: () => void) => {
+	if (typeof window === 'undefined') {
+		return () => {}
+	}
+
 	window.addEventListener('pinnedSessionsChange', callback)
 	return () => {
 		window.removeEventListener('pinnedSessionsChange', callback)
