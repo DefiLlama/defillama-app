@@ -54,8 +54,8 @@ function SubscribeProCardContent({
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
 				{showTrialAvailable && (
-					<div className="flex items-center">
-						<span className="text-sm font-bold">Free 7-day trial available</span>
+					<div className="flex items-center justify-center">
+						<span className="inline-block rounded-full bg-gradient-to-r from-emerald-500/70 to-teal-500/60 border border-emerald-300 px-3.5 py-1.5 text-xs font-semibold text-emerald-50 shadow-lg shadow-emerald-500/30 backdrop-blur-sm">Free 7-day trial available</span>
 					</div>
 				)}
 				{billingInterval === 'year' && (
@@ -63,7 +63,7 @@ function SubscribeProCardContent({
 				)}
 			</div>
 			{billingInterval === 'month' && (
-				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+				<p className="relative z-10 mt-1 text-center text-xs font-medium text-[#8a8c90]">Multiple payment options</p>
 			)}
 			<div className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<h3 className="font-semibold">Access to:</h3>
@@ -171,7 +171,7 @@ export function SubscribeProCard({
 					</div>
 				) : (
 					<>
-						<SignInModal text="Already a subscriber? Sign In" />
+						<SignInModal text="Already a subscriber? Sign In" className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-xs font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed" />
 						{isAuthenticated && isTrialAvailable && (
 							<div className="flex flex-col gap-1.5">
 								<button

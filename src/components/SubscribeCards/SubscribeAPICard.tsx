@@ -49,7 +49,7 @@ export function SubscribeAPICard({
 				)}
 			</div>
 			{billingInterval === 'month' && (
-				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
+				<p className="relative z-10 mt-1 text-center text-xs font-medium text-[#8a8c90]">Multiple payment options</p>
 			)}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
@@ -68,20 +68,30 @@ export function SubscribeAPICard({
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 					<span>Priority support</span>
 				</li>
-				<p className="px-6.5 font-medium">
-					<a href="https://api-docs.defillama.com/" target="_blank" rel="noreferrer noopener" className="underline">
-						Pro API
-					</a>{' '}
-					limits:
-				</p>
-				<li className="flex flex-col gap-2 px-6.5">
-					<span>1000 requests/minute</span>
-				</li>
-				<li className="flex flex-col gap-2 px-6.5">
-					<span>1M calls/month</span>
-				</li>
-				<li className="flex flex-col gap-2 px-6.5">
-					<span>$0.60 per 1,000 additional calls after 1M limit</span>
+				<li className="mt-2 rounded-lg border border-[#5C5CF9]/20 bg-gradient-to-br from-[#1a1f35]/30 to-[#0f1119]/50 backdrop-blur-sm p-3">
+					<div className="space-y-2">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<div className="h-2 w-2 rounded-full bg-[#5C5CF9]"></div>
+								<span className="text-xs font-semibold text-[#8a8c90] uppercase tracking-wide">Requests/min</span>
+							</div>
+							<span className="text-sm font-semibold text-white">1000</span>
+						</div>
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<div className="h-2 w-2 rounded-full bg-[#5C5CF9]"></div>
+								<span className="text-xs font-semibold text-[#8a8c90] uppercase tracking-wide">Calls/month</span>
+							</div>
+							<span className="text-sm font-semibold text-white">1M</span>
+						</div>
+						<div className="flex items-center justify-between pt-1 border-t border-[#5C5CF9]/10">
+							<span className="text-xs font-semibold text-[#8a8c90] uppercase tracking-wide">Overage</span>
+							<span className="text-xs font-semibold text-white">$0.60 per 1K</span>
+						</div>
+						<a href="https://api-docs.defillama.com/" target="_blank" rel="noreferrer noopener" className="inline-block pt-1 text-xs text-[#5C5CF9] hover:text-[#7B7BFF] transition-colors">
+							View API docs →
+						</a>
+					</div>
 				</li>
 			</ul>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
@@ -124,7 +134,7 @@ export function SubscribeAPICard({
 					<>
 						{context === 'page' && (
 							<>
-								<SignInModal text="Already a subscriber? Sign In" />
+								<SignInModal text="Already a subscriber? Sign In" className="mx-auto w-full rounded-lg border border-[#39393E] py-2 text-xs font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed" />
 								<div
 									className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 								>
