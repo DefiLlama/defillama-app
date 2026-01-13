@@ -1,48 +1,56 @@
 import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './perf'
 
+function shouldRetryError(error: unknown): boolean {
+	if (!(error instanceof Error)) return false
+	const message = error.message.toLowerCase()
+	return (
+		message.includes('socket') ||
+		message.includes('connection') ||
+		message.includes('econnreset') ||
+		message.includes('econnrefused') ||
+		message.includes('etimedout') ||
+		message.includes('network') ||
+		message.includes('fetch failed')
+	)
+}
+
 async function fetchWithErrorLogging(
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions,
 	retry: boolean = false
 ): Promise<Response> {
 	const start = Date.now()
-	try {
-		const res = await fetchWithPoolingOnServer(url, options)
-		if (res.status !== 200) {
-			// const end = Date.now()
-			// postRuntimeLogs(`[HTTP] [error] [${res.status}] [${end - start}ms] < ${url} >`)
-		}
-		return res
-	} catch (error) {
-		if (retry) {
-			try {
-				const res = await fetchWithPoolingOnServer(url, options)
-				if (res.status >= 400) {
-					const end = Date.now()
-					postRuntimeLogs(`[HTTP] [1] [error] [${res.status}] [${end - start}ms] < ${url} >`)
-				}
-				return res
-			} catch (error) {
-				try {
-					const res = await fetchWithPoolingOnServer(url, options)
-					if (res.status >= 400) {
-						const end = Date.now()
-						postRuntimeLogs(`[HTTP] [2] [error] [${res.status}] [${end - start}ms] < ${url} >`)
-					}
-					return res
-				} catch (error) {
-					const end = Date.now()
-					postRuntimeLogs(
-						`[HTTP] [3] [error] [fetch] [${(error as Error).name}] [${(error as Error).message}] [${
-							end - start
-						}ms] < ${url} >`
-					)
-					return null
-				}
+	const maxRetries = retry ? 3 : 2
+	let lastError: Error | null = null
+
+	for (let attempt = 0; attempt < maxRetries; attempt++) {
+		try {
+			const res = await fetchWithPoolingOnServer(url, options)
+			return res
+		} catch (error) {
+			lastError = error instanceof Error ? error : new Error(String(error))
+
+			const shouldRetry = retry || shouldRetryError(error)
+			const isLastAttempt = attempt === maxRetries - 1
+
+			if (shouldRetry && !isLastAttempt) {
+				const delay = Math.min(100 * Math.pow(2, attempt), 1000)
+				await sleep(delay)
+				continue
 			}
+
+			if (isLastAttempt && attempt > 0) {
+				const end = Date.now()
+				postRuntimeLogs(
+					`[HTTP] [${attempt + 1}] [error] [fetch] [${lastError.name}] [${lastError.message}] [${end - start}ms] < ${url} >`
+				)
+			}
+
+			throw lastError
 		}
-		throw error
 	}
+
+	throw lastError
 }
 
 export async function sleep(ms: number): Promise<void> {
