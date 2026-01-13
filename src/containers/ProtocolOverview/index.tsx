@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useRef } from 'react'
 import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
@@ -16,6 +16,7 @@ import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
+import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
@@ -95,7 +96,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 							formatPrice={formatPrice}
 						/>
 					)}
-					<KeyMetrics {...props} formatPrice={formatPrice} />
+					<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -134,7 +135,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					</div>
 					{props.hasKeyMetrics ? (
 						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
-							<KeyMetrics {...props} formatPrice={formatPrice} />
+							<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 						</div>
 					) : null}
 				</div>
@@ -333,23 +334,41 @@ const PrimaryValue = ({
 
 interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	formatPrice: (value: number | string | null) => string | number | null
+	tvl?: number
+	computedOracleTvs?: number
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {
+	const containerRef = useRef<HTMLDivElement>(null)
+
 	if (!props.hasKeyMetrics) return null
+
+	const isOracleProtocol = props.oracleTvs != null
+	const primaryValue = isOracleProtocol ? props.computedOracleTvs : props.tvl
+	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : props.category)
+
 	return (
 		<div className="flex flex-1 flex-col gap-2">
-			<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
-				Key Metrics
-				<a
-					aria-hidden="true"
-					tabIndex={-1}
-					href="#key-metrics"
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+			<div className="flex items-center justify-between">
+				<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
+					Key Metrics
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#key-metrics"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					/>
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				</h2>
+				<KeyMetricsPngExportButton
+					containerRef={containerRef}
+					protocolName={props.name}
+					primaryValue={primaryValue}
+					primaryLabel={primaryLabel}
+					formatPrice={props.formatPrice}
 				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-			</h2>
-			<div className="flex flex-col">
+			</div>
+			<div className="flex flex-col" ref={containerRef}>
 				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
