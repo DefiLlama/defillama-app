@@ -1,0 +1,48 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(yarn)",
+			"Bash(yarn add:*)",
+			"Bash(yarn install:*)",
+			"Bash(yarn config:*)",
+			"Bash(yarn run lint)",
+			"Bash(yarn run:*)",
+			"Bash(yarn dlx:*)"
+		],
+		"deny": [
+			"Read(.env)",
+			"Read(**/.env*)",
+			"Read(**/env*)",
+			"Read(**/*.pem)",
+			"Read(**/*.key)",
+			"Read(**/*.crt)",
+			"Read(**/*.cert)",
+			"Read(**/secrets/**)",
+			"Read(**/credentials/**)"
+		]
+	},
+	"hooks": {
+		"PreToolUse": [
+			{
+				"matcher": "Bash",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run ~/.claude/hooks/use_yarn.py"
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Write|Edit|MultiEdit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "uv run ~/.claude/hooks/ts_lint.py"
+					}
+				]
+			}
+		]
+	}
+}
