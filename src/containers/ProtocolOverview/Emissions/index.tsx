@@ -18,6 +18,7 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
+import Link from 'next/link'
 
 const getExtendedCategories = (baseCategories: string[], isPriceEnabled: boolean) => {
 	const extended = [...baseCategories]
@@ -145,7 +146,20 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const groupedEvents = useMemo(() => groupBy(data.events, (event) => event.timestamp), [data.events])
-	const sortedEvents = useMemo(() => Object.entries(groupedEvents).sort(([a], [b]) => +a - +b), [groupedEvents])
+
+	const sortedEvents = useMemo(() => {
+		const now = Date.now() / 1e3
+		const entries = Object.entries(groupedEvents)
+
+		const upcomingEvents = entries.filter(([ts]) => +ts > now).sort(([a], [b]) => +a - +b) // near to far
+
+		const pastEvents = upcomingEvents.length > 0 ?
+			entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
+			: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
+
+		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
+	}, [groupedEvents])
+
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
@@ -475,8 +489,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div>
 				{data.token &&
-				Object.entries(tokenAllocation.current || {}).length &&
-				Object.entries(tokenAllocation.final || {}).length ? (
+					Object.entries(tokenAllocation.current || {}).length &&
+					Object.entries(tokenAllocation.final || {}).length ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex w-full flex-col gap-2 text-base">
@@ -536,32 +550,33 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				{data.sources?.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Sources</h1>
-						<div className="flex w-full flex-col gap-2 text-base">
+						<ul className="mt-4 w-full list-disc space-y-2 text-base pl-4">
 							{data.sources.map((source, i) => (
-								<a
-									href={source}
-									key={source}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-2 text-base font-medium"
-								>
-									<span>
-										{i + 1} {new URL(source).hostname}
-									</span>
-									<Icon name="external-link" height={16} width={16} />
-								</a>
+								<li key={source}>
+									<Link
+										href={source}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-2 text-base font-medium"
+									>
+										<span>
+											{i + 1} {new URL(source).hostname}
+										</span>
+										<Icon name="external-link" height={16} width={16} />
+									</Link>
+								</li>
 							))}
-						</div>
+						</ul>
 					</div>
 				) : null}
 				{data.notes?.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Notes</h1>
-						<div className="flex w-full flex-col gap-2 text-base">
+						<ul className="mt-4 w-full list-disc space-y-2 text-base pl-4">
 							{data.notes.map((note) => (
-								<p key={note}>{note}</p>
+								<li key={note}>{note}</li>
 							))}
-						</div>
+						</ul>
 					</div>
 				) : null}
 				{data.futures?.openInterest || data.futures?.fundingRate ? (
