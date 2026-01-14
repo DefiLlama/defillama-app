@@ -10,6 +10,7 @@ interface KeyMetricsPngExportButtonProps {
 	primaryValue?: number
 	primaryLabel: string
 	formatPrice: (value: number | string | null) => string | number | null
+	hasTvlData?: boolean
 }
 
 interface MetricRow {
@@ -135,7 +136,8 @@ export function KeyMetricsPngExportButton({
 	protocolName,
 	primaryValue,
 	primaryLabel,
-	formatPrice
+	formatPrice,
+	hasTvlData = false
 }: KeyMetricsPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const [isDark] = useDarkModeManager()
@@ -149,7 +151,7 @@ export function KeyMetricsPngExportButton({
 			const container = containerRef.current
 			const rows = extractRows(container)
 
-			const hasPrimaryValue = primaryValue != null
+			const hasPrimaryValue = hasTvlData && primaryValue != null
 			const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
 
 			if (!hasPrimaryValue && rows.length === 0) {
