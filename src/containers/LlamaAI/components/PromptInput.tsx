@@ -9,6 +9,7 @@ import { useGetEntities } from '../hooks/useGetEntities'
 import { getAnchorRect, getSearchValue, getTrigger, getTriggerOffset, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize, syncHighlightScroll } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
+import { ImagePreviewModal } from './ImagePreviewModal'
 
 interface PromptInputProps {
 	handleSubmit: (
@@ -34,6 +35,9 @@ interface PromptInputProps {
 		period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
 		resetTime: string | null
 	} | null
+	droppedFiles?: File[] | null
+	clearDroppedFiles?: () => void
+	externalDragging?: boolean
 }
 
 export const PromptInput = memo(function PromptInput({
@@ -46,12 +50,16 @@ export const PromptInput = memo(function PromptInput({
 	restoreRequest,
 	isResearchMode,
 	setIsResearchMode,
-	researchUsage
+	researchUsage,
+	droppedFiles,
+	clearDroppedFiles,
+	externalDragging
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const [selectedImages, setSelectedImages] = useState<Array<{ file: File; url: string }>>([])
 	const [isDragging, setIsDragging] = useState(false)
 	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
+	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const dragCounterRef = useRef(0)
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
@@ -63,7 +71,17 @@ export const PromptInput = memo(function PromptInput({
 		const valid = files.filter((f) => f.size <= 10 * 1024 * 1024 && f.type.startsWith('image/'))
 		if (valid.length === 0) return
 
-		const newImages = valid.map((file) => ({ file, url: URL.createObjectURL(file) }))
+		const newImages: Array<{ file: File; url: string }> = []
+		for (const file of valid) {
+			try {
+				const url = URL.createObjectURL(file)
+				newImages.push({ file, url })
+			} catch (error) {
+				console.error('Failed to create object URL for file:', file.name, error)
+			}
+		}
+
+		if (newImages.length === 0) return
 
 		setSelectedImages((prev) => {
 			const totalCount = prev.length + newImages.length
@@ -184,6 +202,20 @@ export const PromptInput = memo(function PromptInput({
 			combobox.hide()
 		}
 	}, [combobox])
+
+	// Handle externally dropped files from parent container
+	useEffect(() => {
+		if (droppedFiles && droppedFiles.length > 0) {
+			try {
+				addImages(droppedFiles)
+			} catch (error) {
+				console.error('Failed to add dropped images:', error)
+			} finally {
+				clearDroppedFiles?.()
+				promptInputRef.current?.focus()
+			}
+		}
+	}, [droppedFiles, clearDroppedFiles, promptInputRef])
 
 	const getFinalEntities = () => {
 		const currentValue = promptInputRef.current?.value ?? ''
@@ -357,7 +389,7 @@ export const PromptInput = memo(function PromptInput({
 		const triggerOffset = getTriggerOffset(event.target)
 		const actualTrigger = triggerOffset !== -1 ? event.target.value[triggerOffset] : null
 		const searchValueWithTrigger =
-		actualTrigger === '$' ? `$${searchValue}` : actualTrigger === '@' ? `@${searchValue}` : searchValue
+			actualTrigger === '$' ? `$${searchValue}` : actualTrigger === '@' ? `@${searchValue}` : searchValue
 
 		if (typeof window !== 'undefined') {
 			const anchor = getAnchorRect(event.target)
@@ -463,7 +495,7 @@ export const PromptInput = memo(function PromptInput({
 					}
 				}}
 			>
-				{isDragging && (
+				{(isDragging || externalDragging) && (
 					<div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center rounded-lg border-2 border-dashed border-(--old-blue) bg-(--old-blue)/10 backdrop-blur-[2px]">
 						<div className="flex items-center gap-2">
 							<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
@@ -497,7 +529,9 @@ export const PromptInput = memo(function PromptInput({
 					<div className="flex flex-wrap gap-2">
 						{selectedImages.map(({ file, url }, idx) => (
 							<div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg">
-								<img src={url} alt={file.name} className="h-full w-full object-cover" />
+								<button type="button" onClick={() => setPreviewImage(url)} className="h-full w-full cursor-pointer">
+									<img src={url} alt={file.name} className="h-full w-full object-cover" />
+								</button>
 								<button
 									type="button"
 									onClick={() => removeImage(idx)}
@@ -510,6 +544,7 @@ export const PromptInput = memo(function PromptInput({
 						))}
 					</div>
 				)}
+				<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 				<div className="relative w-full">
 					<Ariakit.Combobox
 						store={combobox}
