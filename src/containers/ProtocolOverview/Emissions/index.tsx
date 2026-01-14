@@ -16,6 +16,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import useWindowSize from '~/hooks/useWindowSize'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import Pagination from './Pagination'
 import { IEmission } from './types'
 
@@ -282,6 +283,29 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		)
 	}, [data.categoriesBreakdown])
 
+	const prepareCsv = useMemo(() => {
+		return () => {
+			if (!displayData || displayData.length === 0) {
+				return { filename: `${data.name}-unlock-schedule.csv`, rows: [['Date']] }
+			}
+
+			const firstRow = displayData[0]
+			const columns = Object.keys(firstRow).filter((key) => key !== 'date')
+			const headers = ['Date', ...columns]
+
+			const rows: string[][] = [headers]
+			for (const item of displayData) {
+				const dateTimestamp = typeof item.date === 'string' ? parseInt(item.date, 10) : item.date
+				const date = new Date(dateTimestamp * 1000).toISOString().split('T')[0]
+				const row: string[] = [date, ...columns.map((col) => String(item[col] || 0))]
+				rows.push(row)
+			}
+
+			const filename = `${slug(data.name)}-unlock-schedule-${new Date().toISOString().split('T')[0]}.csv`
+			return { filename, rows }
+		}
+	}, [displayData, data.name])
+
 	if (!data) return null
 
 	return (
@@ -388,6 +412,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="m-2 flex items-center justify-end gap-2">
 							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
