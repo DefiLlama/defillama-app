@@ -5,7 +5,7 @@ import type {
 	IMultiSeriesChartProps,
 	IPieChartProps
 } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { generateChartColor } from '~/containers/ProDashboard/utils'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, getNDistinctColors } from '~/utils'

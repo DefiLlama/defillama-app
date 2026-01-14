@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
 import { buildStablecoinChartData, formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-import { getDominancePercent, preparePieChartData } from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
+import { getDominancePercent } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinsChartDataResult {

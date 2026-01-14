@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getForkPageData } from '~/containers/Forks/queries'
 import { useCalcGroupExtraTvlsByDay, useCalcStakePool2Tvl } from '~/hooks/data'
 import Layout from '~/layout'
-import { preparePieChartData } from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>

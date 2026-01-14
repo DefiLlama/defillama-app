@@ -65,11 +65,11 @@ export default function LlamaAIPage() {
 						to access this page.
 					</p>
 				</div>
-				{shouldRenderModal && (
+				{shouldRenderModal ? (
 					<Suspense fallback={<></>}>
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
-				)}
+				) : null}
 			</Layout>
 		)
 	}

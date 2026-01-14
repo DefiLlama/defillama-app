@@ -115,11 +115,11 @@ export const CSVDownloadButton = memo(function CSVDownloadButton({
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap">{smol ? '.csv' : 'Download .csv'}</span>
 				)}
 			</button>
-			{shouldRenderModal && (
+			{shouldRenderModal ? (
 				<Suspense fallback={<></>}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
-			)}
+			) : null}
 		</>
 	)
 })

@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
@@ -76,7 +76,8 @@ function ProContent({
 	const { tab } = router.query
 	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
 
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
 
@@ -259,9 +260,9 @@ function ProContent({
 				/>
 			</Suspense>
 
-			<Suspense fallback={<></>}>
+			{shouldRenderModal ? <Suspense fallback={<></>}>
 				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			</Suspense> : null}
 		</div>
 	)
 }

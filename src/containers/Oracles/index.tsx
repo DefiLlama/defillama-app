@@ -9,7 +9,8 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useCalcGroupExtraTvlsByDay } from '~/hooks/data'
 import Layout from '~/layout'
-import { formattedNum, preparePieChartData } from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
+import { formattedNum } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 

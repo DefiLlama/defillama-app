@@ -3,7 +3,7 @@ import { GridComponent, MarkLineComponent, TooltipComponent } from 'echarts/comp
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { useCallback, useEffect, useId } from 'react'
-import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 

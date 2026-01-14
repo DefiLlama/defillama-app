@@ -50,7 +50,8 @@ function ProDashboardContent() {
 	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod, setTimePeriod, setCustomTimePeriod } = useProDashboardTime()
@@ -391,9 +392,9 @@ function ProDashboardContent() {
 				/>
 			</Suspense>
 
-			<Suspense fallback={<></>}>
+			{shouldRenderModal ? <Suspense fallback={<></>}>
 				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			</Suspense> : null}
 		</div>
 	)
 }

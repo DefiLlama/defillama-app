@@ -8,7 +8,8 @@ import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/P
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { formattedNum, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
+import { formattedNum, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>

@@ -1,7 +1,6 @@
 import * as Ariakit from '@ariakit/react'
-import { memo } from 'react'
+import { lazy, memo, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import {
 	ChartBuilderConfig,
 	MultiChartConfig,
@@ -12,6 +11,10 @@ import {
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 export type DashboardChartConfig =
 	| MultiChartConfig
@@ -48,7 +51,8 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 	disabled
 }: AddToDashboardButtonProps) {
 	const dashboardDialogStore = Ariakit.useDialogStore()
-	const subscribeDialogStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeDialogStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { loaders, isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
 
@@ -92,7 +96,9 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 						llamaAIChart={llamaAIChart}
 						unsupportedMetrics={unsupportedMetrics}
 					/>
-					<SubscribeProModal dialogStore={subscribeDialogStore} />
+					{shouldRenderModal ? <Suspense fallback={null}>
+						<SubscribeProModal dialogStore={subscribeDialogStore} />
+					</Suspense> : null}
 				</>
 			)}
 		</>

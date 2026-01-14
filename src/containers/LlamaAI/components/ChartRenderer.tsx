@@ -8,7 +8,7 @@ import type {
 	IPieChartProps,
 	IScatterChartProps
 } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'

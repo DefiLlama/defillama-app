@@ -18,14 +18,8 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import {
-	formattedNum,
-	getPercentChange,
-	preparePieChartData,
-	slug,
-	toNiceCsvDate,
-	toNumberOrNullFromQueryParam
-} from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
+import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
 import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>

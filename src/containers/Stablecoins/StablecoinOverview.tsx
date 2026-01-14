@@ -17,12 +17,12 @@ import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import Layout from '~/layout'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import {
 	capitalizeFirstLetter,
 	formattedNum,
 	getBlockExplorer,
 	peggedAssetIconUrl,
-	preparePieChartData,
 	slug,
 	toNiceCsvDate
 } from '~/utils'

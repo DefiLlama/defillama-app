@@ -7,7 +7,8 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
-import { chainIconUrl, getNDistinctColors, preparePieChartData, slug, tokenIconUrl } from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
+import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'
 

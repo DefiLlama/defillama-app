@@ -7,7 +7,7 @@
 	"type": "module",
 	"sideEffects": false,
 	"scripts": {
-		"analyze": "ANALYZE=true yarn build",
+		"analyze": "npx next experimental-analyze",
 		"dev": "yarn run build:metadata && next dev",
 		"build:metadata": "node scripts/pullMetadata.js",
 		"build": "yarn run build:metadata && next build",
@@ -59,7 +59,6 @@
 		"wagmi": "2.14.6"
 	},
 	"devDependencies": {
-		"@next/bundle-analyzer": "16.1.1",
 		"@tailwindcss/postcss": "4.1.18",
 		"@types/lodash": "4.17.23",
 		"@types/node": "25.0.8",
