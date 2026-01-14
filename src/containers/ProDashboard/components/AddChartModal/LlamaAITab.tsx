@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { memo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -22,7 +22,9 @@ interface LlamaAITabProps {
 
 export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	const { authorizedFetch, user } = useAuthContext()
+	const queryClient = useQueryClient()
 	const [searchQuery, setSearchQuery] = useState('')
+	const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['saved-charts-list', user?.id],
@@ -34,6 +36,18 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 		},
 		enabled: !!user,
 		staleTime: 1000 * 60 * 5
+	})
+
+	const deleteMutation = useMutation({
+		mutationFn: async (chartId: string) => {
+			const res = await authorizedFetch(`${MCP_SERVER}/charts/${chartId}`, { method: 'DELETE' })
+			if (!res.ok) throw new Error('Failed to delete chart')
+		},
+		onSuccess: (_, chartId) => {
+			queryClient.invalidateQueries({ queryKey: ['saved-charts-list'] })
+			if (selectedChart?.id === chartId) onChartSelect(null)
+			setDeleteConfirmId(null)
+		}
 	})
 
 	if (!user) {
@@ -99,7 +113,7 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 					<button
 						key={chart.id}
 						onClick={() => onChartSelect(selectedChart?.id === chart.id ? null : chart)}
-						className={`flex flex-col gap-2 rounded-lg border p-3 text-left transition-all ${
+						className={`group flex flex-col gap-2 rounded-lg border p-3 text-left transition-all ${
 							selectedChart?.id === chart.id
 								? 'border-(--primary) bg-(--primary)/5'
 								: 'pro-border hover:border-(--primary)/50'
@@ -107,9 +121,20 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 					>
 						<div className="flex items-start justify-between gap-2">
 							<h4 className="pro-text1 line-clamp-1 font-medium">{chart.title}</h4>
-							{selectedChart?.id === chart.id && (
-								<Icon name="check" height={16} width={16} className="shrink-0 text-(--primary)" />
-							)}
+							<div className="flex shrink-0 items-center gap-1">
+								{selectedChart?.id === chart.id && (
+									<Icon name="check" height={16} width={16} className="text-(--primary)" />
+								)}
+								<button
+									onClick={(e) => {
+										e.stopPropagation()
+										setDeleteConfirmId(chart.id)
+									}}
+									className="rounded p-1 opacity-0 transition-opacity hover:bg-black/10 group-hover:opacity-100 dark:hover:bg-white/10"
+								>
+									<Icon name="x" height={14} width={14} className="pro-text3" />
+								</button>
+							</div>
 						</div>
 						<p className="pro-text3 line-clamp-2 text-xs">{chart.original_query}</p>
 						{chart.session_id && (
@@ -129,6 +154,27 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 
 			{filteredCharts?.length === 0 && searchQuery && (
 				<p className="pro-text3 py-8 text-center text-sm">No charts match your search</p>
+			)}
+
+			{deleteConfirmId && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirmId(null)}>
+					<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
+						<h3 className="pro-text1 font-medium">Delete chart?</h3>
+						<p className="pro-text3 mt-2 text-sm">This will permanently delete the chart. Dashboards using it will show an error.</p>
+						<div className="mt-4 flex justify-end gap-2">
+							<button onClick={() => setDeleteConfirmId(null)} className="pro-text2 rounded px-3 py-1.5 text-sm hover:bg-black/5 dark:hover:bg-white/5">
+								Cancel
+							</button>
+							<button
+								onClick={() => deleteMutation.mutate(deleteConfirmId)}
+								disabled={deleteMutation.isPending}
+								className="rounded bg-red-500 px-3 py-1.5 text-sm text-white hover:bg-red-600 disabled:opacity-50"
+							>
+								{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+							</button>
+						</div>
+					</div>
+				</div>
 			)}
 		</div>
 	)
