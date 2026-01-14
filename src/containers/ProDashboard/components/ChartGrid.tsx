@@ -33,8 +33,8 @@ import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
 import { TextCard } from './TextCard'
 import type { UnifiedTableFocusSection } from './UnifiedTable/types'
-import { YieldsChartCard } from './YieldsChartCard'
 
+const YieldsChartCard = lazy(() => import('./YieldsChartCard').then((mod) => ({ default: mod.YieldsChartCard })))
 const ChartCard = lazy(() => import('./ChartCard').then((mod) => ({ default: mod.ChartCard })))
 const MultiChartCard = lazy(() => import('./MultiChartCard'))
 const ChartBuilderCard = lazy(() => import('./ChartBuilderCard').then((mod) => ({ default: mod.ChartBuilderCard })))
@@ -184,7 +184,11 @@ const DashboardItemRenderer = memo(function DashboardItemRenderer({
 	}
 
 	if (item.kind === 'yields') {
-		return <YieldsChartCard config={item} />
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<YieldsChartCard config={item} />
+			</Suspense>
+		)
 	}
 
 	if (item.kind === 'stablecoins') {
