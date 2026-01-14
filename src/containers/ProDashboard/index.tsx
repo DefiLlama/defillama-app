@@ -392,9 +392,11 @@ function ProDashboardContent() {
 				/>
 			</Suspense>
 
-			{shouldRenderModal ? <Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense> : null}
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }

@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type {
 	IBarChartProps,
 	ICandlestickChartProps,
@@ -8,7 +9,6 @@ import type {
 	IPieChartProps,
 	IScatterChartProps
 } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'

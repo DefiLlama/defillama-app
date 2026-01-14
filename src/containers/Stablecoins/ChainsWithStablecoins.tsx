@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -8,7 +9,6 @@ import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/P
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
 import { getStablecoinDominance } from '~/containers/Stablecoins/utils'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/hooks/data/stablecoins'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import { formattedNum, toNiceCsvDate } from '~/utils'
 import { PeggedChainsTable } from './Table'
 

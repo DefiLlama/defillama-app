@@ -1,4 +1,5 @@
 import type { IChainData } from '~/api/types'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import {
 	BRIDGEDAYSTATS_API,
 	BRIDGELARGETX_API,
@@ -7,7 +8,6 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'

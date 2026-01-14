@@ -456,9 +456,11 @@ function PortfolioNotifications({
 					)}
 				</div>
 			</div>
-			{shouldRenderModal ? <Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense> : null}
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 
 			<Ariakit.Dialog
 				store={dialogStore}

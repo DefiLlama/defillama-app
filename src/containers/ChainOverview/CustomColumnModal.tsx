@@ -384,9 +384,11 @@ export function CustomColumnModal({
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-			{shouldRenderModal ? <Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense> : null}
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

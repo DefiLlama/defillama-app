@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
@@ -17,15 +18,7 @@ import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { UNRELEASED, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/hooks/data/stablecoins'
 import Layout from '~/layout'
-import { preparePieChartData } from '~/components/ECharts/formatters'
-import {
-	capitalizeFirstLetter,
-	formattedNum,
-	getBlockExplorer,
-	peggedAssetIconUrl,
-	slug,
-	toNiceCsvDate
-} from '~/utils'
+import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug, toNiceCsvDate } from '~/utils'
 import { PeggedAssetByChainTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>

@@ -96,9 +96,11 @@ export const AddToDashboardButton = memo(function AddToDashboardButton({
 						llamaAIChart={llamaAIChart}
 						unsupportedMetrics={unsupportedMetrics}
 					/>
-					{shouldRenderModal ? <Suspense fallback={null}>
-						<SubscribeProModal dialogStore={subscribeDialogStore} />
-					</Suspense> : null}
+					{shouldRenderModal ? (
+						<Suspense fallback={null}>
+							<SubscribeProModal dialogStore={subscribeDialogStore} />
+						</Suspense>
+					) : null}
 				</>
 			)}
 		</>
