@@ -24,7 +24,7 @@
 		"@dnd-kit/modifiers": "9.0.0",
 		"@dnd-kit/sortable": "10.0.0",
 		"@marsidev/react-turnstile": "1.4.1",
-		"@rainbow-me/rainbowkit": "2.2.1",
+		"@rainbow-me/rainbowkit": "2.2.10",
 		"@stripe/react-stripe-js": "5.4.1",
 		"@stripe/stripe-js": "8.6.1",
 		"@tailwindcss/typography": "0.5.19",
@@ -55,8 +55,8 @@
 		"remark-gfm": "4.0.1",
 		"tailwind-merge": "3.4.0",
 		"textarea-caret": "3.1.0",
-		"viem": "2.21.57",
-		"wagmi": "2.14.6"
+		"viem": "2.42.1",
+		"wagmi": "2.19.5"
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "4.1.18",
