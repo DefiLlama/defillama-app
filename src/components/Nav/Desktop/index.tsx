@@ -50,13 +50,14 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`desktop-nav-${category}`} className="group flex flex-col">
-							{pages.map(({ name, route, icon, attention }) => (
+							{pages.map(({ name, route, icon, attention, freeTrial }) => (
 								<LinkToPage
 									key={`desktop-nav-${name}-${route}`}
 									route={route}
 									name={name}
 									icon={icon}
 									attention={attention}
+									freeTrial={freeTrial}
 									asPath={asPath}
 								/>
 							))}
