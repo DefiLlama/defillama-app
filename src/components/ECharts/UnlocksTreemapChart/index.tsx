@@ -3,7 +3,7 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -46,7 +46,7 @@ const TIME_VIEWS = ['Month', 'Current Year', 'All Years'] as const
 type TimeView = (typeof TIME_VIEWS)[number]
 
 export default function UnlocksTreemapChart({ unlocksData, height = '600px', filterYear }: UnlocksTreemapProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
@@ -63,10 +63,15 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			const monthIndex = date.month()
 			const monthName = date.format('MMMM')
 
-			if (year < currentYear) return
-
-			if (timeView === 'Current Year' && year > currentYear) return
-			if (timeView === 'Month' && (monthIndex !== selectedDate.month() || year !== selectedDate.year())) return
+			if (timeView === 'Month') {
+				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) return
+			}
+			else if (timeView === 'Current Year') {
+				if (year !== currentYear) return
+			}
+			else if (timeView === 'All Years') {
+				if (year < currentYear) return
+			}
 
 			if (!yearData[year]) {
 				yearData[year] = {
@@ -307,6 +312,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 	useEffect(() => {
 		const chartInstance = createInstance()
+		if (!chartInstance) return
 
 		const option = {
 			title: {
