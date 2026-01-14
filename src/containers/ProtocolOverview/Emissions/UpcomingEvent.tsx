@@ -158,8 +158,7 @@ export const UpcomingEvent = ({
 								<span className="text-sm text-(--text-meta)">
 									{timestamp
 										? `GMT${dayjs(timestamp * 1e3)
-												.format('Z')
-												.slice(0, 3)}`
+												.format('Z')}`
 										: ''}
 								</span>
 							</span>
