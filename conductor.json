@@ -2,36 +2,6 @@
 	"$schema": "https://conductor.build/schema/conductor.json",
 	"name": "defillama",
 	"setup": {
-		"script": "scripts/conductor-setup.sh"
-	},
-	"commands": {
-		"dev": {
-			"command": "yarn dev",
-			"description": "Start development server"
-		},
-		"build": {
-			"command": "yarn build",
-			"description": "Build for production"
-		},
-		"lint": {
-			"command": "yarn lint",
-			"description": "Run oxlint"
-		},
-		"lint:fix": {
-			"command": "yarn lint:fix",
-			"description": "Run oxlint with auto-fix"
-		},
-		"format": {
-			"command": "yarn format",
-			"description": "Format code with oxfmt"
-		},
-		"format:check": {
-			"command": "yarn format:check",
-			"description": "Check code formatting"
-		},
-		"typecheck": {
-			"command": "yarn ts",
-			"description": "Run TypeScript type checking"
-		}
+		"setup": "yarn; cp $CONDUCTOR_ROOT_PATH/.env .env"
 	}
 }
