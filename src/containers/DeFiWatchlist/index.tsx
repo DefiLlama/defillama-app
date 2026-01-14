@@ -238,7 +238,8 @@ function PortfolioNotifications({
 		deletePreferences,
 		isDeleting
 	} = useEmailNotifications(selectedPortfolio)
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
@@ -455,9 +456,11 @@ function PortfolioNotifications({
 					)}
 				</div>
 			</div>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 
 			<Ariakit.Dialog
 				store={dialogStore}

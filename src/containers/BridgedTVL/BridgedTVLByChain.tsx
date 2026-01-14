@@ -1,5 +1,6 @@
 import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
 import * as React from 'react'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -7,7 +8,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { bridgedChainColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, preparePieChartData } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

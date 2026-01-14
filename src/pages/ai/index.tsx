@@ -113,7 +113,8 @@ const SubscribeProModal = lazy(() =>
 )
 
 export default function LlamaAIGetStarted() {
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const [mounted, setMounted] = useState(false)
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
@@ -516,9 +517,11 @@ export default function LlamaAIGetStarted() {
 				</section>
 			</div>
 
-			<Suspense fallback={null}>
-				<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={null}>
+					<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

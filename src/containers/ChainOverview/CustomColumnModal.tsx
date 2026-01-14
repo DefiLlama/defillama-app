@@ -53,7 +53,8 @@ export function CustomColumnModal({
 	})
 	const inputRef = useRef(null)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
@@ -383,9 +384,11 @@ export function CustomColumnModal({
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

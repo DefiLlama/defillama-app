@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGEDS_API } from '~/constants'
 import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { preparePieChartData } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {

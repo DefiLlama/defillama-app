@@ -1,7 +1,8 @@
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { HACKS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import { firstDayOfMonth, formattedNum, preparePieChartData, slug } from '~/utils'
+import { firstDayOfMonth, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export interface IHack {
