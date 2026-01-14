@@ -156,10 +156,7 @@ export const UpcomingEvent = ({
 							<span>
 								{timestamp ? `${dayjs(timestamp * 1e3).format('h:mm A')} ` : null}
 								<span className="text-sm text-(--text-meta)">
-									{timestamp
-										? `GMT${dayjs(timestamp * 1e3)
-												.format('Z')}`
-										: ''}
+									{timestamp ? `GMT${dayjs(timestamp * 1e3).format('Z')}` : ''}
 								</span>
 							</span>
 						</span>
@@ -319,8 +316,7 @@ export const UpcomingEvent = ({
 							<span>{timestamp ? dayjs(timestamp * 1e3).format('MMM D, YYYY') : null}</span>
 							<span className="text-sm text-(--text-meta)">
 								{timestamp
-									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3)
-											.format('Z')}`
+									? `${dayjs(timestamp * 1e3).format('HH:mm')} GMT${dayjs(timestamp * 1e3).format('Z')}`
 									: null}
 							</span>
 						</span>

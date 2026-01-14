@@ -29,14 +29,14 @@ if (typeof window === 'undefined' && USE_REDIS) {
 export const sluggify = (input: string) => {
 	const slug = decodeURIComponent(input)
 		.toLowerCase()
-		.replace(/[^\w\/]+/g, '-')
+		.replace(/[^\w/]+/g, '-')
 	return slug.replace(/^-+/, '').replace(/-+$/, '')
 }
 
 export const sluggifyProtocol = (input: string) => {
 	const slug = decodeURIComponent(input)
 		.toLowerCase()
-		.replace(/[^\w\/.]+/g, '-')
+		.replace(/[^\w/.]+/g, '-')
 	return slug.replace(/^-+/, '').replace(/-+$/, '')
 }
 

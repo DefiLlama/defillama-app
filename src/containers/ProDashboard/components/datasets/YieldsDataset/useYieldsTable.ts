@@ -406,7 +406,7 @@ export function useYieldsTable({
 
 		data.forEach((row) => {
 			if (row.pool && row.tvl) {
-				const separators = /[-\s\/,+]/
+				const separators = /[-\s/,+]/
 				const tokens = row.pool.split(separators)
 				tokens.forEach((token: string) => {
 					const cleaned = token.trim().toUpperCase()

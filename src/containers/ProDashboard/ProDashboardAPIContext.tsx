@@ -467,7 +467,6 @@ export function ProDashboardAPIProvider({
 			isReadOnly,
 			updateDashboard,
 			createDashboard,
-			cleanItemsForSaving,
 			applyDashboard
 		]
 	)

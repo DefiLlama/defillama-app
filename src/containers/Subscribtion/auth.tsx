@@ -192,7 +192,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const userLoading = Boolean(!authStoreState.token || !authStoreState.record) ? userQueryIsLoading : false
+	const userLoading = !authStoreState.token || !authStoreState.record ? userQueryIsLoading : false
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {

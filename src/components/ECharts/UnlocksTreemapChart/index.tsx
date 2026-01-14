@@ -65,11 +65,9 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 			if (timeView === 'Month') {
 				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) return
-			}
-			else if (timeView === 'Current Year') {
+			} else if (timeView === 'Current Year') {
 				if (year !== currentYear) return
-			}
-			else if (timeView === 'All Years') {
+			} else if (timeView === 'All Years') {
 				if (year < currentYear) return
 			}
 

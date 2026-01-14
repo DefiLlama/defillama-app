@@ -3,6 +3,7 @@ import groupBy from 'lodash/groupBy'
 import isEqual from 'lodash/isEqual'
 import omit from 'lodash/omit'
 import sum from 'lodash/sum'
+import Link from 'next/link'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -18,7 +19,6 @@ import useWindowSize from '~/hooks/useWindowSize'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import Pagination from './Pagination'
 import { IEmission } from './types'
-import Link from 'next/link'
 
 const getExtendedCategories = (baseCategories: string[], isPriceEnabled: boolean) => {
 	const extended = [...baseCategories]
@@ -153,9 +153,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 		const upcomingEvents = entries.filter(([ts]) => +ts > now).sort(([a], [b]) => +a - +b) // near to far
 
-		const pastEvents = upcomingEvents.length > 0 ?
-			entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
-			: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
+		const pastEvents =
+			upcomingEvents.length > 0
+				? entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
+				: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
 
 		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
 	}, [groupedEvents])
@@ -489,8 +490,8 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 			<div>
 				{data.token &&
-					Object.entries(tokenAllocation.current || {}).length &&
-					Object.entries(tokenAllocation.final || {}).length ? (
+				Object.entries(tokenAllocation.current || {}).length &&
+				Object.entries(tokenAllocation.final || {}).length ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex w-full flex-col gap-2 text-base">
@@ -550,7 +551,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				{data.sources?.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Sources</h1>
-						<ul className="mt-4 w-full list-disc space-y-2 text-base pl-4">
+						<ul className="mt-4 w-full list-disc space-y-2 pl-4 text-base">
 							{data.sources.map((source, i) => (
 								<li key={source}>
 									<Link
@@ -572,7 +573,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				{data.notes?.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Notes</h1>
-						<ul className="mt-4 w-full list-disc space-y-2 text-base pl-4">
+						<ul className="mt-4 w-full list-disc space-y-2 pl-4 text-base">
 							{data.notes.map((note) => (
 								<li key={note}>{note}</li>
 							))}
