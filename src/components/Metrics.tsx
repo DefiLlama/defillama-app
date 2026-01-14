@@ -319,7 +319,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
 					{/* Left decorative dot pattern */}
 					<div
-						className="absolute top-[1px] left-[1px] hidden h-[calc(100%-2px)] w-48 overflow-hidden rounded-l-[6px] md:block"
+						className="pointer-events-none absolute top-[1px] left-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-l-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div
@@ -355,7 +355,7 @@ export const MetricsAndTools = memo(function MetricsAndTools({ currentMetric }: 
 					</div>
 					{/* Right decorative dot pattern */}
 					<div
-						className="absolute top-[1px] right-[1px] hidden h-[calc(100%-2px)] w-48 overflow-hidden rounded-r-[6px] md:block"
+						className="pointer-events-none absolute top-[1px] right-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-r-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div

@@ -8,6 +8,10 @@ import { fetchWithConnectionPooling } from './http-client'
 const isServer = typeof document === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
 const IS_RUNTIME = !!process.env.IS_RUNTIME
+const MAX_PAGE_BUILD_RETRIES = 3
+const MAX_RETRY_DELAY_MS = 1000
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const withPerformanceLogging = <T extends object>(
 	filename: string,
@@ -16,32 +20,52 @@ export const withPerformanceLogging = <T extends object>(
 	return async (context: GetStaticPropsContext) => {
 		const start = Date.now()
 		const { params } = context
-		try {
-			const props = await getStaticPropsFunction(context)
-			const end = Date.now()
+		let lastError: Error | null = null
 
-			if (end - start > 10_000) {
-				await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [end, `${(end - start).toFixed(0)}ms`])
+		for (let attempt = 0; attempt < MAX_PAGE_BUILD_RETRIES; attempt++) {
+			try {
+				const props = await getStaticPropsFunction(context)
+				const end = Date.now()
 
+				if (end - start > 10_000) {
+					await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [end, `${(end - start).toFixed(0)}ms`])
+
+					postRuntimeLogs(
+						`[PAGE_BUILD] [PREPARED] [${(end - start).toFixed(0)}ms] < ${filename} >` +
+							(params ? ' ' + JSON.stringify(params) : '')
+					)
+				}
+
+				return props
+			} catch (error) {
+				lastError = error instanceof Error ? error : new Error(String(error))
+				const isLastAttempt = attempt === MAX_PAGE_BUILD_RETRIES - 1
+
+				if (!isLastAttempt) {
+					const delay = Math.min(100 * Math.pow(2, attempt), MAX_RETRY_DELAY_MS)
+					postRuntimeLogs(
+						`[PAGE_BUILD] [RETRY] [${attempt + 1}/${MAX_PAGE_BUILD_RETRIES}] < ${filename} >` +
+							(params ? ' ' + JSON.stringify(params) : '') +
+							` [${lastError.name}] [${lastError.message}]`
+					)
+					await sleep(delay)
+					continue
+				}
+
+				const end = Date.now()
+				await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')} ERROR`, [
+					end,
+					`${(end - start).toFixed(0)}ms`
+				])
 				postRuntimeLogs(
-					`[PAGE_BUILD] [PREPARED] [${(end - start).toFixed(0)}ms] < ${filename} >` +
+					`[PAGE_BUILD] [ERROR] [${(end - start).toFixed(0)}ms] < ${filename} > ` +
 						(params ? ' ' + JSON.stringify(params) : '')
 				)
+				throw lastError
 			}
-
-			return props
-		} catch (error) {
-			const end = Date.now()
-			await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')} ERROR`, [
-				end,
-				`${(end - start).toFixed(0)}ms`
-			])
-			postRuntimeLogs(
-				`[PAGE_BUILD] [ERROR] [${(end - start).toFixed(0)}ms] < ${filename} > ` +
-					(params ? ' ' + JSON.stringify(params) : '')
-			)
-			throw error
 		}
+
+		throw lastError ?? new Error('Failed to build static props')
 	}
 }
 

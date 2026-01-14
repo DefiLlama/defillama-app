@@ -272,7 +272,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						)}
 						{display.header !== 'category' &&
 							(shouldShowProtocolLogo || shouldShowChainIcon ? (
-								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/icons/placeholder.png" size={24} />
+								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/assets/placeholder.png" size={24} />
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
 							))}

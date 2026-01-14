@@ -72,7 +72,10 @@ export const ChartExportButton = memo(function ChartExportButton({
 				let iconBase64: string | null = null
 				if (iconUrl) {
 					try {
-						const proxyUrl = `/api/protocol-icon?url=${encodeURIComponent(iconUrl)}`
+						const slugMatch = iconUrl.match(/\/protocols\/([^?]+)/)
+						const slug = slugMatch?.[1]
+						if (!slug) throw new Error('Could not extract slug from icon URL')
+						const proxyUrl = `/api/protocol-icon?slug=${encodeURIComponent(slug)}`
 						const response = await fetch(proxyUrl)
 						if (!response.ok) throw new Error('Network response was not ok')
 						const blob = await response.blob()
