@@ -1,6 +1,6 @@
-import { memo, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { memo, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { getItemIconUrl } from '../../utils'
@@ -71,9 +71,7 @@ export const EntityPickerList = memo(function EntityPickerList({
 				</div>
 				{selectedEntities.length > 0 && (
 					<div className="ml-3 flex items-center gap-2">
-						<span className="text-xs font-medium text-(--text-secondary)">
-							{selectedEntities.length} selected
-						</span>
+						<span className="text-xs font-medium text-(--text-secondary)">{selectedEntities.length} selected</span>
 						<button
 							type="button"
 							onClick={onClear}

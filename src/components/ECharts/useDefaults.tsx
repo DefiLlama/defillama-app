@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { BarChart, LineChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -11,6 +10,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useMemo } from 'react'
 import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
 

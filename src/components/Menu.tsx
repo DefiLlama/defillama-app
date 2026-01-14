@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { useMemo } from 'react'
 import { Icon } from './Icon'
 import { BasicLink } from './Link'
 

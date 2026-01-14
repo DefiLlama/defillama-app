@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { BarChart as EChartBar, LineChart as EChartLine, ScatterChart as EChartScatter } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -10,6 +9,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import * as React from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'

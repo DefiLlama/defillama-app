@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { formatValue } from '../../utils'
 import { useAuthContext } from '../Subscribtion/auth'

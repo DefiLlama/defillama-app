@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
 import dayjs from 'dayjs'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { ICandlestickChartProps, ILineAndBarChartProps, ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -249,11 +249,10 @@ export async function getStaticPaths() {
 	return { paths, fallback: false }
 }
 
-interface IProps
-	extends Pick<
-		IDATInstitution,
-		'name' | 'ticker' | 'price' | 'priceChange24h' | 'transactions' | 'totalCost' | 'totalUsdValue'
-	> {
+interface IProps extends Pick<
+	IDATInstitution,
+	'name' | 'ticker' | 'price' | 'priceChange24h' | 'transactions' | 'totalCost' | 'totalUsdValue'
+> {
 	firstAnnouncementDate: string
 	lastAnnouncementDate: string
 	realized_mNAV: number | null

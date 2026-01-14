@@ -1,4 +1,3 @@
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Combobox,
 	ComboboxItem,
@@ -10,6 +9,7 @@ import {
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { useAppMetadata } from '../../AppMetadataContext'

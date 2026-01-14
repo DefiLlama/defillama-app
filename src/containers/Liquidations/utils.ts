@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import { ECBasicOption } from 'echarts/types/dist/shared'
+import { useRouter } from 'next/router'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
 import { liquidationsIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'

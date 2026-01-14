@@ -1,6 +1,6 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import exponentialLogo from '~/assets/exponential.avif'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'

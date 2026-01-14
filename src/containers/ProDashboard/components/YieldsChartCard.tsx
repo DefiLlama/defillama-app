@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'

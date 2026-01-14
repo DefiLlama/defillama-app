@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { LineChart as EChartLine } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -10,6 +9,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import * as React from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import type { IOrderBookChartProps } from './types'

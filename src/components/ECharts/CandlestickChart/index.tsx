@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { BarChart, CandlestickChart, LineChart } from 'echarts/charts'
 import {
 	DatasetComponent,
@@ -11,6 +10,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { oldBlue } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'

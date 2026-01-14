@@ -1,8 +1,8 @@
-import { useEffect, useId, useRef } from 'react'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { GraphicComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 

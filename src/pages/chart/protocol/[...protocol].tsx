@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'

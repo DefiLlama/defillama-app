@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { reactSelectStyles } from '../utils/reactSelectStyles'

@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { IChartProps } from '~/components/ECharts/types'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'

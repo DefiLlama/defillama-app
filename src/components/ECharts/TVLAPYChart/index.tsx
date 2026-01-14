@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import type { IChartProps } from '../types'

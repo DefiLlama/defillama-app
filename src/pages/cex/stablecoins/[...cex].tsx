@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import { IChartProps } from '~/components/ECharts/types'

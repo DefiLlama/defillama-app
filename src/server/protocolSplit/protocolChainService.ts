@@ -1073,7 +1073,13 @@ export const getProtocolChainSplitData = async ({
 		if (metricStr === 'stablecoins') {
 			return getAllProtocolsTopChainsStablecoinsData(topN, chains, filterMode, chainCategories)
 		}
-		return getAllProtocolsTopChainsChainFeesData(metricStr as 'chain-fees' | 'chain-revenue', topN, chains, filterMode, chainCategories)
+		return getAllProtocolsTopChainsChainFeesData(
+			metricStr as 'chain-fees' | 'chain-revenue',
+			topN,
+			chains,
+			filterMode,
+			chainCategories
+		)
 	}
 
 	if (isProtocolAll) {

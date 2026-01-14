@@ -1,6 +1,6 @@
-import { useCallback } from 'react'
-import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useCallback } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 

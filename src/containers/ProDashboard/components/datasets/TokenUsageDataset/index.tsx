@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -9,6 +8,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useEffect, useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'

@@ -1,5 +1,3 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	createColumnHelper,
@@ -12,6 +10,8 @@ import {
 	type ExpandedState,
 	type SortingState
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'

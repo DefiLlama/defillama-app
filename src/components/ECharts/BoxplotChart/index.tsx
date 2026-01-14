@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useId } from 'react'
 import { aggregate } from 'echarts-simple-transform'
 import { BoxplotChart as EChartBoxPlot } from 'echarts/charts'
 import {
@@ -14,6 +13,7 @@ import {
 import * as echarts from 'echarts/core'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 echarts.use([

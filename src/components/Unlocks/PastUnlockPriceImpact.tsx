@@ -1,6 +1,6 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
+import * as React from 'react'
 import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
 import { Icon } from '../Icon'
 import { BasicLink } from '../Link'

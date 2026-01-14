@@ -1,6 +1,6 @@
-import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'

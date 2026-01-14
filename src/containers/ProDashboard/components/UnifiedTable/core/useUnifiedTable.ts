@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	ColumnOrderState,
@@ -13,6 +12,7 @@ import {
 	VisibilityState,
 	type Table
 } from '@tanstack/react-table'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'

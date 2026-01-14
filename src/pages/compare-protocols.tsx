@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { useRouter } from 'next/router'
 import { useQueries } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'

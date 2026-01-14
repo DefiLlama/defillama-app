@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'

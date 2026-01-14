@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useQueries } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { TimePeriod } from '../../ProDashboardAPIContext'
 import { getChartQueryFn, getChartQueryKey } from '../../queries'
 import { ChartConfig } from '../../types'

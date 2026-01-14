@@ -1,5 +1,5 @@
-import { memo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { memo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'

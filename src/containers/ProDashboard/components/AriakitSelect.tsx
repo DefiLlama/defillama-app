@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
 

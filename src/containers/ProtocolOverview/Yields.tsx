@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
+import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'

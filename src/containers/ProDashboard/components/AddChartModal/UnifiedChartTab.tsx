@@ -214,7 +214,14 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 				})
 			}
 		},
-		[selectedChartTypeSingle, selectedEntitiesForCurrentType, composerItems, selectedChartTab, onRemoveFromComposer, onAddToComposer]
+		[
+			selectedChartTypeSingle,
+			selectedEntitiesForCurrentType,
+			composerItems,
+			selectedChartTab,
+			onRemoveFromComposer,
+			onAddToComposer
+		]
 	)
 
 	const handleClearSelection = useCallback(() => {

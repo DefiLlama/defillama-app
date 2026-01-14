@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,6 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { AggregatorItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'

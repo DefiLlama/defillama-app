@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Select } from '~/components/Select'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 

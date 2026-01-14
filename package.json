@@ -1,20 +1,21 @@
 {
 	"name": "defillama",
-	"sideEffects": false,
 	"version": "1.0.0",
 	"private": true,
 	"homepage": "https://defillama.com",
 	"license": "GPL-3.0-or-later",
 	"type": "module",
+	"sideEffects": false,
 	"scripts": {
 		"analyze": "ANALYZE=true yarn build",
 		"dev": "yarn run build:metadata && next dev",
 		"build:metadata": "node scripts/pullMetadata.js",
 		"build": "yarn run build:metadata && next build",
 		"start": "./scripts/prestart.sh & next start",
-		"format": "prettier --write .",
-		"lint": "eslint",
-		"lint:fix": "eslint --fix",
+		"format": "oxfmt --write",
+		"format:check": "oxfmt --check",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix",
 		"ts": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -58,20 +59,14 @@
 		"wagmi": "2.14.6"
 	},
 	"devDependencies": {
-		"@eslint/eslintrc": "3.3.1",
-		"@ianvs/prettier-plugin-sort-imports": "4.6.2",
 		"@next/bundle-analyzer": "15.5.0",
 		"@tailwindcss/postcss": "4.1.12",
 		"@types/lodash": "4.17.20",
 		"@types/node": "25.0.0",
 		"@types/react": "19.2.7",
-		"@typescript-eslint/parser": "8.40.0",
-		"eslint": "9.33.0",
-		"eslint-config-next": "15.5.0",
-		"eslint-config-prettier": "10.1.8",
+		"oxfmt": "^0.24.0",
+		"oxlint": "^1.39.0",
 		"postcss": "8.5.6",
-		"prettier": "3.6.2",
-		"prettier-plugin-tailwindcss": "0.6.14",
 		"tailwindcss": "4.1.12",
 		"typescript": "5.9.2"
 	},

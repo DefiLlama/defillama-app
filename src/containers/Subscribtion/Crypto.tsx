@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER } from '~/constants'

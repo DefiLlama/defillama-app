@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
