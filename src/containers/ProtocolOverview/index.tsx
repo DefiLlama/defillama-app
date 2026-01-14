@@ -347,6 +347,12 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 	const primaryValue = isOracleProtocol ? props.computedOracleTvs : props.tvl
 	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : props.category)
 
+	const hasTvlData = isOracleProtocol
+		? props.oracleTvs != null
+		: props.metrics.tvl &&
+		  props.currentTvlByChain != null &&
+		  Object.keys(props.currentTvlByChain).length > 0
+
 	return (
 		<div className="flex flex-1 flex-col gap-2">
 			<div className="flex items-center justify-between">
@@ -366,6 +372,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					primaryValue={primaryValue}
 					primaryLabel={primaryLabel}
 					formatPrice={props.formatPrice}
+					hasTvlData={hasTvlData}
 				/>
 			</div>
 			<div className="flex flex-col" ref={containerRef}>
