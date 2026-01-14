@@ -10,7 +10,10 @@ function shouldRetryError(error: unknown): boolean {
 		message.includes('econnrefused') ||
 		message.includes('etimedout') ||
 		message.includes('network') ||
-		message.includes('fetch failed')
+		message.includes('fetch failed') ||
+		message.includes('certificate') ||
+		message.includes('ssl') ||
+		message.includes('tls')
 	)
 }
 
