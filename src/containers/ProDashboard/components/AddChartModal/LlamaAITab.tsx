@@ -130,7 +130,7 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 										e.stopPropagation()
 										setDeleteConfirmId(chart.id)
 									}}
-									className="rounded p-1 opacity-0 transition-opacity hover:bg-black/10 group-hover:opacity-100 dark:hover:bg-white/10"
+									className="rounded p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10"
 								>
 									<Icon name="x" height={14} width={14} className="pro-text3" />
 								</button>
@@ -157,12 +157,20 @@ export const LlamaAITab = memo(function LlamaAITab({ selectedChart, onChartSelec
 			)}
 
 			{deleteConfirmId && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirmId(null)}>
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+					onClick={() => setDeleteConfirmId(null)}
+				>
 					<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
 						<h3 className="pro-text1 font-medium">Delete chart?</h3>
-						<p className="pro-text3 mt-2 text-sm">This will permanently delete the chart. Dashboards using it will show an error.</p>
+						<p className="pro-text3 mt-2 text-sm">
+							This will permanently delete the chart. Dashboards using it will show an error.
+						</p>
 						<div className="mt-4 flex justify-end gap-2">
-							<button onClick={() => setDeleteConfirmId(null)} className="pro-text2 rounded px-3 py-1.5 text-sm hover:bg-black/5 dark:hover:bg-white/5">
+							<button
+								onClick={() => setDeleteConfirmId(null)}
+								className="pro-text2 rounded px-3 py-1.5 text-sm hover:bg-black/5 dark:hover:bg-white/5"
+							>
 								Cancel
 							</button>
 							<button
