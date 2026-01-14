@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { NextRouter, useRouter } from 'next/router'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -9,6 +7,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { NextRouter, useRouter } from 'next/router'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { prepareChartCsv } from '~/components/ECharts/utils'

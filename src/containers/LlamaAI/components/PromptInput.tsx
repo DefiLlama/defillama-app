@@ -1,5 +1,5 @@
-import { Dispatch, memo, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { Dispatch, memo, RefObject, SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { errorToast } from '~/components/Toast'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -448,7 +448,7 @@ export const PromptInput = memo(function PromptInput({
 					textarea.focus()
 				}, 0)
 			},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// oxlint-disable-next-line react/exhaustive-deps
 		[combobox, searchValue]
 	)
 

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'

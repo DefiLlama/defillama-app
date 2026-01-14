@@ -190,8 +190,10 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	}
 }
 
-interface IInstitutionOverviewByAsset
-	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
+interface IInstitutionOverviewByAsset extends Omit<
+	IDATInstitutions['institutionMetadata'][number],
+	'holdings' | 'totalUsdValue' | 'totalCost'
+> {
 	realized_mNAV: number | null
 	realistic_mNAV: number | null
 	max_mNAV: number | null

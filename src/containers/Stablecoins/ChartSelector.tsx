@@ -1,5 +1,5 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
+import * as React from 'react'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 

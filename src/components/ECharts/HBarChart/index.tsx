@@ -1,5 +1,5 @@
-import { useEffect, useId } from 'react'
 import * as echarts from 'echarts/core'
+import { useEffect, useId } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formatTooltipValue } from '../useDefaults'
 

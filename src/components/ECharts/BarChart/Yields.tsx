@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useId } from 'react'
 import { BarChart, LineChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -10,6 +9,7 @@ import {
 import * as echarts from 'echarts/core'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 echarts.use([

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { IChartProps as IAreaChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'

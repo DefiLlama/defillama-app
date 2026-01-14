@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { badDebt, lockupsCollateral } from '~/containers/Yields/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'

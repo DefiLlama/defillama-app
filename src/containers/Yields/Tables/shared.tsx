@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnOrderState,
 	ColumnSizingState,
@@ -8,6 +7,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
 

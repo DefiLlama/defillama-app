@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -133,7 +133,7 @@ export const UpcomingEvent = ({
 		const id = setInterval(() => rerender((value) => value + 1), 1000)
 
 		return () => clearInterval(id)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// oxlint-disable-next-line react/exhaustive-deps
 	}, [])
 
 	if (isProtocolPage) {

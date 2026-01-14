@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 
 interface DashboardSettingsModalProps {

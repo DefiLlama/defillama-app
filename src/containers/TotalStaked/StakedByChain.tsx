@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'

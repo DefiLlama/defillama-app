@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
 import { buildStablecoinChartData, formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getDominancePercent, preparePieChartData } from '~/utils'

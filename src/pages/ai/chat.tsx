@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'

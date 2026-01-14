@@ -1,7 +1,7 @@
-import { memo, useMemo } from 'react'
 import * as Ariakit from '@ariakit/react'
-import { LocalLoader } from '~/components/Loaders'
+import { memo, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import { LocalLoader } from '~/components/Loaders'
 
 interface ChartTypeOption {
 	value: string
@@ -124,9 +124,7 @@ export const ChartTypePills = memo(function ChartTypePills({
 									}`}
 								>
 									<span>{option.label}</span>
-									{isSelected && (
-										<Icon name="check" height={14} width={14} className="text-(--old-blue)" />
-									)}
+									{isSelected && <Icon name="check" height={14} width={14} className="text-(--old-blue)" />}
 								</Ariakit.SelectItem>
 							)
 						})}

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Table } from '@tanstack/react-table'
+import * as React from 'react'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { TagGroup } from '~/components/TagGroup'
 

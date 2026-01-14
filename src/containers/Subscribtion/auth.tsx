@@ -1,6 +1,6 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import { useMutation, UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import { RecordAuthResponse, RecordModel } from 'pocketbase'
+import { createContext, ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { createSiweMessage } from 'viem/siwe'
 import { AUTH_SERVER } from '~/constants'

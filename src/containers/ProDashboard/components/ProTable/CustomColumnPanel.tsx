@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Parser } from 'expr-eval'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 

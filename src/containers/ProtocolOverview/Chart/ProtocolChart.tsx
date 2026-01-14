@@ -1,7 +1,7 @@
-import { lazy, memo, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { lazy, memo, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,

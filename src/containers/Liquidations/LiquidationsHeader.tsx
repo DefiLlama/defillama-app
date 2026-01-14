@@ -1,6 +1,6 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import * as React from 'react'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'

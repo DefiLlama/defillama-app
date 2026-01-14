@@ -1,6 +1,6 @@
-import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import type { ChartConfig, MultiChartConfig, TextConfig } from '../types'
 import { CHART_TYPES } from '../types'

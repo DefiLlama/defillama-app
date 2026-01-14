@@ -1,6 +1,6 @@
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Suspense } from 'react'
-import { useRouter } from 'next/router'
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissions } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'

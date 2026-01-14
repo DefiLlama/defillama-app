@@ -1,5 +1,5 @@
-import { memo, useMemo } from 'react'
 import Head from 'next/head'
+import { memo, useMemo } from 'react'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ExpandedState,
@@ -11,6 +10,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
+import * as React from 'react'
 import {
 	useGetProtocolsAggregatorsByMultiChain,
 	useGetProtocolsBridgeAggregatorsByMultiChain,
@@ -786,7 +786,7 @@ export function useProTable(
 		if (!options?.initialColumnVisibility && !options?.initialActivePresetId) {
 			applyPreset('essential')
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		// oxlint-disable-next-line react/exhaustive-deps
 	}, [])
 
 	const addOption = (newOptions: string[]) => {

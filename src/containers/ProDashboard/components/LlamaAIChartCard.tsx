@@ -1,5 +1,5 @@
-import { memo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { memo } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { ChartRenderer } from '~/containers/LlamaAI/components/ChartRenderer'

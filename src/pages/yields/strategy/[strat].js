@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo } from 'react'
 import { LazyChart } from '~/components/LazyChart'
 import { LoadingDots } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'

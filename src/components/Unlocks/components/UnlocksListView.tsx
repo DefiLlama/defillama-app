@@ -1,6 +1,6 @@
-import * as React from 'react'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
+import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'

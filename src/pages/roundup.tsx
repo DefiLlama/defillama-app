@@ -118,7 +118,10 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 			const url = numberedRefs[number]
 			if (url) {
 				// Extract the title by removing the [number] reference and right arrow
-				const title = trimmedLine.replace(`[${number}]`, '').replace(/^→\s*/, '').trim()
+				const title = trimmedLine
+					.replace(`[${number}]`, '')
+					.replace(/^→\s*/, '')
+					.trim()
 				if (title) {
 					formattedMessages.push([title, url])
 				}

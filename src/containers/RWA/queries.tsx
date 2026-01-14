@@ -36,11 +36,10 @@ interface IFetchedRWAProject {
 	onChainMarketcap: Record<string, string> | null
 }
 
-export interface IRWAProject
-	extends Omit<
-		IFetchedRWAProject,
-		'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
-	> {
+export interface IRWAProject extends Omit<
+	IFetchedRWAProject,
+	'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
+> {
 	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
 	issuerRegistryInfo: string[] | null

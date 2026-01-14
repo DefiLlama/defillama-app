@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import Link from 'next/link'
+import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'

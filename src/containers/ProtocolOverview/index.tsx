@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useRef } from 'react'
-import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo, useRef } from 'react'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { Bookmark } from '~/components/Bookmark'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'

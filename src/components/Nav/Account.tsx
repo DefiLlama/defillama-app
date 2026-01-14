@@ -1,5 +1,5 @@
-import { memo } from 'react'
 import { useRouter } from 'next/router'
+import { memo } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'

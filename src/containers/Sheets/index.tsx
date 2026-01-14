@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '../Subscribtion/auth'
 

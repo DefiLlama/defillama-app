@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import {

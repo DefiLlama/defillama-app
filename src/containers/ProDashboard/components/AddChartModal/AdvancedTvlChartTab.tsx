@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'

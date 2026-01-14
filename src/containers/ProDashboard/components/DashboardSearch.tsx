@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 
 export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
