@@ -1217,8 +1217,12 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				.catch(() => [])
 		])
 
+		if (!incomeStatement) {
+			return null
+		}
+
 		const aggregates =
-			incomeStatement.aggregates ??
+			incomeStatement?.aggregates ??
 			({
 				monthly: {},
 				quarterly: {},
