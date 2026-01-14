@@ -3,7 +3,7 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum, tokenIconUrl } from '~/utils'
@@ -46,7 +46,7 @@ const TIME_VIEWS = ['Month', 'Current Year', 'All Years'] as const
 type TimeView = (typeof TIME_VIEWS)[number]
 
 export default function UnlocksTreemapChart({ unlocksData, height = '600px', filterYear }: UnlocksTreemapProps) {
-	const id = useMemo(() => crypto.randomUUID(), [])
+	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
@@ -63,10 +63,15 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			const monthIndex = date.month()
 			const monthName = date.format('MMMM')
 
-			if (year < currentYear) return
-
-			if (timeView === 'Current Year' && year > currentYear) return
-			if (timeView === 'Month' && monthIndex !== selectedDate.month()) return
+			if (timeView === 'Month') {
+				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) return
+			}
+			else if (timeView === 'Current Year') {
+				if (year !== currentYear) return
+			}
+			else if (timeView === 'All Years') {
+				if (year < currentYear) return
+			}
 
 			if (!yearData[year]) {
 				yearData[year] = {
@@ -110,30 +115,31 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
 								position: 'inside',
 								color: '#fff',
-								textShadowBlur: 1,
-								textShadowColor: 'rgba(0, 0, 0, 0.6)',
+								textShadowBlur: 2,
+								textShadowColor: 'rgba(0, 0, 0, 0.8)',
 								rich: {
 									icon: {
-										height: 20,
-										width: 20,
+										height: 22,
+										width: 22,
 										align: 'center',
 										backgroundColor: { image: iconUrl },
-										lineHeight: 25
+										lineHeight: 26
 									},
 									name: {
-										fontSize: 11,
+										fontSize: 12,
 										fontWeight: 600,
-										color: isDark ? '#f0f0f0' : '#333',
+										color: isDark ? '#ffffff' : '#1a1a1a',
 										align: 'center',
-										lineHeight: 14
+										lineHeight: 16,
+										padding: [2, 0, 0, 0]
 									},
 									value: {
-										fontSize: 10,
-										color: isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)',
+										fontSize: 11,
+										fontWeight: 500,
+										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
 										align: 'center',
-										lineHeight: 12
-									},
-									borderRadius: 50
+										lineHeight: 14
+									}
 								}
 							}
 						}
@@ -156,7 +162,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						children: [],
 						upperLabel: {
 							show: true,
-							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`
+							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`,
+							color: isDark ? '#ffffff' : '#000000',
+							fontSize: 13,
+							fontWeight: 600
 						}
 					}
 
@@ -171,32 +180,33 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
 								position: 'inside',
 								color: '#fff',
-								textShadowBlur: 1,
-								textShadowColor: 'rgba(0, 0, 0, 0.6)',
+								textShadowBlur: 2,
+								textShadowColor: 'rgba(0, 0, 0, 0.8)',
 								rich: {
 									icon: {
-										height: 20,
-										width: 20,
+										height: 22,
+										width: 22,
 										align: 'center',
 										backgroundColor: {
 											image: iconUrl
 										},
-										lineHeight: 25
+										lineHeight: 26
 									},
 									name: {
-										fontSize: 11,
+										fontSize: 12,
 										fontWeight: 600,
-										color: isDark ? '#f0f0f0' : '#333',
+										color: isDark ? '#ffffff' : '#1a1a1a',
 										align: 'center',
-										lineHeight: 14
+										lineHeight: 16,
+										padding: [2, 0, 0, 0]
 									},
 									value: {
-										fontSize: 10,
-										color: isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)',
+										fontSize: 11,
+										fontWeight: 500,
+										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
 										align: 'center',
-										lineHeight: 12
-									},
-									borderRadius: 50
+										lineHeight: 14
+									}
 								}
 							}
 						})
@@ -216,7 +226,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					children: [],
 					upperLabel: {
 						show: true,
-						formatter: `${year} - ${formattedNum(yearInfo.value, true)}`
+						formatter: `${year} - ${formattedNum(yearInfo.value, true)}`,
+						color: isDark ? '#ffffff' : '#000000',
+						fontSize: 14,
+						fontWeight: 700
 					}
 				}
 
@@ -227,7 +240,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						children: [],
 						upperLabel: {
 							show: true,
-							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`
+							formatter: `${month} - ${formattedNum(monthInfo.value, true)}`,
+							color: isDark ? '#ffffff' : '#000000',
+							fontSize: 12,
+							fontWeight: 600
 						}
 					}
 
@@ -242,32 +258,33 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								formatter: `{icon|}\n{name|${protocol}}\n{value|${formattedNum(value, true)}}`,
 								position: 'inside',
 								color: '#fff',
-								textShadowBlur: 1,
-								textShadowColor: 'rgba(0, 0, 0, 0.6)',
+								textShadowBlur: 2,
+								textShadowColor: 'rgba(0, 0, 0, 0.8)',
 								rich: {
 									icon: {
-										height: 20,
-										width: 20,
+										height: 22,
+										width: 22,
 										align: 'center',
 										backgroundColor: {
 											image: iconUrl
 										},
-										lineHeight: 25
+										lineHeight: 26
 									},
 									name: {
-										fontSize: 11,
+										fontSize: 12,
 										fontWeight: 600,
-										color: isDark ? '#f0f0f0' : '#333',
+										color: isDark ? '#ffffff' : '#1a1a1a',
 										align: 'center',
-										lineHeight: 14
+										lineHeight: 16,
+										padding: [2, 0, 0, 0]
 									},
 									value: {
-										fontSize: 10,
-										color: isDark ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)',
+										fontSize: 11,
+										fontWeight: 500,
+										color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.75)',
 										align: 'center',
-										lineHeight: 12
-									},
-									borderRadius: 50
+										lineHeight: 14
+									}
 								}
 							}
 						})
@@ -295,6 +312,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 	useEffect(() => {
 		const chartInstance = createInstance()
+		if (!chartInstance) return
 
 		const option = {
 			title: {
@@ -317,19 +335,35 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						pathDisplay += ' > '
 					}
 
-					let content = `<div style="font-size: 12px; line-height: 1.5;">`
+					let content = `<div style="font-size: 12px; line-height: 1.5; padding: 4px;">`
 					if (iconUrl) {
-						content += `<img src="${iconUrl}" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> `
+						content += `<img src="${iconUrl}" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; border-radius: 50%;" /> `
 					}
-					content += `<strong>${pathDisplay}${name}</strong><br/>`
-					content += `Value: <strong>${formattedNum(value, true)}</strong>`
+					content += `<strong style="font-weight: 600;">${pathDisplay}${name}</strong><br/>`
+					content += `<span style="opacity: 0.85;">Value:</span> <strong style="font-weight: 600;">${formattedNum(value, true)}</strong>`
 					content += `</div>`
 					return content
+				},
+				backgroundColor: isDark ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+				borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)',
+				borderWidth: 1,
+				textStyle: {
+					color: isDark ? '#ffffff' : '#000000'
 				}
 			},
 			toolbox: {
 				feature: {
-					restore: {}
+					restore: {
+						title: 'Reset'
+					}
+				},
+				iconStyle: {
+					borderColor: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)'
+				},
+				emphasis: {
+					iconStyle: {
+						borderColor: isDark ? '#ffffff' : '#000000'
+					}
 				},
 				right: 8,
 				top: 8
@@ -352,24 +386,24 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					},
 					upperLabel: {
 						show: true,
-						height: 25,
-						color: isDark ? '#fff' : '#000',
+						height: 28,
+						color: isDark ? '#ffffff' : '#000000',
 						fontSize: 13,
 						fontWeight: 600,
 						textShadowBlur: 2,
-						textShadowColor: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.5)'
+						textShadowColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.8)'
 					},
 					itemStyle: {
-						borderColor: isDark ? '#444' : '#eee',
-						borderWidth: 1,
-						gapWidth: 1
+						borderColor: isDark ? '#555555' : '#d0d0d0',
+						borderWidth: 2,
+						gapWidth: 2
 					},
 					levels: [
 						{
 							itemStyle: {
-								borderColor: isDark ? '#666' : '#aaa',
+								borderColor: isDark ? '#777777' : '#999999',
 								borderWidth: 0,
-								gapWidth: 1
+								gapWidth: 2
 							},
 							upperLabel: {
 								show: false
@@ -377,47 +411,58 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						},
 						{
 							itemStyle: {
-								borderWidth: 1,
-								gapWidth: 1,
-								borderColorSaturation: 0.5
+								borderWidth: 2,
+								gapWidth: 2,
+								borderColorSaturation: 0.6
 							},
 							upperLabel: {
 								show: true,
-								height: 22,
-								color: isDark ? '#fff' : '#000',
+								height: 26,
+								color: isDark ? '#ffffff' : '#000000',
 								fontSize: 12,
-								fontWeight: 500
+								fontWeight: 600
 							},
 							emphasis: {
 								itemStyle: {
-									borderColor: isDark ? '#fff' : '#000'
+									borderColor: isDark ? '#ffffff' : '#000000',
+									borderWidth: 3
 								}
 							}
 						},
 						{
-							colorSaturation: [0.3, 0.7],
+							colorSaturation: [0.4, 0.75],
 							itemStyle: {
-								borderWidth: 1,
+								borderWidth: 2,
 								gapWidth: 1,
-								borderColorSaturation: 0.5
+								borderColorSaturation: 0.65
+							},
+							emphasis: {
+								itemStyle: {
+									borderWidth: 3,
+									shadowBlur: 8,
+									shadowColor: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'
+								}
 							}
 						}
 					],
 					breadcrumb: {
 						itemStyle: {
-							color: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.15)',
+							color: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)',
+							borderColor: isDark ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)',
+							borderWidth: 1,
 							textStyle: {
 								fontFamily: 'sans-serif',
 								fontWeight: 500,
-								color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+								color: isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.95)'
 							}
 						},
 						emphasis: {
 							itemStyle: {
-								color: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.3)'
+								color: isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.25)',
+								borderColor: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)'
 							},
 							textStyle: {
-								color: isDark ? '#fff' : '#000'
+								color: isDark ? '#ffffff' : '#000000'
 							}
 						}
 					}
@@ -428,7 +473,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		chartInstance.setOption(option)
 
 		function resize() {
-			chartInstance.resize()
+			chartInstance?.resize()
 		}
 
 		window.addEventListener('resize', resize)
@@ -449,7 +494,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					<div className="order-1 flex items-center gap-2 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="rounded-sm p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) transition-colors hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Previous Month"
 						>
 							←
@@ -460,7 +505,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						</span>
 						<button
 							onClick={goToNextMonth}
-							className="rounded-sm p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) transition-colors hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Next Month"
 						>
 							→
