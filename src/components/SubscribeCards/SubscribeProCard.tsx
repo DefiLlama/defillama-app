@@ -85,7 +85,7 @@ function SubscribeProCardContent({
 					</li>
 					<li className="group ml-6 flex items-center gap-2.5">
 						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
-						<span>Deep research: {showTrialAvailable ? '3 questions during trial' : '5/day'}</span>
+						<span>Deep research: 5/day</span>
 						{showTrialAvailable ? (
 							<QuestionHelper text="During trial, deep research is limited to 3 questions. Full subscription includes 5/day." />
 						) : null}
