@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { lazy, memo, Suspense, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
@@ -47,9 +47,14 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { hasActiveSubscription } = useAuthContext()
+	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
+
+	// Delay showing free trial badge until after hydration to prevent flash
+	const [mounted, setMounted] = useState(false)
+	useEffect(() => setMounted(true), [])
 
 	const mainLinks = useMemo(() => {
+		const showFreeTrial = mounted && !hasActiveSubscription && (isAuthenticated ? !loaders.userLoading : true)
 		const otherMainPages = [
 			{ name: 'Pricing', route: '/subscription', icon: 'user' },
 			{ name: 'Chains', route: '/chains', icon: 'globe' },
@@ -58,12 +63,12 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			...(hasActiveSubscription
 				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
-				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
+				: [{ name: 'LlamaAI', route: '/ai', icon: '', freeTrial: showFreeTrial }]),
 			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
 			{ name: 'Support', route: '/support', icon: 'headset' }
 		]
 		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
-	}, [hasActiveSubscription])
+	}, [mounted, hasActiveSubscription, isAuthenticated, loaders.userLoading])
 
 	const userDashboards = useMemo(
 		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
