@@ -370,17 +370,13 @@ export function AdapterByChain(props: IProps) {
 	}
 
 	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)])
-		)
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
 		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
 
 	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption])
-		)
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
 		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
@@ -494,7 +490,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 					<SelectWithCombobox
