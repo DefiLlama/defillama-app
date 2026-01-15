@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
+import { PremiumHeader } from '../PremiumHeader'
 import { ThemeSwitch } from '../ThemeSwitch'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { LinkToPage } from './shared'
@@ -50,14 +51,14 @@ export const DesktopNav = React.memo(function DesktopNav({
 				<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`desktop-nav-${category}`} className="group flex flex-col">
-							{pages.map(({ name, route, icon, attention, freeTrial }) => (
+							{category === 'Premium' ? <PremiumHeader /> : null}
+							{pages.map(({ name, route, icon, attention }) => (
 								<LinkToPage
 									key={`desktop-nav-${name}-${route}`}
 									route={route}
 									name={name}
 									icon={icon}
 									attention={attention}
-									freeTrial={freeTrial}
 									asPath={asPath}
 								/>
 							))}

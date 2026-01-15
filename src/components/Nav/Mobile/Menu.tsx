@@ -10,6 +10,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
+import { PremiumHeader } from '../PremiumHeader'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 export const Menu = React.memo(function Menu({
@@ -45,15 +46,14 @@ export const Menu = React.memo(function Menu({
 
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">{category}</p>
+							{category === 'Premium' ? <PremiumHeader /> : <p className="mb-1 text-xs opacity-65">{category}</p>}
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route, icon, attention, freeTrial }) => (
+							{pages.map(({ name, route, icon, attention }) => (
 								<LinkToPage
 									route={route}
 									name={name}
 									icon={icon}
 									attention={attention}
-									freeTrial={freeTrial}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
 									setShow={setShow}
