@@ -7,7 +7,7 @@ import { fetchWithConnectionPooling } from './http-client'
 
 const isServer = typeof document === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
-const IS_RUNTIME = !!process.env.IS_RUNTIME
+const _IS_RUNTIME = !!process.env.IS_RUNTIME
 const MAX_PAGE_BUILD_RETRIES = 3
 const MAX_RETRY_DELAY_MS = 1000
 
@@ -72,7 +72,7 @@ export const withPerformanceLogging = <T extends object>(
 export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
-	const start = Date.now()
+	const _start = Date.now()
 
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
@@ -148,7 +148,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 					'Content-Type': ContentType
 				})
 			}
-		} catch (error) {
+		} catch {
 			StatusCode = 504
 			responseInit = {
 				status: StatusCode,

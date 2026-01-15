@@ -171,7 +171,7 @@ export const useGroupAndFormatChains = ({
 	const [chainsGroupbyParent] = useLocalStorageSettingsManager('tvl_chains')
 
 	return React.useMemo(() => {
-		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy ? true : false
+		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy
 		const toggledTvlSettings = Object.entries(tvlSettings)
 			.filter(([_, value]) => value)
 			.map(([key]) => key)

@@ -142,7 +142,7 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 			color: colorByAsset[asset],
 			data: []
 		}
-		for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
+		for (const [date, net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
 			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
 			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, net]
 		}

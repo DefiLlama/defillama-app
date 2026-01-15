@@ -118,7 +118,7 @@ export function toFilterPool({
 			} else return false
 		})
 
-		toFilter = toFilter && (selectedChainsSet.has(curr.chain) && exactToken ? true : false)
+		toFilter = toFilter && !!(selectedChainsSet.has(curr.chain) && exactToken)
 	}
 
 	const isValidTvlRange = minTvl != null || maxTvl != null

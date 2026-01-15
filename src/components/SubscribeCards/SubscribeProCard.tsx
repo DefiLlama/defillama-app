@@ -134,7 +134,7 @@ export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
-	returnUrl,
+	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
 }: SubscribeProCardProps) {
@@ -260,7 +260,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const finalReturnUrl = returnUrl ? returnUrl : router.asPath
+	const _finalReturnUrl = _returnUrl ? _returnUrl : router.asPath
 
 	return (
 		<WalletProvider>

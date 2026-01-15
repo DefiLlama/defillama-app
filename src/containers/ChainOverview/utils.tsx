@@ -15,12 +15,12 @@ export const toFilterProtocol = ({
 }): boolean => {
 	const combinedChainsSet = new Set([...(protocolMetadata.chains ?? []), ...(protocolData.chains ?? [])])
 
-	return protocolMetadata.displayName &&
+	return !!(
+		protocolMetadata.displayName &&
 		protocolMetadata.chains &&
 		(chainDisplayName !== 'All' ? combinedChainsSet.has(chainDisplayName) : true) &&
 		!excludedCategoriesSet.has(protocolData.category)
-		? true
-		: false
+	)
 }
 
 export const toStrikeTvl = (protocol, toggledSettings) => {

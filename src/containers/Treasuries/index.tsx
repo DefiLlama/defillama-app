@@ -138,7 +138,7 @@ export const columns: ColumnDef<any>[] = [
 				>
 					{dominance.map((dom) => {
 						const color = breakdownColor(dom[0])
-						const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+						const _name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
 
 						return (
 							<div

@@ -250,7 +250,7 @@ export function useMetricData(metric: MetricConfig) {
 					: undefined
 
 		return { value, delta, deltaPct, sparklineData, lastUpdatedTs }
-	}, [series, window, aggregator, compare, type])
+	}, [series, window, aggregator, compare])
 
 	return {
 		...result,

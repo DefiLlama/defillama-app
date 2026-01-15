@@ -300,7 +300,7 @@ export function AdapterByChain(props: IProps) {
 		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
 	}, [props, protocols])
 
-	const { category, chain, ...queries } = router.query
+	const { category: _category, chain, ...queries } = router.query
 
 	const addCategory = (newCategory) => {
 		router.push(
@@ -371,7 +371,7 @@ export function AdapterByChain(props: IProps) {
 
 	const addColumn = (newOptions) => {
 		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
+			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)])
 		)
 		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
@@ -379,7 +379,7 @@ export function AdapterByChain(props: IProps) {
 
 	const addOnlyOneColumn = (newOption) => {
 		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
+			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption])
 		)
 		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)

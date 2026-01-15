@@ -34,7 +34,7 @@ export function McapRange({
 	}
 
 	const handleClear = () => {
-		const { minMcap, maxMcap, ...restQuery } = router.query
+		const { minMcap: _minMcap, maxMcap: _maxMcap, ...restQuery } = router.query
 
 		router.push(
 			{

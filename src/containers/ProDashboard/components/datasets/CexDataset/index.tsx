@@ -12,7 +12,6 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
-import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'

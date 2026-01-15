@@ -18,7 +18,7 @@ export function FiltersByCategory({
 }: IFiltersByCategoryProps) {
 	const router = useRouter()
 
-	const { category, chain, ...queries } = router.query
+	const { category, chain: _chain, ...queries } = router.query
 
 	const addCategory = (newCategory) => {
 		router.push(

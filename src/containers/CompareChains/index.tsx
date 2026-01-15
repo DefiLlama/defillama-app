@@ -286,7 +286,7 @@ const formatTvlChart = ({
 	extraTvlCharts: IChainOverviewData['extraTvlCharts']
 }) => {
 	const toggledTvlSettings = Object.entries(tvlSettings)
-		.filter(([key, value]) => value)
+		.filter(([_key, value]) => value)
 		.map(([key]) => key)
 
 	if (toggledTvlSettings.length === 0) {
@@ -322,7 +322,7 @@ const formatTvlChart = ({
 	const tvlPrevDay = getPrevTvlFromChart(finalTvlChart, 1)
 	const valueChange24hUSD = totalValueUSD - tvlPrevDay
 	const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
-	const isGovTokensEnabled = tvlSettings?.govtokens ? true : false
+	const isGovTokensEnabled = !!tvlSettings?.govtokens
 	return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
 }
 

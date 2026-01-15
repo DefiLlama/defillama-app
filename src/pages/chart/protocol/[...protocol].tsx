@@ -108,7 +108,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 		}
 	}, [queryParamsString, props])
 
-	const isThemeDark = router.query.theme === 'dark' ? true : false
+	const isThemeDark = router.query.theme === 'dark'
 
 	useEffect(() => {
 		if (!isThemeDark) {

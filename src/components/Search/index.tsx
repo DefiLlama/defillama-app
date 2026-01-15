@@ -291,9 +291,7 @@ const SearchItem = ({ route, recent = false }: { route: ISearchItem; recent?: bo
 				<BasicLink
 					href={route.route}
 					shallow={
-						route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0])
-							? true
-							: false
+						!!(route.subName && route.route.includes('?') && router.asPath.startsWith(route.route.split('?')[0]))
 					}
 				/>
 			}

@@ -36,7 +36,7 @@ export function RaisedRange({
 	}
 
 	const handleClear = () => {
-		const { minRaised, maxRaised, ...restQuery } = router.query
+		const { minRaised: _minRaised, maxRaised: _maxRaised, ...restQuery } = router.query
 
 		router.push(
 			{

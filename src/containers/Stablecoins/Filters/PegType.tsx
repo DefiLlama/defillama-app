@@ -111,7 +111,7 @@ export const stablecoinPegTypeOptions = [
 export function PegType({ pathname, nestedMenu }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()
 
-	const { pegtype = [], chain, ...queries } = router.query
+	const { pegtype = [], chain: _chain, ...queries } = router.query
 
 	const selectedValues = useMemo(() => {
 		return stablecoinPegTypeOptions

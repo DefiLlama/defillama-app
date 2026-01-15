@@ -1,6 +1,6 @@
 import { flexRender, Table } from '@tanstack/react-table'
 import * as React from 'react'
-import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { ReorderableHeader } from './ReorderableHeader'
 
@@ -33,7 +33,7 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 				<thead className="sticky top-0 z-10">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<tr key={headerGroup.id}>
-							{headerGroup.headers.map((header, index) => {
+							{headerGroup.headers.map((header, _index) => {
 								const visibleColumns = headerGroup.headers.filter((h) => !h.isPlaceholder)
 								const columnIndex = visibleColumns.indexOf(header)
 								const isFirst = columnIndex === 0

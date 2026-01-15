@@ -67,7 +67,7 @@ const formatPrecisionPercentage = (value: number): string => {
 	return `${Math.round(value * 100) / 100}%`
 }
 
-const formatChartValue = (value: number, valueSymbol?: string): string => {
+const _formatChartValue = (value: number, valueSymbol?: string): string => {
 	switch (valueSymbol) {
 		case '%':
 			return formatPrecisionPercentage(value)
@@ -114,7 +114,7 @@ const validateChartData = (
 	return validData
 }
 
-const determineTimeGrouping = (data: any[], timeField: string): 'day' | 'week' | 'month' => {
+const determineTimeGrouping = (_data: any[], _timeField: string): 'day' | 'week' | 'month' => {
 	return 'day'
 }
 
@@ -302,7 +302,7 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 		}
 
 		const timeField = config.dataTransformation?.timeField || config.axes.x.field
-		const timeGrouping = determineTimeGrouping(rawData, timeField)
+		const _timeGrouping = determineTimeGrouping(rawData, timeField)
 
 		const primarySeries = config.series[0]
 		if (!primarySeries) {

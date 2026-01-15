@@ -380,8 +380,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		if (chartBuilder.mode === 'protocol') {
 			const shouldHideOthers =
 				(chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0) ||
-				(chartBuilder.protocolCategories && chartBuilder.protocolCategories.length > 0) ||
-				false
+				!!(chartBuilder.protocolCategories && chartBuilder.protocolCategories.length > 0)
 			if (chartBuilder.hideOthers !== shouldHideOthers) {
 				onChartBuilderChange({ hideOthers: shouldHideOthers })
 			}

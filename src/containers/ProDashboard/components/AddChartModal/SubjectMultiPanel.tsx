@@ -39,7 +39,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 	onSelectedChainsChange,
 	selectedProtocols,
 	onSelectedProtocolsChange,
-	isLoading,
+	isLoading: _isLoading,
 	hideTabToggle = false
 }: SubjectMultiPanelProps) {
 	const [search, setSearch] = useState('')

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { TagGroup } from '~/components/TagGroup'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
@@ -25,15 +24,15 @@ export function YieldsDataset({
 	columnVisibility: initialColumnVisibility,
 	filters: savedFilters
 }: YieldsDatasetProps) {
-	const { data, isLoading, error, refetch } = useYieldsData(chains)
+	const { data, isLoading, error } = useYieldsData(chains)
 	const { handleTableColumnsChange, handleTableFiltersChange } = useProDashboardEditorActions()
 
 	const uniqueTableId = React.useMemo(() => tableId || `yields-table-${Date.now()}`, [tableId])
 
 	const {
 		table,
-		pagination,
-		setPagination,
+		pagination: _pagination,
+		setPagination: _setPagination,
 		showColumnPanel,
 		setShowColumnPanel,
 		searchTerm,

@@ -427,7 +427,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			fees?.protocols?.length > 0
 				? (protocols
 						.sort((a, b) => (b.fees?.total24h ?? 0) - (a.fees?.total24h ?? 0))
-						.filter((a) => (a.fees?.total24h ? true : false))
+						.filter((a) => !!a.fees?.total24h)
 						.slice(0, 14)
 						.map((x) => [x.name, x.fees?.total24h ?? 0, tokenIconUrl(x.name)]) as Array<[string, number, string]>)
 				: null
@@ -885,8 +885,8 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				strikeTvl:
 					protocol.category !== 'Bridge'
 						? toStrikeTvl(protocol, {
-								liquidstaking: tvls?.liquidstaking ? true : false,
-								doublecounted: tvls?.doublecounted ? true : false
+								liquidstaking: !!tvls?.liquidstaking,
+								doublecounted: !!tvls?.doublecounted
 							})
 						: false
 			}

@@ -78,7 +78,7 @@ export const DimensionProtocolChartByType = ({
 						type: chartType
 					})
 			: () => Promise.resolve(null),
-		enabled: metadata?.bribeRevenue && feesSettings.bribes ? true : false,
+		enabled: !!(metadata?.bribeRevenue && feesSettings.bribes),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -107,7 +107,7 @@ export const DimensionProtocolChartByType = ({
 						type: chartType
 					})
 			: () => Promise.resolve(null),
-		enabled: metadata?.tokenTax && feesSettings.tokentax ? true : false,
+		enabled: !!(metadata?.tokenTax && feesSettings.tokentax),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0

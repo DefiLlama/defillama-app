@@ -62,22 +62,22 @@ const getRatingDescription = (rating) => {
 	}
 }
 
-const PageView = (props) => {
+const PageView = (_props) => {
 	const { query, isReady } = useRouter()
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
 
 	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyChartReady } = useChartImageExport()
-	const { chartInstance: supplyApyBarChartInstance, handleChartReady: handleSupplyApyBarChartReady } =
+	const { chartInstance: _supplyApyBarChartInstance, handleChartReady: handleSupplyApyBarChartReady } =
 		useChartImageExport()
-	const { chartInstance: supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dChartReady } =
+	const { chartInstance: _supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dChartReady } =
 		useChartImageExport()
-	const { chartInstance: borrowApyBarChartInstance, handleChartReady: handleBorrowApyBarChartReady } =
+	const { chartInstance: _borrowApyBarChartInstance, handleChartReady: handleBorrowApyBarChartReady } =
 		useChartImageExport()
-	const { chartInstance: netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyChartReady } =
+	const { chartInstance: _netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyChartReady } =
 		useChartImageExport()
-	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityChartReady } =
+	const { chartInstance: _poolLiquidityChartInstance, handleChartReady: _handlePoolLiquidityChartReady } =
 		useChartImageExport()
 
 	const riskUrl = poolData?.project
@@ -163,7 +163,7 @@ const PageView = (props) => {
 		barChartData = [],
 		areaChartData = [],
 		// borrow stuff
-		barChartDataSupply = [],
+		barChartDataSupply: _barChartDataSupply = [],
 		barChartDataBorrow = [],
 		areaChartDataBorrow = [],
 		netBorrowChartData = []

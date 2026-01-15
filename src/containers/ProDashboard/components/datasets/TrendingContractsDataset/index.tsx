@@ -34,7 +34,7 @@ interface TrendingContractsDatasetProps {
 export function TrendingContractsDataset({
 	chain: initialChain = 'Ethereum',
 	timeframe: initialTimeframe = '1d',
-	tableId,
+	tableId: _tableId,
 	onChainChange,
 	onTimeframeChange
 }: TrendingContractsDatasetProps) {

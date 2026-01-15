@@ -19,7 +19,7 @@ interface SessionItemProps {
 	style: React.CSSProperties
 }
 
-export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect: _onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 const fallbackImage = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=='
 
 export const ImageWithFallback = ({
-	fallback = fallbackImage,
+	fallback: _fallback = fallbackImage,
 	alt,
 	src,
 	...props

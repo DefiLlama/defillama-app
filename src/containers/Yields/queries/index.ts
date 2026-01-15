@@ -127,7 +127,7 @@ export async function getYieldPageData() {
 			)
 		)
 		data['usdPeggedSymbols'] = usdPeggedSymbols
-	} catch (e) {
+	} catch {
 		data['usdPeggedSymbols'] = []
 	}
 

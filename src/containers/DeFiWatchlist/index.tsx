@@ -266,7 +266,7 @@ function PortfolioNotifications({
 				if (preferences.settings.protocols) {
 					const allProtocolEntries = Object.entries(preferences.settings.protocols)
 					if (allProtocolEntries.length > 0) {
-						const [protocolId, firstMetrics] = allProtocolEntries[0]
+						const [_protocolId, firstMetrics] = allProtocolEntries[0]
 
 						if (Array.isArray(firstMetrics)) {
 							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
@@ -281,7 +281,7 @@ function PortfolioNotifications({
 				if (preferences.settings.chains) {
 					const allChainEntries = Object.entries(preferences.settings.chains)
 					if (allChainEntries.length > 0) {
-						const [chainName, firstMetrics] = allChainEntries[0]
+						const [_chainName, firstMetrics] = allChainEntries[0]
 
 						if (Array.isArray(firstMetrics)) {
 							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)

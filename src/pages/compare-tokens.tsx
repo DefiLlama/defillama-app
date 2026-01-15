@@ -6,7 +6,7 @@ import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {
-	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, volumeProtocols] = await Promise.all([
+	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols, _volumeProtocols] = await Promise.all([
 		getAllCGTokensList(),
 		fetchJson(PROTOCOLS_API),
 		fetchJson(`${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true&excludeTotalDataChart=true`).catch(

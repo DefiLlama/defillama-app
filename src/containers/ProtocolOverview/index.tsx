@@ -70,7 +70,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 						</span>
 						{props.token.symbol && props.token.symbol !== '-' ? (
 							<span className="mr-auto font-normal">({props.token.symbol})</span>
@@ -104,7 +104,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 								<span className="font-bold">
-									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+									{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 								</span>
 								{props.token.symbol && props.token.symbol !== '-' ? (
 									<span className="mr-auto font-normal">({props.token.symbol})</span>

@@ -331,7 +331,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	} = useQuery({
 		queryKey: ['token-pnl', selectedCoinId, start, end],
 		queryFn: () => computeTokenPnl({ id: selectedCoinId, start, end, coinInfo: selectedCoinInfo }),
-		enabled: router.isReady && Boolean(selectedCoinId && start && end && end > start) ? true : false,
+		enabled: !!(router.isReady && selectedCoinId && start && end && end > start),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -359,7 +359,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						endPrice
 					} as ComparisonEntry
 				}),
-			enabled: router.isReady && Boolean(start && end && end > start) ? true : false,
+			enabled: !!(router.isReady && start && end && end > start),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
 			retry: 0

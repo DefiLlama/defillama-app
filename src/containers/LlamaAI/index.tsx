@@ -1071,7 +1071,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [shouldAnimateSidebar])
 
-	const isSubmitted = isPending || isStreaming || error || promptResponse ? true : false
+	const isSubmitted = !!(isPending || isStreaming || error || promptResponse)
 
 	return (
 		<Layout

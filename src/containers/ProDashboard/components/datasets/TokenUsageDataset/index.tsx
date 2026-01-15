@@ -20,7 +20,7 @@ import { getColumns } from './columns'
 import { useTokenSearch } from './useTokenSearch'
 import { useTokenUsageData } from './useTokenUsageData'
 
-interface TokenOption {
+interface _TokenOption {
 	value: string
 	label: string
 	logo?: string

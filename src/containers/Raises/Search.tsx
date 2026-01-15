@@ -141,7 +141,7 @@ const Row = ({ name, setOpen }) => {
 	return (
 		<Ariakit.ComboboxItem
 			value={name}
-			onClick={(e) => {
+			onClick={(_e) => {
 				setLoading(true)
 
 				router.push(`/raises/${slug(name.toLowerCase())}`).then(() => {

@@ -33,7 +33,7 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 	}
 
 	const handleClear = () => {
-		const { minApy, maxApy, ...restQuery } = router.query
+		const { minApy: _minApy, maxApy: _maxApy, ...restQuery } = router.query
 
 		router.push(
 			{

@@ -529,7 +529,7 @@ export function ProtocolsByChainTable({
 
 	const addOption = (newOptions) => {
 		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key) ? true : false])
+			protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)])
 		)
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
@@ -537,7 +537,7 @@ export function ProtocolsByChainTable({
 
 	const addOnlyOneOption = (newOption) => {
 		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption ? true : false])
+			protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption])
 		)
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
@@ -562,7 +562,7 @@ export function ProtocolsByChainTable({
 
 	const selectedOptions = React.useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return protocolsByChainTableColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return protocolsByChainTableColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage])
 
 	return (

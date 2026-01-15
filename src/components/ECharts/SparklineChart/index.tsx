@@ -57,7 +57,7 @@ export function SparklineChart({
 			try {
 				const target = document.documentElement || (dom as HTMLElement)
 				value = getComputedStyle(target).getPropertyValue(variable)
-			} catch (error) {
+			} catch {
 				value = ''
 			}
 			return value?.trim() || fallback || input

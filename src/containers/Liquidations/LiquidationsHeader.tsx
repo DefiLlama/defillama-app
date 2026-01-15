@@ -63,7 +63,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 					/>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
-							{matches.map((match, i) => (
+							{matches.map((match) => (
 								<Ariakit.ComboboxItem
 									key={`liq-asset-${match.name}`}
 									value={match.symbol}

@@ -183,7 +183,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	}, [debouncedSearch, selectedChains, table])
 
 	const clearChainSelection = React.useCallback(() => {
-		const { chain, ...queries } = router.query
+		const { chain: _chain, ...queries } = router.query
 		router.push(
 			{
 				pathname: router.pathname,
@@ -195,7 +195,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	}, [router])
 
 	const toggleAllChains = React.useCallback(() => {
-		const { chain, ...queries } = router.query
+		const { chain: _chain, ...queries } = router.query
 		router.push(
 			{
 				pathname: router.pathname,
@@ -208,7 +208,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const addChain = React.useCallback(
 		(newOptions: Array<string>) => {
-			const { chain, ...queries } = router.query
+			const { chain: _chain, ...queries } = router.query
 			router.push(
 				{
 					pathname: router.pathname,
@@ -226,7 +226,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const selectOnlyOneChain = React.useCallback(
 		(chain: string) => {
-			const { chain: currentChain, ...queries } = router.query
+			const { chain: _currentChain, ...queries } = router.query
 			router.push(
 				{
 					pathname: router.pathname,
@@ -243,7 +243,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	)
 
 	const clearAllColumns = React.useCallback(() => {
-		const { column, ...queries } = router.query
+		const { column: _column, ...queries } = router.query
 		router.push(
 			{
 				pathname: router.pathname,
@@ -258,7 +258,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	}, [router])
 
 	const toggleAllColumns = React.useCallback(() => {
-		const { column, ...queries } = router.query
+		const { column: _column, ...queries } = router.query
 		router.push(
 			{
 				pathname: router.pathname,
@@ -271,7 +271,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const addColumn = React.useCallback(
 		(newOptions: Array<string>) => {
-			const { column, ...queries } = router.query
+			const { column: _column, ...queries } = router.query
 			router.push(
 				{
 					pathname: router.pathname,
@@ -289,7 +289,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const addOnlyOneColumn = React.useCallback(
 		(newOption: string) => {
-			const { column, ...queries } = router.query
+			const { column: _column, ...queries } = router.query
 			router.push(
 				{
 					pathname: router.pathname,

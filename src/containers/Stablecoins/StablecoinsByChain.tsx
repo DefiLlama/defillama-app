@@ -464,7 +464,7 @@ export function StablecoinsByChain({
 }
 
 function handleRouting(selectedChain, queryParams) {
-	const { chain, ...filters } = queryParams
+	const { chain: _chain, ...filters } = queryParams
 
 	let params = ''
 

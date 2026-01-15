@@ -149,7 +149,7 @@ const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
-	const { lend: lendQuery, borrow, ...queryParams } = router.query
+	const { lend: _lendQuery, borrow: _borrow, ...queryParams } = router.query
 
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 

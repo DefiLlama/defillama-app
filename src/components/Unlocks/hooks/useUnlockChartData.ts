@@ -16,7 +16,7 @@ export const useUnlockChartData = ({
 	currentDate,
 	viewMode,
 	unlocksData,
-	precomputedData
+	precomputedData: _precomputedData
 }: UseUnlockChartDataProps) => {
 	const weekRange = React.useMemo(() => {
 		if (viewMode !== 'Week') return null
@@ -102,7 +102,7 @@ export const useUnlockChartData = ({
 			stacks,
 			stackColors: protocolColorMap
 		}
-	}, [weekRange, unlocksData])
+	}, [viewMode, weekRange, unlocksData])
 
 	const monthlyChartData = React.useMemo(() => {
 		if (viewMode !== 'Month' || !monthRange) return null
@@ -166,7 +166,7 @@ export const useUnlockChartData = ({
 			stacks,
 			stackColors: protocolColorMap
 		}
-	}, [monthRange, unlocksData])
+	}, [viewMode, monthRange, unlocksData])
 
 	return {
 		weeklyChartData,
