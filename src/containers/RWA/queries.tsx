@@ -318,7 +318,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 		// Find the asset by comparing ticker slugs
 		for (const rwaId in res.data) {
 			const item = res.data[rwaId]
-			if (slug(item.ticker) === assetSlug) {
+			if (typeof item.ticker === 'string' && item.ticker !== '-' && slug(item.ticker) === assetSlug) {
 				let totalOnChainTvl = 0
 				let totalDeFiActiveTvl = 0
 				const onChainTvlBreakdown = item.onChainMarketcap ?? {}
@@ -415,12 +415,12 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 }
 
 export async function getRWAAssetsList(): Promise<string[]> {
-	const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+	const res: { data: Record<string, IFetchedRWAProject> } = await fetchJson(RWA_ACTIVE_TVLS_API)
 	const assets: string[] = []
 
-	for (const rwaId in data) {
-		if (data[rwaId].ticker) {
-			assets.push(slug(data[rwaId].ticker))
+	for (const rwaId in res.data) {
+		if (typeof res.data[rwaId].ticker === 'string' && res.data[rwaId].ticker !== '-') {
+			assets.push(slug(res.data[rwaId].ticker))
 		}
 	}
 
