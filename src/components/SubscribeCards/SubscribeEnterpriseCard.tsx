@@ -6,7 +6,7 @@ export function SubscribeEnterpriseCard({ active = false, isButton = false }: { 
 		return (
 			<>
 				<a
-					className="group mt-auto min-w-xs flex w-full flex-nowrap items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
+					className="group mt-auto min-w-xs flex w-full flex-nowrap items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
 					target="_blank"
 					rel="noopener noreferrer"
 					href="mailto:sales@defillama.com"
@@ -72,7 +72,7 @@ export function SubscribeEnterpriseCard({ active = false, isButton = false }: { 
 				</div>
 				<div className="flex-shrink-0 max-sm:w-full">
 					<a
-						className="group min-w-xs flex w-full flex-nowrap items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
+						className="group min-w-xs flex w-full flex-nowrap items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md"
 						target="_blank"
 						rel="noopener noreferrer"
 						href="mailto:sales@defillama.com"

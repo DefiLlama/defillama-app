@@ -100,10 +100,10 @@ export function ServiceFAQ() {
 							<div
 								className="overflow-hidden transition-all duration-300 ease-in-out"
 								style={{
-									maxHeight: expandedId === item.id ? '200px' : '0px'
+									maxHeight: expandedId === item.id ? '500px' : '0px'
 								}}
 							>
-								<div className="px-6 pt-4 pb-4 pt-0">
+								<div className="px-6 py-4">
 									<p className="text-sm leading-relaxed text-[#8a8c90]">{item.answer}</p>
 								</div>
 							</div>

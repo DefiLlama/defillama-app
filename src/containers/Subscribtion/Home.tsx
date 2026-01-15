@@ -254,7 +254,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 						{/* Free Card - Position based on auth */}
 						<div
 							className={`group relative overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-gradient-to-br from-[#1a1f35]/40 to-[#0f1119]/60 backdrop-blur-sm transition-all duration-300 hover:border-[#5C5CF9]/50 hover:-translate-y-2 ${
-								isAuthenticated ? 'lg:order-1' : 'lg:order-1'
+								isAuthenticated ? 'lg:order-1' : 'lg:order-2'
 							}`}
 						>
 							<div className="absolute inset-0 bg-gradient-to-br from-[#5C5CF9]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
@@ -294,9 +294,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 
 						{/* API Card */}
 						<div
-							className={`group relative overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-gradient-to-br from-[#1a1f35]/40 to-[#0f1119]/60 backdrop-blur-sm transition-all duration-300 hover:border-[#5C5CF9]/50 hover:-translate-y-2 ${
-								isAuthenticated ? 'lg:order-3' : 'lg:order-3'
-							}`}
+							className={`group relative overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-gradient-to-br from-[#1a1f35]/40 to-[#0f1119]/60 backdrop-blur-sm transition-all duration-300 hover:border-[#5C5CF9]/50 hover:-translate-y-2 lg:order-3`}
 						>
 							<div className="absolute inset-0 bg-gradient-to-br from-[#5C5CF9]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 							<div className="relative p-8 flex flex-col h-full">
