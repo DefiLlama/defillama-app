@@ -7,7 +7,6 @@ import { Tooltip } from '~/components/Tooltip'
 import { oldBlue } from '~/constants/colors'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -68,16 +67,9 @@ export function AdvancedTvlChartTab({
 	protocolsLoading
 }: AdvancedTvlChartTabProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-	const { protocols } = useProDashboardCatalog()
-
 	const filteredProtocolOptions = useMemo(() => {
-		const parentIds = new Set(protocols.filter((p: any) => p.parentProtocol).map((p: any) => p.parentProtocol))
-		const parentIdToSlug = new Map(protocols.filter((p: any) => parentIds.has(p.id)).map((p: any) => [p.id, p.slug]))
-		const parentSlugs = new Set(parentIdToSlug.values())
 		return protocolOptions
-			.filter((opt: any) => !parentSlugs.has(opt.value))
-			.map((opt: any) => ({ ...opt, isChild: false }))
-	}, [protocolOptions, protocols])
+	}, [protocolOptions])
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
@@ -90,7 +82,7 @@ export function AdvancedTvlChartTab({
 		data: addlData,
 		historicalChainTvls,
 		isLoading: isAddlLoading
-	} = useFetchProtocolAddlChartsData(selectedAdvancedTvlProtocolName || '')
+	} = useFetchProtocolAddlChartsData(selectedAdvancedTvlProtocol || '')
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
