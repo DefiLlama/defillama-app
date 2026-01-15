@@ -72,15 +72,81 @@ export const fetchApi = async (url: string | Array<string>) => {
 	}
 }
 
-export function postRuntimeLogs(log) {
+// Error deduplication to prevent log flooding
+const recentErrors = new Map<string, { count: number; lastLogged: number }>()
+const ERROR_DEDUP_WINDOW_MS = 60_000 // 1 minute window
+const ERROR_DEDUP_MAX_PER_WINDOW = 3 // Max logs per unique error per window
+const DISCORD_MAX_LENGTH = 1900 // Discord limit is 2000, leave buffer
+const WEBHOOK_TIMEOUT_MS = 5_000 // 5 second timeout for webhook
+let lastCleanup = Date.now()
+
+function getErrorKey(log: string): string {
+	// Extract URL and error type for deduplication key
+	// Remove timing info which varies: [123ms] -> []
+	return log.replace(/\[\d+ms\]/g, '[]').replace(/\d{13,}/g, 'TS')
+}
+
+function truncateLog(log: string, maxLength: number): string {
+	if (log.length <= maxLength) return log
+	return log.slice(0, maxLength - 20) + '... [truncated]'
+}
+
+export function postRuntimeLogs(log: string) {
+	const now = Date.now()
+	const errorKey = getErrorKey(log)
+	const existing = recentErrors.get(errorKey)
+
+	// Check if this is a duplicate error within the window
+	if (existing && now - existing.lastLogged < ERROR_DEDUP_WINDOW_MS) {
+		existing.count++
+		if (existing.count > ERROR_DEDUP_MAX_PER_WINDOW) {
+			// Suppress duplicate - only log every 10th occurrence after threshold
+			if (existing.count % 10 === 0) {
+				const suppressedLog = `${log} [suppressed ${existing.count - ERROR_DEDUP_MAX_PER_WINDOW} similar errors]`
+				doPostRuntimeLogs(suppressedLog)
+			}
+			return
+		}
+		existing.lastLogged = now
+	} else {
+		recentErrors.set(errorKey, { count: 1, lastLogged: now })
+	}
+
+	// Cleanup old entries periodically (time-based, not size-based)
+	if (now - lastCleanup > ERROR_DEDUP_WINDOW_MS) {
+		lastCleanup = now
+		const cutoff = now - ERROR_DEDUP_WINDOW_MS
+		for (const [key, value] of recentErrors.entries()) {
+			if (value.lastLogged < cutoff) {
+				recentErrors.delete(key)
+			}
+		}
+	}
+
+	doPostRuntimeLogs(log)
+}
+
+function doPostRuntimeLogs(log: string) {
+	// Truncate for Discord's 2000 char limit
+	const truncatedLog = truncateLog(log, DISCORD_MAX_LENGTH)
+
 	if (typeof window === 'undefined' && process.env.RUNTIME_LOGS_WEBHOOK) {
+		const controller = new AbortController()
+		const timeoutId = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS)
+
 		fetch(process.env.RUNTIME_LOGS_WEBHOOK, {
 			method: 'POST',
-			body: JSON.stringify({ content: log }),
-			headers: { 'Content-Type': 'application/json' }
+			body: JSON.stringify({ content: truncatedLog }),
+			headers: { 'Content-Type': 'application/json' },
+			signal: controller.signal
 		})
+			.catch(() => {
+				// Silently ignore webhook failures - don't want logging failures to cause more errors
+			})
+			.finally(() => clearTimeout(timeoutId))
 	}
-	console.log(`\n${log}\n`)
+
+	console.log(`\n${truncatedLog}\n`)
 }
 
 export async function handleFetchResponse(
@@ -126,14 +192,11 @@ export async function handleFetchResponse(
 
 		throw new Error(errorMessage)
 	} catch (e) {
-		// Log with caller info if available
-		const logMessage = callerInfo
-			? `[fetchJson] [error] [caller: ${callerInfo}] [${e.message}] < ${url} >`
-			: `[HTTP] [parse] [error] [${e.message}] < ${url} > \n${JSON.stringify(options)}`
-
-		postRuntimeLogs(logMessage)
-
-		throw e // Re-throw the error instead of returning empty object
+		// Mark error as already logged to prevent double logging in fetchJson
+		if (e instanceof Error && !e.message.startsWith('[LOGGED]')) {
+			e.message = `[LOGGED] ${e.message}`
+		}
+		throw e // Re-throw the error - logging happens in fetchJson with timing info
 	}
 }
 
@@ -160,15 +223,18 @@ export async function fetchJson(
 		return res
 	} catch (error) {
 		const end = Date.now()
-		// Only log here if the error didn't come from handleFetchResponse
-		if (!error.message.includes('[HTTP]')) {
-			postRuntimeLogs(
-				`[fetchJson] [error] [${end - start}ms] [caller: ${callerInfo}] [${
-					error instanceof Error ? error.message : 'Unknown error'
-				}] < ${url} >`
-			)
-		}
+		const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+		// Remove [LOGGED] prefix for cleaner output
+		const cleanMessage = errorMessage.replace(/^\[LOGGED\]\s*/, '')
 
+		postRuntimeLogs(
+			`[fetchJson] [error] [${end - start}ms] [caller: ${callerInfo}] [${cleanMessage}] < ${url} >`
+		)
+
+		// Re-throw with clean message
+		if (error instanceof Error) {
+			error.message = cleanMessage
+		}
 		throw error
 	}
 }
