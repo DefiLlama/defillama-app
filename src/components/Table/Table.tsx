@@ -549,28 +549,20 @@ const HeaderWithTooltip = ({ children, content, onClick }) => {
 	}
 	
 	if (onClick) {
-		if (!content) return (
-			<button 
-				onClick={onClick} 
-				style={containerStyle}
-			>
-				{children}
-			</button>
-		)
+		if (!content)
+			return (
+				<button onClick={onClick} className="flex items-center gap-1">
+					{children}
+				</button>
+			)
 		return (
-			<Tooltip 
-				content={content} 
-				className="underline decoration-dotted" 
-				render={
-					<button 
-						style={containerStyle}
-					/>
-				} 
+			<Tooltip
+				content={content}
+				className="underline decoration-dotted"
+				render={<button className="flex items-center gap-1" />}
 				onClick={onClick}
 			>
-				<div style={containerStyle}>
-					{children}
-				</div>
+				{children}
 			</Tooltip>
 		)
 	}
