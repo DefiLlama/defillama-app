@@ -572,25 +572,26 @@ export const getProtocolOverviewPageData = async ({
 				investors: (r.leadInvestors ?? []).concat(r.otherInvestors ?? [])
 			})) ?? null
 
-	const hasKeyMetrics =
+	const hasKeyMetrics = !!(
 		protocolData.currentChainTvls?.staking != null ||
-		protocolData.currentChainTvls?.borrowed != null ||
-		raises?.length ||
-		expenses ||
-		tokenLiquidity?.length ||
-		feesData?.totalAllTime ||
-		revenueData?.totalAllTime ||
-		holdersRevenueData?.totalAllTime ||
-		dexVolumeData?.totalAllTime ||
-		perpVolumeData?.totalAllTime ||
-		dexAggregatorVolumeData?.totalAllTime ||
-		perpAggregatorVolumeData?.totalAllTime ||
-		bridgeAggregatorVolumeData?.totalAllTime ||
-		optionsPremiumVolumeData?.totalAllTime ||
-		optionsNotionalVolumeData?.totalAllTime ||
-		bribesData?.totalAllTime ||
-		tokenTaxData?.totalAllTime ||
-		!!protocolData.tokenCGData
+			protocolData.currentChainTvls?.borrowed != null ||
+			raises?.length ||
+			expenses ||
+			tokenLiquidity?.length ||
+			feesData?.totalAllTime ||
+			revenueData?.totalAllTime ||
+			holdersRevenueData?.totalAllTime ||
+			dexVolumeData?.totalAllTime ||
+			perpVolumeData?.totalAllTime ||
+			dexAggregatorVolumeData?.totalAllTime ||
+			perpAggregatorVolumeData?.totalAllTime ||
+			bridgeAggregatorVolumeData?.totalAllTime ||
+			optionsPremiumVolumeData?.totalAllTime ||
+			optionsNotionalVolumeData?.totalAllTime ||
+			bribesData?.totalAllTime ||
+			tokenTaxData?.totalAllTime ||
+			protocolData.tokenCGData
+	)
 
 	const competitors =
 		liteProtocolsData && protocolData.category

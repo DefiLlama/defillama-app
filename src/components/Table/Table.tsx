@@ -1,4 +1,4 @@
-import { flexRender, Table } from '@tanstack/react-table'
+import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
@@ -22,7 +22,7 @@ interface ITableProps {
 }
 
 declare module '@tanstack/table-core' {
-	interface ColumnMeta<_TData, _TValue> {
+	interface ColumnMeta<TData extends RowData, TValue> {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 		hidden?: boolean

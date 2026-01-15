@@ -260,7 +260,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const _finalReturnUrl = _returnUrl ? _returnUrl : router.asPath
+	const _finalReturnUrl = returnUrl ?? router.asPath
 
 	return (
 		<WalletProvider>

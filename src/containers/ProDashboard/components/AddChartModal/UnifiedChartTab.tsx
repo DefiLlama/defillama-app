@@ -160,7 +160,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
-	const { loading: _metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
+	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
 
 	const handleSelectCategory = (category: ChartTabType) => {

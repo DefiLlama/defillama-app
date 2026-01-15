@@ -108,7 +108,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		founderEmail: ''
 	})
 
-	const [paymentLink, _setPaymentLink] = useState('')
+	const [paymentLink, setPaymentLink] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
 	const _chainOptions = chains.map((chain) => ({ value: chain, label: chain }))
@@ -365,8 +365,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 						{matchedInvestors > 100 && hasSelectedFilters ? (
 							<p className="text-red-500">To reduce costs, please filter further.</p>
 						) : null}
-						{paymentLink ||
-							(true && (
+						{paymentLink ? (
 								<>
 									<button
 										onClick={() => window.open(paymentLink, '_blank')}
@@ -376,7 +375,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 										{isSubmitting ? 'Processing...' : 'Go to Payment'}
 									</button>
 								</>
-							))}
+							) : null}
 					</div>
 				</div>
 			</div>
