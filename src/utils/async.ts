@@ -195,7 +195,7 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 // ─────────────────────────────────────────────────────────────
 // Fetch with single retry loop
 // ─────────────────────────────────────────────────────────────
-export async function fetchJson<T = unknown>(
+export async function fetchJson<T = any>(
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions,
 	extraRetry: boolean = false
