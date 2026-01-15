@@ -14,7 +14,7 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { YIELD_RISK_API_EXPONENTIAL } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import type { YieldsChartConfig } from '~/containers/ProDashboard/types'
+import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -147,16 +147,18 @@ const PageView = (_props) => {
 
 	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
 
-	const yieldsChartConfig: YieldsChartConfig | null = query.pool
-		? {
-				id: `yields-${query.pool}`,
-				kind: 'yields',
-				poolConfigId: query.pool as string,
-				poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
-				project: config?.name ?? poolData.project ?? '',
-				chain: poolData.chain ?? ''
-			}
-		: null
+	const getYieldsChartConfig = (chartType?: YieldChartType): YieldsChartConfig | null => {
+		if (!query.pool) return null
+		return {
+			id: chartType ? `yields-${query.pool}-${chartType}` : `yields-${query.pool}`,
+			kind: 'yields',
+			poolConfigId: query.pool as string,
+			poolName: poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? ''),
+			project: config?.name ?? poolData.project ?? '',
+			chain: poolData.chain ?? '',
+			chartType
+		}
+	}
 
 	const {
 		finalChartData = [],
@@ -349,7 +351,7 @@ const PageView = (_props) => {
 							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
 							smol
 						/>
-						<AddToDashboardButton chartConfig={yieldsChartConfig} smol />
+						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 					</div>
 					<Suspense fallback={<></>}>
 						<TVLAPYChart
@@ -503,6 +505,7 @@ const PageView = (_props) => {
 										imageExportFilename={`${query.pool}-supply-apy`}
 										imageExportTitle="Supply APY"
 										onReady={handleSupplyApyBarChartReady}
+										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />}
 									/>
 								</Suspense>
 							</LazyChart>
@@ -519,6 +522,7 @@ const PageView = (_props) => {
 										imageExportFilename={`${query.pool}-supply-apy-7d-avg`}
 										imageExportTitle="7 day moving average of Supply APY"
 										onReady={handleSupplyApy7dChartReady}
+										customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />}
 									/>
 								</Suspense>
 							</LazyChart>
@@ -546,6 +550,7 @@ const PageView = (_props) => {
 									imageExportFilename={`${query.pool}-borrow-apy`}
 									imageExportTitle="Borrow APY"
 									onReady={handleBorrowApyBarChartReady}
+									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -562,6 +567,7 @@ const PageView = (_props) => {
 									imageExportFilename={`${query.pool}-net-borrow-apy`}
 									imageExportTitle="Net Borrow APY"
 									onReady={handleNetBorrowApyChartReady}
+									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />}
 								/>
 							</Suspense>
 						</LazyChart>
@@ -580,6 +586,7 @@ const PageView = (_props) => {
 									enableImageExport={true}
 									imageExportFilename={`${query.pool}-pool-liquidity`}
 									imageExportTitle="Pool Liquidity"
+									customComponents={<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />}
 								/>
 							</Suspense>
 						</LazyChart>
