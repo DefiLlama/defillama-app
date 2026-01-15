@@ -1,17 +1,12 @@
-// import { performance } from 'perf_hooks'
 import { GetStaticProps, GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
-import { postRuntimeLogs } from './async'
+import { postRuntimeLogs, sleep, getJitteredDelay, isTransientError } from './async'
 import { getCache, RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
-import { fetchWithConnectionPooling } from './http-client'
+import { fetchWithPoolingOnServer } from './http-client'
 
-const isServer = typeof document === 'undefined'
 const REDIS_URL = process.env.REDIS_URL as string
-const _IS_RUNTIME = !!process.env.IS_RUNTIME
-const MAX_PAGE_BUILD_RETRIES = 3
-const MAX_RETRY_DELAY_MS = 1000
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const MAX_PAGE_BUILD_RETRIES = Math.max(1, Number(process.env.PAGE_BUILD_MAX_RETRIES) || 3)
 
 export const withPerformanceLogging = <T extends object>(
 	filename: string,
@@ -25,63 +20,49 @@ export const withPerformanceLogging = <T extends object>(
 		for (let attempt = 0; attempt < MAX_PAGE_BUILD_RETRIES; attempt++) {
 			try {
 				const props = await getStaticPropsFunction(context)
-				const end = Date.now()
+				const elapsed = Date.now() - start
 
-				if (end - start > 10_000) {
-					await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [end, `${(end - start).toFixed(0)}ms`])
-
+				if (elapsed > 10_000) {
+					await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [Date.now(), `${elapsed}ms`])
 					postRuntimeLogs(
-						`[PAGE_BUILD] [PREPARED] [${(end - start).toFixed(0)}ms] < ${filename} >` +
-							(params ? ' ' + JSON.stringify(params) : '')
+						`[PAGE_BUILD] [${elapsed}ms] < ${filename} >` + (params ? ' ' + JSON.stringify(params) : '')
 					)
 				}
 
 				return props
 			} catch (error) {
 				lastError = error instanceof Error ? error : new Error(String(error))
-				const isLastAttempt = attempt === MAX_PAGE_BUILD_RETRIES - 1
+				const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError)
 
-				if (!isLastAttempt) {
-					const delay = Math.min(100 * Math.pow(2, attempt), MAX_RETRY_DELAY_MS)
-					postRuntimeLogs(
-						`[PAGE_BUILD] [RETRY] [${attempt + 1}/${MAX_PAGE_BUILD_RETRIES}] < ${filename} >` +
-							(params ? ' ' + JSON.stringify(params) : '') +
-							` [${lastError.name}] [${lastError.message}]`
-					)
+				if (canRetry) {
+					const delay = getJitteredDelay(100, attempt, 1000)
 					await sleep(delay)
 					continue
 				}
-
-				const end = Date.now()
-				await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')} ERROR`, [
-					end,
-					`${(end - start).toFixed(0)}ms`
-				])
-				postRuntimeLogs(
-					`[PAGE_BUILD] [ERROR] [${(end - start).toFixed(0)}ms] < ${filename} > ` +
-						(params ? ' ' + JSON.stringify(params) : '')
-				)
-				throw lastError
+				break
 			}
 		}
 
-		throw lastError ?? new Error('Failed to build static props')
+		const elapsed = Date.now() - start
+		await setPageBuildTimes(`${filename} ERROR`, [Date.now(), `${elapsed}ms`])
+		postRuntimeLogs(
+			`[PAGE_BUILD] [error] [${elapsed}ms] < ${filename} >` +
+				(params ? ' ' + JSON.stringify(params) : '') +
+				` [${lastError?.message}]`
+		)
+		throw lastError
 	}
 }
 
 export type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
-	const _start = Date.now()
-
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
 	if (process.env.NODE_ENV === 'development') {
 		try {
-			// Use connection pooling on server-side, regular fetch on client-side
-			const response =
-				isServer && typeof url === 'string' ? await fetchWithConnectionPooling(url, options) : await fetch(url, options)
+			const response = await fetchWithPoolingOnServer(url, options)
 			return response
 		} catch (error) {
 			postRuntimeLogs(`fetch error for <${url}>`)
@@ -101,27 +82,15 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 				'Content-Type': ContentType
 			})
 		}
-		// const end = Date.now()
-		// IS_RUNTIME &&
-		// 	!options?.silent &&
-		// 	isServer &&
-		// 	end - start > 10_000 &&
-		// 	postRuntimeLogs(`[fetch-cache] [HIT] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
-
 		return new Response(blob, responseInit)
 	} else {
 		let responseInit: ResponseInit
 		let blob: Blob
 		let StatusCode: number
 		const timeout = options?.timeout ?? 60_000
+
 		try {
-			const controller = new AbortController()
-			const id = setTimeout(() => controller.abort(), timeout)
-			const response =
-				isServer && typeof url === 'string'
-					? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
-					: await fetch(url, { ...options, signal: controller.signal })
-			clearTimeout(id)
+			const response = await fetchWithPoolingOnServer(url, { ...options, timeout })
 
 			const arrayBuffer = await response.arrayBuffer()
 			const Body = Buffer.from(arrayBuffer)
@@ -157,32 +126,9 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 					'Content-Type': 'text/plain'
 				})
 			}
+			blob = new Blob(['Gateway Timeout'])
 		}
 
-		// const end = Date.now()
-		// IS_RUNTIME &&
-		// 	!options?.silent &&
-		// 	isServer &&
-		// 	end - start > 10_000 &&
-		// 	postRuntimeLogs(`[fetch-cache] [MISS] [${StatusCode}] [${(end - start).toFixed(0)}ms] <${url}>`)
 		return new Response(blob, responseInit)
 	}
-}
-
-export type FetchWithPoolingOnServerOptions = RequestInit & { timeout?: number }
-
-export const fetchWithPoolingOnServer = async (
-	url: RequestInfo | URL,
-	options?: FetchWithPoolingOnServerOptions
-): Promise<Response> => {
-	const isServer = typeof window === 'undefined'
-	const controller = new AbortController()
-	const timeout = options?.timeout ?? 60_000
-	const id = setTimeout(() => controller.abort(), timeout)
-	const response =
-		isServer && typeof url === 'string'
-			? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
-			: await fetch(url, { ...options, signal: controller.signal })
-	clearTimeout(id)
-	return response
 }
