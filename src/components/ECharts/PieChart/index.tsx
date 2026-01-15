@@ -65,7 +65,7 @@ export default function PieChart({
 				formatter: (x) => {
 					return `${x.name}: (${formatPercent(x.value)})`
 				},
-				show: showLegend ? false : true
+				show: !showLegend
 			},
 			emphasis: {
 				itemStyle: {
@@ -74,7 +74,7 @@ export default function PieChart({
 					shadowColor: 'rgba(0, 0, 0, 0.5)'
 				}
 			},
-			data: chartData.map((item, idx) => ({
+			data: chartData.map((item) => ({
 				name: item.name,
 				value: item.value,
 				itemStyle: {

@@ -148,7 +148,6 @@ export default function SingleSeriesChart({
 		if (!chartDom) return
 
 		let chartInstance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !chartInstance
 		if (!chartInstance) {
 			chartInstance = echarts.init(chartDom)
 		}

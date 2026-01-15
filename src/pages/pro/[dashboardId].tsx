@@ -1,3 +1,4 @@
+/* eslint-disable nextjs/no-duplicate-head */
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'

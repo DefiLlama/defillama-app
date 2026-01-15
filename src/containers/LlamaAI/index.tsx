@@ -283,7 +283,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					setIsStreaming(false)
 				})
 		},
-		[authorizedFetch]
+		[authorizedFetch, updateSessionTitle]
 	)
 
 	useEffect(() => {

@@ -101,7 +101,7 @@ export default function ChainChartPage(props) {
 			tvlSettings,
 			isThemeDark
 		}
-	}, [queryParamsString])
+	}, [queryParamsString, props.charts, props.chainTokenInfo?.gecko_id, selectedChain])
 
 	const { finalCharts, valueSymbol, isFetchingChartData } = useFetchChainChartData({
 		denomination,

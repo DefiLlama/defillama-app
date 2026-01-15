@@ -42,7 +42,7 @@ export async function getProtocolsByCategoryOrTag({
 	}
 
 	// todo need to use parent category of tag
-	const isRWA = category === 'RWA' || tag ? true : false
+	const isRWA = Boolean(category === 'RWA' || tag)
 
 	const [
 		{ protocols, parentProtocols },
@@ -523,7 +523,7 @@ export async function getProtocolsByCategoryOrTag({
 		}
 	}
 
-	const startIndex = chart.findIndex(([date, tvl]) => tvl != null)
+	const startIndex = chart.findIndex(([, tvl]) => tvl != null)
 
 	let fees7d = 0
 	let revenue7d = 0

@@ -182,7 +182,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [_windowSize])
+	}, [_windowSize, instance])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

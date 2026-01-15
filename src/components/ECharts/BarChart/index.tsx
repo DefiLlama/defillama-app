@@ -225,7 +225,8 @@ export default function BarChart({
 		hideDataZoom,
 		id,
 		updateExportInstance,
-		orientation
+		orientation,
+		onReady
 	])
 
 	useEffect(() => {
@@ -247,7 +248,7 @@ export default function BarChart({
 		}
 	}, [id, onReady, updateExportInstance])
 
-	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
 
 	const prepareCsv = useCallback(() => {
 		let rows = []

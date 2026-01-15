@@ -258,7 +258,7 @@ export const largeTxsColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as string
 			const splitValue = value.split('#')
-			const [symbol, token] = splitValue
+			const [, token] = splitValue
 			const { blockExplorerLink } = getBlockExplorer(token)
 			if (value) {
 				return (
@@ -322,7 +322,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as string
 			const splitValue = value.split('#')
-			const [symbol, token] = splitValue
+			const [, token] = splitValue
 			const { blockExplorerLink } = getBlockExplorer(token)
 
 			if (value) {
@@ -342,7 +342,7 @@ export const bridgeTokensColumn: ColumnDef<IBridge>[] = [
 		cell: ({ row }) => {
 			const value = row.original.symbol
 			const splitValue = value.split('#')
-			const [symbol, token] = splitValue
+			const [, token] = splitValue
 			const { chainName } = getBlockExplorer(token)
 			return chainName
 		},

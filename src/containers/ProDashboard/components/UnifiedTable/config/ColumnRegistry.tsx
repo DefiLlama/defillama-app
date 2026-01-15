@@ -10,20 +10,14 @@ import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
-import {
-	getAggregationContextFromLeafRows,
-	getChainNameForRow,
-	getGroupingKeyForRow,
-	getRowDisplayProps,
-	getRowHeaderFromGroupingColumn
-} from '../core/groupingUtils'
+import { getAggregationContextFromLeafRows, getGroupingKeyForRow, getRowDisplayProps, getRowHeaderFromGroupingColumn } from '../core/groupingUtils'
 import type { MetricGroup, NormalizedRow, NumericMetrics } from '../types'
 import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/customColumns'
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
 
 declare module '@tanstack/table-core' {
-	interface ColumnMeta<TData, TValue> {
+	interface ColumnMeta<_TData, _TValue> {
 		align?: 'start' | 'center' | 'end'
 		hidden?: boolean
 	}
@@ -36,13 +30,6 @@ const renderUsd = (value: number | null | undefined) => {
 		return renderDash()
 	}
 	return <span className="pro-text2">{formattedNum(value, true)}</span>
-}
-
-const renderNumber = (value: number | null | undefined) => {
-	if (value === null || value === undefined) {
-		return renderDash()
-	}
-	return <span className="pro-text2">{formattedNum(value, false)}</span>
 }
 
 const renderPercent = (value: number | null | undefined) => {

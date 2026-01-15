@@ -95,7 +95,7 @@ const BridgeInfo = ({
 	React.useEffect(() => {
 		if (isAllChains && chartType === 'Inflows') setChartType('Volume')
 		if (!isAllChains && chartType === 'Volume') setChartType('Inflows')
-	}, [isAllChains])
+	}, [chartType, isAllChains])
 
 	const chartTypes = (
 		isAllChains ? (['Volume', 'Tokens To', 'Tokens From'] as const) : (['Inflows', 'Tokens To', 'Tokens From'] as const)

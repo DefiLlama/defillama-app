@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, memo, Suspense, useEffect, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
@@ -218,7 +218,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		refetchOnWindowFocus: false
 	})
 
-	const seriesColors: Record<string, string> = chartBuilder.seriesColors || {}
+	const seriesColors = useMemo(() => chartBuilder.seriesColors ?? {}, [chartBuilder.seriesColors])
 	const hasCustomSeriesColors = Object.keys(seriesColors).length > 0
 
 	const visibleSeries = useMemo(() => {
@@ -241,7 +241,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		chartBuilder.protocolCategories
 	])
 
-	const resolveSeriesColor = (seriesName: string, fallback?: string) => {
+	const resolveSeriesColor = useCallback((seriesName: string, fallback?: string) => {
 		const override = seriesColors[seriesName]
 		if (override) {
 			return override
@@ -250,7 +250,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			return fallback
 		}
 		return DEFAULT_SERIES_COLOR
-	}
+	}, [seriesColors])
 
 	const treemapData = useMemo(() => {
 		if (!visibleSeries || visibleSeries.length === 0) return []
@@ -270,7 +270,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				}
 			})
 			.filter((item) => item.value > 0)
-	}, [visibleSeries, seriesColors])
+	}, [visibleSeries, resolveSeriesColor])
 
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
@@ -385,7 +385,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				onChartBuilderChange({ hideOthers: shouldHideOthers })
 			}
 		}
-	}, [chartBuilder.mode, chartBuilder.chainCategories, chartBuilder.protocolCategories])
+	}, [chartBuilder.mode, chartBuilder.chainCategories, chartBuilder.protocolCategories, chartBuilder.hideOthers, onChartBuilderChange])
 
 	const handleProtocolChange = (option: any) => {
 		const updates: Partial<ChartBuilderConfig> = { protocol: option?.value || undefined }

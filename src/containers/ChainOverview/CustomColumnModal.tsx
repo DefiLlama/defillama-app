@@ -25,7 +25,7 @@ interface CustomColumnModalProps {
 	displayAs?: string
 }
 
-function getFilteredSuggestions(word, beforeCursor) {
+function getFilteredSuggestions(word) {
 	const wordLower = word.toLowerCase()
 	const functionMatches = AVAILABLE_FUNCTIONS.filter((f) => f.name.toLowerCase().startsWith(wordLower))
 	const fieldMatches = AVAILABLE_FIELDS.filter((f) => f.toLowerCase().startsWith(wordLower))
@@ -39,7 +39,7 @@ export function CustomColumnModal({
 	name: initialName = '',
 	formula: initialFormula = '',
 	formatType: initialFormatType = 'auto',
-	displayAs: initialDisplayAs = 'auto'
+	displayAs: _initialDisplayAs = 'auto'
 }: CustomColumnModalProps) {
 	const [state, setState] = useState({
 		name: initialName,
@@ -80,7 +80,7 @@ export function CustomColumnModal({
 		const match = beforeCursor.match(/([a-zA-Z0-9_]+)$/)
 		const word = match ? match[1] : ''
 		if (word) {
-			const filtered = getFilteredSuggestions(word, beforeCursor)
+			const filtered = getFilteredSuggestions(word)
 			setState((prev) => ({
 				...prev,
 				suggestions: filtered,

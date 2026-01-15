@@ -204,7 +204,7 @@ export function ProtocolOverviewLayout({
 								{otherProtocols.map((value, i) => {
 									return (
 										<Ariakit.MenuItem
-											key={'navigate to ' + `/protocol/${slug(value)}`}
+											key={`navigate to /protocol/${slug(value)}`}
 											render={<BasicLink href={`/protocol/${slug(value)}`} />}
 											data-active={name === value}
 											className={`group relative flex items-center gap-2 py-2 ${

@@ -210,7 +210,7 @@ export const ChartCard = memo(function ChartCard({ chart }: ChartCardProps) {
 									]}
 									selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
 									setSelectedValues={(value) => {
-										handleCumulativeChange(chart.id, value === 'Cumulative' ? true : false)
+										handleCumulativeChange(chart.id, value === 'Cumulative')
 									}}
 									label={showCumulative ? 'Cumulative' : 'Individual'}
 									labelType="none"

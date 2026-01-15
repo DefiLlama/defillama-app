@@ -116,7 +116,7 @@ export const SubjectMultiPanel = memo(function SubjectMultiPanel({
 		if (activeTab === 'protocol' && filteredProtocolOptions.length > 0) {
 			protocolVirtualizer.scrollToIndex(0, { align: 'start' })
 		}
-	}, [isPopoverOpen, activeTab, filteredChainOptions.length, filteredProtocolOptions.length])
+	}, [isPopoverOpen, activeTab, filteredChainOptions.length, filteredProtocolOptions.length, chainVirtualizer, protocolVirtualizer])
 
 	const toggleChain = (value: string) => {
 		if (selectedChains.includes(value)) {

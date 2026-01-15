@@ -395,7 +395,8 @@ export default function AreaChart({
 		hideDataZoom,
 		id,
 		chartsStack,
-		updateExportInstance
+		updateExportInstance,
+		onReady
 	])
 
 	useEffect(() => {

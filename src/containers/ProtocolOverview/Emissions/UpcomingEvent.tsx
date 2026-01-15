@@ -179,7 +179,7 @@ export const UpcomingEvent = ({
 				<hr className="border-(--bg-border)" />
 				<span className="flex flex-col gap-4">
 					{currentUnlockBreakdown.map(
-						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
+						({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 							const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 							const usdValue = price
 								? isLinearPerDay
@@ -324,7 +324,7 @@ export const UpcomingEvent = ({
 					<hr className="border-(--bg-border)" />
 					<span className="flex flex-col gap-4">
 						{currentUnlockBreakdown.map(
-							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp, isOngoing }) => {
+							({ name, perDayAmount, totalAmount, unlockType, displayUnit, timestamp: _timestamp, isOngoing }) => {
 								const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
 								const usdValue = price
 									? isLinearPerDay

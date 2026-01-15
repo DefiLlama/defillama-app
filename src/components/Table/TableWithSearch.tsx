@@ -104,7 +104,7 @@ export function TableWithSearch({
 			const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
 			instance.setColumnOrder(colOrder[1])
 		}
-	}, [instance, windowSize])
+	}, [instance, windowSize, columnOrders, columnSizes])
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

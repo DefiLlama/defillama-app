@@ -34,6 +34,13 @@ const risksHelperTexts = {
 		'Crypto-backed assets are backed by cryptoassets locked in a smart contract as collateral. Risks of crypto-backed assets include smart contract risk, collateral volatility and liquidation, and de-pegging.'
 }
 
+const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
+	'Total Circ': 'totalCirc',
+	Pie: 'chainPie',
+	Dominance: 'chainDominance',
+	Area: 'chainMcaps'
+}
+
 export default function PeggedContainer(props) {
 	let { name, symbol } = props.peggedAssetData
 	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
@@ -150,20 +157,13 @@ export const PeggedAssetInfo = ({
 		return `${slug(name)}-${chartSlug}`
 	}
 
-	const chartTypeToApiType: Record<string, StablecoinAssetChartType> = {
-		'Total Circ': 'totalCirc',
-		Pie: 'chainPie',
-		Dominance: 'chainDominance',
-		Area: 'chainMcaps'
-	}
-
 	const dashboardChartConfig: StablecoinAssetChartConfig = React.useMemo(
 		() => ({
-			id: `stablecoin-asset-${slug(name)}-${chartTypeToApiType[chartType]}`,
+			id: `stablecoin-asset-${slug(name)}-${CHART_TYPE_TO_API_TYPE[chartType]}`,
 			kind: 'stablecoin-asset',
 			stablecoin: name,
 			stablecoinId: slug(name),
-			chartType: chartTypeToApiType[chartType],
+			chartType: CHART_TYPE_TO_API_TYPE[chartType],
 			colSpan: 1
 		}),
 		[name, chartType]

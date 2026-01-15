@@ -183,7 +183,7 @@ export function MetricSentenceBuilder({
 		[chains]
 	)
 
-	const { protocolOptions, protocolFamilySet } = useMemo(() => {
+	const { protocolOptions, protocolFamilySet: _protocolFamilySet } = useMemo(() => {
 		const childrenByParentId = new Map<string, Protocol[]>()
 		const parentsOrSolo: Protocol[] = []
 

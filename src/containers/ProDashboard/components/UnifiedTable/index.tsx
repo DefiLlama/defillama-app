@@ -235,13 +235,13 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!previewMode) {
 			setColumnOrderState(getDefaultColumnOrder(config))
 		}
-	}, [config.columnOrder, previewMode])
+	}, [config, config.columnOrder, previewMode])
 
 	useEffect(() => {
 		if (!previewMode) {
 			setColumnVisibilityState(getDefaultColumnVisibility(config))
 		}
-	}, [config.columnVisibility, previewMode])
+	}, [config, config.columnVisibility, previewMode])
 
 	useEffect(() => {
 		if (!previewMode) {
@@ -373,7 +373,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 		[columnVisibilityState, groupingOptionMap, persistConfigChanges]
 	)
 
-	const handleExportClick = () => {
+	const handleExportClick = useCallback(() => {
 		const leafColumns = unifiedTable.table
 			.getAllLeafColumns()
 			.filter((column) => column.getIsVisible() && !isGroupingColumnId(column.id))
@@ -404,7 +404,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 		})
 
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
-	}
+	}, [config.customColumns, unifiedTable.table])
 
 	const handleCsvClick = () => {
 		if (!unifiedTable.leafRows.length) return
@@ -433,7 +433,7 @@ export const UnifiedTable = memo(function UnifiedTable({
 			const { headers, data } = buildGroupedCsvData(groupedRows, leafColumns, CSV_PERCENT_COLUMNS, level)
 			downloadCSV(`unified-table-${level}.csv`, [headers, ...data])
 		},
-		[unifiedTable.table, unifiedTable.leafRows.length]
+		[handleExportClick, unifiedTable.table, unifiedTable.leafRows.length]
 	)
 
 	const title = 'Protocols overview'

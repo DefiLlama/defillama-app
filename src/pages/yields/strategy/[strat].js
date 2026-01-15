@@ -115,7 +115,8 @@ const PageView = () => {
 		// make sure this is the most recent value
 		const latestValues = merged?.slice(-1)[0] ?? []
 		const farmTVL = latestValues?.farmData?.tvlUsd ?? 0
-		const borrowAvailable = latestValues?.borrowData?.totalSupplyUsd - latestValues?.borrowData?.totalBorrowUsd ?? 0
+		const borrowAvailable =
+			(latestValues?.borrowData?.totalSupplyUsd ?? 0) - (latestValues?.borrowData?.totalBorrowUsd ?? 0)
 
 		const lendApy = latestValues?.lendData?.apy ?? 0
 
@@ -168,7 +169,7 @@ const PageView = () => {
 			farmTVL,
 			borrowAvailable
 		}
-	}, [lendHistory, borrowHistory, farmHistory, configsMap, lendToken, borrowToken, lendProjectCategory])
+	}, [lendHistory, borrowHistory, farmHistory, configData, configsMap, lendToken, borrowToken, lendProjectCategory])
 
 	const isLoading = fetchingLendData || fetchingBorrowData || fetchingFarmData || fetchingConfigData || fetchingConfig
 

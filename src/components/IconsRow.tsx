@@ -22,8 +22,6 @@ export const ChainLogo = ({
 	yieldRewardsSymbol,
 	disableLink: disableLinks = false
 }: IChainLogo) => {
-	const shallowRoute: boolean = url.includes('/yields?chain') || url.includes('/yields?project')
-
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
 			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>

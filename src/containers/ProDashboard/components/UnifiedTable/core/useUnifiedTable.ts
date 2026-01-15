@@ -107,7 +107,7 @@ export function useUnifiedTable({
 		setChainMetrics(data?.chainMetrics)
 	}, [data?.chainMetrics])
 
-	const rows = data?.rows ?? []
+	const rows = useMemo(() => data?.rows ?? [], [data?.rows])
 
 	const filteredRows = useMemo(() => {
 		const withFilters = filterRowsByConfig(rows, config.filters)

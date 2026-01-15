@@ -22,7 +22,7 @@ export function CustomColumnPanel({
 	customColumns,
 	onAddCustomColumn,
 	onRemoveCustomColumn,
-	onUpdateCustomColumn
+	onUpdateCustomColumn: _onUpdateCustomColumn
 }: CustomColumnPanelProps) {
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')

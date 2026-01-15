@@ -22,7 +22,7 @@ interface ITableProps {
 }
 
 declare module '@tanstack/table-core' {
-	interface ColumnMeta<TData extends RowData, TValue> {
+	interface ColumnMeta<_TData extends RowData, _TValue> {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 		hidden?: boolean

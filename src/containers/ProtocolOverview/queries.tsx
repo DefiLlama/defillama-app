@@ -859,7 +859,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const defaultToggledCharts: ProtocolChartsLabels[] = []
 	if (protocolMetrics.tvl) {
-		if (tvlChartData.length === 0 || tvlChartData.every(([date, value]) => value === 0)) {
+		if (tvlChartData.length === 0 || tvlChartData.every(([, value]) => value === 0)) {
 			let hasStaking = false
 			for (const date in extraTvlCharts?.staking) {
 				if (extraTvlCharts?.staking[date] > 0) {

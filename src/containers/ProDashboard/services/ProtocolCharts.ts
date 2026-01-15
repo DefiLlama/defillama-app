@@ -13,19 +13,6 @@ import { getAdapterProtocolChartData } from '~/containers/DimensionAdapters/quer
 import { processAdjustedProtocolTvl, ProtocolChainTvls } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
-interface DateTvl {
-	date: number
-	totalLiquidityUSD: number
-}
-
-interface ChainTvlData {
-	tvl: DateTvl[] | [number, number][]
-}
-
-interface ProtocolApiResponse {
-	chainTvls: Record<string, ChainTvlData>
-}
-
 interface ProtocolApiMiniResponse {
 	chainTvls: Record<string, { tvl: [number, number][] }>
 	tvl: [number, number][]

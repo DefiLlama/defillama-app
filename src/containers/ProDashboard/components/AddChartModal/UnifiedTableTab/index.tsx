@@ -339,23 +339,29 @@ const TabContent = memo(function TabContent({
 		setChains(['All'])
 	}
 
-	const handlePanelFiltersChange = useCallback((nextFilters: TableFilters) => {
-		setFilters(nextFilters ?? {})
-	}, [])
+	const handlePanelFiltersChange = useCallback(
+		(nextFilters: TableFilters) => {
+			setFilters(nextFilters ?? {})
+		},
+		[setFilters]
+	)
 
-	const _handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
-		setFilters((prev) => {
-			const next: TableFilters = { ...(prev ?? {}) }
-			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-			const updated = current.filter((item) => item !== value)
-			if (updated.length > 0) {
-				next[key] = updated
-			} else {
-				delete next[key]
-			}
-			return next
-		})
-	}, [])
+	const _handleRemoveArrayFilterValue = useCallback(
+		(key: ArrayFilterKey, value: string) => {
+			setFilters((prev) => {
+				const next: TableFilters = { ...(prev ?? {}) }
+				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+				const updated = current.filter((item) => item !== value)
+				if (updated.length > 0) {
+					next[key] = updated
+				} else {
+					delete next[key]
+				}
+				return next
+			})
+		},
+		[setFilters]
+	)
 
 	const handleRemoveChainValue = useCallback(
 		(chainValue: string) => {

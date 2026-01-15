@@ -1,7 +1,6 @@
 import { flexRender, Table } from '@tanstack/react-table'
 import * as React from 'react'
 import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
-import { SortIcon } from '~/components/Table/SortIcon'
 import { ReorderableHeader } from './ReorderableHeader'
 
 interface TableBodyProps {
@@ -53,7 +52,6 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 									>
 										{header.isPlaceholder ? null : (
 											<ReorderableHeader
-												columnId={header.column.id}
 												canSort={header.column.getCanSort()}
 												isSorted={header.column.getIsSorted()}
 												onSort={() => header.column.toggleSorting()}

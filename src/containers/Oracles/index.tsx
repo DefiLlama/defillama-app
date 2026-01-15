@@ -144,7 +144,7 @@ const columns: ColumnDef<IOraclesRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue }) => {
 			return <IconsRow links={getValue() as Array<string>} url="/oracles/chain" iconType="chain" />
 		},
 		size: 200,

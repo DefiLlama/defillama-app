@@ -331,7 +331,8 @@ export default function MultiSeriesChart2({
 		charts,
 		groupBy,
 		valueSymbol,
-		selectedCharts
+		selectedCharts,
+		onReady
 	])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>

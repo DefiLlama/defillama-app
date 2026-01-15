@@ -63,7 +63,7 @@ export function AriakitVirtualizedSelect({
 		if (filteredOptions.length > 0) {
 			virtualizer.scrollToIndex(0, { align: 'start' })
 		}
-	}, [isPopoverOpen, filteredOptions.length])
+	}, [isPopoverOpen, filteredOptions.length, virtualizer])
 
 	const selectedOption = useMemo(() => options.find((opt) => opt.value === selectedValue), [options, selectedValue])
 

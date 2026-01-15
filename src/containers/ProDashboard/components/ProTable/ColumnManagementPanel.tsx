@@ -178,13 +178,11 @@ export function ColumnManagementPanel({
 	const ColumnButton = ({
 		column,
 		isActive,
-		isCustom,
-		index
+		isCustom
 	}: {
 		column: any
 		isActive: boolean
 		isCustom?: boolean
-		index?: number
 	}) => {
 		const description = isCustom
 			? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
@@ -388,12 +386,12 @@ export function ColumnManagementPanel({
 							<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
 								{columnOrder
 									.filter((key) => currentColumns[key])
-									.map((columnKey, index) => {
+									.map((columnKey) => {
 										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
 										if (!column) return null
 										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
 										return (
-											<ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} index={index} />
+											<ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} />
 										)
 									})}
 							</div>

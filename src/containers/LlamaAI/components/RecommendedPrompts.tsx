@@ -105,7 +105,7 @@ export const RecommendedPrompts = ({
 		return () => {
 			window.removeEventListener('keydown', hideTabPanel)
 		}
-	}, [])
+	}, [store])
 
 	useEffect(() => {
 		const hideTabPanelOnClickOutside = (event: MouseEvent) => {
@@ -130,7 +130,7 @@ export const RecommendedPrompts = ({
 		return () => {
 			window.removeEventListener('click', hideTabPanelOnClickOutside)
 		}
-	}, [])
+	}, [store])
 
 	const categories = isResearchMode ? [researchCategory] : promptCategories
 

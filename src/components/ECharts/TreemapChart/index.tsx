@@ -24,8 +24,12 @@ function addColorGradientField(chartDataTree) {
 		let node = chartDataTree[i]
 		if (node) {
 			let value = node.value
-			value[2] != null && value[2] < min && (min = value[2])
-			value[2] != null && value[2] > max && (max = value[2])
+			if (value[2] != null && value[2] < min) {
+				min = value[2]
+			}
+			if (value[2] != null && value[2] > max) {
+				max = value[2]
+			}
 		}
 	}
 	for (let i = 0; i < chartDataTree.length; i++) {

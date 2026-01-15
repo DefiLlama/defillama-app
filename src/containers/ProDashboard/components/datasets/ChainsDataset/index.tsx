@@ -13,7 +13,6 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
-import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -54,7 +53,6 @@ export function ChainsDataset({
 	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
 
 	const { data, isLoading, error } = useChainsData(category)
-	const windowSize = useWindowSize()
 
 	const totals = React.useMemo(() => {
 		const sums: Record<string, number> = {}
@@ -326,7 +324,7 @@ export function ChainsDataset({
 				instance.setColumnOrder(presetColumns)
 			}
 		}
-	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance])
+	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance, columnOrder.length, columnVisibility])
 
 	const handleExportCSV = React.useCallback(() => {
 		const headers = instance

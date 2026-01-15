@@ -20,15 +20,15 @@ interface UnlockBreakdown {
 	unlockType: string
 }
 
+const DESCRIPTION_REGEX =
+	/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
+
+const parseDescription = (description: string): string => {
+	const matches = description.match(DESCRIPTION_REGEX)
+	return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
+}
+
 export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ data, title, className }) => {
-	const regex =
-		/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1]\} tokens per week from (.+?) on {timestamp})/
-
-	const parseDescription = (description: string): string => {
-		const matches = description.match(regex)
-		return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
-	}
-
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,

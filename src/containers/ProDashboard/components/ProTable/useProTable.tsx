@@ -405,7 +405,7 @@ export function useProTable(
 				setCustomColumns(view.customColumns || [])
 			}
 		}
-	}, [customViews, options?.initialActiveViewId])
+	}, [customViews, options?.initialActiveViewId, columnOrder.length, columnVisibility])
 
 	// Create custom column definitions
 	const customColumnDefs = React.useMemo(() => {
@@ -719,6 +719,13 @@ export function useProTable(
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
+	const visibleLeafColumnsKey = table
+		? table
+				.getAllLeafColumns()
+				.map((col) => col.getIsVisible())
+				.join(',')
+		: ''
+
 	// Initialize column order on first render
 	React.useEffect(() => {
 		if (table && columnOrder.length === 0) {
@@ -728,15 +735,7 @@ export function useProTable(
 				.map((col) => col.id)
 			setColumnOrder(visibleColumns)
 		}
-	}, [
-		table
-			? table
-					.getAllLeafColumns()
-					.map((col) => col.getIsVisible())
-					.join(',')
-			: '',
-		columnOrder.length
-	])
+	}, [table, visibleLeafColumnsKey, columnOrder.length])
 
 	React.useEffect(() => {
 		if (table && columnOrder.length > 0) {
@@ -1059,9 +1058,17 @@ export function useProTable(
 		}
 	}, [options?.initialActivePresetId, columnPresets, activeDatasetMetric])
 
+	const leafVisibilityKey = table
+		? table
+				.getAllLeafColumns()
+				.map((col) => col.getIsVisible())
+				.join(',')
+		: ''
+
 	// Get current column visibility state
 	const currentColumns = React.useMemo(() => {
 		if (!table) return {}
+		void leafVisibilityKey
 		return table.getAllLeafColumns().reduce(
 			(acc, col) => {
 				acc[col.id] = col.getIsVisible()
@@ -1069,14 +1076,7 @@ export function useProTable(
 			},
 			{} as Record<string, boolean>
 		)
-	}, [
-		table
-			? table
-					.getAllLeafColumns()
-					.map((col) => col.getIsVisible())
-					.join(',')
-			: ''
-	])
+	}, [table, leafVisibilityKey])
 
 	const toggleColumnVisibility = (columnKey: string, isVisible: boolean) => {
 		const newOptions = Object.keys(currentColumns).filter((key) =>
