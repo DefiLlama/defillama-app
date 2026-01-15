@@ -10,6 +10,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
+import { PremiumHeader } from '../PremiumHeader'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 export const Menu = React.memo(function Menu({
@@ -43,48 +44,23 @@ export const Menu = React.memo(function Menu({
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
 					</Ariakit.DialogDismiss>
 
-					{mainLinks.map(({ category, pages, showFreeTrial }) =>
-						category === 'Premium' ? (
-							<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-								<div className="mb-1 flex items-center gap-2">
-									<span className="text-xs font-medium tracking-wide opacity-65">PREMIUM</span>
-									<span
-										className={`relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-gradient-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)] ${showFreeTrial ? '' : 'invisible'}`}
-									>
-										Try free
-									</span>
-								</div>
-								<hr className="border-black/20 dark:border-white/20" />
-								{pages.map(({ name, route, icon, attention }) => (
-									<LinkToPage
-										route={route}
-										name={name}
-										icon={icon}
-										attention={attention}
-										key={`mobile-nav-${name}-${route}`}
-										asPath={asPath}
-										setShow={setShow}
-									/>
-								))}
-							</div>
-						) : (
-							<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-								<p className="mb-1 text-xs opacity-65">{category}</p>
-								<hr className="border-black/20 dark:border-white/20" />
-								{pages.map(({ name, route, icon, attention }) => (
-									<LinkToPage
-										route={route}
-										name={name}
-										icon={icon}
-										attention={attention}
-										key={`mobile-nav-${name}-${route}`}
-										asPath={asPath}
-										setShow={setShow}
-									/>
-								))}
-							</div>
-						)
-					)}
+					{mainLinks.map(({ category, pages }) => (
+						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
+							{category === 'Premium' ? <PremiumHeader /> : <p className="mb-1 text-xs opacity-65">{category}</p>}
+							<hr className="border-black/20 dark:border-white/20" />
+							{pages.map(({ name, route, icon, attention }) => (
+								<LinkToPage
+									route={route}
+									name={name}
+									icon={icon}
+									attention={attention}
+									key={`mobile-nav-${name}-${route}`}
+									asPath={asPath}
+									setShow={setShow}
+								/>
+							))}
+						</div>
+					))}
 
 					<details className="group mb-3">
 						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">

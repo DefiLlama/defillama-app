@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
+import { PremiumHeader } from '../PremiumHeader'
 import { ThemeSwitch } from '../ThemeSwitch'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { LinkToPage } from './shared'
@@ -48,44 +49,21 @@ export const DesktopNav = React.memo(function DesktopNav({
 				</BasicLink>
 
 				<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
-					{mainLinks.map(({ category, pages, showFreeTrial }) =>
-						category === 'Premium' ? (
-							<div key={`desktop-nav-${category}`} className="group flex flex-col">
-								<hr className="my-2 -ml-1.5 border-black/20 dark:border-white/20" />
-								<div className="mb-1 -ml-1.5 flex items-center gap-2">
-									<span className="text-xs font-medium tracking-wide opacity-65">PREMIUM</span>
-									<span
-										className={`relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-gradient-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)] ${showFreeTrial ? '' : 'invisible'}`}
-									>
-										Try free
-									</span>
-								</div>
-								{pages.map(({ name, route, icon, attention }) => (
-									<LinkToPage
-										key={`desktop-nav-${name}-${route}`}
-										route={route}
-										name={name}
-										icon={icon}
-										attention={attention}
-										asPath={asPath}
-									/>
-								))}
-							</div>
-						) : (
-							<div key={`desktop-nav-${category}`} className="group flex flex-col">
-								{pages.map(({ name, route, icon, attention }) => (
-									<LinkToPage
-										key={`desktop-nav-${name}-${route}`}
-										route={route}
-										name={name}
-										icon={icon}
-										attention={attention}
-										asPath={asPath}
-									/>
-								))}
-							</div>
-						)
-					)}
+					{mainLinks.map(({ category, pages }) => (
+						<div key={`desktop-nav-${category}`} className="group flex flex-col">
+							{category === 'Premium' ? <PremiumHeader /> : null}
+							{pages.map(({ name, route, icon, attention }) => (
+								<LinkToPage
+									key={`desktop-nav-${name}-${route}`}
+									route={route}
+									name={name}
+									icon={icon}
+									attention={attention}
+									asPath={asPath}
+								/>
+							))}
+						</div>
+					))}
 
 					<details className="group">
 						<summary className="-ml-1.5 flex items-center justify-between gap-3 rounded-md p-1.5 text-xs opacity-65 hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10">

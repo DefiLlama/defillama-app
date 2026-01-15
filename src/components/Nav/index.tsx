@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { lazy, memo, Suspense, useMemo, useSyncExternalStore } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
@@ -47,14 +47,9 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
-
-	// Delay showing free trial badge until after hydration to prevent flash
-	const [mounted, setMounted] = useState(false)
-	useEffect(() => setMounted(true), [])
+	const { hasActiveSubscription } = useAuthContext()
 
 	const mainLinks = useMemo(() => {
-		const showFreeTrial = mounted && !hasActiveSubscription && (isAuthenticated ? !loaders.userLoading : true)
 		const otherMainPages = [
 			{ name: 'Chains', route: '/chains', icon: 'globe' },
 			{ name: 'Yields', route: '/yields', icon: 'percent' },
@@ -64,18 +59,16 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		]
 		const premiumPages = [
 			{ name: hasActiveSubscription ? 'Manage Subscription' : 'Pricing', route: '/subscription', icon: 'user' },
-			...(hasActiveSubscription
-				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
-				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
+			{ name: 'LlamaAI', route: hasActiveSubscription ? '/ai/chat' : '/ai', icon: '' },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
 			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity' }
 		]
 		return [
 			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
-			{ category: 'Premium', pages: premiumPages, showFreeTrial }
+			{ category: 'Premium', pages: premiumPages }
 		]
-	}, [mounted, hasActiveSubscription, isAuthenticated, loaders.userLoading])
+	}, [hasActiveSubscription])
 
 	const userDashboards = useMemo(
 		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
