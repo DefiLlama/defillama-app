@@ -8,7 +8,8 @@ export async function getStaticPaths() {
 	const assets = await getRWAAssetsList()
 
 	return {
-		paths: assets.map((asset) => ({ params: { asset: [asset] } }))
+		paths: assets.map((asset) => ({ params: { asset: [asset] } })),
+		fallback: false
 	}
 }
 
