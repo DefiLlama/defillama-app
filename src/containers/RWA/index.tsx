@@ -369,7 +369,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								setSearchValue(e.target.value)
 							}}
 							placeholder="Search assets..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 					<SelectWithCombobox

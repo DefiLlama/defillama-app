@@ -30,7 +30,6 @@
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
-	--animate-slideup: slideup 300ms ease-out;
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
@@ -230,7 +229,6 @@
 	--pro-bg4: #cccccc;
 	--pro-bg7: rgba(255, 255, 255, 0.95);
 	--pro-bg8: rgba(35, 91, 255, 0.1);
-	--pro-input-bg: rgba(35, 91, 255, 0.06);
 
 	--pro-divider: rgba(0, 0, 0, 0.3);
 	--pro-border: rgba(0, 0, 0, 0.3);
@@ -247,7 +245,6 @@
 		--pro-bg4: #101a1c;
 		--pro-bg7: rgba(7, 14, 15, 0.7);
 		--pro-bg8: rgba(35, 91, 255, 0.1);
-		--pro-input-bg: rgba(35, 91, 255, 0.12);
 
 		--pro-divider: rgba(255, 255, 255, 0.1);
 		--pro-border: rgba(255, 255, 255, 0.2);
@@ -276,15 +273,6 @@
 	& .pro-bg7 {
 		background-color: var(--pro-bg7);
 	}
-	& .pro-input-bg {
-		background-color: var(--pro-input-bg);
-	}
-	/* & .pro-bg8 {
-		background-color: var(--pro-bg8);
-	} */
-	/* & .pro-bg8:hover {
-		background-color: rgba(17, 30, 78, 0.25);
-	} */
 
 	& .pro-border {
 		border-color: var(--pro-border);
@@ -365,12 +353,6 @@
 	}
 }
 
-@utility pro-input-bg {
-	.pro-dashboard & {
-		background-color: var(--pro-input-bg);
-	}
-}
-
 @utility pro-border {
 	.pro-dashboard & {
 		border-color: var(--pro-border);
@@ -424,45 +406,6 @@
 	@apply border-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:border-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30 border;
 }
 
-.metrics-gradient-border {
-	position: relative !important;
-	border-radius: 6px !important;
-}
-
-.metrics-gradient-border::before {
-	content: '';
-	position: absolute;
-	top: -1px;
-	left: -1px;
-	right: -1px;
-	bottom: -1px;
-	border-radius: 6px;
-	background: linear-gradient(90deg, #1f67d2 0%, #1f67d2 8%, #e6e6e6 18%, #e6e6e6 82%, #1f67d2 92%, #1f67d2 100%);
-	z-index: -1;
-}
-
-/* Modern browsers with mask support */
-@supports (mask: linear-gradient(#fff 0 0)) {
-	.metrics-gradient-border::before {
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		padding: 1px;
-		mask:
-			linear-gradient(#fff 0 0) content-box,
-			linear-gradient(#fff 0 0);
-		mask-composite: xor;
-		-webkit-mask:
-			linear-gradient(#fff 0 0) content-box,
-			linear-gradient(#fff 0 0);
-		-webkit-mask-composite: xor;
-	}
-}
-
-.dark .metrics-gradient-border::before {
-	background: linear-gradient(90deg, #1f67d2 0%, #1f67d2 8%, #222324 18%, #222324 82%, #1f67d2 92%, #1f67d2 100%);
-}
 .message-sent::before {
 	content: '';
 	width: 0px;
@@ -666,10 +609,9 @@
 		@apply disabled:cursor-not-allowed;
 	}
 
-	/* Prevent zoom on iOS Safari for form elements */
 	input,
 	textarea {
-		@apply text-sm placeholder:text-sm max-sm:text-base;
+		@apply text-sm placeholder:text-sm;
 	}
 
 	input,

@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AppProps } from 'next/app'
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
@@ -65,6 +66,10 @@ function App({ Component, pageProps }: AppProps) {
 
 	return (
 		<>
+			<Head>
+				<meta charSet="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+			</Head>
 			{/* Analytics script - loaded after page becomes interactive to reduce TBT */}
 			<Script
 				src="/script2.js"

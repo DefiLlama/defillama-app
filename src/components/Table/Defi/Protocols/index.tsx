@@ -528,17 +528,13 @@ export function ProtocolsByChainTable({
 	}
 
 	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)])
-		)
+		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption])
-		)
+		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
@@ -700,7 +696,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>

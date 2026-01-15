@@ -86,9 +86,13 @@ export const LinkPreviewCard = ({
 
 		cardSrc.searchParams.append('valueHeader', valueHeader)
 
-		isTvlValid && cardSrc.searchParams.append('tvl', tvl)
+		if (isTvlValid) {
+			cardSrc.searchParams.append('tvl', tvl)
+		}
 
-		isVolumeChangeValid && cardSrc.searchParams.append('volumeChange', volumeChange)
+		if (isVolumeChangeValid) {
+			cardSrc.searchParams.append('volumeChange', volumeChange)
+		}
 
 		cardSrc.searchParams.append('footerURL', encodeURIComponent(windowURL))
 
