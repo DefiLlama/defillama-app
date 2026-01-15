@@ -155,7 +155,8 @@ function ProContent({
 						className="pro-btn-purple flex items-center gap-1 rounded-md px-4 py-2"
 					>
 						<Icon name="plus" height={16} width={16} />
-						Create New Dashboard
+						<span className="sm:hidden">Create</span>
+						<span className="hidden sm:inline">Create New Dashboard</span>
 					</button>
 				</div>
 			</div>
