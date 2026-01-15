@@ -93,26 +93,26 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	selectedChartTypes,
 	chainOptions,
 	protocolOptions,
-	availableChartTypes,
-	chartTypesLoading,
+	availableChartTypes: _availableChartTypes,
+	chartTypesLoading: _chartTypesLoading,
 	protocolsLoading,
 	unifiedChartName,
 	chartCreationMode,
 	composerItems,
 	onChartTabChange,
-	onChainChange,
-	onProtocolChange,
+	onChainChange: _onChainChange,
+	onProtocolChange: _onProtocolChange,
 	onChartTypesChange,
 	onUnifiedChartNameChange,
 	onChartCreationModeChange,
 	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
-	selectedChains = [],
-	selectedProtocols = [],
+	selectedChains: _selectedChains = [],
+	selectedProtocols: _selectedProtocols = [],
 	selectedYieldPool = null,
-	onSelectedChainsChange,
-	onSelectedProtocolsChange,
+	onSelectedChainsChange: _onSelectedChainsChange,
+	onSelectedProtocolsChange: _onSelectedProtocolsChange,
 	onSelectedYieldPoolChange,
 	selectedYieldChains = [],
 	selectedYieldProjects = [],
@@ -160,7 +160,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 
 	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
 	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
-	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
+	const { loading: _metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
 
 	const handleSelectCategory = (category: ChartTabType) => {
@@ -230,7 +230,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		itemsToRemove.forEach((item) => onRemoveFromComposer(item.id))
 	}, [selectedChartTypeSingle, composerItems, onRemoveFromComposer])
 
-	const instantAvailableChartTypes = useMemo(() => {
+	const _instantAvailableChartTypes = useMemo(() => {
 		let available: string[] = []
 		if (selectedChartTab === 'protocol' && selectedProtocol) {
 			const geckoId = protocols.find((p: any) => p.slug === selectedProtocol)?.geckoId

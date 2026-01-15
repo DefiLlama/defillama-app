@@ -52,7 +52,7 @@ export async function getTotalBorrowedByChain({
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => (chain.extraTvl?.borrowed?.tvl ? true : false)).map((chain) => chain.name)
+			data.chainTvls.filter((chain) => !!chain.extraTvl?.borrowed?.tvl).map((chain) => chain.name)
 		)
 	])
 

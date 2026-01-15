@@ -30,7 +30,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 	}, [router.query])
 
-	const { data: fdvData = null, error: fdvError } = useQuery({
+	const { data: fdvData = null, error: _fdvError } = useQuery({
 		queryKey: [`fdv-${coins.join('-')}`],
 		queryFn:
 			coins.length == 2

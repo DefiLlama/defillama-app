@@ -140,12 +140,12 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				trigger: 'axis',
 				confine: true,
 				formatter: function (params) {
-					let vals = '<li style="list-style:none">' + params[0].marker + params[0].seriesName + '</li>'
+					let vals = `<li style="list-style:none">${params[0].marker}${params[0].seriesName}</li>`
 
-					vals += '<li style="list-style:none">' + 'Amount :  ' + params[0].value[1] + '</li>'
-					vals += '<li style="list-style:none">' + 'Price :  ' + params[0].value[0] + ' ETH' + '</li>'
-					vals += '<li style="list-style:none">' + 'Avg Price :  ' + params[0].value[2] + ' ETH' + '</li>'
-					vals += '<li style="list-style:none">' + 'Total Price :  ' + params[0].value[3] + ' ETH' + '</li>'
+					vals += `<li style="list-style:none">Amount :  ${params[0].value[1]}</li>`
+					vals += `<li style="list-style:none">Price :  ${params[0].value[0]} ETH</li>`
+					vals += `<li style="list-style:none">Avg Price :  ${params[0].value[2]} ETH</li>`
+					vals += `<li style="list-style:none">Total Price :  ${params[0].value[3]} ETH</li>`
 					return vals
 				},
 				showDelay: 0

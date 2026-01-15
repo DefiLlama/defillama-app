@@ -13,7 +13,6 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
-import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -34,7 +33,7 @@ export function OptionsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error, refetch } = useOptionsData(chains)
+	const { data, isLoading, error, refetch: _refetch } = useOptionsData(chains)
 	const windowSize = useWindowSize()
 
 	const instance = useReactTable({

@@ -50,7 +50,7 @@ export function NFTCollectionContainer() {
 	const floorPrice = floorHistory ? floorHistory[floorHistory.length - 1]?.[1] : null
 	const volume24h = stats ? stats[stats.length - 1]?.[1] : null
 
-	const includeOutliers = router.isReady && router.query.includeOutliers === 'true' ? true : false
+	const includeOutliers = router.isReady && router.query.includeOutliers === 'true'
 
 	return (
 		<Layout

@@ -220,7 +220,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 		})
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }
@@ -316,7 +316,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 		return Array.from(protocolsMap.values()).map((protocol) =>
 			finalizeAggregatedProtocol(protocol, { computeRatios: true })
 		)
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }
@@ -386,7 +386,7 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 		})
 
 		return Array.from(protocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }
@@ -444,7 +444,7 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 		})
 
 		return Array.from(protocolsMap.values())
-	}, [shouldFetchAll, ...queryDatas])
+	}, [shouldFetchAll, queryDatas])
 
 	return { data, isLoading, error }
 }

@@ -166,8 +166,8 @@ export const getStaticProps = withPerformanceLogging(
 				fd_realistic,
 				fd_maximum,
 				mcap_realized,
-				mcap_realistic,
-				mcap_max,
+				_mcap_realistic,
+				_mcap_max,
 				mNAV_realized,
 				mNAV_realistic,
 				mNAV_max

@@ -241,7 +241,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 		if (!showPercentage) {
 			return processedSeries.map((serie) => {
-				const { stack, ...rest } = serie as any
+				const { stack: _stack, ...rest } = serie as any
 				if (showCumulative) {
 					return { ...rest, areaStyle: { opacity: 0.2 } }
 				}
@@ -409,7 +409,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						]}
 						selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
 						setSelectedValues={(value) => {
-							handleCumulativeChange(multi.id, value === 'Cumulative' ? true : false)
+							handleCumulativeChange(multi.id, value === 'Cumulative')
 							if (value === 'Cumulative') {
 								handleStackedChange(multi.id, false)
 							}
@@ -430,7 +430,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						]}
 						selectedValues={showStacked ? 'Stacked' : 'Separate'}
 						setSelectedValues={(value) => {
-							handleStackedChange(multi.id, value === 'Separate' ? false : true)
+							handleStackedChange(multi.id, value !== 'Separate')
 							handlePercentageChange(multi.id, false)
 						}}
 						label={showStacked ? 'Stacked' : 'Separate'}
@@ -449,7 +449,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						]}
 						selectedValues={showPercentage ? '% Percentage' : '$ Absolute'}
 						setSelectedValues={(value) => {
-							handlePercentageChange(multi.id, value === '% Percentage' ? true : false)
+							handlePercentageChange(multi.id, value === '% Percentage')
 							handleStackedChange(multi.id, false)
 						}}
 						label={showPercentage ? '% Percentage' : '$ Absolute'}

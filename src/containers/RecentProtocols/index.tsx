@@ -18,7 +18,7 @@ function getSelectedChainFilters(chainQueryParam, allChains): string[] {
 	} else return allChains
 }
 
-function getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
+function _getSelectedCategoryFilters(categoryQueryParam, allCategories): string[] {
 	if (categoryQueryParam) {
 		if (typeof categoryQueryParam === 'string') {
 			return categoryQueryParam === 'All' ? allCategories : categoryQueryParam === 'None' ? [] : [categoryQueryParam]
@@ -42,7 +42,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 	const minTvl = toNumberOrNullFromQueryParam(minTvlQuery)
 	const maxTvl = toNumberOrNullFromQueryParam(maxTvlQuery)
 
-	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? true : false
+	const toHideForkedProtocols = hideForks && typeof hideForks === 'string' && hideForks === 'true'
 
 	const { selectedChains, data } = useMemo(() => {
 		const selectedChains = getSelectedChainFilters(chain, chainList)

@@ -58,9 +58,9 @@ export function YieldFilterDropdowns({
 
 	const isBadDebtToggled = selectedAttributes ? selectedAttributes.includes(BAD_DEBT_KEY) : false
 
-	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true' ? true : false
+	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true'
 
-	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true' ? true : false
+	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true'
 
 	return (
 		<>

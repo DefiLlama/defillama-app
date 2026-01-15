@@ -192,7 +192,7 @@ export default function TreasuriesByAsset({
 }
 
 const columns = ({
-	name,
+	name: _name,
 	symbol
 }: {
 	name: string

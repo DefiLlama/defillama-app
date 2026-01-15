@@ -334,7 +334,7 @@ const TabContent = memo(function TabContent({
 		setSorting(newSorting)
 	}
 
-	const handleClearFilters = () => {
+	const _handleClearFilters = () => {
 		setFilters({})
 		setChains(['All'])
 	}
@@ -343,7 +343,7 @@ const TabContent = memo(function TabContent({
 		setFilters(nextFilters ?? {})
 	}, [])
 
-	const handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
+	const _handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
 		setFilters((prev) => {
 			const next: TableFilters = { ...(prev ?? {}) }
 			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
@@ -474,13 +474,13 @@ const TabContent = memo(function TabContent({
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
 
-	const headerTitle =
+	const _headerTitle =
 		focusedSectionOnly === 'filters'
 			? 'Configure Filters'
 			: focusedSectionOnly === 'columns'
 				? 'Customize Columns'
 				: 'Build ProTable'
-	const headerDescription =
+	const _headerDescription =
 		focusedSectionOnly === 'filters'
 			? 'Adjust filters to refine the data shown in your table.'
 			: focusedSectionOnly === 'columns'

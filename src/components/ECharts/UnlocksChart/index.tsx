@@ -370,11 +370,12 @@ export default function AreaChart({
 		expandTo100Percent,
 		customYAxis,
 		usdChartSettings.yAxis,
-		stackColors
+		stackColors,
+		hideDataZoom
 	])
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
-	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
 	return (
 		<div className="relative" {...props}>
 			{title || showLegend ? (

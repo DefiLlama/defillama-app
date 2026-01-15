@@ -14,15 +14,15 @@ export default function AreaChart({
 	valueSymbol = '',
 	title,
 	color,
-	hallmarks,
+	hallmarks: _hallmarks,
 	customLegendName,
 	customLegendOptions,
 	tooltipSort = true,
 	chartOptions,
 	height,
-	expandTo100Percent = false,
+	expandTo100Percent: _expandTo100Percent = false,
 	isStackedChart,
-	hideGradient = false,
+	hideGradient: _hideGradient = false,
 	alwaysShowTooltip = true,
 	hideLegend = true,
 	hideDataZoom = false,
@@ -116,7 +116,7 @@ export default function AreaChart({
 			}
 		}
 
-		const { graphic, titleDefaults, grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, titleDefaults, grid: _grid, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
 		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
 
@@ -239,7 +239,8 @@ export default function AreaChart({
 		stacks.length,
 		alwaysShowTooltip,
 		hideLegend,
-		onReady
+		onReady,
+		hideDataZoom
 	])
 
 	return (

@@ -2,7 +2,7 @@ export class ChartDataTransformer {
 	static groupByInterval(
 		series: any[],
 		interval: 'day' | 'week' | 'month' | 'quarter',
-		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
+		_chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	): any[] {
 		return series.map((s) => {
 			const isFlowMetric = s.metricClass === 'flow'
@@ -115,7 +115,7 @@ export class ChartDataTransformer {
 			'#D7BDE2'
 		]
 
-		const seriesWithAverages = series.map((s, serieIndex) => {
+		const seriesWithAverages = series.map((s, _serieIndex) => {
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
 				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
 				const value = dataPoint ? dataPoint[1] : 0

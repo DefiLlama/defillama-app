@@ -421,7 +421,7 @@ const LikeDashboardButton = ({
 	const { isAuthenticated } = useAuthContext()
 	const { toggleLike, isLiking, liked, likeCount } = useDashboardEngagement(dashboardId)
 	if (dashboardVisibility === 'private') return null
-	const isLiked = currentDashboard?.liked ? true : false
+	const isLiked = !!currentDashboard?.liked
 	return (
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}

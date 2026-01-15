@@ -252,7 +252,7 @@ function HideForkedProtocols() {
 
 	const { hideForks } = router.query
 
-	const toHide = hideForks && typeof hideForks === 'string' && hideForks === 'true' ? false : true
+	const toHide = !(hideForks && typeof hideForks === 'string' && hideForks === 'true')
 
 	const hide = () => {
 		router.push(

@@ -13,7 +13,7 @@ export function ReturnModal({ isOpen, onClose, returnUrl }: ReturnModalProps) {
 	const router = useRouter()
 
 	const handleStayOnPage = () => {
-		const { returnUrl, ...restQuery } = router.query
+		const { returnUrl: _returnUrl, ...restQuery } = router.query
 		router.replace(
 			{
 				pathname: router.pathname,

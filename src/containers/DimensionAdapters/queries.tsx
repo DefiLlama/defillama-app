@@ -126,14 +126,14 @@ async function getChainMapping() {
 		const mapping = await fetchJson('https://api.llama.fi/overview/_internal/chain-name-id-map')
 		chainMappingCache = mapping
 		return mapping
-	} catch (error) {
+	} catch {
 		console.warn('Failed to fetch chain mapping, falling back to toLowerCase conversion')
 		return {}
 	}
 }
 
 function getInternalChainName(displayChain: string, chainMapping: Record<string, string>) {
-	const mapped = Object.entries(chainMapping).find(([display, internal]) => display === displayChain)?.[1]
+	const mapped = Object.entries(chainMapping).find(([display]) => display === displayChain)?.[1]
 	if (mapped) return mapped
 	return slug(displayChain)
 }
@@ -514,7 +514,7 @@ function processGroupedProtocols(
 function processEarningsData(data: IAdapterOverview, emissionsData: any) {
 	const protocolGroups = groupProtocolsByParent(data.protocols)
 
-	return processGroupedProtocols(protocolGroups, (protocolVersions, parentKey) => {
+	return processGroupedProtocols(protocolGroups, (protocolVersions, _parentKey) => {
 		const emissions = findEmissionsForProtocol(protocolVersions, emissionsData)
 
 		if (protocolVersions.length === 1) {
@@ -605,7 +605,7 @@ export const getAdapterByChainPageData = async ({
 			adapterType,
 			chain,
 			dataType,
-			excludeTotalDataChart: adapterType === 'fees' ? true : false
+			excludeTotalDataChart: adapterType === 'fees'
 		}),
 		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'

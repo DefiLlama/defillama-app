@@ -176,7 +176,8 @@ export default function PieChart({
 		chartData,
 		legendPosition,
 		legendTextStyle,
-		isSmall
+		isSmall,
+		handleChartReady
 	])
 
 	return (

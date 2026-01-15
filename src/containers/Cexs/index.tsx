@@ -44,7 +44,7 @@ const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 
 			return cexs.length ? Object.fromEntries(cexs) : {}
 		}
-	} catch (error) {
+	} catch {
 		toast.dismiss(loadingToastId)
 		toast.error('Failed to fetch inflows data')
 		return {}

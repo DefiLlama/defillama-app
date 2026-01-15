@@ -118,7 +118,7 @@ export async function handleFetchResponse(
 					// If JSON parsing succeeded but no error/message field, use the text
 					errorMessage = responseText
 				}
-			} catch (jsonError) {
+			} catch {
 				// If JSON parsing fails, use the text response
 				errorMessage = responseText
 			}
@@ -232,7 +232,7 @@ export async function handleSimpleFetchResponse(res: Response) {
 					// If JSON parsing succeeded but no error/message field, use the text
 					errorMessage = responseText
 				}
-			} catch (jsonError) {
+			} catch {
 				// If JSON parsing fails, use the text response
 				errorMessage = responseText
 			}

@@ -21,5 +21,5 @@ export default async function roundupMarkdown(req: NextApiRequest, res: NextApiR
 			.join('')
 
 		return res.json(messages)
-	} catch (error) {}
+	} catch {}
 }

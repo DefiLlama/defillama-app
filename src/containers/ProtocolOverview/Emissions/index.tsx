@@ -20,15 +20,6 @@ import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils
 import Pagination from './Pagination'
 import { IEmission } from './types'
 
-const getExtendedCategories = (baseCategories: string[], isPriceEnabled: boolean) => {
-	const extended = [...baseCategories]
-	if (isPriceEnabled) {
-		if (!extended.includes('Market Cap')) extended.push('Market Cap')
-		if (!extended.includes('Price')) extended.push('Price')
-	}
-	return extended
-}
-
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
 	const extended = { ...baseColors }
 	if (isPriceEnabled) {
@@ -251,7 +242,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			const first = displayData[0]
 			stacks = Object.keys(first).filter((k) => k !== 'date' && k !== 'Price' && k !== 'Market Cap')
 		}
-		const extendedCategories = getExtendedCategories(categoriesFromData, isPriceEnabled)
 		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
 			stacks: [...stacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
@@ -261,7 +251,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
 					: extendedColors
 		}
-	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
+	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null
@@ -499,7 +489,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
-									currentChunk.map(([cat, perc], i) => (
+									currentChunk.map(([cat, perc]) => (
 										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
@@ -510,7 +500,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
-									currentChunk.map(([cat, perc], i) => (
+									currentChunk.map(([cat, perc]) => (
 										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}

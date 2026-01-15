@@ -91,7 +91,7 @@ export default function ChainChartPage(props) {
 
 		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 
-		const isThemeDark = queryParams.theme === 'dark' ? true : false
+		const isThemeDark = queryParams.theme === 'dark'
 
 		return {
 			chainGeckoId,

@@ -34,8 +34,8 @@ const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
 
 export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
-	const [isFullView, setIsFullView] = useState(false)
+	const [timePeriod, _setTimePeriod] = useState<TimePeriod>('Weekly')
+	const [isFullView, _setIsFullView] = useState(false)
 	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
 
 	const { chartData, chartStacks, chartStackColors, chartLegendOptions } = useMemo(() => {

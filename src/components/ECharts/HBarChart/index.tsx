@@ -15,7 +15,7 @@ interface IHBarChartProps {
 export default function HBarChart({
 	categories,
 	values,
-	title,
+	title: _title,
 	valueSymbol = '$',
 	height = '360px',
 	color = '#1f77b4'

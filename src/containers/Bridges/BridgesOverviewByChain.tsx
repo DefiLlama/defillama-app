@@ -29,7 +29,7 @@ export function BridgesOverviewByChain({
 	bridgeStatsCurrentDay,
 	largeTxsData
 }) {
-	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
+	const [enableBreakdownChart, _setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')

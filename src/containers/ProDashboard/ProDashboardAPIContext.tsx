@@ -22,7 +22,6 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
-	LlamaAIChartConfig,
 	MetricConfig,
 	Protocol,
 	StoredColSpan,

@@ -48,7 +48,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => (chain.extraTvl?.staking?.tvl ? true : false)).map((chain) => chain.name)
+			data.chainTvls.filter((chain) => !!chain.extraTvl?.staking?.tvl).map((chain) => chain.name)
 		)
 	])
 

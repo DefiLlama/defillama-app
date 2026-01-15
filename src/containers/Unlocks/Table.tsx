@@ -86,7 +86,7 @@ export const UnlocksTable = ({
 	}
 
 	const handleUnlockValueClear = () => {
-		const { minUnlockValue, maxUnlockValue, ...restQuery } = router.query
+		const { minUnlockValue: _minUnlockValue, maxUnlockValue: _maxUnlockValue, ...restQuery } = router.query
 
 		router.push(
 			{
@@ -120,7 +120,7 @@ export const UnlocksTable = ({
 	}
 
 	const handleUnlockPercClear = () => {
-		const { minUnlockPerc, maxUnlockPerc, ...restQuery } = router.query
+		const { minUnlockPerc: _minUnlockPerc, maxUnlockPerc: _maxUnlockPerc, ...restQuery } = router.query
 
 		router.push(
 			{
@@ -140,7 +140,7 @@ export const UnlocksTable = ({
 		() => defaultColumns
 	)
 
-	const filterState = useSyncExternalStore(
+	const _filterState = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => localStorage.getItem(filterStatekey) ?? null,
 		() => null
@@ -159,18 +159,18 @@ export const UnlocksTable = ({
 	}
 
 	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
+		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, col.key === newOption ? true : false]))
+		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, col.key === newOption]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
-	const setFilter = (key) => (newState) => {
+	const _setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
 			columnOptions.map((column) => [
 				[column.key],
@@ -191,7 +191,7 @@ export const UnlocksTable = ({
 
 	const selectedOptions = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return columnOptions.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return columnOptions.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage])
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])

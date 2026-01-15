@@ -13,7 +13,6 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
@@ -145,7 +144,7 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 			}
 			return col
 		})
-	}, [columnsToUse, filterButtonIsActive, activeCategoryFilterCount])
+	}, [columnsToUse, filterButtonIsActive])
 
 	const instance = useReactTable({
 		data: filteredData || [],

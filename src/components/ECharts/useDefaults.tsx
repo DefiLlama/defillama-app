@@ -12,7 +12,6 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useMemo } from 'react'
 import { useMedia } from '~/hooks/useMedia'
-import { formattedNum } from '~/utils'
 import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from './formatters'
 
 const CHART_SYMBOLS = {
@@ -80,7 +79,7 @@ export function useDefaults({
 	hideOthersInTooltip,
 	groupBy,
 	alwaysShowTooltip,
-	showAggregateInTooltip = false,
+	showAggregateInTooltip: _showAggregateInTooltip = false,
 	xAxisType = 'time'
 }: IUseDefaultsProps) {
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
@@ -204,7 +203,7 @@ export function useDefaults({
 				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
 
 				if (mcap && mcap != '-' && tvl) {
-					vals += '<li style="list-style:none">' + 'Mcap/TVL' + '&nbsp;&nbsp;' + Number(mcap / tvl).toFixed(2) + '</li>'
+					vals += `<li style="list-style:none">Mcap/TVL&nbsp;&nbsp;${Number(mcap / tvl).toFixed(2)}</li>`
 				}
 
 				if (title && (title.toLowerCase() === 'tokens (usd)' || title.toLowerCase() === 'chains')) {

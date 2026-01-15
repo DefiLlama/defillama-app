@@ -27,7 +27,7 @@ export const stablecoinBackingOptions = [
 export function BackingType({ pathname, nestedMenu }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()
 
-	const { backing = [], chain, ...queries } = router.query
+	const { backing = [], chain: _chain, ...queries } = router.query
 
 	const selectedValues = useMemo(() => {
 		return stablecoinBackingOptions

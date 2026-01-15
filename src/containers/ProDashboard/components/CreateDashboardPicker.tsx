@@ -15,7 +15,7 @@ import {
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 
-const CreateDashboardModal = lazy(() =>
+const _CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
 )
 

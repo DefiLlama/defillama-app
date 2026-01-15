@@ -14,7 +14,7 @@ export function useProtocolsFilterState(options) {
 	const setSelectedValues = (values) => {
 		const newValues = {}
 		for (const o of options) {
-			newValues[o.key] = values.includes(o.key) ? true : false
+			newValues[o.key] = values.includes(o.key)
 		}
 		updateAllSettingsInLsAndUrl(newValues)
 	}
@@ -22,8 +22,8 @@ export function useProtocolsFilterState(options) {
 	return { selectedValues, setSelectedValues }
 }
 
-export function useFeesFilterState(props?: { [key: string]: any }) {
-	const [extraTvlsEnabled, updater] = useLocalStorageSettingsManager('fees')
+export function useFeesFilterState(_props?: { [key: string]: any }) {
+	const [extraTvlsEnabled, _updater] = useLocalStorageSettingsManager('fees')
 
 	const filters = feesOptions.map((o) => o.key)
 
@@ -32,7 +32,7 @@ export function useFeesFilterState(props?: { [key: string]: any }) {
 	const setSelectedValues = (values) => {
 		const newValues = {}
 		for (const o of feesOptions) {
-			newValues[o.key] = values.includes(o.key) ? true : false
+			newValues[o.key] = values.includes(o.key)
 		}
 		updateAllSettingsInLsAndUrl(newValues)
 	}
@@ -58,7 +58,7 @@ export function useTvlAndFeesFilterState({
 	const setSelectedValues = (values) => {
 		const newValues = {}
 		for (const o of options) {
-			newValues[o.key] = values.includes(o.key) ? true : false
+			newValues[o.key] = values.includes(o.key)
 		}
 		updateAllSettingsInLsAndUrl(newValues)
 	}

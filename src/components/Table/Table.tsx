@@ -1,4 +1,4 @@
-import { flexRender, RowData, Table } from '@tanstack/react-table'
+import { flexRender, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
@@ -22,7 +22,7 @@ interface ITableProps {
 }
 
 declare module '@tanstack/table-core' {
-	interface ColumnMeta<TData extends RowData, TValue> {
+	interface ColumnMeta<_TData, _TValue> {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 		hidden?: boolean
@@ -32,7 +32,7 @@ declare module '@tanstack/table-core' {
 export function VirtualTable({
 	instance,
 	skipVirtualization,
-	columnResizeMode,
+	columnResizeMode: _columnResizeMode,
 	rowSize,
 	renderSubComponent,
 	stripedBg = false,
@@ -80,7 +80,7 @@ export function VirtualTable({
 		}
 		window.addEventListener('keydown', focusSearchBar)
 		return () => window.removeEventListener('keydown', focusSearchBar)
-	}, [])
+	}, [skipVirtualization])
 
 	const onScrollOrResize = React.useCallback(() => {
 		if (!useStickyHeader) return

@@ -227,9 +227,8 @@ export const useSubscribe = () => {
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
-	const isSubscriptionLoading =
-		subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null ? true : false
-	const isSubscriptionError = subscriptionsQueries.some((query) => query.isError) && !subscriptionData ? true : false
+	const isSubscriptionLoading = subscriptionsQueries.some((query) => query.isLoading) && subscriptionData == null
+	const isSubscriptionError = subscriptionsQueries.some((query) => query.isError) && !subscriptionData
 
 	const trialAvailabilityQuery = useQuery({
 		queryKey: ['trialAvailable', user?.id],
@@ -369,7 +368,7 @@ export const useSubscribe = () => {
 				window.location.href = url
 			}
 			return url
-		} catch (error) {
+		} catch {
 			return null
 		}
 	}

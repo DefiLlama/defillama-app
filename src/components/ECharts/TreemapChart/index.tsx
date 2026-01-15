@@ -110,14 +110,14 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					}
 					if (treePath.length > 1) {
 						return [
-							'Project: ' + treePath[0] + '<br>',
-							'Pool: ' + treePath[1] + '<br>',
-							'TVL: ' + formattedNum(info.value[0], true) + '<br>',
-							'APY: ' + info.value[1] + '%' + '<br>',
-							'1d Change: ' + info.value[2] + '%'
+							`Project: ${treePath[0]}<br>`,
+							`Pool: ${treePath[1]}<br>`,
+							`TVL: ${formattedNum(info.value[0], true)}<br>`,
+							`APY: ${info.value[1]}%<br>`,
+							`1d Change: ${info.value[2]}%`
 						].join('')
 					} else {
-						return ['Project: ' + treePath[0]].join('')
+						return `Project: ${treePath[0]}`
 					}
 				}
 			},
@@ -139,9 +139,9 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							let arr
 							if (params?.data?.path?.split('/')?.length > 1) {
 								arr = [
-									'{name|' + params.data.path.split('/').slice(-1)[0] + '}',
-									'Spot: {apy| ' + params.value[1] + '%' + '}',
-									'Change {apy| ' + params.value[2] + '%' + '}'
+									`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+									`Spot: {apy| ${params.value[1]}%}`,
+									`Change {apy| ${params.value[2]}%}`
 								]
 							} else {
 								arr = [params.name]

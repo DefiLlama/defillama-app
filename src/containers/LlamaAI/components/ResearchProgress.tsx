@@ -35,13 +35,13 @@ function AnimatedDots() {
 export const ResearchProgress = memo(function ResearchProgress({
 	isActive,
 	startTime,
-	currentIteration,
-	totalIterations,
+	currentIteration: _currentIteration,
+	totalIterations: _totalIterations,
 	phase,
 	dimensionsCovered,
 	dimensionsPending,
 	discoveries,
-	toolsExecuted,
+	toolsExecuted: _toolsExecuted,
 	progressMessage
 }: ResearchProgressProps) {
 	const [elapsed, setElapsed] = useState(0)

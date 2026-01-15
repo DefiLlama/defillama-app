@@ -41,13 +41,13 @@ async function getContracts(chain: string, time: string) {
 							if (name.name === undefined) {
 								throw new Error('RolodETH: No name')
 							}
-						} catch (e) {
+						} catch {
 							try {
 								name = await fetchJson(`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`)
 								if (name.name === '') {
 									throw new Error('Etherescan: Contract not verified')
 								}
-							} catch (e) {
+							} catch {
 								name = undefined
 							}
 						}

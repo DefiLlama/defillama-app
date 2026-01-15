@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging('directory', async () => {
 					logo: tokenIconUrl(protocol.name),
 					route: protocol.url
 				}))
-				.filter((p) => (p.name && p.route ? true : false))
+				.filter((p) => !!(p.name && p.route))
 		},
 		revalidate: maxAgeForNext([22])
 	}

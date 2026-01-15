@@ -83,10 +83,10 @@ export const useFetchChainChartData = ({
 			? chainGeckoId
 			: null
 
-	const isDenominationEnabled = denomination !== 'USD' && chainGeckoId ? true : false
-	const isTokenPriceEnabled = toggledCharts.includes('Token Price') ? true : false
-	const isTokenMcapEnabled = toggledCharts.includes('Token Mcap') ? true : false
-	const isTokenVolumeEnabled = toggledCharts.includes('Token Volume') ? true : false
+	const isDenominationEnabled = denomination !== 'USD' && !!chainGeckoId
+	const isTokenPriceEnabled = toggledCharts.includes('Token Price')
+	const isTokenMcapEnabled = toggledCharts.includes('Token Mcap')
+	const isTokenVolumeEnabled = toggledCharts.includes('Token Volume')
 
 	// date in the chart is in ms
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<{
@@ -109,10 +109,10 @@ export const useFetchChainChartData = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: denominationGeckoId ? true : false
+		enabled: !!denominationGeckoId
 	})
 
-	const isChainFeesEnabled = toggledCharts.includes('Chain Fees') ? true : false
+	const isChainFeesEnabled = toggledCharts.includes('Chain Fees')
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainFees', selectedChain, isChainFeesEnabled],
 		queryFn: () =>
@@ -128,7 +128,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainFeesEnabled
 	})
 
-	const isChainRevenueEnabled = toggledCharts.includes('Chain Revenue') ? true : false
+	const isChainRevenueEnabled = toggledCharts.includes('Chain Revenue')
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainRevenue', selectedChain, isChainRevenueEnabled],
 		queryFn: () =>
@@ -145,7 +145,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainRevenueEnabled
 	})
 
-	const isDexVolumeEnabled = toggledCharts.includes('DEXs Volume') ? true : false
+	const isDexVolumeEnabled = toggledCharts.includes('DEXs Volume')
 	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['dexVolume', selectedChain, isDexVolumeEnabled],
 		queryFn: () =>
@@ -161,7 +161,7 @@ export const useFetchChainChartData = ({
 		enabled: isDexVolumeEnabled
 	})
 
-	const isPerpsVolumeEnabled = toggledCharts.includes('Perps Volume') ? true : false
+	const isPerpsVolumeEnabled = toggledCharts.includes('Perps Volume')
 	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['perpVolume', selectedChain, isPerpsVolumeEnabled],
 		queryFn: () =>
@@ -177,7 +177,7 @@ export const useFetchChainChartData = ({
 		enabled: isPerpsVolumeEnabled
 	})
 
-	const isChainAppFeesEnabled = toggledCharts.includes('App Fees') ? true : false
+	const isChainAppFeesEnabled = toggledCharts.includes('App Fees')
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainAppFees', selectedChain, isChainAppFeesEnabled],
 		queryFn: () =>
@@ -194,7 +194,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainAppFeesEnabled
 	})
 
-	const isChainAppRevenueEnabled = toggledCharts.includes('App Revenue') ? true : false
+	const isChainAppRevenueEnabled = toggledCharts.includes('App Revenue')
 	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
 		Array<[number, number]>
 	>({
@@ -230,7 +230,7 @@ export const useFetchChainChartData = ({
 		toggledCharts.includes('Transactions') ? `chain$${selectedChain}` : null
 	)
 
-	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL') ? true : false
+	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
 		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
@@ -240,7 +240,7 @@ export const useFetchChainChartData = ({
 		enabled: isBridgedTvlEnabled
 	})
 
-	const isRaisesEnabled = toggledCharts.includes('Raises') ? true : false
+	const isRaisesEnabled = toggledCharts.includes('Raises')
 	const { data: raisesData = null, isLoading: fetchingRaises } = useQuery<Array<[number, number]>>({
 		queryKey: ['raisesChart', selectedChain, isRaisesEnabled],
 		queryFn: () =>
@@ -266,7 +266,7 @@ export const useFetchChainChartData = ({
 		enabled: isRaisesEnabled
 	})
 
-	const isChainIncentivesEnabled = toggledCharts.includes('Token Incentives') ? true : false
+	const isChainIncentivesEnabled = toggledCharts.includes('Token Incentives')
 	const { data: chainIncentivesData = null, isLoading: fetchingChainIncentives } = useQuery({
 		queryKey: ['chainIncentives', selectedChain, isChainIncentivesEnabled],
 		queryFn: () =>
@@ -288,7 +288,7 @@ export const useFetchChainChartData = ({
 
 	const { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled } = useMemo(() => {
 		const toggledTvlSettings = Object.entries(tvlSettings)
-			.filter(([key, value]) => value)
+			.filter(([_key, value]) => value)
 			.map(([key]) => key)
 
 		if (toggledTvlSettings.length === 0) {
@@ -323,7 +323,7 @@ export const useFetchChainChartData = ({
 		const { totalValueUSD, tvlPrevDay } = getTvl24hChange(finalTvlChart)
 		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
 		const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
-		const isGovTokensEnabled = tvlSettings?.govtokens ? true : false
+		const isGovTokensEnabled = !!tvlSettings?.govtokens
 		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
 	}, [tvlChart, extraTvlCharts, tvlSettings])
 
@@ -640,7 +640,7 @@ export const useFetchChainChartData = ({
 	])
 
 	return {
-		isFetchingChartData: chartData.loadingCharts ? true : false,
+		isFetchingChartData: !!chartData.loadingCharts,
 		finalCharts: chartData.finalCharts,
 		valueSymbol: chartData.valueSymbol,
 		totalValueUSD,

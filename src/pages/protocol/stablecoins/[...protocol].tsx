@@ -51,7 +51,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide, protocolData, ...props }) {
+export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}

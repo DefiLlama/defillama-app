@@ -239,7 +239,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 
 		for (const cat in chartData) {
 			if (selectedCategories.includes(cat)) {
-				const data = chartData[cat].data.map(([date, val], index) => {
+				const data = chartData[cat].data.map(([date, val], _index) => {
 					const extraTvls = enabledTvls.map((e) => extraTvlCharts?.[cat]?.[e]?.[date] ?? 0)
 					return [date, val + extraTvls.reduce((a, b) => a + b, 0)]
 				})

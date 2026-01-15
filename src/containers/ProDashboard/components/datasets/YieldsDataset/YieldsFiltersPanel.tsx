@@ -35,7 +35,7 @@ export function YieldsFiltersPanel({
 	setShowFiltersPanel,
 	filters,
 	setFilters,
-	availableChains,
+	availableChains: _availableChains,
 	availableProtocols,
 	availableTokens,
 	onApplyFilters,

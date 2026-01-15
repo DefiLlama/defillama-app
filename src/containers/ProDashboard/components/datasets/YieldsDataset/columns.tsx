@@ -41,7 +41,6 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorFn: (row) => row.pool,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const index = row.index
 			const pool = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
