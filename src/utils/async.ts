@@ -3,7 +3,7 @@ import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './htt
 // ─────────────────────────────────────────────────────────────
 // Config: Only 2 knobs instead of 5
 // ─────────────────────────────────────────────────────────────
-function getEnvNumber(name: string, fallback: number): number {
+export function getEnvNumber(name: string, fallback: number): number {
 	const raw = process.env[name]
 	if (raw === undefined) return fallback
 	const parsed = Number(raw)
@@ -46,6 +46,8 @@ export function isRetryableStatus(status: number): boolean {
 const recentErrors = new Map<string, number>() // key → timestamp
 const DEDUP_WINDOW_MS = 60_000
 const DEDUP_MAX_ENTRIES = 1000
+const CLEANUP_INTERVAL_MS = 10_000
+let lastCleanupTime = 0
 let qpsWindow = 0
 let qpsCount = 0
 let dropped = 0
@@ -151,23 +153,24 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 		recentErrors.set(key, now)
 	}
 
-	// Periodic cleanup (lazy, on log)
-	if (recentErrors.size > 500) {
+	// Periodic cleanup (time-throttled to avoid running on every call)
+	const shouldCleanup =
+		recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
+	if (shouldCleanup || recentErrors.size >= DEDUP_MAX_ENTRIES) {
+		lastCleanupTime = now
 		const cutoff = now - DEDUP_WINDOW_MS
 		for (const [k, t] of recentErrors) {
 			if (t < cutoff) recentErrors.delete(k)
 		}
-	}
-
-	// Hard cap: evict oldest entries if map grows too large
-	if (recentErrors.size >= DEDUP_MAX_ENTRIES) {
-		// Map iteration order is insertion order, so first entries are oldest
-		const toDelete = recentErrors.size - DEDUP_MAX_ENTRIES + 100 // Remove 100 to avoid thrashing
-		let deleted = 0
-		for (const key of recentErrors.keys()) {
-			if (deleted >= toDelete) break
-			recentErrors.delete(key)
-			deleted++
+		// Hard cap: evict oldest entries if map still too large
+		if (recentErrors.size >= DEDUP_MAX_ENTRIES) {
+			const toDelete = recentErrors.size - DEDUP_MAX_ENTRIES + 100
+			let deleted = 0
+			for (const key of recentErrors.keys()) {
+				if (deleted >= toDelete) break
+				recentErrors.delete(key)
+				deleted++
+			}
 		}
 	}
 
@@ -192,13 +195,13 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 // ─────────────────────────────────────────────────────────────
 // Fetch with single retry loop
 // ─────────────────────────────────────────────────────────────
-export async function fetchJson(
+export async function fetchJson<T = unknown>(
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions,
-	retry: boolean = false
-): Promise<any> {
+	extraRetry: boolean = false
+): Promise<T> {
 	const start = Date.now()
-	const maxAttempts = retry ? 3 : 2
+	const maxAttempts = extraRetry ? 3 : 2
 	let lastErr: Error | null = null
 
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -255,9 +258,10 @@ export const fetchApi = async (url: string | Array<string>) => {
 		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
 		return data
 	} catch (error) {
-		throw new Error(
-			error instanceof Error ? error.message : `Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`
-		)
+		if (error instanceof Error) {
+			throw error
+		}
+		throw new Error(`Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`)
 	}
 }
 
