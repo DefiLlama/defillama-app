@@ -114,8 +114,16 @@ function sendWebhook(content: string): void {
 		.finally(() => clearTimeout(timeoutId))
 }
 
-export function postRuntimeLogs(log: string): void {
+type RuntimeLogOptions = {
+	level?: 'info' | 'error'
+	forceConsole?: boolean
+}
+
+export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void {
 	const now = Date.now()
+	const level = options?.level ?? 'info'
+	const forceConsole = options?.forceConsole ?? false
+	let droppedForThrottle = false
 
 	// QPS throttle
 	if (now - qpsWindow >= 1000) {
@@ -124,20 +132,24 @@ export function postRuntimeLogs(log: string): void {
 	}
 	if (LOG_MAX_QPS > 0 && qpsCount >= LOG_MAX_QPS) {
 		dropped++
+		droppedForThrottle = true
 		startFlushTimer()
-		return
 	}
-	qpsCount++
+	if (!droppedForThrottle) {
+		qpsCount++
+	}
 
 	// Dedup: skip if same error logged within window
 	const key = log.replace(/\[\d+ms\]/g, '').replace(/\d{10,}/g, '')
 	const lastSeen = recentErrors.get(key)
-	if (lastSeen && now - lastSeen < DEDUP_WINDOW_MS) {
+	if (!droppedForThrottle && lastSeen && now - lastSeen < DEDUP_WINDOW_MS) {
 		dropped++
 		startFlushTimer()
-		return
+		droppedForThrottle = true
 	}
-	recentErrors.set(key, now)
+	if (!droppedForThrottle) {
+		recentErrors.set(key, now)
+	}
 
 	// Periodic cleanup (lazy, on log)
 	if (recentErrors.size > 500) {
@@ -160,7 +172,7 @@ export function postRuntimeLogs(log: string): void {
 	}
 
 	// Enqueue for webhook
-	if (webhookEnabled()) {
+	if (!droppedForThrottle && webhookEnabled()) {
 		if (logQueue.length >= LOG_QUEUE_MAX) {
 			dropped++
 			startFlushTimer()
@@ -171,8 +183,9 @@ export function postRuntimeLogs(log: string): void {
 	}
 
 	// Console (unless silent)
-	if (!LOG_SILENT) {
-		console.log(`\n${log}\n`)
+	if (!LOG_SILENT || forceConsole || level === 'error') {
+		const output = level === 'error' ? console.error : console.log
+		output(`\n${log}\n`)
 	}
 }
 
@@ -226,7 +239,10 @@ export async function fetchJson(
 
 	// Log on final failure only
 	const elapsed = Date.now() - start
-	postRuntimeLogs(`[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${url} >`)
+	postRuntimeLogs(`[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${url} >`, {
+		level: 'error',
+		forceConsole: true
+	})
 	throw lastErr
 }
 

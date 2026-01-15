@@ -48,7 +48,8 @@ export const withPerformanceLogging = <T extends object>(
 		postRuntimeLogs(
 			`[PAGE_BUILD] [error] [${elapsed}ms] < ${filename} >` +
 				(params ? ' ' + JSON.stringify(params) : '') +
-				` [${lastError?.message}]`
+				` [${lastError?.message}]`,
+			{ level: 'error', forceConsole: true }
 		)
 		throw lastError
 	}
