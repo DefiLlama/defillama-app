@@ -56,18 +56,25 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	const mainLinks = useMemo(() => {
 		const showFreeTrial = mounted && !hasActiveSubscription && (isAuthenticated ? !loaders.userLoading : true)
 		const otherMainPages = [
-			{ name: 'Pricing', route: '/subscription', icon: 'user' },
 			{ name: 'Chains', route: '/chains', icon: 'globe' },
 			{ name: 'Yields', route: '/yields', icon: 'percent' },
 			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
+			{ name: 'Support', route: '/support', icon: 'headset' },
+			{ name: 'API', route: 'https://api-docs.defillama.com', icon: 'code' }
+		]
+		const premiumPages = [
+			{ name: hasActiveSubscription ? 'Manage Subscription' : 'Pricing', route: '/subscription', icon: 'user' },
 			...(hasActiveSubscription
 				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
-				: [{ name: 'LlamaAI', route: '/ai', icon: '', freeTrial: showFreeTrial }]),
+				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
-			{ name: 'Support', route: '/support', icon: 'headset' }
+			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity' }
 		]
-		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
+		return [
+			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
+			{ category: 'Premium', pages: premiumPages, showFreeTrial }
+		]
 	}, [mounted, hasActiveSubscription, isAuthenticated, loaders.userLoading])
 
 	const userDashboards = useMemo(
