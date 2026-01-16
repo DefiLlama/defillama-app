@@ -6,7 +6,8 @@ import { downloadDataURL } from '~/utils'
 
 interface KeyMetricsPngExportButtonProps {
 	containerRef: RefObject<HTMLDivElement | null>
-	protocolName: string
+	chainName: string
+	chainIconSlug?: string
 	primaryValue?: number
 	primaryLabel: string
 	formatPrice: (value: number | string | null) => string | number | null
@@ -77,9 +78,9 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
 	})
 }
 
-async function loadProtocolIcon(name: string): Promise<string | null> {
+async function loadChainIcon(slug: string): Promise<string | null> {
 	try {
-		const response = await fetch(`/api/protocol-icon?slug=${encodeURIComponent(name)}`)
+		const response = await fetch(`/api/chain-icon?slug=${encodeURIComponent(slug)}`)
 		if (!response.ok) return null
 		const blob = await response.blob()
 		return new Promise((resolve, reject) => {
@@ -133,7 +134,8 @@ function fillRoundedRect(
 
 export function KeyMetricsPngExportButton({
 	containerRef,
-	protocolName,
+	chainName,
+	chainIconSlug,
 	primaryValue,
 	primaryLabel,
 	formatPrice,
@@ -189,12 +191,14 @@ export function KeyMetricsPngExportButton({
 			ctx.fillStyle = bgColor
 			fillRoundedRect(ctx, 0, 0, canvasWidth, canvasHeight, 12)
 
-			const iconBase64 = await loadProtocolIcon(protocolName)
 			let iconImg: HTMLImageElement | null = null
-			if (iconBase64) {
-				try {
-					iconImg = await loadImage(iconBase64)
-				} catch {}
+			if (chainIconSlug) {
+				const iconBase64 = await loadChainIcon(chainIconSlug)
+				if (iconBase64) {
+					try {
+						iconImg = await loadImage(iconBase64)
+					} catch {}
+				}
 			}
 
 			let headerX = padding
@@ -209,7 +213,7 @@ export function KeyMetricsPngExportButton({
 			ctx.fillStyle = textColor
 			ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
 			ctx.textBaseline = 'middle'
-			ctx.fillText(protocolName, headerX, headerY + iconSize / 2)
+			ctx.fillText(chainName, headerX, headerY + iconSize / 2)
 
 			let rowsStartY = headerY + headerHeight
 
@@ -267,7 +271,7 @@ export function KeyMetricsPngExportButton({
 			} catch {}
 
 			const dataUrl = canvas.toDataURL('image/png')
-			const filename = `${protocolName.toLowerCase().replace(/\s+/g, '-')}-key-metrics.png`
+			const filename = `${chainName.toLowerCase().replace(/\s+/g, '-')}-key-metrics.png`
 			downloadDataURL(filename, dataUrl)
 		} catch (error) {
 			console.log('Error exporting key metrics:', error)
