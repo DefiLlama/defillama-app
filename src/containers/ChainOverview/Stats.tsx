@@ -243,15 +243,17 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 				<div className="flex flex-1 flex-col gap-2">
 					<div className="flex items-center justify-between">
 						<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
-						<KeyMetricsPngExportButton
-							containerRef={keyMetricsRef}
-							chainName={keyMetricsTitle}
-							chainIconSlug={props.metadata.name !== 'All' ? props.metadata.name : undefined}
-							primaryValue={totalValueUSD}
-							primaryLabel="Total Value Locked in DeFi"
-							formatPrice={formatKeyMetricsValue}
-							hasTvlData={hasKeyMetricsPrimary}
-						/>
+						{props.metadata.name !== 'All' ? (
+							<KeyMetricsPngExportButton
+								containerRef={keyMetricsRef}
+								chainName={keyMetricsTitle}
+								chainIconSlug={props.metadata.name}
+								primaryValue={totalValueUSD}
+								primaryLabel="Total Value Locked in DeFi"
+								formatPrice={formatKeyMetricsValue}
+								hasTvlData={hasKeyMetricsPrimary}
+							/>
+						) : null}
 					</div>
 					<div className="flex flex-col" ref={keyMetricsRef}>
 						{props.stablecoins?.mcap ? (
