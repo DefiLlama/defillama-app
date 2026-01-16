@@ -25,11 +25,19 @@ import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import useWindowSize from '~/hooks/useWindowSize'
-import definitions from '~/public/rwa-definitions.json'
+import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+
+type RWADefinitions = typeof rwaDefinitionsJson & {
+	totalOnChainMarketcap: { label: string; description: string }
+	totalActiveMarketcap: { label: string; description: string }
+	totalDefiActiveTvl: { label: string; description: string }
+}
+
+const definitions = rwaDefinitionsJson as RWADefinitions
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -77,7 +85,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 
 	// Recalculate summary values based on all filters
-	const { totalOnChainRwaValue, totalOnChainStablecoinValue, totalOnChainDeFiActiveTvl, issuersCount } = useMemo(() => {
+	const {
+		totalOnChainRwaValue,
+		totalActiveMarketcap,
+		totalOnChainStablecoinValue,
+		totalOnChainDeFiActiveTvl,
+		issuersCount
+	} = useMemo(() => {
 		// Filter assets based on all filters
 		const filteredAssets = props.assets.filter((asset) => {
 			if (!includeStablecoins && asset.stablecoin) return false
@@ -94,12 +108,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		})
 
 		let rwaValue = 0
+		let activeMarketcap = 0
 		let stablecoinValue = 0
 		let defiTvl = 0
 		const issuersSet = new Set<string>()
 
 		for (const asset of filteredAssets) {
 			rwaValue += asset.onChainMarketcap.total
+			activeMarketcap += asset.activeMarketcap.total
 			if (asset.stablecoin) {
 				stablecoinValue += asset.onChainMarketcap.total
 			}
@@ -111,6 +127,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 		return {
 			totalOnChainRwaValue: rwaValue,
+			totalActiveMarketcap: activeMarketcap,
 			totalOnChainStablecoinValue: stablecoinValue,
 			totalOnChainDeFiActiveTvl: defiTvl,
 			issuersCount: issuersSet.size
@@ -258,6 +275,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			'Category',
 			'Asset Class',
 			'On-chain Marketcap',
+			'Active Marketcap',
 			'DeFi Active TVL',
 			'RWA Classification',
 			'Issuer',
@@ -279,8 +297,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				asset.type ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
-				asset.onChainMarketcap.total,
-				asset.defiActiveTvl.total,
+				asset.onChainMarketcap.total ?? '',
+				asset.activeMarketcap.total ?? '',
+				asset.defiActiveTvl.total ?? '',
 				asset.rwaClassification ?? '',
 				asset.issuer ?? '',
 				asset.primaryChain ?? '',
@@ -306,7 +325,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Sum of value of all real world assets on chain"
+						content={definitions.totalOnChainMarketcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total RWA On-chain
@@ -315,7 +334,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Total number of issuers of real world assets on chain"
+						content={definitions.totalActiveMarketcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						Total RWA Active Marketcap
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMarketcap, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalAssetIssuers.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total Asset Issuers
@@ -324,7 +352,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Sum of value of all stablecoins on chain"
+						content={definitions.totalStablecoinsValue.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						Total Stablecoins Value
@@ -333,7 +361,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content="Sum of value of all real world assets on chain that are deployed into third-party DeFi protocols tracked by DeFiLlama"
+						content={definitions.totalDefiActiveTvl.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						DeFi Active TVL
@@ -608,7 +636,10 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 	{
 		id: 'activeMarketcap.total',
 		header: definitions.activeMarketcap.label,
-		cell: () => null,
+		accessorFn: (asset) => asset.activeMarketcap.total,
+		cell: (info) => (
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMarketcap.breakdown} />
+		),
 		meta: {
 			headerHelperText: definitions.activeMarketcap.description,
 			align: 'end'
