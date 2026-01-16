@@ -199,7 +199,8 @@ async function getTvlProtocolChainData(
 	protocol: string,
 	chains?: string[],
 	topN: number = 5,
-	filterMode: 'include' | 'exclude' = 'include',
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
@@ -221,13 +222,13 @@ async function getTvlProtocolChainData(
 		if (chainCategories && chainCategories.length > 0) {
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
 		}
-		for (const [chainKey, chainData] of Object.entries(chainTvls)) {
+		for (const chainKey of Object.keys(chainTvls)) {
 			if (keysToSkip.some((key) => chainKey.includes(`-${key}`) || chainKey === key)) {
 				continue
 			}
 
 			if (chains && chains.length > 0) {
-				if (filterMode === 'include') {
+				if (chainFilterMode === 'include') {
 					if (!chains.includes(chainKey)) continue
 				} else {
 					if (excludeSet.has(chainKey)) continue
@@ -235,7 +236,7 @@ async function getTvlProtocolChainData(
 			}
 
 			if (allowNamesFromCategories && allowNamesFromCategories.size > 0) {
-				if (filterMode === 'include') {
+				if (chainCategoryFilterMode === 'include') {
 					if (!allowNamesFromCategories.has(chainKey)) continue
 				} else {
 					if (allowNamesFromCategories.has(chainKey)) continue
@@ -312,7 +313,8 @@ async function getDimensionsProtocolChainData(
 	metric: string,
 	chains?: string[],
 	topN: number = 5,
-	filterMode: 'include' | 'exclude' = 'include',
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	const config = METRIC_CONFIG[metric]
@@ -358,8 +360,8 @@ async function getDimensionsProtocolChainData(
 			if (!chainData || typeof chainData !== 'object') return
 
 			Object.entries(chainData).forEach(([chain, versions]: [string, any]) => {
-				if (chains && chains.length > 0) {
-					if (filterMode === 'include') {
+			if (chains && chains.length > 0) {
+				if (chainFilterMode === 'include') {
 						if (!chains.includes(chain)) return
 					} else {
 						if (excludeSet.has(chain)) return
@@ -368,7 +370,7 @@ async function getDimensionsProtocolChainData(
 
 				if (allowSlugsFromCategories && allowSlugsFromCategories.size > 0) {
 					const chainSlug = toDimensionsSlug(chain)
-					if (filterMode === 'include') {
+				if (chainCategoryFilterMode === 'include') {
 						if (!allowSlugsFromCategories.has(chainSlug)) return
 					} else {
 						if (allowSlugsFromCategories.has(chainSlug)) return
@@ -461,7 +463,8 @@ async function getDimensionsProtocolChainData(
 async function getAllProtocolsTopChainsTvlData(
 	topN: number = 5,
 	chains?: string[],
-	filterMode: 'include' | 'exclude' = 'include',
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
@@ -477,12 +480,12 @@ async function getAllProtocolsTopChainsTvlData(
 			.filter((c) => typeof c.tvl === 'number' && c.tvl > 0 && c.name)
 			.filter((c) => {
 				if (!chains || chains.length === 0) return true
-				if (filterMode === 'include') return includeSet.has(toDisplayName(c.name))
+				if (chainFilterMode === 'include') return includeSet.has(toDisplayName(c.name))
 				return !includeSet.has(toDisplayName(c.name))
 			})
 			.filter((c) => {
 				if (!allowNamesFromCategories || allowNamesFromCategories.size === 0) return true
-				if (filterMode === 'include') return allowNamesFromCategories.has(c.name)
+				if (chainCategoryFilterMode === 'include') return allowNamesFromCategories.has(c.name)
 				return !allowNamesFromCategories.has(c.name)
 			})
 			.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
@@ -541,7 +544,8 @@ async function getAllProtocolsTopChainsTvlData(
 async function getAllProtocolsTopChainsStablecoinsData(
 	topN: number = 5,
 	chains?: string[],
-	filterMode: 'include' | 'exclude' = 'include',
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
@@ -577,7 +581,7 @@ async function getAllProtocolsTopChainsStablecoinsData(
 
 			if (includeSet.size > 0) {
 				const matches = matchValues.some((value) => includeSet.has(value))
-				if (filterMode === 'include') {
+				if (chainFilterMode === 'include') {
 					if (!matches) continue
 				} else if (matches) {
 					continue
@@ -586,7 +590,7 @@ async function getAllProtocolsTopChainsStablecoinsData(
 
 			if (allowNamesFromCategories && allowNamesFromCategories.size > 0) {
 				const matches = matchValues.some((value) => allowNamesFromCategories!.has(value))
-				if (filterMode === 'include') {
+				if (chainCategoryFilterMode === 'include') {
 					if (!matches) continue
 				} else if (matches) {
 					continue
@@ -720,7 +724,8 @@ async function getAllProtocolsTopChainsChainFeesData(
 	metric: 'chain-fees' | 'chain-revenue',
 	topN: number = 5,
 	chains?: string[],
-	filterMode: 'include' | 'exclude' = 'include',
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
@@ -759,12 +764,12 @@ async function getAllProtocolsTopChainsChainFeesData(
 					includeSet.has(entry.slug.toLowerCase()) ||
 					includeSet.has(entry.name) ||
 					includeSet.has(entry.name.toLowerCase())
-				if (filterMode === 'include') return matches
+				if (chainFilterMode === 'include') return matches
 				return !matches
 			})
 			.filter((entry) => {
 				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
-				if (filterMode === 'include') return allowSlugsFromCategories.has(entry.slug)
+				if (chainCategoryFilterMode === 'include') return allowSlugsFromCategories.has(entry.slug)
 				return !allowSlugsFromCategories.has(entry.slug)
 			})
 			.sort((a, b) => b.total24h - a.total24h)
@@ -853,7 +858,9 @@ async function getAllProtocolsTopChainsDimensionsData(
 	metric: string,
 	topN: number = 5,
 	chains?: string[],
-	filterMode: 'include' | 'exclude' = 'include',
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	chainCategoryFilterMode: 'include' | 'exclude' = 'include',
+	protocolCategoryFilterMode: 'include' | 'exclude' = 'include',
 	chainCategories?: string[],
 	protocolCategories?: string[]
 ): Promise<ProtocolChainData> {
@@ -893,8 +900,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 		const shouldIncludeProtocol = (protocolName: string, fallbackCategory?: string): boolean => {
 			if (!hasProtocolCategoryFilter) return true
 			const category = resolveProtocolCategory(protocolName, fallbackCategory)
-			if (!category) return filterMode === 'exclude'
-			if (filterMode === 'include') {
+			if (!category) return protocolCategoryFilterMode === 'exclude'
+			if (protocolCategoryFilterMode === 'include') {
 				return protocolCategoryFilterSet.has(category)
 			}
 			return !protocolCategoryFilterSet.has(category)
@@ -933,7 +940,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 			allowSlugsFromCategories = await resolveAllowedChainSlugsFromCategories(chainCategories)
 		}
 
-		if (chains && chains.length > 0 && filterMode === 'include') {
+		if (chains && chains.length > 0 && chainFilterMode === 'include') {
 			for (const chainName of allChainsFromApi) {
 				const slug = toDimensionsSlug(chainName)
 				if ((filterSet.has(slug) || filterSetOriginal.has(chainName.toLowerCase())) && !chainTotals.has(slug)) {
@@ -945,7 +952,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 		let ranked = Array.from(chainTotals.entries())
 			.filter(([slug, v]) => {
 				if (chains && chains.length > 0) {
-					if (filterMode === 'include') {
+					if (chainFilterMode === 'include') {
 						return filterSet.has(slug)
 					}
 					if (filterSet.has(slug)) return false
@@ -956,7 +963,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 				if (!allowSlugsFromCategories || allowSlugsFromCategories.size === 0) return true
 				const normalizedSlug = toDimensionsSlug(slug)
 				const result =
-					filterMode === 'include'
+					chainCategoryFilterMode === 'include'
 						? allowSlugsFromCategories.has(normalizedSlug)
 						: !allowSlugsFromCategories.has(normalizedSlug)
 
@@ -1051,7 +1058,9 @@ export type ProtocolChainSplitParams = {
 	metric: string
 	chains: string[]
 	topN: number
-	filterMode: 'include' | 'exclude'
+	chainFilterMode: 'include' | 'exclude'
+	chainCategoryFilterMode: 'include' | 'exclude'
+	protocolCategoryFilterMode: 'include' | 'exclude'
 	chainCategories: string[]
 	protocolCategories: string[]
 }
@@ -1061,7 +1070,9 @@ export const getProtocolChainSplitData = async ({
 	metric,
 	chains,
 	topN,
-	filterMode,
+	chainFilterMode,
+	chainCategoryFilterMode,
+	protocolCategoryFilterMode,
 	chainCategories,
 	protocolCategories
 }: ProtocolChainSplitParams): Promise<ProtocolChainData> => {
@@ -1071,35 +1082,38 @@ export const getProtocolChainSplitData = async ({
 
 	if (CHAIN_ONLY_METRICS.has(metricStr)) {
 		if (metricStr === 'stablecoins') {
-			return getAllProtocolsTopChainsStablecoinsData(topN, chains, filterMode, chainCategories)
+			return getAllProtocolsTopChainsStablecoinsData(topN, chains, chainFilterMode, chainCategoryFilterMode, chainCategories)
 		}
 		return getAllProtocolsTopChainsChainFeesData(
 			metricStr as 'chain-fees' | 'chain-revenue',
 			topN,
 			chains,
-			filterMode,
+			chainFilterMode,
+			chainCategoryFilterMode,
 			chainCategories
 		)
 	}
 
 	if (isProtocolAll) {
 		if (metricStr === 'tvl') {
-			return getAllProtocolsTopChainsTvlData(topN, chains, filterMode, chainCategories)
+			return getAllProtocolsTopChainsTvlData(topN, chains, chainFilterMode, chainCategoryFilterMode, chainCategories)
 		}
 		return getAllProtocolsTopChainsDimensionsData(
 			metricStr,
 			topN,
 			chains,
-			filterMode,
+			chainFilterMode,
+			chainCategoryFilterMode,
+			protocolCategoryFilterMode,
 			chainCategories,
 			protocolCategories
 		)
 	}
 
 	if (metricStr === 'tvl') {
-		return getTvlProtocolChainData(protocolStr, chains, topN, filterMode, chainCategories)
+		return getTvlProtocolChainData(protocolStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
 	}
-	return getDimensionsProtocolChainData(protocolStr, metricStr, chains, topN, filterMode, chainCategories)
+	return getDimensionsProtocolChainData(protocolStr, metricStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
 }
 
 async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {

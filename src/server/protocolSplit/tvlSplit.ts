@@ -131,7 +131,8 @@ export const getTvlSplitData = async (
 	categories: string[],
 	topN: number,
 	groupByParent: boolean = false,
-	filterMode: 'include' | 'exclude' = 'include'
+	chainFilterMode: 'include' | 'exclude' = 'include',
+	categoryFilterMode: 'include' | 'exclude' = 'include'
 ): Promise<ProtocolSplitData> => {
 	const selectedChains = (chains && chains.length > 0 ? chains : ['all']).filter(Boolean)
 	const isAll = selectedChains.some((c) => c.toLowerCase() === 'all')
@@ -154,26 +155,32 @@ export const getTvlSplitData = async (
 	const childScores: ChildScore[] = []
 	const childrenByParent: Map<string, Set<string>> = new Map()
 	const excludedChainSetForProtocols: Set<string> = new Set(
-		filterMode === 'exclude' ? selectedChains.map((ch) => toDisplayName(ch)) : []
+		chainFilterMode === 'exclude' ? selectedChains.map((ch) => toDisplayName(ch)) : []
 	)
 	const includedChainSetForProtocols: Set<string> = new Set(
-		filterMode === 'include' && !isAll ? selectedChains.map((ch) => toDisplayName(ch)) : []
+		chainFilterMode === 'include' && !isAll ? selectedChains.map((ch) => toDisplayName(ch)) : []
 	)
+	const protocolSlugToCategory: Map<string, string> = new Map()
 	const categoriesFilterSet = new Set(categoriesFilter)
 
 	const hasRealExcludedChains =
-		filterMode === 'exclude' && Array.from(excludedChainSetForProtocols).some((chain) => chain.toLowerCase() !== 'all')
+		chainFilterMode === 'exclude' &&
+		Array.from(excludedChainSetForProtocols).some((chain) => chain.toLowerCase() !== 'all')
 
 	for (const p of protocols) {
 		const cat = (p.category || '').toLowerCase()
+		const slug = toSlug(p.name || '')
+		if (slug) {
+			protocolSlugToCategory.set(slug, cat)
+		}
 		if (categoriesFilterSet.size > 0) {
-			if (filterMode === 'include' && !categoriesFilterSet.has(cat)) continue
-			if (filterMode === 'exclude' && categoriesFilterSet.has(cat)) continue
+			if (categoryFilterMode === 'include' && !categoriesFilterSet.has(cat)) continue
+			if (categoryFilterMode === 'exclude' && categoriesFilterSet.has(cat)) continue
 		}
 
 		let score = 0
 		if (isAll) {
-			if (filterMode === 'exclude' && hasRealExcludedChains) {
+			if (chainFilterMode === 'exclude' && hasRealExcludedChains) {
 				for (const key in p.chainTvls || {}) {
 					if (isIgnoredChainKey(key)) continue
 					if (excludedChainSetForProtocols.has(key)) continue
@@ -186,7 +193,7 @@ export const getTvlSplitData = async (
 				score = typeof p.tvl === 'number' ? p.tvl : 0
 			}
 		} else {
-			if (filterMode === 'exclude' && hasRealExcludedChains) {
+			if (chainFilterMode === 'exclude' && hasRealExcludedChains) {
 				for (const key in p.chainTvls || {}) {
 					if (isIgnoredChainKey(key)) continue
 					if (excludedChainSetForProtocols.has(key)) continue
@@ -270,11 +277,11 @@ export const getTvlSplitData = async (
 					const chainTvls = json?.chainTvls || {}
 
 					const opts: any = {}
-					if (hasRealExcludedChains) {
+					if (chainFilterMode === 'exclude' && hasRealExcludedChains) {
 						opts.filterMode = 'exclude'
 						opts.excludeChains = Array.from(excludedChainSetForProtocols).filter((c) => c.toLowerCase() !== 'all')
 					}
-					if (filterMode === 'include' && !isAll && includedChainSetForProtocols.size > 0) {
+					if (chainFilterMode === 'include' && !isAll && includedChainSetForProtocols.size > 0) {
 						opts.filterMode = 'include'
 						opts.includeChains = Array.from(includedChainSetForProtocols)
 					}
@@ -284,7 +291,15 @@ export const getTvlSplitData = async (
 
 				if (useChildrenOnly) {
 					const childSet = t.parentId ? childrenByParent.get(t.parentId) : undefined
-					const childSlugs = childSet ? Array.from(childSet) : []
+					const childSlugs = childSet
+						? Array.from(childSet).filter((slug) => {
+								if (categoriesFilterSet.size === 0) return true
+								const cat = protocolSlugToCategory.get(slug) || ''
+								if (!cat) return categoryFilterMode === 'exclude'
+								if (categoryFilterMode === 'include') return categoriesFilterSet.has(cat)
+								return !categoriesFilterSet.has(cat)
+							})
+						: []
 					if (childSlugs.length === 0) {
 						return { name: t.name, data: [] as [number, number][], failed: false }
 					}
@@ -323,44 +338,64 @@ export const getTvlSplitData = async (
 	}
 
 	let totalSeries: [number, number][]
-	const hasRealExcludedChainsForTotal = hasRealExcludedChains || categoriesFilter.length > 0
-	if (filterMode === 'exclude' && hasRealExcludedChainsForTotal) {
-		const allTvl = await fetchAllChainTotalTvl()
-		const excludedChains = (isAll ? selectedChains : selectedChains).filter((c) => c.toLowerCase() !== 'all')
-		const excludedPerChain = await Promise.all(excludedChains.map((c) => fetchChainTvlSingle(c)))
-		const sumExcluded = Array.from(sumSeriesByTimestamp(excludedPerChain).entries()).sort((a, b) => a[0] - b[0]) as [
+	const hasCategories = categoriesFilter.length > 0
+	const excludedChains = selectedChains.filter((c) => c.toLowerCase() !== 'all')
+
+	const buildCategorySeriesAll = async (): Promise<[number, number][]> => {
+		const perCategoryAll = await Promise.all(categoriesFilter.map((cat) => fetchCategorySeriesAll(cat)))
+		return Array.from(sumSeriesByTimestamp(perCategoryAll).entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
+	}
+
+	const buildCategorySeriesExcludingChains = async (): Promise<[number, number][]> => {
+		let series = await buildCategorySeriesAll()
+		if (excludedChains.length === 0) return series
+		const perCatPerExcluded = await Promise.all(
+			categoriesFilter.map(async (cat) => {
+				const perChainCat = await Promise.all(excludedChains.map((ch) => fetchCategorySeriesPerChain(cat, ch)))
+				const summed = Array.from(sumSeriesByTimestamp(perChainCat).entries()).sort((a, b) => a[0] - b[0]) as [
+					number,
+					number
+				][]
+				return summed
+			})
+		)
+		const sumExcludedCatsAcrossChains = Array.from(sumSeriesByTimestamp(perCatPerExcluded).entries()).sort((a, b) => a[0] - b[0]) as [
 			number,
 			number
 		][]
-		let base = subtractSeries(allTvl, sumExcluded)
+		return subtractSeries(series, sumExcludedCatsAcrossChains)
+	}
 
-		if (categoriesFilter.length > 0) {
-			const perCategoryAll = await Promise.all(categoriesFilter.map((cat) => fetchCategorySeriesAll(cat)))
-			let excludedCatsAll = Array.from(sumSeriesByTimestamp(perCategoryAll).entries()).sort((a, b) => a[0] - b[0]) as [
+	const buildTotalSeriesForChains = async (): Promise<[number, number][]> => {
+		if (chainFilterMode === 'exclude' && hasRealExcludedChains) {
+			const allTvl = await fetchAllChainTotalTvl()
+			const excludedPerChain = await Promise.all(excludedChains.map((c) => fetchChainTvlSingle(c)))
+			const sumExcluded = Array.from(sumSeriesByTimestamp(excludedPerChain).entries()).sort((a, b) => a[0] - b[0]) as [
 				number,
 				number
 			][]
-			if (excludedChains.length > 0) {
-				const perCatPerExcluded = await Promise.all(
-					categoriesFilter.map(async (cat) => {
-						const perChainCat = await Promise.all(excludedChains.map((ch) => fetchCategorySeriesPerChain(cat, ch)))
-						const summed = Array.from(sumSeriesByTimestamp(perChainCat).entries()).sort((a, b) => a[0] - b[0]) as [
-							number,
-							number
-						][]
-						return summed
-					})
-				)
-				const sumExcludedCatsAcrossChains = Array.from(sumSeriesByTimestamp(perCatPerExcluded).entries()).sort(
-					(a, b) => a[0] - b[0]
-				) as [number, number][]
-				excludedCatsAll = subtractSeries(excludedCatsAll, sumExcludedCatsAcrossChains)
-			}
-			base = subtractSeries(base, excludedCatsAll)
+			return subtractSeries(allTvl, sumExcluded)
 		}
-		totalSeries = base
+		return fetchChainTotalTvl(isAll ? ['all'] : selectedChains)
+	}
+
+	const buildCategorySeriesWithChains = async (): Promise<[number, number][]> => {
+		if (chainFilterMode === 'exclude' && hasRealExcludedChains) {
+			return buildCategorySeriesExcludingChains()
+		}
+		return fetchCategoryTvl(isAll ? ['all'] : selectedChains, categoriesFilter)
+	}
+
+	if (hasCategories) {
+		if (categoryFilterMode === 'include') {
+			totalSeries = await buildCategorySeriesWithChains()
+		} else {
+			const base = await buildTotalSeriesForChains()
+			const excludedCats = await buildCategorySeriesWithChains()
+			totalSeries = subtractSeries(base, excludedCats)
+		}
 	} else {
-		totalSeries = await fetchCategoryTvl(isAll ? ['all'] : selectedChains, categoriesFilter)
+		totalSeries = await buildTotalSeriesForChains()
 	}
 
 	const timestampSet = new Set<number>()

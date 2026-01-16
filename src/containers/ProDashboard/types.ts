@@ -96,6 +96,10 @@ export interface ChartBuilderConfig {
 			| 'chain-revenue'
 		mode: 'chains' | 'protocol'
 		filterMode?: 'include' | 'exclude'
+		chainFilterMode?: 'include' | 'exclude'
+		categoryFilterMode?: 'include' | 'exclude'
+		chainCategoryFilterMode?: 'include' | 'exclude'
+		protocolCategoryFilterMode?: 'include' | 'exclude'
 		protocol?: string
 		chains: string[]
 		chainCategories?: string[]

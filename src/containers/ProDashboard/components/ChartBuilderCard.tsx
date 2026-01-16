@@ -48,6 +48,10 @@ interface ChartBuilderCardProps {
 				| 'chain-revenue'
 			mode: 'chains' | 'protocol'
 			filterMode?: 'include' | 'exclude'
+			chainFilterMode?: 'include' | 'exclude'
+			categoryFilterMode?: 'include' | 'exclude'
+			chainCategoryFilterMode?: 'include' | 'exclude'
+			protocolCategoryFilterMode?: 'include' | 'exclude'
 			protocol?: string
 			chains: string[]
 			chainCategories?: string[]
@@ -87,6 +91,15 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const seriesColors = config.seriesColors ?? EMPTY_SERIES_COLORS
 	const hasCustomSeriesColors = Object.keys(seriesColors).length > 0
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+	const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
+		if (value === 'include' || value === 'exclude') return value
+		if (fallback === 'include' || fallback === 'exclude') return fallback
+		return 'include'
+	}
+	const chainFilterMode = resolveFilterMode(config.chainFilterMode, config.filterMode)
+	const categoryFilterMode = resolveFilterMode(config.categoryFilterMode, config.filterMode)
+	const chainCategoryFilterMode = resolveFilterMode(config.chainCategoryFilterMode, config.filterMode)
+	const protocolCategoryFilterMode = resolveFilterMode(config.protocolCategoryFilterMode, config.filterMode)
 
 	useEffect(() => {
 		if (isReadOnly) {
@@ -119,7 +132,10 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			config.protocolCategories,
 			config.hideOthers,
 			config.groupByParent,
-			config.filterMode || 'include',
+			chainFilterMode,
+			categoryFilterMode,
+			chainCategoryFilterMode,
+			protocolCategoryFilterMode,
 			timePeriod,
 			customTimePeriod
 		],
@@ -130,9 +146,11 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					config.metric,
 					config.chains.length > 0 ? config.chains : undefined,
 					config.limit,
-					config.filterMode || 'include',
+					chainFilterMode,
 					config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories : undefined,
-					config.protocolCategories && config.protocolCategories.length > 0 ? config.protocolCategories : undefined
+					config.protocolCategories && config.protocolCategories.length > 0 ? config.protocolCategories : undefined,
+					chainCategoryFilterMode,
+					protocolCategoryFilterMode
 				)
 
 				if (!data || !data.series) {
@@ -169,7 +187,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				config.limit,
 				config.categories,
 				config.groupByParent,
-				config.filterMode || 'include'
+				chainFilterMode,
+				categoryFilterMode
 			)
 
 			if (!data || !data.series) {
@@ -603,7 +622,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							? getProtocolInfo(config.protocol)?.name || config.protocol
 							: 'All Protocols'
 						parts.push(protoName)
-						if ((config.filterMode || 'include') === 'exclude' && config.chains.length > 0) {
+						if (chainFilterMode === 'exclude' && config.chains.length > 0) {
 							parts.push(`Excluding ${config.chains.join(', ')}`)
 						} else if (config.chains.length > 0) {
 							parts.push(config.chains.join(', '))
@@ -612,12 +631,24 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						}
 						if (config.chainCategories && config.chainCategories.length > 0) {
 							const cats = config.chainCategories.join(', ')
-							if ((config.filterMode || 'include') === 'exclude') parts.push(`Excluding ${cats}`)
+							if (chainCategoryFilterMode === 'exclude') parts.push(`Excluding ${cats}`)
+							else parts.push(cats)
+						}
+						if (config.protocolCategories && config.protocolCategories.length > 0) {
+							const cats = config.protocolCategories.join(', ')
+							if (protocolCategoryFilterMode === 'exclude') parts.push(`Excluding ${cats}`)
 							else parts.push(cats)
 						}
 					} else {
-						parts.push(`${config.chains.join(', ')} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`)
-						if (config.categories.length > 0) parts.push(config.categories.join(', '))
+						const chainLabel = config.chains.length > 0 ? config.chains.join(', ') : 'All chains'
+						const chainDisplay =
+							chainFilterMode === 'exclude' && config.chains.length > 0 ? `Excluding ${chainLabel}` : chainLabel
+						parts.push(`${chainDisplay} • Top ${config.limit} protocols${config.hideOthers ? ' only' : ''}`)
+						if (config.categories.length > 0) {
+							const cats = config.categories.join(', ')
+							if (categoryFilterMode === 'exclude') parts.push(`Excluding ${cats}`)
+							else parts.push(cats)
+						}
 					}
 					if (timePeriod && timePeriod !== 'all') parts.push(timePeriod.toUpperCase())
 					return <p className="text-xs text-(--text-label)">{parts.join(' • ')}</p>

@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, memo, Suspense, useEffect, useMemo } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
 import { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
@@ -79,6 +79,37 @@ const MODE_OPTIONS = [
 	{ value: 'protocol', label: 'Group by Chains' } // group by chains filter by protocol
 ]
 
+const FILTER_MODE_OPTIONS = [
+	{ value: 'include', label: 'Include' },
+	{ value: 'exclude', label: 'Exclude' }
+]
+
+const FilterModeToggle = ({
+	value,
+	onChange
+}: {
+	value: 'include' | 'exclude'
+	onChange: (mode: 'include' | 'exclude') => void
+}) => (
+	<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
+		<div className="grid grid-cols-2 gap-0.5">
+			{FILTER_MODE_OPTIONS.map((option) => (
+				<button
+					key={option.value}
+					onClick={() => onChange(option.value as 'include' | 'exclude')}
+					className={`rounded-md px-2 py-1 text-[10px] font-medium transition-all duration-200 ${
+						value === option.value
+							? 'bg-(--old-blue) text-white shadow-sm'
+							: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary)'
+					}`}
+				>
+					{option.label}
+				</button>
+			))}
+		</div>
+	</div>
+)
+
 export const ChartBuilderTab = memo(function ChartBuilderTab({
 	chartBuilder,
 	chartBuilderName,
@@ -137,6 +168,17 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		)
 	}, [chartBuilder.mode, chartBuilder.metric])
 
+	const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
+		if (value === 'include' || value === 'exclude') return value
+		if (fallback === 'include' || fallback === 'exclude') return fallback
+		return 'include'
+	}
+
+	const chainFilterMode = resolveFilterMode(chartBuilder.chainFilterMode, chartBuilder.filterMode)
+	const categoryFilterMode = resolveFilterMode(chartBuilder.categoryFilterMode, chartBuilder.filterMode)
+	const chainCategoryFilterMode = resolveFilterMode(chartBuilder.chainCategoryFilterMode, chartBuilder.filterMode)
+	const protocolCategoryFilterMode = resolveFilterMode(chartBuilder.protocolCategoryFilterMode, chartBuilder.filterMode)
+
 	const { data: previewData, isLoading: previewLoading } = useQuery({
 		queryKey: [
 			'chartBuilder',
@@ -149,7 +191,10 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			chartBuilder.chainCategories,
 			chartBuilder.protocolCategories,
 			chartBuilder.groupByParent,
-			chartBuilder.filterMode || 'include',
+			chainFilterMode,
+			categoryFilterMode,
+			chainCategoryFilterMode,
+			protocolCategoryFilterMode,
 			timePeriod,
 			customTimePeriod
 		],
@@ -160,13 +205,15 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 					chartBuilder.metric,
 					chartBuilder.chains.length > 0 ? chartBuilder.chains : undefined,
 					chartBuilder.limit,
-					chartBuilder.filterMode || 'include',
+					chainFilterMode,
 					chartBuilder.chainCategories && chartBuilder.chainCategories.length > 0
 						? chartBuilder.chainCategories
 						: undefined,
 					chartBuilder.protocolCategories && chartBuilder.protocolCategories.length > 0
 						? chartBuilder.protocolCategories
-						: undefined
+						: undefined,
+					chainCategoryFilterMode,
+					protocolCategoryFilterMode
 				)
 
 				if (data && data.series.length > 0) {
@@ -201,7 +248,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				chartBuilder.limit,
 				chartBuilder.categories,
 				chartBuilder.groupByParent,
-				chartBuilder.filterMode || 'include'
+				chainFilterMode,
+				categoryFilterMode
 			)
 
 			if (data && data.series.length > 0) {
@@ -218,8 +266,8 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		refetchOnWindowFocus: false
 	})
 
-	const seriesColors: Record<string, string> = chartBuilder.seriesColors || {}
-	const hasCustomSeriesColors = Object.keys(seriesColors).length > 0
+	const seriesColors = useRef<Record<string, string>>(chartBuilder.seriesColors || {})
+	const hasCustomSeriesColors = Object.keys(seriesColors.current).length > 0
 
 	const visibleSeries = useMemo(() => {
 		if (!previewData?.series) {
@@ -241,16 +289,19 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		chartBuilder.protocolCategories
 	])
 
-	const resolveSeriesColor = (seriesName: string, fallback?: string) => {
-		const override = seriesColors[seriesName]
-		if (override) {
-			return override
-		}
-		if (fallback && HEX_COLOR_REGEX.test(fallback)) {
-			return fallback
-		}
-		return DEFAULT_SERIES_COLOR
-	}
+	const resolveSeriesColor = useCallback(
+		(seriesName: string, fallback?: string) => {
+			const override = seriesColors[seriesName]
+			if (override) {
+				return override
+			}
+			if (fallback && HEX_COLOR_REGEX.test(fallback)) {
+				return fallback
+			}
+			return DEFAULT_SERIES_COLOR
+		},
+		[seriesColors]
+	)
 
 	const treemapData = useMemo(() => {
 		if (!visibleSeries || visibleSeries.length === 0) return []
@@ -270,7 +321,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				}
 			})
 			.filter((item) => item.value > 0)
-	}, [visibleSeries, seriesColors])
+	}, [visibleSeries, resolveSeriesColor])
 
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
@@ -287,7 +338,10 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		if (newMetric === 'tvl' || newMetric === 'stablecoins') {
 			newChartType = 'stackedArea'
 		}
-		const updates: Partial<ChartBuilderConfig> = { metric: newMetric, chartType: newChartType }
+		const updates: Partial<ChartBuilderConfig> = {
+			metric: newMetric,
+			chartType: newChartType
+		}
 		if (CHAIN_ONLY_METRICS.has(newMetric)) {
 			updates.protocol = undefined
 		}
@@ -325,12 +379,28 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		onChartBuilderChange({ displayAs: display })
 	}
 
-	const handleFilterModeChange = (mode: 'include' | 'exclude') => {
-		onChartBuilderChange({ filterMode: mode })
+	const handleChainFilterModeChange = (mode: 'include' | 'exclude') => {
+		onChartBuilderChange({ chainFilterMode: mode })
+	}
+
+	const handleCategoryFilterModeChange = (mode: 'include' | 'exclude') => {
+		onChartBuilderChange({ categoryFilterMode: mode })
+	}
+
+	const handleChainCategoryFilterModeChange = (mode: 'include' | 'exclude') => {
+		onChartBuilderChange({ chainCategoryFilterMode: mode })
+	}
+
+	const handleProtocolCategoryFilterModeChange = (mode: 'include' | 'exclude') => {
+		onChartBuilderChange({ protocolCategoryFilterMode: mode })
 	}
 
 	const handleModeChange = (mode: 'chains' | 'protocol') => {
-		const updates: Partial<ChartBuilderConfig> = { mode, chains: [], protocol: undefined }
+		const updates: Partial<ChartBuilderConfig> = {
+			mode,
+			chains: [],
+			protocol: undefined
+		}
 		if (mode === 'chains' && chartBuilder.metric && CHAIN_ONLY_METRICS.has(chartBuilder.metric)) {
 			updates.metric = 'tvl'
 			updates.chartType = 'stackedArea'
@@ -385,10 +455,18 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				onChartBuilderChange({ hideOthers: shouldHideOthers })
 			}
 		}
-	}, [chartBuilder.mode, chartBuilder.chainCategories, chartBuilder.protocolCategories])
+	}, [
+		chartBuilder.mode,
+		chartBuilder.chainCategories,
+		chartBuilder.protocolCategories,
+		chartBuilder.hideOthers,
+		onChartBuilderChange
+	])
 
 	const handleProtocolChange = (option: any) => {
-		const updates: Partial<ChartBuilderConfig> = { protocol: option?.value || undefined }
+		const updates: Partial<ChartBuilderConfig> = {
+			protocol: option?.value || undefined
+		}
 		if (option?.value) {
 			updates.protocolCategories = undefined
 		}
@@ -446,45 +524,26 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Filters</h4>
 
-						<div className="mb-1.5">
-							<h5 className="pro-text2 mb-1 text-[11px] font-medium">Filter Mode</h5>
-							<div className="mb-1.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/60 p-0.5">
-								<div className="grid grid-cols-2 gap-0.5">
-									{[
-										{ value: 'include', label: 'Include' },
-										{ value: 'exclude', label: 'Exclude' }
-									].map((option) => (
-										<button
-											key={option.value}
-											onClick={() => handleFilterModeChange(option.value as 'include' | 'exclude')}
-											className={`rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 ${
-												(chartBuilder.filterMode || 'include') === option.value
-													? 'bg-(--old-blue) text-white shadow-sm'
-													: 'text-(--text-secondary) hover:bg-(--cards-bg)/80 hover:text-(--text-primary)'
-											}`}
-										>
-											{option.label}
-										</button>
-									))}
-								</div>
-							</div>
-						</div>
-
 						{chartBuilder.mode === 'chains' ? (
 							<>
 								<div className="mb-1.5">
+									<div className="mb-1 flex items-center justify-between">
+										<span className="pro-text2 text-[10px] font-medium">Chains Filter</span>
+										<FilterModeToggle value={chainFilterMode} onChange={handleChainFilterModeChange} />
+									</div>
 									<AriakitVirtualizedMultiSelect
 										label="Chains"
 										options={
-											chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []
+											chainOptions.length > 0
+												? chainOptions.map((c) => ({
+														value: c.value,
+														label: c.label
+													}))
+												: []
 										}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
-										placeholder={
-											(chartBuilder.filterMode || 'include') === 'exclude'
-												? 'Select chains to exclude...'
-												: 'Select chains...'
-										}
+										placeholder={chainFilterMode === 'exclude' ? 'Select chains to exclude...' : 'Select chains...'}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
 										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
@@ -492,15 +551,17 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 								</div>
 
 								<div className="mb-1.5">
+									<div className="mb-1 flex items-center justify-between">
+										<span className="pro-text2 text-[10px] font-medium">Categories Filter</span>
+										<FilterModeToggle value={categoryFilterMode} onChange={handleCategoryFilterModeChange} />
+									</div>
 									<AriakitMultiSelect
 										label="Categories"
 										options={categoryOptions}
 										selectedValues={chartBuilder.categories}
 										onChange={handleCategoriesChange}
 										placeholder={
-											(chartBuilder.filterMode || 'include') === 'exclude'
-												? 'Select categories to exclude...'
-												: 'Select categories...'
+											categoryFilterMode === 'exclude' ? 'Select categories to exclude...' : 'Select categories...'
 										}
 										isLoading={false}
 										maxSelections={5}
@@ -534,7 +595,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 									<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
 										<label className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
-												onChange={(e) => onChartBuilderChange({ groupByParent: e.target.checked })}
+												onChange={(e) =>
+													onChartBuilderChange({
+														groupByParent: e.target.checked
+													})
+												}
 												className="pro-border data-[checked]:bg-pro-blue-400 data-[checked]:border-pro-blue-100 dark:data-[checked]:bg-pro-blue-300/20 dark:data-[checked]:border-pro-blue-300/20 flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border"
 											/>
 											<span className="pro-text2 text-[10px]">Group by parent protocol</span>
@@ -563,18 +628,23 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 								)}
 
 								<div className="mb-1.5">
+									<div className="mb-1 flex items-center justify-between">
+										<span className="pro-text2 text-[10px] font-medium">Chains Filter</span>
+										<FilterModeToggle value={chainFilterMode} onChange={handleChainFilterModeChange} />
+									</div>
 									<AriakitVirtualizedMultiSelect
 										label="Chains"
 										options={
-											chainOptions.length > 0 ? chainOptions.map((c) => ({ value: c.value, label: c.label })) : []
+											chainOptions.length > 0
+												? chainOptions.map((c) => ({
+														value: c.value,
+														label: c.label
+													}))
+												: []
 										}
 										selectedValues={chartBuilder.chains}
 										onChange={handleChainsChange}
-										placeholder={
-											(chartBuilder.filterMode || 'include') === 'exclude'
-												? 'Select chains to exclude...'
-												: 'Select chains...'
-										}
+										placeholder={chainFilterMode === 'exclude' ? 'Select chains to exclude...' : 'Select chains...'}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
 										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
@@ -582,13 +652,20 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 								</div>
 								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (
 									<div className="mb-1.5">
+										<div className="mb-1 flex items-center justify-between">
+											<span className="pro-text2 text-[10px] font-medium">Protocol Categories Filter</span>
+											<FilterModeToggle
+												value={protocolCategoryFilterMode}
+												onChange={handleProtocolCategoryFilterModeChange}
+											/>
+										</div>
 										<AriakitMultiSelect
 											label="Protocol Categories"
 											options={categoryOptions}
 											selectedValues={chartBuilder.protocolCategories || []}
 											onChange={handleProtocolCategoriesChange}
 											placeholder={
-												(chartBuilder.filterMode || 'include') === 'exclude'
+												protocolCategoryFilterMode === 'exclude'
 													? 'Select protocol categories to exclude...'
 													: 'Select protocol categories...'
 											}
@@ -598,13 +675,20 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 									</div>
 								)}
 								<div className="mb-1.5">
+									<div className="mb-1 flex items-center justify-between">
+										<span className="pro-text2 text-[10px] font-medium">Chain Categories Filter</span>
+										<FilterModeToggle value={chainCategoryFilterMode} onChange={handleChainCategoryFilterModeChange} />
+									</div>
 									<AriakitMultiSelect
 										label="Chain Categories"
-										options={(chainCategoriesList || []).map((c) => ({ value: c, label: c }))}
+										options={(chainCategoriesList || []).map((c) => ({
+											value: c,
+											label: c
+										}))}
 										selectedValues={chartBuilder.chainCategories || []}
 										onChange={handleChainCategoriesChange}
 										placeholder={
-											(chartBuilder.filterMode || 'include') === 'exclude'
+											chainCategoryFilterMode === 'exclude'
 												? 'Select chain categories to exclude...'
 												: 'Select chain categories...'
 										}
@@ -627,7 +711,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 										<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
 											<label className="flex cursor-pointer items-center gap-1.5">
 												<Ariakit.Checkbox
-													onChange={(e) => onChartBuilderChange({ hideOthers: e.target.checked })}
+													onChange={(e) =>
+														onChartBuilderChange({
+															hideOthers: e.target.checked
+														})
+													}
 													className="flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5] data-[checked]:bg-[#28a2b5]"
 												/>
 												<span className="pro-text2 text-[10px]">
@@ -939,20 +1027,27 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 									: ` breakdown by top ${chartBuilder.limit} protocols`}
 								{chartBuilder.mode === 'chains' &&
 									chartBuilder.chains.length > 0 &&
-									` on ${chartBuilder.chains.join(', ')}`}
+									` ${chainFilterMode === 'exclude' ? 'excluding' : 'on'} ${chartBuilder.chains.join(', ')}`}
+								{chartBuilder.mode === 'protocol' &&
+									chartBuilder.chains.length > 0 &&
+									` ${chainFilterMode === 'exclude' ? 'excluding' : 'on'} ${chartBuilder.chains.join(', ')}`}
 								{chartBuilder.mode === 'protocol' &&
 									chartBuilder.chainCategories &&
 									chartBuilder.chainCategories.length > 0 &&
-									` in ${chartBuilder.chainCategories.join(', ')} chain categories`}
+									` ${chainCategoryFilterMode === 'exclude' ? 'excluding' : 'in'} ${chartBuilder.chainCategories.join(
+										', '
+									)} chain categories`}
 								{chartBuilder.mode === 'protocol' &&
 									chartBuilder.protocolCategories &&
 									chartBuilder.protocolCategories.length > 0 &&
 									` ${
-										(chartBuilder.filterMode || 'include') === 'exclude' ? 'excluding' : 'focusing on'
+										protocolCategoryFilterMode === 'exclude' ? 'excluding' : 'focusing on'
 									} ${chartBuilder.protocolCategories.join(', ')} protocol categories`}
 								{chartBuilder.mode === 'chains' &&
 									chartBuilder.categories.length > 0 &&
-									` in ${chartBuilder.categories.join(', ')} categories`}
+									` ${
+										categoryFilterMode === 'exclude' ? 'excluding' : 'in'
+									} ${chartBuilder.categories.join(', ')} categories`}
 								. Data is displayed as{' '}
 								{chartBuilder.displayAs === 'percentage' ? 'percentage of total' : 'absolute values'}.
 							</p>
