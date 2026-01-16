@@ -68,6 +68,12 @@ const DISPLAY_OPTIONS = [
 	{ value: 'percentage', label: 'Percentage' }
 ]
 
+const TREEMAP_VALUE_OPTIONS = [
+	{ value: 'latest', label: 'Last day (1d)' },
+	{ value: 'sum7d', label: 'Sum 7d' },
+	{ value: 'sum30d', label: 'Sum 30d' }
+]
+
 const LIMIT_OPTIONS = [
 	{ value: '5', label: 'Top 5' },
 	{ value: '10', label: 'Top 10' },
@@ -303,6 +309,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		[seriesColors]
 	)
 
+	const isChainOnlyMetric = chartBuilder.metric ? CHAIN_ONLY_METRICS.has(chartBuilder.metric) : false
+	const isTvlMetric = chartBuilder.metric === 'tvl' || chartBuilder.metric === 'stablecoins'
+	const treemapValue = chartBuilder.treemapValue || 'latest'
+	const treemapMode = !isTvlMetric ? treemapValue : 'latest'
+
 	const treemapData = useMemo(() => {
 		if (!visibleSeries || visibleSeries.length === 0) return []
 
@@ -310,7 +321,20 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			.map((s) => {
 				const dataLength = s.data?.length || 0
 				const pointIndex = Math.max(0, dataLength - 2)
-				const value = dataLength > 0 ? s.data[pointIndex]?.[1] || 0 : 0
+				const latestPoint = dataLength > 0 ? s.data[pointIndex] : undefined
+				const latestTimestamp = latestPoint?.[0]
+				let value = latestPoint?.[1] || 0
+
+				if (latestTimestamp !== undefined && treemapMode !== 'latest') {
+					const windowDays = treemapMode === 'sum7d' ? 7 : 30
+					const windowStart = latestTimestamp - windowDays * 24 * 60 * 60 + 1
+					value = s.data.reduce((sum: number, [timestamp, val]: [number, number]) => {
+						if (timestamp >= windowStart && timestamp <= latestTimestamp) {
+							return sum + (val || 0)
+						}
+						return sum
+					}, 0)
+				}
 
 				return {
 					name: s.name,
@@ -321,7 +345,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				}
 			})
 			.filter((item) => item.value > 0)
-	}, [visibleSeries, resolveSeriesColor])
+	}, [visibleSeries, resolveSeriesColor, treemapMode])
 
 	const protocolOptionsFiltered = useMemo(() => {
 		if (chartBuilder.mode !== 'protocol') return protocolOptions
@@ -330,7 +354,6 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		return protocolOptions.filter((opt) => hasProtocolBuilderMetric(opt.value, metric))
 	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
 
-	const isChainOnlyMetric = chartBuilder.metric ? CHAIN_ONLY_METRICS.has(chartBuilder.metric) : false
 
 	const handleMetricChange = (option: any) => {
 		const newMetric = option?.value || 'tvl'
@@ -377,6 +400,15 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 	const handleDisplayChange = (display: 'timeSeries' | 'percentage') => {
 		onChartBuilderChange({ displayAs: display })
+	}
+
+	const handleTreemapValueChange = (option: any) => {
+		const nextValue = option?.value
+		if (nextValue === 'sum7d' || nextValue === 'sum30d' || nextValue === 'latest') {
+			onChartBuilderChange({ treemapValue: nextValue })
+			return
+		}
+		onChartBuilderChange({ treemapValue: 'latest' })
 	}
 
 	const handleChainFilterModeChange = (mode: 'include' | 'exclude') => {
@@ -748,6 +780,19 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 							))}
 						</div>
 					</div>
+
+					{chartBuilder.chartType === 'treemap' && !isTvlMetric && (
+						<div className="pro-border border-t pt-1.5">
+							<AriakitSelect
+								label="Treemap value"
+								options={TREEMAP_VALUE_OPTIONS}
+								selectedValue={treemapMode}
+								onChange={handleTreemapValueChange}
+								placeholder="Select value..."
+								isLoading={false}
+							/>
+						</div>
+					)}
 
 					<div className="pro-border border-t pt-1.5">
 						<h4 className="pro-text2 mb-1 text-[11px] font-medium">Display value as</h4>

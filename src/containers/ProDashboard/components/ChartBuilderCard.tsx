@@ -21,6 +21,11 @@ const DEFAULT_SERIES_COLOR = '#3366ff'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
 const CHAIN_ONLY_METRICS = new Set(['stablecoins', 'chain-fees', 'chain-revenue'])
+const TREEMAP_VALUE_OPTIONS = [
+	{ name: 'Last day (1d)', key: 'latest' },
+	{ name: 'Sum 7d', key: 'sum7d' },
+	{ name: 'Sum 30d', key: 'sum30d' }
+]
 
 interface ChartBuilderCardProps {
 	builder: {
@@ -60,6 +65,7 @@ interface ChartBuilderCardProps {
 			groupBy: 'protocol'
 			limit: number
 			chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
+			treemapValue?: 'latest' | 'sum7d' | 'sum30d'
 			displayAs: 'timeSeries' | 'percentage'
 			hideOthers?: boolean
 			groupByParent?: boolean
@@ -108,6 +114,10 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	}, [isReadOnly])
 
 	const isTvlChart = config.metric === 'tvl' || config.metric === 'stablecoins'
+	const treemapValue = config.treemapValue || 'latest'
+	const treemapMode = isTvlChart ? 'latest' : treemapValue
+	const treemapLabel =
+		TREEMAP_VALUE_OPTIONS.find((option) => option.key === treemapMode)?.name || TREEMAP_VALUE_OPTIONS[0].name
 
 	const timeKey = useMemo(() => {
 		if (timePeriod === 'custom' && customTimePeriod) {
@@ -336,7 +346,20 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			.map((s: any) => {
 				const dataLength = s.data?.length || 0
 				const pointIndex = Math.max(0, dataLength - 2)
-				const value = dataLength > 0 ? s.data[pointIndex]?.[1] || 0 : 0
+				const latestPoint = dataLength > 0 ? s.data[pointIndex] : undefined
+				const latestTimestamp = latestPoint?.[0]
+				let value = latestPoint?.[1] || 0
+
+				if (latestTimestamp !== undefined && treemapMode !== 'latest') {
+					const windowDays = treemapMode === 'sum7d' ? 7 : 30
+					const windowStart = latestTimestamp - windowDays * 24 * 60 * 60 + 1
+					value = s.data.reduce((sum: number, [timestamp, val]: [number, number]) => {
+						if (timestamp >= windowStart && timestamp <= latestTimestamp) {
+							return sum + (val || 0)
+						}
+						return sum
+					}, 0)
+				}
 
 				return {
 					name: s.name,
@@ -347,7 +370,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				}
 			})
 			.filter((item: any) => item.value > 0)
-	}, [chartData, seriesColors])
+	}, [chartData, seriesColors, treemapMode])
 
 	const handleCsvExport = useCallback(() => {
 		if (!chartSeries || chartSeries.length === 0) return
@@ -437,6 +460,28 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		updateSeriesColors({})
 	}, [builder.config.seriesColors, updateSeriesColors])
 
+	const handleTreemapValueChange = useCallback(
+		(nextValue: string) => {
+			if (isReadOnly) {
+				return
+			}
+			if (nextValue !== 'latest' && nextValue !== 'sum7d' && nextValue !== 'sum30d') {
+				return
+			}
+			if (config.treemapValue === nextValue) {
+				return
+			}
+			handleEditItem(builder.id, {
+				...builder,
+				config: {
+					...builder.config,
+					treemapValue: nextValue
+				}
+			})
+		},
+		[builder, config.treemapValue, handleEditItem, isReadOnly]
+	)
+
 	return (
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
 			<div className="flex flex-col gap-1 p-1 md:p-3">
@@ -447,7 +492,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'All Protocols'} ${config.metric} by Chain`
 								: `${config.metric} by Protocol`)}
 					</h1>
-					{!isReadOnly && chartSeries.length > 0 && (
+					{!isReadOnly && chartSeries.length > 0 && config.chartType !== 'treemap' && (
 						<div className="flex overflow-hidden rounded-md border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
 								<button
@@ -485,6 +530,19 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 											? 'Tree Map'
 											: 'Line'
 							}
+							labelType="none"
+							triggerProps={{
+								className:
+									'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+							}}
+						/>
+					)}
+					{!isReadOnly && config.chartType === 'treemap' && !isTvlChart && (
+						<Select
+							allValues={TREEMAP_VALUE_OPTIONS}
+							selectedValues={treemapMode}
+							setSelectedValues={(value) => handleTreemapValueChange(value as string)}
+							label={treemapLabel}
 							labelType="none"
 							triggerProps={{
 								className:
@@ -650,7 +708,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							else parts.push(cats)
 						}
 					}
-					if (timePeriod && timePeriod !== 'all') parts.push(timePeriod.toUpperCase())
+					if (config.chartType === 'treemap') {
+						const treemapSummary =
+							treemapMode === 'latest' ? 'Latest' : treemapMode === 'sum7d' ? '7D' : '30D'
+						parts.push(treemapSummary)
+					} else if (timePeriod && timePeriod !== 'all') {
+						parts.push(timePeriod.toUpperCase())
+					}
 					return <p className="text-xs text-(--text-label)">{parts.join(' • ')}</p>
 				})()}
 			</div>

@@ -105,6 +105,7 @@ const DEFAULT_CHART_BUILDER: ChartBuilderConfig = {
 	groupBy: 'protocol',
 	limit: 10,
 	chartType: 'stackedArea',
+	treemapValue: 'latest',
 	displayAs: 'timeSeries',
 	additionalFilters: {},
 	seriesColors: {}
@@ -270,6 +271,7 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 				mode: editItem.config.mode || 'chains',
 				protocolCategories: editItem.config.protocolCategories || [],
 				seriesColors: editItem.config.seriesColors || {},
+				treemapValue: editItem.config.treemapValue || 'latest',
 				chainFilterMode: editItem.config.chainFilterMode || legacyMode || 'include',
 				categoryFilterMode: editItem.config.categoryFilterMode || legacyMode || 'include',
 				chainCategoryFilterMode: editItem.config.chainCategoryFilterMode || legacyMode || 'include',

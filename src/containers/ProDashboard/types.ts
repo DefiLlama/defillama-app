@@ -108,6 +108,7 @@ export interface ChartBuilderConfig {
 		groupBy: 'protocol'
 		limit: number
 		chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
+		treemapValue?: 'latest' | 'sum7d' | 'sum30d'
 		displayAs: 'timeSeries' | 'percentage'
 		hideOthers?: boolean
 		groupByParent?: boolean
