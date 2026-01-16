@@ -62,7 +62,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'LlamaAI', route: hasActiveSubscription ? '/ai/chat' : '/ai', icon: '' },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
-			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity' }
+			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity', umamiEvent: 'nav-llamafeed-click' }
 		]
 		return [
 			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
