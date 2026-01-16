@@ -24,6 +24,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import useWindowSize from '~/hooks/useWindowSize'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
@@ -143,122 +144,69 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		includeGovernance
 	])
 
-	// Pie chart data - recalculate category values based on all filters
-	const pieChartData = useMemo(() => {
-		// Filter assets based on all filters (same as filteredAssets but we need to calculate category breakdown)
-		const filteredForPie = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-
-		// Build category breakdown from filtered assets
-		const categoryMap = new Map<string, number>()
-		for (const asset of filteredForPie) {
-			asset.category?.forEach((category) => {
-				if (category && selectedCategories.includes(category)) {
-					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.onChainMarketcap.total)
-				}
+	// Pie charts (single pass): keep category colors consistent across all 3 charts via `stackColors`
+	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
+		useMemo(() => {
+			// Filter assets based on all filters (same as filteredAssets but we need to calculate category breakdown)
+			const filteredForPie = props.assets.filter((asset) => {
+				if (!includeStablecoins && asset.stablecoin) return false
+				if (!includeGovernance && asset.governance) return false
+				return (
+					(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+					(asset.assetClass?.length
+						? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+						: true) &&
+					(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
+					(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
+					(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
+				)
 			})
-		}
 
-		return Array.from(categoryMap.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([name, value]) => ({ name, value }))
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
+			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
-	const activeMarketcapPieChartData = useMemo(() => {
-		const filteredForPie = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
+			for (const asset of filteredForPie) {
+				for (const category of asset.category ?? []) {
+					if (!category || !selectedCategories.includes(category)) continue
 
-		const categoryMap = new Map<string, number>()
-		for (const asset of filteredForPie) {
-			asset.category?.forEach((category) => {
-				if (category && selectedCategories.includes(category)) {
-					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.activeMarketcap.total)
+					const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
+					prev.onChain += asset.onChainMarketcap.total
+					prev.active += asset.activeMarketcap.total
+					prev.defi += asset.defiActiveTvl.total
+					categoryTotals.set(category, prev)
 				}
-			})
-		}
+			}
 
-		return Array.from(categoryMap.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([name, value]) => ({ name, value }))
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
+			// Stable mapping so the same category renders with the same color on all pie charts
+			// Respect the category order we already use in the UI (`props.categories`)
+			// so colors match the same "category list" order consistently.
+			const pieChartStackColors: Record<string, string> = {}
+			for (const [idx, category] of props.categories.entries()) {
+				pieChartStackColors[category] = CHART_COLORS[idx % CHART_COLORS.length]
+			}
 
-	const defiActiveTvlPieChartData = useMemo(() => {
-		const filteredForPie = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
+			const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
+				Array.from(categoryTotals.entries())
+					.map(([name, totals]) => ({ name, value: totals[metric] }))
+					.filter((x) => x.value > 0)
+					.sort((a, b) => b.value - a.value)
 
-		const categoryMap = new Map<string, number>()
-		for (const asset of filteredForPie) {
-			asset.category?.forEach((category) => {
-				if (category && selectedCategories.includes(category)) {
-					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.defiActiveTvl.total)
-				}
-			})
-		}
-
-		return Array.from(categoryMap.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([name, value]) => ({ name, value }))
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
+			return {
+				totalOnChainRwaPieChartData: toSortedChartData('onChain'),
+				activeMarketcapPieChartData: toSortedChartData('active'),
+				defiActiveTvlPieChartData: toSortedChartData('defi'),
+				pieChartStackColors
+			}
+		}, [
+			props.assets,
+			props.categories,
+			selectedCategories,
+			selectedAssetClasses,
+			selectedRwaClassifications,
+			selectedAccessModels,
+			selectedIssuers,
+			includeStablecoins,
+			includeGovernance
+		])
 
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
@@ -345,31 +293,30 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const prepareCsv = useCallback(() => {
 		const tableRows = instance.getSortedRowModel().rows
 		const headers: Array<string | number | boolean> = [
+			// Keep in sync with `columns` below (virtual table columns)
 			'Name',
-			'Ticker',
-			'Type',
-			'Category',
-			'Asset Class',
-			'On-chain Marketcap',
-			'Active Marketcap',
-			'DeFi Active TVL',
-			'RWA Classification',
-			'Issuer',
-			'Primary Chain',
-			'Chains',
-			'Redeemable',
-			'Attestations',
-			'CEX Listed',
-			'KYC',
-			'Transferable',
-			'Self Custody'
+			definitions.type.label,
+			definitions.category.label,
+			definitions.assetClass.label,
+			definitions.onChainMarketcap.label,
+			definitions.activeMarketcap.label,
+			definitions.defiActiveTvl.label,
+			definitions.rwaClassification.label,
+			definitions.accessModel.label,
+			definitions.issuer.label,
+			definitions.redeemable.label,
+			definitions.attestations.label,
+			definitions.cexListed.label,
+			definitions.kycForMintRedeem.label,
+			definitions.kycAllowlistedWhitelistedToTransferHold.label,
+			definitions.transferable.label,
+			definitions.selfCustody.label
 		]
 
 		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
 			const asset = row.original
 			return [
-				asset.name ?? '',
-				asset.ticker ?? '',
+				asset.name ?? asset.ticker ?? '',
 				asset.type ?? '',
 				asset.category?.join(', ') ?? '',
 				asset.assetClass?.join(', ') ?? '',
@@ -377,13 +324,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				asset.activeMarketcap.total ?? '',
 				asset.defiActiveTvl.total ?? '',
 				asset.rwaClassification ?? '',
+				asset.accessModel ?? '',
 				asset.issuer ?? '',
-				asset.primaryChain ?? '',
-				asset.chain?.join(', ') ?? '',
 				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
 				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
 				asset.cexListed != null ? (asset.cexListed ? 'Yes' : 'No') : '',
-				asset.kyc != null ? (typeof asset.kyc === 'boolean' ? (asset.kyc ? 'Yes' : 'No') : asset.kyc.join(', ')) : '',
+				asset.kycForMintRedeem != null ? (asset.kycForMintRedeem ? 'Yes' : 'No') : '',
+				asset.kycAllowlistedWhitelistedToTransferHold != null
+					? asset.kycAllowlistedWhitelistedToTransferHold
+						? 'Yes'
+						: 'No'
+					: '',
 				asset.transferable != null ? (asset.transferable ? 'Yes' : 'No') : '',
 				asset.selfCustody != null ? (asset.selfCustody ? 'Yes' : 'No') : ''
 			]
@@ -450,7 +401,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<h2 className="px-3 text-lg font-semibold">Total RWA On-chain</h2>
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<PieChart
-							chartData={pieChartData}
+							chartData={totalOnChainRwaPieChartData}
+							stackColors={pieChartStackColors}
 							radius={pieChartRadius}
 							legendPosition={pieChartLegendPosition}
 							legendTextStyle={pieChartLegendTextStyle}
@@ -462,6 +414,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<PieChart
 							chartData={activeMarketcapPieChartData}
+							stackColors={pieChartStackColors}
 							radius={pieChartRadius}
 							legendPosition={pieChartLegendPosition}
 							legendTextStyle={pieChartLegendTextStyle}
@@ -473,6 +426,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<Suspense fallback={<div className="h-[360px]" />}>
 						<PieChart
 							chartData={defiActiveTvlPieChartData}
+							stackColors={pieChartStackColors}
 							radius={pieChartRadius}
 							legendPosition={pieChartLegendPosition}
 							legendTextStyle={pieChartLegendTextStyle}
