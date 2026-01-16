@@ -27,7 +27,7 @@ export const AccountStatus = ({
 	subscription,
 	getPortalSessionUrl
 }: AccountStatusProps) => {
-	const { addWallet, loaders, setPromotionalEmails, isAuthenticated } = useAuthContext()
+	const { addWallet, isTrial, loaders, setPromotionalEmails, isAuthenticated } = useAuthContext()
 	const { address } = useAccount()
 	const { signMessageAsync } = useSignMessage()
 	const { openConnectModal } = useConnectModal()
@@ -165,7 +165,7 @@ export const AccountStatus = ({
 									<span className="flex items-center gap-2">
 										<span>
 											{subscription.type === 'llamafeed' ? 'Pro' : 'API'}
-											{subscription.provider === 'trial' && ' Trial'}
+											{isTrial && ' (Trial)'}
 										</span>
 										<Icon
 											name="star"

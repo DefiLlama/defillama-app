@@ -130,6 +130,93 @@ function SubscribeProCardContent({
 	)
 }
 
+interface EndTrialModalProps {
+	isOpen: boolean
+	onClose: () => void
+}
+
+function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
+	const { endTrialSubscription } = useSubscribe()
+	const [isLoading, setIsLoading] = useState(false)
+
+	const handleEndTrial = async () => {
+		setIsLoading(true)
+		try {
+			await endTrialSubscription()
+			onClose()
+		} catch (error) {
+			console.error('Failed to end trial:', error)
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	return (
+		<Ariakit.Dialog
+			open={isOpen}
+			onClose={onClose}
+			className="dialog max-sm:drawer flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:rounded-b-none"
+			portal
+			unmountOnHide
+		>
+			<div className="flex items-center justify-between">
+				<h3 className="text-xl font-bold">Upgrade to Full Access</h3>
+				<button
+					onClick={onClose}
+					className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
+				>
+					<Icon name="x" height={18} width={18} />
+				</button>
+			</div>
+			<div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+				<div className="flex items-start gap-3">
+					<Icon name="alert-triangle" height={20} width={20} className="mt-0.5 shrink-0 text-yellow-500" />
+					<div className="flex flex-col gap-2">
+						<p className="font-semibold text-yellow-500">This is NOT a subscription cancellation</p>
+						<p className="text-sm text-[#c5c5c5]">
+							By proceeding, you will end your free trial early and convert to a paid subscription immediately.
+							You&apos;ll be charged the full subscription amount ($49/month).
+						</p>
+					</div>
+				</div>
+			</div>
+			<div className="mt-2 flex flex-col gap-2">
+				<p className="text-sm text-[#8a8c90]">Benefits of converting now:</p>
+				<ul className="flex flex-col gap-1 text-sm">
+					<li className="flex items-center gap-2">
+						<Icon name="check" height={14} width={14} className="text-green-400" />
+						<span>Full CSV download access</span>
+					</li>
+					<li className="flex items-center gap-2">
+						<Icon name="check" height={14} width={14} className="text-green-400" />
+						<span>5 deep research questions per day (instead of 3)</span>
+					</li>
+					<li className="flex items-center gap-2">
+						<Icon name="check" height={14} width={14} className="text-green-400" />
+						<span>All Pro features without limitations</span>
+					</li>
+				</ul>
+			</div>
+			<div className="mt-2 flex flex-col gap-3">
+				<button
+					onClick={handleEndTrial}
+					disabled={isLoading}
+					className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
+				>
+					{isLoading ? 'Processing...' : 'Confirm & Upgrade Now'}
+				</button>
+				<button
+					onClick={onClose}
+					disabled={isLoading}
+					className="w-full rounded-lg border border-[#39393E] px-4 py-2 text-[#8a8c90] transition-colors hover:bg-[#2a2b30] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+				>
+					Close
+				</button>
+			</div>
+		</Ariakit.Dialog>
+	)
+}
+
 export function SubscribeProCard({
 	context = 'page',
 	active = false,
@@ -142,6 +229,7 @@ export function SubscribeProCard({
 	const { isAuthenticated, isTrial } = useAuthContext()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 	const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
+	const [isEndingTrialModalOpen, setIsEndingTrialModalOpen] = useState(false)
 
 	const handleUpgradeToYearly = () => {
 		setIsUpgradeModalOpen(true)
@@ -170,6 +258,14 @@ export function SubscribeProCard({
 								</button>
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
+						)}
+						{isTrial && (
+							<button
+								className="mt-2 w-full rounded-lg bg-[#5C5CF9] px-4 py-2 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+								onClick={() => setIsEndingTrialModalOpen(true)}
+							>
+								Upgrade to Full Access
+							</button>
 						)}
 						{onCancelSubscription && (
 							<button
@@ -239,6 +335,7 @@ export function SubscribeProCard({
 					/>
 				</Suspense>
 			)}
+			<EndTrialModal isOpen={isEndingTrialModalOpen} onClose={() => setIsEndingTrialModalOpen(false)} />
 		</>
 	)
 }
