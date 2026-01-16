@@ -1,4 +1,5 @@
 import type { IChainData } from '~/api/types'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import {
 	BRIDGEDAYSTATS_API,
 	BRIDGELARGETX_API,
@@ -7,7 +8,7 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
-import { chainIconUrl, getNDistinctColors, preparePieChartData, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'
 
@@ -33,7 +34,7 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 						}
 					})
 					return formattedChart
-				} catch (e) {}
+				} catch {}
 			}
 			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
 		} else return null
@@ -60,7 +61,7 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 			} else {
 				return await fetchJson(`${BRIDGELARGETX_API}/all?starttimestamp=${startTimestamp}&endtimestamp=${endTimestamp}`)
 			}
-		} catch (e) {}
+		} catch {}
 	}
 	return []
 }
@@ -103,7 +104,7 @@ export async function getBridgeOverviewPageData(chain) {
 						})
 					}
 					return formattedCharts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -127,7 +128,7 @@ export async function getBridgeOverviewPageData(chain) {
 			try {
 				bridgeStatsCurrentDay = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}`)
 				// can format differently here if needed
-			} catch (e) {}
+			} catch {}
 		}
 	}
 
@@ -183,7 +184,7 @@ export async function getBridgeChainsPageData() {
 				try {
 					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain.name}`)
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -231,7 +232,7 @@ export async function getBridgeChainsPageData() {
 					try {
 						const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name}`)
 						return { ...charts, name: chain.name }
-					} catch (e) {}
+					} catch {}
 				}
 				//throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain.name} is broken`)
 			})
@@ -276,7 +277,7 @@ export async function getBridgePageData(bridge: string) {
 				try {
 					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${id}`)
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -293,7 +294,7 @@ export async function getBridgePageData(bridge: string) {
 					const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`)
 					// can format differently here if needed
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			return []
 		})
@@ -335,7 +336,7 @@ export async function getBridgePageDatanew(bridge: string) {
 				try {
 					const charts = await fetchJson(`${BRIDGEVOLUME_API}/${chain}?id=${id}`)
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 
 			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
@@ -385,7 +386,7 @@ export async function getBridgePageDatanew(bridge: string) {
 					const charts = await fetchJson(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain}?id=${id}`)
 					// can format differently here if needed
 					return charts
-				} catch (e) {}
+				} catch {}
 			}
 			throw new Error(`${BRIDGEDAYSTATS_API}/${prevDayTimestamp}/${chain} is broken`)
 		})

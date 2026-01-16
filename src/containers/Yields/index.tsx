@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/Loaders'
 import { YieldFiltersV2 } from './Filters'

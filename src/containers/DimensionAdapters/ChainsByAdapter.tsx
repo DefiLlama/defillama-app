@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -11,6 +10,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -37,6 +37,7 @@ type TPageType =
 	| 'Options Premium Volume'
 	| 'Options Notional Volume'
 	| 'App Revenue'
+	| 'App Fees'
 
 interface IProps extends IChainsByAdapterPageData {
 	type: TPageType
@@ -162,7 +163,7 @@ export function ChainsByAdapter(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
@@ -223,6 +224,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 128
 		},
 		{
+			id: 'total7d',
+			header: 'Fees 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.fees.chain['7d']
+			},
+			size: 128
+		},
+		{
 			id: 'total30d',
 			header: 'Fees 30d',
 			accessorFn: (protocol) => protocol.total30d,
@@ -248,6 +262,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.revenue.chain['24h']
+			},
+			size: 128
+		},
+		{
+			id: 'total7d',
+			header: 'Revenue 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.revenue.chain['7d']
 			},
 			size: 128
 		},
@@ -281,6 +308,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 180
 		},
 		{
+			id: 'total7d',
+			header: 'Holders Revenue 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.holdersRevenue.chain['7d']
+			},
+			size: 180
+		},
+		{
 			id: 'total30d',
 			header: 'Holders Revenue 30d',
 			accessorFn: (protocol) => protocol.total30d,
@@ -310,6 +350,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 180
 		},
 		{
+			id: 'total7d',
+			header: 'App Revenue 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.appRevenue.chain['7d']
+			},
+			size: 180
+		},
+		{
 			id: 'total30d',
 			header: 'App Revenue 30d',
 			accessorFn: (protocol) => protocol.total30d,
@@ -319,6 +372,48 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.appRevenue.chain['30d']
+			},
+			size: 180
+		}
+	],
+	'App Fees': [
+		NameColumn('fees'),
+		{
+			id: 'total24h',
+			header: 'App Fees 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.appFees.chain['24h']
+			},
+			size: 180
+		},
+		{
+			id: 'total7d',
+			header: 'App Fees 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.appFees.chain['7d']
+			},
+			size: 180
+		},
+		{
+			id: 'total30d',
+			header: 'App Fees 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.appFees.chain['30d']
 			},
 			size: 180
 		}
@@ -335,6 +430,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.optionsPremium.chain['24h']
+			},
+			size: 180
+		},
+		{
+			id: 'total7d',
+			header: 'Premium Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.optionsPremium.chain['7d']
 			},
 			size: 180
 		},
@@ -368,6 +476,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 180
 		},
 		{
+			id: 'total7d',
+			header: 'Notional Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.optionsNotional.chain['7d']
+			},
+			size: 180
+		},
+		{
 			id: 'total30d',
 			header: 'Notional Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
@@ -397,6 +518,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 152
 		},
 		{
+			id: 'total7d',
+			header: 'DEX Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.dexs.chain['7d']
+			},
+			size: 152
+		},
+		{
 			id: 'total30d',
 			header: 'DEX Volume 30d',
 			accessorFn: (protocol) => protocol.total30d,
@@ -422,6 +556,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.perps.chain['24h']
+			},
+			size: 160
+		},
+		{
+			id: 'total7d',
+			header: 'Perp Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.perps.chain['7d']
 			},
 			size: 160
 		},
@@ -473,6 +620,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 160
 		},
 		{
+			id: 'total7d',
+			header: 'Perp Aggregator Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.perpsAggregators.chain['7d']
+			},
+			size: 160
+		},
+		{
 			id: 'total30d',
 			header: () => (
 				<>
@@ -512,6 +672,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 160
 		},
 		{
+			id: 'total7d',
+			header: 'Bridge Aggregator Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.bridgeAggregators.chain['7d']
+			},
+			size: 160
+		},
+		{
 			id: 'total30d',
 			header: () => (
 				<>
@@ -547,6 +720,19 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			meta: {
 				align: 'center',
 				headerHelperText: definitions.dexAggregators.chain['24h']
+			},
+			size: 160
+		},
+		{
+			id: 'total7d',
+			header: 'DEX Aggregator Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			sortUndefined: 'last',
+			sortingFn: 'alphanumericFalsyLast' as any,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.dexAggregators.chain['7d']
 			},
 			size: 160
 		},

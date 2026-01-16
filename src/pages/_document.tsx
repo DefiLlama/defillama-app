@@ -4,13 +4,17 @@ export default function Document() {
 	return (
 		<Html lang="en">
 			<Head>
+				{/* Resource hints for third-party domains */}
+				<link rel="preconnect" href="https://icons.llamao.fi" crossOrigin="anonymous" />
+				<link rel="dns-prefetch" href="https://tasty.defillama.com" />
+
 				<link rel="icon" href="/favicon.ico" />
 				<link rel="icon" href="/icons/favicon-32x32.png" />
 				<link rel="icon" href="/icons/favicon-16x16.png" />
 				<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 				<link rel="manifest" href="/manifest.json" />
-				<link href="/fonts/inter.woff2" rel="preload" as="font" crossOrigin="anonymous" />
-				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" crossOrigin="anonymous" />
+				<link href="/fonts/inter.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
+				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" type="font/ttf" crossOrigin="anonymous" />
 				<link href="/icons/v34.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
 				<script
 					dangerouslySetInnerHTML={{
@@ -53,12 +57,6 @@ export default function Document() {
 						`
 					}}
 				/>
-				<script
-					defer
-					src="/script2.js"
-					data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
-					data-host-url="https://tasty.defillama.com"
-				></script>
 			</Head>
 			<body>
 				<Main />

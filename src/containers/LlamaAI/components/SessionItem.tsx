@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useEffect, useRef, useState } from 'react'
+import * as React from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -18,7 +19,7 @@ interface SessionItemProps {
 	style: React.CSSProperties
 }
 
-export function SessionItem({ session, isActive, onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
+export function SessionItem({ session, isActive, onSessionSelect: _onSessionSelect, handleSidebarToggle, style }: SessionItemProps) {
 	const router = useRouter()
 	const { authorizedFetch } = useAuthContext()
 	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()

@@ -1,5 +1,3 @@
-import * as React from 'react'
-import { NextRouter, useRouter } from 'next/router'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -9,6 +7,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { NextRouter, useRouter } from 'next/router'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { prepareChartCsv } from '~/components/ECharts/utils'
@@ -90,7 +90,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 

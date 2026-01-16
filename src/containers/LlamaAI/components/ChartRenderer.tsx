@@ -1,8 +1,14 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { IBarChartProps, ICandlestickChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
-import { formatTooltipValue } from '~/components/ECharts/useDefaults'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
+import type {
+	IBarChartProps,
+	ICandlestickChartProps,
+	IChartProps,
+	IPieChartProps,
+	IScatterChartProps
+} from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
@@ -265,7 +271,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							</div>
-							<BarChart key={chartKey} chartData={adaptedChart.data} {...(adaptedChart.props as IBarChartProps)} hideDownloadButton={true} />
+							<BarChart
+								key={chartKey}
+								chartData={adaptedChart.data}
+								{...(adaptedChart.props as IBarChartProps)}
+								hideDownloadButton={true}
+							/>
 						</Suspense>
 					)
 				} else {
@@ -430,7 +441,12 @@ const SingleChart = memo(function SingleChart({ config, data, isActive, messageI
 							/>
 							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 						</div>
-						<ScatterChart key={chartKey} {...(adaptedChart.props as IScatterChartProps)} height="360px" showLabels={chartState.showLabels} />
+						<ScatterChart
+							key={chartKey}
+							{...(adaptedChart.props as IScatterChartProps)}
+							height="360px"
+							showLabels={chartState.showLabels}
+						/>
 					</Suspense>
 				)
 				break

@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -12,6 +10,8 @@ import {
 	type ColumnDef,
 	type SortingState
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
@@ -300,7 +300,7 @@ export function AdapterByChain(props: IProps) {
 		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
 	}, [props, protocols])
 
-	const { category, chain, ...queries } = router.query
+	const { category: _category, chain, ...queries } = router.query
 
 	const addCategory = (newCategory) => {
 		router.push(
@@ -370,17 +370,13 @@ export function AdapterByChain(props: IProps) {
 	}
 
 	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id) ? true : false])
-		)
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
 		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
 
 	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
-		)
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
 		window.localStorage.setItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
@@ -494,7 +490,7 @@ export function AdapterByChain(props: IProps) {
 								setProjectName(e.target.value)
 							}}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 					<SelectWithCombobox

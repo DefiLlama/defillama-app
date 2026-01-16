@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -10,6 +9,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -103,15 +103,13 @@ export function ChainsByCategoryTable({
 	}
 
 	const addColumn = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key) ? true : false]))
+		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
-		)
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
@@ -212,7 +210,7 @@ export function ChainsByCategoryTable({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 

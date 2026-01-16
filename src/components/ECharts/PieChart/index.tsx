@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -108,7 +108,7 @@ export default function PieChart({
 			type: 'image',
 			z: 999,
 			style: {
-				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},
@@ -176,7 +176,8 @@ export default function PieChart({
 		chartData,
 		legendPosition,
 		legendTextStyle,
-		isSmall
+		isSmall,
+		handleChartReady
 	])
 
 	return (

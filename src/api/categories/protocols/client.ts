@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import {
 	CACHE_SERVER,
 	COINS_PRICES_API,
@@ -42,7 +42,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
 								: null
 						})
-						.catch((err) => [])
+						.catch(() => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -61,7 +61,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
 								: null
 						})
-						.catch((err) => [])
+						.catch(() => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -81,7 +81,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 								? values.map(([date, val]) => [+date * 1e3, +val]).sort((a, b) => a[0] - b[0])
 								: null
 						})
-						.catch((err) => [])
+						.catch(() => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -99,7 +99,7 @@ export const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 						.then((values) => {
 							return values && values.length > 0 ? values : null
 						})
-						.catch((err) => [])
+						.catch(() => [])
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -111,7 +111,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	return useQuery({
 		queryKey: ['tokenLiquidity', token, isEnabled],
 		queryFn: isEnabled
-			? () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`).catch((err) => null)
+			? () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token.replaceAll('#', '$')}`).catch(() => null)
 			: () => null,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -130,7 +130,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 								? values.data.map((item) => ({ ...item, date: Math.floor(new Date(item.timestamp).getTime() / 1000) }))
 								: null
 						})
-						.catch((err) => {
+						.catch(() => {
 							return []
 						})
 			: () => null,
@@ -268,7 +268,7 @@ export const usePriceChart = (geckoId?: string) => {
 	const isEnabled = !!url
 	return useQuery({
 		queryKey: ['price-chart', url, isEnabled],
-		queryFn: isEnabled ? () => fetchApi(url).catch((err) => null) : () => Promise.resolve(null),
+		queryFn: isEnabled ? () => fetchApi(url).catch(() => null) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

@@ -142,7 +142,7 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 			color: colorByAsset[asset],
 			data: []
 		}
-		for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
+		for (const [date, net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
 			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
 			inflowsByAssetByDate[date][asset] = [purchasePrice || usdValueOfPurchase || 0, net]
 		}
@@ -190,8 +190,10 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	}
 }
 
-interface IInstitutionOverviewByAsset
-	extends Omit<IDATInstitutions['institutionMetadata'][number], 'holdings' | 'totalUsdValue' | 'totalCost'> {
+interface IInstitutionOverviewByAsset extends Omit<
+	IDATInstitutions['institutionMetadata'][number],
+	'holdings' | 'totalUsdValue' | 'totalCost'
+> {
 	realized_mNAV: number | null
 	realistic_mNAV: number | null
 	max_mNAV: number | null

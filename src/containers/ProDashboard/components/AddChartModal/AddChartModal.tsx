@@ -14,7 +14,7 @@ import { useModalActions } from './useModalActions'
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
 
-	const getCurrentItemType = () => {
+	const _getCurrentItemType = () => {
 		if (state.selectedMainTab === 'charts') {
 			return state.selectedChartTab
 		} else {
@@ -192,10 +192,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					)}
 
 					{state.selectedMainTab === 'llamaai' && (
-						<LlamaAITab
-							selectedChart={state.selectedLlamaAIChart}
-							onChartSelect={actions.setSelectedLlamaAIChart}
-						/>
+						<LlamaAITab selectedChart={state.selectedLlamaAIChart} onChartSelect={actions.setSelectedLlamaAIChart} />
 					)}
 				</div>
 

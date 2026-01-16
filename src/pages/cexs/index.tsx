@@ -31,4 +31,4 @@ export default function CexsPage({ cexs }) {
 			<Cexs cexs={cexs} />
 		</Layout>
 	)
-} // trigger
+} // triggerr

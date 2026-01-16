@@ -1,3 +1,5 @@
+import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
 import {
 	createContext,
 	ReactNode,
@@ -9,8 +11,6 @@ import {
 	useReducer,
 	useRef
 } from 'react'
-import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { CustomTimePeriod, dashboardReducer, initDashboardState, TimePeriod } from './dashboardReducer'
@@ -22,7 +22,6 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
-	LlamaAIChartConfig,
 	MetricConfig,
 	Protocol,
 	StoredColSpan,
@@ -467,7 +466,6 @@ export function ProDashboardAPIProvider({
 			isReadOnly,
 			updateDashboard,
 			createDashboard,
-			cleanItemsForSaving,
 			applyDashboard
 		]
 	)

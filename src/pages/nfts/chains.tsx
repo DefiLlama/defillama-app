@@ -12,7 +12,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
-	const data = (await fetchJson(TEMP_CHAIN_NFTS)) as Promise<Record<string, number>>
+	const data = await fetchJson<Record<string, number>>(TEMP_CHAIN_NFTS)
 
 	if (!data) return { notFound: true }
 

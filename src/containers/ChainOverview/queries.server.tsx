@@ -45,7 +45,9 @@ import type {
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
 export async function getChainOverviewData({ chain }: { chain: string }): Promise<IChainOverviewData | null> {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const metadataCache = metadataModule.default
 	const metadata: IChainMetadata =
 		chain === 'All'
 			? { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
@@ -187,10 +189,16 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 				? Promise.resolve(null)
 				: getBridgeOverviewPageData(metadata.name)
 						.then((data) => {
+							const netInflows = data?.chainVolumeData?.length
+								? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
+								: null
+
+							if (netInflows === 0) {
+								return null
+							}
+
 							return {
-								netInflows: data?.chainVolumeData?.length
-									? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
-									: null
+								netInflows
 							}
 						})
 						.catch(() => null),
@@ -419,7 +427,7 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 			fees?.protocols?.length > 0
 				? (protocols
 						.sort((a, b) => (b.fees?.total24h ?? 0) - (a.fees?.total24h ?? 0))
-						.filter((a) => (a.fees?.total24h ? true : false))
+						.filter((a) => !!a.fees?.total24h)
 						.slice(0, 14)
 						.map((x) => [x.name, x.fees?.total24h ?? 0, tokenIconUrl(x.name)]) as Array<[string, number, string]>)
 				: null
@@ -649,7 +657,9 @@ export async function getChainOverviewData({ chain }: { chain: string }): Promis
 }
 
 export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; metadata: IChainMetadata }) => {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const metadataCache = metadataModule.default
 	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
 		{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> },
 		IAdapterOverview | null,
@@ -875,8 +885,8 @@ export const getProtocolsByChain = async ({ metadata, chain }: { chain: string; 
 				strikeTvl:
 					protocol.category !== 'Bridge'
 						? toStrikeTvl(protocol, {
-								liquidstaking: tvls?.liquidstaking ? true : false,
-								doublecounted: tvls?.doublecounted ? true : false
+								liquidstaking: !!tvls?.liquidstaking,
+								doublecounted: !!tvls?.doublecounted
 							})
 						: false
 			}

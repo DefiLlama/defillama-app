@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
@@ -229,12 +229,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				{hasChartData && (
 					<div className="flex gap-2">
 						{chartType !== 'tokensBorrowedPie' && (
-							<ChartExportButton
-								chartInstance={chartInstance}
-								filename={imageFilename}
-								title={imageTitle}
-								smol
-							/>
+							<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						)}
 						<ProTableCSVButton
 							onClick={handleCsvExport}

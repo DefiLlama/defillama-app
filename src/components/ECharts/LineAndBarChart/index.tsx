@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { slug } from '~/utils'
+import { slug, toNiceCsvDate } from '~/utils'
 import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
@@ -21,6 +22,7 @@ export default function LineAndBarChart({
 	hideDataZoom,
 	onReady,
 	hideDefaultLegend = true,
+	hideDownloadButton = true,
 	enableImageExport,
 	imageExportFilename,
 	imageExportTitle,
@@ -323,17 +325,47 @@ export default function LineAndBarChart({
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
 
+	const prepareCsv = useCallback(() => {
+		const chartNames = Object.keys(charts)
+		const rows = [['Timestamp', 'Date', ...chartNames.map((key) => charts[key].name || key)]]
+
+		// Get all timestamps from the first chart (assuming all charts have same timestamps)
+		const firstChartData = charts[chartNames[0]]?.data || []
+
+		for (let i = 0; i < firstChartData.length; i++) {
+			const timestamp = firstChartData[i][0]
+			const timestampSeconds = timestamp / 1000
+			const row = [timestampSeconds, toNiceCsvDate(timestampSeconds)]
+
+			for (const chartKey of chartNames) {
+				const chartData = charts[chartKey]?.data || []
+				const value = chartData[i]?.[1] ?? ''
+				row.push(value)
+			}
+
+			rows.push(row as string[])
+		}
+
+		const myTitle = title ? slug(title) : 'data'
+		const filename = `line-bar-chart-${myTitle}-${new Date().toISOString().split('T')[0]}.csv`
+		return { filename, rows }
+	}, [charts, title])
+
 	return (
 		<div className="relative">
-			{shouldEnableExport && (
-				<div className="absolute top-2 right-2 z-10">
-					<ChartExportButton
-						chartInstance={exportChartInstance}
-						filename={exportFilename}
-						title={exportTitle}
-						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-1.5 py-1 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-						smol
-					/>
+			{(title || !hideDownloadButton || shouldEnableExport) && (
+				<div className="mb-2 flex items-center justify-end gap-2 px-2">
+					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
+					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
+					{shouldEnableExport && (
+						<ChartExportButton
+							chartInstance={exportChartInstance}
+							filename={exportFilename}
+							title={exportTitle}
+							className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
+							smol
+						/>
+					)}
 				</div>
 			)}
 			<div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>

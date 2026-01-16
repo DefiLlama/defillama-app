@@ -94,6 +94,10 @@ const DEFAULT_CHART_BUILDER: ChartBuilderConfig = {
 	metric: 'tvl',
 	mode: 'chains',
 	filterMode: 'include',
+	chainFilterMode: 'include',
+	categoryFilterMode: 'include',
+	chainCategoryFilterMode: 'include',
+	protocolCategoryFilterMode: 'include',
 	chains: [],
 	chainCategories: [],
 	protocolCategories: [],
@@ -101,6 +105,7 @@ const DEFAULT_CHART_BUILDER: ChartBuilderConfig = {
 	groupBy: 'protocol',
 	limit: 10,
 	chartType: 'stackedArea',
+	treemapValue: 'latest',
 	displayAs: 'timeSeries',
 	additionalFilters: {},
 	seriesColors: {}
@@ -255,6 +260,7 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 	}
 
 	if (editItem.kind === 'builder') {
+		const legacyMode = editItem.config.filterMode
 		return {
 			...base,
 			selectedMainTab: 'charts',
@@ -264,7 +270,12 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 				...editItem.config,
 				mode: editItem.config.mode || 'chains',
 				protocolCategories: editItem.config.protocolCategories || [],
-				seriesColors: editItem.config.seriesColors || {}
+				seriesColors: editItem.config.seriesColors || {},
+				treemapValue: editItem.config.treemapValue || 'latest',
+				chainFilterMode: editItem.config.chainFilterMode || legacyMode || 'include',
+				categoryFilterMode: editItem.config.categoryFilterMode || legacyMode || 'include',
+				chainCategoryFilterMode: editItem.config.chainCategoryFilterMode || legacyMode || 'include',
+				protocolCategoryFilterMode: editItem.config.protocolCategoryFilterMode || legacyMode || 'include'
 			}
 		}
 	}

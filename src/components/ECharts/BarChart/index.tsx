@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -216,7 +216,17 @@ export default function BarChart({
 			chartInstance.dispose()
 			updateExportInstance(null)
 		}
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, updateExportInstance, orientation])
+	}, [
+		defaultChartSettings,
+		series,
+		stackKeys,
+		hideLegend,
+		chartOptions,
+		hideDataZoom,
+		id,
+		updateExportInstance,
+		orientation
+	])
 
 	useEffect(() => {
 		return () => {

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { useCallback, useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'

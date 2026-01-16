@@ -1,7 +1,12 @@
-import { useEffect, useId } from 'react'
 import * as echarts from 'echarts/core'
+import { BarChart } from 'echarts/charts'
+import { GridComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formatTooltipValue } from '../useDefaults'
+
+echarts.use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
 
 interface IHBarChartProps {
 	categories: string[]
@@ -15,7 +20,7 @@ interface IHBarChartProps {
 export default function HBarChart({
 	categories,
 	values,
-	title,
+	title: _title,
 	valueSymbol = '$',
 	height = '360px',
 	color = '#1f77b4'

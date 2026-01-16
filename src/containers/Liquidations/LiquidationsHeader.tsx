@@ -1,6 +1,6 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import * as React from 'react'
 import { FormattedName } from '~/components/FormattedName'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -63,7 +63,7 @@ export function AssetSelector({ options, symbol }: IProps) {
 					/>
 					{matches.length > 0 ? (
 						<Ariakit.ComboboxList>
-							{matches.map((match, i) => (
+							{matches.map((match) => (
 								<Ariakit.ComboboxItem
 									key={`liq-asset-${match.name}`}
 									value={match.symbol}

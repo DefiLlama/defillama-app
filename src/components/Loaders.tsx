@@ -29,5 +29,5 @@ export const LoadingSpinner = ({ size = 14 }: { size: number }) => {
 }
 
 export const LocalLoader = () => {
-	return <img src="/icons/logo_white.webp" alt="logo of defillama" width={40} height={40} className="animate-loader" />
+	return <img src="/assets/logo_white.webp" alt="logo of defillama" width={40} height={40} className="animate-loader" />
 }

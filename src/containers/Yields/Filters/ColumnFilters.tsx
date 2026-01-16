@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 
 interface IColumnFiltersProps {
@@ -37,18 +37,18 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 	const router = useRouter()
 
 	const {
-		show7dBaseApy,
-		show7dIL,
-		show1dVolume,
-		show7dVolume,
-		showInceptionApy,
-		showNetBorrowApy,
-		showBorrowBaseApy,
-		showBorrowRewardApy,
-		showLTV,
-		showTotalSupplied,
-		showTotalBorrowed,
-		showAvailable,
+		show7dBaseApy: _show7dBaseApy,
+		show7dIL: _show7dIL,
+		show1dVolume: _show1dVolume,
+		show7dVolume: _show7dVolume,
+		showInceptionApy: _showInceptionApy,
+		showNetBorrowApy: _showNetBorrowApy,
+		showBorrowBaseApy: _showBorrowBaseApy,
+		showBorrowRewardApy: _showBorrowRewardApy,
+		showLTV: _showLTV,
+		showTotalSupplied: _showTotalSupplied,
+		showTotalBorrowed: _showTotalBorrowed,
+		showAvailable: _showAvailable,
 		...queries
 	} = router.query
 
@@ -58,7 +58,7 @@ export function ColumnFilters({ nestedMenu, ...props }: IColumnFiltersProps) {
 		const selectedOptions = options.filter((option) => router.query[option.key] === 'true').map((op) => op.key)
 
 		return { options, selectedOptions }
-	}, [router.query])
+	}, [router.query, props])
 
 	const addOption = (newOptions) => {
 		router.push(

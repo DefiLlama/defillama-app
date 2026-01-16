@@ -1,6 +1,6 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'
@@ -264,7 +264,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-(--btn-hover-bg)"
 														onClick={(e) => {
 															e.stopPropagation()
-															onEditCustomColumn && onEditCustomColumn(option.customIndex!)
+															onEditCustomColumn?.(option.customIndex)
 														}}
 														title="Edit custom column"
 													>
@@ -276,7 +276,7 @@ export function SelectWithCombobox({
 														className="rounded-sm p-1 hover:bg-red-100 dark:hover:bg-red-900"
 														onClick={(e) => {
 															e.stopPropagation()
-															onDeleteCustomColumn && onDeleteCustomColumn(option.customIndex!)
+															onDeleteCustomColumn?.(option.customIndex)
 														}}
 														title="Delete custom column"
 													>

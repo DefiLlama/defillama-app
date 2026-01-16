@@ -109,12 +109,7 @@ export function BorrowedChartTab({
 				onSelectedBorrowedChartTypeChange(nextChartType)
 			}
 		}
-	}, [
-		hasProtocolSelection,
-		availableChartTypes,
-		selectedBorrowedChartType,
-		onSelectedBorrowedChartTypeChange
-	])
+	}, [hasProtocolSelection, availableChartTypes, selectedBorrowedChartType, onSelectedBorrowedChartTypeChange])
 
 	const chartTypeLabel = BORROWED_CHART_TYPES.find((t) => t.value === selectedBorrowedChartType)?.label || ''
 	const previewTitle = chartTypeLabel

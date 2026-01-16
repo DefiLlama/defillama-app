@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { SankeyChart as ESankeyChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -139,7 +139,7 @@ export default function SankeyChart({
 			type: 'image',
 			z: 0,
 			style: {
-				image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+				image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 				height: 40,
 				opacity: 0.3
 			},

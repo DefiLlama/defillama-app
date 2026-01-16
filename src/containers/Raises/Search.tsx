@@ -1,7 +1,7 @@
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { slug } from '~/utils'
@@ -141,7 +141,7 @@ const Row = ({ name, setOpen }) => {
 	return (
 		<Ariakit.ComboboxItem
 			value={name}
-			onClick={(e) => {
+			onClick={(_e) => {
 				setLoading(true)
 
 				router.push(`/raises/${slug(name.toLowerCase())}`).then(() => {

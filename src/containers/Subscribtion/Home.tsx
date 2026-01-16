@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { FreeCard } from '~/components/SubscribeCards/FreeCard'
@@ -81,7 +81,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 						className="absolute z-0 mx-auto aspect-square h-[132px] w-[132px] rounded-full object-contain"
 					/>
 					<img
-						src="/icons/llama.webp"
+						src="/assets/llama.webp"
 						height={118}
 						width={118}
 						className="z-10 mx-auto aspect-square rounded-full object-contain"
@@ -253,22 +253,38 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 				<h2 className="text-[32px] font-extrabold">They trust us</h2>
 
 				<div className="grid grid-cols-2 place-items-center gap-20 md:grid-cols-4 lg:grid-cols-5">
-					<img src="/icons/us-treasury.svg" alt="U.S. Department of the Treasury" className="h-15 object-contain" />
-					<img src="/icons/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
+					<img
+						src="/assets/trusts-llama/us-treasury.svg"
+						alt="U.S. Department of the Treasury"
+						className="h-15 object-contain"
+					/>
+					<img src="/assets/trusts-llama/cftc.svg" alt="CFTC" className="h-[48px] object-contain" />
 					<span className="flex flex-col gap-2">
-						<img src="/icons/ecb-1.svg" alt="" className="h-7 object-contain" />
-						<img src="/icons/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
+						<img src="/assets/trusts-llama/ecb-1.svg" alt="" className="h-7 object-contain" />
+						<img src="/assets/trusts-llama/ecb-2.svg" alt="European Central Bank" className="h-2.5 object-contain" />
 					</span>
-					<img src="/icons/mas.svg" alt="Monetary Authority of Singapore" className="h-15 object-contain" />
-					<img src="/icons/bis.svg" alt="Bank of International Settlements" className="h-[48px] object-contain" />
-					<img src="/icons/nber.svg" alt="National Bureau of Economic Research" className="h-15 object-contain" />
-					<img src="/icons/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
-					<img src="/icons/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
-					<img src="/icons/boe.svg" alt="Bank of England" className="h-7 object-contain" />
-					<img src="/icons/binance.svg" alt="Binance" className="h-7 object-contain" />
-					<img src="/icons/okx.svg" alt="OKX" className="h-7 object-contain" />
-					<img src="/icons/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
-					<img src="/icons/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
+					<img
+						src="/assets/trusts-llama/mas.svg"
+						alt="Monetary Authority of Singapore"
+						className="h-15 object-contain"
+					/>
+					<img
+						src="/assets/trusts-llama/bis.svg"
+						alt="Bank of International Settlements"
+						className="h-[48px] object-contain"
+					/>
+					<img
+						src="/assets/trusts-llama/nber.svg"
+						alt="National Bureau of Economic Research"
+						className="h-15 object-contain"
+					/>
+					<img src="/assets/trusts-llama/imf.svg" alt="International Monetary Fund" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/boc.svg" alt="Bank of Canada" className="h-15 object-contain" />
+					<img src="/assets/trusts-llama/boe.svg" alt="Bank of England" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/binance.svg" alt="Binance" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/okx.svg" alt="OKX" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/chainlink.svg" alt="Chainlink" className="h-7 object-contain" />
+					<img src="/assets/trusts-llama/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
 				</div>
 			</div>
 			{returnUrl && (

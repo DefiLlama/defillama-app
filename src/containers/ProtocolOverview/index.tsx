@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo, useRef } from 'react'
 import { useGetTokenPrice } from '~/api/categories/protocols/client'
 import { Bookmark } from '~/components/Bookmark'
 import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
@@ -16,6 +16,7 @@ import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
 import { Flag } from './Flag'
+import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { IProtocolOverviewPageData } from './types'
 
@@ -69,7 +70,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					<h1 className="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 						</span>
 						{props.token.symbol && props.token.symbol !== '-' ? (
 							<span className="mr-auto font-normal">({props.token.symbol})</span>
@@ -95,7 +96,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 							formatPrice={formatPrice}
 						/>
 					)}
-					<KeyMetrics {...props} formatPrice={formatPrice} />
+					<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -103,7 +104,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 							<h1 className="flex flex-wrap items-center gap-2 text-xl">
 								<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 								<span className="font-bold">
-									{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+									{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 								</span>
 								{props.token.symbol && props.token.symbol !== '-' ? (
 									<span className="mr-auto font-normal">({props.token.symbol})</span>
@@ -134,7 +135,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					</div>
 					{props.hasKeyMetrics ? (
 						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
-							<KeyMetrics {...props} formatPrice={formatPrice} />
+							<KeyMetrics {...props} formatPrice={formatPrice} tvl={tvl} computedOracleTvs={oracleTvs} />
 						</div>
 					) : null}
 				</div>
@@ -333,23 +334,46 @@ const PrimaryValue = ({
 
 interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	formatPrice: (value: number | string | null) => string | number | null
+	tvl?: number
+	computedOracleTvs?: number
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {
+	const containerRef = useRef<HTMLDivElement>(null)
+
 	if (!props.hasKeyMetrics) return null
+
+	const isOracleProtocol = props.oracleTvs != null
+	const primaryValue = isOracleProtocol ? props.computedOracleTvs : props.tvl
+	const { title: primaryLabel } = getPrimaryValueLabelType(isOracleProtocol ? 'Oracle' : props.category)
+
+	const hasTvlData = isOracleProtocol
+		? props.oracleTvs != null
+		: props.metrics.tvl && props.currentTvlByChain != null && Object.keys(props.currentTvlByChain).length > 0
+
 	return (
 		<div className="flex flex-1 flex-col gap-2">
-			<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
-				Key Metrics
-				<a
-					aria-hidden="true"
-					tabIndex={-1}
-					href="#key-metrics"
-					className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+			<div className="flex items-center justify-between">
+				<h2 className="group relative flex items-center gap-1 font-semibold" id="key-metrics">
+					Key Metrics
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href="#key-metrics"
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					/>
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				</h2>
+				<KeyMetricsPngExportButton
+					containerRef={containerRef}
+					protocolName={props.name}
+					primaryValue={primaryValue}
+					primaryLabel={primaryLabel}
+					formatPrice={props.formatPrice}
+					hasTvlData={hasTvlData}
 				/>
-				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
-			</h2>
-			<div className="flex flex-col">
+			</div>
+			<div className="flex flex-col" ref={containerRef}>
 				{props.oracleTvs ? <TVL formatPrice={props.formatPrice} {...props} /> : null}
 				<Fees formatPrice={props.formatPrice} {...props} />
 				<Revenue formatPrice={props.formatPrice} {...props} />
@@ -428,7 +452,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 				</h2>
 				<a href="https://www.dlnews.com">
 					<svg width={72} height={18}>
-						<use href={`/icons/dlnews.svg#dlnews-logo`} />
+						<use href={`/assets/dlnews.svg#dlnews-logo`} />
 					</svg>
 				</a>
 			</div>

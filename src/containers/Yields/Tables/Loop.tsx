@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { formatColumnOrder, getColumnSizesKeys } from '~/components/Table/utils'

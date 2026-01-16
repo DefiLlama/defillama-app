@@ -126,14 +126,14 @@ async function getChainMapping() {
 		const mapping = await fetchJson('https://api.llama.fi/overview/_internal/chain-name-id-map')
 		chainMappingCache = mapping
 		return mapping
-	} catch (error) {
+	} catch {
 		console.warn('Failed to fetch chain mapping, falling back to toLowerCase conversion')
 		return {}
 	}
 }
 
 function getInternalChainName(displayChain: string, chainMapping: Record<string, string>) {
-	const mapped = Object.entries(chainMapping).find(([display, internal]) => display === displayChain)?.[1]
+	const mapped = Object.entries(chainMapping).find(([display]) => display === displayChain)?.[1]
 	if (mapped) return mapped
 	return slug(displayChain)
 }
@@ -514,7 +514,7 @@ function processGroupedProtocols(
 function processEarningsData(data: IAdapterOverview, emissionsData: any) {
 	const protocolGroups = groupProtocolsByParent(data.protocols)
 
-	return processGroupedProtocols(protocolGroups, (protocolVersions, parentKey) => {
+	return processGroupedProtocols(protocolGroups, (protocolVersions, _parentKey) => {
 		const emissions = findEmissionsForProtocol(protocolVersions, emissionsData)
 
 		if (protocolVersions.length === 1) {
@@ -605,7 +605,7 @@ export const getAdapterByChainPageData = async ({
 			adapterType,
 			chain,
 			dataType,
-			excludeTotalDataChart: adapterType === 'fees' ? true : false
+			excludeTotalDataChart: adapterType === 'fees'
 		}),
 		fetchJson(PROTOCOLS_API),
 		adapterType === 'fees'
@@ -1003,6 +1003,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		for (const chain of bribesData) {
 			bribesByChain[chain.name] = {
 				total24h: chain.total24h ?? null,
+				total7d: chain.total7d ?? null,
 				total30d: chain.total30d ?? null
 			}
 		}
@@ -1010,6 +1011,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		for (const chain of tokenTaxesData) {
 			tokenTaxesByChain[chain.name] = {
 				total24h: chain.total24h ?? null,
+				total7d: chain.total7d ?? null,
 				total30d: chain.total30d ?? null
 			}
 		}
@@ -1020,6 +1022,7 @@ export const getChainsByFeesAdapterPageData = async ({
 					name: c.name,
 					logo: chainIconUrl(c.name),
 					total24h: c.total24h ?? null,
+					total7d: c.total7d ?? null,
 					total30d: c.total30d ?? null,
 					...(bribesByChain[c.name] ? { bribes: bribesByChain[c.name] } : {}),
 					...(tokenTaxesByChain[c.name] ? { tokenTax: tokenTaxesByChain[c.name] } : {})
@@ -1111,6 +1114,7 @@ export const getChainsByAdapterPageData = async ({
 		for (const chain in bribesData) {
 			bribesByChain[chain] = {
 				total24h: bribesData[chain]?.['24h'] ?? null,
+				total7d: bribesData[chain]?.['7d'] ?? null,
 				total30d: bribesData[chain]?.['30d'] ?? null
 			}
 		}
@@ -1118,6 +1122,7 @@ export const getChainsByAdapterPageData = async ({
 		for (const chain in tokenTaxesData) {
 			tokenTaxesByChain[chain] = {
 				total24h: tokenTaxesData[chain]?.['24h'] ?? null,
+				total7d: tokenTaxesData[chain]?.['7d'] ?? null,
 				total30d: tokenTaxesData[chain]?.['30d'] ?? null
 			}
 		}
@@ -1132,6 +1137,7 @@ export const getChainsByAdapterPageData = async ({
 					name: chain,
 					logo: chainIconUrl(chain),
 					total24h: chainsData[chain]?.['24h'] ?? null,
+					total7d: chainsData[chain]?.['7d'] ?? null,
 					total30d: chainsData[chain]?.['30d'] ?? null,
 					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
 					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),

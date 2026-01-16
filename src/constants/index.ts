@@ -18,7 +18,6 @@ export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 export const PROTOCOL_API = `${SERVER_URL}/updatedProtocol`
 export const PROTOCOL_API_MINI = `${SERVER_URL}/_fe/updatedProtocol-mini`
 export const CONFIG_API = `${SERVER_URL}/config`
-export const HOURLY_PROTOCOL_API = `${SERVER_URL}/hourly`
 export const LANGS_API = `${SERVER_URL}/langs`
 export const ORACLE_API = `${SERVER_URL}/oracles`
 export const FORK_API = `${SERVER_URL}/forks`

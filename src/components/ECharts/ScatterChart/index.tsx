@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useId } from 'react'
 import { ScatterChart as EChartScatter } from 'echarts/charts'
 import {
 	AxisPointerComponent,
@@ -13,6 +12,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 import type { IScatterChartProps } from '../types'
@@ -281,7 +281,19 @@ export default function ScatterChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
+	}, [
+		id,
+		chartData,
+		createInstance,
+		isDark,
+		tooltipFormatter,
+		xAxisLabel,
+		yAxisLabel,
+		valueSymbol,
+		title,
+		showLabels,
+		entityType
+	])
 
 	return (
 		<div>

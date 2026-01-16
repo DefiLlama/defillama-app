@@ -52,7 +52,7 @@ export async function getPool2TVLByChain({
 				return null
 			}),
 		fetchJson('https://api.llama.fi/chains2/All').then((data) =>
-			data.chainTvls.filter((chain) => (chain.extraTvl?.pool2?.tvl ? true : false)).map((chain) => chain.name)
+			data.chainTvls.filter((chain) => !!chain.extraTvl?.pool2?.tvl).map((chain) => chain.name)
 		)
 	])
 

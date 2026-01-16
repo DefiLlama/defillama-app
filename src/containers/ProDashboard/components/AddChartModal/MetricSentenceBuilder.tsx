@@ -1,4 +1,3 @@
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Combobox,
 	ComboboxItem,
@@ -10,6 +9,7 @@ import {
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Switch } from '~/components/Switch'
 import { useAppMetadata } from '../../AppMetadataContext'
@@ -243,7 +243,7 @@ export function MetricSentenceBuilder({
 		return availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
 	}, [availableMetricTypes, globalAvailableMetricTypes])
 
-	const selectedProtocolOption = useMemo(
+	const _selectedProtocolOption = useMemo(
 		() => protocolOptions.find((option) => option.value === metricProtocol) || null,
 		[protocolOptions, metricProtocol]
 	)
@@ -329,7 +329,7 @@ export function MetricSentenceBuilder({
 		const option = protocolOptions.find((opt) => opt.value === metricProtocol)
 		if (!option) return metricProtocol
 		return option.label
-	}, [metricSubjectType, metricChain, metricProtocol, protocolOptions, protocolFamilySet])
+	}, [metricSubjectType, metricChain, metricProtocol, protocolOptions])
 
 	const filteredMetrics = useMemo(() => {
 		if (!searchTerm) return baseMetricTypes
@@ -359,7 +359,7 @@ export function MetricSentenceBuilder({
 			popover.setAnchorElement(anchor)
 			popover.setOpen(true)
 		},
-		[activeToken, closePopover, metricSubjectType, popover, subjectCombobox]
+		[activeToken, closePopover, metricSubjectType, popover]
 	)
 
 	const handleChainSelect = useCallback(

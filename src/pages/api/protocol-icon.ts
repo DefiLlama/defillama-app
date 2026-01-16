@@ -1,13 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-	const { url } = req.query
+const ICONS_CDN = 'https://icons.llamao.fi/icons'
 
-	if (!url || typeof url !== 'string') {
-		return res.status(400).json({ error: 'URL parameter is required' })
+function buildIconUrl(slug: string): string {
+	const normalized = slug
+		.trim()
+		.toLowerCase()
+		.replace(/[()'"]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/[^\w.!&-]/g, '')
+	return `${ICONS_CDN}/protocols/${normalized}?w=48&h=48`
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+	const { slug } = req.query
+
+	if (!slug || typeof slug !== 'string') {
+		return res.status(400).json({ error: 'slug parameter is required' })
 	}
 
 	try {
+		const url = buildIconUrl(slug)
 		const response = await fetch(url)
 
 		if (!response.ok) {

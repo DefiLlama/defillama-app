@@ -1,8 +1,8 @@
-import { Fragment, lazy, memo, Suspense, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
+import { Fragment, lazy, memo, Suspense, useCallback, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { Bookmark } from '~/components/Bookmark'
@@ -24,6 +24,7 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
 import { BAR_CHARTS, ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
+import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
 
@@ -51,6 +52,8 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	}, [router.query, props.metadata.id])
 
 	const [darkMode] = useDarkModeManager()
+
+	const keyMetricsRef = useRef<HTMLDivElement>(null)
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
@@ -148,6 +151,13 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(props.metadata.name)
 	const imageExportTitle = props.metadata.name === 'All' ? 'All Chains' : props.metadata.name
+	const keyMetricsTitle = imageExportTitle
+	const hasKeyMetricsPrimary = props.protocols.length > 0 && totalValueUSD != null
+
+	const formatKeyMetricsValue = useCallback((value: number | string | null) => {
+		if (Number.isNaN(Number(value))) return null
+		return formattedNum(value, true)
+	}, [])
 
 	const { mutate: downloadAndPrepareChartCsv, isPending: isDownloadingChartCsv } = useMutation({
 		mutationFn: async () => {
@@ -231,8 +241,21 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 					</div>
 				) : null}
 				<div className="flex flex-1 flex-col gap-2">
-					<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
-					<div className="flex flex-col">
+					<div className="flex items-center justify-between">
+						<h2 className="text-base font-semibold xl:text-sm">Key Metrics</h2>
+						{props.metadata.name !== 'All' ? (
+							<KeyMetricsPngExportButton
+								containerRef={keyMetricsRef}
+								chainName={keyMetricsTitle}
+								chainIconSlug={props.metadata.name}
+								primaryValue={totalValueUSD}
+								primaryLabel="Total Value Locked in DeFi"
+								formatPrice={formatKeyMetricsValue}
+								hasTvlData={hasKeyMetricsPrimary}
+							/>
+						) : null}
+					</div>
+					<div className="flex flex-col" ref={keyMetricsRef}>
 						{props.stablecoins?.mcap ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">

@@ -1,4 +1,5 @@
 import { RWA_ACTIVE_TVLS_API } from '~/constants'
+import definitions from '~/public/rwa-definitions.json'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -35,14 +36,14 @@ interface IFetchedRWAProject {
 	onChainMarketcap: Record<string, string> | null
 }
 
-export interface IRWAProject
-	extends Omit<
-		IFetchedRWAProject,
-		'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
-	> {
+export interface IRWAProject extends Omit<
+	IFetchedRWAProject,
+	'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
+> {
 	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
 	issuerRegistryInfo: string[] | null
+	trueRWA: boolean
 	onChainMarketcap: {
 		total: number
 		breakdown: Array<[string, number]>
@@ -56,8 +57,11 @@ export interface IRWAProject
 export interface IRWAAssetsOverview {
 	assets: Array<IRWAProject>
 	assetClasses: Array<string>
+	assetClassOptions: Array<{ key: string; name: string; help?: string }>
 	rwaClassifications: Array<string>
+	rwaClassificationOptions: Array<{ key: string; name: string; help?: string }>
 	accessModels: Array<string>
+	accessModelOptions: Array<{ key: string; name: string; help?: string }>
 	categories: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
@@ -138,40 +142,42 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			const effectiveOnChainTvl = actualChainName ? filteredOnChainTvl : totalOnChainTvl
 			const effectiveDeFiActiveTvl = actualChainName ? filteredDeFiActiveTvl : totalDeFiActiveTvl
 
+			const isTrueRWA = item.rwaClassification === 'True RWA'
 			const asset: IRWAProject = {
-				ticker: item.ticker || null,
-				name: item.name,
+				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
+				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 				website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
-				twitter: item.twitter,
-				primaryChain: item.primaryChain,
-				chain: item.chain,
-				contracts: item.contracts,
-				category: item.category,
-				assetClass: item.assetClass,
-				type: item.type,
-				rwaClassification: item.rwaClassification,
+				twitter: item.twitter ?? null,
+				primaryChain: item.primaryChain ?? null,
+				chain: item.chain ?? null,
+				contracts: item.contracts ?? null,
+				category: item.category ?? null,
+				assetClass: item.assetClass ?? null,
+				type: item.type ?? null,
+				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
+				trueRWA: isTrueRWA,
 				accessModel: getAccessModel(item),
-				issuer: item.issuer,
-				issuerSourceLink: item.issuerSourceLink,
+				issuer: item.issuer ?? null,
+				issuerSourceLink: item.issuerSourceLink ?? null,
 				issuerRegistryInfo:
 					item.issuerRegistryInfo == null
 						? null
 						: Array.isArray(item.issuerRegistryInfo)
 							? item.issuerRegistryInfo
 							: [item.issuerRegistryInfo],
-				isin: item.isin,
-				attestationLinks: item.attestationLinks,
-				attestations: item.attestations,
-				redeemable: item.redeemable,
-				cexListed: item.cexListed,
-				kycForMintRedeem: item.kycForMintRedeem,
-				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold,
-				transferable: item.transferable,
-				selfCustody: item.selfCustody,
-				descriptionNotes: item.descriptionNotes,
-				parentPlatform: item.parentPlatform,
-				stablecoin: item.stablecoin,
-				governance: item.governance,
+				isin: item.isin ?? null,
+				attestationLinks: item.attestationLinks ?? null,
+				attestations: item.attestations ?? null,
+				redeemable: item.redeemable ?? null,
+				cexListed: item.cexListed ?? null,
+				kycForMintRedeem: item.kycForMintRedeem ?? null,
+				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold ?? null,
+				transferable: item.transferable ?? null,
+				selfCustody: item.selfCustody ?? null,
+				descriptionNotes: item.descriptionNotes ?? null,
+				parentPlatform: item.parentPlatform ?? null,
+				stablecoin: item.stablecoin ?? null,
+				governance: item.governance ?? null,
 				onChainMarketcap: {
 					total: effectiveOnChainTvl,
 					breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
@@ -226,17 +232,38 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			})
 		}
 
+		const formattedRwaClassifications = Array.from(rwaClassifications.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+
+		const formattedAccessModels = Array.from(accessModels.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+
+		const formattedAssetClasses = Array.from(assetClasses.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+
 		return {
 			assets: assets.sort((a, b) => b.onChainMarketcap.total - a.onChainMarketcap.total),
-			assetClasses: Array.from(assetClasses.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key),
-			rwaClassifications: Array.from(rwaClassifications.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key),
-			accessModels: Array.from(accessModels.entries())
-				.sort((a, b) => b[1] - a[1])
-				.map(([key]) => key),
+			assetClasses: formattedAssetClasses,
+			assetClassOptions: formattedAssetClasses.map((assetClass) => ({
+				key: assetClass,
+				name: assetClass,
+				help: definitions.assetClass.values?.[assetClass] ?? null
+			})),
+			rwaClassifications: formattedRwaClassifications,
+			rwaClassificationOptions: formattedRwaClassifications.map((classification) => ({
+				key: classification,
+				name: classification,
+				help: definitions.rwaClassification.values?.[classification] ?? null
+			})),
+			accessModels: formattedAccessModels,
+			accessModelOptions: formattedAccessModels.map((accessModel) => ({
+				key: accessModel,
+				name: accessModel,
+				help: definitions.accessModel.values?.[accessModel] ?? null
+			})),
 			categories: Array.from(categories.entries())
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
@@ -279,6 +306,9 @@ export async function getRWAChainsList(): Promise<string[]> {
 
 export interface IRWAAssetData extends IRWAProject {
 	slug: string
+	rwaClassificationDescription: string | null
+	accessModelDescription: string | null
+	assetClassDescriptions: Record<string, string>
 }
 
 export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
@@ -288,7 +318,7 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 		// Find the asset by comparing ticker slugs
 		for (const rwaId in res.data) {
 			const item = res.data[rwaId]
-			if (slug(item.ticker) === assetSlug) {
+			if (typeof item.ticker === 'string' && item.ticker !== '-' && slug(item.ticker) === assetSlug) {
 				let totalOnChainTvl = 0
 				let totalDeFiActiveTvl = 0
 				const onChainTvlBreakdown = item.onChainMarketcap ?? {}
@@ -310,41 +340,62 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					}
 				}
 
+				const isTrueRWA = item.rwaClassification === 'True RWA'
+				// Get the classification description - use True RWA definition if trueRWA flag
+				const classificationKey = isTrueRWA ? 'True RWA' : item.rwaClassification
+				const rwaClassificationDescription = classificationKey
+					? (definitions.rwaClassification.values?.[classificationKey] ?? null)
+					: null
+				// Get access model and its description
+				const accessModel = getAccessModel(item)
+				const accessModelDescription = definitions.accessModel.values?.[accessModel] ?? null
+				// Get asset class descriptions
+				const assetClassDescriptions: Record<string, string> = {}
+				item.assetClass?.forEach((ac) => {
+					const description = ac ? definitions.assetClass.values?.[ac] : null
+					if (description) {
+						assetClassDescriptions[ac] = description
+					}
+				})
 				return {
 					slug: assetSlug,
-					ticker: item.ticker || null,
-					name: item.name,
+					ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
+					name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 					website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
-					twitter: item.twitter,
-					primaryChain: item.primaryChain,
-					chain: item.chain,
-					contracts: item.contracts,
-					category: item.category,
-					assetClass: item.assetClass,
-					type: item.type,
-					rwaClassification: item.rwaClassification,
-					accessModel: getAccessModel(item),
-					issuer: item.issuer,
-					issuerSourceLink: item.issuerSourceLink,
+					twitter: item.twitter ?? null,
+					primaryChain: item.primaryChain ?? null,
+					chain: item.chain ?? null,
+					contracts: item.contracts ?? null,
+					category: item.category ?? null,
+					assetClass: item.assetClass ?? null,
+					assetClassDescriptions,
+					type: item.type ?? null,
+					rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
+					rwaClassificationDescription,
+					trueRWA: isTrueRWA,
+					accessModel,
+					accessModelDescription,
+					issuer: item.issuer ?? null,
+					issuerSourceLink: item.issuerSourceLink ?? null,
 					issuerRegistryInfo:
 						item.issuerRegistryInfo == null
 							? null
 							: Array.isArray(item.issuerRegistryInfo)
 								? item.issuerRegistryInfo
 								: [item.issuerRegistryInfo],
-					isin: item.isin,
-					attestationLinks: item.attestationLinks,
-					attestations: item.attestations,
-					redeemable: item.redeemable,
-					cexListed: item.cexListed,
-					kycForMintRedeem: item.kycForMintRedeem,
-					kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold,
-					transferable: item.transferable,
-					selfCustody: item.selfCustody,
-					descriptionNotes: item.descriptionNotes,
-					parentPlatform: item.parentPlatform,
-					stablecoin: item.stablecoin,
-					governance: item.governance,
+					isin: item.isin ?? null,
+					attestationLinks: item.attestationLinks ?? null,
+					attestations: item.attestations ?? null,
+					redeemable: item.redeemable ?? null,
+					cexListed: item.cexListed ?? null,
+					kycForMintRedeem: item.kycForMintRedeem ?? null,
+					kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold ?? null,
+					transferable: item.transferable ?? null,
+					selfCustody: item.selfCustody ?? null,
+					descriptionNotes: item.descriptionNotes ?? null,
+					parentPlatform: item.parentPlatform ?? null,
+					stablecoin: item.stablecoin ?? null,
+					governance: item.governance ?? null,
 					onChainMarketcap: {
 						total: totalOnChainTvl,
 						breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
@@ -364,12 +415,12 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 }
 
 export async function getRWAAssetsList(): Promise<string[]> {
-	const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+	const res: { data: Record<string, IFetchedRWAProject> } = await fetchJson(RWA_ACTIVE_TVLS_API)
 	const assets: string[] = []
 
-	for (const rwaId in data) {
-		if (data[rwaId].ticker) {
-			assets.push(slug(data[rwaId].ticker))
+	for (const rwaId in res.data) {
+		if (typeof res.data[rwaId].ticker === 'string' && res.data[rwaId].ticker !== '-') {
+			assets.push(slug(res.data[rwaId].ticker))
 		}
 	}
 

@@ -1,6 +1,7 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -18,14 +19,7 @@ import {
 	useCalcGroupExtraPeggedByDay,
 	useFormatStablecoinQueryParams
 } from '~/hooks/data/stablecoins'
-import {
-	formattedNum,
-	getPercentChange,
-	preparePieChartData,
-	slug,
-	toNiceCsvDate,
-	toNumberOrNullFromQueryParam
-} from '~/utils'
+import { formattedNum, getPercentChange, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
 import { PeggedAssetsTable } from './Table'
 
 const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -116,7 +110,8 @@ export function StablecoinsByChain({
 			const isValidMcapRange = minMcap != null && maxMcap != null
 
 			if (isValidMcapRange) {
-				toFilter = toFilter && (minMcap != null ? curr.mcap > minMcap : true) && (maxMcap != null ? curr.mcap < maxMcap : true)
+				toFilter =
+					toFilter && (minMcap != null ? curr.mcap > minMcap : true) && (maxMcap != null ? curr.mcap < maxMcap : true)
 			}
 
 			if (toFilter) {
@@ -469,7 +464,7 @@ export function StablecoinsByChain({
 }
 
 function handleRouting(selectedChain, queryParams) {
-	const { chain, ...filters } = queryParams
+	const { chain: _chain, ...filters } = queryParams
 
 	let params = ''
 

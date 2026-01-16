@@ -1236,7 +1236,7 @@ export const categoryProtocolsColumns: ColumnDef<IProtocolRowWithCompare>[] = [
 		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
+		cell: ({ getValue, row, table: _table }) => {
 			const value = getValue() as string
 			const Chains = () => (
 				<span className="flex flex-col gap-1">

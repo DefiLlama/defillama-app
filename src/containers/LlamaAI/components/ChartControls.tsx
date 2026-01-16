@@ -54,7 +54,14 @@ export const ChartControls = memo(function ChartControls({
 
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
 
-	if (!showGrouping && !canShowCumulative && !(canStack && !cumulative) && !canShowPercentage && !hasHallmarks && !isScatter)
+	if (
+		!showGrouping &&
+		!canShowCumulative &&
+		!(canStack && !cumulative) &&
+		!canShowPercentage &&
+		!hasHallmarks &&
+		!isScatter
+	)
 		return null
 
 	return (

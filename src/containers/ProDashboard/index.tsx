@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -50,7 +50,8 @@ function ProDashboardContent() {
 	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod, setTimePeriod, setCustomTimePeriod } = useProDashboardTime()
@@ -391,9 +392,11 @@ function ProDashboardContent() {
 				/>
 			</Suspense>
 
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }
@@ -418,7 +421,7 @@ const LikeDashboardButton = ({
 	const { isAuthenticated } = useAuthContext()
 	const { toggleLike, isLiking, liked, likeCount } = useDashboardEngagement(dashboardId)
 	if (dashboardVisibility === 'private') return null
-	const isLiked = currentDashboard?.liked ? true : false
+	const isLiked = !!currentDashboard?.liked
 	return (
 		<Tooltip
 			content={currentDashboard?.liked ? 'Unlike dashboard' : 'Like dashboard'}
@@ -449,6 +452,12 @@ const CopyDashboardLinkButton = ({
 	dashboardId: string
 }) => {
 	const [copied, setCopied] = useState(false)
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
 	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
 
 	const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/pro/${dashboardId}`
@@ -457,7 +466,8 @@ const CopyDashboardLinkButton = ({
 		try {
 			await navigator.clipboard.writeText(shareUrl)
 			setCopied(true)
-			setTimeout(() => setCopied(false), 2000)
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
 		} catch (error) {
 			console.log('Failed to copy link:', error)
 		}

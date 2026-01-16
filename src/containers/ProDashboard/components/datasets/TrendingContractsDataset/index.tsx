@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,6 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
@@ -34,7 +34,7 @@ interface TrendingContractsDatasetProps {
 export function TrendingContractsDataset({
 	chain: initialChain = 'Ethereum',
 	timeframe: initialTimeframe = '1d',
-	tableId,
+	tableId: _tableId,
 	onChainChange,
 	onTimeframeChange
 }: TrendingContractsDatasetProps) {

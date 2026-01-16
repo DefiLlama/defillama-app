@@ -99,7 +99,9 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 							name="pencil-ruler"
 							width={15}
 							height={15}
-							className={chartMode === 'builder' ? 'text-white' : 'text-(--text-tertiary) group-hover:text-(--text-secondary)'}
+							className={
+								chartMode === 'builder' ? 'text-white' : 'text-(--text-tertiary) group-hover:text-(--text-secondary)'
+							}
 						/>
 						<span>Builder</span>
 					</button>
@@ -115,7 +117,9 @@ export const ChartTab = memo(function ChartTab(props: ChartTabProps) {
 							name="layers"
 							width={15}
 							height={15}
-							className={chartMode === 'manual' ? 'text-white' : 'text-(--text-tertiary) group-hover:text-(--text-secondary)'}
+							className={
+								chartMode === 'manual' ? 'text-white' : 'text-(--text-tertiary) group-hover:text-(--text-secondary)'
+							}
 						/>
 						<span>Manual</span>
 					</button>

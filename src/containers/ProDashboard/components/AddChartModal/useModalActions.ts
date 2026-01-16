@@ -5,6 +5,7 @@ import {
 	CHART_TYPES,
 	ChartConfig,
 	DashboardItemConfig,
+	LlamaAIChartConfig,
 	MultiChartConfig,
 	Protocol,
 	ProtocolsTableConfig,
@@ -137,7 +138,7 @@ export function useModalActions(
 	)
 
 	const handleAddToComposer = useCallback(
-		(typesToAdd?: string[]) => {
+		(typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => {
 			const incomingTypes = typesToAdd ?? state.selectedChartTypes
 			const chartTypesToAdd = Array.from(new Set(incomingTypes))
 			let addedCount = 0
@@ -164,9 +165,16 @@ export function useModalActions(
 			const targetGrouping = resolveTargetGrouping()
 			const getNextColorIndex = () => state.composerItems.length
 
-			if (state.selectedChartTab === 'chain' && chartTypesToAdd.length > 0) {
-				const chainsToUse =
-					state.selectedChains.length > 0 ? state.selectedChains : state.selectedChain ? [state.selectedChain] : []
+			const effectiveMode = options?.mode ?? state.selectedChartTab
+
+			if (effectiveMode === 'chain' && chartTypesToAdd.length > 0) {
+				const chainsToUse = options?.entity
+					? [options.entity]
+					: state.selectedChains.length > 0
+						? state.selectedChains
+						: state.selectedChain
+							? [state.selectedChain]
+							: []
 				for (const chainName of chainsToUse) {
 					const chain = chains.find((c: Chain) => c.name === chainName)
 					const filteredTypes = chartTypesToAdd.filter((chartType) => {
@@ -187,9 +195,10 @@ export function useModalActions(
 						addedCount += filteredTypes.length
 					}
 				}
-			} else if (state.selectedChartTab === 'protocol' && chartTypesToAdd.length > 0) {
-				const protocolsToUse =
-					state.selectedProtocols && state.selectedProtocols.length > 0
+			} else if (effectiveMode === 'protocol' && chartTypesToAdd.length > 0) {
+				const protocolsToUse = options?.entity
+					? [options.entity]
+					: state.selectedProtocols && state.selectedProtocols.length > 0
 						? state.selectedProtocols
 						: state.selectedProtocol
 							? [state.selectedProtocol]
@@ -542,6 +551,13 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
+			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart) {
+				newItem = {
+					...editItem,
+					kind: 'llamaai-chart',
+					savedChartId: state.selectedLlamaAIChart.id,
+					title: state.selectedLlamaAIChart.title || undefined
+				} as LlamaAIChartConfig
 			}
 
 			if (newItem) {

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum } from '~/utils'

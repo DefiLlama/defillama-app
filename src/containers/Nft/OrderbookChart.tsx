@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { LineChart as EChartLine } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -10,6 +9,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import * as React from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import type { IOrderBookChartProps } from './types'
@@ -121,7 +121,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				type: 'image',
 				z: 0,
 				style: {
-					image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+					image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},
@@ -140,12 +140,12 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 				trigger: 'axis',
 				confine: true,
 				formatter: function (params) {
-					let vals = '<li style="list-style:none">' + params[0].marker + params[0].seriesName + '</li>'
+					let vals = `<li style="list-style:none">${params[0].marker}${params[0].seriesName}</li>`
 
-					vals += '<li style="list-style:none">' + 'Amount :  ' + params[0].value[1] + '</li>'
-					vals += '<li style="list-style:none">' + 'Price :  ' + params[0].value[0] + ' ETH' + '</li>'
-					vals += '<li style="list-style:none">' + 'Avg Price :  ' + params[0].value[2] + ' ETH' + '</li>'
-					vals += '<li style="list-style:none">' + 'Total Price :  ' + params[0].value[3] + ' ETH' + '</li>'
+					vals += `<li style="list-style:none">Amount :  ${params[0].value[1]}</li>`
+					vals += `<li style="list-style:none">Price :  ${params[0].value[0]} ETH</li>`
+					vals += `<li style="list-style:none">Avg Price :  ${params[0].value[2]} ETH</li>`
+					vals += `<li style="list-style:none">Total Price :  ${params[0].value[3]} ETH</li>`
 					return vals
 				},
 				showDelay: 0

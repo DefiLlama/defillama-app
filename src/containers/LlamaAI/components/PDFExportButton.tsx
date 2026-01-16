@@ -1,10 +1,13 @@
-import { memo, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, memo, Suspense, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { SubscribeProModal } from '~/components/SubscribeCards/SubscribeProCard'
 import { Tooltip } from '~/components/Tooltip'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -118,11 +121,11 @@ export const PDFExportButton = memo(function PDFExportButton({
 					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={14} width={14} />}
 				</button>
 			</Tooltip>
-			{shouldRenderModal && (
+			{shouldRenderModal ? (
 				<Suspense fallback={<></>}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
-			)}
+			) : null}
 		</>
 	)
 })

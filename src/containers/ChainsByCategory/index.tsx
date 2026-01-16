@@ -1,12 +1,13 @@
-import * as React from 'react'
 import { useRouter } from 'next/router'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formatNum, getPercentChange, preparePieChartData, toNiceCsvDate } from '~/utils'
+import { formatNum, getPercentChange, toNiceCsvDate } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
 import { IChainsByCategoryData } from './types'
 
@@ -120,6 +121,7 @@ const useFormatChartData = ({
 
 		for (const chain in tvlChartsByChain['tvl']) {
 			const data = []
+			let lastValue: number | undefined
 			for (const date in totalTvlByDate['tvl']) {
 				let total = totalTvlByDate['tvl'][date]
 				let value = tvlChartsByChain['tvl']?.[chain]?.[date]
@@ -129,9 +131,10 @@ const useFormatChartData = ({
 					}
 					total += totalTvlByDate?.[key]?.[date] ?? 0
 				}
-				recentTvlByChain[chain] = value
+				lastValue = value
 				data.push([+date, value != null ? (value / total) * 100 : null])
 			}
+			recentTvlByChain[chain] = lastValue ?? 0
 			charts[chain] = {
 				name: chain,
 				stack: chain,
@@ -170,7 +173,7 @@ export const useGroupAndFormatChains = ({
 	const [chainsGroupbyParent] = useLocalStorageSettingsManager('tvl_chains')
 
 	return React.useMemo(() => {
-		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy ? true : false
+		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy
 		const toggledTvlSettings = Object.entries(tvlSettings)
 			.filter(([_, value]) => value)
 			.map(([key]) => key)

@@ -33,7 +33,7 @@ export function NameYieldPool({
 	configID,
 	url,
 	index,
-	borrow,
+	borrow: _borrow,
 	strategy,
 	withoutLink,
 	maxCharacters,
@@ -136,7 +136,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 	)
 }
 
-export function NameYield({ project, projectslug, airdrop, borrow, withoutLink, ...props }: INameYield) {
+export function NameYield({ project, projectslug, airdrop, borrow: _borrow, withoutLink, ...props }: INameYield) {
 	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
 
@@ -212,7 +212,7 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	)
 }
 
-export function FRStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain, index }) {
+export function FRStrategyRoute({ project1, airdropProject1, project2, airdropProject2: _airdropProject2, chain, index }) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)

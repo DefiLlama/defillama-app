@@ -1,6 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -207,8 +207,8 @@ export const useSubscribe = () => {
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
-	const isSubscriptionLoading = subscriptionQuery.isLoading && subscriptionData == null ? true : false
-	const isSubscriptionError = subscriptionQuery.isError && !subscriptionData ? true : false
+	const isSubscriptionLoading = subscriptionQuery.isLoading && subscriptionData == null
+	const isSubscriptionError = subscriptionQuery.isError && !subscriptionData
 
 	const trialAvailabilityQuery = useQuery({
 		queryKey: ['trialAvailable', user?.id],
@@ -348,7 +348,7 @@ export const useSubscribe = () => {
 				window.location.href = url
 			}
 			return url
-		} catch (error) {
+		} catch {
 			return null
 		}
 	}

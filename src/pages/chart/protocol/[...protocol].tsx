@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
@@ -108,7 +108,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 		}
 	}, [queryParamsString, props])
 
-	const isThemeDark = router.query.theme === 'dark' ? true : false
+	const isThemeDark = router.query.theme === 'dark'
 
 	useEffect(() => {
 		if (!isThemeDark) {

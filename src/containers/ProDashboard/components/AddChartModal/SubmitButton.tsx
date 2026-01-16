@@ -41,9 +41,9 @@ export function SubmitButton({
 	editItem,
 	selectedMainTab,
 	selectedChartTab,
-	selectedChain,
-	selectedChains = [],
-	selectedProtocol,
+	selectedChain: _selectedChain,
+	selectedChains: _selectedChains = [],
+	selectedProtocol: _selectedProtocol,
 	selectedChartTypes = [],
 	selectedYieldPool,
 	composerItems,
@@ -91,10 +91,7 @@ export function SubmitButton({
 			chartMode === 'manual' &&
 			selectedChartTab === 'advanced-tvl' &&
 			isAdvancedTvlInvalid) ||
-		(selectedMainTab === 'charts' &&
-			chartMode === 'manual' &&
-			selectedChartTab === 'borrowed' &&
-			isBorrowedInvalid) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'borrowed' && isBorrowedInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&

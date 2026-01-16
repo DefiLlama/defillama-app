@@ -64,7 +64,7 @@ export function RaisesFilterDropdowns({
 					router.push('/raises')
 				}}
 				disabled={!hasActiveFilters}
-				className="rounded-md bg-(--btn-bg) px-3 py-2 hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) max-sm:text-left disabled:cursor-not-allowed disabled:opacity-40 md:text-xs"
+				className="rounded-md bg-(--btn-bg) px-3 py-2 hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 max-sm:text-left md:text-xs"
 			>
 				Reset all filters
 			</button>

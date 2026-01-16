@@ -77,7 +77,8 @@ export function formatUnlocksEvent({ description, noOfTokens, timestamp, price, 
 	noOfTokens.forEach((tokens, i) => {
 		description = description.replace(
 			`{tokens[${i}]}`,
-			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
+			`${formattedNum(tokens || 0) + (symbol ? ` ${symbol}` : '')}${
+				price ? ` ($${formattedNum((tokens || 0) * price)})` : ''
 			}`
 		)
 	})
@@ -355,13 +356,14 @@ export function chainIconUrl(chain) {
 
 export function tokenIconUrl(name) {
 	const x = name ?? ''
-	return `${ICONS_CDN}/protocols/${x
+	return `${ICONS_CDN}/protocols/${
+		x
 			.trim()
 			.toLowerCase()
 			.replace(/[()'"]/g, '') // Remove parentheses and quotes
 			.replace(/\s+/g, '-') // Replace spaces with hyphens
 			.replace(/[^\w.!&-]/g, '') // Remove any other non-word chars except hyphens, !, & and .
-		}?w=48&h=48`
+	}?w=48&h=48`
 }
 
 /**
@@ -461,7 +463,7 @@ export const getPercentChange = (valueNow, value24HoursAgo) => {
 	return adjustedPercentChange
 }
 
-export const capitalizeFirstLetter = (word) => word ? word.charAt(0).toUpperCase() + word.slice(1) : ''
+export const capitalizeFirstLetter = (word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
 
 export const slug = (name = '') => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
@@ -978,58 +980,6 @@ export function formatValue(value, formatType = 'auto') {
 	}
 	if (formatType === 'number') return formattedNum(value)
 	return String(value)
-}
-
-export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue = 'value', limit }) => {
-	let pieData = []
-
-	if (Array.isArray(data)) {
-		pieData = data.map((entry) => {
-			return {
-				name: entry[sliceIdentifier],
-				value: Number(entry[sliceValue])
-			}
-		})
-	} else {
-		pieData = Object.entries(data).map(([name, value]) => {
-			return {
-				name: name,
-				value: Number(value)
-			}
-		})
-	}
-
-	pieData = pieData.toSorted((a, b) => b.value - a.value)
-
-	if (!limit) {
-		return pieData
-	}
-
-	const mainSlices = pieData.slice(0, limit)
-	const otherSlices = pieData.slice(limit)
-
-	// Check if "Others" already exists in mainSlices
-	const othersIndex = mainSlices.findIndex((slice) => slice.name === 'Others')
-	let othersValueFromMain = 0
-	let filteredMainSlices = mainSlices
-
-	if (othersIndex !== -1) {
-		// Remove existing "Others" from mainSlices and store its value
-		othersValueFromMain = mainSlices[othersIndex].value
-		filteredMainSlices = mainSlices.filter((_, index) => index !== othersIndex)
-	}
-
-	const otherSlicesValue =
-		otherSlices.reduce((acc, curr) => {
-			// Also include any "Others" entries from otherSlices
-			return acc + curr.value
-		}, 0) + othersValueFromMain
-
-	if (otherSlicesValue > 0) {
-		return [...filteredMainSlices, { name: 'Others', value: otherSlicesValue }]
-	}
-
-	return filteredMainSlices
 }
 
 export const formatEthAddress = (address) => {

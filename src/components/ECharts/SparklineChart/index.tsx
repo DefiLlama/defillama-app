@@ -1,8 +1,8 @@
-import { useEffect, useId, useMemo, useRef } from 'react'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useEffect, useId, useMemo, useRef } from 'react'
 
 echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer])
 
@@ -57,7 +57,7 @@ export function SparklineChart({
 			try {
 				const target = document.documentElement || (dom as HTMLElement)
 				value = getComputedStyle(target).getPropertyValue(variable)
-			} catch (error) {
+			} catch {
 				value = ''
 			}
 			return value?.trim() || fallback || input

@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinAssetChartData } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'

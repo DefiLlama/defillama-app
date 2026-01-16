@@ -1,5 +1,5 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -87,7 +87,8 @@ const TABLE_TYPE_CARDS: Array<{
 	{
 		value: 'protocols',
 		label: 'Protocols',
-		description: 'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
+		description:
+			'Build custom protocol tables with advanced grouping by chain, category, or parent protocol. Filter by TVL, volume, fees, and 30+ metrics. Add custom calculated columns.',
 		icon: 'layers',
 		tags: ['Grouping', 'Chains', 'Categories', 'Custom Columns', '30+ Filters', 'Presets']
 	},
@@ -333,7 +334,7 @@ const TabContent = memo(function TabContent({
 		setSorting(newSorting)
 	}
 
-	const handleClearFilters = () => {
+	const _handleClearFilters = () => {
 		setFilters({})
 		setChains(['All'])
 	}
@@ -342,7 +343,7 @@ const TabContent = memo(function TabContent({
 		setFilters(nextFilters ?? {})
 	}, [])
 
-	const handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
+	const _handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
 		setFilters((prev) => {
 			const next: TableFilters = { ...(prev ?? {}) }
 			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
@@ -473,13 +474,13 @@ const TabContent = memo(function TabContent({
 	const filterCount = countActiveFilters(filters)
 	const totalFilterCount = scopeCount + filterCount
 
-	const headerTitle =
+	const _headerTitle =
 		focusedSectionOnly === 'filters'
 			? 'Configure Filters'
 			: focusedSectionOnly === 'columns'
 				? 'Customize Columns'
 				: 'Build ProTable'
-	const headerDescription =
+	const _headerDescription =
 		focusedSectionOnly === 'filters'
 			? 'Adjust filters to refine the data shown in your table.'
 			: focusedSectionOnly === 'columns'

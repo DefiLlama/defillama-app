@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -14,6 +13,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import useWindowSize from '~/hooks/useWindowSize'
@@ -124,7 +124,7 @@ export function TableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder={placeholder}
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				{customFilters}

@@ -10,7 +10,7 @@ const adapterType = ADAPTER_TYPES.PERPS_AGGREGATOR
 const dataType = ADAPTER_DATA_TYPES.DAILY_VOLUME
 const type = 'Perp Aggregator Volume'
 
-export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
+export const getStaticProps = withPerformanceLogging(`${adapterType}/${dataType}/chains`, async () => {
 	const data = await getChainsByAdapterPageData({ adapterType, dataType })
 
 	return {

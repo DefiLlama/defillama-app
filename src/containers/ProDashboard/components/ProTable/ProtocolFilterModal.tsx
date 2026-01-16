@@ -1,6 +1,6 @@
-import * as React from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import * as React from 'react'
 import { createFilter } from 'react-select'
 import { Icon } from '~/components/Icon'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'

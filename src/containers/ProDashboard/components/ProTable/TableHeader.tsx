@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { CustomView } from '../../types'

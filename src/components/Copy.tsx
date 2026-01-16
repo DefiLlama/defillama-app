@@ -1,12 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 
 export function CopyHelper({ toCopy, ...props }) {
 	const [copied, setCopied] = useState(false)
-	const copy = () => {
-		navigator.clipboard.writeText(toCopy)
-		setCopied(true)
-		setTimeout(() => setCopied(false), 2000)
+	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
+	const copy = async () => {
+		try {
+			await navigator.clipboard.writeText(toCopy)
+			setCopied(true)
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000)
+		} catch (error) {
+			console.error('Failed to copy content:', error)
+			toast.error('Failed to copy content')
+		}
 	}
 	return (
 		<button

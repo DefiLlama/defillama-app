@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function McapRange({
@@ -34,7 +34,7 @@ export function McapRange({
 	}
 
 	const handleClear = () => {
-		const { minMcap, maxMcap, ...restQuery } = router.query
+		const { minMcap: _minMcap, maxMcap: _maxMcap, ...restQuery } = router.query
 
 		router.push(
 			{

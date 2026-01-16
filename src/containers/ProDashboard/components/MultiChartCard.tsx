@@ -9,6 +9,7 @@ import {
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
+import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { CHART_TYPES, MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
@@ -32,11 +33,22 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		handleTreemapChange
 	} = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
+	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const showStacked = multi.showStacked !== false
 	const showCumulative = multi.showCumulative || false
 	const showPercentage = multi.showPercentage || false
 	const showTreemap = multi.showTreemap || false
+
+	const timeKey = useMemo(() => {
+		if (timePeriod === 'custom' && customTimePeriod) {
+			if (customTimePeriod.type === 'relative') {
+				return `custom-relative-${customTimePeriod.relativeDays ?? ''}`
+			}
+			return `custom-absolute-${customTimePeriod.startDate ?? ''}-${customTimePeriod.endDate ?? ''}`
+		}
+		return timePeriod || 'all'
+	}, [timePeriod, customTimePeriod])
 
 	const validItems = useMemo(
 		() =>
@@ -229,7 +241,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 		if (!showPercentage) {
 			return processedSeries.map((serie) => {
-				const { stack, ...rest } = serie as any
+				const { stack: _stack, ...rest } = serie as any
 				if (showCumulative) {
 					return { ...rest, areaStyle: { opacity: 0.2 } }
 				}
@@ -397,7 +409,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						]}
 						selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
 						setSelectedValues={(value) => {
-							handleCumulativeChange(multi.id, value === 'Cumulative' ? true : false)
+							handleCumulativeChange(multi.id, value === 'Cumulative')
 							if (value === 'Cumulative') {
 								handleStackedChange(multi.id, false)
 							}
@@ -418,7 +430,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						]}
 						selectedValues={showStacked ? 'Stacked' : 'Separate'}
 						setSelectedValues={(value) => {
-							handleStackedChange(multi.id, value === 'Separate' ? false : true)
+							handleStackedChange(multi.id, value !== 'Separate')
 							handlePercentageChange(multi.id, false)
 						}}
 						label={showStacked ? 'Stacked' : 'Separate'}
@@ -437,7 +449,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						]}
 						selectedValues={showPercentage ? '% Percentage' : '$ Absolute'}
 						setSelectedValues={(value) => {
-							handlePercentageChange(multi.id, value === '% Percentage' ? true : false)
+							handlePercentageChange(multi.id, value === '% Percentage')
 							handleStackedChange(multi.id, false)
 						}}
 						label={showPercentage ? '% Percentage' : '$ Absolute'}
@@ -512,7 +524,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			) : (
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart
-						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}`}
+						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}-${timeKey}`}
 						series={series}
 						valueSymbol={showPercentage ? '%' : allPercentMetrics ? '%' : allCountMetrics || allRatioMetrics ? '' : '$'}
 						groupBy={

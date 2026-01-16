@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -11,6 +10,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
@@ -108,7 +108,7 @@ export function PeggedAssetsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
@@ -202,7 +202,7 @@ export function PeggedAssetByChainTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
@@ -316,7 +316,7 @@ export function PeggedChainsTable({ data }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<SelectWithCombobox

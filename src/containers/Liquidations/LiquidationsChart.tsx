@@ -1,4 +1,3 @@
-import { useCallback, useContext, useEffect } from 'react'
 import { BarChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -9,6 +8,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useContext, useEffect } from 'react'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -69,7 +69,7 @@ export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartDa
 					...(bobo && {
 						height: '80%',
 						width: '90%',
-						backgroundImage: 'url("/icons/bobo.png")',
+						backgroundImage: 'url("/assets/bobo.png")',
 						backgroundSize: '100% 360px',
 						backgroundRepeat: 'no-repeat',
 						backgroundPosition: 'bottom',

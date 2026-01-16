@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { BarChart as EChartBar, LineChart as EChartLine, ScatterChart as EChartScatter } from 'echarts/charts'
 import {
 	DataZoomComponent,
@@ -10,7 +9,8 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { formatTooltipChartDate } from '~/components/ECharts/useDefaults'
+import * as React from 'react'
+import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import type { ICollectionScatterChartProps } from './types'
@@ -88,7 +88,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 				type: 'image',
 				z: 0,
 				style: {
-					image: isDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+					image: isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 					height: 40,
 					opacity: 0.3
 				},

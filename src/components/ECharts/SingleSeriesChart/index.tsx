@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { ISingleSeriesChartProps } from '../types'
 import { useDefaults } from '../useDefaults'

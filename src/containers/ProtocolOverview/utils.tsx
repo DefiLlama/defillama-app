@@ -1,11 +1,11 @@
-import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useFetchProtocol } from '~/api/categories/protocols/client'
 import type { IChainTvl } from '~/api/types'
+import { preparePieChartData } from '~/components/ECharts/formatters'
 import { PEGGEDS_API } from '~/constants'
 import type { IRaise, IUpdatedProtocol } from '~/containers/ProtocolOverview/types'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { preparePieChartData } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 
 export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => {
@@ -55,7 +55,82 @@ export const formatTvlsByChain = ({ historicalChainTvls, extraTvlsEnabled }) => 
 	return result
 }
 
-function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete }) {
+// For CEX pages: calculate TVL by chain by summing tokensInUsd instead of using tvl array
+// This also supports excluding specific tokens (e.g., the CEX's own token)
+export const formatTvlsByChainFromTokens = ({
+	historicalChainTvls,
+	extraTvlsEnabled,
+	tokenToExclude
+}: {
+	historicalChainTvls: Record<string, any>
+	extraTvlsEnabled: Record<string, boolean>
+	tokenToExclude?: string | null
+}) => {
+	const tvlDictionary: { [date: number]: { [chain: string]: number } } = {}
+
+	for (const section in historicalChainTvls) {
+		let sectionName = section
+		const name = section.toLowerCase()
+
+		let toSumSection = false
+
+		// sum keys like ethereum-staking, arbitrum-vesting only if chain is present
+		if (name.includes('-')) {
+			const formattedName = name.split('-')
+
+			if (extraTvlsEnabled[formattedName[1]]) {
+				toSumSection = true
+				sectionName = section.split('-').slice(0, -1).join('-')
+			}
+		} else {
+			// sum key with staking, ethereum, arbitrum etc but ethereum-staking, arbitrum-vesting
+			if (!(name in extraTvlsEnabled)) {
+				toSumSection = true
+			}
+		}
+
+		if (toSumSection) {
+			const tokensInUsd = historicalChainTvls[section].tokensInUsd
+			if (tokensInUsd && tokensInUsd.length > 0) {
+				for (const { date, tokens } of tokensInUsd) {
+					if (!tvlDictionary[date]) {
+						tvlDictionary[date] = {}
+					}
+
+					// Sum all token values, excluding the specified token if any
+					let chainTotal = 0
+					for (const token in tokens) {
+						if (tokenToExclude && token === tokenToExclude) continue
+						chainTotal += tokens[token] || 0
+					}
+
+					tvlDictionary[date][sectionName] = (tvlDictionary[date][sectionName] || 0) + chainTotal
+				}
+			}
+		}
+	}
+
+	const result = []
+	for (const date in tvlDictionary) {
+		result.push({ ...tvlDictionary[date], date: Number(date) })
+	}
+	result.sort((a, b) => a.date - b.date)
+	return result
+}
+
+function buildInflows({
+	chainTvls,
+	extraTvlsEnabled,
+	tokensUnique,
+	datesToDelete,
+	tokenToExclude
+}: {
+	chainTvls: any
+	extraTvlsEnabled: Record<string, boolean>
+	tokensUnique: string[]
+	datesToDelete: number[]
+	tokenToExclude?: string | null
+}) {
 	const usdInflows: Record<string, number> = {}
 	const tokenInflows: Record<string, any> = {}
 	const tokensUniqueSet = new Set(tokensUnique)
@@ -123,6 +198,9 @@ function buildInflows({ chainTvls, extraTvlsEnabled, tokensUnique, datesToDelete
 			const allTokens = new Set([...Object.keys(currentTokens), ...Object.keys(oldTokens)])
 
 			for (const token of allTokens) {
+				// Skip excluded token
+				if (tokenToExclude && token === tokenToExclude) continue
+
 				const currentAmount = currentTokens[token] || 0
 				const prevAmount = oldTokens[token] || 0
 				const diff = currentAmount - prevAmount
@@ -523,11 +601,13 @@ function buildTokensBreakdown({ chainTvls, extraTvlsEnabled, tokensUnique }) {
 export const buildProtocolAddlChartsData = ({
 	protocolData,
 	extraTvlsEnabled,
-	isBorrowed
+	isBorrowed,
+	tokenToExclude
 }: {
 	protocolData: { name: string; chainTvls?: IChainTvl; misrepresentedTokens?: boolean }
 	extraTvlsEnabled: Record<string, boolean>
 	isBorrowed?: boolean
+	tokenToExclude?: string | null
 }) => {
 	let chainTvls = protocolData.chainTvls ?? {}
 	if (isBorrowed) {
@@ -556,7 +636,12 @@ export const buildProtocolAddlChartsData = ({
 		}
 
 		if (!protocolData.misrepresentedTokens && (tokensInUsdExsists || tokensExists)) {
-			const tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
+			let tokensUnique = getUniqueTokens({ chainTvls, extraTvlsEnabled })
+
+			// Filter out the excluded token if specified
+			if (tokenToExclude) {
+				tokensUnique = tokensUnique.filter((token) => token !== tokenToExclude)
+			}
 
 			const { tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown } = buildTokensBreakdown({
 				chainTvls: chainTvls,
@@ -568,7 +653,8 @@ export const buildProtocolAddlChartsData = ({
 				chainTvls: chainTvls,
 				extraTvlsEnabled,
 				tokensUnique,
-				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : []
+				datesToDelete: protocolData.name === 'Binance CEX' ? [1681430400, 1681516800] : [],
+				tokenToExclude
 			})
 
 			return {
@@ -618,22 +704,31 @@ export const formatRaisedAmount = (n: number) => {
 	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
 }
 
-export const useFetchProtocolAddlChartsData = (protocolName, isBorrowed = false) => {
+export const useFetchProtocolAddlChartsData = (
+	protocolName: string,
+	isBorrowed = false,
+	tokenToExclude?: string | null
+) => {
 	const { data: addlProtocolData, isLoading } = useFetchProtocol(protocolName)
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
+
+	// Normalize to null for consistent caching
+	const normalizedTokenToExclude = tokenToExclude || null
 
 	const data = useQuery({
 		queryKey: [
 			'protocols-addl-chart-data',
 			protocolName,
 			addlProtocolData ? true : false,
-			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled)
+			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled),
+			normalizedTokenToExclude
 		],
 		queryFn: () =>
 			buildProtocolAddlChartsData({
 				protocolData: addlProtocolData as any,
 				extraTvlsEnabled: isBorrowed ? {} : extraTvlsEnabled,
-				isBorrowed
+				isBorrowed,
+				tokenToExclude: normalizedTokenToExclude
 			}),
 		staleTime: 60 * 60 * 1000,
 		refetchInterval: 10 * 60 * 1000,

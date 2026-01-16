@@ -1,5 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useCallback, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'

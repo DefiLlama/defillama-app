@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useMemo, useState } from 'react'
 import { fetchCoinPrices } from '~/api'
 import { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
@@ -30,7 +30,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 		}
 	}, [router.query])
 
-	const { data: fdvData = null, error: fdvError } = useQuery({
+	const { data: fdvData = null, error: _fdvError } = useQuery({
 		queryKey: [`fdv-${coins.join('-')}`],
 		queryFn:
 			coins.length == 2
@@ -134,7 +134,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/icons/placeholder.png'
+									e.currentTarget.src = '/assets/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -153,7 +153,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 					{/* <ReactSelect
@@ -259,7 +259,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								width={16}
 								loading="lazy"
 								onError={(e) => {
-									e.currentTarget.src = '/icons/placeholder.png'
+									e.currentTarget.src = '/assets/placeholder.png'
 								}}
 								className="absolute top-0 bottom-0 left-2 my-auto inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 							/>
@@ -278,7 +278,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 								dialogStore.toggle()
 							}}
 							placeholder="Search coins..."
-							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="min-h-8 w-full rounded-md border border-(--form-control-border) bg-white px-2 py-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</div>
 				</div>
@@ -338,7 +338,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/icons/placeholder.png'
+											e.currentTarget.src = '/assets/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>
@@ -353,7 +353,7 @@ export default function CompareFdv({ coinsData, protocols }) {
 										width={'20px'}
 										loading="lazy"
 										onError={(e) => {
-											e.currentTarget.src = '/icons/placeholder.png'
+											e.currentTarget.src = '/assets/placeholder.png'
 										}}
 										className="inline-block aspect-square shrink-0 rounded-full bg-(--bg-tertiary) object-cover"
 									/>

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -164,7 +164,7 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					left: 'center',
 					top: 'center',
 					style: {
-						image: isThemeDark ? '/icons/defillama-light-neutral.webp' : '/icons/defillama-dark-neutral.webp',
+						image: isThemeDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
 						height: 40,
 						opacity: 0.3
 					},

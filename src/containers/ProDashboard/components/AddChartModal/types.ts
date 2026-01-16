@@ -52,6 +52,10 @@ export interface ChartBuilderConfig {
 		| 'chain-revenue'
 	mode: 'chains' | 'protocol'
 	filterMode?: 'include' | 'exclude'
+	chainFilterMode?: 'include' | 'exclude'
+	categoryFilterMode?: 'include' | 'exclude'
+	chainCategoryFilterMode?: 'include' | 'exclude'
+	protocolCategoryFilterMode?: 'include' | 'exclude'
 	protocol?: string
 	chains: string[]
 	chainCategories?: string[]
@@ -60,6 +64,7 @@ export interface ChartBuilderConfig {
 	groupBy: 'protocol'
 	limit: number
 	chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
+	treemapValue?: 'latest' | 'sum7d' | 'sum30d'
 	displayAs: 'timeSeries' | 'percentage'
 	hideOthers?: boolean
 	groupByParent?: boolean
@@ -146,7 +151,7 @@ export interface ModalActions {
 	handleProtocolChange: (option: any) => void
 	handleDatasetChainChange: (value: string | null) => void
 	handleTokensChange: (tokens: string[]) => void
-	handleAddToComposer: (typesToAdd?: string[]) => void
+	handleAddToComposer: (typesToAdd?: string[], options?: { entity?: string; mode?: 'chain' | 'protocol' }) => void
 	handleRemoveFromComposer: (id: string) => void
 	handleUpdateComposerItemColor: (id: string, color: string) => void
 	handleMainTabChange: (tab: MainTabType) => void

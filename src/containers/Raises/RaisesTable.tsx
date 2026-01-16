@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnFiltersState,
 	ColumnOrderState,
@@ -8,6 +7,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
@@ -79,7 +79,7 @@ export function RaisesTable({ raises, prepareCsv }) {
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search projects..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 				<a

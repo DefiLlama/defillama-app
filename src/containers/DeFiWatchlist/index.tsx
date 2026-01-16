@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { DialogForm } from '~/components/DialogForm'
 import { Icon } from '~/components/Icon'
@@ -238,7 +238,8 @@ function PortfolioNotifications({
 		deletePreferences,
 		isDeleting
 	} = useEmailNotifications(selectedPortfolio)
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
@@ -265,7 +266,7 @@ function PortfolioNotifications({
 				if (preferences.settings.protocols) {
 					const allProtocolEntries = Object.entries(preferences.settings.protocols)
 					if (allProtocolEntries.length > 0) {
-						const [protocolId, firstMetrics] = allProtocolEntries[0]
+						const [_protocolId, firstMetrics] = allProtocolEntries[0]
 
 						if (Array.isArray(firstMetrics)) {
 							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
@@ -280,7 +281,7 @@ function PortfolioNotifications({
 				if (preferences.settings.chains) {
 					const allChainEntries = Object.entries(preferences.settings.chains)
 					if (allChainEntries.length > 0) {
-						const [chainName, firstMetrics] = allChainEntries[0]
+						const [_chainName, firstMetrics] = allChainEntries[0]
 
 						if (Array.isArray(firstMetrics)) {
 							const uiMetrics = firstMetrics.map(mapAPIMetricToUI)
@@ -455,9 +456,11 @@ function PortfolioNotifications({
 					)}
 				</div>
 			</div>
-			<Suspense fallback={<></>}>
-				<SubscribeProModal dialogStore={subscribeModalStore} />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 
 			<Ariakit.Dialog
 				store={dialogStore}

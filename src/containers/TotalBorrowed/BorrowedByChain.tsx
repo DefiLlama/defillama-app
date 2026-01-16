@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -49,7 +49,7 @@ export function BorrowedProtocolsTVLByChain(props: ITotalBorrowedByChainPageData
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-3">
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<LineAndBarChart charts={props.charts} />
+						<LineAndBarChart hideDownloadButton={false} enableImageExport charts={props.charts} />
 					</Suspense>
 				</div>
 			</div>

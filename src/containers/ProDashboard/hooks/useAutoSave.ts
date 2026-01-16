@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
-import pb from '~/utils/pocketbase'
 import { AUTH_SERVER } from '~/constants'
+import pb from '~/utils/pocketbase'
 import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
 import { DashboardItemConfig } from '../types'
 

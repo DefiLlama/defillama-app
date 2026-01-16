@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/router'
 import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -32,7 +32,7 @@ declare module '@tanstack/table-core' {
 export function VirtualTable({
 	instance,
 	skipVirtualization,
-	columnResizeMode,
+	columnResizeMode: _columnResizeMode,
 	rowSize,
 	renderSubComponent,
 	stripedBg = false,
@@ -66,7 +66,7 @@ export function VirtualTable({
 	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
 	const gridTemplateColumns =
 		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
-	
+
 	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
 	useEffect(() => {
@@ -80,7 +80,7 @@ export function VirtualTable({
 		}
 		window.addEventListener('keydown', focusSearchBar)
 		return () => window.removeEventListener('keydown', focusSearchBar)
-	}, [])
+	}, [skipVirtualization])
 
 	const onScrollOrResize = React.useCallback(() => {
 		if (!useStickyHeader) return
@@ -401,9 +401,19 @@ export function VirtualTable({
 
 const HeaderWithTooltip = ({ children, content, onClick }) => {
 	if (onClick) {
-		if (!content) return <button onClick={onClick} className="flex items-center gap-1">{children}</button>
+		if (!content)
+			return (
+				<button onClick={onClick} className="flex items-center gap-1">
+					{children}
+				</button>
+			)
 		return (
-			<Tooltip content={content} className="underline decoration-dotted" render={<button className="flex items-center gap-1" />} onClick={onClick}>
+			<Tooltip
+				content={content}
+				className="underline decoration-dotted"
+				render={<button className="flex items-center gap-1" />}
+				onClick={onClick}
+			>
 				{children}
 			</Tooltip>
 		)

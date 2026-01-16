@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo } from 'react'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum } from '~/utils'
@@ -336,6 +337,9 @@ export default function ChainLineBarChart({
 			if (type === 'Token Mcap') {
 				finalYAxis.push({
 					...options,
+					axisLabel: {
+						formatter: (value) => formatTooltipValue(value, '$')
+					},
 					axisLine: {
 						show: true,
 						lineStyle: {
@@ -350,6 +354,9 @@ export default function ChainLineBarChart({
 			if (type === 'Token Price') {
 				finalYAxis.push({
 					...options,
+					axisLabel: {
+						formatter: (value) => formatTooltipValue(value, '$')
+					},
 					axisLine: {
 						show: true,
 						lineStyle: {
@@ -364,6 +371,9 @@ export default function ChainLineBarChart({
 			if (type === 'Token Volume') {
 				finalYAxis.push({
 					...options,
+					axisLabel: {
+						formatter: (value) => formatTooltipValue(value, '$')
+					},
 					axisLine: {
 						show: true,
 						lineStyle: {

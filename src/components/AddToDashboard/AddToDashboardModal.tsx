@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -19,10 +19,7 @@ interface AddToDashboardModalProps {
 	unsupportedMetrics?: string[]
 }
 
-function getConfigName(
-	config: DashboardChartConfig | null,
-	llamaAIChart?: LlamaAIChartInput | null
-): string {
+function getConfigName(config: DashboardChartConfig | null, llamaAIChart?: LlamaAIChartInput | null): string {
 	if (llamaAIChart) return llamaAIChart.title
 	if (!config) return ''
 	if (config.kind === 'multi') {
