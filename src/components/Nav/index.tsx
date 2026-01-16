@@ -58,7 +58,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			{ name: 'API', route: 'https://api-docs.defillama.com', icon: 'code' }
 		]
 		const premiumPages = [
-			{ name: hasActiveSubscription ? 'Manage Subscription' : 'Pricing', route: '/subscription', icon: 'user' },
+			{ name: 'Pricing', route: '/subscription', icon: 'user' },
 			{ name: 'LlamaAI', route: hasActiveSubscription ? '/ai/chat' : '/ai', icon: '' },
 			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
 			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },

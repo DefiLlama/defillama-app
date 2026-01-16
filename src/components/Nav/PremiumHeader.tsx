@@ -1,8 +1,16 @@
+import { useEffect, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const PremiumHeader = () => {
 	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
-	const showFreeTrial = !hasActiveSubscription && (!isAuthenticated || !loaders.userLoading)
+	const [hasMounted, setHasMounted] = useState(false)
+
+	useEffect(() => {
+		setHasMounted(true)
+	}, [])
+
+	// Only show badge after hydration AND when we're sure user doesn't have subscription
+	const showFreeTrial = hasMounted && !hasActiveSubscription && (!isAuthenticated || !loaders.userLoading)
 
 	return (
 		<>
