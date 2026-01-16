@@ -194,27 +194,6 @@ export const AccountStatus = ({
 						</div>
 					</div>
 
-					{subscription?.provider === 'trial' && subscription?.expires_at && (
-						<div className="group mt-4 rounded-xl border border-orange-500/30 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:border-orange-500/50 hover:shadow-[0_4px_12px_rgba(251,146,60,0.15)]">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2">
-									<svg className="h-4 w-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-										/>
-									</svg>
-									<span className="text-sm font-medium text-orange-400">Trial Expires</span>
-								</div>
-								<span className="text-sm text-[#b4b7bc]">
-									{new Date(parseFloat(subscription.expires_at) * 1000).toLocaleString()}
-								</span>
-							</div>
-						</div>
-					)}
-
 					<div className="group mt-4 rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
 						<div className="mb-2 flex items-center justify-between">
 							<span className="text-xs text-[#8a8c90]">Wallet</span>
