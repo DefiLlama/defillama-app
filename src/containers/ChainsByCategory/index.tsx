@@ -121,6 +121,7 @@ const useFormatChartData = ({
 
 		for (const chain in tvlChartsByChain['tvl']) {
 			const data = []
+			let lastValue: number | undefined
 			for (const date in totalTvlByDate['tvl']) {
 				let total = totalTvlByDate['tvl'][date]
 				let value = tvlChartsByChain['tvl']?.[chain]?.[date]
@@ -130,9 +131,10 @@ const useFormatChartData = ({
 					}
 					total += totalTvlByDate?.[key]?.[date] ?? 0
 				}
-				recentTvlByChain[chain] = value
+				lastValue = value
 				data.push([+date, value != null ? (value / total) * 100 : null])
 			}
+			recentTvlByChain[chain] = lastValue ?? 0
 			charts[chain] = {
 				name: chain,
 				stack: chain,
