@@ -184,6 +184,82 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		includeGovernance
 	])
 
+	const activeMarketcapPieChartData = useMemo(() => {
+		const filteredForPie = props.assets.filter((asset) => {
+			if (!includeStablecoins && asset.stablecoin) return false
+			if (!includeGovernance && asset.governance) return false
+			return (
+				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.assetClass?.length
+					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					: true) &&
+				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
+				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
+			)
+		})
+
+		const categoryMap = new Map<string, number>()
+		for (const asset of filteredForPie) {
+			asset.category?.forEach((category) => {
+				if (category && selectedCategories.includes(category)) {
+					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.activeMarketcap.total)
+				}
+			})
+		}
+
+		return Array.from(categoryMap.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([name, value]) => ({ name, value }))
+	}, [
+		props.assets,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance
+	])
+
+	const defiActiveTvlPieChartData = useMemo(() => {
+		const filteredForPie = props.assets.filter((asset) => {
+			if (!includeStablecoins && asset.stablecoin) return false
+			if (!includeGovernance && asset.governance) return false
+			return (
+				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.assetClass?.length
+					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					: true) &&
+				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
+				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
+			)
+		})
+
+		const categoryMap = new Map<string, number>()
+		for (const asset of filteredForPie) {
+			asset.category?.forEach((category) => {
+				if (category && selectedCategories.includes(category)) {
+					categoryMap.set(category, (categoryMap.get(category) ?? 0) + asset.defiActiveTvl.total)
+				}
+			})
+		}
+
+		return Array.from(categoryMap.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([name, value]) => ({ name, value }))
+	}, [
+		props.assets,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance
+	])
+
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -369,16 +445,40 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
 			</div>
-			<div className="relative flex min-h-[360px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-				<h2 className="px-3 text-lg font-semibold">Total RWA Value - Repartition</h2>
-				<Suspense fallback={<div className="h-[360px]" />}>
-					<PieChart
-						chartData={pieChartData}
-						radius={pieChartRadius}
-						legendPosition={pieChartLegendPosition}
-						legendTextStyle={pieChartLegendTextStyle}
-					/>
-				</Suspense>
+			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<h2 className="px-3 text-lg font-semibold">Total RWA On-chain</h2>
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<PieChart
+							chartData={pieChartData}
+							radius={pieChartRadius}
+							legendPosition={pieChartLegendPosition}
+							legendTextStyle={pieChartLegendTextStyle}
+						/>
+					</Suspense>
+				</div>
+				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<h2 className="px-3 text-lg font-semibold">Active Marketcap</h2>
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<PieChart
+							chartData={activeMarketcapPieChartData}
+							radius={pieChartRadius}
+							legendPosition={pieChartLegendPosition}
+							legendTextStyle={pieChartLegendTextStyle}
+						/>
+					</Suspense>
+				</div>
+				<div className="col-span-1 min-h-[368px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+					<h2 className="px-3 text-lg font-semibold">DeFi Active TVL</h2>
+					<Suspense fallback={<div className="h-[360px]" />}>
+						<PieChart
+							chartData={defiActiveTvlPieChartData}
+							radius={pieChartRadius}
+							legendPosition={pieChartLegendPosition}
+							legendTextStyle={pieChartLegendTextStyle}
+						/>
+					</Suspense>
+				</div>
 			</div>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
