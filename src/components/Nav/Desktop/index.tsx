@@ -52,7 +52,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`desktop-nav-${category}`} className="group flex flex-col">
 							{category === 'Premium' ? <PremiumHeader /> : null}
-							{pages.map(({ name, route, icon, attention }) => (
+							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
 								<LinkToPage
 									key={`desktop-nav-${name}-${route}`}
 									route={route}
@@ -60,6 +60,7 @@ export const DesktopNav = React.memo(function DesktopNav({
 									icon={icon}
 									attention={attention}
 									asPath={asPath}
+									umamiEvent={umamiEvent}
 								/>
 							))}
 						</div>
