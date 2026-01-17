@@ -263,6 +263,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			})
 				.then((result) => {
 					setIsStreaming(false)
+					setLastFailedRequest(null)
 					if (result?.response) {
 						setMessages((prev) => [
 							...prev,
@@ -629,7 +630,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		const handleVisibilityChange = () => {
 			if (document.visibilityState !== 'visible') return
 			const currentSessionId = sessionIdRef.current
-			if (error && currentSessionId && !isStreaming && !isPending) {
+			const isUserAbort = error?.message === 'Request aborted'
+			if (error && !isUserAbort && currentSessionId && !isStreaming && !isPending) {
 				resetPrompt()
 				reconnectToStream(currentSessionId, streamingResponse)
 			}
