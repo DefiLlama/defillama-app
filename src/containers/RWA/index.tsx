@@ -17,6 +17,7 @@ import { NextRouter, useRouter } from 'next/router'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -40,6 +41,26 @@ type RWADefinitions = typeof rwaDefinitionsJson & {
 
 const definitions = rwaDefinitionsJson as RWADefinitions
 
+const meetsRatioPercent = (
+	numerator: number,
+	denominator: number,
+	minPercent: number | null,
+	maxPercent: number | null
+) => {
+	if (minPercent == null && maxPercent == null) return true
+	if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) return false
+	const percent = (numerator / denominator) * 100
+	if (minPercent != null && percent < minPercent) return false
+	if (maxPercent != null && percent > maxPercent) return false
+	return true
+}
+
+const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
+	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'min'
+	const maxLabel = maxPercent != null ? `${maxPercent.toLocaleString()}%` : 'max'
+	return `${minLabel} - ${maxLabel}`
+}
+
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMarketcap.total', desc: true }])
@@ -53,6 +74,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
@@ -60,6 +85,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setSelectedRwaClassifications,
 		setSelectedAccessModels,
 		setSelectedIssuers,
+		setDefiActiveTvlToOnChainPctRange,
+		setActiveMcapToOnChainPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
 		selectOnlyOneCategory,
@@ -85,18 +112,42 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		issuers: props.issuers
 	})
 
-	// Recalculate summary values based on all filters
-	const {
-		totalOnChainRwaValue,
-		totalActiveMarketcap,
-		totalOnChainStablecoinValue,
-		totalOnChainDeFiActiveTvl,
-		issuersCount
-	} = useMemo(() => {
-		// Filter assets based on all filters
-		const filteredAssets = props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) return false
-			if (!includeGovernance && asset.governance) return false
+	const [searchValue, setSearchValue] = useState('')
+	const deferredSearchValue = useDeferredValue(searchValue)
+
+	// Non-RWA Stablecoins
+	// Crypto-collateralized stablecoin (non-RWA)
+	const filteredAssets = useMemo(() => {
+		return props.assets.filter((asset) => {
+			if (!includeStablecoins && asset.stablecoin) {
+				return false
+			}
+			if (!includeGovernance && asset.governance) {
+				return false
+			}
+
+			const onChainMarketcap = asset.onChainMarketcap.total
+			if (
+				!meetsRatioPercent(
+					asset.defiActiveTvl.total,
+					onChainMarketcap,
+					minDefiActiveTvlToOnChainPct,
+					maxDefiActiveTvlToOnChainPct
+				)
+			) {
+				return false
+			}
+			if (
+				!meetsRatioPercent(
+					asset.activeMarketcap.total,
+					onChainMarketcap,
+					minActiveMcapToOnChainPct,
+					maxActiveMcapToOnChainPct
+				)
+			) {
+				return false
+			}
+
 			return (
 				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
 				(asset.assetClass?.length
@@ -107,7 +158,29 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
 			)
 		})
+	}, [
+		props.assets,
+		selectedCategories,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		includeStablecoins,
+		includeGovernance,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct
+	])
 
+	// Recalculate summary values based on all filters
+	const {
+		totalOnChainRwaValue,
+		totalActiveMarketcap,
+		totalOnChainStablecoinValue,
+		totalOnChainDeFiActiveTvl,
+		issuersCount
+	} = useMemo(() => {
 		let rwaValue = 0
 		let activeMarketcap = 0
 		let stablecoinValue = 0
@@ -133,38 +206,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			totalOnChainDeFiActiveTvl: defiTvl,
 			issuersCount: issuersSet.size
 		}
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
+	}, [filteredAssets])
 
 	// Pie charts (single pass): keep category colors consistent across all 3 charts via `stackColors`
 	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
-			// Filter assets based on all filters (same as filteredAssets but we need to calculate category breakdown)
-			const filteredForPie = props.assets.filter((asset) => {
-				if (!includeStablecoins && asset.stablecoin) return false
-				if (!includeGovernance && asset.governance) return false
-				return (
-					(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-					(asset.assetClass?.length
-						? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-						: true) &&
-					(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-					(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-					(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-				)
-			})
-
 			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
-			for (const asset of filteredForPie) {
+			for (const asset of filteredAssets) {
 				for (const category of asset.category ?? []) {
 					if (!category || !selectedCategories.includes(category)) continue
 
@@ -196,51 +245,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				defiActiveTvlPieChartData: toSortedChartData('defi'),
 				pieChartStackColors
 			}
-		}, [
-			props.assets,
-			props.categories,
-			selectedCategories,
-			selectedAssetClasses,
-			selectedRwaClassifications,
-			selectedAccessModels,
-			selectedIssuers,
-			includeStablecoins,
-			includeGovernance
-		])
-
-	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
-
-	// Non-RWA Stablecoins
-	// Crypto-collateralized stablecoin (non-RWA)
-	const filteredAssets = useMemo(() => {
-		return props.assets.filter((asset) => {
-			if (!includeStablecoins && asset.stablecoin) {
-				return false
-			}
-			if (!includeGovernance && asset.governance) {
-				return false
-			}
-			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
-				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
-					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
-			)
-		})
-	}, [
-		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
-		includeStablecoins,
-		includeGovernance
-	])
+		}, [filteredAssets, props.categories, selectedCategories])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets
@@ -523,6 +528,64 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							className:
 								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
 						}}
+					/>
+					<FilterBetweenRange
+						name="DeFi TVL / On-chain %"
+						trigger={
+							minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
+								<>
+									<span>DeFi TVL / On-chain: </span>
+									<span className="text-(--link)">
+										{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
+									</span>
+								</>
+							) : (
+								<span>DeFi TVL / On-chain %</span>
+							)
+						}
+						onSubmit={(e) => {
+							e.preventDefault()
+							const form = e.currentTarget
+							const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+							const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+							setDefiActiveTvlToOnChainPctRange(minValue, maxValue)
+						}}
+						onClear={() => setDefiActiveTvlToOnChainPctRange(null, null)}
+						min={minDefiActiveTvlToOnChainPct}
+						max={maxDefiActiveTvlToOnChainPct}
+						minLabel="Min %"
+						maxLabel="Max %"
+						minInputProps={ratioPercentInputProps}
+						maxInputProps={ratioPercentInputProps}
+					/>
+					<FilterBetweenRange
+						name="Active Marketcap / On-chain %"
+						trigger={
+							minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
+								<>
+									<span>Active Marketcap / On-chain: </span>
+									<span className="text-(--link)">
+										{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
+									</span>
+								</>
+							) : (
+								<span>Active Marketcap / On-chain %</span>
+							)
+						}
+						onSubmit={(e) => {
+							e.preventDefault()
+							const form = e.currentTarget
+							const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+							const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+							setActiveMcapToOnChainPctRange(minValue, maxValue)
+						}}
+						onClear={() => setActiveMcapToOnChainPctRange(null, null)}
+						min={minActiveMcapToOnChainPct}
+						max={maxActiveMcapToOnChainPct}
+						minLabel="Min %"
+						maxLabel="Max %"
+						minInputProps={ratioPercentInputProps}
+						maxInputProps={ratioPercentInputProps}
 					/>
 					<label className="flex items-center gap-2">
 						<input
@@ -988,6 +1051,22 @@ const toArrayParam = (p: string | string[] | undefined): string[] => {
 	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
 }
 
+const parseNumberInput = (value: string | number | null | undefined): number | null => {
+	if (value == null) return null
+	if (typeof value === 'number') return Number.isFinite(value) ? value : null
+	const trimmed = value.trim()
+	if (!trimmed) return null
+	const n = Number(trimmed)
+	return Number.isFinite(n) ? n : null
+}
+
+const toNumberParam = (p: string | string[] | undefined): number | null => {
+	if (Array.isArray(p)) {
+		return parseNumberInput(p[0])
+	}
+	return parseNumberInput(p)
+}
+
 const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRouter) => {
 	const nextQuery: Record<string, any> = { ...router.query }
 	if (values === 'None') {
@@ -996,6 +1075,29 @@ const updateArrayQuery = (key: string, values: string[] | 'None', router: NextRo
 		nextQuery[key] = values
 	} else {
 		delete nextQuery[key]
+	}
+	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+}
+
+const updateNumberRangeQuery = (
+	minKey: string,
+	maxKey: string,
+	minValue: string | number | null | undefined,
+	maxValue: string | number | null | undefined,
+	router: NextRouter
+) => {
+	const nextQuery: Record<string, any> = { ...router.query }
+	const parsedMin = parseNumberInput(minValue)
+	const parsedMax = parseNumberInput(maxValue)
+	if (parsedMin == null) {
+		delete nextQuery[minKey]
+	} else {
+		nextQuery[minKey] = String(parsedMin)
+	}
+	if (parsedMax == null) {
+		delete nextQuery[maxKey]
+	} else {
+		nextQuery[maxKey] = String(parsedMax)
 	}
 	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
 }
@@ -1021,6 +1123,10 @@ const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
 		includeStablecoins,
 		includeGovernance
 	} = useMemo(() => {
@@ -1030,6 +1136,10 @@ const useRWATableQueryParams = ({
 			rwaClassifications: rwaClassificationsQ,
 			accessModels: accessModelsQ,
 			issuers: issuersQ,
+			minDefiActiveTvlToOnChainPct: minDefiActiveTvlToOnChainPctQ,
+			maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
+			minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
+			maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
 			includeStablecoins: stablecoinsQ,
 			includeGovernance: governanceQ
 		} = router.query
@@ -1048,6 +1158,10 @@ const useRWATableQueryParams = ({
 		const selectedRwaClassifications = parseArrayParam(rwaClassificationsQ, rwaClassifications)
 		const selectedAccessModels = parseArrayParam(accessModelsQ, accessModels)
 		const selectedIssuers = parseArrayParam(issuersQ, issuers)
+		const minDefiActiveTvlToOnChainPct = toNumberParam(minDefiActiveTvlToOnChainPctQ)
+		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
+		const minActiveMcapToOnChainPct = toNumberParam(minActiveMcapToOnChainPctQ)
+		const maxActiveMcapToOnChainPct = toNumberParam(maxActiveMcapToOnChainPctQ)
 
 		// includeStablecoins is true by default, unless explicitly set to 'false'
 		const includeStablecoins = stablecoinsQ !== 'false'
@@ -1058,6 +1172,10 @@ const useRWATableQueryParams = ({
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
+			minDefiActiveTvlToOnChainPct,
+			maxDefiActiveTvlToOnChainPct,
+			minActiveMcapToOnChainPct,
+			maxActiveMcapToOnChainPct,
 			includeStablecoins,
 			includeGovernance
 		}
@@ -1132,6 +1250,23 @@ const useRWATableQueryParams = ({
 	}, [router])
 	const clearAllIssuers = useCallback(() => updateArrayQuery('issuers', 'None', router), [router])
 
+	const setDefiActiveTvlToOnChainPctRange = useCallback(
+		(minValue: string | number | null, maxValue: string | number | null) =>
+			updateNumberRangeQuery(
+				'minDefiActiveTvlToOnChainPct',
+				'maxDefiActiveTvlToOnChainPct',
+				minValue,
+				maxValue,
+				router
+			),
+		[router]
+	)
+	const setActiveMcapToOnChainPctRange = useCallback(
+		(minValue: string | number | null, maxValue: string | number | null) =>
+			updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue, router),
+		[router]
+	)
+
 	const setIncludeStablecoins = useCallback(
 		(value: boolean) => {
 			const nextQuery: Record<string, any> = { ...router.query }
@@ -1164,6 +1299,10 @@ const useRWATableQueryParams = ({
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		minDefiActiveTvlToOnChainPct,
+		maxDefiActiveTvlToOnChainPct,
+		minActiveMcapToOnChainPct,
+		maxActiveMcapToOnChainPct,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
@@ -1171,6 +1310,8 @@ const useRWATableQueryParams = ({
 		setSelectedRwaClassifications,
 		setSelectedAccessModels,
 		setSelectedIssuers,
+		setDefiActiveTvlToOnChainPctRange,
+		setActiveMcapToOnChainPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
 		selectOnlyOneCategory,
@@ -1201,3 +1342,4 @@ const pieChartLegendPosition = {
 	}
 } as any
 const pieChartLegendTextStyle = { fontSize: 14 }
+const ratioPercentInputProps = { min: 0, step: '0.01' } as const

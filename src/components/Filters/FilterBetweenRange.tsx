@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { FormEventHandler, ReactNode } from 'react'
+import { FormEventHandler, InputHTMLAttributes, ReactNode } from 'react'
 import { NestedMenu } from '~/components/NestedMenu'
 import { cn } from '~/utils/cn'
 import { Icon } from '../Icon'
@@ -15,6 +15,10 @@ interface IFilterBetweenRange {
 	variant?: 'primary' | 'secondary'
 	triggerClassName?: string
 	placement?: Ariakit.PopoverStoreProps['placement']
+	minLabel?: string
+	maxLabel?: string
+	minInputProps?: InputHTMLAttributes<HTMLInputElement>
+	maxInputProps?: InputHTMLAttributes<HTMLInputElement>
 }
 
 const getVariantClasses = (variant: string) => {
@@ -36,7 +40,11 @@ export function FilterBetweenRange({
 	max,
 	variant = 'primary',
 	triggerClassName,
-	placement = 'bottom-end'
+	placement = 'bottom-end',
+	minLabel = 'Min',
+	maxLabel = 'Max',
+	minInputProps,
+	maxInputProps
 }: IFilterBetweenRange) {
 	const popover = Ariakit.usePopoverStore({
 		placement
@@ -45,7 +53,16 @@ export function FilterBetweenRange({
 	if (nestedMenu) {
 		return (
 			<NestedMenu label={name}>
-				<Form onSubmit={onSubmit} onClear={onClear} min={min} max={max} />
+				<Form
+					onSubmit={onSubmit}
+					onClear={onClear}
+					min={min}
+					max={max}
+					minLabel={minLabel}
+					maxLabel={maxLabel}
+					minInputProps={minInputProps}
+					maxInputProps={maxInputProps}
+				/>
 			</NestedMenu>
 		)
 	}
@@ -72,7 +89,16 @@ export function FilterBetweenRange({
 				</Ariakit.PopoverDismiss>
 
 				<div className="mx-auto w-full sm:w-[260px]">
-					<Form min={min} max={max} onSubmit={onSubmit} onClear={onClear} />
+					<Form
+						min={min}
+						max={max}
+						onSubmit={onSubmit}
+						onClear={onClear}
+						minLabel={minLabel}
+						maxLabel={maxLabel}
+						minInputProps={minInputProps}
+						maxInputProps={maxInputProps}
+					/>
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
@@ -83,31 +109,41 @@ function Form({
 	onSubmit,
 	onClear,
 	min,
-	max
+	max,
+	minLabel,
+	maxLabel,
+	minInputProps,
+	maxInputProps
 }: {
 	onSubmit: FormEventHandler<HTMLFormElement>
 	onClear: () => void
 	min: number | string | null
 	max: number | string | null
+	minLabel: string
+	maxLabel: string
+	minInputProps?: InputHTMLAttributes<HTMLInputElement>
+	maxInputProps?: InputHTMLAttributes<HTMLInputElement>
 }) {
 	return (
 		<form onSubmit={onSubmit} onReset={onClear} className="flex flex-col gap-3 p-3">
 			<label className="flex flex-col gap-1">
-				<span>Min</span>
+				<span>{minLabel}</span>
 				<input
 					type="number"
 					name="min"
 					className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-					defaultValue={min || ''}
+					defaultValue={min ?? ''}
+					{...minInputProps}
 				/>
 			</label>
 			<label className="flex flex-col gap-1">
-				<span>Max</span>
+				<span>{maxLabel}</span>
 				<input
 					type="number"
 					name="max"
 					className="h-9 w-full rounded-md border border-(--form-control-border) bg-white px-3 py-1 text-black disabled:opacity-50 dark:bg-black dark:text-white"
-					defaultValue={max || ''}
+					defaultValue={max ?? ''}
+					{...maxInputProps}
 				/>
 			</label>
 
