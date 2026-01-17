@@ -72,7 +72,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		let chart = (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value])
-		const nonZeroIndex = chart.findIndex(([date, value]) => value > 0)
+		const nonZeroIndex = chart.findIndex(([_date, value]) => value > 0)
 		if (nonZeroIndex !== -1) {
 			chart = chart.slice(nonZeroIndex)
 		}
@@ -145,7 +145,7 @@ export default function Protocols(props) {
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 						</span>
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />

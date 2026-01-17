@@ -1,6 +1,6 @@
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as echarts from 'echarts/core'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { oldBlue } from '~/constants/colors'
@@ -71,7 +71,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		staleTime: 60 * 60 * 1000
 	})
 
-	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolAddlChartsData(protocolName)
+	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolAddlChartsData(protocol)
 
 	const isLoading = chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading
 

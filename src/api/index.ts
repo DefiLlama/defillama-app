@@ -30,7 +30,7 @@ export async function retryCoingeckoRequest(func, retries) {
 		try {
 			const resp = await func()
 			return resp
-		} catch (e) {
+		} catch {
 			if ((i + 1) % 3 === 0 && retries > 3) {
 				await new Promise((resolve) => setTimeout(resolve, 10e3))
 			}

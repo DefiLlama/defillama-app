@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ColumnDef, sortingFns } from '@tanstack/react-table'
+import * as React from 'react'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CHART_COLORS } from '~/constants/colors'
 import Layout from '~/layout'

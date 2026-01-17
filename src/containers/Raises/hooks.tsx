@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { ILineAndBarChartProps } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { slug, toYearMonth } from '~/utils'

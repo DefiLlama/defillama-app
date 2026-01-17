@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import { ECBasicOption } from 'echarts/types/dist/shared'
+import { useRouter } from 'next/router'
 import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
 import { liquidationsIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -67,7 +67,7 @@ export type Price = {
 	chain: Chain
 }
 
-const getNativeSymbol = (symbol: string) => {
+const _getNativeSymbol = (symbol: string) => {
 	if (symbol in SYMBOL_MAP) {
 		return SYMBOL_MAP[symbol].toLowerCase()
 	}
@@ -193,7 +193,7 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	try {
 		const res = await fetchJson(LIQUIDATIONS_DATA_URL)
 		data = res
-	} catch (e) {
+	} catch {
 		// fallback to current
 		const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
 		data = res
@@ -279,11 +279,11 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 		chartDataBins: {
 			chains: sortObject(
 				chartDataBinsByChain,
-				([keyA, a], [keyB, b]) => liquidablesByChain[keyB] - liquidablesByChain[keyA]
+				([keyA, _a], [keyB, _b]) => liquidablesByChain[keyB] - liquidablesByChain[keyA]
 			),
 			protocols: sortObject(
 				chartDataBinsByProtocol,
-				([keyA, a], [keyB, b]) => liquidablesByProtocol[keyB] - liquidablesByProtocol[keyA]
+				([keyA, _a], [keyB, _b]) => liquidablesByProtocol[keyB] - liquidablesByProtocol[keyA]
 			)
 		},
 		binSize: currentPrice / totalBins,
@@ -752,6 +752,6 @@ export const getOption = (
 export const useStackBy = () => {
 	const router = useRouter()
 	const { stackBy } = router.query as { stackBy: 'chains' | 'protocols' }
-	const _stackBy = !!stackBy ? stackBy : 'protocols'
+	const _stackBy = stackBy ? stackBy : 'protocols'
 	return _stackBy
 }

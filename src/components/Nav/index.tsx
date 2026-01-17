@@ -51,18 +51,23 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 
 	const mainLinks = useMemo(() => {
 		const otherMainPages = [
-			{ name: 'Pricing', route: '/subscription', icon: 'user' },
 			{ name: 'Chains', route: '/chains', icon: 'globe' },
 			{ name: 'Yields', route: '/yields', icon: 'percent' },
 			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
-			...(hasActiveSubscription
-				? [{ name: 'LlamaAI', route: '/ai/chat', icon: '' }]
-				: [{ name: 'LlamaAI', route: '/ai', icon: '' }]),
-			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
-			{ name: 'Support', route: '/support', icon: 'headset' }
+			{ name: 'Support', route: '/support', icon: 'headset' },
+			{ name: 'API', route: 'https://api-docs.defillama.com', icon: 'code' }
 		]
-		return [{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) }]
+		const premiumPages = [
+			{ name: 'Pricing', route: '/subscription', icon: 'user' },
+			{ name: 'LlamaAI', route: hasActiveSubscription ? '/ai/chat' : '/ai', icon: '' },
+			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
+			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
+			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity', umamiEvent: 'nav-llamafeed-click' }
+		]
+		return [
+			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
+			{ category: 'Premium', pages: premiumPages }
+		]
 	}, [hasActiveSubscription])
 
 	const userDashboards = useMemo(

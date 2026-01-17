@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'

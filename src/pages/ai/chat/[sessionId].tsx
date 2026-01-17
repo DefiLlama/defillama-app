@@ -1,6 +1,6 @@
-import { lazy, Suspense, useState } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useState } from 'react'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { LlamaAI } from '~/containers/LlamaAI'
@@ -57,11 +57,11 @@ export default function SessionPage() {
 						to access this page.
 					</p>
 				</div>
-				{shouldRenderModal && (
+				{shouldRenderModal ? (
 					<Suspense fallback={<></>}>
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
-				)}
+				) : null}
 			</Layout>
 		)
 	}

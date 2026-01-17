@@ -34,18 +34,22 @@ interface IFetchedRWAProject {
 	governance: boolean | null
 	defiActiveTvl: Record<string, Record<string, string>> | null
 	onChainMarketcap: Record<string, string> | null
+	activeMcap: Record<string, string> | null
 }
 
-export interface IRWAProject
-	extends Omit<
-		IFetchedRWAProject,
-		'onChainMarketcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
-	> {
+export interface IRWAProject extends Omit<
+	IFetchedRWAProject,
+	'onChainMarketcap' | 'activeMcap' | 'defiActiveTvl' | 'website' | 'issuerRegistryInfo' | 'accessModel'
+> {
 	accessModel: 'Permissioned' | 'Permissionless' | 'Non-transferable' | 'Custodial Only' | 'Unknown'
 	website: string[] | null
 	issuerRegistryInfo: string[] | null
 	trueRWA: boolean
 	onChainMarketcap: {
+		total: number
+		breakdown: Array<[string, number]>
+	}
+	activeMarketcap: {
 		total: number
 		breakdown: Array<[string, number]>
 	}
@@ -68,21 +72,27 @@ export interface IRWAAssetsOverview {
 	issuers: Array<string>
 	chains: Array<{ label: string; to: string }>
 	selectedChain: string
-	totalOnChainRwaValue: number
+	totalOnChainMarketcap: number
+	totalActiveMarketcap: number
 	totalOnChainStablecoinValue: number
 	totalOnChainDeFiActiveTvl: number
 }
 
 export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWAAssetsOverview | null> {
 	try {
-		const res: { data: Record<string, IFetchedRWAProject> } = await fetchJson(RWA_ACTIVE_TVLS_API)
+		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
 
-		// Find the actual chain name (case-insensitive match) and validate it exists
+		if (!data || typeof data !== 'object') {
+			return null
+		}
+
+		// `selectedChain` comes from the URL and is slugified; resolve a display name (original casing/spaces)
+		// while still filtering breakdown keys by slug for robustness.
 		let actualChainName: string | null = null
 		if (selectedChain) {
-			const selectedChainLower = selectedChain.toLowerCase()
-			for (const rwaId in res.data) {
-				const match = res.data[rwaId].chain?.find((c) => c.toLowerCase() === selectedChainLower)
+			for (const rwaId in data) {
+				const match = data[rwaId].chain?.find((c) => slug(c) === selectedChain)
 				if (match) {
 					actualChainName = match
 					break
@@ -100,92 +110,124 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 		const categories = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const chains = new Map<string, number>()
-		let totalOnChainRwaValue = 0
-		let totalOnChainStablecoinValue = 0
-		let totalOnChainDeFiActiveTvl = 0
+		let totalOnChainMarketcapAllAssets = 0
+		let totalActiveMarketcapAllAssets = 0
+		let totalOnChainStablecoinValueAllAssets = 0
+		let totalOnChainDeFiActiveTvlAllAssets = 0
 
-		for (const rwaId in res.data) {
-			const item = res.data[rwaId]
+		for (const rwaId in data) {
+			const item = data[rwaId]
 
-			let totalOnChainTvl = 0
-			let totalDeFiActiveTvl = 0
-			let filteredOnChainTvl = 0
-			let filteredDeFiActiveTvl = 0
-			const onChainTvlBreakdown = item.onChainMarketcap ?? {}
+			let totalOnChainMarketcapForAsset = 0
+			let totalActiveMarketcapForAsset = 0
+			let totalDeFiActiveTvlForAsset = 0
+			let filteredOnChainMarketcapForAsset = 0
+			let filteredActiveMarketcapForAsset = 0
+			let filteredDeFiActiveTvlForAsset = 0
+			const onChainMarketcapBreakdown = item.onChainMarketcap ?? {}
+			const activeMarketcapBreakdown = item.activeMcap ?? {}
 			const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
-			const finalOnChainTvlBreakdown: Record<string, number> = {}
+			const finalOnChainMarketcapBreakdown: Record<string, number> = {}
+			const finalActiveMarketcapBreakdown: Record<string, number> = {}
 			const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
+			const finalDeFiActiveTvlBreakdownFiltered: Record<string, number> = {}
+			const isChainFiltered = !!selectedChain
 
-			for (const chain in onChainTvlBreakdown) {
-				const value = Number(onChainTvlBreakdown[chain])
-				finalOnChainTvlBreakdown[chain] = (finalOnChainTvlBreakdown[chain] || 0) + value
-				totalOnChainTvl += value
-				if (actualChainName && chain === actualChainName) {
-					filteredOnChainTvl += value
+			for (const chain in onChainMarketcapBreakdown) {
+				const value = safeNumber(onChainMarketcapBreakdown[chain])
+				finalOnChainMarketcapBreakdown[chain] = (finalOnChainMarketcapBreakdown[chain] || 0) + value
+				totalOnChainMarketcapForAsset += value
+				if (selectedChain && slug(chain) === selectedChain) {
+					filteredOnChainMarketcapForAsset += value
+				}
+			}
+
+			for (const chain in activeMarketcapBreakdown) {
+				const value = safeNumber(activeMarketcapBreakdown[chain])
+				finalActiveMarketcapBreakdown[chain] = (finalActiveMarketcapBreakdown[chain] || 0) + value
+				totalActiveMarketcapForAsset += value
+				if (selectedChain && slug(chain) === selectedChain) {
+					filteredActiveMarketcapForAsset += value
 				}
 			}
 
 			for (const chain in defiActiveTvlBreakdown) {
+				const isSelectedChain = !isChainFiltered || slug(chain) === selectedChain
 				for (const protocolName in defiActiveTvlBreakdown[chain]) {
-					const value = Number(defiActiveTvlBreakdown[chain][protocolName])
+					const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
 					finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
-					totalDeFiActiveTvl += value
-					if (actualChainName && chain === actualChainName) {
-						filteredDeFiActiveTvl += value
+					totalDeFiActiveTvlForAsset += value
+					if (isSelectedChain && selectedChain) {
+						finalDeFiActiveTvlBreakdownFiltered[protocolName] =
+							(finalDeFiActiveTvlBreakdownFiltered[protocolName] || 0) + value
+						filteredDeFiActiveTvlForAsset += value
 					}
 				}
 			}
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
-			const hasChainInTvl = actualChainName ? filteredOnChainTvl > 0 || filteredDeFiActiveTvl > 0 : true
+			const hasChainInTvl = selectedChain
+				? filteredOnChainMarketcapForAsset > 0 || filteredActiveMarketcapForAsset > 0 || filteredDeFiActiveTvlForAsset > 0
+				: true
 
 			// Use filtered values if chain is selected, otherwise use totals
-			const effectiveOnChainTvl = actualChainName ? filteredOnChainTvl : totalOnChainTvl
-			const effectiveDeFiActiveTvl = actualChainName ? filteredDeFiActiveTvl : totalDeFiActiveTvl
+			const effectiveOnChainMarketcap = selectedChain ? filteredOnChainMarketcapForAsset : totalOnChainMarketcapForAsset
+			const effectiveActiveMarketcap = selectedChain ? filteredActiveMarketcapForAsset : totalActiveMarketcapForAsset
+			const effectiveDeFiActiveTvl = selectedChain ? filteredDeFiActiveTvlForAsset : totalDeFiActiveTvlForAsset
 
 			const isTrueRWA = item.rwaClassification === 'True RWA'
 			const asset: IRWAProject = {
 				ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
 				name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 				website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
-				twitter: item.twitter,
-				primaryChain: item.primaryChain,
-				chain: item.chain,
-				contracts: item.contracts,
-				category: item.category,
-				assetClass: item.assetClass,
-				type: item.type,
-				rwaClassification: isTrueRWA ? 'RWA' : item.rwaClassification,
+				twitter: item.twitter ?? null,
+				primaryChain: item.primaryChain ?? null,
+				chain: item.chain ?? null,
+				contracts: item.contracts ?? null,
+				category: item.category ?? null,
+				assetClass: item.assetClass ?? null,
+				type: item.type ?? null,
+				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 				trueRWA: isTrueRWA,
 				accessModel: getAccessModel(item),
-				issuer: item.issuer,
-				issuerSourceLink: item.issuerSourceLink,
+				issuer: item.issuer ?? null,
+				issuerSourceLink: item.issuerSourceLink ?? null,
 				issuerRegistryInfo:
 					item.issuerRegistryInfo == null
 						? null
 						: Array.isArray(item.issuerRegistryInfo)
 							? item.issuerRegistryInfo
 							: [item.issuerRegistryInfo],
-				isin: item.isin,
-				attestationLinks: item.attestationLinks,
-				attestations: item.attestations,
-				redeemable: item.redeemable,
-				cexListed: item.cexListed,
-				kycForMintRedeem: item.kycForMintRedeem,
-				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold,
-				transferable: item.transferable,
-				selfCustody: item.selfCustody,
-				descriptionNotes: item.descriptionNotes,
-				parentPlatform: item.parentPlatform,
-				stablecoin: item.stablecoin,
-				governance: item.governance,
+				isin: item.isin ?? null,
+				attestationLinks: item.attestationLinks ?? null,
+				attestations: item.attestations ?? null,
+				redeemable: item.redeemable ?? null,
+				cexListed: item.cexListed ?? null,
+				kycForMintRedeem: item.kycForMintRedeem ?? null,
+				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold ?? null,
+				transferable: item.transferable ?? null,
+				selfCustody: item.selfCustody ?? null,
+				descriptionNotes: item.descriptionNotes ?? null,
+				parentPlatform: item.parentPlatform ?? null,
+				stablecoin: item.stablecoin ?? null,
+				governance: item.governance ?? null,
 				onChainMarketcap: {
-					total: effectiveOnChainTvl,
-					breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
+					total: effectiveOnChainMarketcap,
+					breakdown: Object.entries(finalOnChainMarketcapBreakdown)
+						.filter(([chain]) => !selectedChain || slug(chain) === selectedChain)
+						.sort((a, b) => b[1] - a[1])
+				},
+				activeMarketcap: {
+					total: effectiveActiveMarketcap,
+					breakdown: Object.entries(finalActiveMarketcapBreakdown)
+						.filter(([chain]) => !selectedChain || slug(chain) === selectedChain)
+						.sort((a, b) => b[1] - a[1])
 				},
 				defiActiveTvl: {
 					total: effectiveDeFiActiveTvl,
-					breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
+					breakdown: Object.entries(isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown).sort(
+						(a, b) => b[1] - a[1]
+					)
 				}
 			}
 
@@ -194,41 +236,42 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				assets.push(asset)
 
 				// Track total values
-				totalOnChainRwaValue += effectiveOnChainTvl
+				totalOnChainMarketcapAllAssets += effectiveOnChainMarketcap
+				totalActiveMarketcapAllAssets += effectiveActiveMarketcap
 				if (item.stablecoin) {
-					totalOnChainStablecoinValue += effectiveOnChainTvl
+					totalOnChainStablecoinValueAllAssets += effectiveOnChainMarketcap
 				}
-				totalOnChainDeFiActiveTvl += effectiveDeFiActiveTvl
+				totalOnChainDeFiActiveTvlAllAssets += effectiveDeFiActiveTvl
 
 				// Add to categories/issuers/assetClasses/rwaClassifications/accessModels for assets on this chain
 				asset.assetClass?.forEach((assetClass) => {
 					if (assetClass) {
-						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainTvl)
+						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainMarketcap)
 					}
 				})
 				asset.category?.forEach((category) => {
 					if (category) {
-						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainTvl)
+						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMarketcap)
 					}
 				})
 				if (asset.rwaClassification) {
 					rwaClassifications.set(
 						asset.rwaClassification,
-						(rwaClassifications.get(asset.rwaClassification) ?? 0) + effectiveOnChainTvl
+						(rwaClassifications.get(asset.rwaClassification) ?? 0) + effectiveOnChainMarketcap
 					)
 				}
 				if (asset.accessModel) {
-					accessModels.set(asset.accessModel, (accessModels.get(asset.accessModel) ?? 0) + effectiveOnChainTvl)
+					accessModels.set(asset.accessModel, (accessModels.get(asset.accessModel) ?? 0) + effectiveOnChainMarketcap)
 				}
 				if (asset.issuer) {
-					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainTvl)
+					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainMarketcap)
 				}
 			}
 
 			// Chains list always uses total TVL (not filtered) so order stays consistent
 			asset.chain?.forEach((chain) => {
 				if (chain) {
-					chains.set(chain, (chains.get(chain) ?? 0) + totalOnChainTvl)
+					chains.set(chain, (chains.get(chain) ?? 0) + totalOnChainMarketcapForAsset)
 				}
 			})
 		}
@@ -281,9 +324,10 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 					.sort((a, b) => b[1] - a[1])
 					.map(([key]) => ({ label: key, to: `/rwa/chain/${slug(key)}` }))
 			],
-			totalOnChainRwaValue,
-			totalOnChainStablecoinValue,
-			totalOnChainDeFiActiveTvl
+			totalOnChainMarketcap: totalOnChainMarketcapAllAssets,
+			totalActiveMarketcap: totalActiveMarketcapAllAssets,
+			totalOnChainStablecoinValue: totalOnChainStablecoinValueAllAssets,
+			totalOnChainDeFiActiveTvl: totalOnChainDeFiActiveTvlAllAssets
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
@@ -291,7 +335,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 }
 
 export async function getRWAChainsList(): Promise<string[]> {
-	const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+	if (!data || typeof data !== 'object') return []
 	const chains = new Set<string>()
 
 	for (const rwaId in data) {
@@ -314,30 +360,41 @@ export interface IRWAAssetData extends IRWAProject {
 
 export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData | null> {
 	try {
-		const res: { data: Record<string, IFetchedRWAProject> } = await fetchJson(RWA_ACTIVE_TVLS_API)
+		const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+		const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+		if (!data || typeof data !== 'object') return null
 
 		// Find the asset by comparing ticker slugs
-		for (const rwaId in res.data) {
-			const item = res.data[rwaId]
-			if (slug(item.ticker) === assetSlug) {
-				let totalOnChainTvl = 0
-				let totalDeFiActiveTvl = 0
-				const onChainTvlBreakdown = item.onChainMarketcap ?? {}
+		for (const rwaId in data) {
+			const item = data[rwaId]
+			if (typeof item.ticker === 'string' && item.ticker !== '-' && slug(item.ticker) === assetSlug) {
+				let totalOnChainMarketcapForAsset = 0
+				let totalActiveMarketcapForAsset = 0
+				let totalDeFiActiveTvlForAsset = 0
+				const onChainMarketcapBreakdown = item.onChainMarketcap ?? {}
+				const activeMarketcapBreakdown = item.activeMcap ?? {}
 				const defiActiveTvlBreakdown = item.defiActiveTvl ?? {}
-				const finalOnChainTvlBreakdown: Record<string, number> = {}
+				const finalOnChainMarketcapBreakdown: Record<string, number> = {}
+				const finalActiveMarketcapBreakdown: Record<string, number> = {}
 				const finalDeFiActiveTvlBreakdown: Record<string, number> = {}
 
-				for (const chain in onChainTvlBreakdown) {
-					const value = Number(onChainTvlBreakdown[chain])
-					finalOnChainTvlBreakdown[chain] = (finalOnChainTvlBreakdown[chain] || 0) + value
-					totalOnChainTvl += value
+				for (const chain in onChainMarketcapBreakdown) {
+					const value = safeNumber(onChainMarketcapBreakdown[chain])
+					finalOnChainMarketcapBreakdown[chain] = (finalOnChainMarketcapBreakdown[chain] || 0) + value
+					totalOnChainMarketcapForAsset += value
+				}
+
+				for (const chain in activeMarketcapBreakdown) {
+					const value = safeNumber(activeMarketcapBreakdown[chain])
+					finalActiveMarketcapBreakdown[chain] = (finalActiveMarketcapBreakdown[chain] || 0) + value
+					totalActiveMarketcapForAsset += value
 				}
 
 				for (const chain in defiActiveTvlBreakdown) {
 					for (const protocolName in defiActiveTvlBreakdown[chain]) {
-						const value = Number(defiActiveTvlBreakdown[chain][protocolName])
+						const value = safeNumber(defiActiveTvlBreakdown[chain][protocolName])
 						finalDeFiActiveTvlBreakdown[protocolName] = (finalDeFiActiveTvlBreakdown[protocolName] || 0) + value
-						totalDeFiActiveTvl += value
+						totalDeFiActiveTvlForAsset += value
 					}
 				}
 
@@ -363,46 +420,50 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 					ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,
 					name: typeof item.name === 'string' && item.name !== '-' ? item.name : null,
 					website: item.website == null ? null : Array.isArray(item.website) ? item.website : [item.website],
-					twitter: item.twitter,
-					primaryChain: item.primaryChain,
-					chain: item.chain,
-					contracts: item.contracts,
-					category: item.category,
-					assetClass: item.assetClass,
+					twitter: item.twitter ?? null,
+					primaryChain: item.primaryChain ?? null,
+					chain: item.chain ?? null,
+					contracts: item.contracts ?? null,
+					category: item.category ?? null,
+					assetClass: item.assetClass ?? null,
 					assetClassDescriptions,
-					type: item.type,
-					rwaClassification: isTrueRWA ? 'RWA' : item.rwaClassification,
+					type: item.type ?? null,
+					rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
 					rwaClassificationDescription,
 					trueRWA: isTrueRWA,
 					accessModel,
 					accessModelDescription,
-					issuer: item.issuer,
-					issuerSourceLink: item.issuerSourceLink,
+					issuer: item.issuer ?? null,
+					issuerSourceLink: item.issuerSourceLink ?? null,
 					issuerRegistryInfo:
 						item.issuerRegistryInfo == null
 							? null
 							: Array.isArray(item.issuerRegistryInfo)
 								? item.issuerRegistryInfo
 								: [item.issuerRegistryInfo],
-					isin: item.isin,
-					attestationLinks: item.attestationLinks,
-					attestations: item.attestations,
-					redeemable: item.redeemable,
-					cexListed: item.cexListed,
-					kycForMintRedeem: item.kycForMintRedeem,
-					kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold,
-					transferable: item.transferable,
-					selfCustody: item.selfCustody,
-					descriptionNotes: item.descriptionNotes,
-					parentPlatform: item.parentPlatform,
-					stablecoin: item.stablecoin,
-					governance: item.governance,
+					isin: item.isin ?? null,
+					attestationLinks: item.attestationLinks ?? null,
+					attestations: item.attestations ?? null,
+					redeemable: item.redeemable ?? null,
+					cexListed: item.cexListed ?? null,
+					kycForMintRedeem: item.kycForMintRedeem ?? null,
+					kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold ?? null,
+					transferable: item.transferable ?? null,
+					selfCustody: item.selfCustody ?? null,
+					descriptionNotes: item.descriptionNotes ?? null,
+					parentPlatform: item.parentPlatform ?? null,
+					stablecoin: item.stablecoin ?? null,
+					governance: item.governance ?? null,
 					onChainMarketcap: {
-						total: totalOnChainTvl,
-						breakdown: Object.entries(finalOnChainTvlBreakdown).sort((a, b) => b[1] - a[1])
+						total: totalOnChainMarketcapForAsset,
+						breakdown: Object.entries(finalOnChainMarketcapBreakdown).sort((a, b) => b[1] - a[1])
+					},
+					activeMarketcap: {
+						total: totalActiveMarketcapForAsset,
+						breakdown: Object.entries(finalActiveMarketcapBreakdown).sort((a, b) => b[1] - a[1])
 					},
 					defiActiveTvl: {
-						total: totalDeFiActiveTvl,
+						total: totalDeFiActiveTvlForAsset,
 						breakdown: Object.entries(finalDeFiActiveTvlBreakdown).sort((a, b) => b[1] - a[1])
 					}
 				}
@@ -416,11 +477,13 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 }
 
 export async function getRWAAssetsList(): Promise<string[]> {
-	const data: Record<string, IFetchedRWAProject> = await fetchJson(RWA_ACTIVE_TVLS_API)
+	const raw = await fetchJson<any>(RWA_ACTIVE_TVLS_API)
+	const data: Record<string, IFetchedRWAProject> | null = raw?.data ?? raw
+	if (!data || typeof data !== 'object') return []
 	const assets: string[] = []
 
 	for (const rwaId in data) {
-		if (data[rwaId].ticker) {
+		if (typeof data[rwaId].ticker === 'string' && data[rwaId].ticker !== '-') {
 			assets.push(slug(data[rwaId].ticker))
 		}
 	}
@@ -448,4 +511,9 @@ function getAccessModel(
 	}
 
 	return 'Unknown'
+}
+
+function safeNumber(value: unknown): number {
+	const n = typeof value === 'number' ? value : Number(value)
+	return Number.isFinite(n) ? n : 0
 }

@@ -1,6 +1,6 @@
+import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 // eslint sucks at types
 import * as React from 'react'
-import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { ISearchItem } from '~/components/Search/types'

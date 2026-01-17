@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,7 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
-import { TagGroup } from '~/components/TagGroup'
+import * as React from 'react'
 import { DexItem } from '~/containers/ProDashboard/types'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
@@ -39,7 +38,7 @@ export function DexsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error, refetch } = useDexsData(chains)
+	const { data, isLoading, error } = useDexsData(chains)
 	const windowSize = useWindowSize()
 
 	const enrichedData = React.useMemo<DexItemWithMarketShare[]>(() => {

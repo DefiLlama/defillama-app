@@ -273,7 +273,7 @@ export async function fetchPromptResponse({
 		if (reader && !reader.closed) {
 			try {
 				reader.releaseLock()
-			} catch (releaseError) {}
+			} catch {}
 		}
 		if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
 			throw error
@@ -283,7 +283,7 @@ export async function fetchPromptResponse({
 		if (reader && !reader.closed) {
 			try {
 				reader.releaseLock()
-			} catch (releaseError) {}
+			} catch {}
 		}
 	}
 }

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import dayjs from 'dayjs'
+import * as React from 'react'
 import { maxAgeForNext } from '~/api'
 import { getAllProtocolEmissionsWithHistory } from '~/api/categories/protocols'
 import { Announcement } from '~/components/Announcement'

@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { useCallback, useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -138,7 +138,7 @@ export const columns: ColumnDef<any>[] = [
 				>
 					{dominance.map((dom) => {
 						const color = breakdownColor(dom[0])
-						const name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
+						const _name = `${formatBreakdownType(dom[0])} (${dom[1]}%)`
 
 						return (
 							<div

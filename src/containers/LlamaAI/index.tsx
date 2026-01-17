@@ -1,6 +1,6 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -9,6 +9,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
+import { ImagePreviewModal } from './components/ImagePreviewModal'
 import { InlineSuggestions } from './components/InlineSuggestions'
 import { MarkdownRenderer } from './components/MarkdownRenderer'
 import { PromptInput } from './components/PromptInput'
@@ -170,6 +171,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		text: string
 		entities?: Array<{ term: string; slug: string }>
 	} | null>(null)
+	const [isDraggingOnChat, setIsDraggingOnChat] = useState(false)
+	const [droppedFiles, setDroppedFiles] = useState<File[] | null>(null)
+	const chatDragCounterRef = useRef(0)
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const streamingContentRef = useRef<StreamingContent>(new StreamingContent())
@@ -929,6 +933,43 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setResizeTrigger((prev) => prev + 1)
 	}, [toggleSidebar])
 
+	const handleChatDragEnter = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		chatDragCounterRef.current++
+		if (e.dataTransfer.types.includes('Files')) {
+			setIsDraggingOnChat(true)
+		}
+	}, [])
+
+	const handleChatDragLeave = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		chatDragCounterRef.current--
+		if (chatDragCounterRef.current === 0) {
+			setIsDraggingOnChat(false)
+		}
+	}, [])
+
+	const handleChatDragOver = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+	}, [])
+
+	const handleChatDrop = useCallback((e: React.DragEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		chatDragCounterRef.current = 0
+		setIsDraggingOnChat(false)
+		const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+		if (files.length > 0) {
+			setDroppedFiles(files)
+		}
+	}, [])
+
+	const clearDroppedFiles = useCallback(() => {
+		setDroppedFiles(null)
+	}, [])
+
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
@@ -1030,7 +1071,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 	}, [shouldAnimateSidebar])
 
-	const isSubmitted = isPending || isStreaming || error || promptResponse ? true : false
+	const isSubmitted = !!(isPending || isStreaming || error || promptResponse)
 
 	return (
 		<Layout
@@ -1058,6 +1099,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				)}
 				<div
 					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+					onDragEnter={handleChatDragEnter}
+					onDragLeave={handleChatDragLeave}
+					onDragOver={handleChatDragOver}
+					onDrop={handleChatDrop}
 				>
 					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
 						initialSessionId ? (
@@ -1078,7 +1123,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						) : (
 							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-									<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+									<img
+										src="/assets/llamaai/llama-ai.svg"
+										alt="LlamaAI"
+										className="object-contain"
+										width={64}
+										height={77}
+									/>
 									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 								</div>
 								{!readOnly && (
@@ -1094,6 +1145,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											isResearchMode={isResearchMode}
 											setIsResearchMode={setIsResearchMode}
 											researchUsage={researchUsage}
+											droppedFiles={droppedFiles}
+											clearDroppedFiles={clearDroppedFiles}
+											externalDragging={isDraggingOnChat}
 										/>
 										<RecommendedPrompts
 											setPrompt={setPrompt}
@@ -1312,14 +1366,20 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										</div>
 									) : (
 										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-											<img src="/assets/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
+											<img
+												src="/assets/llamaai/llama-ai.svg"
+												alt="LlamaAI"
+												className="object-contain"
+												width={64}
+												height={77}
+											/>
 											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
 										</div>
 									)}
 								</div>
 							</div>
 							<div
-								className={`pointer-events-none sticky ${readOnly ? 'bottom-6.5' : 'bottom-26.5'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
+								className={`pointer-events-none sticky ${readOnly ? 'bottom-10' : 'bottom-32'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
 							>
 								<Tooltip
 									content="Scroll to bottom"
@@ -1359,6 +1419,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 										isResearchMode={isResearchMode}
 										setIsResearchMode={setIsResearchMode}
 										researchUsage={researchUsage}
+										droppedFiles={droppedFiles}
+										clearDroppedFiles={clearDroppedFiles}
+										externalDragging={isDraggingOnChat}
 									/>
 								)}
 							</div>
@@ -1386,21 +1449,26 @@ const SentPrompt = memo(function SentPrompt({
 	prompt: string
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 }) {
+	const [previewImage, setPreviewImage] = useState<string | null>(null)
+
 	return (
 		<div className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 			{images && images.length > 0 && (
 				<div className="mb-2.5 flex flex-wrap gap-3">
 					{images.map((img) => (
-						<img
+						<button
 							key={`sent-prompt-image-${img.url}`}
-							src={img.url}
-							alt={img.filename || 'Uploaded image'}
-							className="h-16 w-16 rounded-lg object-cover"
-						/>
+							type="button"
+							onClick={() => setPreviewImage(img.url)}
+							className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+						>
+							<img src={img.url} alt={img.filename || 'Uploaded image'} className="h-full w-full object-cover" />
+						</button>
 					))}
 				</div>
 			)}
 			<p>{prompt}</p>
+			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 		</div>
 	)
 })

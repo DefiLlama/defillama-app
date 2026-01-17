@@ -1,6 +1,6 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
@@ -15,7 +15,7 @@ import {
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 
-const CreateDashboardModal = lazy(() =>
+const _CreateDashboardModal = lazy(() =>
 	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
 )
 

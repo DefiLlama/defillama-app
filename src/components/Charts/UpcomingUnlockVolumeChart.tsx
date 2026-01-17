@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { TagGroup } from '../TagGroup'
 
@@ -34,8 +34,8 @@ const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
 
 export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockVolumeChartProps) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
-	const [isFullView, setIsFullView] = useState(false)
+	const [timePeriod, _setTimePeriod] = useState<TimePeriod>('Weekly')
+	const [isFullView, _setIsFullView] = useState(false)
 	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
 
 	const { chartData, chartStacks, chartStackColors, chartLegendOptions } = useMemo(() => {

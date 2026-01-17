@@ -1,5 +1,3 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
 	createColumnHelper,
@@ -12,6 +10,8 @@ import {
 	type ExpandedState,
 	type SortingState
 } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -176,7 +176,7 @@ export const ChainProtocolsTable = ({
 
 	const addColumn = (newColumns) => {
 		const allKeys = mergedColumns.map((col) => col.key)
-		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key) ? true : false]))
+		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key)]))
 		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 
 		if (instance && instance.setColumnVisibility) {
@@ -188,7 +188,7 @@ export const ChainProtocolsTable = ({
 
 	const addOnlyOneColumn = (newOption) => {
 		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption ? true : false])
+			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption])
 		)
 		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
@@ -201,7 +201,7 @@ export const ChainProtocolsTable = ({
 
 	const selectedColumns = useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return mergedColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return mergedColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage, mergedColumns])
 
 	const [sorting, setSorting] = useState<SortingState>([

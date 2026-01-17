@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
 import Link from 'next/link'
+import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -133,7 +133,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
@@ -144,7 +144,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://www.dlnews.com',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlnews-smol.svg#dlnews-logo`} />
+				<use href={`/assets/dlnews-smol.svg#dlnews-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />
@@ -155,7 +155,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://www.dlnews.com/research',
 		icon: (
 			<svg width={44} height={44}>
-				<use href={`/icons/dlresearch.svg#dlresearch-logo`} />
+				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
 			</svg>
 		),
 		background: <span className="llama-app-background" />

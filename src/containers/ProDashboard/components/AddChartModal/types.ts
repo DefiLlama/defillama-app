@@ -52,6 +52,10 @@ export interface ChartBuilderConfig {
 		| 'chain-revenue'
 	mode: 'chains' | 'protocol'
 	filterMode?: 'include' | 'exclude'
+	chainFilterMode?: 'include' | 'exclude'
+	categoryFilterMode?: 'include' | 'exclude'
+	chainCategoryFilterMode?: 'include' | 'exclude'
+	protocolCategoryFilterMode?: 'include' | 'exclude'
 	protocol?: string
 	chains: string[]
 	chainCategories?: string[]
@@ -60,6 +64,7 @@ export interface ChartBuilderConfig {
 	groupBy: 'protocol'
 	limit: number
 	chartType: 'stackedBar' | 'stackedArea' | 'line' | 'treemap'
+	treemapValue?: 'latest' | 'sum7d' | 'sum30d'
 	displayAs: 'timeSeries' | 'percentage'
 	hideOthers?: boolean
 	groupByParent?: boolean

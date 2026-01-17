@@ -9,7 +9,7 @@ interface DateRangeValidationOptions {
 export const useDateRangeValidation = (options?: DateRangeValidationOptions) => {
 	const [startDate, setStartDate] = useState(options?.initialStartDate || '')
 	const [endDate, setEndDate] = useState(options?.initialEndDate || '')
-	const [dateError, setDateError] = useState('')
+	const [dateError, _setDateError] = useState('')
 
 	const handleStartDateChange = (value: string) => {
 		setStartDate(value)

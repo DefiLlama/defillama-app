@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { DatasetComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { abbreviateNumber } from '~/utils'
 import type { IMultiSeriesChart2Props } from '../types'

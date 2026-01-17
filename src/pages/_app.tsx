@@ -1,12 +1,13 @@
-import Script from 'next/script'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import NProgress from 'nprogress'
+import { AppProps } from 'next/app'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
+import Script from 'next/script'
+import NProgress from 'nprogress'
 import { useEffect } from 'react'
-import { AppProps } from 'next/app'
-import { useRouter } from 'next/router'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
 
@@ -65,6 +66,10 @@ function App({ Component, pageProps }: AppProps) {
 
 	return (
 		<>
+			<Head>
+				<meta charSet="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+			</Head>
 			{/* Analytics script - loaded after page becomes interactive to reduce TBT */}
 			<Script
 				src="/script2.js"

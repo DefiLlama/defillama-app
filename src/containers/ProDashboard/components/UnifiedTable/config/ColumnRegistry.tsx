@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react'
 import { ColumnDef, Row, type CellContext } from '@tanstack/react-table'
+import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -272,7 +272,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						)}
 						{display.header !== 'category' &&
 							(shouldShowProtocolLogo || shouldShowChainIcon ? (
-								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/icons/placeholder.png" size={24} />
+								<TokenLogo logo={iconSource ?? undefined} fallbackLogo="/assets/placeholder.png" size={24} />
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
 							))}

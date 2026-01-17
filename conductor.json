@@ -1,0 +1,7 @@
+{
+	"$schema": "https://conductor.build/schema/conductor.json",
+	"name": "defillama",
+	"setup": {
+		"setup": "yarn; cp $CONDUCTOR_ROOT_PATH/.env.local .env.local"
+	}
+}

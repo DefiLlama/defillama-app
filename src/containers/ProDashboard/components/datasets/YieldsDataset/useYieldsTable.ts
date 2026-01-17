@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -13,6 +12,7 @@ import {
 	useReactTable,
 	VisibilityState
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { downloadCSV } from '~/utils'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { yieldsDatasetColumns } from './columns'
@@ -406,7 +406,7 @@ export function useYieldsTable({
 
 		data.forEach((row) => {
 			if (row.pool && row.tvl) {
-				const separators = /[-\s\/,+]/
+				const separators = /[-\s/,+]/
 				const tokens = row.pool.split(separators)
 				tokens.forEach((token: string) => {
 					const cleaned = token.trim().toUpperCase()

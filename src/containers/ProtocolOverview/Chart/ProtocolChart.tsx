@@ -1,7 +1,7 @@
-import { lazy, memo, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/router'
+import { lazy, memo, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
 import { getProtocolEmissons } from '~/api/categories/protocols'
 import {
 	useFetchProtocolActiveUsers,
@@ -425,7 +425,7 @@ export const useFetchAndFormatChartData = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: denominationGeckoId ? true : false
+		enabled: !!denominationGeckoId
 	})
 
 	// date in the chart is in ms
@@ -439,14 +439,12 @@ export const useFetchAndFormatChartData = ({
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled:
-			isRouterReady &&
+			!!(isRouterReady &&
 			(toggledMetrics.mcap === 'true' ||
 				toggledMetrics.tokenPrice === 'true' ||
 				toggledMetrics.tokenVolume === 'true' ||
 				toggledMetrics.fdv === 'true') &&
-			geckoId
-				? true
-				: false
+			geckoId)
 	})
 
 	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery({
@@ -455,7 +453,7 @@ export const useFetchAndFormatChartData = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: geckoId && toggledMetrics.fdv === 'true' && isRouterReady ? true : false
+		enabled: !!(geckoId && toggledMetrics.fdv === 'true' && isRouterReady)
 	})
 
 	const { data: tokenLiquidityData = null, isLoading: fetchingTokenLiquidity } = useQuery({
@@ -464,7 +462,7 @@ export const useFetchAndFormatChartData = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true' ? true : false
+		enabled: !!(isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true')
 	})
 
 	const tvlChart = useMemo(() => {
@@ -499,7 +497,7 @@ export const useFetchAndFormatChartData = ({
 		return formatLineChart({ data: tvlChartData, groupBy, denominationPriceHistory })
 	}, [tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain])
 
-	const isFeesEnabled = toggledMetrics.fees === 'true' && metrics.fees && isRouterReady ? true : false
+	const isFeesEnabled = !!(toggledMetrics.fees === 'true' && metrics.fees && isRouterReady)
 	const { data: feesDataChart = null, isLoading: fetchingFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['fees', name, isFeesEnabled],
 		queryFn: () =>
@@ -515,7 +513,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: isFeesEnabled
 	})
 
-	const isRevenueEnabled = toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady ? true : false
+	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
 	const { data: revenueDataChart = null, isLoading: fetchingRevenue } = useQuery<Array<[number, number]>>({
 		queryKey: ['revenue', name, isRevenueEnabled],
 		queryFn: () =>
@@ -533,7 +531,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isHoldersRevenueEnabled =
-		toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue) && isRouterReady ? true : false
+		!!(toggledMetrics.holdersRevenue === 'true' && (metrics.fees || metrics.revenue) && isRouterReady)
 	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<Array<[number, number]>>(
 		{
 			queryKey: ['holders-revenue', name, isHoldersRevenueEnabled],
@@ -553,12 +551,10 @@ export const useFetchAndFormatChartData = ({
 	)
 
 	const isBribesEnabled =
-		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
+		!!((toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
 		feesSettings?.bribes &&
 		metrics.bribes &&
-		isRouterReady
-			? true
-			: false
+		isRouterReady)
 	const { data: bribesDataChart = null, isLoading: fetchingBribes } = useQuery<Array<[number, number]>>({
 		queryKey: ['bribes', name, isBribesEnabled],
 		queryFn: () =>
@@ -576,12 +572,10 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isTokenTaxesEnabled =
-		(toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
+		!!((toggledMetrics.fees === 'true' || toggledMetrics.revenue === 'true' || toggledMetrics.holdersRevenue === 'true') &&
 		feesSettings?.tokentax &&
 		metrics.tokenTax &&
-		isRouterReady
-			? true
-			: false
+		isRouterReady)
 	const { data: tokenTaxesDataChart = null, isLoading: fetchingTokenTaxes } = useQuery<Array<[number, number]>>({
 		queryKey: ['token-taxes', name, isTokenTaxesEnabled],
 		queryFn: () =>
@@ -598,7 +592,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: isTokenTaxesEnabled
 	})
 
-	const isDexVolumeEnabled = toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady ? true : false
+	const isDexVolumeEnabled = !!(toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady)
 	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['dexVolume', name, isDexVolumeEnabled],
 		queryFn: () =>
@@ -614,7 +608,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: isDexVolumeEnabled
 	})
 
-	const isPerpsVolumeEnabled = toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady ? true : false
+	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
 	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['perpVolume', name, isPerpsVolumeEnabled],
 		queryFn: () =>
@@ -631,7 +625,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isOpenInterestEnabled =
-		toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady ? true : false
+		!!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
 	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<[number, number]>>({
 		queryKey: ['openInterest', name, isOpenInterestEnabled],
 		queryFn: () =>
@@ -649,7 +643,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isOptionsPremiumVolumeEnabled =
-		toggledMetrics.optionsPremiumVolume === 'true' && metrics.optionsPremiumVolume && isRouterReady ? true : false
+		!!(toggledMetrics.optionsPremiumVolume === 'true' && metrics.optionsPremiumVolume && isRouterReady)
 	const { data: optionsPremiumVolumeDataChart = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<
 		Array<[number, number]>
 	>({
@@ -669,7 +663,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isOptionsNotionalVolumeEnabled =
-		toggledMetrics.optionsNotionalVolume === 'true' && metrics.optionsNotionalVolume && isRouterReady ? true : false
+		!!(toggledMetrics.optionsNotionalVolume === 'true' && metrics.optionsNotionalVolume && isRouterReady)
 	const { data: optionsNotionalVolumeDataChart = null, isLoading: fetchingOptionsNotionalVolume } = useQuery<
 		Array<[number, number]>
 	>({
@@ -689,7 +683,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isDexAggregatorsVolumeEnabled =
-		toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady ? true : false
+		!!(toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady)
 	const { data: dexAggregatorsVolumeDataChart = null, isLoading: fetchingDexAggregatorVolume } = useQuery<
 		Array<[number, number]>
 	>({
@@ -708,7 +702,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isPerpsAggregatorsVolumeEnabled =
-		toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady ? true : false
+		!!(toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady)
 	const { data: perpsAggregatorsVolumeDataChart = null, isLoading: fetchingPerpAggregatorVolume } = useQuery<
 		Array<[number, number]>
 	>({
@@ -727,7 +721,7 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isBridgeAggregatorsVolumeEnabled =
-		toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady ? true : false
+		!!(toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady)
 	const { data: bridgeAggregatorsVolumeDataChart = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery<
 		Array<[number, number]>
 	>({
@@ -746,11 +740,9 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const isUnlocksEnabled =
-		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') &&
+		!!((toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') &&
 		(metrics.unlocks || metrics.incentives) &&
-		isRouterReady
-			? true
-			: false
+		isRouterReady)
 	const { data: unlocksAndIncentivesData = null, isLoading: fetchingUnlocksAndIncentives } = useQuery({
 		queryKey: ['unlocks', name, isUnlocksEnabled],
 		queryFn: () => (isUnlocksEnabled ? getProtocolEmissons(slug(name)) : Promise.resolve(null)),
@@ -760,7 +752,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: isUnlocksEnabled
 	})
 
-	const isTreasuryEnabled = toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady ? true : false
+	const isTreasuryEnabled = !!(toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady)
 	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery({
 		queryKey: ['treasury', name, isTreasuryEnabled],
 		queryFn: () =>
@@ -786,7 +778,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: isTreasuryEnabled
 	})
 
-	const isUsdInflowsEnabled = toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady ? true : false
+	const isUsdInflowsEnabled = !!(toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady)
 	const { data: usdInflowsData = null, isLoading: fetchingUsdInflows } = useQuery({
 		queryKey: ['usdInflows', name, isUsdInflowsEnabled, JSON.stringify(tvlSettings)],
 		queryFn: () =>
@@ -804,7 +796,7 @@ export const useFetchAndFormatChartData = ({
 		enabled: isUsdInflowsEnabled
 	})
 
-	const isBridgeVolumeEnabled = toggledMetrics.bridgeVolume === 'true' && isRouterReady ? true : false
+	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
 	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery({
 		queryKey: ['bridgeVolume', name, isBridgeVolumeEnabled],
 		queryFn: () =>
@@ -859,7 +851,7 @@ export const useFetchAndFormatChartData = ({
 			: null
 	)
 
-	const isNftVolumeEnabled = toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady ? true : false
+	const isNftVolumeEnabled = !!(toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady)
 	const { data: nftVolumeData = null, isLoading: fetchingNftVolume } = useQuery({
 		queryKey: ['nftVolume', name, isNftVolumeEnabled],
 		queryFn: () =>
@@ -882,12 +874,10 @@ export const useFetchAndFormatChartData = ({
 	})
 
 	const showNonUsdDenomination =
-		toggledMetrics.denomination &&
+		!!(toggledMetrics.denomination &&
 		toggledMetrics.denomination !== 'USD' &&
 		chartDenominations.find((d) => d.symbol === toggledMetrics.denomination) &&
-		denominationPriceHistory
-			? true
-			: false
+		denominationPriceHistory)
 
 	const valueSymbol = showNonUsdDenomination
 		? (chartDenominations.find((d) => d.symbol === toggledMetrics.denomination)?.symbol ?? '')

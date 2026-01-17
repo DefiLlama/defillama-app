@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import * as Ariakit from '@ariakit/react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
@@ -28,18 +28,20 @@ interface SubscribeProCardProps {
 function SubscribeProCardContent({
 	billingInterval = 'month',
 	isTrialAvailable = false,
-	isAuthenticated = false
+	isAuthenticated = false,
+	isTrialActive = false
 }: {
 	billingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
 	isAuthenticated?: boolean
+	isTrialActive?: boolean
 }) {
 	const monthlyPrice = 49
 	const yearlyPrice = monthlyPrice * 10
 	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
 	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
 
-	const showTrialAvailable = !isAuthenticated || isTrialAvailable
+	const showTrialAvailable = !isAuthenticated || isTrialAvailable || isTrialActive
 
 	return (
 		<>
@@ -76,18 +78,26 @@ function SubscribeProCardContent({
 								LlamaAI
 							</Link>{' '}
 							<svg className="relative mx-1 inline-block h-4 w-4">
-								<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 							</svg>{' '}
 							- conversational analysis of DefiLlama data
 						</span>
+					</li>
+					<li className="group ml-6 flex items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
+						<span>Deep research: 5/day</span>
+						{showTrialAvailable ? (
+							<QuestionHelper text="During trial, deep research is limited to 3 questions. Full subscription includes 5/day." />
+						) : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
 						<span>DefiLlama Pro Dashboards - build custom dashboards</span>
 					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
+					<li className="flex flex-nowrap items-center gap-2.5">
+						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
 						<span>CSV Downloads - export any dataset</span>
+						{showTrialAvailable ? <QuestionHelper text="CSV downloads are disabled during the trial period." /> : null}
 					</li>
 					<li className="flex flex-nowrap items-start gap-2.5">
 						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -124,12 +134,12 @@ export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
-	returnUrl,
+	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
 }: SubscribeProCardProps) {
 	const { loading, isTrialAvailable } = useSubscribe()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, isTrial } = useAuthContext()
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 	const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
 
@@ -142,6 +152,7 @@ export function SubscribeProCard({
 			<SubscribeProCardContent
 				billingInterval={billingInterval}
 				isTrialAvailable={isTrialAvailable}
+				isTrialActive={isTrial}
 				isAuthenticated={isAuthenticated}
 			/>
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
@@ -239,7 +250,7 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 
 export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
 	const router = useRouter()
-	const { isAuthenticated } = useAuthContext()
+	const { isAuthenticated, isTrial } = useAuthContext()
 
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
@@ -249,7 +260,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const finalReturnUrl = returnUrl ? returnUrl : router.asPath
+	const _finalReturnUrl = returnUrl ?? router.asPath
 
 	return (
 		<WalletProvider>
@@ -271,6 +282,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 								</Ariakit.DialogDismiss>
 								<SubscribeProCardContent
 									isAuthenticated={isAuthenticated}
+									isTrialActive={isTrial}
 									billingInterval={props.billingInterval}
 									isTrialAvailable={true}
 								/>

@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -91,7 +91,7 @@ export default function ChainChartPage(props) {
 
 		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 
-		const isThemeDark = queryParams.theme === 'dark' ? true : false
+		const isThemeDark = queryParams.theme === 'dark'
 
 		return {
 			chainGeckoId,

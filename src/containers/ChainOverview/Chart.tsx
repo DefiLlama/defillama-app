@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import * as echarts from 'echarts/core'
-import { formatTooltipValue, useDefaults } from '~/components/ECharts/useDefaults'
+import { useCallback, useEffect, useId, useMemo } from 'react'
+import { formatTooltipValue } from '~/components/ECharts/formatters'
+import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { formattedNum } from '~/utils'
 import {

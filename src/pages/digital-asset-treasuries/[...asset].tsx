@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
 import { ColumnDef } from '@tanstack/react-table'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { ILineAndBarChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -192,7 +192,7 @@ export default function TreasuriesByAsset({
 }
 
 const columns = ({
-	name,
+	name: _name,
 	symbol
 }: {
 	name: string

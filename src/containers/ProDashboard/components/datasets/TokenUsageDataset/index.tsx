@@ -1,4 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -9,6 +8,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { useEffect, useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -20,7 +20,7 @@ import { getColumns } from './columns'
 import { useTokenSearch } from './useTokenSearch'
 import { useTokenUsageData } from './useTokenUsageData'
 
-interface TokenOption {
+interface _TokenOption {
 	value: string
 	label: string
 	logo?: string

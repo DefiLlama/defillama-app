@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useId, useMemo } from 'react'
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { DataZoomComponent, TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { useCallback, useEffect, useId, useMemo } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
 
@@ -110,14 +110,14 @@ export default function TreemapChart({ chartData }: IChartProps) {
 					}
 					if (treePath.length > 1) {
 						return [
-							'Project: ' + treePath[0] + '<br>',
-							'Pool: ' + treePath[1] + '<br>',
-							'TVL: ' + formattedNum(info.value[0], true) + '<br>',
-							'APY: ' + info.value[1] + '%' + '<br>',
-							'1d Change: ' + info.value[2] + '%'
+							`Project: ${treePath[0]}<br>`,
+							`Pool: ${treePath[1]}<br>`,
+							`TVL: ${formattedNum(info.value[0], true)}<br>`,
+							`APY: ${info.value[1]}%<br>`,
+							`1d Change: ${info.value[2]}%`
 						].join('')
 					} else {
-						return ['Project: ' + treePath[0]].join('')
+						return `Project: ${treePath[0]}`
 					}
 				}
 			},
@@ -139,9 +139,9 @@ export default function TreemapChart({ chartData }: IChartProps) {
 							let arr
 							if (params?.data?.path?.split('/')?.length > 1) {
 								arr = [
-									'{name|' + params.data.path.split('/').slice(-1)[0] + '}',
-									'Spot: {apy| ' + params.value[1] + '%' + '}',
-									'Change {apy| ' + params.value[2] + '%' + '}'
+									`{name|${params.data.path.split('/').slice(-1)[0]}}`,
+									`Spot: {apy| ${params.value[1]}%}`,
+									`Change {apy| ${params.value[2]}%}`
 								]
 							} else {
 								arr = [params.name]

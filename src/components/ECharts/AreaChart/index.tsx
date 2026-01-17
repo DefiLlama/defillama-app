@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts/core'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -419,7 +419,7 @@ export default function AreaChart({
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
 
-	const showLegend = customLegendName && customLegendOptions?.length > 1 ? true : false
+	const showLegend = !!(customLegendName && customLegendOptions?.length > 1)
 
 	const prepareCsv = useCallback(() => {
 		let rows = []

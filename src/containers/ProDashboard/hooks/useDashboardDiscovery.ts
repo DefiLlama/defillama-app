@@ -17,7 +17,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
 
-	const isSearchMode = params.query || params.tags?.length > 0 ? true : false
+	const isSearchMode = !!(params.query || params.tags?.length)
 
 	const discoverQuery = useQuery({
 		queryKey: ['dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy, params.timeFrame],

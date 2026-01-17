@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import chunk from 'lodash/chunk'
 import groupBy from 'lodash/groupBy'
 import isEqual from 'lodash/isEqual'
 import omit from 'lodash/omit'
 import sum from 'lodash/sum'
+import Link from 'next/link'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -16,17 +17,9 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import useWindowSize from '~/hooks/useWindowSize'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import Pagination from './Pagination'
 import { IEmission } from './types'
-
-const getExtendedCategories = (baseCategories: string[], isPriceEnabled: boolean) => {
-	const extended = [...baseCategories]
-	if (isPriceEnabled) {
-		if (!extended.includes('Market Cap')) extended.push('Market Cap')
-		if (!extended.includes('Price')) extended.push('Price')
-	}
-	return extended
-}
 
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
 	const extended = { ...baseColors }
@@ -145,7 +138,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const groupedEvents = useMemo(() => groupBy(data.events, (event) => event.timestamp), [data.events])
-	const sortedEvents = useMemo(() => Object.entries(groupedEvents).sort(([a], [b]) => +a - +b), [groupedEvents])
+
+	const sortedEvents = useMemo(() => {
+		const now = Date.now() / 1e3
+		const entries = Object.entries(groupedEvents)
+
+		const upcomingEvents = entries.filter(([ts]) => +ts > now).sort(([a], [b]) => +a - +b) // near to far
+
+		const pastEvents =
+			upcomingEvents.length > 0
+				? entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
+				: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
+
+		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
+	}, [groupedEvents])
+
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
@@ -236,7 +243,6 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			const first = displayData[0]
 			stacks = Object.keys(first).filter((k) => k !== 'date' && k !== 'Price' && k !== 'Market Cap')
 		}
-		const extendedCategories = getExtendedCategories(categoriesFromData, isPriceEnabled)
 		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
 			stacks: [...stacks, ...(isPriceEnabled ? ['Market Cap', 'Price'] : [])].filter(Boolean),
@@ -246,7 +252,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
 					: extendedColors
 		}
-	}, [categoriesFromData, isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
+	}, [isPriceEnabled, selectedCategories, stackColors, allocationMode, displayData])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null
@@ -281,6 +287,29 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			Object.keys(data.categoriesBreakdown).length > 0
 		)
 	}, [data.categoriesBreakdown])
+
+	const prepareCsv = useMemo(() => {
+		return () => {
+			if (!displayData || displayData.length === 0) {
+				return { filename: `${data.name}-unlock-schedule.csv`, rows: [['Date']] }
+			}
+
+			const firstRow = displayData[0]
+			const columns = Object.keys(firstRow).filter((key) => key !== 'date')
+			const headers = ['Date', ...columns]
+
+			const rows: string[][] = [headers]
+			for (const item of displayData) {
+				const dateTimestamp = typeof item.date === 'string' ? parseInt(item.date, 10) : item.date
+				const date = new Date(dateTimestamp * 1000).toISOString().split('T')[0]
+				const row: string[] = [date, ...columns.map((col) => String(item[col] || 0))]
+				rows.push(row)
+			}
+
+			const filename = `${slug(data.name)}-unlock-schedule-${new Date().toISOString().split('T')[0]}.csv`
+			return { filename, rows }
+		}
+	}, [displayData, data.name])
 
 	if (!data) return null
 
@@ -388,6 +417,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					<LazyChart className="relative min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="m-2 flex items-center justify-end gap-2">
 							<h1 className="mr-auto text-lg font-bold">Schedule</h1>
+							<CSVDownloadButton prepareCsv={prepareCsv} smol />
 							<SelectWithCombobox
 								allValues={availableCategories}
 								selectedValues={selectedCategories}
@@ -484,7 +514,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
-									currentChunk.map(([cat, perc], i) => (
+									currentChunk.map(([cat, perc]) => (
 										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
@@ -495,7 +525,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 							<div className="flex flex-wrap justify-between">
 								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
-									currentChunk.map(([cat, perc], i) => (
+									currentChunk.map(([cat, perc]) => (
 										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
 								)}
@@ -536,32 +566,33 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				{data.sources?.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Sources</h1>
-						<div className="flex w-full flex-col gap-2 text-base">
+						<ul className="mt-4 w-full list-disc space-y-2 pl-4 text-base">
 							{data.sources.map((source, i) => (
-								<a
-									href={source}
-									key={source}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-2 text-base font-medium"
-								>
-									<span>
-										{i + 1} {new URL(source).hostname}
-									</span>
-									<Icon name="external-link" height={16} width={16} />
-								</a>
+								<li key={source}>
+									<Link
+										href={source}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex items-center gap-2 text-base font-medium"
+									>
+										<span>
+											{i + 1} {new URL(source).hostname}
+										</span>
+										<Icon name="external-link" height={16} width={16} />
+									</Link>
+								</li>
 							))}
-						</div>
+						</ul>
 					</div>
 				) : null}
 				{data.notes?.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-medium">Notes</h1>
-						<div className="flex w-full flex-col gap-2 text-base">
+						<ul className="mt-4 w-full list-disc space-y-2 pl-4 text-base">
 							{data.notes.map((note) => (
-								<p key={note}>{note}</p>
+								<li key={note}>{note}</li>
 							))}
-						</div>
+						</ul>
 					</div>
 				) : null}
 				{data.futures?.openInterest || data.futures?.fundingRate ? (

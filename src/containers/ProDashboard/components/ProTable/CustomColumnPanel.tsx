@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Parser } from 'expr-eval'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
 
@@ -34,7 +34,7 @@ export function CustomColumnPanel({
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
 	const [autocompleteIndex, setAutocompleteIndex] = React.useState(-1)
-	const [cursorPosition, setCursorPosition] = React.useState(0)
+	const [_cursorPosition, setCursorPosition] = React.useState(0)
 	const [autocompleteFilter, setAutocompleteFilter] = React.useState('')
 	const inputRef = React.useRef<HTMLInputElement>(null)
 

@@ -29,7 +29,7 @@ export function BridgesOverviewByChain({
 	bridgeStatsCurrentDay,
 	largeTxsData
 }) {
-	const [enableBreakdownChart, setEnableBreakdownChart] = React.useState(false)
+	const [enableBreakdownChart, _setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
@@ -375,7 +375,7 @@ export function BridgesOverviewByChain({
 							value={searchValue}
 							onChange={(e) => setSearchValue(e.target.value)}
 							placeholder="Search..."
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
 				</div>

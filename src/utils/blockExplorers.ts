@@ -1,4 +1,5 @@
-import { capitalizeFirstLetter } from '.'
+// Inline helper to avoid circular dependency with index.js
+const capitalizeFirstLetter = (word: string) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
 
 const blockExplorers = {
 	ethereum: [

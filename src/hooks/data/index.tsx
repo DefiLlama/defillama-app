@@ -36,7 +36,7 @@ export const useCalcGroupExtraTvlsByDay = (chains, tvlTypes = null) => {
 }
 
 // returns tvl by day for a single token
-export function formatChartTvlsByDay({ data, extraTvlsEnabled, key }) {
+export function formatChartTvlsByDay({ data, extraTvlsEnabled, key: _key }) {
 	return data.map(([date, values]) => {
 		let sum = values.tvl || 0
 

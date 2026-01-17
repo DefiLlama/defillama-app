@@ -134,34 +134,34 @@ export const getProtocolMetrics = ({
 	const tvlTab = metadata.tvl && (multipleChains || inflowsExist || tokenBreakdownExist)
 
 	return {
-		tvl: metadata.tvl && tvlChartExist ? true : false,
-		tvlTab: tvlTab ? true : false,
-		dexs: metadata.dexs ? true : false,
-		perps: metadata.perps ? true : false,
-		openInterest: metadata.openInterest ? true : false,
-		optionsPremiumVolume: metadata.optionsPremiumVolume ? true : false,
-		optionsNotionalVolume: metadata.optionsNotionalVolume ? true : false,
-		dexAggregators: metadata.dexAggregators ? true : false,
-		perpsAggregators: metadata.perpsAggregators ? true : false,
-		bridgeAggregators: metadata.bridgeAggregators ? true : false,
-		stablecoins: metadata.stablecoins ? true : false,
-		bridge: metadata.bridge ? true : false,
-		treasury: metadata.treasury ? true : false,
-		unlocks: metadata.emissions ? true : false,
-		incentives: metadata.incentives ? true : false,
-		yields: metadata.yields ? true : false,
-		fees: metadata.fees ? true : false,
-		revenue: metadata.revenue ? true : false,
-		bribes: metadata.bribeRevenue ? true : false,
-		tokenTax: metadata.tokenTax ? true : false,
-		forks: metadata.forks ? true : false,
-		governance: metadata.governance ? true : false,
-		nfts: metadata.nfts ? true : false,
-		dev: protocolData.github ? true : false,
+		tvl: !!(metadata.tvl && tvlChartExist),
+		tvlTab: !!tvlTab,
+		dexs: !!metadata.dexs,
+		perps: !!metadata.perps,
+		openInterest: !!metadata.openInterest,
+		optionsPremiumVolume: !!metadata.optionsPremiumVolume,
+		optionsNotionalVolume: !!metadata.optionsNotionalVolume,
+		dexAggregators: !!metadata.dexAggregators,
+		perpsAggregators: !!metadata.perpsAggregators,
+		bridgeAggregators: !!metadata.bridgeAggregators,
+		stablecoins: !!metadata.stablecoins,
+		bridge: !!metadata.bridge,
+		treasury: !!metadata.treasury,
+		unlocks: !!metadata.emissions,
+		incentives: !!metadata.incentives,
+		yields: !!metadata.yields,
+		fees: !!metadata.fees,
+		revenue: !!metadata.revenue,
+		bribes: !!metadata.bribeRevenue,
+		tokenTax: !!metadata.tokenTax,
+		forks: !!metadata.forks,
+		governance: !!metadata.governance,
+		nfts: !!metadata.nfts,
+		dev: !!protocolData.github,
 		inflows: inflowsExist,
-		liquidity: metadata.liquidity ? true : false,
-		activeUsers: metadata.activeUsers ? true : false,
-		borrowed: metadata.borrowed ? true : false
+		liquidity: !!metadata.liquidity,
+		activeUsers: !!metadata.activeUsers,
+		borrowed: !!metadata.borrowed
 	}
 }
 
@@ -558,7 +558,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const tokenLiquidity = yieldsConfig
 		? (Object.entries(liquidityAggregated)
-				.filter((x) => (yieldsConfig.protocols[x[0]]?.name ? true : false))
+				.filter((x) => !!yieldsConfig.protocols[x[0]]?.name)
 				.map((p) => Object.entries(p[1]).map((c) => [yieldsConfig.protocols[p[0]].name, c[0], c[1]]))
 				.flat()
 				.sort((a, b) => b[2] - a[2]) as Array<[string, string, number]>)
@@ -572,27 +572,26 @@ export const getProtocolOverviewPageData = async ({
 				investors: (r.leadInvestors ?? []).concat(r.otherInvestors ?? [])
 			})) ?? null
 
-	const hasKeyMetrics =
+	const hasKeyMetrics = !!(
 		protocolData.currentChainTvls?.staking != null ||
-		protocolData.currentChainTvls?.borrowed != null ||
-		raises?.length ||
-		expenses ||
-		tokenLiquidity?.length ||
-		feesData?.totalAllTime ||
-		revenueData?.totalAllTime ||
-		holdersRevenueData?.totalAllTime ||
-		dexVolumeData?.totalAllTime ||
-		perpVolumeData?.totalAllTime ||
-		dexAggregatorVolumeData?.totalAllTime ||
-		perpAggregatorVolumeData?.totalAllTime ||
-		bridgeAggregatorVolumeData?.totalAllTime ||
-		optionsPremiumVolumeData?.totalAllTime ||
-		optionsNotionalVolumeData?.totalAllTime ||
-		bribesData?.totalAllTime ||
-		tokenTaxData?.totalAllTime ||
-		protocolData.tokenCGData
-			? true
-			: false
+			protocolData.currentChainTvls?.borrowed != null ||
+			raises?.length ||
+			expenses ||
+			tokenLiquidity?.length ||
+			feesData?.totalAllTime ||
+			revenueData?.totalAllTime ||
+			holdersRevenueData?.totalAllTime ||
+			dexVolumeData?.totalAllTime ||
+			perpVolumeData?.totalAllTime ||
+			dexAggregatorVolumeData?.totalAllTime ||
+			perpAggregatorVolumeData?.totalAllTime ||
+			bridgeAggregatorVolumeData?.totalAllTime ||
+			optionsPremiumVolumeData?.totalAllTime ||
+			optionsNotionalVolumeData?.totalAllTime ||
+			bribesData?.totalAllTime ||
+			tokenTaxData?.totalAllTime ||
+			protocolData.tokenCGData
+	)
 
 	const competitors =
 		liteProtocolsData && protocolData.category
@@ -1086,7 +1085,7 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterSummary; me
 						methodologyURL: childMethodologies.find((m) => m[2] != null)?.[2] ?? null
 					}
 				: areMethodologiesDifferent
-					? { childMethodologies: childMethodologies.filter((m) => (m[1] || m[2] ? true : false)) }
+					? { childMethodologies: childMethodologies.filter((m) => !!(m[1] || m[2])) }
 					: {
 							methodology: methodologyKey
 								? (topChildMethodology?.[1] ?? commonMethodology[methodologyKey] ?? null)
@@ -1217,8 +1216,12 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				.catch(() => [])
 		])
 
+		if (!incomeStatement) {
+			return null
+		}
+
 		const aggregates =
-			incomeStatement.aggregates ??
+			incomeStatement?.aggregates ??
 			({
 				monthly: {},
 				quarterly: {},

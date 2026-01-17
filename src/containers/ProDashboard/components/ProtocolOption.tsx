@@ -1,4 +1,3 @@
-import React from 'react'
 import { getItemIconUrl } from '../utils'
 
 interface OptionProps {

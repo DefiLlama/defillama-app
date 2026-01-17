@@ -982,58 +982,6 @@ export function formatValue(value, formatType = 'auto') {
 	return String(value)
 }
 
-export const preparePieChartData = ({ data, sliceIdentifier = 'name', sliceValue = 'value', limit }) => {
-	let pieData = []
-
-	if (Array.isArray(data)) {
-		pieData = data.map((entry) => {
-			return {
-				name: entry[sliceIdentifier],
-				value: Number(entry[sliceValue])
-			}
-		})
-	} else {
-		pieData = Object.entries(data).map(([name, value]) => {
-			return {
-				name: name,
-				value: Number(value)
-			}
-		})
-	}
-
-	pieData = pieData.toSorted((a, b) => b.value - a.value)
-
-	if (!limit) {
-		return pieData
-	}
-
-	const mainSlices = pieData.slice(0, limit)
-	const otherSlices = pieData.slice(limit)
-
-	// Check if "Others" already exists in mainSlices
-	const othersIndex = mainSlices.findIndex((slice) => slice.name === 'Others')
-	let othersValueFromMain = 0
-	let filteredMainSlices = mainSlices
-
-	if (othersIndex !== -1) {
-		// Remove existing "Others" from mainSlices and store its value
-		othersValueFromMain = mainSlices[othersIndex].value
-		filteredMainSlices = mainSlices.filter((_, index) => index !== othersIndex)
-	}
-
-	const otherSlicesValue =
-		otherSlices.reduce((acc, curr) => {
-			// Also include any "Others" entries from otherSlices
-			return acc + curr.value
-		}, 0) + othersValueFromMain
-
-	if (otherSlicesValue > 0) {
-		return [...filteredMainSlices, { name: 'Others', value: otherSlicesValue }]
-	}
-
-	return filteredMainSlices
-}
-
 export const formatEthAddress = (address) => {
 	if (!address) return ''
 	return `${address.slice(0, 6)}...${address.slice(-4)}`

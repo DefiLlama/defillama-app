@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/router'
 import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -32,7 +32,7 @@ declare module '@tanstack/table-core' {
 export function VirtualTable({
 	instance,
 	skipVirtualization,
-	columnResizeMode,
+	columnResizeMode: _columnResizeMode,
 	rowSize,
 	renderSubComponent,
 	stripedBg = false,
@@ -80,7 +80,7 @@ export function VirtualTable({
 		}
 		window.addEventListener('keydown', focusSearchBar)
 		return () => window.removeEventListener('keydown', focusSearchBar)
-	}, [])
+	}, [skipVirtualization])
 
 	const onScrollOrResize = React.useCallback(() => {
 		if (!useStickyHeader) return

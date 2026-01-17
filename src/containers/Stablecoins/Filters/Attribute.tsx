@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { Select } from '~/components/Select'
 import { STABLECOINS_SETTINGS } from '~/contexts/LocalStorage'
 
@@ -9,7 +9,7 @@ export const stablecoinAttributeOptions = [
 	{
 		name: 'Depegged',
 		key: DEPEGGED,
-		filterFn: (item) => true,
+		filterFn: (_item) => true,
 		help: 'Show stablecoins depegged by 10% or more'
 	}
 ]
@@ -17,7 +17,7 @@ export const stablecoinAttributeOptions = [
 export function Attribute({ pathname, nestedMenu }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()
 
-	const { attribute = [], chain, ...queries } = router.query
+	const { attribute = [], chain: _chain, ...queries } = router.query
 
 	const selectedValues = useMemo(() => {
 		return stablecoinAttributeOptions

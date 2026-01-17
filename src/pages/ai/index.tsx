@@ -1,5 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
@@ -13,7 +13,7 @@ const EXAMPLE_CONVERSATIONS = [
 		prompt: 'Show me the top 5 protocols with growing TVL but declining token prices',
 		description: 'Table + chart analysis identifying potential value opportunities and key insights',
 		url: 'https://defillama.com/ai/chat/shared/34525e47-528e-4b20-8ab4-4d2dd5d31252',
-		screenshot: '/assets/llamaai-3'
+		screenshot: '/assets/llamaai/llamaai-3'
 	},
 	{
 		id: 'research',
@@ -21,7 +21,7 @@ const EXAMPLE_CONVERSATIONS = [
 		prompt: 'Provide an overview of the stablecoin sector with focus on CBDCs',
 		description: 'In-depth research report covering market trends, legislation, and adoption',
 		url: 'https://defillama.com/ai/chat/shared/9634371a-d385-4e28-bcd8-d758f0bbcd30',
-		screenshot: '/assets/llamaai-1'
+		screenshot: '/assets/llamaai/llamaai-1'
 	},
 	{
 		id: 'speculative',
@@ -29,7 +29,7 @@ const EXAMPLE_CONVERSATIONS = [
 		prompt: 'Price estimate for BTC using technicals, Monte Carlo, and prediction markets',
 		description: 'Blended analysis with charts, simulation outcomes, and Polymarket probabilities',
 		url: 'https://defillama.com/ai/chat/shared/b60a2440-445e-4755-b227-7127557a4d79',
-		screenshot: '/assets/llamaai-2'
+		screenshot: '/assets/llamaai/llamaai-2'
 	}
 ] as const
 
@@ -113,7 +113,8 @@ const SubscribeProModal = lazy(() =>
 )
 
 export default function LlamaAIGetStarted() {
-	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const [mounted, setMounted] = useState(false)
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
@@ -146,7 +147,7 @@ export default function LlamaAIGetStarted() {
 				)}
 			>
 				<svg className="h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 				<span className="whitespace-nowrap">{displayLabel}</span>
 			</BasicLink>
@@ -160,7 +161,7 @@ export default function LlamaAIGetStarted() {
 				)}
 			>
 				<svg className="h-4 w-4 shrink-0">
-					<use href="/icons/ask-llamaai-3.svg#ai-icon" />
+					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
 				<span className="whitespace-nowrap">{displayLabel}</span>
 			</button>
@@ -243,7 +244,7 @@ export default function LlamaAIGetStarted() {
 									}}
 								/>
 								<img
-									src="/assets/llama-ai.svg"
+									src="/assets/llamaai/llama-ai.svg"
 									alt=""
 									className="relative h-20 w-20 object-contain drop-shadow-[0_0_20px_rgba(253,224,169,0.4)] md:h-24 md:w-24"
 								/>
@@ -516,9 +517,11 @@ export default function LlamaAIGetStarted() {
 				</section>
 			</div>
 
-			<Suspense fallback={null}>
-				<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
-			</Suspense>
+			{shouldRenderModal ? (
+				<Suspense fallback={null}>
+					<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
+				</Suspense>
+			) : null}
 		</>
 	)
 }

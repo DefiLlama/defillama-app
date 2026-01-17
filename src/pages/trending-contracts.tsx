@@ -1,6 +1,6 @@
-import { useDeferredValue, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import { useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
@@ -41,13 +41,13 @@ async function getContracts(chain: string, time: string) {
 							if (name.name === undefined) {
 								throw new Error('RolodETH: No name')
 							}
-						} catch (e) {
+						} catch {
 							try {
 								name = await fetchJson(`https://api.llama.fi/contractName2/${chain}/${contract.contract.toLowerCase()}`)
 								if (name.name === '') {
 									throw new Error('Etherescan: Contract not verified')
 								}
-							} catch (e) {
+							} catch {
 								name = undefined
 							}
 						}

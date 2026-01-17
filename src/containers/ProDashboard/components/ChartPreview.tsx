@@ -16,7 +16,7 @@ interface ChartPreviewProps {
 	itemName: string
 }
 
-export function ChartPreview({ data, chartType, color, isLoading, hasError, itemName }: ChartPreviewProps) {
+export function ChartPreview({ data, chartType, color, isLoading, hasError, itemName: _itemName }: ChartPreviewProps) {
 	const chartTypeDetails = CHART_TYPES[chartType]
 
 	const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']

@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,6 +11,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
@@ -528,17 +528,13 @@ export function ProtocolsByChainTable({
 	}
 
 	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key) ? true : false])
-		)
+		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(
-			protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption ? true : false])
-		)
+		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
@@ -562,7 +558,7 @@ export function ProtocolsByChainTable({
 
 	const selectedOptions = React.useMemo(() => {
 		const storage = JSON.parse(columnsInStorage)
-		return protocolsByChainTableColumns.filter((c) => (storage[c.key] ? true : false)).map((c) => c.key)
+		return protocolsByChainTableColumns.filter((c) => !!storage[c.key]).map((c) => c.key)
 	}, [columnsInStorage])
 
 	return (
@@ -700,7 +696,7 @@ export function ProtocolsTableWithSearch({
 							setProjectName(e.target.value)
 						}}
 						placeholder="Search protocols..."
-						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black max-sm:py-0.5 dark:bg-black dark:text-white"
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</div>
 			</div>

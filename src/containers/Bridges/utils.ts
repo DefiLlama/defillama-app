@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { keepNeededProperties } from '~/api/shared'
-import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, preparePieChartData, slug } from '~/utils'
+import { preparePieChartData } from '~/components/ECharts/formatters'
+import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, slug } from '~/utils'
 
 export interface ITokenData {
 	usdValue: number

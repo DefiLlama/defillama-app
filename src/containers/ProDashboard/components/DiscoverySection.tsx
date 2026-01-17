@@ -79,35 +79,41 @@ export function DiscoverySection({
 				</BasicLink>
 			</div>
 
-			<div className="relative">
+			<div className="group relative">
 				{canScrollLeft && (
-					<button
-						onClick={() => scroll('left')}
-						className="absolute top-1/2 left-0 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
-					>
-						<Icon name="chevron-left" height={20} width={20} />
-					</button>
+					<>
+						<div className="pointer-events-none absolute inset-y-0 left-0 z-[5] hidden w-16 bg-gradient-to-r from-(--app-bg) to-transparent md:block" />
+						<button
+							onClick={() => scroll('left')}
+							className="absolute top-1/2 left-2 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
+						>
+							<Icon name="chevron-left" height={20} width={20} />
+						</button>
+					</>
 				)}
 
 				<div
 					ref={scrollContainerRef}
 					onScroll={updateScrollState}
-					className="no-scrollbar flex items-stretch gap-4 overflow-x-auto pb-2"
+					className="no-scrollbar flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto pb-2 md:snap-none"
 				>
 					{dashboards.map((dashboard) => (
-						<div key={dashboard.id} className="w-[300px] shrink-0 md:w-[320px]">
+						<div key={dashboard.id} className="w-[300px] shrink-0 snap-start scroll-ml-4 md:w-[320px] md:snap-align-none">
 							<DashboardCard dashboard={dashboard} onTagClick={onTagClick} viewMode="grid" className="h-full" />
 						</div>
 					))}
 				</div>
 
 				{canScrollRight && dashboards.length > 3 && (
-					<button
-						onClick={() => scroll('right')}
-						className="absolute top-1/2 right-0 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
-					>
-						<Icon name="chevron-right" height={20} width={20} />
-					</button>
+					<>
+						<div className="pointer-events-none absolute inset-y-0 right-0 z-[5] hidden w-16 bg-gradient-to-l from-(--app-bg) to-transparent md:block" />
+						<button
+							onClick={() => scroll('right')}
+							className="absolute top-1/2 right-2 z-10 hidden -translate-y-1/2 rounded-full border border-(--cards-border) bg-(--cards-bg) p-2 shadow-md hover:bg-(--btn-hover-bg) md:block"
+						>
+							<Icon name="chevron-right" height={20} width={20} />
+						</button>
+					</>
 				)}
 			</div>
 		</div>

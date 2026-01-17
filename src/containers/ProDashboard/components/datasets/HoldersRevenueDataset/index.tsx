@@ -1,8 +1,6 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
-	ColumnOrderState,
 	ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -12,8 +10,8 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
@@ -34,7 +32,7 @@ interface HoldersRevenueDatasetProps {
 
 export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersRevenueDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnOrder, setColumnOrder] = React.useState<string[]>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [pagination, setPagination] = React.useState<PaginationState>({
@@ -145,7 +143,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 			}
 			return col
 		})
-	}, [columnsToUse, filterButtonIsActive, activeCategoryFilterCount])
+	}, [columnsToUse, filterButtonIsActive])
 
 	const instance = useReactTable({
 		data: filteredData || [],

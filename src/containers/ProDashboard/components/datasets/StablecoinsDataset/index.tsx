@@ -1,4 +1,3 @@
-import * as React from 'react'
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -12,8 +11,7 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { Icon } from '~/components/Icon'
-import { TagGroup } from '~/components/TagGroup'
+import * as React from 'react'
 import useWindowSize from '~/hooks/useWindowSize'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'

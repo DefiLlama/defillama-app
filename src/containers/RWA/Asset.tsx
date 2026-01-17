@@ -196,6 +196,17 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<Tooltip
+						content={definitions.activeMarketcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.activeMarketcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-xl font-semibold">
+						{formattedNum(asset.activeMarketcap.total, true)}
+					</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<Tooltip
 						content={definitions.defiActiveTvl.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>

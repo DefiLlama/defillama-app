@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function RaisedRange({
@@ -36,7 +36,7 @@ export function RaisedRange({
 	}
 
 	const handleClear = () => {
-		const { minRaised, maxRaised, ...restQuery } = router.query
+		const { minRaised: _minRaised, maxRaised: _maxRaised, ...restQuery } = router.query
 
 		router.push(
 			{

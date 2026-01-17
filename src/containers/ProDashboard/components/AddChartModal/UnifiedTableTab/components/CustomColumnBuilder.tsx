@@ -321,7 +321,7 @@ export function CustomColumnBuilder({ customColumns, onAdd, onRemove, onUpdate }
 		return () => document.removeEventListener('click', handleClickOutside)
 	}, [])
 
-	const aggregationLabel = AGGREGATION_OPTIONS.find((a) => a.id === aggregation)?.label ?? aggregation
+	const _aggregationLabel = AGGREGATION_OPTIONS.find((a) => a.id === aggregation)?.label ?? aggregation
 
 	return (
 		<div className="space-y-4">

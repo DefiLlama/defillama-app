@@ -1,4 +1,3 @@
-import { useCallback, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
 import {
 	Elements,
@@ -10,6 +9,7 @@ import {
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useQueryClient } from '@tanstack/react-query'
+import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -20,7 +20,7 @@ interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
 	paymentMethod: 'stripe'
-	type: 'api' | 'contributor' | 'llamafeed'
+	type: 'api' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
 }

@@ -1,6 +1,6 @@
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
-import { useRouter } from 'next/router'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
 

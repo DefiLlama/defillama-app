@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 interface IAPYRange {
@@ -33,7 +33,7 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 	}
 
 	const handleClear = () => {
-		const { minApy, maxApy, ...restQuery } = router.query
+		const { minApy: _minApy, maxApy: _maxApy, ...restQuery } = router.query
 
 		router.push(
 			{
