@@ -22,6 +22,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
@@ -354,6 +355,149 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.selectedChain} />
+			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
+				<SelectWithCombobox
+					allValues={props.categories}
+					selectedValues={selectedCategories}
+					setSelectedValues={setSelectedCategories}
+					selectOnlyOne={selectOnlyOneCategory}
+					toggleAll={toggleAllCategories}
+					clearAll={clearAllCategories}
+					label={'Categories'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.assetClassOptions}
+					selectedValues={selectedAssetClasses}
+					setSelectedValues={setSelectedAssetClasses}
+					selectOnlyOne={selectOnlyOneAssetClass}
+					toggleAll={toggleAllAssetClasses}
+					clearAll={clearAllAssetClasses}
+					label={'Asset Classes'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.rwaClassificationOptions}
+					selectedValues={selectedRwaClassifications}
+					setSelectedValues={setSelectedRwaClassifications}
+					selectOnlyOne={selectOnlyOneRwaClassification}
+					toggleAll={toggleAllRwaClassifications}
+					clearAll={clearAllRwaClassifications}
+					label={'RWA Classification'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.accessModelOptions}
+					selectedValues={selectedAccessModels}
+					setSelectedValues={setSelectedAccessModels}
+					selectOnlyOne={selectOnlyOneAccessModel}
+					toggleAll={toggleAllAccessModels}
+					clearAll={clearAllAccessModels}
+					label={'Access Model'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<SelectWithCombobox
+					allValues={props.issuers}
+					selectedValues={selectedIssuers}
+					setSelectedValues={setSelectedIssuers}
+					selectOnlyOne={selectOnlyOneIssuer}
+					toggleAll={toggleAllIssuers}
+					clearAll={clearAllIssuers}
+					label={'Issuers'}
+					labelType="smol"
+					triggerProps={{
+						className:
+							'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+					}}
+				/>
+				<FilterBetweenRange
+					name="DeFi TVL / On-chain %"
+					trigger={
+						minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
+							<>
+								<span>DeFi TVL / On-chain: </span>
+								<span className="text-(--link)">
+									{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
+								</span>
+							</>
+						) : (
+							<span>DeFi TVL / On-chain %</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						setDefiActiveTvlToOnChainPctRange(minValue, maxValue)
+					}}
+					onClear={() => setDefiActiveTvlToOnChainPctRange(null, null)}
+					min={minDefiActiveTvlToOnChainPct}
+					max={maxDefiActiveTvlToOnChainPct}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+				<FilterBetweenRange
+					name="Active Marketcap / On-chain %"
+					trigger={
+						minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
+							<>
+								<span>Active Marketcap / On-chain: </span>
+								<span className="text-(--link)">
+									{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
+								</span>
+							</>
+						) : (
+							<span>Active Marketcap / On-chain %</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						setActiveMcapToOnChainPctRange(minValue, maxValue)
+					}}
+					onClear={() => setActiveMcapToOnChainPctRange(null, null)}
+					min={minActiveMcapToOnChainPct}
+					max={maxActiveMcapToOnChainPct}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					onChange={() => setIncludeStablecoins(!includeStablecoins)}
+					className="ml-auto"
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					onChange={() => setIncludeGovernance(!includeGovernance)}
+				/>
+			</div>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -458,150 +602,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							placeholder="Search assets..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
-					</label>
-					<SelectWithCombobox
-						allValues={props.categories}
-						selectedValues={selectedCategories}
-						setSelectedValues={setSelectedCategories}
-						selectOnlyOne={selectOnlyOneCategory}
-						toggleAll={toggleAllCategories}
-						clearAll={clearAllCategories}
-						label={'Categories'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.assetClassOptions}
-						selectedValues={selectedAssetClasses}
-						setSelectedValues={setSelectedAssetClasses}
-						selectOnlyOne={selectOnlyOneAssetClass}
-						toggleAll={toggleAllAssetClasses}
-						clearAll={clearAllAssetClasses}
-						label={'Asset Classes'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.rwaClassificationOptions}
-						selectedValues={selectedRwaClassifications}
-						setSelectedValues={setSelectedRwaClassifications}
-						selectOnlyOne={selectOnlyOneRwaClassification}
-						toggleAll={toggleAllRwaClassifications}
-						clearAll={clearAllRwaClassifications}
-						label={'RWA Classification'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.accessModelOptions}
-						selectedValues={selectedAccessModels}
-						setSelectedValues={setSelectedAccessModels}
-						selectOnlyOne={selectOnlyOneAccessModel}
-						toggleAll={toggleAllAccessModels}
-						clearAll={clearAllAccessModels}
-						label={'Access Model'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<SelectWithCombobox
-						allValues={props.issuers}
-						selectedValues={selectedIssuers}
-						setSelectedValues={setSelectedIssuers}
-						selectOnlyOne={selectOnlyOneIssuer}
-						toggleAll={toggleAllIssuers}
-						clearAll={clearAllIssuers}
-						label={'Issuers'}
-						labelType="smol"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-						}}
-					/>
-					<FilterBetweenRange
-						name="DeFi TVL / On-chain %"
-						trigger={
-							minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
-								<>
-									<span>DeFi TVL / On-chain: </span>
-									<span className="text-(--link)">
-										{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
-									</span>
-								</>
-							) : (
-								<span>DeFi TVL / On-chain %</span>
-							)
-						}
-						onSubmit={(e) => {
-							e.preventDefault()
-							const form = e.currentTarget
-							const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-							const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-							setDefiActiveTvlToOnChainPctRange(minValue, maxValue)
-						}}
-						onClear={() => setDefiActiveTvlToOnChainPctRange(null, null)}
-						min={minDefiActiveTvlToOnChainPct}
-						max={maxDefiActiveTvlToOnChainPct}
-						minLabel="Min %"
-						maxLabel="Max %"
-						minInputProps={ratioPercentInputProps}
-						maxInputProps={ratioPercentInputProps}
-					/>
-					<FilterBetweenRange
-						name="Active Marketcap / On-chain %"
-						trigger={
-							minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
-								<>
-									<span>Active Marketcap / On-chain: </span>
-									<span className="text-(--link)">
-										{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
-									</span>
-								</>
-							) : (
-								<span>Active Marketcap / On-chain %</span>
-							)
-						}
-						onSubmit={(e) => {
-							e.preventDefault()
-							const form = e.currentTarget
-							const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-							const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-							setActiveMcapToOnChainPctRange(minValue, maxValue)
-						}}
-						onClear={() => setActiveMcapToOnChainPctRange(null, null)}
-						min={minActiveMcapToOnChainPct}
-						max={maxActiveMcapToOnChainPct}
-						minLabel="Min %"
-						maxLabel="Max %"
-						minInputProps={ratioPercentInputProps}
-						maxInputProps={ratioPercentInputProps}
-					/>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={includeStablecoins}
-							onChange={(e) => setIncludeStablecoins(e.target.checked)}
-						/>
-						<span>Include Stablecoins</span>
-					</label>
-					<label className="flex items-center gap-2">
-						<input
-							type="checkbox"
-							checked={includeGovernance}
-							onChange={(e) => setIncludeGovernance(e.target.checked)}
-						/>
-						<span>Include Governance Tokens</span>
 					</label>
 					<CSVDownloadButton prepareCsv={prepareCsv} />
 				</div>
