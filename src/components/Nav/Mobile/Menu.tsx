@@ -10,6 +10,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
+import { PremiumHeader } from '../PremiumHeader'
 import { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 export const Menu = React.memo(function Menu({
@@ -45,18 +46,18 @@ export const Menu = React.memo(function Menu({
 
 					{mainLinks.map(({ category, pages }) => (
 						<div key={`mobile-nav-${category}`} className="group mb-3 flex flex-col first:mb-auto">
-							<p className="mb-1 text-xs opacity-65">{category}</p>
+							{category === 'Premium' ? <PremiumHeader /> : <p className="mb-1 text-xs opacity-65">{category}</p>}
 							<hr className="border-black/20 dark:border-white/20" />
-							{pages.map(({ name, route, icon, attention, freeTrial }) => (
+							{pages.map(({ name, route, icon, attention, umamiEvent }) => (
 								<LinkToPage
 									route={route}
 									name={name}
 									icon={icon}
 									attention={attention}
-									freeTrial={freeTrial}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
 									setShow={setShow}
+									umamiEvent={umamiEvent}
 								/>
 							))}
 						</div>
@@ -316,7 +317,8 @@ const LinkToPage = React.memo(function LinkToPage({
 	freeTrial,
 	icon,
 	asPath,
-	setShow
+	setShow,
+	umamiEvent
 }: {
 	route: string
 	name: string
@@ -325,6 +327,7 @@ const LinkToPage = React.memo(function LinkToPage({
 	icon?: string
 	asPath: string
 	setShow: (show: boolean) => void
+	umamiEvent?: string
 }) {
 	const isActive = route === asPath.split('/?')[0].split('?')[0]
 	const isExternal = route.startsWith('http')
@@ -335,6 +338,7 @@ const LinkToPage = React.memo(function LinkToPage({
 			target={isExternal ? '_blank' : undefined}
 			rel={isExternal ? 'noopener noreferrer' : undefined}
 			data-linkactive={isActive}
+			data-umami-event={umamiEvent}
 			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
 			onClick={() => setShow(false)}
 		>

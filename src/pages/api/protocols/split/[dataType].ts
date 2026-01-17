@@ -4,7 +4,7 @@ import { getTvlSplitData } from '~/server/protocolSplit/tvlSplit'
 
 async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { chains, limit = '10', categories, groupByParent, filterMode } = req.query
+		const { chains, limit = '10', categories, groupByParent, filterMode, chainFilterMode, categoryFilterMode } = req.query
 
 		let chainsArray = chains ? (chains as string).split(',').filter(Boolean) : []
 		if (chainsArray.length === 0 || chainsArray.some((c) => c.toLowerCase() === 'all')) {
@@ -13,9 +13,15 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 		const categoriesArray = categories ? (categories as string).split(',').filter(Boolean) : []
 		const topN = Math.min(parseInt(limit as string), 20)
 		const shouldGroupByParent = groupByParent === 'true'
-		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
+		const resolveMode = (value?: string, fallback?: string) => {
+			if (value === 'include' || value === 'exclude') return value
+			if (fallback === 'include' || fallback === 'exclude') return fallback
+			return 'include'
+		}
+		const chainMode = resolveMode(chainFilterMode as string | undefined, filterMode as string | undefined)
+		const categoryMode = resolveMode(categoryFilterMode as string | undefined, filterMode as string | undefined)
 
-		const result = await getTvlSplitData(chainsArray, categoriesArray, topN, shouldGroupByParent, fm)
+		const result = await getTvlSplitData(chainsArray, categoriesArray, topN, shouldGroupByParent, chainMode, categoryMode)
 
 		res.status(200).json(result)
 	} catch (error) {
@@ -29,7 +35,8 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { dataType, chains, limit = '10', categories, groupByParent, filterMode } = req.query
+		const { dataType, chains, limit = '10', categories, groupByParent, filterMode, chainFilterMode, categoryFilterMode } =
+			req.query
 		const metric = dataType as string
 
 		if (metric === 'tvl') {
@@ -44,7 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					.filter(Boolean)
 					.map((cat) => cat.toLowerCase())
 			: []
-		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
+		const resolveMode = (value?: string, fallback?: string) => {
+			if (value === 'include' || value === 'exclude') return value
+			if (fallback === 'include' || fallback === 'exclude') return fallback
+			return 'include'
+		}
+		const chainMode = resolveMode(chainFilterMode as string | undefined, filterMode as string | undefined)
+		const categoryMode = resolveMode(categoryFilterMode as string | undefined, filterMode as string | undefined)
 		const shouldGroupByParent = groupByParent === 'true'
 
 		const config = DIMENSIONS_METRIC_CONFIG[metric]
@@ -58,7 +71,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			categories: categoriesArray,
 			topN,
 			groupByParent: shouldGroupByParent,
-			filterMode: fm
+			chainFilterMode: chainMode,
+			categoryFilterMode: categoryMode
 		})
 
 		res.status(200).json(result)

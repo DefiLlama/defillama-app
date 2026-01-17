@@ -138,10 +138,13 @@ export function useChatHistory() {
 		onMutate: async (sessionId) => {
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
-					...old,
-					sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
-				})
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+					if (!old) return { sessions: [], usage: null }
+					return {
+						...old,
+						sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
+					}
+				}
 			)
 		},
 		onSuccess: () => {
@@ -164,15 +167,18 @@ export function useChatHistory() {
 		onMutate: async ({ sessionId, title }) => {
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
-					...old,
-					sessions: old.sessions.map((session) => {
-						if (session.sessionId === sessionId) {
-							return { ...session, title }
-						}
-						return session
-					})
-				})
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+					if (!old) return { sessions: [], usage: null }
+					return {
+						...old,
+						sessions: old.sessions.map((session) => {
+							if (session.sessionId === sessionId) {
+								return { ...session, title }
+							}
+							return session
+						})
+					}
+				}
 			)
 		},
 		onSuccess: () => {
@@ -195,9 +201,9 @@ export function useChatHistory() {
 
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => ({
-					...old,
-					sessions: [fakeSession, ...old.sessions]
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => ({
+					usage: old?.usage ?? null,
+					sessions: [fakeSession, ...(old?.sessions ?? [])]
 				})
 			)
 		}
@@ -266,7 +272,8 @@ export function useChatHistory() {
 
 			queryClient.setQueryData(
 				['chat-sessions', user.id],
-				(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => {
+				(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+					if (!old) return { sessions: [], usage: null }
 					const sessionIndex = old.sessions.findIndex((s) => s.sessionId === sessionId)
 					if (sessionIndex === -1) return old
 
@@ -286,8 +293,8 @@ export function useChatHistory() {
 
 		queryClient.setQueryData(
 			['chat-sessions', user.id],
-			(old: { sessions: ChatSession[]; usage: ResearchUsage | null }) => {
-				if (!old?.usage) return old
+			(old: { sessions: ChatSession[]; usage: ResearchUsage | null } | undefined) => {
+				if (!old?.usage) return old ?? { sessions: [], usage: null }
 				return {
 					...old,
 					usage: {

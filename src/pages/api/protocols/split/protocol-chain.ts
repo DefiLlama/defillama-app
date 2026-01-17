@@ -3,14 +3,35 @@ import { CHAIN_ONLY_METRICS, getProtocolChainSplitData } from '~/server/protocol
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { protocol, metric = 'tvl', chains, limit = '5', filterMode, chainCategories, protocolCategories } = req.query
+		const {
+			protocol,
+			metric = 'tvl',
+			chains,
+			limit = '5',
+			filterMode,
+			chainFilterMode,
+			chainCategoryFilterMode,
+			protocolCategoryFilterMode,
+			chainCategories,
+			protocolCategories
+		} = req.query
 
 		const metricStr = metric as string
 		const rawChains = (chains as string | undefined)?.split(',').filter(Boolean) || []
 		const chainsArray = rawChains.includes('All') ? [] : rawChains
 		const chainCategoriesArray = (chainCategories as string | undefined)?.split(',').filter(Boolean) || []
 		const protocolCategoriesArray = (protocolCategories as string | undefined)?.split(',').filter(Boolean) || []
-		const fm = filterMode === 'exclude' ? 'exclude' : 'include'
+		const resolveMode = (value?: string, fallback?: string) => {
+			if (value === 'include' || value === 'exclude') return value
+			if (fallback === 'include' || fallback === 'exclude') return fallback
+			return 'include'
+		}
+		const chainMode = resolveMode(chainFilterMode as string | undefined, filterMode as string | undefined)
+		const chainCategoryMode = resolveMode(chainCategoryFilterMode as string | undefined, filterMode as string | undefined)
+		const protocolCategoryMode = resolveMode(
+			protocolCategoryFilterMode as string | undefined,
+			filterMode as string | undefined
+		)
 		const topN = Math.min(parseInt(limit as string), 20)
 		const protocolStr = typeof protocol === 'string' ? protocol : undefined
 		const isProtocolAll = !protocolStr || protocolStr.toLowerCase() === 'all'
@@ -29,7 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			metric: metricStr,
 			chains: chainsArray,
 			topN,
-			filterMode: fm,
+			chainFilterMode: chainMode,
+			chainCategoryFilterMode: chainCategoryMode,
+			protocolCategoryFilterMode: protocolCategoryMode,
 			chainCategories: chainCategoriesArray,
 			protocolCategories: protocolCategoriesArray
 		})

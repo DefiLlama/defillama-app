@@ -15,7 +15,8 @@ type DimensionsSplitParams = {
 	categories: string[]
 	topN: number
 	groupByParent: boolean
-	filterMode: 'include' | 'exclude'
+	chainFilterMode: 'include' | 'exclude'
+	categoryFilterMode: 'include' | 'exclude'
 }
 
 type ChainResult = { chain: string; data: any }
@@ -85,13 +86,13 @@ const toBreakdownMap = (breakdown: Array<[number, Record<string, number>]>): Map
 const buildAggregatedBreakdown = async (
 	chainsArray: string[],
 	metric: string,
-	filterMode: 'include' | 'exclude',
+	chainFilterMode: 'include' | 'exclude',
 	chainResults: ChainResult[]
 ): Promise<Map<number, Map<string, number>>> => {
 	const aggregatedBreakdown = new Map<number, Map<string, number>>()
 
 	const realChainsToExclude = chainsArray.filter((c) => c.toLowerCase() !== 'all')
-	const hasRealChainsToExclude = filterMode === 'exclude' && realChainsToExclude.length > 0
+	const hasRealChainsToExclude = chainFilterMode === 'exclude' && realChainsToExclude.length > 0
 
 	if (hasRealChainsToExclude) {
 		const config = DIMENSIONS_METRIC_CONFIG[metric]
@@ -166,7 +167,8 @@ export const getDimensionsSplitData = async ({
 	categories,
 	topN,
 	groupByParent,
-	filterMode
+	chainFilterMode,
+	categoryFilterMode
 }: DimensionsSplitParams): Promise<ProtocolSplitData> => {
 	const config = DIMENSIONS_METRIC_CONFIG[metric]
 	if (!config) {
@@ -178,7 +180,7 @@ export const getDimensionsSplitData = async ({
 
 	const chainResults = await fetchChainResults(chainsArray, metric)
 
-	if (chainResults.length === 0 && filterMode === 'include') {
+	if (chainResults.length === 0 && chainFilterMode === 'include') {
 		return buildEmptySplit(
 			chainsArray,
 			categoriesArray,
@@ -188,7 +190,7 @@ export const getDimensionsSplitData = async ({
 		)
 	}
 
-	const aggregatedBreakdown = await buildAggregatedBreakdown(chainsArray, metric, filterMode, chainResults)
+	const aggregatedBreakdown = await buildAggregatedBreakdown(chainsArray, metric, chainFilterMode, chainResults)
 
 	const data = {
 		totalDataChartBreakdown: Array.from(aggregatedBreakdown.entries())
@@ -245,7 +247,7 @@ export const getDimensionsSplitData = async ({
 	let protocolEntries = Object.entries(lastDayProtocols).map(([name, value]) => ({ name, value: value as number }))
 
 	if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
-		if (filterMode === 'exclude') {
+		if (categoryFilterMode === 'exclude') {
 			protocolEntries = protocolEntries.filter((p) => !categoriesArray.includes(getCategory(p.name)))
 		} else {
 			protocolEntries = protocolEntries.filter((p) => categoriesArray.includes(getCategory(p.name)))
@@ -328,7 +330,7 @@ export const getDimensionsSplitData = async ({
 		Object.entries(protocols).forEach(([protocolName, value]) => {
 			if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
 				const cat = getCategory(protocolName)
-				if (filterMode === 'exclude') {
+				if (categoryFilterMode === 'exclude') {
 					if (categoriesArray.includes(cat)) return
 				} else {
 					if (!categoriesArray.includes(cat)) return

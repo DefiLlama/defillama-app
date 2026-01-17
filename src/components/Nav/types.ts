@@ -1,4 +1,12 @@
-export type TNavLink = { name: string; route: string; icon?: string; attention?: boolean; freeTrial?: boolean }
+export type TNavLink = {
+	name: string
+	route: string
+	icon?: string
+	attention?: boolean
+	freeTrial?: boolean
+	/** Only for external links - internal pages are auto-tracked by Umami */
+	umamiEvent?: string
+}
 
 export type TNavLinks = Array<{ category: string; pages: Array<TNavLink> }>
 
