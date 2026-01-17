@@ -25,7 +25,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getChainOverviewData({ chain })
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+		const data = await getChainOverviewData({
+			chain,
+			chainMetadata: metadataCache.chainMetadata,
+			protocolMetadata: metadataCache.protocolMetadata
+		})
 
 		if (!data) {
 			return { notFound: true }

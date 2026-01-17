@@ -14,7 +14,8 @@ import { withPerformanceLogging } from '~/utils/perf'
 const adapterType = ADAPTER_TYPES.FEES
 
 export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, async () => {
-	const data = await getChainsByREVPageData()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getChainsByREVPageData({ chainMetadata: metadataCache.chainMetadata })
 
 	return {
 		props: data,

@@ -18,7 +18,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.json(cachedData)
 	}
 
-	const chainData = await fetchChain({ chain: chain as string })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+	const chainData = await fetchChain({
+		chain: chain as string,
+		chainMetadata: metadataCache.chainMetadata,
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 	const response = { chain: chainData }
 
 	await setObjectCache(cacheKey, response)

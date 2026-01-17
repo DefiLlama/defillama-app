@@ -14,8 +14,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			categoryParam = 'Rollup'
 		}
 
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
 		const data = await getChainsByCategory({
 			category: categoryParam,
+			chainMetadata: metadataCache.chainMetadata,
 			sampledChart: true
 		})
 

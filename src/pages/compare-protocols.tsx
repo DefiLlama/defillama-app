@@ -22,7 +22,13 @@ const LineAndBarChart = React.lazy(
 ) as React.FC<ILineAndBarChartProps>
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
-	const { protocols } = await getChainOverviewData({ chain: 'All' })
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+	const { protocols } = await getChainOverviewData({
+		chain: 'All',
+		chainMetadata: metadataCache.chainMetadata,
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 
 	return {
 		props: {

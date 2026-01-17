@@ -2,6 +2,7 @@ import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { IChainMetadata } from '../ChainOverview/types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, ADAPTER_TYPES_TO_METADATA_TYPE } from './constants'
 import { IAdapterByChainPageData, IChainsByAdapterPageData, IChainsByREVPageData } from './types'
 
@@ -959,20 +960,21 @@ export const getAdapterByChainPageData = async ({
 // only returns fees paid by users when using the chain (gas ?), not the fees paid by users when using the protocols on chain
 export const getChainsByFeesAdapterPageData = async ({
 	adapterType,
-	dataType
+	dataType,
+	chainMetadata
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
+	chainMetadata: Record<string, IChainMetadata>
 }): Promise<IChainsByAdapterPageData> => {
 	try {
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChainsSet = new Set<string>()
 
-		for (const chain in metadataCache.chainMetadata) {
-			const chainMetadata = metadataCache.chainMetadata[chain]
+		for (const chain in chainMetadata) {
+			const currentChainMetadata = chainMetadata[chain]
 			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
-			if (sType && chainMetadata[sType]) {
-				allChainsSet.add(chainMetadata.name)
+			if (sType && currentChainMetadata[sType]) {
+				allChainsSet.add(currentChainMetadata.name)
 			}
 		}
 
@@ -1046,25 +1048,26 @@ export const getChainsByFeesAdapterPageData = async ({
 // returns combined metrics of all protocols by chain
 export const getChainsByAdapterPageData = async ({
 	adapterType,
-	dataType
+	dataType,
+	chainMetadata
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
+	chainMetadata: Record<string, IChainMetadata>
 }): Promise<IChainsByAdapterPageData> => {
 	try {
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const allChains: Array<string> = []
 
-		for (const chain in metadataCache.chainMetadata) {
-			const chainMetadata = metadataCache.chainMetadata[chain]
+		for (const chain in chainMetadata) {
+			const currentChainMetadata = chainMetadata[chain]
 			const sType =
 				adapterType === 'fees'
 					? dataType === 'dailyRevenue'
 						? 'chainRevenue'
 						: 'chainFees'
 					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
-			if (sType && chainMetadata[sType]) {
-				allChains.push(chainMetadata.name)
+			if (sType && currentChainMetadata[sType]) {
+				allChains.push(currentChainMetadata.name)
 			}
 		}
 
@@ -1077,13 +1080,15 @@ export const getChainsByAdapterPageData = async ({
 		] = await Promise.all([
 			getDimensionAdapterOverviewOfAllChains({
 				adapterType,
-				dataType
+				dataType,
+				chainMetadata
 			}),
 			adapterType === 'fees' ? Promise.resolve([]) : fetchJson(`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown`),
 			adapterType === 'fees'
 				? getDimensionAdapterOverviewOfAllChains({
 						adapterType,
-						dataType: 'dailyBribesRevenue'
+						dataType: 'dailyBribesRevenue',
+						chainMetadata
 					}).catch(() => {
 						return {}
 					})
@@ -1091,7 +1096,8 @@ export const getChainsByAdapterPageData = async ({
 			adapterType === 'fees'
 				? getDimensionAdapterOverviewOfAllChains({
 						adapterType,
-						dataType: 'dailyTokenTaxes'
+						dataType: 'dailyTokenTaxes',
+						chainMetadata
 					}).catch(() => {
 						return {}
 					})
@@ -1099,7 +1105,8 @@ export const getChainsByAdapterPageData = async ({
 			adapterType === 'derivatives'
 				? getDimensionAdapterOverviewOfAllChains({
 						adapterType: 'open-interest',
-						dataType: 'openInterestAtEnd'
+						dataType: 'openInterestAtEnd',
+						chainMetadata
 					}).catch((err) => {
 						console.log(err)
 						return {}
@@ -1159,14 +1166,16 @@ export const getChainsByAdapterPageData = async ({
 	}
 }
 
-export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> => {
+export const getChainsByREVPageData = async ({
+	chainMetadata
+}: {
+	chainMetadata: Record<string, IChainMetadata>
+}): Promise<IChainsByREVPageData> => {
 	try {
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
 		const allChains: Array<string> = []
 
-		for (const chain in metadataCache.chainMetadata) {
-			if (metadataCache.chainMetadata[chain]['chainFees']) {
+		for (const chain in chainMetadata) {
+			if (chainMetadata[chain]['chainFees']) {
 				allChains.push(chain)
 			}
 		}
@@ -1192,7 +1201,7 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 			const protocols = protocolsByChainsData[index].status === 'fulfilled' ? protocolsByChainsData[index].value : null
 			const chainRevProtocols = new Set(REV_PROTOCOLS[chain] ?? [])
 			return {
-				name: metadataCache.chainMetadata[chain].name,
+				name: chainMetadata[chain].name,
 				slug: chain,
 				logo: chainIconUrl(chain),
 				total24h:
@@ -1217,23 +1226,23 @@ export const getChainsByREVPageData = async (): Promise<IChainsByREVPageData> =>
 
 export async function getDimensionAdapterOverviewOfAllChains({
 	adapterType,
-	dataType
+	dataType,
+	chainMetadata
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}`
+	chainMetadata: Record<string, IChainMetadata>
 }) {
 	try {
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
 		const chains: Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }> = {}
-		for (const chain in metadataCache.chainMetadata) {
-			const chainMetadata = metadataCache.chainMetadata[chain]
-			const adapterMetadata = chainMetadata?.[ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
+		for (const chain in chainMetadata) {
+			const currentChainMetadata = chainMetadata[chain]
+			const adapterMetadata = currentChainMetadata?.[ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]]
 			if (!adapterMetadata) continue
 			const dataKey = ADAPTER_DATA_TYPE_KEYS[dataType] ?? null
-			const value = chainMetadata.dimAgg?.[adapterType]?.[dataKey]
+			const value = currentChainMetadata.dimAgg?.[adapterType]?.[dataKey]
 			if (!value) continue
-			chains[chainMetadata.name] = value
+			chains[currentChainMetadata.name] = value
 		}
 
 		return chains

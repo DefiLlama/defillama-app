@@ -4,6 +4,7 @@ import { EMISSION_SUPPLY_METRICS, PROTOCOLS_API } from '~/constants'
 import { slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ILiteProtocol } from '../ChainOverview/types'
+import { IProtocolMetadata } from '../ProtocolOverview/types'
 
 export interface IProtocolsWithTokensByChainPageData {
 	protocols: Array<{
@@ -31,9 +32,11 @@ export interface IProtocolsWithTokensByChainPageData {
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Foundation', 'Meme'])
 
 export async function getProtocolsMarketCapsByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const {
 		protocols,
@@ -44,8 +47,6 @@ export async function getProtocolsMarketCapsByChain({
 		chains: Array<string>
 		parentProtocols: Array<{ id: string; name: string; chains: Array<string>; mcap?: number }>
 	} = await fetchJson(PROTOCOLS_API)
-
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -63,10 +64,7 @@ export async function getProtocolsMarketCapsByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: protocol.mcap ?? null
 		}
 
@@ -111,9 +109,11 @@ export async function getProtocolsMarketCapsByChain({
 }
 
 export async function getProtocolsFDVsByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const [{ protocols, chains, parentProtocols }, tokenList]: [
 		{
@@ -123,8 +123,6 @@ export async function getProtocolsFDVsByChain({
 		},
 		Array<IResponseCGMarketsAPI>
 	] = await Promise.all([fetchJson(PROTOCOLS_API), getAllCGTokensList()])
-
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -144,10 +142,7 @@ export async function getProtocolsFDVsByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: fdv ?? null
 		}
 
@@ -194,9 +189,11 @@ export async function getProtocolsFDVsByChain({
 }
 
 export async function getProtocolsTokenPricesByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const {
 		protocols,
@@ -207,8 +204,6 @@ export async function getProtocolsTokenPricesByChain({
 		chains: Array<string>
 		parentProtocols: Array<{ id: string; name: string; chains: Array<string>; gecko_id?: string }>
 	} = await fetchJson(PROTOCOLS_API)
-
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -240,10 +235,7 @@ export async function getProtocolsTokenPricesByChain({
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: protocol.geckoId ? (prices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null
 		}
 
@@ -288,9 +280,11 @@ export async function getProtocolsTokenPricesByChain({
 }
 
 export async function getProtocolsAdjustedFDVsByChain({
-	chain
+	chain,
+	protocolMetadata
 }: {
 	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
 }): Promise<IProtocolsWithTokensByChainPageData | null> {
 	const [{ protocols, chains, parentProtocols }, emissionsSupplyMetrics]: [
 		{
@@ -312,8 +306,6 @@ export async function getProtocolsAdjustedFDVsByChain({
 			}
 		>
 	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchJson(EMISSION_SUPPLY_METRICS)])
-
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -361,10 +353,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 			logo: tokenIconUrl(slugName),
 			slug: slugName,
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			value: adjustedFDV
 		}
 

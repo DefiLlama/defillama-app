@@ -4,6 +4,7 @@ import { HACKS_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { IProtocolMetadata } from '../ProtocolOverview/types'
 
 export interface IHack {
 	date: number
@@ -140,14 +141,17 @@ export interface IProtocolTotalValueLostInHacksByProtocol {
 	protocols: Array<{ name: string; slug: string; route: string; totalHacked: number; returnedFunds: number }>
 }
 
-export async function getTotalValueLostInHacksByProtocol(): Promise<IProtocolTotalValueLostInHacksByProtocol> {
+export async function getTotalValueLostInHacksByProtocol({
+	protocolMetadata
+}: {
+	protocolMetadata: Record<string, IProtocolMetadata>
+}): Promise<IProtocolTotalValueLostInHacksByProtocol> {
 	try {
 		const data = await fetchJson(HACKS_API)
 		const protocols: Array<IHack> = data.filter((h: IHack) => h.defillamaId)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 		const totalLostByProtocol = protocols.reduce((acc, hack) => {
-			const protocol = metadataCache.protocolMetadata[hack.defillamaId]
+			const protocol = protocolMetadata[hack.defillamaId]
 			if (protocol) {
 				const name = protocol.displayName || hack.name
 				if (!acc[name]) {

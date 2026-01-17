@@ -11,16 +11,18 @@ import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export async function getStaticProps() {
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const protocolMetadata = metadataCache.protocolMetadata
+
 	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<IProtocol> }] =
 		await Promise.all([
 			fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'),
 			getProtocolsByChain({
 				chain: 'All',
-				metadata: { name: 'All', stablecoins: true, fees: true, dexs: true, perps: true, id: 'all' }
+				chainMetadata: metadataCache.chainMetadata,
+				protocolMetadata: metadataCache.protocolMetadata
 			})
 		])
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const protocolMetadata = metadataCache.protocolMetadata
 
 	const tvlByProtocol = {}
 	const feesByProtocol = {}

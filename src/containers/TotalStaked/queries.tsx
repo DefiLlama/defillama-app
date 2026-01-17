@@ -4,6 +4,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { ILiteChart, ILiteProtocol } from '../ChainOverview/types'
+import { IProtocolMetadata } from '../ProtocolOverview/types'
 
 export interface ITotalStakedByChainPageData {
 	protocols: Array<{
@@ -31,7 +32,13 @@ export interface ITotalStakedByChainPageData {
 	change24h: number | null
 }
 
-export async function getTotalStakedByChain({ chain }: { chain: string }): Promise<ITotalStakedByChainPageData | null> {
+export async function getTotalStakedByChain({
+	chain,
+	protocolMetadata
+}: {
+	chain: string
+	protocolMetadata: Record<string, IProtocolMetadata>
+}): Promise<ITotalStakedByChainPageData | null> {
 	const [{ protocols, parentProtocols }, chart, chains]: [
 		{
 			protocols: Array<ILiteProtocol>
@@ -54,8 +61,6 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 
 	if (!chart || chart.length === 0) return null
 
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
 	const finalProtocols = []
 	const finalParentProtocols = {}
 
@@ -75,10 +80,7 @@ export async function getTotalStakedByChain({ chain }: { chain: string }): Promi
 			logo: tokenIconUrl(slug(protocol.name)),
 			slug: slug(protocol.name),
 			category: protocol.category,
-			chains:
-				(protocol.defillamaId ? metadataCache.protocolMetadata[protocol.defillamaId]?.chains : null) ??
-				protocol.chains ??
-				[],
+			chains: (protocol.defillamaId ? protocolMetadata[protocol.defillamaId]?.chains : null) ?? protocol.chains ?? [],
 			totalStaked,
 			totalPrevMonth,
 			change_1m:

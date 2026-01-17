@@ -15,7 +15,10 @@ import { formattedNum, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols/total-value-lost-in-hacks', async () => {
-	const data = await getTotalValueLostInHacksByProtocol()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const data = await getTotalValueLostInHacksByProtocol({
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 	return {
 		props: data,
 		revalidate: maxAgeForNext([22])
