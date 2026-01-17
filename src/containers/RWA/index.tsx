@@ -57,8 +57,8 @@ const meetsRatioPercent = (
 }
 
 const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
-	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'min'
-	const maxLabel = maxPercent != null ? `${maxPercent.toLocaleString()}%` : 'max'
+	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'no min'
+	const maxLabel = maxPercent != null ? `${maxPercent.toLocaleString()}%` : 'no max'
 	return `${minLabel} - ${maxLabel}`
 }
 
@@ -79,6 +79,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		maxDefiActiveTvlToOnChainPct,
 		minActiveMcapToOnChainPct,
 		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
@@ -88,6 +90,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setSelectedIssuers,
 		setDefiActiveTvlToOnChainPctRange,
 		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
 		selectOnlyOneCategory,
@@ -148,6 +151,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			) {
 				return false
 			}
+			if (
+				!meetsRatioPercent(
+					asset.defiActiveTvl.total,
+					asset.activeMarketcap.total,
+					minDefiActiveTvlToActiveMcapPct,
+					maxDefiActiveTvlToActiveMcapPct
+				)
+			) {
+				return false
+			}
 
 			return (
 				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
@@ -171,7 +184,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		minDefiActiveTvlToOnChainPct,
 		maxDefiActiveTvlToOnChainPct,
 		minActiveMcapToOnChainPct,
-		maxActiveMcapToOnChainPct
+		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct
 	])
 
 	// Recalculate summary values based on all filters
@@ -287,12 +302,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	useEffect(() => {
 		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
-		const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
+
 		if (colSize) {
 			instance.setColumnSizing(colSize[1])
-		}
-		if (colOrder) {
-			instance.setColumnOrder(colOrder[1])
 		}
 	}, [instance, windowSize])
 
@@ -479,6 +491,35 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					onClear={() => setActiveMcapToOnChainPctRange(null, null)}
 					min={minActiveMcapToOnChainPct}
 					max={maxActiveMcapToOnChainPct}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+				<FilterBetweenRange
+					name="DeFi TVL / Active Marketcap %"
+					trigger={
+						minDefiActiveTvlToActiveMcapPct != null || maxDefiActiveTvlToActiveMcapPct != null ? (
+							<>
+								<span>DeFi TVL / Active Marketcap: </span>
+								<span className="text-(--link)">
+									{formatPercentRange(minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)}
+								</span>
+							</>
+						) : (
+							<span>DeFi TVL / Active Marketcap %</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						setDefiActiveTvlToActiveMcapPctRange(minValue, maxValue)
+					}}
+					onClear={() => setDefiActiveTvlToActiveMcapPctRange(null, null)}
+					min={minDefiActiveTvlToActiveMcapPct}
+					max={maxDefiActiveTvlToActiveMcapPct}
 					minLabel="Min %"
 					maxLabel="Max %"
 					minInputProps={ratioPercentInputProps}
@@ -738,15 +779,14 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		}
 	},
 	{
-		id: 'onChainMarketcap.total',
-		header: definitions.onChainMarketcap.label,
-		accessorFn: (asset) => asset.onChainMarketcap.total,
+		id: 'defiActiveTvl.total',
+		header: definitions.defiActiveTvl.label,
+		accessorFn: (asset) => asset.defiActiveTvl.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
 		),
-		size: 168,
 		meta: {
-			headerHelperText: definitions.onChainMarketcap.description,
+			headerHelperText: definitions.defiActiveTvl.description,
 			align: 'end'
 		}
 	},
@@ -763,14 +803,15 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 		}
 	},
 	{
-		id: 'defiActiveTvl.total',
-		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl.total,
+		id: 'onChainMarketcap.total',
+		header: definitions.onChainMarketcap.label,
+		accessorFn: (asset) => asset.onChainMarketcap.total,
 		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
+			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
 		),
+		size: 168,
 		meta: {
-			headerHelperText: definitions.defiActiveTvl.description,
+			headerHelperText: definitions.onChainMarketcap.description,
 			align: 'end'
 		}
 	},
@@ -1005,47 +1046,6 @@ const columnSizes = Object.entries({
 	640: { name: 240 }
 }).sort((a, b) => Number(b[0]) - Number(a[0]))
 
-const columnOrders = Object.entries({
-	0: [
-		'name',
-		'onChainMarketcap.total',
-		'category',
-		'assetClass',
-		'activeMarketcap.total',
-		'defiActiveTvl.total',
-		'type',
-		'rwaClassification',
-		'accessModel',
-		'issuer',
-		'redeemable',
-		'attestations',
-		'cex_listed',
-		'kycForMintRedeem',
-		'kycAllowlistedWhitelistedToTransferHold',
-		'transferable',
-		'self_custody'
-	],
-	640: [
-		'name',
-		'type',
-		'category',
-		'assetClass',
-		'onChainMarketcap.total',
-		'activeMarketcap.total',
-		'defiActiveTvl.total',
-		'rwaClassification',
-		'accessModel',
-		'issuer',
-		'redeemable',
-		'attestations',
-		'cex_listed',
-		'kycForMintRedeem',
-		'kycAllowlistedWhitelistedToTransferHold',
-		'transferable',
-		'self_custody'
-	]
-}).sort((a, b) => Number(b[0]) - Number(a[0]))
-
 const toArrayParam = (p: string | string[] | undefined): string[] => {
 	if (!p) return []
 	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
@@ -1127,6 +1127,8 @@ const useRWATableQueryParams = ({
 		maxDefiActiveTvlToOnChainPct,
 		minActiveMcapToOnChainPct,
 		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance
 	} = useMemo(() => {
@@ -1140,6 +1142,8 @@ const useRWATableQueryParams = ({
 			maxDefiActiveTvlToOnChainPct: maxDefiActiveTvlToOnChainPctQ,
 			minActiveMcapToOnChainPct: minActiveMcapToOnChainPctQ,
 			maxActiveMcapToOnChainPct: maxActiveMcapToOnChainPctQ,
+			minDefiActiveTvlToActiveMcapPct: minDefiActiveTvlToActiveMcapPctQ,
+			maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
 			includeStablecoins: stablecoinsQ,
 			includeGovernance: governanceQ
 		} = router.query
@@ -1162,6 +1166,8 @@ const useRWATableQueryParams = ({
 		const maxDefiActiveTvlToOnChainPct = toNumberParam(maxDefiActiveTvlToOnChainPctQ)
 		const minActiveMcapToOnChainPct = toNumberParam(minActiveMcapToOnChainPctQ)
 		const maxActiveMcapToOnChainPct = toNumberParam(maxActiveMcapToOnChainPctQ)
+		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
+		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
 
 		// includeStablecoins is true by default, unless explicitly set to 'false'
 		const includeStablecoins = stablecoinsQ !== 'false'
@@ -1176,6 +1182,8 @@ const useRWATableQueryParams = ({
 			maxDefiActiveTvlToOnChainPct,
 			minActiveMcapToOnChainPct,
 			maxActiveMcapToOnChainPct,
+			minDefiActiveTvlToActiveMcapPct,
+			maxDefiActiveTvlToActiveMcapPct,
 			includeStablecoins,
 			includeGovernance
 		}
@@ -1266,6 +1274,17 @@ const useRWATableQueryParams = ({
 			updateNumberRangeQuery('minActiveMcapToOnChainPct', 'maxActiveMcapToOnChainPct', minValue, maxValue, router),
 		[router]
 	)
+	const setDefiActiveTvlToActiveMcapPctRange = useCallback(
+		(minValue: string | number | null, maxValue: string | number | null) =>
+			updateNumberRangeQuery(
+				'minDefiActiveTvlToActiveMcapPct',
+				'maxDefiActiveTvlToActiveMcapPct',
+				minValue,
+				maxValue,
+				router
+			),
+		[router]
+	)
 
 	const setIncludeStablecoins = useCallback(
 		(value: boolean) => {
@@ -1303,6 +1322,8 @@ const useRWATableQueryParams = ({
 		maxDefiActiveTvlToOnChainPct,
 		minActiveMcapToOnChainPct,
 		maxActiveMcapToOnChainPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
 		setSelectedCategories,
@@ -1312,6 +1333,7 @@ const useRWATableQueryParams = ({
 		setSelectedIssuers,
 		setDefiActiveTvlToOnChainPctRange,
 		setActiveMcapToOnChainPctRange,
+		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
 		selectOnlyOneCategory,
