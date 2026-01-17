@@ -490,13 +490,13 @@ export function ProDashboardAPIProvider({
 		const olderSessions = unratedSessions.slice(1)
 
 		const updatedAiGenerated = { ...currentDashboard.aiGenerated }
-		olderSessions.forEach((session) => {
+		for (const session of olderSessions) {
 			updatedAiGenerated[session.sessionId] = {
 				...updatedAiGenerated[session.sessionId],
 				rated: false,
 				skipped: true
 			} as AISessionData
-		})
+		}
 
 		try {
 			await saveDashboard({ aiGenerated: updatedAiGenerated })
@@ -819,13 +819,13 @@ export function ProDashboardAPIProvider({
 	// Load dashboard
 	const allChartItems: ChartConfig[] = useMemo(() => {
 		const chartItems: ChartConfig[] = []
-		items.forEach((item) => {
+		for (const item of items) {
 			if (item.kind === 'chart') {
 				chartItems.push(item)
 			} else if (item.kind === 'multi') {
 				chartItems.push(...item.items)
 			}
-		})
+		}
 		return chartItems
 	}, [items])
 
@@ -833,11 +833,12 @@ export function ProDashboardAPIProvider({
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()
-		allChartItems.forEach((chartConfig, index) => {
+		for (let index = 0; index < allChartItems.length; index++) {
+			const chartConfig = allChartItems[index]
 			if (chartQueries[index]) {
 				map.set(chartConfig.id, chartQueries[index])
 			}
-		})
+		}
 		return map
 	}, [allChartItems, chartQueries])
 
@@ -936,17 +937,17 @@ export function ProDashboardAPIProvider({
 
 	const chainByName = useMemo(() => {
 		const map = new Map<string, Chain>()
-		chains.forEach((chain) => {
+		for (const chain of chains) {
 			map.set(chain.name, chain)
-		})
+		}
 		return map
 	}, [chains])
 
 	const protocolBySlug = useMemo(() => {
 		const map = new Map<string, Protocol>()
-		protocols.forEach((protocol: Protocol) => {
+		for (const protocol of protocols as Protocol[]) {
 			map.set(protocol.slug, protocol)
-		})
+		}
 		return map
 	}, [protocols])
 

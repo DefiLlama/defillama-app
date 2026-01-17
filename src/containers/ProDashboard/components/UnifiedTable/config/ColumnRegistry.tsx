@@ -644,10 +644,10 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 
 	const columnsByGroup = new Map<MetricGroup, ColumnDef<NormalizedRow>[]>()
 
-	allColumns.forEach((col) => {
+	for (const col of allColumns) {
 		const columnId = String(col.id)
 		const dictEntry = COLUMN_DICTIONARY_BY_ID.get(columnId)
-		if (!dictEntry || dictEntry.group === 'meta') return
+		if (!dictEntry || dictEntry.group === 'meta') continue
 
 		const group = dictEntry.group as MetricGroup
 
@@ -655,7 +655,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			columnsByGroup.set(group, [])
 		}
 		columnsByGroup.get(group)!.push(col)
-	})
+	}
 
 	const groupedColumns: ColumnDef<NormalizedRow>[] = []
 

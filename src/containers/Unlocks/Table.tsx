@@ -147,36 +147,48 @@ export const UnlocksTable = ({
 	)
 
 	const clearAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
+		const opsObj: Record<string, boolean> = {}
+		for (const option of columnOptions) {
+			opsObj[option.key] = false
+		}
+		const ops = JSON.stringify(opsObj)
 		window.localStorage.setItem(optionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const toggleAllOptions = () => {
-		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
+		const opsObj: Record<string, boolean> = {}
+		for (const option of columnOptions) {
+			opsObj[option.key] = true
+		}
+		const ops = JSON.stringify(opsObj)
 		window.localStorage.setItem(optionsKey, ops)
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addOption = (newOptions) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
+		const ops: Record<string, boolean> = {}
+		for (const col of columnOptions) {
+			ops[col.key] = newOptions.includes(col.key)
+		}
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const addOnlyOneOption = (newOption) => {
-		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, col.key === newOption]))
+		const ops: Record<string, boolean> = {}
+		for (const col of columnOptions) {
+			ops[col.key] = col.key === newOption
+		}
 		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
 		window.dispatchEvent(new Event('storage'))
 	}
 
 	const _setFilter = (key) => (newState) => {
-		const newOptions = Object.fromEntries(
-			columnOptions.map((column) => [
-				[column.key],
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
-			])
-		)
+		const newOptions: Record<string, boolean> = {}
+		for (const column of columnOptions) {
+			newOptions[column.key] = ['name', 'category'].includes(column.key) ? true : column[key] === newState
+		}
 
 		if (columnsInStorage === JSON.stringify(newOptions)) {
 			toggleAllOptions()

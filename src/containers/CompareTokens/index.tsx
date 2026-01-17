@@ -36,7 +36,7 @@ export function CompareTokens({ coinsData, protocols }) {
 			coins.length == 2
 				? () =>
 						Promise.all([
-							fetchCoinPrices(coins.map((c) => 'coingecko:' + c)).then((coins) => ({ coins })),
+							fetchCoinPrices(coins.map((c) => `coingecko:${c}`)).then((coins) => ({ coins })),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[0]}`),
 							fetchJson(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
@@ -49,7 +49,7 @@ export function CompareTokens({ coinsData, protocols }) {
 	let newPrice, increase
 
 	if (fdvData !== null) {
-		let coinPrices = coins.map((c) => fdvData[0].coins['coingecko:' + c].price)
+		let coinPrices = coins.map((c) => fdvData[0].coins[`coingecko:${c}`].price)
 
 		if (compareType.value === 'mcap') {
 			if (selectedCoins[0]['market_cap'] && selectedCoins[1]['market_cap']) {

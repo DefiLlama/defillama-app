@@ -23,14 +23,14 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 	data.props.pools = data.props.pools.filter((p) => p.apy > 0)
 
 	const projects = {}
-	data.props.pools.forEach((p) => {
+	for (const p of data.props.pools) {
 		const proj = p.project
 		if (projects[proj] === undefined) {
 			projects[proj] = { protocols: 0, tvl: 0, name: p.projectName }
 		}
 		projects[proj].protocols++
 		projects[proj].tvl += p.tvlUsd
-	})
+	}
 
 	// add other fields
 	for (const project of Object.keys(projects)) {

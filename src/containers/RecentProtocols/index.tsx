@@ -61,12 +61,12 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				}
 
 				let includesChain = false
-				protocol.chains.forEach((chain) => {
+				for (const chain of protocol.chains) {
 					// filter if a protocol has at least of one selected chain
 					if (!includesChain) {
 						includesChain = _chainsToSelect.includes(chain.toLowerCase())
 					}
-				})
+				}
 
 				toFilter = toFilter && includesChain
 
@@ -79,10 +79,10 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				let tvlPrevMonth = null
 				let extraTvl = {}
 
-				p.chains.forEach((chainName) => {
-					// return if chainsToSelect does not include chainName
+				for (const chainName of p.chains) {
+					// continue if chainsToSelect does not include chainName
 					if (!_chainsToSelect.includes(chainName.toLowerCase())) {
-						return
+						continue
 					}
 
 					for (const sectionName in p.chainTvls) {
@@ -114,7 +114,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							}
 						}
 					}
-				})
+				}
 
 				return {
 					...p,

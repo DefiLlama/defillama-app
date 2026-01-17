@@ -114,7 +114,8 @@ export const AVAILABLE_FIELDS = Object.keys(FIELD_ALIASES)
 
 export function replaceAliases(formula: string): string {
 	let result = formula
-	for (const [alias, path] of Object.entries(FIELD_ALIASES)) {
+	for (const alias in FIELD_ALIASES) {
+		const path = FIELD_ALIASES[alias as keyof typeof FIELD_ALIASES]
 		result = result.replace(new RegExp(`\\b${alias}\\b`, 'g'), path)
 	}
 	return result

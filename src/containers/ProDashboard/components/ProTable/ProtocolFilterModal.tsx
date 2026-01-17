@@ -138,18 +138,20 @@ export function ProtocolFilterModal({
 
 	const oracleOptions = React.useMemo(() => {
 		const tvsByOracle = new Map<string, number>()
-		;(protocols as any[]).forEach((p) => {
+		for (const p of protocols as any[]) {
 			const tvl = Number((p as any).tvl) || 0
 			const add = (o: string) => tvsByOracle.set(o, (tvsByOracle.get(o) || 0) + tvl)
 			if (Array.isArray((p as any).oracles)) {
-				;((p as any).oracles as string[]).forEach(add)
+				for (const o of (p as any).oracles as string[]) {
+					add(o)
+				}
 			}
 			if ((p as any).oraclesByChain) {
-				Object.values((p as any).oraclesByChain as Record<string, string[]>)
-					.flat()
-					.forEach(add)
+				for (const o of Object.values((p as any).oraclesByChain as Record<string, string[]>).flat()) {
+					add(o)
+				}
 			}
-		})
+		}
 		return Array.from(tvsByOracle.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([o]) => ({ value: o, label: o }))
@@ -287,9 +289,13 @@ export function ProtocolFilterModal({
 										if (children && children.length > 0) {
 											const allSelected = children.every((c) => current.has(c))
 											if (allSelected) {
-												children.forEach((c) => current.delete(c))
+												for (const c of children) {
+													current.delete(c)
+												}
 											} else {
-												children.forEach((c) => current.add(c))
+												for (const c of children) {
+													current.add(c)
+												}
 											}
 										} else {
 											current.add(opt.value)

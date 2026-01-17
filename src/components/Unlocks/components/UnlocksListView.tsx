@@ -16,13 +16,13 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 	}
 
 	const groupedEvents: { [date: string]: Array<DailyUnlocks['events'][0]> } = {}
-	events.forEach(({ date, event }) => {
+	for (const { date, event } of events) {
 		const dateStr = date.format('YYYY-MM-DD')
 		if (!groupedEvents[dateStr]) {
 			groupedEvents[dateStr] = []
 		}
 		groupedEvents[dateStr].push(event)
-	})
+	}
 
 	return (
 		<div className="flex max-h-[70dvh] flex-col gap-2 overflow-y-auto rounded border border-(--divider) bg-(--bg-glass) p-1 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-2 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-(--bg-glass) [&::-webkit-scrollbar-thumb]:bg-(--blue) [&::-webkit-scrollbar-track]:bg-transparent">

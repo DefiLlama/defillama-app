@@ -58,19 +58,19 @@ export function ChainsDataset({
 		const sums: Record<string, number> = {}
 		const metrics = ['tvl', 'stablesMcap', 'totalVolume24h', 'totalFees24h', 'totalAppRevenue24h', 'nftVolume']
 
-		metrics.forEach((metric) => {
+		for (const metric of metrics) {
 			sums[metric] = 0
-		})
+		}
 
 		if (data && Array.isArray(data)) {
-			data.forEach((chain) => {
-				metrics.forEach((metric) => {
+			for (const chain of data) {
+				for (const metric of metrics) {
 					const value = chain[metric]
 					if (typeof value === 'number' && value > 0) {
 						sums[metric] += value
 					}
-				})
-			})
+				}
+			}
 		}
 
 		return sums
@@ -213,9 +213,9 @@ export function ChainsDataset({
 				const allColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
 
-				allColumns.forEach((column) => {
+				for (const column of allColumns) {
 					newVisibility[column.id] = presetColumns.includes(column.id)
-				})
+				}
 
 				instance.setColumnVisibility(newVisibility)
 				instance.setColumnOrder(presetColumns)
@@ -315,9 +315,9 @@ export function ChainsDataset({
 			if (presetColumns) {
 				const allColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
-				allColumns.forEach((column) => {
+				for (const column of allColumns) {
 					newVisibility[column.id] = presetColumns.includes(column.id)
-				})
+				}
 				setColumnVisibility(newVisibility)
 				setColumnOrder(presetColumns)
 				instance.setColumnVisibility(newVisibility)

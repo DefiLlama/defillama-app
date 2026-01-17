@@ -227,7 +227,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 				displayValue: grossProtocolRevenue, // Show actual gross protocol revenue value, not sum of flows
 				depth: 1
 			})
-			for (const [label, value] of Object.entries(grossProtocolRevenueByLabelData)) {
+			for (const label in grossProtocolRevenueByLabelData) {
+				const value = grossProtocolRevenueByLabelData[label]
 				if (value > 0) {
 					nodes.push({
 						name: label,
@@ -263,7 +264,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 
 			// Only add cost breakdown if labels are available
 			if (Object.keys(costOfRevenueByLabelData).length > 0) {
-				for (const [label, value] of Object.entries(costOfRevenueByLabelData)) {
+				for (const label in costOfRevenueByLabelData) {
+					const value = costOfRevenueByLabelData[label]
 					if (value > 0) {
 						const costLabel = `${label} (Cost)`
 						nodes.push({

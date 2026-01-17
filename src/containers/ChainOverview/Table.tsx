@@ -145,13 +145,13 @@ export const ChainProtocolsTable = ({
 			try {
 				ops = JSON.parse(localStorage.getItem(tableColumnOptionsKey) ?? '{}')
 			} catch {}
-			allKeys.forEach((key) => {
+			for (const key of allKeys) {
 				if (key === newColumnKey) {
 					ops[key] = true
 				} else if (!(key in ops)) {
 					ops[key] = false
 				}
-			})
+			}
 			localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
 			window.dispatchEvent(new Event('storage'))
 			if (instance && instance.setColumnVisibility) {

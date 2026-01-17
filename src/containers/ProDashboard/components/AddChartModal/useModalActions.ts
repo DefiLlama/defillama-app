@@ -621,26 +621,26 @@ export function useModalActions(
 					if (state.chartCreationMode === 'combined') {
 						handleAddMultiChart(state.composerItems, state.unifiedChartName.trim() || undefined)
 					} else {
-						state.composerItems.forEach((item) => {
+						for (const item of state.composerItems) {
 							if (item.chain) {
 								handleAddChart(item.chain, item.type, 'chain', item.geckoId, item.color)
 							} else if (item.protocol) {
 								handleAddChart(item.protocol, item.type, 'protocol', item.geckoId, item.color)
 							}
-						})
+						}
 					}
 				} else if (state.chartCreationMode === 'separate' && state.selectedChartTypes.length > 0) {
 					if (state.selectedChain) {
 						const chain = chains.find((c: Chain) => c.name === state.selectedChain)
-						state.selectedChartTypes.forEach((chartType) => {
+						for (const chartType of state.selectedChartTypes) {
 							const geckoId = ['chainMcap', 'chainPrice'].includes(chartType) ? chain?.gecko_id : undefined
 							handleAddChart(state.selectedChain, chartType, 'chain', geckoId)
-						})
+						}
 					} else if (state.selectedProtocol) {
 						const protocol = protocols.find((p: Protocol) => p.slug === state.selectedProtocol)
-						state.selectedChartTypes.forEach((chartType) => {
+						for (const chartType of state.selectedChartTypes) {
 							handleAddChart(state.selectedProtocol, chartType, 'protocol', protocol?.geckoId)
-						})
+						}
 					}
 				}
 			} else if (state.selectedMainTab === 'table') {

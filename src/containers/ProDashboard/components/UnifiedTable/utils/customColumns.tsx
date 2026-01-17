@@ -154,7 +154,8 @@ export function evaluateExpression(expression: string, metrics: NumericMetrics):
 		}
 
 		const context: Record<string, number> = {}
-		for (const [key, value] of Object.entries(metrics)) {
+		for (const key in metrics) {
+			const value = metrics[key as keyof NumericMetrics]
 			if (typeof value === 'number' && !Number.isNaN(value)) {
 				context[key] = value
 			}

@@ -57,12 +57,13 @@ export function ChatHistorySidebar({
 
 	const virtualItems = useMemo(() => {
 		const items: VirtualItem[] = []
-		groupedSessions.forEach(([groupName, groupSessions], groupIndex) => {
+		for (let groupIndex = 0; groupIndex < groupedSessions.length; groupIndex++) {
+			const [groupName, groupSessions] = groupedSessions[groupIndex]
 			items.push({ type: 'header', groupName, isFirst: groupIndex === 0 })
-			groupSessions.forEach((session) => {
+			for (const session of groupSessions) {
 				items.push({ type: 'session', session, groupName })
-			})
-		})
+			}
+		}
 		return items
 	}, [groupedSessions])
 

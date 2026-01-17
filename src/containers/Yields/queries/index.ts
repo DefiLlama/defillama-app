@@ -267,7 +267,7 @@ export async function getLendBorrowData() {
 	const lendingProtocols = new Set()
 	const farmProtocols = new Set()
 
-	props.pools.forEach((pool) => {
+	for (const pool of props.pools) {
 		projectsList.add(pool.projectName)
 		// remove undercollateralised cause we cannot borrow on those
 		if (['Lending', 'CDP', 'NFT Lending'].includes(pool.category)) {
@@ -275,11 +275,13 @@ export async function getLendBorrowData() {
 		}
 		farmProtocols.add(pool.projectName)
 
-		pool.rewardTokensNames?.forEach((rewardName) => {
-			projectsList.add(rewardName)
-			farmProtocols.add(rewardName)
-		})
-	})
+		if (pool.rewardTokensNames) {
+			for (const rewardName of pool.rewardTokensNames) {
+				projectsList.add(rewardName)
+				farmProtocols.add(rewardName)
+			}
+		}
+	}
 
 	return {
 		props: {

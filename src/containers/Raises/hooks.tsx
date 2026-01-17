@@ -76,17 +76,17 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 
 				let isAnInvestor = false
 
-				raise.leadInvestors.forEach((lead) => {
+				for (const lead of raise.leadInvestors) {
 					if (selectedInvestorsSet.has(lead)) {
 						isAnInvestor = true
 					}
-				})
+				}
 
-				raise.otherInvestors.forEach((otherInv) => {
+				for (const otherInv of raise.otherInvestors) {
 					if (selectedInvestorsSet.has(otherInv)) {
 						isAnInvestor = true
 					}
-				})
+				}
 
 				// filter if investor is in either leadInvestors or otherInvestors
 				if (!isAnInvestor) {
@@ -101,11 +101,11 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 				} else {
 					let raiseIncludesChain = false
 
-					raise.chains.forEach((chain) => {
+					for (const chain of raise.chains) {
 						if (selectedChainsSet.has(chain)) {
 							raiseIncludesChain = true
 						}
-					})
+					}
 
 					if (!raiseIncludesChain) {
 						toFilter = false
@@ -152,7 +152,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			return toFilter
 		})
 
-		filteredRaisesList.forEach((r) => {
+		for (const r of filteredRaisesList) {
 			// split EOS raised amount between 13 months
 			if (r.name === 'EOS') {
 				for (let month = 0; month < 13; month++) {
@@ -170,7 +170,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			if (r.round) {
 				investmentByRounds[r.round] = (investmentByRounds[r.round] ?? 0) + 1
 			}
-		})
+		}
 
 		const finalMonthlyInvestment = []
 		const finalRaisesByCategory = []

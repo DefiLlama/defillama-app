@@ -1176,7 +1176,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 	let total30d = 0
 	let totalAllTime = 0
 
-	props.bridgeVolume.forEach((item) => {
+	for (const item of props.bridgeVolume) {
 		const volume = (item.depositUSD + item.withdrawUSD) / 2
 		const timestamp = new Date(+item.date * 1000).getTime()
 
@@ -1193,7 +1193,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 		if (timestamp >= oneDayAgo) {
 			total24h += volume
 		}
-	})
+	}
 
 	if (total30d > 0) {
 		metrics.push({

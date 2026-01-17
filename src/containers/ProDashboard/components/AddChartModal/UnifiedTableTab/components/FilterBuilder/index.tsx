@@ -547,9 +547,9 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 
 	const totalFiltersAvailable = useMemo(() => {
 		let total = 0
-		filtersByCategory.forEach((categoryFilters) => {
+		for (const categoryFilters of filtersByCategory.values()) {
 			total += categoryFilters.length
-		})
+		}
 		return total
 	}, [filtersByCategory])
 

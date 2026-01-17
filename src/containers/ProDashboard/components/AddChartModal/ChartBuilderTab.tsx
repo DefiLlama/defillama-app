@@ -152,11 +152,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 	const categoryOptions = useMemo(() => {
 		if (!protocols) return []
 		const categoriesSet = new Set<string>()
-		protocols.forEach((protocol: any) => {
+		for (const protocol of protocols as any[]) {
 			if (protocol.category) {
 				categoriesSet.add(protocol.category)
 			}
-		})
+		}
 		return Array.from(categoriesSet)
 			.sort()
 			.map((cat) => ({
@@ -853,7 +853,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 													filteredSeries = filteredSeries.map((s) => {
 														const aggregatedData: Map<number, number> = new Map()
 
-														s.data.forEach(([timestamp, value]: [number, number]) => {
+														for (const [timestamp, value] of s.data as [number, number][]) {
 															const date = new Date(timestamp * 1000)
 															const weekDate = new Date(date)
 															const day = weekDate.getDay()
@@ -863,7 +863,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 															const weekKey = Math.floor(weekDate.getTime() / 1000)
 
 															aggregatedData.set(weekKey, (aggregatedData.get(weekKey) || 0) + value)
-														})
+														}
 
 														return {
 															...s,
@@ -874,11 +874,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 
 												if (chartBuilder.displayAs === 'percentage') {
 													const timestampTotals = new Map<number, number>()
-													filteredSeries.forEach((s) => {
-														s.data.forEach(([timestamp, value]) => {
+													for (const s of filteredSeries) {
+														for (const [timestamp, value] of s.data) {
 															timestampTotals.set(timestamp, (timestampTotals.get(timestamp) || 0) + value)
-														})
-													})
+														}
+													}
 
 													return filteredSeries.map((s) => ({
 														name: s.name,

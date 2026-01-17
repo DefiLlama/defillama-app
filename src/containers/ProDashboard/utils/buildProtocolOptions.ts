@@ -23,7 +23,9 @@ export function buildProtocolOptions(
 ): BuiltProtocolOptions {
 	const childrenByParentId = new Map<string, AnyProtocol[]>()
 	const parentMetaById = new Map<string, ParentProto>()
-	parentProtocols.forEach((pp) => parentMetaById.set(pp.id, pp))
+	for (const pp of parentProtocols) {
+		parentMetaById.set(pp.id, pp)
+	}
 
 	const allChildren = new Set<string>()
 

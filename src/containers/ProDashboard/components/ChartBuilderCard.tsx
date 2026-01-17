@@ -232,7 +232,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			processedSeries = chartData.series.map((s: any) => {
 				const aggregatedData: Map<number, { value: number; lastTimestamp: number }> = new Map()
 
-				s.data.forEach(([timestamp, value]: [number, number]) => {
+				for (const [timestamp, value] of s.data as [number, number][]) {
 					const date = new Date(timestamp * 1000)
 					let groupKey: number
 
@@ -269,7 +269,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							lastTimestamp
 						})
 					}
-				})
+				}
 
 				return {
 					...s,
@@ -293,11 +293,11 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 		if (config.displayAs === 'percentage') {
 			const timestampTotals = new Map<number, number>()
-			processedSeries.forEach((s: any) => {
-				s.data.forEach(([timestamp, value]: [number, number]) => {
+			for (const s of processedSeries) {
+				for (const [timestamp, value] of s.data as [number, number][]) {
 					timestampTotals.set(timestamp, (timestampTotals.get(timestamp) || 0) + value)
-				})
-			})
+				}
+			}
 
 			return processedSeries.map((s: any) => ({
 				name: s.name,
@@ -376,19 +376,21 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		if (!chartSeries || chartSeries.length === 0) return
 
 		const timestampSet = new Set<number>()
-		chartSeries.forEach((s: any) => {
-			s.data.forEach(([timestamp]: [number, number]) => timestampSet.add(timestamp))
-		})
+		for (const s of chartSeries) {
+			for (const [timestamp] of s.data as [number, number][]) {
+				timestampSet.add(timestamp)
+			}
+		}
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
 
 		const headers = ['Date', ...chartSeries.map((s: any) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
-			chartSeries.forEach((s: any) => {
+			for (const s of chartSeries) {
 				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
 				row.push(dataPoint ? dataPoint[1].toString() : '0')
-			})
+			}
 			return row
 		})
 

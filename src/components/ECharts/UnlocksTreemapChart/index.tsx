@@ -57,18 +57,19 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		const treeData = []
 		const yearData: YearDataMap = {}
 
-		Object.entries(unlocksData).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData) {
+			const dailyData = unlocksData[dateStr]
 			const date = dayjs(dateStr)
 			const year = date.year()
 			const monthIndex = date.month()
 			const monthName = date.format('MMMM')
 
 			if (timeView === 'Month') {
-				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) return
+				if (monthIndex !== selectedDate.month() || year !== selectedDate.year()) continue
 			} else if (timeView === 'Current Year') {
-				if (year !== currentYear) return
+				if (year !== currentYear) continue
 			} else if (timeView === 'All Years') {
-				if (year < currentYear) return
+				if (year < currentYear) continue
 			}
 
 			if (!yearData[year]) {
@@ -85,7 +86,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				}
 			}
 
-			dailyData.events.forEach((event) => {
+			for (const event of dailyData.events) {
 				if (!yearData[year].children[monthName].protocols[event.protocol]) {
 					yearData[year].children[monthName].protocols[event.protocol] = 0
 				}
@@ -93,8 +94,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 				yearData[year].children[monthName].protocols[event.protocol] += event.value
 				yearData[year].children[monthName].value += event.value
 				yearData[year].value += event.value
-			})
-		})
+			}
+		}
 
 		if (timeView === 'Month') {
 			const targetYear = selectedDate.year()
@@ -167,7 +168,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						}
 					}
 
-					Object.entries(monthInfo.protocols).forEach(([protocol, value]) => {
+					for (const protocol in monthInfo.protocols) {
+						const value = monthInfo.protocols[protocol]
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -208,7 +210,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								}
 							}
 						})
-					})
+					}
 
 					monthNode.children.sort((a, b) => b.value - a.value)
 					return monthNode
@@ -217,7 +219,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		}
 
 		if (timeView === 'All Years') {
-			Object.entries(yearData).forEach(([year, yearInfo]) => {
+			for (const year in yearData) {
+				const yearInfo = yearData[year]
 				const yearNode: any = {
 					name: year,
 					value: yearInfo.value,
@@ -231,7 +234,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					}
 				}
 
-				Object.entries(yearInfo.children).forEach(([month, monthInfo]) => {
+				for (const month in yearInfo.children) {
+					const monthInfo = yearInfo.children[month]
 					const monthNode: any = {
 						name: month,
 						value: monthInfo.value,
@@ -245,7 +249,8 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						}
 					}
 
-					Object.entries(monthInfo.protocols).forEach(([protocol, value]) => {
+					for (const protocol in monthInfo.protocols) {
+						const value = monthInfo.protocols[protocol]
 						const iconUrl = tokenIconUrl(protocol)
 						monthNode.children.push({
 							name: protocol,
@@ -286,15 +291,15 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 								}
 							}
 						})
-					})
+					}
 
 					monthNode.children.sort((a, b) => b.value - a.value)
 					yearNode.children.push(monthNode)
-				})
+				}
 
 				yearNode.children.sort((a, b) => b.value - a.value)
 				treeData.push(yearNode)
-			})
+			}
 
 			treeData.sort((a, b) => Number(a.name) - Number(b.name))
 			return treeData

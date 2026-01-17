@@ -96,14 +96,14 @@ export function StablecoinsChartTab({
 
 	const chainOptions: VirtualizedSelectOption[] = useMemo(() => {
 		const options: VirtualizedSelectOption[] = [{ value: 'All', label: 'All Chains', icon: '🌐' }]
-		;(chainsList as StablecoinChainInfo[]).forEach((chain) => {
+		for (const chain of chainsList as StablecoinChainInfo[]) {
 			options.push({
 				value: chain.name,
 				label: chain.name,
 				logo: chainIconUrl(chain.name),
 				description: formattedNum(chain.tvl, true)
 			})
-		})
+		}
 		return options
 	}, [chainsList])
 
@@ -144,9 +144,9 @@ export function StablecoinsChartTab({
 
 	const assetChainColors = useMemo(() => {
 		const colors: Record<string, string> = {}
-		chainsUnique.forEach((chain) => {
+		for (const chain of chainsUnique) {
 			colors[chain] = colorManager.getItemColor(chain, 'chain')
-		})
+		}
 		return colors
 	}, [chainsUnique])
 

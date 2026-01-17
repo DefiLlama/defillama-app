@@ -143,9 +143,9 @@ export default function AreaChart({
 				})
 			}
 
-			chartData.forEach(([date, value]) => {
+			for (const [date, value] of chartData) {
 				series.data.push([+date * 1e3, value])
-			})
+			}
 
 			return series
 		} else {
@@ -251,7 +251,7 @@ export default function AreaChart({
 
 			for (const { date, ...item } of chartData) {
 				const sumOfTheDay = Object.values(item).reduce((acc: number, curr: number) => (acc += curr), 0) as number
-				chartsStack.forEach((stack) => {
+				for (const stack of chartsStack) {
 					if (legendOptions && customLegendName ? legendOptions.includes(stack) : true) {
 						const serie = series.find((t) => t.name === stack)
 						if (serie) {
@@ -269,7 +269,7 @@ export default function AreaChart({
 							}
 						}
 					}
-				})
+				}
 			}
 
 			return series

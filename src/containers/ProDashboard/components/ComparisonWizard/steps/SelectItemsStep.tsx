@@ -74,7 +74,7 @@ export function SelectItemsStep() {
 		const parentsOrSolo: typeof protocols = []
 		const parentIdToSlug = new Map<string, string>()
 
-		protocols.forEach((protocol) => {
+		for (const protocol of protocols) {
 			if (protocol.parentProtocol) {
 				const existing = childrenByParentId.get(protocol.parentProtocol) || []
 				childrenByParentId.set(protocol.parentProtocol, [...existing, protocol])
@@ -82,7 +82,7 @@ export function SelectItemsStep() {
 				parentsOrSolo.push(protocol)
 				parentIdToSlug.set(protocol.id, protocol.slug)
 			}
-		})
+		}
 
 		parentsOrSolo.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
@@ -114,11 +114,11 @@ export function SelectItemsStep() {
 
 	const protocolCategoryOptions = useMemo(() => {
 		const categoriesSet = new Set<string>()
-		protocols.forEach((protocol) => {
+		for (const protocol of protocols) {
 			if (protocol.category) {
 				categoriesSet.add(protocol.category)
 			}
-		})
+		}
 		return Array.from(categoriesSet)
 			.sort()
 			.map((cat) => ({ value: cat, label: cat }))

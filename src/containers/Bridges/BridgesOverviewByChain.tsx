@@ -73,30 +73,29 @@ export function BridgesOverviewByChain({
 		const fileName = 'bridge-and-messaging-volumes.csv'
 		const rows = [['Timestamp', 'Date', ...filteredBridgeNames, 'Total']]
 		let stackedDatasetObject = {} as any
-		filteredBridgeNames.map((bridgeName) => {
+		for (const bridgeName of filteredBridgeNames) {
 			const chartDataIndex = bridgeNameToChartDataIndex[bridgeName]
 			const charts = chartDataByBridge[chartDataIndex]
-			charts.map((chart) => {
+			for (const chart of charts) {
 				const date = chart.date
 				stackedDatasetObject[date] = stackedDatasetObject[date] || {}
 				stackedDatasetObject[date][bridgeName] = chart.volume
-			})
-		})
+			}
+		}
 		const stackedData = Object.entries(stackedDatasetObject).map((data: [string, object]) => {
 			return { date: parseInt(data[0]), ...data[1] }
 		})
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...filteredBridgeNames.map((chain) => day[chain] ?? ''),
-					filteredBridgeNames.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedStackedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedStackedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...filteredBridgeNames.map((chain) => day[chain] ?? ''),
+				filteredBridgeNames.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 
 		return { filename: fileName, rows }
 	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
@@ -109,39 +108,39 @@ export function BridgesOverviewByChain({
 			fileName = 'bridge-volume-data.csv'
 			// For volume chart
 			rows = [['Timestamp', 'Date', 'Volume']]
-			chainVolumeData.forEach((entry) => {
+			for (const entry of chainVolumeData) {
 				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
-			})
+			}
 		} else if (chartType === 'Bridge Volume') {
 			fileName = `${selectedChain}-bridge-volume.csv`
 			rows = [['Timestamp', 'Date', 'Volume']]
-			chainVolumeData.forEach((entry) => {
+			for (const entry of chainVolumeData) {
 				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
-			})
+			}
 		} else if (chartType === 'Net Flow') {
 			fileName = `${selectedChain}-netflow.csv`
 			rows = [['Timestamp', 'Date', 'Net Flow']]
-			chainNetFlowData.forEach((entry) => {
+			for (const entry of chainNetFlowData) {
 				rows.push([entry.date, toNiceCsvDate(entry.date), entry['Net Flow']])
-			})
+			}
 		} else if (chartType === 'Net Flow (%)') {
 			fileName = `${selectedChain}-netflow-percentage.csv`
 			rows = [['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)']]
-			chainPercentageNet.forEach((entry) => {
+			for (const entry of chainPercentageNet) {
 				rows.push([entry.date, toNiceCsvDate(entry.date), entry.Inflows, entry.Outflows])
-			})
+			}
 		} else if (chartType === '24h Tokens Deposited') {
 			fileName = `${selectedChain}-tokens-deposited.csv`
 			rows = [['Token', 'Amount']]
-			tokenDeposits.forEach((entry) => {
+			for (const entry of tokenDeposits) {
 				rows.push([entry.name, entry.value])
-			})
+			}
 		} else if (chartType === '24h Tokens Withdrawn') {
 			fileName = `${selectedChain}-tokens-withdrawn.csv`
 			rows = [['Token', 'Amount']]
-			tokenWithdrawals.forEach((entry) => {
+			for (const entry of tokenWithdrawals) {
 				rows.push([entry.name, entry.value])
-			})
+			}
 		}
 
 		return { filename: fileName, rows }
@@ -163,11 +162,11 @@ export function BridgesOverviewByChain({
 		const bridgesToCalculate = activeTab === 'bridges' ? filteredBridges : messagingProtocols
 
 		if (bridgesToCalculate) {
-			bridgesToCalculate?.forEach((bridge) => {
+			for (const bridge of bridgesToCalculate ?? []) {
 				dayTotalVolume += Number(bridge?.lastDailyVolume) || 0
 				weekTotalVolume += Number(bridge?.weeklyVolume) || 0
 				monthTotalVolume += Number(bridge?.monthlyVolume) || 0
-			})
+			}
 		} else {
 			for (let i = 1; i < 31; i++) {
 				const dailyVolume = getPrevVolumeFromChart(chainVolumeData, i, false, selectedChain !== 'All')

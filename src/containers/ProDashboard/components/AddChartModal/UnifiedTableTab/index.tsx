@@ -444,15 +444,13 @@ const TabContent = memo(function TabContent({
 	const activeFilterPills: FilterPill[] = useMemo(() => {
 		const pills: FilterPill[] = []
 
-		chains
-			.filter((chain) => chain !== 'All')
-			.forEach((chain) => {
-				pills.push({
-					id: `chain-${chain}`,
-					label: chainLabelMap.get(chain) ?? chain,
-					onRemove: () => handleRemoveChainValue(chain)
-				})
+		for (const chain of chains.filter((chain) => chain !== 'All')) {
+			pills.push({
+				id: `chain-${chain}`,
+				label: chainLabelMap.get(chain) ?? chain,
+				onRemove: () => handleRemoveChainValue(chain)
 			})
+		}
 
 		for (const chip of activeFilterChips) {
 			pills.push({

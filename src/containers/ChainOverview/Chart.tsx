@@ -140,7 +140,7 @@ export default function ChainLineBarChart({
 
 		const noOffset = allYAxis.length < 3
 
-		allYAxis.forEach(([type, index]) => {
+		for (const [type, index] of allYAxis) {
 			const options = {
 				...yAxis,
 				name: '',
@@ -398,7 +398,7 @@ export default function ChainLineBarChart({
 					}
 				})
 			}
-		})
+		}
 
 		if (allYAxis.length === 0) {
 			finalYAxis.push(yAxis)

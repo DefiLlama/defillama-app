@@ -93,21 +93,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 			}
 		}
 
-		for (const item in Object.fromEntries(color_uniqueItemIdsPerProtocol)) {
-			if (color_uniqueItemIdsPerProtocol.get(item)?.length > 1) {
-				;(color_uniqueItemIdsPerProtocol.get(item) || []).forEach((id) => {
+		for (const [item, ids] of color_uniqueItemIdsPerProtocol) {
+			if (ids.length > 1) {
+				for (const id of ids) {
 					color_uniqueItemIds.add(id)
-				})
+				}
 			} else {
 				color_uniqueItemIds.add(item)
 			}
 		}
 
-		for (const item in Object.fromEntries(color_uniqueItemIdsPerChain)) {
-			if (color_uniqueItemIdsPerChain.get(item)?.length > 1) {
-				;(color_uniqueItemIdsPerChain.get(item) || []).forEach((id) => {
+		for (const [item, ids] of color_uniqueItemIdsPerChain) {
+			if (ids.length > 1) {
+				for (const id of ids) {
 					color_uniqueItemIds.add(id)
-				})
+				}
 			} else {
 				color_uniqueItemIds.add(item)
 			}
@@ -217,9 +217,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 
 		if ((allBarType || allAreaType) && showStacked && !showCumulative && !showPercentage) {
 			const allTimestamps = new Set<number>()
-			processedSeries.forEach((serie) => {
-				serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
-			})
+			for (const serie of processedSeries) {
+				for (const [timestamp] of serie.data) {
+					allTimestamps.add(timestamp)
+				}
+			}
 
 			const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
@@ -250,23 +252,25 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 
 		const allTimestamps = new Set<number>()
-		processedSeries.forEach((serie) => {
-			serie.data.forEach(([timestamp]) => allTimestamps.add(timestamp))
-		})
+		for (const serie of processedSeries) {
+			for (const [timestamp] of serie.data) {
+				allTimestamps.add(timestamp)
+			}
+		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
 		const totals = new Map<number, number>()
-		sortedTimestamps.forEach((timestamp) => {
+		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			processedSeries.forEach((serie) => {
+			for (const serie of processedSeries) {
 				const dataPoint = serie.data.find(([t]) => t === timestamp)
 				if (dataPoint) {
 					total += dataPoint[1]
 				}
-			})
+			}
 			totals.set(timestamp, total)
-		})
+		}
 
 		const percentageColors = [
 			'#FF6B6B',
@@ -322,19 +326,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		if (!series || series.length === 0) return
 
 		const timestampSet = new Set<number>()
-		series.forEach((s) => {
-			s.data.forEach(([timestamp]) => timestampSet.add(timestamp))
-		})
+		for (const s of series) {
+			for (const [timestamp] of s.data) {
+				timestampSet.add(timestamp)
+			}
+		}
 		const timestamps = Array.from(timestampSet).sort((a, b) => a - b)
 
 		const headers = ['Date', ...series.map((s) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
 			const row = [new Date(timestamp * 1000).toLocaleDateString()]
-			series.forEach((s) => {
+			for (const s of series) {
 				const dataPoint = s.data.find(([t]) => t === timestamp)
 				row.push(dataPoint ? dataPoint[1].toString() : '0')
-			})
+			}
 			return row
 		})
 

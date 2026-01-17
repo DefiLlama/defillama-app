@@ -64,11 +64,11 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 
 	React.useEffect(() => {
 		const columnSizes = {}
-		bridgeAggregatorsDatasetColumns.forEach((column) => {
+		for (const column of bridgeAggregatorsDatasetColumns) {
 			if (column.size) {
 				columnSizes[column.id as string] = column.size
 			}
-		})
+		}
 		instance.setColumnSizing(columnSizes)
 	}, [instance])
 

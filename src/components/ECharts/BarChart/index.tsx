@@ -44,9 +44,9 @@ export default function BarChart({
 		const values = stacks || {}
 
 		if ((!values || Object.keys(values).length === 0) && customLegendOptions) {
-			customLegendOptions.forEach((name) => {
+			for (const name of customLegendOptions) {
 				values[name] = 'stackA'
-			})
+			}
 		}
 
 		const selectedStacks = Object.keys(values).filter((s) =>

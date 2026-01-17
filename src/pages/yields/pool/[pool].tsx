@@ -115,9 +115,9 @@ const PageView = (_props) => {
 		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
-		chart?.data?.forEach((item) => {
+		for (const item of chart?.data ?? []) {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
-		})
+		}
 
 		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
 	}, [chart?.data, query?.pool])

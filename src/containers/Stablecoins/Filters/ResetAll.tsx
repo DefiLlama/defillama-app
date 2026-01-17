@@ -13,7 +13,11 @@ export function ResetAllStablecoinFilters({ pathname }: { pathname: string; nest
 	return (
 		<button
 			onClick={() => {
-				updater(Object.fromEntries(Object.values(STABLECOINS_SETTINGS).map((s) => [s, false])))
+				const resetSettings: Record<string, boolean> = {}
+				for (const s of Object.values(STABLECOINS_SETTINGS)) {
+					resetSettings[s] = false
+				}
+				updater(resetSettings)
 				router.push(pathname, undefined, { shallow: true })
 			}}
 			disabled={!hasActiveFilters}

@@ -47,42 +47,44 @@ export const useUnlockChartData = ({
 		const protocolTotals: { [key: string]: number } = {}
 		const protocolColorMap: { [key: string]: string } = {}
 
-		weekRange.dates.forEach((dateStr) => {
+		for (const dateStr of weekRange.dates) {
 			const dayData = unlocksData?.[dateStr]
 			if (dayData?.events) {
-				dayData.events.forEach((event) => {
+				for (const event of dayData.events) {
 					if (!protocolTotals[event.protocol]) {
 						protocolTotals[event.protocol] = 0
 					}
 					protocolTotals[event.protocol] += event.value
-				})
+				}
 			}
-		})
+		}
 
 		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
 
-		sortedProtocols.forEach((protocol, index) => {
-			protocolColorMap[protocol] = COLOR_PALETTE[index % COLOR_PALETTE.length]
-		})
+		for (let i = 0; i < sortedProtocols.length; i++) {
+			const protocol = sortedProtocols[i]
+			protocolColorMap[protocol] = COLOR_PALETTE[i % COLOR_PALETTE.length]
+		}
 
-		weekRange.dates.forEach((dateStr, i) => {
+		for (let i = 0; i < weekRange.dates.length; i++) {
+			const dateStr = weekRange.dates[i]
 			const day = weekRange.start.add(i, 'day')
 			const dayData = unlocksData?.[dateStr]
 			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
 
-			sortedProtocols.forEach((protocol) => {
+			for (const protocol of sortedProtocols) {
 				dataPoint[protocol] = 0
-			})
+			}
 
 			if (dayData?.events) {
-				dayData.events.forEach((event) => {
+				for (const event of dayData.events) {
 					if (dataPoint.hasOwnProperty(event.protocol)) {
 						dataPoint[event.protocol] = event.value
 					}
-				})
+				}
 			}
 			weekData.push(dataPoint)
-		})
+		}
 
 		if (sortedProtocols.length === 0) {
 			return {
@@ -111,42 +113,44 @@ export const useUnlockChartData = ({
 		const protocolTotals: { [key: string]: number } = {}
 		const protocolColorMap: { [key: string]: string } = {}
 
-		monthRange.dates.forEach((dateStr) => {
+		for (const dateStr of monthRange.dates) {
 			const dayData = unlocksData?.[dateStr]
 			if (dayData?.events) {
-				dayData.events.forEach((event) => {
+				for (const event of dayData.events) {
 					if (!protocolTotals[event.protocol]) {
 						protocolTotals[event.protocol] = 0
 					}
 					protocolTotals[event.protocol] += event.value
-				})
+				}
 			}
-		})
+		}
 
 		const sortedProtocols = Object.keys(protocolTotals).sort((a, b) => protocolTotals[b] - protocolTotals[a])
 
-		sortedProtocols.forEach((protocol, index) => {
-			protocolColorMap[protocol] = COLOR_PALETTE[index % COLOR_PALETTE.length]
-		})
+		for (let i = 0; i < sortedProtocols.length; i++) {
+			const protocol = sortedProtocols[i]
+			protocolColorMap[protocol] = COLOR_PALETTE[i % COLOR_PALETTE.length]
+		}
 
-		monthRange.dates.forEach((dateStr, i) => {
+		for (let i = 0; i < monthRange.dates.length; i++) {
+			const dateStr = monthRange.dates[i]
 			const day = monthRange.start.date(i + 1)
 			const dayData = unlocksData[dateStr]
 			const dataPoint: { date: number; [key: string]: number } = { date: day.unix() }
 
-			sortedProtocols.forEach((protocol) => {
+			for (const protocol of sortedProtocols) {
 				dataPoint[protocol] = 0
-			})
+			}
 
 			if (dayData?.events) {
-				dayData.events.forEach((event) => {
+				for (const event of dayData.events) {
 					if (dataPoint.hasOwnProperty(event.protocol)) {
 						dataPoint[event.protocol] = event.value
 					}
-				})
+				}
 			}
 			monthData.push(dataPoint)
-		})
+		}
 
 		if (sortedProtocols.length === 0) {
 			return {

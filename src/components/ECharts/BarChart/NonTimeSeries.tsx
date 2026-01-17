@@ -40,13 +40,13 @@ export default function NonTimeSeriesBarChart({
 		const series = []
 
 		const allStacks = new Set<string>()
-		chartData.forEach((item) => {
-			Object.keys(item).forEach((key) => {
+		for (const item of chartData) {
+			for (const key of Object.keys(item)) {
 				if (key !== 'date') {
 					allStacks.add(key)
 				}
-			})
-		})
+			}
+		}
 
 		for (const stack of allStacks) {
 			series.push({

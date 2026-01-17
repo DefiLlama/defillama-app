@@ -23,10 +23,10 @@ function calculateDenominatedChange(data, denominatedCoin) {
 	const sortedData = data.sort((a, b) => a.date - b.date)
 	const denominatedReturns = []
 
-	sortedData.forEach((dayData) => {
+	for (const dayData of sortedData) {
 		const newDayData = { date: dayData.date }
 
-		Object.keys(dayData).forEach((category) => {
+		for (const category in dayData) {
 			if (category !== 'date' && category !== denominatedCoin) {
 				// calculate relative performance
 				const categoryPerformance = 1 + dayData[category] / 100
@@ -35,10 +35,10 @@ function calculateDenominatedChange(data, denominatedCoin) {
 
 				newDayData[category] = relativePerformance
 			}
-		})
+		}
 
 		denominatedReturns.push(newDayData)
-	})
+	}
 
 	return denominatedReturns
 }
@@ -49,12 +49,12 @@ function calculateDenominatedChange2(data, denominatedCoin, field) {
 
 	const denominatedCoinPerformance = 1 + data.find((i) => i.name === denominatedCoin)[field] / 100
 
-	data.forEach((i) => {
+	for (const i of data) {
 		const categoryPerformance = 1 + i[field] / 100
 		const relativePerformance = (categoryPerformance / denominatedCoinPerformance - 1) * 100
 
 		denominatedReturns.push({ ...i, [field]: relativePerformance })
-	})
+	}
 
 	return denominatedReturns
 }

@@ -38,7 +38,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 
 		if (showOnlyWatchlist || showOnlyInsider) {
 			filteredData = {}
-			Object.entries(initialUnlocksData).forEach(([date, dailyData]) => {
+			for (const date in initialUnlocksData) {
+				const dailyData = initialUnlocksData[date]
 				let filteredEvents = dailyData.events
 
 				if (showOnlyWatchlist) {
@@ -56,7 +57,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						totalValue: filteredEvents.reduce((sum, event) => sum + event.value, 0)
 					}
 				}
-			})
+			}
 		}
 
 		return filteredData
@@ -88,14 +89,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		const endDate = startDate.add(listDurationDays, 'days')
 		const events: Array<{ date: Dayjs; event: any }> = []
 
-		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData || {}) {
+			const dailyData = (unlocksData || {})[dateStr]
 			const date = dayjs(dateStr)
 			if (date.isBetween(startDate.subtract(1, 'day'), endDate)) {
-				dailyData.events.forEach((event) => {
+				for (const event of dailyData.events) {
 					events.push({ date, event })
-				})
+				}
 			}
-		})
+		}
 
 		events.sort((a, b) => a.date.valueOf() - b.date.valueOf())
 
@@ -121,7 +123,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 		const startOfMonth = currentDate.startOf('month')
 		const endOfMonth = currentDate.endOf('month')
 		let max = 0
-		Object.entries(unlocksData || {}).forEach(([dateStr, dailyData]) => {
+		for (const dateStr in unlocksData || {}) {
+			const dailyData = (unlocksData || {})[dateStr]
 			const date = dayjs(dateStr)
 			if (
 				date.isSame(startOfMonth, 'day') ||
@@ -132,7 +135,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					max = dailyData.totalValue
 				}
 			}
-		})
+		}
 		return max
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
@@ -299,14 +302,14 @@ const chartOptions = {
 			if (validParams.length === 0) {
 				tooltipContent += 'No unlocks'
 			} else {
-				validParams.forEach((param) => {
+				for (const param of validParams) {
 					const value = param.value[1]
 					totalValue += value
 					tooltipContent += `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 					<span>${param.marker} ${param.seriesName}</span>
 					<span style="font-weight: 500;">${formattedNum(value, true)}</span>
 				</div>`
-				})
+				}
 				if (validParams.length > 1) {
 					tooltipContent += `<div style="border-top: 1px solid var(--divider); margin-top: 4px; padding-top: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 					<span><strong>Total</strong></span>

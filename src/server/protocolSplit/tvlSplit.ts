@@ -399,8 +399,14 @@ export const getTvlSplitData = async (
 	}
 
 	const timestampSet = new Set<number>()
-	totalSeries.forEach(([t]) => timestampSet.add(t))
-	protocolSeries.forEach((s) => s.data.forEach(([t]) => timestampSet.add(t)))
+	for (const [t] of totalSeries) {
+		timestampSet.add(t)
+	}
+	for (const s of protocolSeries) {
+		for (const [t] of s.data) {
+			timestampSet.add(t)
+		}
+	}
 	const allTimestamps = Array.from(timestampSet).sort((a, b) => a - b)
 
 	const alignedProtocolSeries: ChartSeries[] = protocolSeries.map((s, idx) => ({

@@ -29,7 +29,7 @@ async function generateVCList(): Promise<VC[]> {
 		raises.reduce((acc, raise) => {
 			const defiCategory = protocolsCategoryById[raise.defillamaId]
 			const investors = raise.leadInvestors.concat(raise.otherInvestors)
-			investors.forEach((vc) => {
+			for (const vc of investors) {
 				if (!acc[vc]) {
 					acc[vc] = {
 						name: vc,
@@ -48,7 +48,7 @@ async function generateVCList(): Promise<VC[]> {
 					acc[vc].numInvestments += 1
 					acc[vc].defiCategories.add(defiCategory)
 				}
-			})
+			}
 			return acc
 		}, {})
 	)
@@ -144,7 +144,13 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	}
 
 	const fetchInvestors = async (filters) => {
-		const body = Object.fromEntries(Object.entries(filters).filter(([_key, v]: any) => v && v.length !== 0))
+		const body: Record<string, any> = {}
+		for (const key in filters) {
+			const v = filters[key]
+			if (v && v.length !== 0) {
+				body[key] = v
+			}
+		}
 
 		const response = await fetch('https://vc-emails.llama.fi/vc-list', {
 			method: 'POST',
@@ -179,7 +185,13 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		e.preventDefault()
 		setIsSubmitting(true)
 		try {
-			const filtersData = Object.fromEntries(Object.entries(filters).filter(([_key, v]: any) => v && v.length !== 0))
+			const filtersData: Record<string, any> = {}
+			for (const key in filters) {
+				const v = filters[key]
+				if (v && v.length !== 0) {
+					filtersData[key] = v
+				}
+			}
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },

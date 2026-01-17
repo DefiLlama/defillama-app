@@ -195,7 +195,7 @@ export default function ProtocolLineBarChart({
 
 		const chartsInSeries = new Set(series.map((s) => s.name))
 
-		allYAxis.forEach(([type, index]) => {
+		for (const [type, index] of allYAxis) {
 			const options = {
 				...yAxis,
 				name: '',
@@ -508,7 +508,7 @@ export default function ProtocolLineBarChart({
 					}
 				})
 			}
-		})
+		}
 
 		if (allYAxis.length === 0) {
 			finalYAxis.push(yAxis)

@@ -144,20 +144,21 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		if (tokenSymbols.length <= 1) return null
 
 		const stats: Record<string, { total: number; protocols: number }> = {}
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			stats[symbol] = { total: 0, protocols: 0 }
-		})
+		}
 
-		rawData.forEach((item) => {
+		for (const item of rawData) {
 			if (item.tokens) {
-				Object.entries(item.tokens).forEach(([symbol, amount]) => {
+				for (const symbol in item.tokens) {
+					const amount = item.tokens[symbol]
 					if (stats[symbol]) {
 						stats[symbol].total += amount
 						stats[symbol].protocols++
 					}
-				})
+				}
 			}
-		})
+		}
 
 		return stats
 	}, [rawData, tokenSymbols])
@@ -193,11 +194,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			shared: 0
 		}
 
-		tokenSymbols.forEach((symbol) => {
+		for (const symbol of tokenSymbols) {
 			overlap[`${symbol}_only`] = 0
-		})
+		}
 
-		rawData.forEach((protocol) => {
+		for (const protocol of rawData) {
 			const usedTokens = tokenSymbols.filter((symbol) => protocol.tokens?.[symbol] && protocol.tokens[symbol] > 0)
 
 			if (usedTokens.length === 1) {
@@ -206,7 +207,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			} else if (usedTokens.length > 1) {
 				overlap.shared++
 			}
-		})
+		}
 
 		return overlap
 	}, [rawData, tokenSymbols])
@@ -216,20 +217,22 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		const headers = ['Protocol', 'Category']
 
 		if (isMultiToken) {
-			tokenSymbols.forEach((symbol) => headers.push(`${symbol.toUpperCase()} (USD)`))
+			for (const symbol of tokenSymbols) {
+				headers.push(`${symbol.toUpperCase()} (USD)`)
+			}
 		}
 		headers.push('Total Amount (USD)')
 
 		const csvData = table.getRowModel().rows.map((row) => {
-			const data: any = {
+			const data: Record<string, any> = {
 				Protocol: row.original.name,
 				Category: row.original.category || ''
 			}
 
 			if (isMultiToken) {
-				tokenSymbols.forEach((symbol) => {
+				for (const symbol of tokenSymbols) {
 					data[`${symbol.toUpperCase()} (USD)`] = row.original.tokens?.[symbol] || 0
-				})
+				}
 			}
 
 			data['Total Amount (USD)'] = row.original.amountUsd

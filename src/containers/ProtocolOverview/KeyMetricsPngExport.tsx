@@ -230,7 +230,8 @@ export function KeyMetricsPngExportButton({
 
 			ctx.font = '14px system-ui, -apple-system, sans-serif'
 
-			rows.forEach((row, index) => {
+			for (let index = 0; index < rows.length; index++) {
+				const row = rows[index]
 				const rowY = rowsStartY + index * rowHeight
 
 				ctx.strokeStyle = borderColor
@@ -251,7 +252,7 @@ export function KeyMetricsPngExportButton({
 				ctx.fillText(row.value, canvasWidth - padding, rowY + rowHeight / 2)
 
 				ctx.font = '14px system-ui, -apple-system, sans-serif'
-			})
+			}
 
 			try {
 				const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'

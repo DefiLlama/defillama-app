@@ -35,11 +35,11 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	const categories = {}
 	const tagsByCategory = {}
 	const revenueByProtocol = {}
-	revenueData.protocols.forEach((p) => {
+	for (const p of revenueData.protocols) {
 		revenueByProtocol[p.defillamaId] = p.total24h || 0
-	})
+	}
 
-	protocols.forEach((p) => {
+	for (const p of protocols) {
 		const cat = p.category
 
 		const tvl = p.tvl ?? 0
@@ -75,7 +75,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tagsByCategory[cat] = []
 			}
 
-			p.tags.forEach((t) => {
+			for (const t of p.tags) {
 				if (!tagsByCategory[cat][t]) {
 					tagsByCategory[cat][t] = {
 						name: t,
@@ -103,7 +103,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 					tagsByCategory[cat][t].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
 					tagsByCategory[cat][t].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
 				}
-			})
+			}
 		}
 
 		categories[cat].protocols++
@@ -119,7 +119,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			categories[cat].extraTvls[extra].tvlPrevWeek += extraTvls[extra].tvlPrevWeek
 			categories[cat].extraTvls[extra].tvlPrevMonth += extraTvls[extra].tvlPrevMonth
 		}
-	})
+	}
 
 	for (const cat in protocolsByCategory) {
 		if (!categories[cat]) {
@@ -152,9 +152,12 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	const chartData = {}
 	const extraTvlCharts = {}
-	const totalCategories = Object.keys(protocolsByCategory).length
-	const allColors = getNDistinctColors(totalCategories)
-	const categoryColors = Object.fromEntries(Object.keys(protocolsByCategory).map((_, i) => [_, allColors[i]]))
+	const categoryKeys = Object.keys(protocolsByCategory)
+	const allColors = getNDistinctColors(categoryKeys.length)
+	const categoryColors: Record<string, string> = {}
+	for (let i = 0; i < categoryKeys.length; i++) {
+		categoryColors[categoryKeys[i]] = allColors[i]
+	}
 
 	for (const date in chart) {
 		for (const cat in protocolsByCategory) {

@@ -406,23 +406,24 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 	const barChartStacks = {}
 
 	// calc daily inflow per LSD
-	tokens.forEach((protocol) => {
+	for (const protocol of tokens) {
 		// sort ascending
 		const X = historicData.filter((i) => i.name === protocol).sort((a, b) => a.date - b.date)
 
 		const current = X.slice(1)
 		const previous = X.slice(0, -1)
 
-		current.forEach((c, i) => {
+		for (let i = 0; i < current.length; i++) {
+			const c = current[i]
 			if (!inflowsChartData[c.date]) {
 				inflowsChartData[c.date] = {}
 			}
 
 			inflowsChartData[c.date][c.name] = c.value - previous[i].value
-		})
+		}
 
 		barChartStacks[protocol] = 'A'
-	})
+	}
 
 	return {
 		areaChartData,
