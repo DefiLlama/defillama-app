@@ -36,7 +36,7 @@ export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
 	const { categories } = useDiscoveryCategories()
 
 	return (
-		<div className="flex flex-col gap-8">
+		<div className="flex flex-col gap-4">
 			<div>
 				<h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-(--text-label)">
 					<Icon name="tag" height={14} width={14} />
