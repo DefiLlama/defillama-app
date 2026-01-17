@@ -20,7 +20,8 @@
 		"nextjs/no-html-link-for-pages": "off",
 		"eslint/preserve-caught-error": "off",
 		"typescript/no-extraneous-class": "off",
-		"react/iframe-missing-sandbox": "off"
+		"react/iframe-missing-sandbox": "off",
+		"nextjs/no-duplicate-head": "off"
 	},
 	"ignorePatterns": ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "public/**"]
 }

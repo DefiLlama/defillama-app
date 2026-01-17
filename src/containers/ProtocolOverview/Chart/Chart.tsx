@@ -553,7 +553,8 @@ export default function ProtocolLineBarChart({
 		chartColors,
 		allYAxis,
 		rangeHallmarks,
-		onReady
+		onReady,
+		hideDataZoom
 	])
 
 	return (

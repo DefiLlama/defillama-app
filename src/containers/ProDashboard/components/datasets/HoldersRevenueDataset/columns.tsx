@@ -28,8 +28,6 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 		cell: ({ getValue, row }) => {
 			const index = row.index
 			const name = getValue() as string
-			const logo = row.original.logo
-
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
 					<span className="shrink-0">{index + 1}</span>

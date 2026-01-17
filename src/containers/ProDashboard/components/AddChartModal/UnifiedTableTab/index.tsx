@@ -339,23 +339,29 @@ const TabContent = memo(function TabContent({
 		setChains(['All'])
 	}
 
-	const handlePanelFiltersChange = useCallback((nextFilters: TableFilters) => {
-		setFilters(nextFilters ?? {})
-	}, [])
+	const handlePanelFiltersChange = useCallback(
+		(nextFilters: TableFilters) => {
+			setFilters(nextFilters ?? {})
+		},
+		[setFilters]
+	)
 
-	const _handleRemoveArrayFilterValue = useCallback((key: ArrayFilterKey, value: string) => {
-		setFilters((prev) => {
-			const next: TableFilters = { ...(prev ?? {}) }
-			const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
-			const updated = current.filter((item) => item !== value)
-			if (updated.length > 0) {
-				next[key] = updated
-			} else {
-				delete next[key]
-			}
-			return next
-		})
-	}, [])
+	const _handleRemoveArrayFilterValue = useCallback(
+		(key: ArrayFilterKey, value: string) => {
+			setFilters((prev) => {
+				const next: TableFilters = { ...(prev ?? {}) }
+				const current = Array.isArray(next[key]) ? [...(next[key] as string[])] : []
+				const updated = current.filter((item) => item !== value)
+				if (updated.length > 0) {
+					next[key] = updated
+				} else {
+					delete next[key]
+				}
+				return next
+			})
+		},
+		[setFilters]
+	)
 
 	const handleRemoveChainValue = useCallback(
 		(chainValue: string) => {
@@ -757,7 +763,7 @@ const TabContent = memo(function TabContent({
 
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
+			<header className="flex shrink-0 flex-col gap-1 pb-3">
 				{!isEditingUnifiedTable && (
 					<button
 						type="button"
@@ -812,7 +818,7 @@ const TabContent = memo(function TabContent({
 				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
 			</div>
 
-			<div className="sticky bottom-0 z-10 flex flex-shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
+			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
 				<button
 					type="button"
 					onClick={onClose}

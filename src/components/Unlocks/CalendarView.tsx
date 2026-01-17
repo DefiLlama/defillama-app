@@ -268,7 +268,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			) : viewMode === 'Week' ? (
 				<>
 					<div className="grid grid-cols-1 gap-px border border-(--divider) bg-(--divider) md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
-						{calendarDays.map((day, i) => (
+						{calendarDays.map((day) => (
 							<React.Fragment key={day.date!.format('YYYY-MM-DD')}>
 								<WeekDayColumn dayInfo={day as { date: Dayjs; isCurrentMonth: boolean }} unlocksData={unlocksData} />
 							</React.Fragment>

@@ -12,7 +12,6 @@ import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
 import {
 	getAggregationContextFromLeafRows,
-	getChainNameForRow,
 	getGroupingKeyForRow,
 	getRowDisplayProps,
 	getRowHeaderFromGroupingColumn

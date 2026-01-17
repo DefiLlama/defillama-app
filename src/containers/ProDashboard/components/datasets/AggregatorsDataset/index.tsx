@@ -38,7 +38,7 @@ export function AggregatorsDataset({ chains }: { chains?: string[] }) {
 		pageSize: 10
 	})
 
-	const { data, isLoading, error, refetch } = useAggregatorsData(chains)
+	const { data, isLoading, error } = useAggregatorsData(chains)
 	const windowSize = useWindowSize()
 
 	const enrichedData = React.useMemo<AggregatorItemWithMarketShare[]>(() => {

@@ -26,7 +26,7 @@ export const SelectionFooter = memo(function SelectionFooter({
 	}
 
 	return (
-		<div className="flex-shrink-0 space-y-2">
+		<div className="shrink-0 space-y-2">
 			{chartCreationMode === 'combined' && (
 				<input
 					type="text"

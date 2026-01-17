@@ -434,7 +434,7 @@ export default function ChainLineBarChart({
 				onReady(null)
 			}
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady])
+	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady, isThemeDark, chartData, hideDataZoom])
 
 	return (
 		<div

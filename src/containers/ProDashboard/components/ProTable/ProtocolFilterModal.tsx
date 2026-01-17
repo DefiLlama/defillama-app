@@ -12,7 +12,7 @@ import { ProtocolOption } from '../ProtocolOption'
 const CustomProtocolOption = ProtocolOption as any
 
 function VirtualizedMenuList(props: any) {
-	const { options, children, maxHeight, getValue } = props
+	const { options, children, maxHeight } = props
 	const listRef = React.useRef<HTMLDivElement>(null)
 	const itemCount = options.length
 	const virtualizer = useVirtualizer({
@@ -84,7 +84,7 @@ export function ProtocolFilterModal({
 	categories,
 	currentFilters,
 	onFiltersChange,
-	portalTarget
+	portalTarget: _portalTarget
 }: ProtocolFilterModalProps) {
 	const [selectedProtocols, setSelectedProtocols] = React.useState<string[]>([])
 	const [selectedCategories, setSelectedCategories] = React.useState<string[]>([])

@@ -10,7 +10,7 @@ interface ResearchLimitModalProps {
 	resetTime: string | null
 }
 
-export function ResearchLimitModal({ isOpen, onClose, period, limit, resetTime }: ResearchLimitModalProps) {
+export function ResearchLimitModal({ isOpen, onClose, period, limit, resetTime: _resetTime }: ResearchLimitModalProps) {
 	const isLifetime = period === 'lifetime'
 
 	return (

@@ -182,7 +182,7 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, windowSize])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

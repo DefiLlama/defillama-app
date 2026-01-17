@@ -33,15 +33,17 @@ interface IMultiSeriesChartProps {
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
+const EMPTY_ARRAY = []
+
 export default function MultiSeriesChart({
 	series,
 	valueSymbol = '',
-	yAxisSymbols = [],
+	yAxisSymbols = EMPTY_ARRAY,
 	height,
 	chartOptions,
 	groupBy,
 	hideDataZoom = false,
-	hideDownloadButton = false,
+	hideDownloadButton: _hideDownloadButton = false,
 	alwaysShowTooltip,
 	xAxisType = 'time',
 	showAggregateInTooltip = false,
@@ -270,7 +272,9 @@ export default function MultiSeriesChart({
 		series,
 		id,
 		updateChartInstance,
-		showAggregateInTooltip
+		showAggregateInTooltip,
+		valueSymbol,
+		yAxisSymbols
 	])
 
 	useEffect(() => {

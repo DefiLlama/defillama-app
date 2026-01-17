@@ -461,7 +461,7 @@ export async function getBridgePageDatanew(bridge: string) {
 			})
 
 			tokensTableData = Object.entries(tokensTableUnformatted)
-				.filter(([symbol, volumeData]: [string, any]) => {
+				.filter(([, volumeData]: [string, any]) => {
 					return volumeData.volume !== 0
 				})
 				.map((entry: [string, object]) => {
@@ -541,7 +541,7 @@ export async function getBridgePageDatanew(bridge: string) {
 				}
 			)
 			addressesTableData = Object.entries(addressesTableUnformatted)
-				.filter(([address, addressData]: [string, any]) => {
+				.filter(([, addressData]: [string, any]) => {
 					return addressData.txs !== 0
 				})
 				.map((entry: [string, object]) => {

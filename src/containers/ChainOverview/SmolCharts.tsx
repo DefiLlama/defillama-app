@@ -19,6 +19,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
 	}, [id])
 
+	
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
@@ -150,6 +151,7 @@ export function SmolLineChart({
 		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
 	}, [id])
 
+	
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
@@ -261,6 +263,7 @@ export function SmolBarChart({
 		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
 	}, [id])
 
+	
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
@@ -342,7 +345,7 @@ export function SmolBarChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, name])
+	}, [createInstance, series, name, groupBy])
 
 	return (
 		<div className="relative flex-1">
@@ -395,6 +398,7 @@ export function UpcomingUnlocksChart({
 		]
 	}, [data, tokens, name])
 
+	
 	useEffect(() => {
 		// create instance
 		const chartInstance = createInstance()
@@ -482,7 +486,7 @@ export function UpcomingUnlocksChart({
 			window.removeEventListener('resize', resize)
 			chartInstance.dispose()
 		}
-	}, [createInstance, series, name])
+	}, [createInstance, series, name, tokens])
 
 	return (
 		<div className="relative flex-1">

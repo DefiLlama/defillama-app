@@ -73,7 +73,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, windowSize])
 
 	const [projectName, setProjectName] = React.useState('')
 

@@ -44,7 +44,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 	const { finalProtocols, charts } = useMemo(() => {
 		const toggledSettings = Object.entries(tvlSettings)
-			.filter(([key, value]) => value === true)
+			.filter(([, value]) => value === true)
 			.map(([key]) => key)
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }

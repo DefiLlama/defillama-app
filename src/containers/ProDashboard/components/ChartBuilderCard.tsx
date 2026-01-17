@@ -558,7 +558,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							]}
 							selectedValues={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
 							setSelectedValues={(value) => {
-								handlePercentageChange(builder.id, value === '% Percentage' ? true : false)
+								handlePercentageChange(builder.id, value === '% Percentage')
 							}}
 							label={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
 							labelType="none"
@@ -595,7 +595,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								]}
 								selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
 								setSelectedValues={(value) => {
-									handleHideOthersChange(builder.id, value === 'All' ? false : true)
+								handleHideOthersChange(builder.id, value !== 'All')
 								}}
 								label={config.hideOthers ? `Top ${config.limit}` : 'All'}
 								labelType="none"

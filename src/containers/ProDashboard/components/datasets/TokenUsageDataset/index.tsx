@@ -84,7 +84,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const [localIncludeCex, setLocalIncludeCex] = useState(config.includeCex ?? false)
 
-	const tokenSymbols = config.tokenSymbols || []
+	const tokenSymbols = useMemo(() => config.tokenSymbols ?? [], [config.tokenSymbols])
 
 	useEffect(() => {
 		setLocalIncludeCex(config.includeCex ?? false)

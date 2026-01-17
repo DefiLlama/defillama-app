@@ -66,7 +66,7 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				{title}
 			</Tooltip>
 
-			{topUnlocks.map((unlock, i) => (
+			{topUnlocks.map((unlock) => (
 				<div key={unlock.name} className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />

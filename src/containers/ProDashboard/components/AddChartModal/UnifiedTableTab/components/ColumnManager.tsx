@@ -1012,7 +1012,7 @@ function SortingSection({
 						<span className={`truncate ${currentSortColumn ? 'text-(--text-primary)' : 'text-(--text-tertiary)'}`}>
 							{selectedLabel}
 						</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -1038,7 +1038,7 @@ function SortingSection({
 							>
 								<span>No sorting</span>
 								{!currentSortColumn && (
-									<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+									<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
 								)}
 							</button>
 							{selectableColumns.map((col) => {
@@ -1059,7 +1059,7 @@ function SortingSection({
 									>
 										<span className="truncate">{col.header}</span>
 										{isActive && (
-											<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
 										)}
 									</button>
 								)

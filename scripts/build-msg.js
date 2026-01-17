@@ -26,10 +26,8 @@ const uploadBuildLog = async () => {
 
 // convert the bash script above to JS
 const LLAMAS_LIST = process.env.LLAMAS_LIST || ''
-const BUILD_LLAMAS = process.env.BUILD_LLAMAS || ''
 const BUILD_STATUS_DASHBOARD = process.env.BUILD_STATUS_DASHBOARD
 const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
-const EMOJI_TIRESOME = '<:tiresome:1023676964319535286>'
 const EMOJI_BINOCULARS = '<:binoculars:1012832136459456582>'
 const EMOJI_CRINGE = '<:llamacringe:1073375066164822159>'
 const EMOJI_LLAMACHEER = '<:llamacheer:1012832279195832331>'
@@ -39,7 +37,6 @@ const EMOJI_UPLLAMA = '<:upllama:996096214841950269>'
 const EMOJI_EVIL = '<:evilllama:1011045461030879353>'
 const EMOJI_PEPENOTES = '<a:pepenotes:1061068916140544052>'
 
-const buildLlamas = BUILD_LLAMAS.split(',')
 const llamas = LLAMAS_LIST.split(',').map((llama) => {
 	const [name, id] = llama.split(':')
 	return { name, id }
@@ -63,22 +60,13 @@ const COMMIT_COMMENT = process.argv[6]
 const COMMIT_AUTHOR = process.argv[7]
 const COMMIT_HASH = process.argv[8]
 
-let buildSummary = ''
-if (BUILD_STATUS === '0') {
-	buildSummary += `🎉 Build succeeded in ${BUILD_TIME_STR}`
-} else {
-	buildSummary += `🚨 Build failed in ${BUILD_TIME_STR}`
-}
-buildSummary += '\n' + `📅 Build started at ${START_TIME}`
+let buildSummary = BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
+buildSummary += `\n📅 Build started at ${START_TIME}`
 if (BUILD_ID) {
-	buildSummary += '\n' + `📦 Build ID: ${BUILD_ID}`
+	buildSummary += `\n📦 Build ID: ${BUILD_ID}`
 }
 
-let commitSummary = ''
-commitSummary += `📂 defillama-app`
-commitSummary += '\n' + `💬 ${COMMIT_COMMENT}`
-commitSummary += '\n' + `🦙 ${COMMIT_AUTHOR}`
-commitSummary += '\n' + `📸 ${COMMIT_HASH}`
+let commitSummary = `📂 defillama-app\n💬 ${COMMIT_COMMENT}\n🦙 ${COMMIT_AUTHOR}\n📸 ${COMMIT_HASH}`
 
 async function checkWebhookResponse(bodyResponse) {
 	if (!bodyResponse.ok) {
@@ -114,8 +102,6 @@ const sendMessages = async () => {
 	)
 
 	const authorMention = formatMention(COMMIT_AUTHOR)
-	const buildLlamasMentions = buildLlamas.map((llama) => formatMention(llama)).join(' ')
-
 	if (BUILD_STATUS !== '0') {
 		if (LLAMAS_LIST) {
 			const llamaMessage = `${EMOJI_CRINGE} ${authorMention}\n${EMOJI_BINOCULARS} ${BUILD_STATUS_DASHBOARD}`

@@ -1,6 +1,6 @@
 import { getAllCGTokensList, maxAgeForNext } from '~/api'
 import { DIMENSIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
-import CompareTokens from '~/containers/CompareTokens'
+import { CompareTokens } from '~/containers/CompareTokens'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'

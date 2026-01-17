@@ -1168,7 +1168,7 @@ export const getDATInflows = async () => {
 		const fourteenWeeksAgo = Date.now() - 14 * 7 * 24 * 60 * 60 * 1000
 
 		for (const asset in data.flows) {
-			for (const [date, net, inflow, outflow, purchasePrice, usdValueOfPurchase] of data.flows[asset]) {
+			for (const [date, _net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of data.flows[asset]) {
 				const utcTimestamp = getUTCTimestamp(date)
 				if (utcTimestamp < fourteenWeeksAgo) continue
 				const finalDate = +lastDayOfWeek(utcTimestamp) * 1000

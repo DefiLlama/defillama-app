@@ -529,7 +529,7 @@ export const ChartRenderer = memo(function ChartRenderer({
 	isLoading = false,
 	isAnalyzing = false,
 	hasError = false,
-	expectedChartCount,
+	expectedChartCount: _expectedChartCount,
 	chartTypes,
 	resizeTrigger = 0,
 	messageId

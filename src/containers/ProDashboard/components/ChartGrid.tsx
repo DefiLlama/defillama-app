@@ -320,12 +320,13 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 	const [isSmallScreen, setIsSmallScreen] = useState(false)
 
 	const currentRatingSession = getCurrentRatingSession()
+	const currentSessionId = currentRatingSession?.sessionId
 
 	useEffect(() => {
-		if (currentRatingSession) {
+		if (currentSessionId) {
 			autoSkipOlderSessionsForRating()
 		}
-	}, [currentRatingSession?.sessionId, autoSkipOlderSessionsForRating])
+	}, [currentSessionId, autoSkipOlderSessionsForRating])
 
 	useEffect(() => {
 		const checkScreenSize = () => {

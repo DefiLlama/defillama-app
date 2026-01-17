@@ -89,7 +89,7 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 	}
 })
 
-const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds }) => {
+const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRounds: _lastRounds }) => {
 	const [filters, setFilters] = useState({
 		minimumInvestments: '',
 		chains: [],
@@ -279,7 +279,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								onFocus={async (e) => {
 									try {
 										e.target.showPicker()
-									} catch (_error) {}
+									} catch {}
 								}}
 							/>
 						</label>

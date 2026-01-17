@@ -69,7 +69,7 @@ interface MetricCardProps {
 export function MetricCard({ metric }: MetricCardProps) {
 	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
 	const { isReadOnly } = useProDashboardPermissions()
-	const { value, delta, deltaPct, sparklineData, lastUpdatedTs, isLoading, isError } = useMetricData(metric)
+	const { value, delta, deltaPct, sparklineData, lastUpdatedTs: _lastUpdatedTs, isLoading, isError } = useMetricData(metric)
 
 	const { displayTitle, baseTitle, iconUrl, format } = useMemo(() => {
 		const subject = metric.subject

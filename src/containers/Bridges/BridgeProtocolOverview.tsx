@@ -30,7 +30,7 @@ const BridgeInfo = ({
 	tableDataByChain,
 	config = {} as Record<string, string>
 }) => {
-	const [chartType, setChartType] = React.useState<ChartType>('Inflows')
+	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
 
@@ -92,11 +92,6 @@ const BridgeInfo = ({
 		return 0
 	}, [isAllChains, allChainsVolumePairs])
 
-	React.useEffect(() => {
-		if (isAllChains && chartType === 'Inflows') setChartType('Volume')
-		if (!isAllChains && chartType === 'Volume') setChartType('Inflows')
-	}, [isAllChains])
-
 	const chartTypes = (
 		isAllChains ? (['Volume', 'Tokens To', 'Tokens From'] as const) : (['Inflows', 'Tokens To', 'Tokens From'] as const)
 	) as readonly ChartType[]
@@ -124,7 +119,18 @@ const BridgeInfo = ({
 					<TokenLogo logo={logo} size={24} />
 					<span>{displayName}</span>
 				</h1>
-				<BridgeChainSelector currentChain={currentChain} options={chainOptions} handleClick={setChain} />
+				<BridgeChainSelector
+					currentChain={currentChain}
+					options={chainOptions}
+					handleClick={(chain) => {
+						setChain(chain)
+						if (chain === 'All Chains') {
+							setChartType('Volume')
+						} else {
+							setChartType('Inflows')
+						}
+					}}
+				/>
 			</div>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">

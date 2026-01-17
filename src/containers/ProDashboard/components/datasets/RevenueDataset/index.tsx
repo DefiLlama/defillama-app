@@ -43,7 +43,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 
 	const { handleTableFiltersChange } = useProDashboardEditorActions()
 	const { data, isLoading, error } = useRevenueData(chains)
-	const _windowSize = useWindowSize()
+	const windowSize = useWindowSize()
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
 	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
@@ -182,7 +182,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [_windowSize])
+	}, [windowSize, instance])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

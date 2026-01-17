@@ -31,7 +31,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 							clearTimeout(id.current)
 						}
 						id.current = setTimeout(() => {
-							const { page, ...queryWithoutPage } = router.query
+							const { page: _page, ...queryWithoutPage } = router.query
 							router.push(
 								{
 									pathname: '/pro',

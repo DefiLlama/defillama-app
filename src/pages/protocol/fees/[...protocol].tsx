@@ -342,7 +342,7 @@ export default function Protocols(props) {
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
 						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 						<span className="font-bold">
-							{props.name ? props.name + `${props.deprecated ? ' (*Deprecated*)' : ''}` + ' ' : ''}
+							{props.name ? `${props.name}${props.deprecated ? ' (*Deprecated*)' : ''} ` : ''}
 						</span>
 					</h1>
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />

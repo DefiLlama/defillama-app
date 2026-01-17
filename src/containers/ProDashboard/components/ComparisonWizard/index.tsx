@@ -32,12 +32,13 @@ function ComparisonWizardContent({ onComplete }: ComparisonWizardProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chainsByName } = useAppMetadata()
 	const [isGenerating, setIsGenerating] = useState(false)
+	const { reset } = actions
 
 	useEffect(() => {
 		return () => {
-			actions.reset()
+			reset()
 		}
-	}, [actions.reset])
+	}, [reset])
 
 	const generateComparisonCharts = useCallback((): MultiChartConfig[] => {
 		const { selectedItems, selectedMetrics, comparisonType } = state

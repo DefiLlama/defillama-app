@@ -107,12 +107,10 @@ export function useUnifiedTable({
 		setChainMetrics(data?.chainMetrics)
 	}, [data?.chainMetrics])
 
-	const rows = data?.rows ?? []
-
 	const filteredRows = useMemo(() => {
-		const withFilters = filterRowsByConfig(rows, config.filters)
+		const withFilters = filterRowsByConfig(data?.rows ?? [], config.filters)
 		return filterRowsBySearch(withFilters, searchTerm)
-	}, [rows, config.filters, searchTerm])
+	}, [data?.rows, config.filters, searchTerm])
 
 	const columns = useMemo(() => getUnifiedTableColumns(config.customColumns), [config.customColumns])
 	const groupingColumnIds = useMemo(() => getGroupingColumnIdsForHeaders(sanitizedHeaders), [sanitizedHeaders])

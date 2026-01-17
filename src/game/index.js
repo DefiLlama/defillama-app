@@ -1,3 +1,4 @@
+/* eslint-disable nextjs/no-css-tags */
 import Head from 'next/head'
 import * as React from 'react'
 

@@ -181,7 +181,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, windowSize])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

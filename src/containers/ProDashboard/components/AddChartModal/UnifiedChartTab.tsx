@@ -464,7 +464,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 
 			<div className="grid min-h-0 flex-1 grid-cols-2 gap-4">
 				<div className="flex min-h-0 flex-col gap-3">
-					<div className="flex-shrink-0 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
+					<div className="shrink-0 rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)/60 p-1 shadow-sm">
 						<div className="grid grid-cols-2 gap-1">
 							<button
 								type="button"
@@ -511,7 +511,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						</div>
 					</div>
 
-					<div className="flex-shrink-0">
+					<div className="shrink-0">
 						<label className="pro-text2 mb-2 block text-xs font-medium">Select Chart Type</label>
 						<ChartTypePills
 							chartTypes={chartTypeOptions}
@@ -540,10 +540,10 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 						value={unifiedChartName}
 						onChange={(e) => onUnifiedChartNameChange(e.target.value)}
 						placeholder="Chart name..."
-						className="pro-text1 placeholder:pro-text3 w-full flex-shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+						className="pro-text1 placeholder:pro-text3 w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 
-					<div className="h-[450px] flex-shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
+					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 						{composerItems.length > 0 ? (
 							<CombinedChartPreview composerItems={composerItems} />
 						) : (
@@ -554,7 +554,7 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 					</div>
 
 					{composerItems.length > 0 && (
-						<div className="thin-scrollbar flex flex-shrink-0 items-center gap-2 overflow-x-auto py-1">
+						<div className="thin-scrollbar flex shrink-0 items-center gap-2 overflow-x-auto py-1">
 							{composerItems.map((item) => (
 								<div
 									key={item.id}

@@ -75,7 +75,7 @@ export function CexDataset() {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, windowSize])
 
 	const [exchangeName, setExchangeName] = React.useState('')
 

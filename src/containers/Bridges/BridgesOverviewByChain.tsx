@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useEffect } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -22,57 +21,23 @@ export function BridgesOverviewByChain({
 	chains = [],
 	filteredBridges,
 	messagingProtocols = [],
-	bridgeNames,
+	bridgeNames: _bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
 	chainVolumeData,
 	bridgeStatsCurrentDay,
 	largeTxsData
 }) {
-	const [enableBreakdownChart, _setEnableBreakdownChart] = React.useState(false)
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
-
-	useEffect(() => {
-		setChartView('netflow')
-	}, [])
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/bridges`
 		return `/bridges/${selectedChain}`
 	}
 	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
-
-	const chartData = React.useMemo(() => {
-		const secondsOffset = 3600 * 12 * 1000 // added 12 hours so date will match charts that use unix timestamp
-		if (enableBreakdownChart) {
-			let unformattedChartData = {}
-			bridgeNames.map((name) => {
-				const chartDataIndex = bridgeNameToChartDataIndex[name]
-				const charts = chartDataByBridge[chartDataIndex]
-				charts.map((chart) => {
-					const date = chart.date
-					const volume = chart.volume
-					unformattedChartData[date] = unformattedChartData[date] || {}
-					unformattedChartData[date][name] = volume
-				})
-			})
-			const chartDates = Object.keys(unformattedChartData)
-			return bridgeNames
-				.map((name) => {
-					return {
-						name: name,
-						data: chartDates.map((date) => [
-							new Date(parseInt(date) * 1000 + secondsOffset),
-							unformattedChartData[date][name] ?? 0
-						])
-					}
-				})
-				.filter((chart) => chart.data.length !== 0)
-		} else return chainVolumeData.map((chart) => [new Date(chart.date * 1000 + secondsOffset), chart.volume])
-	}, [bridgeNames, bridgeNameToChartDataIndex, chartDataByBridge, chainVolumeData, enableBreakdownChart])
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
 
@@ -392,10 +357,4 @@ export function BridgesOverviewByChain({
 			</div>
 		</>
 	)
-}
-
-const volumeChartOptions = {
-	overrides: {
-		inflow: true
-	}
 }

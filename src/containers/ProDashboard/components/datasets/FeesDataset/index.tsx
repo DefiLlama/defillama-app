@@ -70,7 +70,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize])
+	}, [instance, windowSize])
 
 	const [protocolName, setProtocolName] = React.useState('')
 
