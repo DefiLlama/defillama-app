@@ -7,6 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
+import { AlertsModal } from './components/AlertsModal'
 import { ChartRenderer } from './components/ChartRenderer'
 import { ChatHistorySidebar } from './components/ChatHistorySidebar'
 import { InlineSuggestions } from './components/InlineSuggestions'
@@ -141,6 +142,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const [prompt, setPrompt] = useState('')
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [showRateLimitModal, setShowRateLimitModal] = useState(false)
+	const [showAlertsModal, setShowAlertsModal] = useState(false)
 	const [rateLimitDetails, setRateLimitDetails] = useState<{
 		period: string
 		limit: number
@@ -1048,12 +1050,13 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 									currentSessionId={sessionId}
 									onSessionSelect={handleSessionSelect}
 									onNewChat={handleNewChat}
+									onOpenAlerts={() => setShowAlertsModal(true)}
 									shouldAnimate={shouldAnimateSidebar}
 								/>
 								<div className="flex min-h-11 lg:hidden" />
 							</>
 						) : (
-							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} onOpenAlerts={() => setShowAlertsModal(true)} />
 						)}
 					</>
 				)}
@@ -1382,6 +1385,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			)}
+			<AlertsModal isOpen={showAlertsModal} onClose={() => setShowAlertsModal(false)} />
 		</Layout>
 	)
 }
@@ -1414,10 +1418,12 @@ const SentPrompt = memo(function SentPrompt({
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat
+	handleNewChat,
+	onOpenAlerts
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
+	onOpenAlerts: () => void
 }) {
 	return (
 		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
@@ -1436,6 +1442,14 @@ const ChatControls = memo(function ChatControls({
 			>
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>
+			</Tooltip>
+			<Tooltip
+				content="Manage Alerts"
+				render={<button onClick={onOpenAlerts} />}
+				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white focus-visible:bg-amber-500 focus-visible:text-white"
+			>
+				<Icon name="calendar-plus" height={16} width={16} />
+				<span className="sr-only">Manage Alerts</span>
 			</Tooltip>
 		</div>
 	)
