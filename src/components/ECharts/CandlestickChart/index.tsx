@@ -115,7 +115,8 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			}
 		]
 
-		panels.forEach((panel, idx) => {
+		for (let idx = 0; idx < panels.length; idx++) {
+			const panel = panels[idx]
 			const gridIdx = idx + 2
 			const bottom = BASE_BOTTOM + (panelCount - idx - 1) * PANEL_HEIGHT
 
@@ -145,7 +146,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 				axisTick: { show: false },
 				splitLine: { lineStyle: { color: isThemeDark ? '#fff' : '#000', opacity: 0.05 } }
 			})
-		})
+		}
 
 		const allAxisIndices = Array.from({ length: grids.length }, (_, i) => i)
 
@@ -250,7 +251,8 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			}
 		]
 
-		overlays.forEach((ind, idx) => {
+		for (let idx = 0; idx < overlays.length; idx++) {
+			const ind = overlays[idx]
 			const color = ind.color || INDICATOR_COLORS[idx % INDICATOR_COLORS.length]
 			if (ind.values && ind.name.toLowerCase().includes('bband')) {
 				result.push({
@@ -286,9 +288,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					symbol: 'none'
 				})
 			}
-		})
+		}
 
-		panels.forEach((panel, idx) => {
+		for (let idx = 0; idx < panels.length; idx++) {
+			const panel = panels[idx]
 			const gridIdx = idx + 2
 			const color = panel.color || INDICATOR_COLORS[(overlays.length + idx) % INDICATOR_COLORS.length]
 
@@ -349,7 +352,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					symbol: 'none'
 				})
 			}
-		})
+		}
 
 		return result
 	}, [isThemeDark, overlays, panels])

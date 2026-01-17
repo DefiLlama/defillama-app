@@ -30,9 +30,9 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 	const itemTypes = useMemo(() => {
 		const counts: Record<string, number> = {}
-		dashboard.data.items?.forEach((item: DashboardItemConfig) => {
+		for (const item of dashboard.data.items ?? []) {
 			if (!item || typeof item !== 'object') {
-				return
+				continue
 			}
 
 			switch (item.kind) {
@@ -52,7 +52,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 					const otherItem = item as DashboardItemConfig
 					counts[otherItem.kind] = (counts[otherItem.kind] || 0) + 1
 			}
-		})
+		}
 
 		const sorted = Object.entries(counts)
 			.sort(([, a], [, b]) => b - a)

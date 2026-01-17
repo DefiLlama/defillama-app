@@ -36,7 +36,7 @@ export const normalizeHourlyToDaily = (
 
 	const dailyData: { [dayKey: string]: { values: number[]; lastTimestamp: number; lastValue: number } } = {}
 
-	sortedData.forEach(([timestamp, value]) => {
+	for (const [timestamp, value] of sortedData) {
 		const date = new Date(timestamp * 1000)
 		date.setUTCHours(0, 0, 0, 0)
 		const dayKey = (date.getTime() / 1000).toString()
@@ -50,7 +50,7 @@ export const normalizeHourlyToDaily = (
 			dailyData[dayKey].lastTimestamp = timestamp
 			dailyData[dayKey].lastValue = value
 		}
-	})
+	}
 
 	return Object.entries(dailyData)
 		.map(([dayTimestamp, { values, lastValue }]) => {
@@ -90,7 +90,7 @@ export const groupData = (
 
 	const groupedData: { [key: string]: number } = {}
 
-	data.forEach(([timestampStr, value]) => {
+	for (const [timestampStr, value] of data) {
 		const date = new Date(parseInt(timestampStr) * 1000)
 		let groupKeyDate: Date
 
@@ -112,7 +112,7 @@ export const groupData = (
 		} else {
 			groupedData[groupKey] = +value
 		}
-	})
+	}
 
 	return Object.entries(groupedData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
 }

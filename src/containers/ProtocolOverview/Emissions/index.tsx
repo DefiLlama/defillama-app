@@ -64,13 +64,14 @@ function processGroupedChartData(
 			...(entry['Market Cap'] && { 'Market Cap': entry['Market Cap'] })
 		}
 
-		Object.entries(categoriesBreakdown).forEach(([group, categories]) => {
+		for (const group in categoriesBreakdown) {
+			const categories = categoriesBreakdown[group]
 			groupedEntry[group] = categories.reduce((sum, category) => {
 				const actualKey = Object.keys(entry).find((key) => key.toLowerCase() === category.toLowerCase())
 				const value = actualKey ? Number(entry[actualKey]) || 0 : 0
 				return sum + value
 			}, 0)
-		})
+		}
 
 		return groupedEntry
 	})
@@ -123,19 +124,21 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const tokenVolume = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
 	const ystdPrice = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
 	const percentChange = tokenPrice && ystdPrice ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
-	const normilizePriceChart = useMemo(
-		() =>
-			Object.fromEntries(
-				Object.entries(priceChart.data?.data || {})
-					.map(([name, chart]: [string, Array<[number, number]>]) =>
-						Array.isArray(chart)
-							? [name, Object.fromEntries(chart.map(([date, price]) => [Math.floor(date / 1e3), price]))]
-							: null
-					)
-					.filter(Boolean)
-			),
-		[priceChart.data?.data]
-	)
+	const normilizePriceChart = useMemo(() => {
+		const sourceData = priceChart.data?.data || {}
+		const result: Record<string, Record<number, number>> = {}
+		for (const name in sourceData) {
+			const chart = sourceData[name] as Array<[number, number]>
+			if (Array.isArray(chart)) {
+				const innerResult: Record<number, number> = {}
+				for (const [date, price] of chart) {
+					innerResult[Math.floor(date / 1e3)] = price
+				}
+				result[name] = innerResult
+			}
+		}
+		return result
+	}, [priceChart.data?.data])
 
 	const groupedEvents = useMemo(() => groupBy(data.events, (event) => event.timestamp), [data.events])
 

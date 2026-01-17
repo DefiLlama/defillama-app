@@ -60,10 +60,10 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 
 	const monthlyHacks = {}
 
-	data.forEach((hack) => {
+	for (const hack of data) {
 		const monthlyDate = +firstDayOfMonth(hack.date * 1000) * 1e3
 		monthlyHacks[monthlyDate] = (monthlyHacks[monthlyDate] ?? 0) + hack.amount
-	})
+	}
 
 	const totalHacked = formattedNum(
 		data.map((hack) => hack.amount).reduce((acc, amount) => acc + amount, 0),

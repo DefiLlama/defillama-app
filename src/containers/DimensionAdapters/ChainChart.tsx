@@ -442,19 +442,19 @@ const getChartDataByChainAndInterval = ({
 				topItems.push([chain, chainsOnDate[chain]])
 			}
 		}
-		topItems
-			.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
-			.forEach(([chain, value]: [string, number], index: number) => {
-				if (index < 10) {
-					topByDate[chain] = topByDate[chain] || {}
-					topByDate[chain][finalDate] = value ?? 0
-					uniqTopChains.add(chain)
-				} else {
-					topByDate[chain] = topByDate[chain] || {}
-					topByDate[chain][finalDate] = 0
-					others += value ?? 0
-				}
-			})
+		const sortedTopItems = topItems.sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+		for (let index = 0; index < sortedTopItems.length; index++) {
+			const [chain, value] = sortedTopItems[index] as [string, number]
+			if (index < 10) {
+				topByDate[chain] = topByDate[chain] || {}
+				topByDate[chain][finalDate] = value ?? 0
+				uniqTopChains.add(chain)
+			} else {
+				topByDate[chain] = topByDate[chain] || {}
+				topByDate[chain][finalDate] = 0
+				others += value ?? 0
+			}
+		}
 
 		for (const chain of selectedChains) {
 			topByAllDates[chain] = topByAllDates[chain] || {}

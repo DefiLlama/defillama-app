@@ -86,12 +86,14 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 		for (const protocol of protocols as any[]) {
 			const weight = Number(protocol?.tvl) || 0
 			if (Array.isArray(protocol?.oracles)) {
-				protocol.oracles.forEach((oracle: string) => add(oracle, weight))
+				for (const oracle of protocol.oracles) {
+					add(oracle, weight)
+				}
 			}
 			if (protocol?.oraclesByChain) {
-				Object.values(protocol.oraclesByChain as Record<string, string[]>)
-					.flat()
-					.forEach((oracle: string) => add(oracle, weight))
+				for (const oracle of Object.values(protocol.oraclesByChain as Record<string, string[]>).flat()) {
+					add(oracle, weight)
+				}
 			}
 		}
 

@@ -45,15 +45,15 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			}
 		>()
 
-		data?.forEach((protocol) => {
+		for (const protocol of data ?? []) {
 			if (!protocol.historicalPrice?.length || protocol.historicalPrice.length < 8 || !protocol.lastEvent?.length)
-				return
+				continue
 
 			const now = Date.now() / 1000
 			const thirtyDaysAgo = now - 30 * 24 * 60 * 60
 
 			const lastEvents = protocol.lastEvent.filter((event) => event.timestamp >= thirtyDaysAgo)
-			if (!lastEvents.length) return
+			if (!lastEvents.length) continue
 
 			const eventsByTimestamp = lastEvents.reduce((acc, event) => {
 				const totalTokens = event.noOfTokens?.reduce((sum, amount) => sum + amount, 0) || 0
@@ -101,7 +101,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				mcap: protocol.mcap,
 				price: protocol.tPrice
 			})
-		})
+		}
 
 		return {
 			topImpacts: Array.from(protocolImpacts.values())

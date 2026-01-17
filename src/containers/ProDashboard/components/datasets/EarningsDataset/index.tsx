@@ -57,11 +57,11 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 	const availableCategories = React.useMemo(() => {
 		if (!data || data.length === 0) return [] as string[]
 		const unique = new Set<string>()
-		data.forEach((row: any) => {
+		for (const row of data) {
 			if (row?.category) {
 				unique.add(row.category)
 			}
-		})
+		}
 		return Array.from(unique).sort((a, b) => a.localeCompare(b))
 	}, [data])
 

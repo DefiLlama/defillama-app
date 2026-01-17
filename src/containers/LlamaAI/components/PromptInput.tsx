@@ -90,7 +90,9 @@ export const PromptInput = memo(function PromptInput({
 					errorToast({ title: 'Image upload limit', description: 'You may upload only 4 images at a time' })
 				})
 				// Revoke URLs for images that won't be used
-				newImages.slice(4 - prev.length).forEach(({ url }) => URL.revokeObjectURL(url))
+				for (const { url } of newImages.slice(4 - prev.length)) {
+					URL.revokeObjectURL(url)
+				}
 			}
 			return [...prev, ...newImages].slice(0, 4)
 		})
@@ -238,7 +240,9 @@ export const PromptInput = memo(function PromptInput({
 		setValue('')
 		setIsTriggerOnly(false)
 		if (revokeImageUrls) {
-			selectedImages.forEach(({ url }) => URL.revokeObjectURL(url))
+			for (const { url } of selectedImages) {
+				URL.revokeObjectURL(url)
+			}
 		}
 		setSelectedImages([])
 		combobox.setValue('')

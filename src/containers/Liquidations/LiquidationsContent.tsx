@@ -150,25 +150,21 @@ const getDangerousPositionsAmount = (
 	if (!selectedSeries) {
 		dangerousPositionsAmount = data.dangerousPositionsAmount
 	} else if (stackBy === 'chains') {
-		Object.keys(selectedSeries)
-			.filter((chain) => selectedSeries[chain])
-			.forEach((chain) => {
-				const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
-				const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
-				dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[_chain]?.bins ?? {})
-					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-					.reduce((acc, [, value]) => acc + value['usd'], 0)
-			})
+		for (const chain of Object.keys(selectedSeries).filter((chain) => selectedSeries[chain])) {
+			const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
+			const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
+			dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[_chain]?.bins ?? {})
+				.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
+				.reduce((acc, [, value]) => acc + value['usd'], 0)
+		}
 	} else {
-		Object.keys(selectedSeries)
-			.filter((protocol) => selectedSeries[protocol])
-			.forEach((protocol) => {
-				const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
-				const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
-				dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[_protocol]?.bins ?? {})
-					.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-					.reduce((acc, [, value]) => acc + value['usd'], 0)
-			})
+		for (const protocol of Object.keys(selectedSeries).filter((protocol) => selectedSeries[protocol])) {
+			const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
+			const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
+			dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[_protocol]?.bins ?? {})
+				.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
+				.reduce((acc, [, value]) => acc + value['usd'], 0)
+		}
 	}
 	return dangerousPositionsAmount
 }

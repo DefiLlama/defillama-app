@@ -39,7 +39,7 @@ export default function SankeyChart({
 		const descriptions: Record<string, string> = {}
 		const displayValues: Record<string, number | string> = {}
 		const percentageLabels: Record<string, string> = {}
-		nodes.forEach((node) => {
+		for (const node of nodes) {
 			if (node.description) {
 				descriptions[node.name] = node.description
 			}
@@ -49,7 +49,7 @@ export default function SankeyChart({
 			if (node.percentageLabel) {
 				percentageLabels[node.name] = node.percentageLabel
 			}
-		})
+		}
 		return { descriptions, displayValues, percentageLabels }
 	}, [nodes])
 

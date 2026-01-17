@@ -136,7 +136,9 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 				for (const k of Object.keys(item)) {
 					const v = (item as any)[k]
 					if (k === 'chains' && Array.isArray(v)) {
-						v.forEach((c: string) => tmp[slug].chains.add(c))
+						for (const c of v) {
+							tmp[slug].chains.add(c)
+						}
 					} else if (k === 'displayName' && v && !tmp[slug].displayName) {
 						tmp[slug].displayName = v
 					} else if (typeof v === 'boolean') {

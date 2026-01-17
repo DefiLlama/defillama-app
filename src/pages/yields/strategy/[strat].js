@@ -85,14 +85,14 @@ const PageView = () => {
 		]
 
 		let merged = []
-		uniqueDates.forEach((d) => {
+		for (const d of uniqueDates) {
 			merged.push({
 				timestamp: d,
 				lendData: lendDataMap.get(d),
 				borrowData: borrowDataMap.get(d),
 				farmData: farmDataMap.get(d)
 			})
-		})
+		}
 		merged = merged.filter((t) => !Object.values(t).includes(undefined))
 		// filter merged to length where all 3 components (lend/borrow/farm values) are not null
 		merged = merged.filter(

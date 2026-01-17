@@ -80,12 +80,12 @@ export function YieldsChartTab({
 
 	const chainOptions = useMemo(() => {
 		const chainTvlMap = new Map<string, number>()
-		yieldsData.forEach((p: any) => {
+		for (const p of yieldsData as any[]) {
 			const chain = p.chains[0]
-			if (!chain) return
+			if (!chain) continue
 			const currentTvl = chainTvlMap.get(chain) || 0
 			chainTvlMap.set(chain, currentTvl + (p.tvl || 0))
-		})
+		}
 		return Array.from(chainTvlMap.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([chain]) => ({ value: chain, label: chain }))
@@ -93,12 +93,12 @@ export function YieldsChartTab({
 
 	const projectOptions = useMemo(() => {
 		const projectTvlMap = new Map<string, number>()
-		yieldsData.forEach((p: any) => {
+		for (const p of yieldsData as any[]) {
 			const project = p.project
-			if (!project) return
+			if (!project) continue
 			const currentTvl = projectTvlMap.get(project) || 0
 			projectTvlMap.set(project, currentTvl + (p.tvl || 0))
-		})
+		}
 		return Array.from(projectTvlMap.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([project]) => ({ value: project, label: project }))
@@ -114,20 +114,20 @@ export function YieldsChartTab({
 
 	const tokenOptions = useMemo(() => {
 		const tokenTvlMap = new Map<string, number>()
-		yieldsData.forEach((p: any) => {
+		for (const p of yieldsData as any[]) {
 			const symbol = (p.pool || '') as string
 			const baseSymbol = symbol.split('(')[0]
-			baseSymbol
+			const tokens = baseSymbol
 				.split('-')
 				.map((token: string) => token.trim())
 				.filter(Boolean)
-				.forEach((token: string) => {
-					const normalized = token.toUpperCase()
-					if (!normalized) return
-					const current = tokenTvlMap.get(normalized) || 0
-					tokenTvlMap.set(normalized, current + (p.tvl || 0))
-				})
-		})
+			for (const token of tokens) {
+				const normalized = token.toUpperCase()
+				if (!normalized) continue
+				const current = tokenTvlMap.get(normalized) || 0
+				tokenTvlMap.set(normalized, current + (p.tvl || 0))
+			}
+		}
 
 		const baseOptions = [
 			{ value: 'ALL_BITCOINS', label: 'All Bitcoins' },

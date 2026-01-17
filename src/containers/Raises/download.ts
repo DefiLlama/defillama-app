@@ -19,24 +19,23 @@ export const prepareRaisesCsv = ({ raises }) => {
 		]
 	]
 
-	raises
-		.sort((a, b) => b.date - a.date)
-		.forEach((item) => {
-			rows.push([
-				item.name,
-				item.date,
-				toNiceCsvDate(item.date),
-				item.amount === null ? '' : item.amount * 1_000_000,
-				item.round ?? '',
-				item.sector ?? '',
-				item.leadInvestors?.join(' + ') ?? '',
-				item.category ?? '',
-				item.source ?? '',
-				item.valuation ?? '',
-				item.chains?.join(' + ') ?? '',
-				item.otherInvestors?.join(' + ') ?? ''
-			])
-		})
+	const sortedRaises = raises.sort((a, b) => b.date - a.date)
+	for (const item of sortedRaises) {
+		rows.push([
+			item.name,
+			item.date,
+			toNiceCsvDate(item.date),
+			item.amount === null ? '' : item.amount * 1_000_000,
+			item.round ?? '',
+			item.sector ?? '',
+			item.leadInvestors?.join(' + ') ?? '',
+			item.category ?? '',
+			item.source ?? '',
+			item.valuation ?? '',
+			item.chains?.join(' + ') ?? '',
+			item.otherInvestors?.join(' + ') ?? ''
+		])
+	}
 
 	return { filename: `raises.csv`, rows: rows as (string | number | boolean)[][] }
 }

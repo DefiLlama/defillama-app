@@ -308,9 +308,10 @@ export function useLocalStorageSettingsManager(type: TSETTINGTYPE): [Record<stri
 				const urlParams = isClient ? new URLSearchParams(window.location.search) : null
 
 				const ps = JSON.parse(localStorage.getItem(DEFILLAMA) ?? '{}')
-				const obj = Object.fromEntries(
-					keys.map((s) => [s, (urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false])
-				)
+				const obj: Record<string, boolean> = {}
+				for (const s of keys) {
+					obj[s] = (urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ?? ps[s] ?? false
+				}
 
 				return JSON.stringify(obj)
 			} catch {

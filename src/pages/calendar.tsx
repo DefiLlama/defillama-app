@@ -27,12 +27,12 @@ export const getStaticProps = withPerformanceLogging('calendar', async () => {
 
 	const emissions = res.map((protocol) => {
 		const unlocksByDate = {}
-		protocol.events?.forEach((e) => {
-			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) return
+		for (const e of protocol.events ?? []) {
+			if (e.timestamp < Date.now() / 1000 || (e.noOfTokens.length === 1 && e.noOfTokens[0] === 0)) continue
 			unlocksByDate[e.timestamp] =
 				(unlocksByDate[e.timestamp] ?? 0) +
 				(e.noOfTokens.length === 2 ? e.noOfTokens[1] - e.noOfTokens[0] : e.noOfTokens[0])
-		})
+		}
 		const unlocksList = Object.entries(unlocksByDate)
 		const maxUnlock = unlocksList.reduce((max, curr) => {
 			if (max[1] < curr[1]) {

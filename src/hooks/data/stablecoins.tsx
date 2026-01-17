@@ -117,7 +117,8 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 		const data = chains.map(([date, values]) => {
 			const circulatings: IChainTvl = {}
 			let totalDaySum = 0
-			Object.entries(values).forEach(([name, chainCirculating]: ChainTvlsByDay) => {
+			for (const name in values) {
+				const chainCirculating = values[name] as IChainTvl
 				let sum = chainCirculating.circulating
 				totalDaySum += chainCirculating.circulating
 				if (extraPeggedEnabled['unreleased'] && chainCirculating.unreleased) {
@@ -126,7 +127,7 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 				}
 
 				circulatings[name] = sum
-			})
+			}
 			daySum[date] = totalDaySum
 			return { date, ...circulatings }
 		})
@@ -218,11 +219,11 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 			}
 		}
 
-		chains.forEach((item) => {
+		for (const item of chains) {
 			if (!addedChains.includes(item.name)) {
 				finalData[item.name] = item
 			}
-		})
+		}
 		return (Object.values(finalData) as GroupChainPegged[]).sort((a, b) => b.mcap - a.mcap)
 	}, [chains, groupData, groupsEnabled])
 

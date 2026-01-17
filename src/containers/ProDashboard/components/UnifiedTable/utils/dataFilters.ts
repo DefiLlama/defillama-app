@@ -157,11 +157,11 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		}
 	]
 
-	numericRangeFilters.forEach(({ minKey, maxKey, getValue }) => {
+	for (const { minKey, maxKey, getValue } of numericRangeFilters) {
 		const minValue = minKey ? (filters[minKey] as number | undefined) : undefined
 		const maxValue = maxKey ? (filters[maxKey] as number | undefined) : undefined
 		if (minValue === undefined && maxValue === undefined) {
-			return
+			continue
 		}
 		filtered = filtered.filter((row) => {
 			const value = getValue(row)
@@ -173,7 +173,7 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 			}
 			return true
 		})
-	})
+	}
 
 	if (filters.hasPerps) {
 		filtered = filtered.filter((row) => (row.metrics.perpsVolume24h ?? 0) > 0)

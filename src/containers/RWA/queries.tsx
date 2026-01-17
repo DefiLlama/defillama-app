@@ -244,16 +244,16 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				totalOnChainDeFiActiveTvlAllAssets += effectiveDeFiActiveTvl
 
 				// Add to categories/issuers/assetClasses/rwaClassifications/accessModels for assets on this chain
-				asset.assetClass?.forEach((assetClass) => {
+				for (const assetClass of asset.assetClass ?? []) {
 					if (assetClass) {
 						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainMarketcap)
 					}
-				})
-				asset.category?.forEach((category) => {
+				}
+				for (const category of asset.category ?? []) {
 					if (category) {
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMarketcap)
 					}
-				})
+				}
 				if (asset.rwaClassification) {
 					rwaClassifications.set(
 						asset.rwaClassification,
@@ -269,11 +269,11 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 			}
 
 			// Chains list always uses total TVL (not filtered) so order stays consistent
-			asset.chain?.forEach((chain) => {
+			for (const chain of asset.chain ?? []) {
 				if (chain) {
 					chains.set(chain, (chains.get(chain) ?? 0) + totalOnChainMarketcapForAsset)
 				}
-			})
+			}
 		}
 
 		const formattedRwaClassifications = Array.from(rwaClassifications.entries())
@@ -341,11 +341,11 @@ export async function getRWAChainsList(): Promise<string[]> {
 	const chains = new Set<string>()
 
 	for (const rwaId in data) {
-		data[rwaId].chain?.forEach((chain) => {
+		for (const chain of data[rwaId].chain ?? []) {
 			if (chain) {
 				chains.add(slug(chain))
 			}
-		})
+		}
 	}
 
 	return Array.from(chains)
@@ -409,12 +409,12 @@ export async function getRWAAssetData(assetSlug: string): Promise<IRWAAssetData 
 				const accessModelDescription = definitions.accessModel.values?.[accessModel] ?? null
 				// Get asset class descriptions
 				const assetClassDescriptions: Record<string, string> = {}
-				item.assetClass?.forEach((ac) => {
+				for (const ac of item.assetClass ?? []) {
 					const description = ac ? definitions.assetClass.values?.[ac] : null
 					if (description) {
 						assetClassDescriptions[ac] = description
 					}
-				})
+				}
 				return {
 					slug: assetSlug,
 					ticker: typeof item.ticker === 'string' && item.ticker !== '-' ? item.ticker : null,

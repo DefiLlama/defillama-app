@@ -126,7 +126,8 @@ export const processAdjustedProtocolTvl = (
 	const hasInclude = includeSet.size > 0
 	const hasExclude = excludeSet.size > 0
 
-	for (const [key, val] of Object.entries(chainTvls || {})) {
+	for (const key in chainTvls || {}) {
+		const val = (chainTvls || {})[key]
 		if (!val || typeof val !== 'object') continue
 		if (isIgnoreKey(key)) continue
 
@@ -169,7 +170,11 @@ export const processAdjustedProtocolTvl = (
 	}
 
 	const tsSet = new Set<number>()
-	;[base, dc, ls, overlap].forEach((m) => m.forEach((_, ts) => tsSet.add(ts)))
+	for (const m of [base, dc, ls, overlap]) {
+		for (const [ts] of m) {
+			tsSet.add(ts)
+		}
+	}
 	const allTs = Array.from(tsSet).sort((a, b) => a - b)
 
 	const adjusted: [number, number][] = allTs.map((ts) => [

@@ -50,10 +50,14 @@ type UnifiedTableApiResponse = {
 const buildQueryString = (config: UnifiedTableConfig, rowHeaders: UnifiedRowHeaderType[]): string => {
 	const params = new URLSearchParams()
 
-	rowHeaders.forEach((header) => params.append('rowHeaders[]', header))
+	for (const header of rowHeaders) {
+		params.append('rowHeaders[]', header)
+	}
 
 	if (config.params?.chains) {
-		config.params.chains.forEach((chain) => params.append('chains[]', chain))
+		for (const chain of config.params.chains) {
+			params.append('chains[]', chain)
+		}
 	}
 
 	return params.toString()

@@ -88,11 +88,11 @@ export const IconsRow = ({
 		let remainingWidth = (mainWrapWidth > 280 ? 280 : mainWrapWidth) - CHAIN_ICON_WIDTH
 		let lastIndexOfFilters = 0
 
-		links.forEach(() => {
-			if (remainingWidth < 0) return
+		for (const _ of links) {
+			if (remainingWidth < 0) continue
 			remainingWidth -= CHAIN_ICON_WIDTH
 			lastIndexOfFilters += 1
-		})
+		}
 
 		setVisibileChainIndex(links.length > 2 ? lastIndexOfFilters : links.length)
 	}, [mainWrapWidth, links])

@@ -563,10 +563,15 @@ export const PROTOCOL_NAMES_MAP = {
 	strike: 'Strike'
 } as const
 
-export const PROTOCOL_NAMES_MAP_REVERSE: { [name: string]: string } = Object.entries(PROTOCOL_NAMES_MAP).reduce(
-	(acc, [key, value]) => ({ ...acc, [value]: key }),
-	{}
-)
+const buildProtocolNamesMapReverse = (): { [name: string]: string } => {
+	const result: { [name: string]: string } = {}
+	for (const key in PROTOCOL_NAMES_MAP) {
+		const value = PROTOCOL_NAMES_MAP[key as keyof typeof PROTOCOL_NAMES_MAP]
+		result[value] = key
+	}
+	return result
+}
+export const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()
 
 export const sortObject = <T>(
 	unordered: { [key: string]: T },
@@ -636,11 +641,11 @@ export const getOption = (
 		}))
 	}
 
-	series.forEach((seriesItem) => {
+	for (const seriesItem of series) {
 		if (seriesItem.data.length === 0) {
 			seriesItem.large = false
 		}
-	})
+	}
 
 	const option: ECBasicOption = {
 		graphic: {

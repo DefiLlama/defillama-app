@@ -613,11 +613,11 @@ export const getProtocolOverviewPageData = async ({
 					.map((p) => {
 						let commonChains = 0
 
-						protocolData?.chains?.forEach((chain) => {
+						for (const chain of protocolData?.chains ?? []) {
 							if (p.chains.includes(chain)) {
 								commonChains += 1
 							}
-						})
+						}
 
 						return { name: p.name, tvl: p.tvl, commonChains }
 					})
@@ -629,14 +629,16 @@ export const getProtocolOverviewPageData = async ({
 	const protocolsWithCommonChains = [...competitors].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
 
 	// first 5 are the protocols that are on same chain + same category
-	protocolsWithCommonChains.forEach((p) => competitorsSet.add(p.name))
+	for (const p of protocolsWithCommonChains) {
+		competitorsSet.add(p.name)
+	}
 
 	// last 5 are the protocols in same category
-	competitors.forEach((p) => {
+	for (const p of competitors) {
 		if (competitorsSet.size < 10) {
 			competitorsSet.add(p.name)
 		}
-	})
+	}
 
 	const hacks =
 		(protocolData.id
@@ -821,9 +823,10 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const chartColors = {}
-	availableCharts.forEach((chart, index) => {
-		chartColors[chart] = CHART_COLORS[index]
-	})
+	for (let i = 0; i < availableCharts.length; i++) {
+		const chart = availableCharts[i]
+		chartColors[chart] = CHART_COLORS[i]
+	}
 
 	const hallmarks = {}
 	const rangeHallmarks = []

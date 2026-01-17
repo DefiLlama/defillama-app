@@ -227,7 +227,9 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 	const handleClearSelection = useCallback(() => {
 		if (!selectedChartTypeSingle) return
 		const itemsToRemove = composerItems.filter((item) => item.type === selectedChartTypeSingle)
-		itemsToRemove.forEach((item) => onRemoveFromComposer(item.id))
+		for (const item of itemsToRemove) {
+			onRemoveFromComposer(item.id)
+		}
 	}, [selectedChartTypeSingle, composerItems, onRemoveFromComposer])
 
 	const _instantAvailableChartTypes = useMemo(() => {

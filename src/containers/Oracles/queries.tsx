@@ -95,12 +95,12 @@ export async function getOraclePageData(oracle = null, chain = null) {
 
 		if (oracle) {
 			let data = []
-			chartData.forEach(([date, tokens]) => {
+			for (const [date, tokens] of chartData) {
 				const value = tokens[oracle]
 				if (value) {
 					data.push([date, value])
 				}
-			})
+			}
 			chartData = data
 		}
 

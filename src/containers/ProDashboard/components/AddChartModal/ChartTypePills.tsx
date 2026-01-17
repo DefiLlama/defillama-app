@@ -45,7 +45,9 @@ export const ChartTypePills = memo(function ChartTypePills({
 }: ChartTypePillsProps) {
 	const chartTypeMap = useMemo(() => {
 		const map = new Map<string, ChartTypeOption>()
-		chartTypes.forEach((ct) => map.set(ct.value, ct))
+		for (const ct of chartTypes) {
+			map.set(ct.value, ct)
+		}
 		return map
 	}, [chartTypes])
 
@@ -54,7 +56,8 @@ export const ChartTypePills = memo(function ChartTypePills({
 	const groupedOptions = useMemo(() => {
 		const result: Array<{ group: string; options: ChartTypeOption[] }> = []
 
-		for (const [groupName, typeIds] of Object.entries(groups)) {
+		for (const groupName in groups) {
+			const typeIds = groups[groupName]
 			const options: ChartTypeOption[] = []
 			for (const id of typeIds) {
 				const chartType = chartTypeMap.get(id)

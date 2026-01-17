@@ -346,7 +346,9 @@ export async function getProtocolsAdjustedFDVsByChain({
 			categories.add(protocol.category)
 		}
 
-		protocol.chains.forEach((chain) => chainsWithEmissions.add(chain))
+		for (const chain of protocol.chains) {
+			chainsWithEmissions.add(chain)
+		}
 
 		const p = {
 			name: protocol.name,

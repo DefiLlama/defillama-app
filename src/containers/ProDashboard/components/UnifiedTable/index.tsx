@@ -109,27 +109,38 @@ const rowHeadersMatch = (a: UnifiedRowHeaderType[], b: UnifiedRowHeaderType[]) =
 }
 
 const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
-	const entries = Object.entries(filters).filter(([, value]) => {
+	const result: Record<string, unknown> = {}
+	for (const key in filters) {
+		const value = filters[key]
 		if (value === undefined || value === null) {
-			return false
+			continue
 		}
 		if (typeof value === 'boolean') {
-			return value === true
+			if (value === true) {
+				result[key] = value
+			}
+			continue
 		}
 		if (typeof value === 'string') {
-			return value.trim().length > 0
+			if (value.trim().length > 0) {
+				result[key] = value
+			}
+			continue
 		}
 		if (Array.isArray(value)) {
-			return value.length > 0
+			if (value.length > 0) {
+				result[key] = value
+			}
+			continue
 		}
-		return true
-	})
+		result[key] = value
+	}
 
-	if (!entries.length) {
+	if (!Object.keys(result).length) {
 		return undefined
 	}
 
-	return Object.fromEntries(entries) as TableFilters
+	return result as TableFilters
 }
 
 const metricFromColumn = (columnId: string) => columnId

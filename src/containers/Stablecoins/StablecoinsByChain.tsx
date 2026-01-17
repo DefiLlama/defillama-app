@@ -81,13 +81,13 @@ export function StablecoinsByChain({
 
 			// These together filter depegged. Need to refactor once any other attributes are added.
 			toFilter = Math.abs(curr.pegDeviation) < 10 || !(typeof curr.pegDeviation === 'number')
-			selectedAttributes.forEach((attribute) => {
+			for (const attribute of selectedAttributes) {
 				const attributeOption = attributeOptionsMap.get(attribute)
 
 				if (attributeOption) {
 					toFilter = attributeOption.filterFn(curr)
 				}
-			})
+			}
 
 			toFilter =
 				toFilter &&
@@ -159,18 +159,17 @@ export function StablecoinsByChain({
 	const prepareCsv = () => {
 		const filteredPeggedNames = peggedAssetNames.filter((name, i) => filteredIndexes.includes(i))
 		const rows = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-					filteredPeggedNames.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
+				filteredPeggedNames.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoins.csv', rows: rows as (string | number | boolean)[][] }
 	}
 
@@ -468,7 +467,9 @@ function handleRouting(selectedChain, queryParams) {
 
 	let params = ''
 
-	Object.keys(filters).forEach((filter, index) => {
+	const filterKeys = Object.keys(filters)
+	for (let index = 0; index < filterKeys.length; index++) {
+		const filter = filterKeys[index]
 		// append '?' before all query params and '&' bertween diff params
 		if (index === 0) {
 			params += '?'
@@ -476,17 +477,18 @@ function handleRouting(selectedChain, queryParams) {
 
 		// query params of same query like pegType will return in array form - pegType=['USD','EUR'], expected output is pegType=USD&pegType=EUR
 		if (Array.isArray(filters[filter])) {
-			filters[filter].forEach((f, i) => {
+			for (let i = 0; i < filters[filter].length; i++) {
+				const f = filters[filter][i]
 				if (i > 0) {
 					params += '&'
 				}
 
 				params += `${filter}=${f}`
-			})
+			}
 		} else {
 			params += `${filter}=${filters[filter]}`
 		}
-	})
+	}
 
 	if (selectedChain === 'All') return `/stablecoins${params}`
 	return `/stablecoins/${slug(selectedChain)}${params}`

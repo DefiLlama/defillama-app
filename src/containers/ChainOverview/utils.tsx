@@ -54,9 +54,10 @@ export function groupByTimeFrame(data, timeFrame) {
 				acc[timeFrameStart] = values.map(() => 0)
 			}
 
-			values.forEach((value, index) => {
+			for (let index = 0; index < values.length; index++) {
+				const value = values[index]
 				acc[timeFrameStart][index] += Number(value)
-			})
+			}
 
 			return acc
 		},

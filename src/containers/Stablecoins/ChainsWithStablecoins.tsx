@@ -58,18 +58,17 @@ export function ChainsWithStablecoins({
 
 	const prepareeCsv = React.useCallback(() => {
 		const rows = [['Timestamp', 'Date', ...chainList, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chainList.map((chain) => day[chain] ?? ''),
-					chainList.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...chainList.map((chain) => day[chain] ?? ''),
+				chainList.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoinsChainTotals.csv', rows: rows as (string | number | boolean)[][] }
 	}, [stackedData, chainList])
 

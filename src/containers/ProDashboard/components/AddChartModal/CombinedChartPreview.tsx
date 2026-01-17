@@ -42,7 +42,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		let hasNonMonetaryMetrics = false
 		let allPercentMetrics = true
 
-		composerItems.forEach((item) => {
+		for (const item of composerItems) {
 			if (item.data && Array.isArray(item.data) && item.data.length > 0) {
 				const meta = CHART_TYPES[item.type]
 				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
@@ -81,7 +81,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					colorIndex++
 				}
 			}
-		})
+		}
 
 		const symbol = result.length > 0 && allPercentMetrics ? '%' : hasNonMonetaryMetrics ? '' : '$'
 

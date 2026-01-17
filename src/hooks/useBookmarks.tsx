@@ -57,7 +57,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 
 			// Deep merge watchlists
 			const mergedWatchlist = { ...localWatchlistData }
-			Object.keys(serverWatchlist).forEach((portfolio) => {
+			for (const portfolio of Object.keys(serverWatchlist)) {
 				if (!mergedWatchlist[portfolio]) {
 					mergedWatchlist[portfolio] = {}
 				}
@@ -65,7 +65,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 					...mergedWatchlist[portfolio],
 					...serverWatchlist[portfolio]
 				}
-			})
+			}
 
 			// Update localStorage with merged data
 			const updatedData = {

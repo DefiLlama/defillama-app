@@ -177,9 +177,10 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			.sort((a, b) => b.value - a.value)
 
 		const stackColors: Record<string, string> = {}
-		pieData.forEach((item, index) => {
+		for (let index = 0; index < pieData.length; index++) {
+			const item = pieData[index]
 			stackColors[item.name] = getChartColor(item.name, index, '#8884d8')
-		})
+		}
 
 		const pieProps: Partial<IPieChartProps> = {
 			title: config.title,
@@ -382,12 +383,12 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 
 						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${date}</div>`
 
-						params.forEach((param: any) => {
+						for (const param of params as any[]) {
 							const value = param.value?.[1]
 							if (value !== null && value !== undefined) {
 								content += `<div>${param.marker} ${param.seriesName}: ${formatPrecisionPercentage(value)}</div>`
 							}
-						})
+						}
 
 						return content
 					}
@@ -428,10 +429,11 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 
 		const yAxisIdToIndex = new Map<string, number>()
 		const yAxisIndexToSymbol = new Map<number, string>()
-		config.axes.yAxes?.forEach((axis, index) => {
+		for (let index = 0; index < (config.axes.yAxes?.length ?? 0); index++) {
+			const axis = config.axes.yAxes![index]
 			yAxisIdToIndex.set(axis.id, index)
 			yAxisIndexToSymbol.set(index, axis.valueSymbol ?? config.valueSymbol ?? '$')
-		})
+		}
 
 		const series: Array<{
 			data: Array<[number, number | null]>
@@ -527,7 +529,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 						const header = config.axes.x.type === 'time' ? new Date(xValue).toLocaleDateString() : String(xValue)
 
 						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>`
-						params.forEach((param: any) => {
+						for (const param of params as any[]) {
 							const value = param.value?.[1]
 							if (value != null) {
 								const yAxisIndex = validSeries[param.seriesIndex]?.yAxisIndex ?? 0
@@ -536,7 +538,7 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 									axisSymbol === '%' ? formatPrecisionPercentage(value) : formatTooltipValue(value, axisSymbol)
 								content += `<div>${param.marker} ${param.seriesName}: ${formattedValue}</div>`
 							}
-						})
+						}
 						return content
 					}
 				}
@@ -622,13 +624,13 @@ export function adaptCandlestickData(
 		}
 
 		const maFields = keys.filter((k) => /_(ma|sma|ema)\d*$/i.test(k) || /^(sma|ema)_\d+$/i.test(k))
-		maFields.forEach((field) => {
+		for (const field of maFields) {
 			indicators.push({
 				name: field.toUpperCase(),
 				category: 'overlay',
 				data: rawData.map((r: any) => [getTs(r), parseFloat(r[field]) || null])
 			})
-		})
+		}
 
 		const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
 		if (rsiField) {

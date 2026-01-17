@@ -475,11 +475,13 @@ function mergeBreakdowns(breakdowns: Record<string, Record<string, number>>[]) {
 	const merged = {}
 	for (const breakdown of breakdowns) {
 		if (!breakdown) continue
-		for (const [chainName, protocolData] of Object.entries(breakdown)) {
+		for (const chainName in breakdown) {
+			const protocolData = breakdown[chainName]
 			if (!merged[chainName]) {
 				merged[chainName] = {}
 			}
-			for (const [protocolName, value] of Object.entries(protocolData)) {
+			for (const protocolName in protocolData) {
+				const value = protocolData[protocolName]
 				merged[chainName][protocolName] = (merged[chainName][protocolName] || 0) + value
 			}
 		}
@@ -553,7 +555,7 @@ function processRevenueDataForMatching(protocols: any[]) {
 function matchRevenueToEarnings(revenueData: any[], earningsProtocols: any[]) {
 	const matchedData = {}
 
-	revenueData.forEach((revenueProtocol) => {
+	for (const revenueProtocol of revenueData) {
 		const matchingEarningsProtocol = earningsProtocols.find((earningsProto) => {
 			const earningsParentKey = earningsProto.parentProtocol || earningsProto.defillamaId
 
@@ -576,7 +578,7 @@ function matchRevenueToEarnings(revenueData: any[], earningsProtocols: any[]) {
 				totalAllTime: revenueProtocol.totalAllTime ?? null
 			}
 		}
-	})
+	}
 
 	return matchedData
 }

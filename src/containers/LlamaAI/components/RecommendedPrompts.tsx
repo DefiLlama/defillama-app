@@ -68,7 +68,11 @@ const researchCategory = {
 
 async function getRecommendedPrompts() {
 	try {
-		return Object.fromEntries(promptCategories.map((category) => [category.name, category.prompts]))
+		const result: Record<string, readonly string[]> = {}
+		for (const category of promptCategories) {
+			result[category.name] = category.prompts
+		}
+		return result
 	} catch (error) {
 		console.log(error)
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch recommended prompts')

@@ -58,7 +58,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 			}
 		>()
 
-		rawData.forEach((item) => {
+		for (const item of rawData) {
 			const date = dayjs.unix(item.timestamp)
 			const key = (timePeriod === 'Weekly' ? date.startOf('week') : date.startOf('month')).unix()
 
@@ -67,7 +67,7 @@ export function BridgeVolumeChart({ chain = 'all', height }: BridgeVolumeChartPr
 				deposits: existing.deposits + item.deposits,
 				withdrawals: existing.withdrawals + item.withdrawals
 			})
-		})
+		}
 
 		return Array.from(groupedData.entries())
 			.map(([date, values]) => ({

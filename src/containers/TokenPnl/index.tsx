@@ -206,7 +206,8 @@ const computeTokenPnl = async (params: {
 		dataPoints.push([start * 1000, firstPoint.price])
 	}
 
-	series.forEach((point, index) => {
+	for (let index = 0; index < series.length; index++) {
+		const point = series[index]
 		prices.push(point.price)
 
 		if (index === 0) {
@@ -220,7 +221,7 @@ const computeTokenPnl = async (params: {
 
 		// Prepare chart data
 		dataPoints.push([point.timestamp * 1000, point.price])
-	})
+	}
 
 	const lastPoint = series[series.length - 1]
 	if (lastPoint && lastPoint.timestamp !== end) {

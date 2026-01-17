@@ -75,8 +75,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		const toAdd = selectedValues.filter((name) => !currentSet.has(name))
 		const toRemove = selectedProtocolNames.filter((name) => !newSet.has(name))
 
-		toAdd.forEach((name) => addProtocol(name))
-		toRemove.forEach((name) => removeProtocol(name))
+		for (const name of toAdd) addProtocol(name)
+		for (const name of toRemove) removeProtocol(name)
 	}
 
 	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
@@ -94,8 +94,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		const newSet = new Set(selectedValues)
 		const toAdd = selectedValues.filter((name) => !currentSet.has(name))
 		const toRemove = selectedChainNames.filter((name) => !newSet.has(name))
-		toAdd.forEach((name) => addChain(name))
-		toRemove.forEach((name) => removeChain(name))
+		for (const name of toAdd) addChain(name)
+		for (const name of toRemove) removeChain(name)
 	}
 
 	if (isLoadingWatchlist) {
@@ -307,17 +307,17 @@ function PortfolioNotifications({
 
 			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
 				settings.protocols = {}
-				filteredProtocols.forEach((protocol) => {
+				for (const protocol of filteredProtocols) {
 					const identifier = protocol.slug
 					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
-				})
+				}
 			}
 
 			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
 				settings.chains = {}
-				filteredChains.forEach((chain) => {
+				for (const chain of filteredChains) {
 					settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
-				})
+				}
 			}
 
 			if (!settings.protocols && !settings.chains) {
@@ -689,9 +689,9 @@ function TopMovers({ protocols }: TopMoversProps) {
 
 	const availableChains = useMemo(() => {
 		const chainSet = new Set<string>()
-		protocols.forEach((protocol) => {
-			protocol.chains?.forEach((chain) => chainSet.add(chain))
-		})
+		for (const protocol of protocols) {
+			if (protocol.chains) { for (const chain of protocol.chains) chainSet.add(chain) }
+		}
 		return Array.from(chainSet).sort()
 	}, [protocols])
 
@@ -699,7 +699,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 		const periods = ['1d', '7d', '1m']
 		const movers: Record<string, Array<{ name: string; change: number; chains: string[] }>> = {}
 
-		periods.forEach((period) => {
+		for (const period of periods) {
 			const changeKey = `change${period}`
 			let candidates = protocols
 				.filter((p) => p.tvlChange?.[changeKey] != null && p.tvlChange[changeKey] != null)
@@ -723,7 +723,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 
 			candidates.sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
 			movers[period] = candidates.slice(0, 3)
-		})
+		}
 
 		return movers
 	}, [protocols, showPositiveMoves, showNegativeMoves, selectedChains])

@@ -80,7 +80,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	let totalPerpsVolumeWeight = 0
 
 	// Aggregate metrics from filtered children
-	filteredSubRows.forEach((child) => {
+	for (const child of filteredSubRows) {
 		if (child.tvl != null) tvl += child.tvl
 		if (child.tvlPrevDay != null) tvlPrevDay += child.tvlPrevDay
 		if (child.tvlPrevWeek != null) tvlPrevWeek += child.tvlPrevWeek
@@ -114,7 +114,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 			totalPerpsVolumeWeight += child.perps_volume_7d
 		}
 		if (child.openInterest != null) openInterest += child.openInterest
-	})
+	}
 
 	const change_1d = getPercentChange(tvl, tvlPrevDay)
 	const change_7d = getPercentChange(tvl, tvlPrevWeek)
@@ -140,21 +140,23 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	const oraclesByChainAgg: Record<string, Set<string>> = {}
 	const addOracles = (obj: any) => {
 		if (Array.isArray(obj?.oracles)) {
-			obj.oracles.forEach((o: string) => oracleSet.add(o))
+			for (const o of obj.oracles as string[]) oracleSet.add(o)
 		}
 		if (obj?.oraclesByChain) {
 			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
 				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
-				;(obj.oraclesByChain[k] || []).forEach((o: string) => set.add(o))
+				;for (const o of (obj.oraclesByChain[k] || []) as string[]) set.add(o)
 			}
 		}
 	}
 	addOracles(parent)
-	filteredSubRows.forEach(addOracles)
+	for (const subRow of filteredSubRows) addOracles(subRow)
 
-	const aggregatedOraclesByChain = Object.fromEntries(
-		Object.entries(oraclesByChainAgg).map(([k, v]) => [k, Array.from(v).sort((a, b) => a.localeCompare(b))])
-	)
+	const aggregatedOraclesByChain: Record<string, string[]> = {}
+	for (const k in oraclesByChainAgg) {
+		const v = oraclesByChainAgg[k]
+		aggregatedOraclesByChain[k] = Array.from(v).sort((a, b) => a.localeCompare(b))
+	}
 
 	return {
 		...parent,
@@ -422,7 +424,7 @@ export function useProTable(
 						try {
 							const context: Record<string, number> = {}
 
-							protocolsByChainTableColumns.forEach((tableCol) => {
+							for (const tableCol of protocolsByChainTableColumns) {
 								const value = row[tableCol.key as keyof IProtocolRow]
 								if (typeof value === 'number') {
 									context[tableCol.key] = value
@@ -432,7 +434,7 @@ export function useProTable(
 										context[tableCol.key] = numValue
 									}
 								}
-							})
+							}
 
 							const expr = parser.parse(customCol.expression)
 							const result = expr.evaluate(context)
@@ -585,18 +587,18 @@ export function useProTable(
 			'options_volume_30d'
 		]
 
-		usdMetrics.forEach((metric) => {
+		for (const metric of usdMetrics) {
 			sums[metric] = 0
-		})
+		}
 
-		finalProtocolsList.forEach((protocol) => {
-			usdMetrics.forEach((metric) => {
+		for (const protocol of finalProtocolsList) {
+			for (const metric of usdMetrics) {
 				const value = protocol[metric as keyof IProtocolRow]
 				if (typeof value === 'number' && value > 0) {
 					sums[metric] += value
 				}
-			})
-		})
+			}
+		}
 
 		return sums
 	}, [finalProtocolsList])
@@ -1250,11 +1252,11 @@ export function useProTable(
 	const categories = React.useMemo(() => {
 		if (!fullProtocolsList) return []
 		const uniqueCategories = new Set<string>()
-		fullProtocolsList.forEach((protocol: any) => {
+		for (const protocol of fullProtocolsList as any[]) {
 			if (protocol.category) {
 				uniqueCategories.add(protocol.category)
 			}
-		})
+		}
 		return Array.from(uniqueCategories).sort()
 	}, [fullProtocolsList])
 

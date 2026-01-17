@@ -252,19 +252,19 @@ export function PeggedChainsTable({ data }) {
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const clearAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
+		for (const item of DEFI_CHAINS_SETTINGS) {
 			if (selectedAggregateTypes.includes(item.key)) {
 				updater(item.key)
 			}
-		})
+		}
 	}
 
 	const toggleAllAggrOptions = () => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
+		for (const item of DEFI_CHAINS_SETTINGS) {
 			if (!selectedAggregateTypes.includes(item.key)) {
 				updater(item.key)
 			}
-		})
+		}
 	}
 
 	const addAggrOption = (selectedKeys) => {
@@ -282,7 +282,7 @@ export function PeggedChainsTable({ data }) {
 	}
 
 	const addOnlyOneAggrOption = (newOption) => {
-		DEFI_CHAINS_SETTINGS.forEach((item) => {
+		for (const item of DEFI_CHAINS_SETTINGS) {
 			if (item.key === newOption) {
 				if (!selectedAggregateTypes.includes(item.key)) {
 					updater(item.key)
@@ -292,7 +292,7 @@ export function PeggedChainsTable({ data }) {
 					updater(item.key)
 				}
 			}
-		})
+		}
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {

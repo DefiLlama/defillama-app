@@ -73,7 +73,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const categoryList: Set<string> = new Set()
 
-	_pools.forEach((pool) => {
+	for (const pool of _pools) {
 		// remove potential undefined on projectName
 		if (pool.projectName) {
 			poolsList.push(pool)
@@ -81,7 +81,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			categoryList.add(pool.category)
 			projectList.add(pool.projectName)
 		}
-	})
+	}
 
 	let tokenNameMapping = {}
 	for (const key of Object.keys(_config)) {
@@ -96,7 +96,13 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 	tokenNameMapping['USDC'] = 'USD Coin'
 	tokenNameMapping['VELO'] = 'Velodrome'
 	// remove any null keys (where no token)
-	tokenNameMapping = Object.fromEntries(Object.entries(tokenNameMapping).filter(([k, _]) => k !== 'null'))
+	const filteredTokenNameMapping: Record<string, string> = {}
+	for (const k in tokenNameMapping) {
+		if (k !== 'null') {
+			filteredTokenNameMapping[k] = tokenNameMapping[k]
+		}
+	}
+	tokenNameMapping = filteredTokenNameMapping
 
 	const symbols = [...new Set(_pools.map((p) => p.symbol.split(' ')[0].split('-')).flat())]
 
@@ -117,7 +123,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 
 	const tokenSymbolsList = ['ALL_BITCOINS', 'ALL_USD_STABLES']
 
-	symbols.forEach((token: string) => {
+	for (const token of symbols as string[]) {
 		if (token) {
 			tokens.push({
 				name: token,
@@ -127,7 +133,7 @@ export function formatYieldsPageData(poolsAndConfig: any) {
 			})
 			tokenSymbolsList.push(token)
 		}
-	})
+	}
 
 	return {
 		pools: poolsList,

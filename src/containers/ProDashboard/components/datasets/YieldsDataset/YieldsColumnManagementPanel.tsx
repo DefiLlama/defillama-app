@@ -165,9 +165,9 @@ export function YieldsColumnManagementPanel({
 				<div className="flex items-center gap-2">
 					<button
 						onClick={() => {
-							Object.keys(yieldsColumnMetadata).forEach((key) => {
+							for (const key in yieldsColumnMetadata) {
 								toggleColumnVisibility(key, true)
-							})
+							}
 						}}
 						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>
@@ -175,9 +175,9 @@ export function YieldsColumnManagementPanel({
 					</button>
 					<button
 						onClick={() => {
-							Object.keys(yieldsColumnMetadata).forEach((key) => {
+							for (const key in yieldsColumnMetadata) {
 								toggleColumnVisibility(key, ['pool', 'project', 'chains', 'tvl'].includes(key))
-							})
+							}
 						}}
 						className="pro-divider pro-hover-bg pro-text2 pro-bg2 rounded-md border px-2 py-1 text-xs transition-colors"
 					>

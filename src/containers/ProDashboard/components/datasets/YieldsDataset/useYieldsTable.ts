@@ -254,9 +254,9 @@ export function useYieldsTable({
 					})
 					.filter(Boolean)
 
-				allColumnIds.forEach((colId) => {
+				for (const colId of allColumnIds) {
 					newVisibility[colId] = preset.includes(colId)
-				})
+				}
 
 				setColumnVisibility(newVisibility)
 				setColumnOrder(preset)
@@ -277,9 +277,9 @@ export function useYieldsTable({
 		if (!table) return {}
 		const allColumns = table.getAllLeafColumns()
 		const visibility = {}
-		allColumns.forEach((col) => {
+		for (const col of allColumns) {
 			visibility[col.id] = columnVisibility[col.id] !== false
-		})
+		}
 		return visibility
 	}, [table, columnVisibility])
 
@@ -394,9 +394,11 @@ export function useYieldsTable({
 	const availableChains = React.useMemo(() => {
 		if (!data) return []
 		const chainsSet = new Set<string>()
-		data.forEach((row) => {
-			row.chains?.forEach((chain: string) => chainsSet.add(chain))
-		})
+		for (const row of data) {
+			for (const chain of row.chains ?? []) {
+				chainsSet.add(chain)
+			}
+		}
 		return Array.from(chainsSet).sort()
 	}, [data])
 
@@ -404,19 +406,19 @@ export function useYieldsTable({
 		if (!data) return []
 		const tokenTvlMap = new Map<string, number>()
 
-		data.forEach((row) => {
+		for (const row of data) {
 			if (row.pool && row.tvl) {
 				const separators = /[-\s/,+]/
 				const tokens = row.pool.split(separators)
-				tokens.forEach((token: string) => {
+				for (const token of tokens) {
 					const cleaned = token.trim().toUpperCase()
 					if (cleaned && cleaned.length >= 2 && !['LP', 'V2', 'V3', 'POOL', 'VAULT', 'FARM'].includes(cleaned)) {
 						const currentTvl = tokenTvlMap.get(cleaned) || 0
 						tokenTvlMap.set(cleaned, currentTvl + row.tvl)
 					}
-				})
+				}
 			}
-		})
+		}
 
 		return Array.from(tokenTvlMap.entries())
 			.sort((a, b) => b[1] - a[1])
@@ -446,10 +448,10 @@ export function useYieldsTable({
 
 		const protocolMap = new Map<string, { value: string; label: string; tvl: number }>()
 
-		data.forEach((row) => {
+		for (const row of data) {
 			const slug = (row.projectslug || row.project || '').trim()
 			const name = (row.project || '').trim()
-			if (!slug && !name) return
+			if (!slug && !name) continue
 
 			const key = (slug || name).toLowerCase()
 			const existing = protocolMap.get(key)
@@ -470,7 +472,7 @@ export function useYieldsTable({
 					tvl
 				})
 			}
-		})
+		}
 
 		return Array.from(protocolMap.values())
 			.sort((a, b) => {

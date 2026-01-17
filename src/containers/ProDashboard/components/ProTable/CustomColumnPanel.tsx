@@ -133,7 +133,7 @@ export function CustomColumnPanel({
 	// Sample data for live preview
 	const sampleData = React.useMemo(() => {
 		const sample: Record<string, number> = {}
-		availableVariables.forEach((variable) => {
+		for (const variable of availableVariables) {
 			// Create realistic sample data
 			switch (variable.key) {
 				case 'tvl':
@@ -180,7 +180,7 @@ export function CustomColumnPanel({
 						sample[variable.key] = Math.floor(Math.random() * 1000000) // Default up to 1M
 					}
 			}
-		})
+		}
 		return sample
 	}, [availableVariables])
 
@@ -195,9 +195,9 @@ export function CustomColumnPanel({
 
 			// Test with dummy data to catch variable issues
 			const testData: Record<string, number> = {}
-			availableVariables.forEach((variable) => {
+			for (const variable of availableVariables) {
 				testData[variable.key] = 100
-			})
+			}
 
 			expr.evaluate(testData)
 			return { isValid: true }

@@ -127,18 +127,17 @@ export const PeggedAssetInfo = ({
 
 	const prepareCsv = React.useCallback(() => {
 		const rows = [['Timestamp', 'Date', ...chainsUnique, 'Total']]
-		stackedData
-			.sort((a, b) => a.date - b.date)
-			.forEach((day) => {
-				rows.push([
-					day.date,
-					toNiceCsvDate(day.date),
-					...chainsUnique.map((chain) => day[chain] ?? ''),
-					chainsUnique.reduce((acc, curr) => {
-						return (acc += day[curr] ?? 0)
-					}, 0)
-				])
-			})
+		const sortedData = stackedData.sort((a, b) => a.date - b.date)
+		for (const day of sortedData) {
+			rows.push([
+				day.date,
+				toNiceCsvDate(day.date),
+				...chainsUnique.map((chain) => day[chain] ?? ''),
+				chainsUnique.reduce((acc, curr) => {
+					return (acc += day[curr] ?? 0)
+				}, 0)
+			])
+		}
 		return { filename: 'stablecoinsChains.csv', rows: rows as (string | number | boolean)[][] }
 	}, [stackedData, chainsUnique])
 

@@ -203,7 +203,7 @@ export default function LineAndBarChart({
 			// Collect all unique yAxisIndex values from series and map them to colors
 			const yAxisIndexToColor = new Map<number, string | undefined>()
 
-			series.forEach((item) => {
+			for (const item of series) {
 				if (item.yAxisIndex != null) {
 					// Map each yAxisIndex to the color of the first series that uses it
 					if (!yAxisIndexToColor.has(item.yAxisIndex)) {
@@ -211,7 +211,7 @@ export default function LineAndBarChart({
 						yAxisIndexToColor.set(item.yAxisIndex, seriesColor)
 					}
 				}
-			})
+			}
 
 			// Create yAxis objects for each index from 0 to max
 			if (yAxisIndexToColor.size > 0) {

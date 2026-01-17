@@ -78,9 +78,9 @@ export const getStaticProps = withPerformanceLogging(
 		const recentMonth = Object.keys(data.stats.months).sort().pop()
 		const missingMonths = getDateRange(recentMonth)
 
-		missingMonths.forEach((month) => {
+		for (const month of missingMonths) {
 			data.stats.months[month] = { total: 0, successful: 0, proposals: [] }
-		})
+		}
 
 		const { proposals, activity, maxVotes } = formatGovernanceData(data as any)
 
