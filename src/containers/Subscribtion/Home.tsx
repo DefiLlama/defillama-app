@@ -79,13 +79,13 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					{/* Animated badge */}
 					{!isSubscribed && (
 						<div className="animate-[fadeInDown_0.8s_ease-out] flex items-center gap-2 rounded-full border border-[#5C5CF9]/30 bg-[#5C5CF9]/5 px-4 py-2 backdrop-blur-sm">
-							<div className="h-2 w-2 rounded-full bg-[#5C5CF9] animate-pulse" />
+							<div className="h-2 w-2 rounded-full bg-[#5C5CF9] animate-pulse"></div>
 							<span className="text-xs font-medium text-[#5C5CF9]">Unlock unlimited potential</span>
 						</div>
 					)}
 
 					{/* Logo with improved glow */}
-					<div className="relative mx-auto aspect-square h-[120px] w-[120px] animate-[fadeInUp_0.8s_ease-out] rounded-full object-contain">
+					<div className="relative mx-auto aspect-square h-[120px] w-[120px] animate-[fadeInUp_1s_ease-out] rounded-full object-contain">
 						<div
 							style={{
 								filter: 'blur(80px)',
@@ -109,7 +109,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							DefiLlama <span className="bg-gradient-to-r from-[#5C5CF9] to-[#00D4FF] bg-clip-text text-transparent">Pro</span>
 						</h1>
 						{!isSubscribed && (
-							<p className="animate-[fadeInUp_1.2s_ease-out] text-center max-w-2xl text-lg text-[#A0A3A8] leading-relaxed">
+							<p className="animate-[fadeInUp_1s_ease-out] text-center max-w-2xl text-lg text-[#A0A3A8] leading-relaxed">
 								Experience the most powerful DeFi analytics platform. Unlock <span className="font-semibold text-white">LlamaAI</span>, advanced dashboards, premium API endpoints, and exclusive market insights.
 							</p>
 						)}
@@ -117,7 +117,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 
 					{/* CTA Section */}
 					{!isSubscribed && (
-						<div className="animate-[fadeInUp_1.4s_ease-out] mx-auto w-full max-w-[440px] space-y-4">
+						<div className="animate-[fadeInUp_1s_ease-out] mx-auto w-full max-w-[440px] space-y-4">
 							{isAuthenticated ? (
 								<>
 									<button
@@ -162,7 +162,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 				</div>
 
 				{isAuthenticated && !user?.verified && !isWalletUser && user?.email && (
-					<div className="mx-auto w-full max-w-3xl animate-[fadeInUp_0.8s_ease-out]">
+					<div className="mx-auto w-full max-w-3xl animate-[fadeInUp_1s_ease-out]">
 						<EmailVerificationWarning
 							email={user.email}
 							onResendVerification={handleResendVerification}
@@ -172,7 +172,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 				)}
 
 				{isAuthenticated && isSubscribed && (
-					<div className="animate-[fadeInUp_0.8s_ease-out] mx-auto w-full max-w-[600px]">
+					<div className="animate-[fadeInUp_1s_ease-out] mx-auto w-full max-w-[600px]">
 						<div className="flex flex-col items-center gap-4 rounded-2xl border border-green-500/30 bg-green-500/5 p-8 text-center backdrop-blur-sm">
 							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
 								<Icon name="check" height={32} width={32} className="text-green-400" />
@@ -257,7 +257,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 								isAuthenticated ? 'lg:order-1' : 'lg:order-2'
 							}`}
 						>
-							<div className="absolute inset-0 bg-gradient-to-br from-[#5C5CF9]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+							<div className="absolute inset-0 bg-gradient-to-br from-[#5C5CF9]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
 							<div className="relative p-8 flex flex-col h-full">
 								<FreeCard />
 							</div>
@@ -276,7 +276,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							{/* Pro Badge - Absolutely Positioned */}
 							<div className="absolute -top-4 left-1/2 -translate-x-1/2 z-50">
 								<div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#5C5CF9] to-[#7B7BFF] px-4 py-2.5 border border-[#5C5CF9]/50 shadow-lg shadow-[#5C5CF9]/30">
-									<div className="h-2 w-2 rounded-full bg-white animate-pulse" />
+									<div className="h-2 w-2 rounded-full bg-white animate-pulse"></div>
 									<span className="text-xs font-bold text-white tracking-wide">MOST POPULAR</span>
 								</div>
 							</div>
@@ -296,7 +296,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 						<div
 							className={`group relative overflow-hidden rounded-2xl border border-[#5C5CF9]/30 bg-gradient-to-br from-[#1a1f35]/40 to-[#0f1119]/60 backdrop-blur-sm transition-all duration-300 hover:border-[#5C5CF9]/50 hover:-translate-y-2 lg:order-3`}
 						>
-							<div className="absolute inset-0 bg-gradient-to-br from-[#5C5CF9]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+							<div className="absolute inset-0 bg-gradient-to-br from-[#5C5CF9]/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100"></div>
 							<div className="relative p-8 flex flex-col h-full">
 								<SubscribeAPICard
 									context="page"
