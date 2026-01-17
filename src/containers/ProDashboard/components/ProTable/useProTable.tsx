@@ -405,7 +405,8 @@ export function useProTable(
 				setCustomColumns(view.customColumns || [])
 			}
 		}
-	}, [customViews, options?.initialActiveViewId, columnOrder.length, columnVisibility])
+		// oxlint-disable-next-line react/exhaustive-deps
+	}, [customViews, options?.initialActiveViewId])
 
 	// Create custom column definitions
 	const customColumnDefs = React.useMemo(() => {
@@ -790,9 +791,7 @@ export function useProTable(
 
 	const addOption = (newOptions: string[]) => {
 		if (!table) return
-		const ops = Object.fromEntries(
-			table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)])
-		)
+		const ops = Object.fromEntries(table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
 		setColumnVisibility(ops)
 	}
 

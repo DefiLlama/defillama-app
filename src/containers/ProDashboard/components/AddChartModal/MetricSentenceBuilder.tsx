@@ -103,7 +103,7 @@ const TokenButton = forwardRef<HTMLButtonElement, TokenButtonProps>(function Tok
 			}`}
 		>
 			<span className="max-w-[100px] truncate sm:max-w-[180px]">{label}</span>
-			<Icon name="chevron-down" width={10} height={10} className="flex-shrink-0 opacity-70 sm:h-3 sm:w-3" />
+			<Icon name="chevron-down" width={10} height={10} className="shrink-0 opacity-70 sm:h-3 sm:w-3" />
 			{secondary && <span className="sr-only">{secondary}</span>}
 		</button>
 	)
@@ -679,9 +679,9 @@ export function MetricSentenceBuilder({
 
 	return (
 		<div className="flex flex-col gap-2.5 sm:gap-3">
-			<div className="rounded-lg border border-(--cards-border) bg-gradient-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
+			<div className="rounded-lg border border-(--cards-border) bg-linear-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
 				<div className="flex items-center gap-2 sm:gap-2.5">
-					<div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
+					<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
 						<Icon name="sparkles" width={14} height={14} className="sm:h-4 sm:w-4" />
 					</div>
 					<div className="min-w-0">

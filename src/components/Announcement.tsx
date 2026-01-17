@@ -75,7 +75,7 @@ export function Announcement({
 			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (
 				<button
-					className="flex h-6 w-6 flex-shrink-0 items-center justify-center self-start rounded-md hover:bg-(--bg-input)"
+					className="flex h-6 w-6 shrink-0 items-center justify-center self-start rounded-md hover:bg-(--bg-input)"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />

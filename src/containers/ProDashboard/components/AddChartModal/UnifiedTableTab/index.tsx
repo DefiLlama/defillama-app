@@ -763,7 +763,7 @@ const TabContent = memo(function TabContent({
 
 	return (
 		<div className="flex flex-col">
-			<header className="flex flex-shrink-0 flex-col gap-1 pb-3">
+			<header className="flex shrink-0 flex-col gap-1 pb-3">
 				{!isEditingUnifiedTable && (
 					<button
 						type="button"
@@ -818,7 +818,7 @@ const TabContent = memo(function TabContent({
 				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
 			</div>
 
-			<div className="sticky bottom-0 z-10 flex flex-shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
+			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
 				<button
 					type="button"
 					onClick={onClose}

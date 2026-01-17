@@ -221,7 +221,6 @@ const PageView = (_props) => {
 						: el.totalSupplyUsd - el.totalBorrowUsd,
 			el.apyBase?.toFixed(2) ?? null,
 			el.apyReward?.toFixed(2) ?? null,
-			// @ts-expect-error - apyBaseBorrow is not typed
 			el.apyBaseBorrow == null ? null : -Number(el.apyBaseBorrow.toFixed(2)),
 			el.apyRewardBorrow?.toFixed(2) ?? null,
 			el.apyBaseBorrow === null && el.apyRewardBorrow === null

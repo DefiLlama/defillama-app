@@ -211,7 +211,7 @@ export function SelectItemsStep() {
 							selectedLabels.map((item) => (
 								<div
 									key={item.value}
-									className="flex flex-shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
+									className="flex shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
 								>
 									{item.logo && (
 										<img
@@ -229,7 +229,7 @@ export function SelectItemsStep() {
 									<button
 										type="button"
 										onClick={() => handleRemoveItem(item.value)}
-										className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-(--cards-bg-alt) text-(--text-tertiary) transition-colors hover:bg-red-500/20 hover:text-red-500"
+										className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-(--cards-bg-alt) text-(--text-tertiary) transition-colors hover:bg-red-500/20 hover:text-red-500"
 									>
 										<Icon name="x" height={12} width={12} />
 									</button>
@@ -325,7 +325,7 @@ export function SelectItemsStep() {
 										}}
 									>
 										<div
-											className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+											className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
 												isSelected
 													? 'border-(--primary) bg-(--primary)'
 													: 'border-(--form-control-border) bg-(--bg-input)'
@@ -339,7 +339,7 @@ export function SelectItemsStep() {
 											loading="lazy"
 											decoding="async"
 											alt={option.label}
-											className={`h-6 w-6 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
+											className={`h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 												option.isChild ? 'opacity-70' : ''
 											}`}
 											onError={(e) => {

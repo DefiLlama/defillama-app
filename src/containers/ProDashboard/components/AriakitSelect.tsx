@@ -51,7 +51,7 @@ export function AriakitSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`truncate ${selectedValue ? 'pro-text1' : 'pro-text3'}`}>{selectedLabel}</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -92,7 +92,7 @@ export function AriakitSelect({
 											<span className="truncate">{option.label}</span>
 										</div>
 										{isActive && (
-											<Icon name="check" width={12} height={12} className="ml-2 flex-shrink-0 text-(--primary)" />
+											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
 										)}
 									</button>
 								)

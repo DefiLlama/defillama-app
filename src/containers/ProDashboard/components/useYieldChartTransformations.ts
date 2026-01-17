@@ -37,6 +37,7 @@ export function useYieldChartTransformations({
 	customTimePeriod
 }: UseYieldChartTransformationsOptions) {
 	const chartDataArray = chartData?.data
+	const borrowDataArray = borrowData?.data
 
 	const tvlApyData = useMemo(() => {
 		if (!chartDataArray) return []

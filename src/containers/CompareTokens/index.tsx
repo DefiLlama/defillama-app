@@ -10,7 +10,7 @@ import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
 
-export default function CompareFdv({ coinsData, protocols }) {
+export function CompareTokens({ coinsData, protocols }) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
 	const { selectedCoins, coins, compareType } = useMemo(() => {

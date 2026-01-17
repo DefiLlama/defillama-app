@@ -1,4 +1,3 @@
-/* eslint-disable nextjs/no-duplicate-head */
 import Head from 'next/head'
 import { memo, useMemo } from 'react'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'

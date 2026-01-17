@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { useEffect } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BridgeVolumeChart } from '~/components/Charts/BridgeVolumeChart'
 import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -33,10 +32,6 @@ export function BridgesOverviewByChain({
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
 	const [searchValue, setSearchValue] = React.useState('')
-
-	useEffect(() => {
-		setChartView('netflow')
-	}, [])
 
 	const handleRouting = (selectedChain) => {
 		if (selectedChain === 'All') return `/bridges`
@@ -363,4 +358,3 @@ export function BridgesOverviewByChain({
 		</>
 	)
 }
-

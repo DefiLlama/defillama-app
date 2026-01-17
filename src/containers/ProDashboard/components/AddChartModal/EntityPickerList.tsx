@@ -119,7 +119,7 @@ export const EntityPickerList = memo(function EntityPickerList({
 									}}
 								>
 									<div
-										className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+										className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
 											isSelected
 												? 'border-(--primary) bg-(--primary)'
 												: 'border-(--form-control-border) bg-(--bg-input)'
@@ -132,7 +132,7 @@ export const EntityPickerList = memo(function EntityPickerList({
 										<img
 											src={iconUrl}
 											alt={entity.label}
-											className="h-5 w-5 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+											className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 											onError={(e) => {
 												e.currentTarget.style.display = 'none'
 											}}

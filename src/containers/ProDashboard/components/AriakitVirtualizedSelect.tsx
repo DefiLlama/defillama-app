@@ -98,7 +98,7 @@ export function AriakitVirtualizedSelect({
 							)}
 							<span className="truncate">{selectedLabel}</span>
 						</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -197,7 +197,7 @@ export function AriakitVirtualizedSelect({
 														</div>
 													</div>
 													{isActive && (
-														<Icon name="check" width={14} height={14} className="ml-2 flex-shrink-0 text-(--primary)" />
+														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 													)}
 												</button>
 											)

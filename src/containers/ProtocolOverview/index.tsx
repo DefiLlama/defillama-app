@@ -2094,7 +2094,7 @@ const MethodologyByAdapter = ({
 	)
 }
 
-function _Unlocks(props: IProtocolOverviewPageData) {
+function Unlocks(props: IProtocolOverviewPageData) {
 	const unlocks = props.unlocks
 	if (!unlocks) return null
 	return (
@@ -2137,7 +2137,7 @@ function _Unlocks(props: IProtocolOverviewPageData) {
 	)
 }
 
-function _Governance(props: IProtocolOverviewPageData) {
+function Governance(props: IProtocolOverviewPageData) {
 	const governance = props.governance
 	if (!governance) return null
 	return (

@@ -197,7 +197,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 				</div>
 
 				{(state.selectedMainTab !== 'table' || state.selectedTableType !== 'protocols') && (
-					<div className="flex-shrink-0">
+					<div className="shrink-0">
 						<SubmitButton
 							editItem={editItem}
 							selectedMainTab={state.selectedMainTab}

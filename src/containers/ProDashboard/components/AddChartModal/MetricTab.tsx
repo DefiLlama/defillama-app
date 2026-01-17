@@ -88,7 +88,7 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 
 	return (
 		<div className="flex h-full flex-col gap-3 lg:min-h-[360px] lg:flex-row lg:overflow-hidden">
-			<div className="pro-border lg:thin-scrollbar flex w-full flex-shrink-0 flex-col border lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
+			<div className="pro-border lg:thin-scrollbar flex w-full shrink-0 flex-col border lg:w-[380px] lg:flex-shrink lg:overflow-y-auto xl:w-[420px]">
 				<div className="flex flex-col gap-3 p-2.5 sm:p-3">
 					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-sm sm:p-3">
 						<div className="flex items-start justify-between gap-2 sm:gap-3">
@@ -98,7 +98,7 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 									Shown above the metric tile across your dashboards.
 								</div>
 							</div>
-							<div className="hidden h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) md:flex">
+							<div className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) md:flex">
 								<Icon name="pencil" width={14} height={14} />
 							</div>
 						</div>
@@ -140,7 +140,7 @@ export const MetricTab = memo(function MetricTab(props: MetricTabProps) {
 				</div>
 			</div>
 
-			<div className="pro-border flex min-h-[280px] flex-1 flex-shrink-0 flex-col overflow-hidden border lg:min-h-0 lg:flex-shrink">
+			<div className="pro-border flex min-h-[280px] flex-1 shrink-0 flex-col overflow-hidden border lg:min-h-0 lg:flex-shrink">
 				<div className="flex-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 sm:p-2.5">
 					{selectedSubject && metricType ? (
 						<MetricCard

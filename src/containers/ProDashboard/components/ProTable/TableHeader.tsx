@@ -148,12 +148,7 @@ export function TableHeader({
 																	{preset.label}
 																</span>
 																{isActive && (
-																	<Icon
-																		name="check"
-																		width={14}
-																		height={14}
-																		className="flex-shrink-0 text-(--primary)"
-																	/>
+																	<Icon name="check" width={14} height={14} className="shrink-0 text-(--primary)" />
 																)}
 															</div>
 															<p className="pro-text3 text-xs leading-snug opacity-80">{preset.description}</p>

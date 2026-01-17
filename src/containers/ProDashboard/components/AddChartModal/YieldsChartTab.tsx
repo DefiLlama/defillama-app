@@ -450,7 +450,7 @@ export function YieldsChartTab({
 										? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
 										: 'All chains'}
 								</span>
-								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 							</PopoverDisclosure>
 							<Popover
 								store={chainPopover}
@@ -524,12 +524,7 @@ export function YieldsChartTab({
 															<span className="truncate">{option.label}</span>
 														</div>
 														{isActive && (
-															<Icon
-																name="check"
-																width={14}
-																height={14}
-																className="ml-2 flex-shrink-0 text-(--primary)"
-															/>
+															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 														)}
 													</button>
 												)
@@ -565,7 +560,7 @@ export function YieldsChartTab({
 										? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
 										: 'All projects'}
 								</span>
-								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 							</PopoverDisclosure>
 							<Popover
 								store={projectPopover}
@@ -639,12 +634,7 @@ export function YieldsChartTab({
 															<span className="truncate">{option.label}</span>
 														</div>
 														{isActive && (
-															<Icon
-																name="check"
-																width={14}
-																height={14}
-																className="ml-2 flex-shrink-0 text-(--primary)"
-															/>
+															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 														)}
 													</button>
 												)
@@ -680,7 +670,7 @@ export function YieldsChartTab({
 										? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
 										: 'All tokens'}
 								</span>
-								<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 							</PopoverDisclosure>
 							<Popover
 								store={tokenPopover}
@@ -741,12 +731,7 @@ export function YieldsChartTab({
 													>
 														<span className="truncate">{option.label}</span>
 														{isActive && (
-															<Icon
-																name="check"
-																width={14}
-																height={14}
-																className="ml-2 flex-shrink-0 text-(--primary)"
-															/>
+															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
 														)}
 													</button>
 												)
@@ -970,7 +955,7 @@ export function YieldsChartTab({
 															<img
 																src={iconUrl}
 																alt={pool.project}
-																className="h-6 w-6 flex-shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
+																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 																onError={(e) => {
 																	e.currentTarget.style.display = 'none'
 																}}

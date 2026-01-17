@@ -324,7 +324,8 @@ export function ChainsDataset({
 				instance.setColumnOrder(presetColumns)
 			}
 		}
-	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance, columnOrder.length, columnVisibility])
+		// oxlint-disable-next-line react/exhaustive-deps
+	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance])
 
 	const handleExportCSV = React.useCallback(() => {
 		const headers = instance

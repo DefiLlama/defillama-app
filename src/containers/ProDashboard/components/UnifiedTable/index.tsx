@@ -235,13 +235,15 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!previewMode) {
 			setColumnOrderState(getDefaultColumnOrder(config))
 		}
-	}, [config, config.columnOrder, previewMode])
+		// oxlint-disable-next-line react/exhaustive-deps
+	}, [config.columnOrder, previewMode])
 
 	useEffect(() => {
 		if (!previewMode) {
 			setColumnVisibilityState(getDefaultColumnVisibility(config))
 		}
-	}, [config, config.columnVisibility, previewMode])
+		// oxlint-disable-next-line react/exhaustive-deps
+	}, [config.columnVisibility, previewMode])
 
 	useEffect(() => {
 		if (!previewMode) {

@@ -281,7 +281,7 @@ export function AddToDashboardModal({
 								}`}
 							>
 								<div
-									className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${
+									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
 										selectedDashboardId === dashboard.id ? 'border-(--primary) bg-(--primary)' : 'pro-border'
 									}`}
 								>

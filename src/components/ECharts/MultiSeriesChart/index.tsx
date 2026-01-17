@@ -33,10 +33,12 @@ interface IMultiSeriesChartProps {
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
+const EMPTY_ARRAY = []
+
 export default function MultiSeriesChart({
 	series,
 	valueSymbol = '',
-	yAxisSymbols = [],
+	yAxisSymbols = EMPTY_ARRAY,
 	height,
 	chartOptions,
 	groupBy,

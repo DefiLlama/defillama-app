@@ -354,7 +354,6 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		return protocolOptions.filter((opt) => hasProtocolBuilderMetric(opt.value, metric))
 	}, [protocolOptions, chartBuilder.mode, chartBuilder.metric, hasProtocolBuilderMetric, metaLoading, metaError])
 
-
 	const handleMetricChange = (option: any) => {
 		const newMetric = option?.value || 'tvl'
 		let newChartType: 'stackedBar' | 'stackedArea' | 'line' = 'stackedBar'
@@ -518,7 +517,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-				<div className="max-h-[calc(100vh-200px)] w-full flex-shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
+				<div className="max-h-[calc(100vh-200px)] w-full shrink-0 space-y-1.5 overflow-x-visible overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 lg:w-[320px] xl:w-[360px]">
 					<h3 className="pro-text1 text-[11px] font-semibold">Chart Configuration</h3>
 
 					<div>
@@ -817,7 +816,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 				</div>
 
 				<div className="flex min-h-0 flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<div className="mb-2 flex flex-shrink-0 items-center justify-between">
+					<div className="mb-2 flex shrink-0 items-center justify-between">
 						<h3 className="pro-text1 text-xs font-semibold">Preview</h3>
 						<div className="pro-text3 flex items-center gap-1 text-[10px]">
 							<span>ⓘ</span>
@@ -1058,7 +1057,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 						</div>
 					)}
 
-					<div className="pro-bg2 mt-2 flex-shrink-0 rounded p-2">
+					<div className="pro-bg2 mt-2 shrink-0 rounded p-2">
 						<div className="flex items-start gap-1">
 							<span className="pro-text3 text-[10px]">ⓘ</span>
 							<p className="pro-text3 text-[10px] leading-relaxed">

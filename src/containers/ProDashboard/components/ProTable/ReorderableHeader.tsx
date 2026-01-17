@@ -4,6 +4,7 @@ import { SortIcon } from '~/components/Table/SortIcon'
 
 interface ReorderableHeaderProps {
 	children: React.ReactNode
+	columnId: string
 	canSort: boolean
 	isSorted: false | 'asc' | 'desc'
 	onSort: () => void
@@ -15,6 +16,7 @@ interface ReorderableHeaderProps {
 
 export function ReorderableHeader({
 	children,
+	columnId,
 	canSort,
 	isSorted,
 	onSort,

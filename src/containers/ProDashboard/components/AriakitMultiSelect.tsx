@@ -79,7 +79,7 @@ export function AriakitMultiSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`truncate ${selectedValues.length > 0 ? 'pro-text1' : 'pro-text3'}`}>{buttonLabel}</span>
-						<Icon name="chevron-down" width={12} height={12} className="ml-2 flex-shrink-0 opacity-70" />
+						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
 					</PopoverDisclosure>
 					<Popover
 						store={popover}
@@ -117,7 +117,7 @@ export function AriakitMultiSelect({
 											}`}
 										>
 											<div
-												className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-sm border transition-colors ${
+												className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border transition-colors ${
 													isActive ? 'border-(--primary) bg-(--primary)' : 'pro-border border'
 												}`}
 											>
