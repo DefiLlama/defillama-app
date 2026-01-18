@@ -10,6 +10,9 @@ import { getEntityUrl } from '../utils/entityLinks'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
+const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
+const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
+
 interface InlineChartConfig {
 	resizeTrigger?: number
 	saveableChartIds?: string[]
@@ -190,12 +193,12 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 				for (const part of parts) {
 					if (part.includes('-')) {
 						const [start, end] = part.split('-').map((n: string) => parseInt(n.trim()))
-						if (!isNaN(start) && !isNaN(end) && start <= end) {
+						if (!Number.isNaN(start) && !Number.isNaN(end) && start <= end) {
 							for (let i = start; i <= end; i++) expandedNums.push(i)
 						}
 					} else {
 						const num = parseInt(part.trim())
-						if (!isNaN(num)) expandedNums.push(num)
+						if (!Number.isNaN(num)) expandedNums.push(num)
 					}
 				}
 				return expandedNums
@@ -252,7 +255,12 @@ export const MarkdownRenderer = memo(function MarkdownRenderer({
 	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (
-		<ReactMarkdown key={key} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={markdownComponents}>
+		<ReactMarkdown
+			key={key}
+			remarkPlugins={MARKDOWN_REMARK_PLUGINS}
+			rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+			components={markdownComponents}
+		>
 			{markdownContent}
 		</ReactMarkdown>
 	)

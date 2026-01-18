@@ -35,7 +35,7 @@ export function getGroupedRowCsvValue(row: Row<NormalizedRow>, columnId: string,
 
 	if (isCustomColumnId(columnId)) {
 		const value = row.getValue(columnId)
-		if (value === null || value === undefined) {
+		if (value == null) {
 			return ''
 		}
 		return typeof value === 'number' ? String(value) : ''
@@ -48,7 +48,7 @@ export function getGroupedRowCsvValue(row: Row<NormalizedRow>, columnId: string,
 
 	const value = aggregation.metrics[columnId as keyof typeof aggregation.metrics]
 
-	if (value === null || value === undefined) {
+	if (value == null) {
 		return ''
 	}
 

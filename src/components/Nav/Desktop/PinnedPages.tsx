@@ -9,6 +9,8 @@ import { mutatePinnedMetrics } from '../pinnedUtils'
 import { TNavLink } from '../types'
 import { LinkToPage, NavItemContent } from './shared'
 
+const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
+
 export const PinnedPages = React.memo(function PinnedPages({
 	pinnedPages,
 	asPath
@@ -71,7 +73,7 @@ export const PinnedPages = React.memo(function PinnedPages({
 			<DndContext
 				sensors={sensors}
 				onDragEnd={handleDragEnd}
-				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+				modifiers={VERTICAL_SORTING_MODIFIERS}
 			>
 				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="flex flex-col">

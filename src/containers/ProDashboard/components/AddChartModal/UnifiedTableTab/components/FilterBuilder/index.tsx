@@ -168,6 +168,9 @@ const CATEGORY_LABELS: Record<FilterCategory, string> = FILTER_CATEGORIES.reduce
 	{} as Record<FilterCategory, string>
 )
 
+const FILTERS_BY_CATEGORY = getFiltersByCategory()
+const EMPTY_CATEGORY_FILTERS: FilterConfig[] = []
+
 function buildDisplayValue(filter: ActiveFilter): string {
 	const { config, operator, value, minValue, maxValue } = filter
 	const format = config.format || 'currency'
@@ -525,14 +528,14 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 	}, [savedFilters, pendingFilters])
 
 	const activeFilterIds = useMemo(() => new Set(allActiveFilters.map((f) => f.config.id)), [allActiveFilters])
-	const filtersByCategory = useMemo(() => getFiltersByCategory(), [])
+	const filtersByCategory = FILTERS_BY_CATEGORY
 
 	const filteredCategories = useMemo(() => {
 		const searchLower = search.toLowerCase()
 		const result: Array<{ category: FilterCategory; label: string; filters: FilterConfig[] }> = []
 
 		for (const { key, label } of FILTER_CATEGORIES) {
-			const categoryFilters = filtersByCategory.get(key) || []
+			const categoryFilters = filtersByCategory.get(key) ?? EMPTY_CATEGORY_FILTERS
 			const matchingFilters = categoryFilters.filter((f) => f.label.toLowerCase().includes(searchLower))
 
 			if (matchingFilters.length > 0) {

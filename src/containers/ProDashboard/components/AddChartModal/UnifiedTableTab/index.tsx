@@ -59,7 +59,7 @@ const countActiveFilters = (filters: TableFilters | undefined): number => {
 	if (!filters) return 0
 	let count = 0
 	for (const value of Object.values(filters)) {
-		if (value === undefined || value === null) continue
+		if (value == null) continue
 		if (Array.isArray(value)) {
 			if (value.length) count++
 			continue

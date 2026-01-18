@@ -19,12 +19,22 @@ const NetflowChart = React.lazy(() => import('~/components/ECharts/BarChart/Netf
 const NET_FLOW_LEGEND_OPTIONS: string[] = ['Net Flow']
 const INFLOWS_OUTFLOWS_LEGEND_OPTIONS: string[] = ['Inflows', 'Outflows']
 const INFLOWS_OUTFLOWS_STACKS = { Inflows: 'stackA', Outflows: 'stackA' }
+const BRIDGE_CHAIN_CHART_OPTIONS = [
+	'Bridge Volume',
+	'Net Flow',
+	'Net Flow (%)',
+	'Inflows',
+	'24h Tokens Deposited',
+	'24h Tokens Withdrawn'
+]
+const EMPTY_CHAINS: string[] = []
+const EMPTY_PROTOCOLS: any[] = []
 
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
-	chains = [],
+	chains = EMPTY_CHAINS,
 	filteredBridges,
-	messagingProtocols = [],
+	messagingProtocols = EMPTY_PROTOCOLS,
 	bridgeNames: _bridgeNames,
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
@@ -65,7 +75,9 @@ export function BridgesOverviewByChain({
 	}, [chainVolumeData])
 
 	const prepareCsv = React.useCallback(() => {
-		const allBridges = [...(filteredBridges || []), ...(messagingProtocols || [])]
+		const resolvedFilteredBridges = filteredBridges ?? EMPTY_PROTOCOLS
+		const resolvedMessagingProtocols = messagingProtocols ?? EMPTY_PROTOCOLS
+		const allBridges = [...resolvedFilteredBridges, ...resolvedMessagingProtocols]
 		const allBridgeNames = allBridges.map((bridge) => bridge.displayName)
 
 		const filteredBridgeNames = allBridgeNames.filter((bridgeName) => {
@@ -266,14 +278,7 @@ export function BridgesOverviewByChain({
 						<>
 							<div className="flex items-center justify-between overflow-x-auto p-3">
 								<ChartSelector
-									options={[
-										'Bridge Volume',
-										'Net Flow',
-										'Net Flow (%)',
-										'Inflows',
-										'24h Tokens Deposited',
-										'24h Tokens Withdrawn'
-									]}
+									options={BRIDGE_CHAIN_CHART_OPTIONS}
 									selectedChart={chartType}
 									onClick={setChartType}
 								/>

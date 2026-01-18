@@ -36,6 +36,8 @@ import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
 
+const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
+
 export const ChainProtocolsTable = ({
 	protocols,
 	sampleRow = sampleProtocol,
@@ -368,7 +370,7 @@ export const ChainProtocolsTable = ({
 				if (!cell) return ''
 
 				const value = cell.getValue()
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 
 				if (col.id === 'name') {
 					return `"${row.original.name}"`
@@ -455,7 +457,7 @@ export const ChainProtocolsTable = ({
 				onSave={handleSaveCustomColumn}
 				sampleRow={sampleRow}
 				key={`custom-index-${customColumnModalEditIndex}`}
-				{...(customColumnModalInitialValues || {})}
+				{...(customColumnModalInitialValues ?? EMPTY_CUSTOM_COLUMN_VALUES)}
 			/>
 		</div>
 	)

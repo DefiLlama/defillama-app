@@ -15,6 +15,10 @@ import { FilterByToken } from './Tokens'
 import type { IDropdownMenusProps } from './types'
 
 const BAD_DEBT_KEY = YIELDS_SETTINGS.NO_BAD_DEBT.toLowerCase()
+const EMPTY_TOKENS: string[] = []
+const EMPTY_CHAINS: string[] = []
+const EMPTY_PROJECTS: string[] = []
+const EMPTY_CATEGORIES: string[] = []
 
 export function YieldFilterDropdowns({
 	pathname,
@@ -67,7 +71,7 @@ export function YieldFilterDropdowns({
 			{tokensList && tokensList.length > 0 && (
 				<FilterByToken
 					tokensList={tokensList}
-					selectedTokens={selectedTokens || []}
+					selectedTokens={selectedTokens ?? EMPTY_TOKENS}
 					pathname={pathname || router.pathname}
 					nestedMenu={nestedMenu}
 				/>
@@ -76,7 +80,7 @@ export function YieldFilterDropdowns({
 			{chainList && chainList.length > 0 && (
 				<FilterByChain
 					chainList={chainList}
-					selectedChains={selectedChains || []}
+					selectedChains={selectedChains ?? EMPTY_CHAINS}
 					pathname={pathname || router.pathname}
 					nestedMenu={nestedMenu}
 				/>
@@ -85,7 +89,7 @@ export function YieldFilterDropdowns({
 			{projectList && projectList.length > 0 && (
 				<YieldProjects
 					projectList={projectList}
-					selectedProjects={selectedProjects || []}
+					selectedProjects={selectedProjects ?? EMPTY_PROJECTS}
 					pathname={pathname || router.pathname}
 					label="Projects"
 					nestedMenu={nestedMenu}
@@ -95,7 +99,7 @@ export function YieldFilterDropdowns({
 			{lendingProtocols && lendingProtocols.length > 0 && (
 				<YieldProjects
 					projectList={lendingProtocols}
-					selectedProjects={selectedLendingProtocols || []}
+					selectedProjects={selectedLendingProtocols ?? EMPTY_PROJECTS}
 					pathname={pathname || router.pathname}
 					label="Lending Protocols"
 					query="lendingProtocol"
@@ -106,7 +110,7 @@ export function YieldFilterDropdowns({
 			{farmProtocols && farmProtocols.length > 0 && (
 				<YieldProjects
 					projectList={farmProtocols}
-					selectedProjects={selectedFarmProtocols || []}
+					selectedProjects={selectedFarmProtocols ?? EMPTY_PROJECTS}
 					pathname={pathname || router.pathname}
 					label="Farm Protocol"
 					query="farmProtocol"
@@ -117,7 +121,7 @@ export function YieldFilterDropdowns({
 			{categoryList && categoryList.length > 0 && (
 				<FiltersByCategory
 					categoryList={categoryList}
-					selectedCategories={selectedCategories || []}
+					selectedCategories={selectedCategories ?? EMPTY_CATEGORIES}
 					pathname={pathname || router.pathname}
 					nestedMenu={nestedMenu}
 				/>

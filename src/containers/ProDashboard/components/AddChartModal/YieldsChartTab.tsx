@@ -43,6 +43,7 @@ const barChartStacks = { Base: 'a', Reward: 'a' }
 const barChartColors = { Base: CHART_COLORS[0], Reward: CHART_COLORS[1] }
 const liquidityChartColors = { Supplied: CHART_COLORS[0], Borrowed: CHART_COLORS[1], Available: CHART_COLORS[2] }
 const liquidityLegendOptions = ['Supplied', 'Borrowed', 'Available']
+const EMPTY_YIELDS_DATA: any[] = []
 
 export function YieldsChartTab({
 	selectedYieldPool,
@@ -62,7 +63,8 @@ export function YieldsChartTab({
 	onMinTvlChange,
 	onMaxTvlChange
 }: YieldsChartTabProps) {
-	const { data: yieldsData = [], isLoading: yieldsLoading } = useYieldsData()
+	const { data: yieldsDataResponse, isLoading: yieldsLoading } = useYieldsData()
+	const yieldsData = yieldsDataResponse ?? EMPTY_YIELDS_DATA
 	const [chainSearch, setChainSearch] = useState('')
 	const [projectSearch, setProjectSearch] = useState('')
 	const [tokenSearch, setTokenSearch] = useState('')

@@ -12,6 +12,8 @@ import { IPool2ProtocolsTVLByChainPageData } from './queries'
 
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart')) as React.FC<ILineAndBarChartProps>
 
+const DEFAULT_SORTING_STATE = [{ id: 'pool2Tvl', desc: true }]
+
 export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageData) {
 	return (
 		<>
@@ -59,7 +61,7 @@ export function Pool2ProtocolsTVLByChain(props: IPool2ProtocolsTVLByChainPageDat
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'pool2Tvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)

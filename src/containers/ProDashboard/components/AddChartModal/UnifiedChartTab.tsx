@@ -15,6 +15,9 @@ import { StablecoinsChartTab } from './StablecoinsChartTab'
 import { ChartTabType, ManualChartViewMode } from './types'
 import { YieldsChartTab } from './YieldsChartTab'
 
+const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
+const CHAIN_CHART_TYPES = getChainChartTypes()
+
 interface UnifiedChartTabProps {
 	selectedChartTab: ChartTabType
 	selectedChain: string | null
@@ -158,8 +161,8 @@ export const UnifiedChartTab = memo(function UnifiedChartTab({
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
 
-	const protocolChartTypes = useMemo(() => getProtocolChartTypes(), [])
-	const chainChartTypes = useMemo(() => getChainChartTypes(), [])
+	const protocolChartTypes = PROTOCOL_CHART_TYPES
+	const chainChartTypes = CHAIN_CHART_TYPES
 	const { loading: metaLoading, availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 	const { protocols, chains } = useProDashboardCatalog()
 

@@ -29,6 +29,7 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
 const EMPTY_HALLMARKS: [] = []
+const EMPTY_CHAINS: string[] = []
 
 const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	const mapping: Record<string, StablecoinChartType> = {
@@ -45,7 +46,7 @@ const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 
 export function StablecoinsByChain({
 	selectedChain = 'All',
-	chains = [],
+	chains = EMPTY_CHAINS,
 	filteredPeggedAssets,
 	peggedAssetNames,
 	peggedNameToChartDataIndex,

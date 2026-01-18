@@ -48,7 +48,7 @@ export function UpcomingUnlockVolumeChart({ protocols, height }: UpcomingUnlockV
 		const now = Date.now() / 1000
 
 		for (const protocol of protocols) {
-			if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined || protocol.tPrice <= 0) {
+			if (!protocol.events || protocol.tPrice == null || protocol.tPrice <= 0) {
 				continue
 			}
 

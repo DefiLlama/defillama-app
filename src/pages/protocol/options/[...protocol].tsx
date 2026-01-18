@@ -18,6 +18,8 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 export const getStaticProps = withPerformanceLogging(
@@ -185,7 +187,7 @@ export default function Protocols(props) {
 			otherProtocols={props.otherProtocols}
 			metrics={props.metrics}
 			tab="options"
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 			warningBanners={props.warningBanners}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">

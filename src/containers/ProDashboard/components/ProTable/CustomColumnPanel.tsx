@@ -362,7 +362,7 @@ export function CustomColumnPanel({
 
 	// Format number for display
 	const formatPreviewNumber = (value: number | null): string => {
-		if (value === null || value === undefined) return '-'
+		if (value == null) return '-'
 
 		if (Math.abs(value) >= 1e9) {
 			return `$${(value / 1e9).toFixed(2)}B`

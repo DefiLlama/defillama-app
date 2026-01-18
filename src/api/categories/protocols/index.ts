@@ -168,7 +168,7 @@ export const getAllProtocolEmissions = async ({
 					let lastEvent = []
 					let upcomingEvent = []
 
-					if (!event || (event.noOfTokens.length === 1 && event.noOfTokens[0] === 0)) {
+					if (!event || (event.noOfTokens?.length === 1 && event.noOfTokens[0] === 0)) {
 						upcomingEvent = [{ timestamp: null }]
 					} else {
 						const comingEvents = protocol.events.filter((e) => e.timestamp === event.timestamp)
@@ -372,7 +372,7 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			stackColors['realtime'][pieChartData['realtime'][i].name] = allRealtimeColors[i]
 		}
 
-		if (protocolName == 'looksrare') {
+		if (protocolName === 'looksrare') {
 			tokenPrice.symbol = 'LOOKS'
 		}
 
@@ -523,7 +523,7 @@ export async function getETFData() {
 		.sort((a, b) => b.flows - a.flows)
 
 	const processedFlows = flows.reduce((acc, { gecko_id, day, total_flow_usd }) => {
-		const timestamp = (new Date(day).getTime() / 86400 / 1000) * 86400
+		const timestamp = Math.floor(new Date(day).getTime() / 1000 / 86400) * 86400
 		acc[timestamp] = {
 			date: timestamp,
 			...acc[timestamp],

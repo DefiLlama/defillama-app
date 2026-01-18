@@ -40,6 +40,9 @@ import {
 } from '~/containers/ProDashboard/components/UnifiedTable/utils/customColumns'
 import type { CustomColumnDefinition } from '~/containers/ProDashboard/types'
 
+const AVAILABLE_VARIABLES = getAvailableVariables()
+const EMPTY_CUSTOM_COLUMNS: CustomColumnDefinition[] = []
+
 interface ColumnManagerProps {
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
@@ -138,7 +141,7 @@ const buildAllColumns = (customColumns?: CustomColumnDefinition[]): ColumnMeta[]
 		.map(({ id }) => getColumnMeta(id))
 		.filter((meta): meta is ColumnMeta => Boolean(meta))
 
-	const customMetas: ColumnMeta[] = (customColumns ?? []).map((col) => ({
+	const customMetas: ColumnMeta[] = (customColumns ?? EMPTY_CUSTOM_COLUMNS).map((col) => ({
 		id: col.id,
 		header: col.name,
 		group: 'custom' as const
@@ -277,7 +280,7 @@ export function ColumnManager({
 	}
 	const handleDragCancel = () => setActiveId(null)
 
-	const availableVariables = useMemo(() => getAvailableVariables(), [])
+	const availableVariables = AVAILABLE_VARIABLES
 
 	const autocompleteSuggestions = useMemo<AutocompleteSuggestion[]>(() => {
 		return [
@@ -314,7 +317,7 @@ export function ColumnManager({
 
 	const validation = useMemo(() => {
 		if (!customName.trim()) return { isValid: false, error: 'Name is required' }
-		const isDuplicate = (customColumns ?? []).some(
+		const isDuplicate = (customColumns ?? EMPTY_CUSTOM_COLUMNS).some(
 			(col) => col.name.toLowerCase() === customName.toLowerCase() && col.id !== editingId
 		)
 		if (isDuplicate) return { isValid: false, error: 'Column name already exists' }

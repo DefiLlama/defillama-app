@@ -24,7 +24,7 @@ const calculateUnlockStatistics = (data) => {
 
 	if (data) {
 		for (const protocol of data) {
-			if (!protocol.upcomingEvent || protocol.tPrice === null || protocol.tPrice === undefined) {
+			if (!protocol.upcomingEvent || protocol.tPrice == null) {
 				continue
 			}
 

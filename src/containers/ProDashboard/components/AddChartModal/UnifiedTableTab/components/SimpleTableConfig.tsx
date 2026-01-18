@@ -133,6 +133,24 @@ const tableTypeOptions: Array<{
 	}
 ]
 
+const TRENDING_TIME_PERIOD_OPTIONS = [
+	{ value: '1d', label: '1 Day' },
+	{ value: '7d', label: '7 Days' },
+	{ value: '30d', label: '30 Days' }
+]
+
+const EMPTY_LEGACY_TABLE_TYPES: CombinedTableType[] = []
+const EMPTY_TOKEN_OPTIONS: Array<{ value: string; label: string; logo?: string }> = []
+const CHAIN_CATEGORY_OPTIONS = [
+	{ value: 'All', label: 'All Chains' },
+	{ value: 'EVM', label: 'EVM Chains' },
+	{ value: 'non-EVM', label: 'Non-EVM Chains' },
+	{ value: 'Layer 2', label: 'Layer 2' },
+	{ value: 'Rollup', label: 'Rollups' },
+	{ value: 'Parachain', label: 'Parachains' },
+	{ value: 'Cosmos', label: 'Cosmos' }
+]
+
 export const SimpleTableConfig = memo(function SimpleTableConfig({
 	selectedChains,
 	chainOptions,
@@ -148,13 +166,14 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 	onTokensChange,
 	includeCex,
 	onIncludeCexChange,
-	legacyTableTypes = [],
+	legacyTableTypes = EMPTY_LEGACY_TABLE_TYPES,
 	onBackToTypeSelector
 }: SimpleTableConfigProps) {
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
-	const { data: tokenOptions = [], isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
-
-	const { data: defaultTokens = [] } = useTokenSearch('')
+	const { data: tokenOptionsData, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
+	const { data: defaultTokensData } = useTokenSearch('')
+	const tokenOptions = tokenOptionsData ?? EMPTY_TOKEN_OPTIONS
+	const defaultTokens = defaultTokensData ?? EMPTY_TOKEN_OPTIONS
 
 	const mergedTokenOptions = useMemo(() => {
 		const baseOptions = tokenSearchInput ? tokenOptions : defaultTokens
@@ -192,18 +211,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 		[chainOptions]
 	)
 
-	const chainCategoryOptions = useMemo(
-		() => [
-			{ value: 'All', label: 'All Chains' },
-			{ value: 'EVM', label: 'EVM Chains' },
-			{ value: 'non-EVM', label: 'Non-EVM Chains' },
-			{ value: 'Layer 2', label: 'Layer 2' },
-			{ value: 'Rollup', label: 'Rollups' },
-			{ value: 'Parachain', label: 'Parachains' },
-			{ value: 'Cosmos', label: 'Cosmos' }
-		],
-		[]
-	)
+	const chainCategoryOptions = CHAIN_CATEGORY_OPTIONS
 
 	const tokenOptionMap = useMemo(() => {
 		const map = new Map<string, { value: string; label: string; logo?: string }>()
@@ -282,11 +290,7 @@ export const SimpleTableConfig = memo(function SimpleTableConfig({
 					/>
 					<AriakitSelect
 						label="Time Period"
-						options={[
-							{ value: '1d', label: '1 Day' },
-							{ value: '7d', label: '7 Days' },
-							{ value: '30d', label: '30 Days' }
-						]}
+						options={TRENDING_TIME_PERIOD_OPTIONS}
 						selectedValue={selectedDatasetTimeframe}
 						onChange={(option) => onDatasetTimeframeChange(option.value)}
 						placeholder="Select time period..."

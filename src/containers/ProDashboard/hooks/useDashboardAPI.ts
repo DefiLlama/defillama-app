@@ -8,6 +8,8 @@ import { TimePeriod } from '../ProDashboardAPIContext'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
 
+const EMPTY_DASHBOARDS: Dashboard[] = []
+
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
@@ -55,7 +57,7 @@ export function useDashboardAPI() {
 
 	// Query for fetching dashboards list
 	const {
-		data: dashboards = [],
+		data: dashboardsData,
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
@@ -72,6 +74,7 @@ export function useDashboardAPI() {
 		staleTime: 1000 * 60 * 5,
 		enabled: isAuthenticated && !!user?.id
 	})
+	const dashboards = dashboardsData ?? EMPTY_DASHBOARDS
 
 	const createDashboardMutation = useMutation({
 		mutationFn: async (data: {

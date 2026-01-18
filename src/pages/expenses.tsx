@@ -42,6 +42,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 })
 
 const pageName = ['Protocols', 'ranked by', 'Expenses']
+const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 
 export default function Protocols(props) {
 	return (
@@ -58,7 +59,7 @@ export default function Protocols(props) {
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
-				sortingState={[{ id: 'sumAnnualUsdExpenses', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

@@ -85,7 +85,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					'accessorFn' in col && col.accessorFn
 						? col?.accessorFn?.(protocol)
 						: protocol[col.id as keyof typeof protocol]
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 				if (col.id === 'name') return `"${protocol.name}"`
 				if (typeof value === 'number') return value
 				return String(value).includes(',') ? `"${String(value)}"` : String(value)

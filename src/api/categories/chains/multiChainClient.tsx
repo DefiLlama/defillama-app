@@ -16,7 +16,7 @@ type WeightedStore = Record<string, WeightedAccumulator>
 const WEIGHTED_ACC_SYMBOL: unique symbol = Symbol('weightedAccumulators')
 
 const toFiniteNumber = (value: unknown): number | null => {
-	if (value === null || value === undefined) return null
+	if (value == null) return null
 	const num = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(num) ? num : null
 }

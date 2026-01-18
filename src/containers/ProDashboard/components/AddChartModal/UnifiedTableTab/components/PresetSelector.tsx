@@ -29,11 +29,13 @@ const CATEGORY_ORDER: FilterPresetCategory[] = [
 	'category'
 ]
 
+const EMPTY_PRESETS: FilterPreset[] = []
+
 const normalizeEntries = (filters: Partial<TableFilters>): Array<[string, unknown]> => {
 	const result: Array<[string, unknown]> = []
 	for (const key in filters) {
 		const value = filters[key]
-		if (value === undefined || value === null) continue
+		if (value == null) continue
 		if (Array.isArray(value) && value.length === 0) continue
 		result.push([key, value])
 	}
@@ -61,7 +63,7 @@ export function PresetSelector({ currentFilters, onApplyPreset }: PresetSelector
 
 		const grouped = new Map<FilterPresetCategory, FilterPreset[]>()
 		for (const preset of filtered) {
-			const existing = grouped.get(preset.category) || []
+			const existing = grouped.get(preset.category) ?? EMPTY_PRESETS
 			existing.push(preset)
 			grouped.set(preset.category, existing)
 		}

@@ -6,6 +6,8 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { DashboardItemConfig } from '../types'
 
 const MCP_SERVER = 'https://mcp.llama.fi'
+const EMPTY_DASHBOARD_ITEMS: DashboardItemConfig[] = []
+const EMPTY_DASHBOARD_TAGS: string[] = []
 
 interface GenerateDashboardModalProps {
 	isOpen: boolean
@@ -145,7 +147,7 @@ export function GenerateDashboardModal({
 							mode: 'iterate',
 							existingDashboard: {
 								dashboardName: existingDashboard?.dashboardName || '',
-								items: existingDashboard?.items || [],
+								items: existingDashboard?.items ?? EMPTY_DASHBOARD_ITEMS,
 								aiGenerated: existingDashboard?.aiGenerated
 							}
 						}
@@ -183,7 +185,7 @@ export function GenerateDashboardModal({
 			onGenerate({
 				dashboardName: mode === 'iterate' ? existingDashboard?.dashboardName || '' : dashboardName.trim(),
 				visibility: mode === 'iterate' ? existingDashboard?.visibility || 'private' : visibility,
-				tags: mode === 'iterate' ? existingDashboard?.tags || [] : tags,
+				tags: mode === 'iterate' ? existingDashboard?.tags ?? EMPTY_DASHBOARD_TAGS : tags,
 				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
 				items,
 				aiGenerationContext: sessionId

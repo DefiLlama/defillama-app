@@ -18,6 +18,10 @@ import { ChartBuilderConfig } from './types'
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
+const EMPTY_PROTOCOLS: any[] = []
+const EMPTY_CATEGORIES: string[] = []
+const EMPTY_SELECT_OPTIONS: Array<{ value: string; label: string }> = []
+
 const DEFAULT_SERIES_COLOR = '#3366ff'
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
 
@@ -134,7 +138,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		queryFn: async () => {
 			const response = await fetch(PROTOCOLS_API)
 			const data = await response.json()
-			return data.protocols || []
+			return data.protocols ?? EMPTY_PROTOCOLS
 		},
 		staleTime: 60 * 60 * 1000
 	})
@@ -144,13 +148,13 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 		queryFn: async () => {
 			const res = await fetch(CHAINS_API_V2)
 			const data = await res.json()
-			return (data?.categories as string[]) || []
+			return (data?.categories as string[]) ?? EMPTY_CATEGORIES
 		},
 		staleTime: 60 * 60 * 1000
 	})
 
 	const categoryOptions = useMemo(() => {
-		if (!protocols) return []
+		if (!protocols) return EMPTY_SELECT_OPTIONS
 		const categoriesSet = new Set<string>()
 		for (const protocol of protocols as any[]) {
 			if (protocol.category) {
@@ -166,7 +170,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 	}, [protocols])
 
 	const chainCategoryOptions = useMemo(
-		() => (chainCategoriesList || []).map((c) => ({ value: c, label: c })),
+		() => (chainCategoriesList ?? EMPTY_CATEGORIES).map((c) => ({ value: c, label: c })),
 		[chainCategoriesList]
 	)
 
@@ -702,7 +706,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 										<AriakitMultiSelect
 											label="Protocol Categories"
 											options={categoryOptions}
-											selectedValues={chartBuilder.protocolCategories || []}
+											selectedValues={chartBuilder.protocolCategories ?? EMPTY_CATEGORIES}
 											onChange={handleProtocolCategoriesChange}
 											placeholder={
 												protocolCategoryFilterMode === 'exclude'
@@ -722,7 +726,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 									<AriakitMultiSelect
 										label="Chain Categories"
 										options={chainCategoryOptions}
-										selectedValues={chartBuilder.chainCategories || []}
+										selectedValues={chartBuilder.chainCategories ?? EMPTY_CATEGORIES}
 										onChange={handleChainCategoriesChange}
 										placeholder={
 											chainCategoryFilterMode === 'exclude'

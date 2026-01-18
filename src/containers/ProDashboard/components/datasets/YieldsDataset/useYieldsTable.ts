@@ -18,6 +18,26 @@ import { toInternalSlug } from '~/utils/chainNormalizer'
 import { yieldsDatasetColumns } from './columns'
 import { YieldsFilters } from './YieldsFiltersPanel'
 
+const YIELDS_COLUMN_PRESETS: Record<string, string[]> = {
+	essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],
+	lending: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBorrow', 'totalSupplyUsd', 'totalBorrowUsd', 'ltv'],
+	volume: ['pool', 'project', 'chains', 'tvl', 'apy', 'volumeUsd1d', 'volumeUsd7d', 'il7d'],
+	advanced: [
+		'pool',
+		'project',
+		'chains',
+		'tvl',
+		'apy',
+		'apyBase',
+		'apyReward',
+		'change1d',
+		'change7d',
+		'apyMean30d'
+	]
+}
+const EMPTY_CHAINS: string[] = []
+const EMPTY_PROTOCOLS: string[] = []
+const EMPTY_TABLE_DATA: any[] = []
 interface UseYieldsTableOptions {
 	data: any[]
 	isLoading: boolean
@@ -32,7 +52,7 @@ interface UseYieldsTableOptions {
 export function useYieldsTable({
 	data,
 	isLoading,
-	chains = [],
+	chains = EMPTY_CHAINS,
 	initialColumnOrder,
 	initialColumnVisibility,
 	initialFilters,
@@ -57,7 +77,7 @@ export function useYieldsTable({
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 
-		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) || []
+		const selectedProtocols = filters.protocols?.map((protocol) => protocol.toLowerCase()) ?? EMPTY_PROTOCOLS
 
 		const selectedChainsSet =
 			filters.chains && filters.chains.length > 0 ? new Set(filters.chains.map(toInternalSlug)) : null
@@ -144,7 +164,7 @@ export function useYieldsTable({
 	}, [data, filters])
 
 	const table = useReactTable({
-		data: filteredData || [],
+		data: filteredData.length > 0 ? filteredData : EMPTY_TABLE_DATA,
 		columns: yieldsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -164,7 +184,8 @@ export function useYieldsTable({
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		maxMultiSortColCount: 1
+		maxMultiSortColCount: 1,
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {
@@ -220,30 +241,9 @@ export function useYieldsTable({
 		}
 	}, [columnOrder, columnVisibility, onColumnsChange])
 
-	const columnPresets = React.useMemo(
-		() => ({
-			essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],
-			lending: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBorrow', 'totalSupplyUsd', 'totalBorrowUsd', 'ltv'],
-			volume: ['pool', 'project', 'chains', 'tvl', 'apy', 'volumeUsd1d', 'volumeUsd7d', 'il7d'],
-			advanced: [
-				'pool',
-				'project',
-				'chains',
-				'tvl',
-				'apy',
-				'apyBase',
-				'apyReward',
-				'change1d',
-				'change7d',
-				'apyMean30d'
-			]
-		}),
-		[]
-	)
-
 	const applyPreset = React.useCallback(
 		(presetName: string) => {
-			const preset = columnPresets[presetName]
+			const preset = YIELDS_COLUMN_PRESETS[presetName as keyof typeof YIELDS_COLUMN_PRESETS]
 			if (preset && table) {
 				const newVisibility = {}
 				const allColumnIds = yieldsDatasetColumns
@@ -264,7 +264,7 @@ export function useYieldsTable({
 				setSelectedPreset(presetName)
 			}
 		},
-		[table, columnPresets]
+		[table]
 	)
 
 	React.useEffect(() => {
@@ -369,7 +369,7 @@ export function useYieldsTable({
 	// 		visibleColumnIds
 	// 			.map((id) => {
 	// 				const value = item[id]
-	// 				if (value === undefined || value === null) return ''
+	// 				if (value == null) return ''
 	// 				if (Array.isArray(value)) {
 	// 					return `"${value.join(';')}"`
 	// 				}
@@ -522,7 +522,6 @@ export function useYieldsTable({
 		toggleColumnVisibility,
 		moveColumnUp,
 		moveColumnDown,
-		columnPresets,
 		applyPreset,
 		activePreset: selectedPreset,
 		downloadCSV,
@@ -539,6 +538,7 @@ export function useYieldsTable({
 		availableProtocols,
 		activeFilterCount,
 		applyFilters,
-		resetFilters
+		resetFilters,
+		columnPresets: YIELDS_COLUMN_PRESETS
 	}
 }

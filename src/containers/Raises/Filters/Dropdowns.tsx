@@ -6,6 +6,11 @@ import { Rounds } from './rounds'
 import { Sectors } from './sectors'
 import type { IDropdownMenusProps } from './types'
 
+const EMPTY_INVESTORS: string[] = []
+const EMPTY_CHAINS: string[] = []
+const EMPTY_SECTORS: string[] = []
+const EMPTY_ROUNDS: string[] = []
+
 export function RaisesFilterDropdowns({
 	investors,
 	selectedInvestors,
@@ -34,27 +39,27 @@ export function RaisesFilterDropdowns({
 			{investors && investors.length > 0 && (
 				<Investors
 					investors={investors}
-					selectedInvestors={selectedInvestors || []}
+					selectedInvestors={selectedInvestors ?? EMPTY_INVESTORS}
 					pathname={pathname}
 					nestedMenu={nestedMenu}
 				/>
 			)}
 
 			{chains && chains.length > 0 && (
-				<Chains chains={chains} selectedChains={selectedChains || []} pathname={pathname} nestedMenu={nestedMenu} />
+				<Chains chains={chains} selectedChains={selectedChains ?? EMPTY_CHAINS} pathname={pathname} nestedMenu={nestedMenu} />
 			)}
 
 			{sectors && sectors.length > 0 && (
 				<Sectors
 					sectors={sectors}
-					selectedSectors={selectedSectors || []}
+					selectedSectors={selectedSectors ?? EMPTY_SECTORS}
 					pathname={pathname}
 					nestedMenu={nestedMenu}
 				/>
 			)}
 
 			{rounds && rounds.length > 0 && (
-				<Rounds rounds={rounds} selectedRounds={selectedRounds || []} pathname={pathname} nestedMenu={nestedMenu} />
+				<Rounds rounds={rounds} selectedRounds={selectedRounds ?? EMPTY_ROUNDS} pathname={pathname} nestedMenu={nestedMenu} />
 			)}
 
 			<RaisedRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />

@@ -31,6 +31,7 @@ export const getStaticProps = withPerformanceLogging('digital-asset-treasuries/i
 })
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
+const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
 const prepareInstitutionsCsv = (institutions: IDATOverviewPageProps['institutions']) => {
 	const headers = [
@@ -221,7 +222,7 @@ export default function TreasuriesByInstitution({ allAssets, institutions, daily
 				columns={columns}
 				placeholder="Search institutions"
 				columnToSearch="name"
-				sortingState={[{ id: 'totalUsdValue', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 				customFilters={<CSVDownloadButton prepareCsv={() => prepareInstitutionsCsv(institutions)} />}
 			/>
 		</Layout>

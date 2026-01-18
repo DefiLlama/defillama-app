@@ -83,7 +83,7 @@ export function useYieldChartTransformations({
 		for (let i = 0; i < apyValues.length; i++) {
 			if (i + 1 >= windowSize) {
 				const window = apyValues.slice(i + 1 - windowSize, i + 1)
-				const validValues = window.filter((v): v is number => v != null && !isNaN(v))
+				const validValues = window.filter((v): v is number => v != null && !Number.isNaN(v))
 				if (validValues.length > 0) {
 					const avg = validValues.reduce((a, b) => a + b, 0) / validValues.length
 					const timestamp = Math.floor(new Date(chartData.data[i].timestamp.split('T')[0]).getTime() / 1000)

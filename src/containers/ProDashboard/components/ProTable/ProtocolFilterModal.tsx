@@ -10,6 +10,7 @@ import { reactSelectStyles } from '../../utils/reactSelectStyles'
 import { ProtocolOption } from '../ProtocolOption'
 
 const CustomProtocolOption = ProtocolOption as any
+const EMPTY_FILTERS: string[] = []
 
 function VirtualizedMenuList(props: any) {
 	const { options, children, maxHeight } = props
@@ -93,10 +94,10 @@ export function ProtocolFilterModal({
 
 	React.useEffect(() => {
 		if (isOpen) {
-			setSelectedProtocols(currentFilters.protocols || [])
-			setSelectedCategories(currentFilters.categories || [])
-			setSelectedExcludedCategories(currentFilters.excludedCategories || [])
-			setSelectedOracles(currentFilters.oracles || [])
+			setSelectedProtocols(currentFilters.protocols ?? EMPTY_FILTERS)
+			setSelectedCategories(currentFilters.categories ?? EMPTY_FILTERS)
+			setSelectedExcludedCategories(currentFilters.excludedCategories ?? EMPTY_FILTERS)
+			setSelectedOracles(currentFilters.oracles ?? EMPTY_FILTERS)
 		}
 	}, [isOpen, currentFilters])
 

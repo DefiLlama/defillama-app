@@ -13,6 +13,8 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart'))
 
 const MultiSeriesChart = React.lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
+const DEMO_CHAINS = ['Ethereum']
+
 const generateFakeChartData = (baseValue: number, volatility: number = 0.1): [string, number][] => {
 	const data: [string, number][] = []
 	const now = new Date()
@@ -578,7 +580,7 @@ export const DemoPreview = () => {
 				))}
 
 				<div className={`col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)`}>
-					<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={['Ethereum']} colSpan={2} />
+					<ProtocolsByChainTable tableId="demo-ethereum-protocols" chains={DEMO_CHAINS} colSpan={2} />
 				</div>
 
 				<div

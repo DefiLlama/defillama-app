@@ -18,6 +18,8 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
 const TOTAL_LEGEND_OPTIONS: string[] = ['Total']
+const EMPTY_OTHER_PROTOCOLS: string[] = []
+const EMPTY_TOTAL_STABLECOINS: Array<{ date: number; Total: number }> = []
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/stablecoins/[...cex]',
@@ -46,7 +48,7 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				name: protocolData.name,
 				parentProtocol: protocolData.parentProtocol ?? null,
-				otherProtocols: protocolData.otherProtocols ?? [],
+				otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 				category: protocolData.category ?? null,
 				metrics: {
 					stablecoins: true,
@@ -148,7 +150,7 @@ export default function CEXStablecoins(props: {
 	}, [data])
 
 	const totalStablecoinsChartData = React.useMemo(
-		() => data?.totalStablecoins?.map(({ date, value }) => ({ date, Total: value })) ?? [],
+		() => data?.totalStablecoins?.map(({ date, value }) => ({ date, Total: value })) ?? EMPTY_TOTAL_STABLECOINS,
 		[data?.totalStablecoins]
 	)
 

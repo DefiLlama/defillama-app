@@ -14,9 +14,11 @@ interface IRowLinksProps {
 	alternativeOthersText?: string
 }
 
+const EMPTY_LINKS: ILink[] = []
+
 // Renders a row of links and overflow links / links that not fit in viewport are shown in a dropdown
 export const LinksWithDropdown = React.memo(function LinksWithDropdown({
-	links = [],
+	links = EMPTY_LINKS,
 	activeLink,
 	alternativeOthersText,
 	...props

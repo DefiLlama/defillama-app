@@ -24,6 +24,9 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { holdersRevenueDatasetColumns } from './columns'
 import { useHoldersRevenueData } from './useHoldersRevenueData'
 
+const EMPTY_CATEGORIES: string[] = []
+const EMPTY_TABLE_DATA: any[] = []
+
 interface HoldersRevenueDatasetProps {
 	chains?: string[]
 	tableId?: string
@@ -45,12 +48,12 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 	const width = useBreakpointWidth()
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
-	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
-	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories || [])
+	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories ?? EMPTY_CATEGORIES)
+	const [excludeCategories, setExcludeCategories] = React.useState<string[]>(filters?.excludedCategories ?? EMPTY_CATEGORIES)
 
 	React.useEffect(() => {
-		setIncludeCategories(filters?.categories || [])
-		setExcludeCategories(filters?.excludedCategories || [])
+		setIncludeCategories(filters?.categories ?? EMPTY_CATEGORIES)
+		setExcludeCategories(filters?.excludedCategories ?? EMPTY_CATEGORIES)
 	}, [filters?.categories, filters?.excludedCategories])
 
 	const availableCategories = React.useMemo(() => {
@@ -156,7 +159,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 	}, [columnsToUse, filterButtonIsActive])
 
 	const instance = useReactTable({
-		data: filteredData || [],
+		data: filteredData.length > 0 ? filteredData : EMPTY_TABLE_DATA,
 		columns: columnsWithFilterButton as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -173,7 +176,8 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {

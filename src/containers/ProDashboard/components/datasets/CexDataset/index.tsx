@@ -21,6 +21,8 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { cexDatasetColumns } from './columns'
 import { useCexData } from './useCexData'
 
+const EMPTY_DATA: any[] = []
+
 export function CexDataset() {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'cleanTvl', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -35,7 +37,7 @@ export function CexDataset() {
 	const width = useBreakpointWidth()
 
 	const filteredData = React.useMemo(() => {
-		return data?.filter((d) => d.cleanTvl > 0) || []
+		return data ? data.filter((d) => d.cleanTvl > 0) : EMPTY_DATA
 	}, [data])
 
 	const instance = useReactTable({
@@ -56,7 +58,8 @@ export function CexDataset() {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {

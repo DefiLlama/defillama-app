@@ -17,8 +17,10 @@ interface YieldsTableHeaderProps {
 	activeFilterCount: number
 }
 
+const EMPTY_CHAINS: string[] = []
+
 export function YieldsTableHeader({
-	chains = [],
+	chains = EMPTY_CHAINS,
 	columnPresets,
 	applyPreset,
 	activePreset,

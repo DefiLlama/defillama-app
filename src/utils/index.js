@@ -301,7 +301,7 @@ export const formattedNum = (number, symbol = false) => {
 		currencySymbol = symbol
 	}
 
-	if (number === '' || number === undefined || number === null || Number.isNaN(+number)) {
+	if (number === '' || number == null || Number.isNaN(+number)) {
 		return symbol ? `${currencySymbol}0` : `0`
 	}
 	let num = Number(number)
@@ -458,7 +458,7 @@ export function formattedPercent(percent, noSign = false, fontWeight = 400, retu
 export const getPercentChange = (valueNow, value24HoursAgo) => {
 	const adjustedPercentChange =
 		((parseFloat(valueNow) - parseFloat(value24HoursAgo)) / parseFloat(value24HoursAgo)) * 100
-	if (isNaN(adjustedPercentChange) || !isFinite(adjustedPercentChange)) {
+	if (Number.isNaN(adjustedPercentChange) || !isFinite(adjustedPercentChange)) {
 		return null
 	}
 	return adjustedPercentChange
@@ -707,7 +707,7 @@ export function downloadCSV(filename, csvData, options = {}) {
 				.map((row) =>
 					row
 						.map((cell) => {
-							if (cell === null || cell === undefined) return ''
+							if (cell == null) return ''
 							if (typeof cell === 'object') return JSON.stringify(cell)
 							const cellStr = String(cell)
 							if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
@@ -768,7 +768,7 @@ export function downloadDatasetCSV({
 		const rows = data.map((item) =>
 			finalColumns.map((col) => {
 				const value = item[col]
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 				if (typeof value === 'object') return JSON.stringify(value)
 				return String(value)
 			})
@@ -954,7 +954,7 @@ export function formatValue(value, formatType = 'auto') {
 		}
 		if (typeof value === 'string') {
 			const num = Number(value)
-			if (!isNaN(num)) {
+			if (!Number.isNaN(num)) {
 				if (num !== 0 && Math.abs(num) < 1) return formattedPercent(num * 100, true, 400, true)
 				if (Math.abs(num) > 1000) return formattedNum(num, true)
 				return formattedNum(num)
@@ -970,7 +970,7 @@ export function formatValue(value, formatType = 'auto') {
 		}
 		if (typeof value === 'string') {
 			const num = Number(value)
-			if (!isNaN(num) && num !== 0 && Math.abs(num) < 1) {
+			if (!Number.isNaN(num) && num !== 0 && Math.abs(num) < 1) {
 				return formattedPercent(num * 100, true, 400, true)
 			}
 		}

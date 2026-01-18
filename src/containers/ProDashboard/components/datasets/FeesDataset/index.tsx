@@ -21,6 +21,8 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { feesDatasetColumns } from './columns'
 import { useFeesData } from './useFeesData'
 
+const EMPTY_DATA: any[] = []
+
 export function FeesDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -35,7 +37,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: feesDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -52,7 +54,8 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {

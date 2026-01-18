@@ -165,10 +165,10 @@ export function filterRowsByConfig(rows: NormalizedRow[], filters?: TableFilters
 		}
 		filtered = filtered.filter((row) => {
 			const value = getValue(row)
-			if (minValue !== undefined && (value === null || value === undefined || value < minValue)) {
+			if (minValue !== undefined && (value == null || value < minValue)) {
 				return false
 			}
-			if (maxValue !== undefined && (value === null || value === undefined || value > maxValue)) {
+			if (maxValue !== undefined && (value == null || value > maxValue)) {
 				return false
 			}
 			return true

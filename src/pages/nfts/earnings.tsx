@@ -21,6 +21,7 @@ export const getStaticProps = withPerformanceLogging('nfts/earnings', async () =
 })
 
 const pageName = ['Earnings', 'by', 'NFTs']
+const DEFAULT_SORTING_STATE = [{ id: 'totalEarnings', desc: true }]
 
 function Earnings({ earnings }) {
 	//x
@@ -38,7 +39,7 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
-				sortingState={[{ id: 'totalEarnings', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

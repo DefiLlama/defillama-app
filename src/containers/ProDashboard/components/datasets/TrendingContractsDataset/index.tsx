@@ -25,6 +25,14 @@ import { useTrendingContractsData } from './useTrendingContractsData'
 
 const TIME_VALUES = ['1d', '7d', '30d'] as const
 const CHAIN_VALUES = ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'] as const
+const EMPTY_RESULTS: any[] = []
+const TRENDING_CONTRACTS_COLUMNS_BY_CHAIN = {
+	ethereum: trendingContractsColumns('ethereum'),
+	arbitrum: trendingContractsColumns('arbitrum'),
+	polygon: trendingContractsColumns('polygon'),
+	optimism: trendingContractsColumns('optimism'),
+	base: trendingContractsColumns('base')
+} as const
 
 interface TrendingContractsDatasetProps {
 	chain?: string
@@ -56,13 +64,16 @@ export function TrendingContractsDataset({
 
 	const activeChain = chain.toLowerCase()
 	const { data, isLoading, error } = useTrendingContractsData(activeChain, timeframe)
-	const results = data?.results ?? []
+	const results = data?.results ?? EMPTY_RESULTS
+	const columns =
+		TRENDING_CONTRACTS_COLUMNS_BY_CHAIN[activeChain as keyof typeof TRENDING_CONTRACTS_COLUMNS_BY_CHAIN] ??
+		trendingContractsColumns(activeChain)
 
 	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: results,
-		columns: trendingContractsColumns(activeChain) as ColumnDef<any>[],
+		columns: columns as ColumnDef<any>[],
 		state: {
 			sorting,
 			columnOrder,
@@ -80,7 +91,8 @@ export function TrendingContractsDataset({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {

@@ -10,6 +10,9 @@ import { AddChartModalProps, CombinedTableType } from './types'
 import { UnifiedTableTab } from './UnifiedTableTab'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
+import type { VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+
+const EMPTY_CHAIN_OPTIONS: VirtualizedSelectOption[] = []
 
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
@@ -162,7 +165,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					{state.selectedMainTab === 'table' && (
 						<UnifiedTableTab
 							onClose={onClose}
-							chainOptions={computed.chainOptions ?? []}
+							chainOptions={computed.chainOptions ?? EMPTY_CHAIN_OPTIONS}
 							editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
 							initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
 							selectedTableType={state.selectedTableType}

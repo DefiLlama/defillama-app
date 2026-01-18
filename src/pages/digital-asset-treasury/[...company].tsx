@@ -15,6 +15,8 @@ import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const DEFAULT_SORTING_STATE = [{ id: 'report_date', desc: true }]
+
 const SingleSeriesChart = lazy(
 	() => import('~/components/ECharts/SingleSeriesChart')
 ) as React.FC<ISingleSeriesChartProps>
@@ -528,7 +530,7 @@ export default function DigitalAssetTreasury(props: IProps) {
 				columns={columns}
 				placeholder="Search assets"
 				columnToSearch="assetName"
-				sortingState={[{ id: 'report_date', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

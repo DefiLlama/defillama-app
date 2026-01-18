@@ -15,6 +15,8 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 const LineAndBarChart = lazy(() => import('~/components/ECharts/LineAndBarChart'))
 
 export const getStaticProps = withPerformanceLogging(
@@ -138,7 +140,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="dexAggregators"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">

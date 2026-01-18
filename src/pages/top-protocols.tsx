@@ -24,6 +24,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const excludeChains = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge'])
+const COLUMN_HELPER = createColumnHelper<any>()
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
 	const topProtocolPerChainAndCategory = {}
@@ -75,7 +76,7 @@ export const getStaticProps = withPerformanceLogging('top-protocols', async () =
 const pageName = ['Top Protocols']
 
 export default function TopProtocols({ data, chains, uniqueCategories }) {
-	const columnHelper = React.useMemo(() => createColumnHelper<any>(), [])
+	const columnHelper = COLUMN_HELPER
 
 	const columnOptions = React.useMemo(
 		() => uniqueCategories.map((cat) => ({ name: cat, key: cat })),
@@ -157,7 +158,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		)
 
 		return [...baseColumns, ...categoryColumns]
-	}, [columnHelper, uniqueCategories])
+	}, [uniqueCategories])
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [searchValue, setSearchValue] = React.useState('')

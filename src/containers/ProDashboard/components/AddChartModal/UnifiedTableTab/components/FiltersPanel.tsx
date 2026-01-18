@@ -4,6 +4,10 @@ import { useProDashboardCatalog } from '~/containers/ProDashboard/ProDashboardAP
 import type { TableFilters } from '~/containers/ProDashboard/types'
 import { getItemIconUrl } from '~/containers/ProDashboard/utils'
 
+const EMPTY_CATEGORIES: string[] = []
+const EMPTY_PROTOCOLS: string[] = []
+const EMPTY_ORACLES: string[] = []
+
 interface FiltersPanelProps {
 	chains: string[]
 	filters: TableFilters
@@ -102,8 +106,8 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 			.map(([oracle]) => ({ value: oracle, label: oracle }))
 	}, [protocols])
 
-	const includeCategories = (filters.categories as string[]) ?? []
-	const excludeCategories = (filters.excludedCategories as string[]) ?? []
+	const includeCategories = (filters.categories as string[]) ?? EMPTY_CATEGORIES
+	const excludeCategories = (filters.excludedCategories as string[]) ?? EMPTY_CATEGORIES
 	const categoryValues = categoryMode === 'include' ? includeCategories : excludeCategories
 
 	const handleMultiSelectChange = (
@@ -208,7 +212,7 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 				<AriakitVirtualizedMultiSelect
 					label="Protocols"
 					options={protocolOptions}
-					selectedValues={(filters.protocols as string[]) ?? []}
+					selectedValues={(filters.protocols as string[]) ?? EMPTY_PROTOCOLS}
 					onChange={(values) => handleMultiSelectChange('protocols', values)}
 					placeholder="All protocols..."
 					renderIcon={(option) => option.logo || getItemIconUrl('protocol', option, option.value)}
@@ -217,7 +221,7 @@ export function FiltersPanel({ chains, filters, availableChains, onChainsChange,
 				<AriakitVirtualizedMultiSelect
 					label="Oracles"
 					options={oracleOptions}
-					selectedValues={(filters.oracles as string[]) ?? []}
+					selectedValues={(filters.oracles as string[]) ?? EMPTY_ORACLES}
 					onChange={(values) => handleMultiSelectChange('oracles', values)}
 					placeholder="All oracles..."
 					className="flex flex-col gap-1.5"

@@ -21,6 +21,9 @@ import { useAuthContext } from '../Subscribtion/auth'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { chainMetrics, protocolMetrics } from './constants'
 
+const EMPTY_PROTOCOLS: IProtocol[] = []
+const EMPTY_CHAINS: Array<{ name: string }> = []
+
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
@@ -50,9 +53,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	} = useBookmarks('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
+		const resolvedProtocols = protocols ?? EMPTY_PROTOCOLS
 		return {
-			protocolOptions: (protocols || []).map((c) => ({ key: c.name, name: c.name })),
-			savedProtocolsList: protocols.filter(
+			protocolOptions: resolvedProtocols.map((c) => ({ key: c.name, name: c.name })),
+			savedProtocolsList: resolvedProtocols.filter(
 				(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
 			),
 			selectedProtocolNames: Array.from(savedProtocols)
@@ -80,9 +84,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	}
 
 	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
+		const resolvedChains = chains ?? EMPTY_CHAINS
 		return {
-			chainOptions: (chains || []).map((c) => ({ key: c.name, name: c.name })),
-			savedChainsList: chains.filter((c) => savedChains.has(c.name)),
+			chainOptions: resolvedChains.map((c) => ({ key: c.name, name: c.name })),
+			savedChainsList: resolvedChains.filter((c) => savedChains.has(c.name)),
 			selectedChainNames: Array.from(savedChains)
 		}
 	}, [chains, savedChains])

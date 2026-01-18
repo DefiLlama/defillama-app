@@ -23,6 +23,8 @@ const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as Re
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
+const EMPTY_OTHER_PROTOCOLS: string[] = []
+
 export const getStaticProps = withPerformanceLogging(
 	'protocol/tvl/[...protocol]',
 	async ({
@@ -68,7 +70,7 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				name: protocolData.name,
 				parentProtocol: protocolData.parentProtocol ?? null,
-				otherProtocols: protocolData.otherProtocols ?? [],
+				otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 				category: protocolData.category ?? null,
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
