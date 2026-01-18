@@ -648,6 +648,11 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	const competitorsList = Array.from(competitorsSet)
+		.map((protocolName) => competitorsMap.get(protocolName))
+		.filter((competitor): competitor is (typeof competitors)[number] => Boolean(competitor))
+		.map(({ name, tvl }) => ({ name, tvl }))
+
 	const hacks =
 		(protocolData.id
 			? hacksData
@@ -1027,7 +1032,7 @@ export const getProtocolOverviewPageData = async ({
 				: null,
 		isCEX,
 		hasKeyMetrics,
-		competitors: Array.from(competitorsSet).map((protocolName) => competitorsMap.get(protocolName)),
+		competitors: competitorsList,
 		hacks,
 		chartDenominations,
 		availableCharts,
