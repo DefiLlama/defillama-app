@@ -20,7 +20,7 @@ export const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
 
-const WATCHLIST_KEYS = {
+export const WATCHLIST_KEYS = {
 	DEFI_WATCHLIST: 'DEFI_WATCHLIST',
 	YIELDS_WATCHLIST: 'YIELDS_WATCHLIST',
 	CHAINS_WATCHLIST: 'CHAINS_WATCHLIST',
@@ -177,7 +177,7 @@ export type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 type YieldFilterValue = string | number | boolean
 type YieldSavedFilter = Record<string, YieldFilterValue>
 type YieldSavedFilters = Record<string, YieldSavedFilter>
-type WatchlistStore = Record<string, Record<string, string>>
+export type WatchlistStore = Record<string, Record<string, string>>
 export type SettingsStore = Partial<Record<SettingKey, boolean>>
 
 export type CustomColumnDef = {
@@ -187,7 +187,7 @@ export type CustomColumnDef = {
 	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
-type AppStorage = SettingsStore & {
+export type AppStorage = SettingsStore & {
 	[YIELDS_SAVED_FILTERS]?: YieldSavedFilters
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
 	[LLAMA_AI_WELCOME_SHOWN]?: boolean

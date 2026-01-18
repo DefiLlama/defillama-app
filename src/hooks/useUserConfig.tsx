@@ -6,6 +6,9 @@ import {
 	readAppStorageRaw,
 	subscribeToLocalStorage,
 	THEME_SYNC_KEY,
+	WATCHLIST_KEYS,
+	type AppStorage,
+	type WatchlistStore,
 	writeAppStorage
 } from '~/contexts/LocalStorage'
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
@@ -14,8 +17,49 @@ import { useAuthContext } from '../containers/Subscribtion/auth'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
 const SYNC_DEBOUNCE_MS = 2000
+type UserConfig = Partial<AppStorage>
 
-type UserConfig = Record<string, any>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
+	if (!isRecord(value)) return null
+
+	const normalized: WatchlistStore = {}
+	for (const [portfolio, protocols] of Object.entries(value)) {
+		if (!isRecord(protocols)) continue
+		const normalizedProtocols: Record<string, string> = {}
+		for (const [slug, name] of Object.entries(protocols)) {
+			if (typeof name === 'string') {
+				normalizedProtocols[slug] = name
+			}
+		}
+		if (Object.keys(normalizedProtocols).length > 0) {
+			normalized[portfolio] = normalizedProtocols
+		}
+	}
+
+	return Object.keys(normalized).length > 0 ? normalized : null
+}
+
+const mergeWatchlists = (local: WatchlistStore | null, remote: WatchlistStore | null): WatchlistStore | null => {
+	if (!local && !remote) return null
+	if (!local) return remote
+	if (!remote) return local
+
+	const merged: WatchlistStore = { ...remote }
+	for (const [portfolio, protocols] of Object.entries(local)) {
+		merged[portfolio] = { ...(remote[portfolio] ?? {}), ...protocols }
+	}
+
+	return merged
+}
+
+const mergeSelectedPortfolio = (local: unknown, remote: unknown): string | undefined => {
+	if (typeof local === 'string' && local.length > 0) return local
+	if (typeof remote === 'string' && remote.length > 0) return remote
+	return undefined
+}
 
 export function useUserConfig() {
 	const { isAuthenticated, authorizedFetch } = useAuthContext()
@@ -30,7 +74,7 @@ export function useUserConfig() {
 		try {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
 			if (response?.ok) {
-				const config = await response.json()
+				const config: UserConfig = await response.json()
 
 				let hasConfig = false
 				for (const _ in config) {
@@ -41,7 +85,36 @@ export function useUserConfig() {
 					isSyncingRef.current = true
 
 					const localSettings = readAppStorage()
-					const mergedSettings = { ...localSettings, ...config }
+					const mergedSettings: AppStorage = { ...localSettings, ...config }
+
+					const watchlistKeys = [
+						WATCHLIST_KEYS.DEFI_WATCHLIST,
+						WATCHLIST_KEYS.YIELDS_WATCHLIST,
+						WATCHLIST_KEYS.CHAINS_WATCHLIST
+					] as const
+
+					for (const key of watchlistKeys) {
+						const merged = mergeWatchlists(
+							normalizeWatchlistStore(localSettings[key]),
+							normalizeWatchlistStore(config[key])
+						)
+						if (merged) {
+							mergedSettings[key] = merged
+						}
+					}
+
+					const selectedKeys = [
+						WATCHLIST_KEYS.DEFI_SELECTED_PORTFOLIO,
+						WATCHLIST_KEYS.YIELDS_SELECTED_PORTFOLIO,
+						WATCHLIST_KEYS.CHAINS_SELECTED_PORTFOLIO
+					] as const
+
+					for (const key of selectedKeys) {
+						const mergedSelected = mergeSelectedPortfolio(localSettings[key], config[key])
+						if (mergedSelected) {
+							mergedSettings[key] = mergedSelected
+						}
+					}
 
 					writeAppStorage(mergedSettings)
 
