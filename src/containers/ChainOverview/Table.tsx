@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/router'
 import * as Ariakit from '@ariakit/react'
 import {
@@ -35,6 +35,134 @@ import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
 
+interface EthReturns {
+	return1d: number | null
+	return7d: number | null
+	return30d: number | null
+}
+
+let ethReturnsCache: { value: EthReturns | null; timestamp: number } | undefined
+let ethReturnsPromise: Promise<EthReturns | null> | null = null
+
+const CACHE_DURATION = 10 * 60 * 1000
+
+const getEthReturns = async (): Promise<EthReturns | null> => {
+	if (ethReturnsCache !== undefined) {
+		const now = Date.now()
+		if (now - ethReturnsCache.timestamp < CACHE_DURATION) {
+			return ethReturnsCache.value
+		}
+	}
+
+	if (ethReturnsPromise) return ethReturnsPromise
+
+	ethReturnsPromise = (async () => {
+		try {
+			const response = await fetch(
+				'https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=30&interval=daily'
+			)
+			if (!response.ok) throw new Error('Failed to fetch ETH prices')
+			const data = await response.json()
+			const prices: Array<[number, number]> | undefined = data?.prices
+			if (!Array.isArray(prices) || prices.length < 2) return null
+
+			const currentPrice = prices[prices.length - 1]?.[1]
+			if (typeof currentPrice !== 'number' || currentPrice === 0) return null
+
+			// For 1d: compare current with 1 day ago (1 entry back)
+			const price1dAgo = prices.length >= 2 ? prices[prices.length - 2]?.[1] : null
+			const return1d =
+				typeof price1dAgo === 'number' && price1dAgo !== 0 ? (currentPrice - price1dAgo) / price1dAgo : null
+
+			// For 7d: compare current with 7 days ago (7 entries back with daily interval)
+			const price7dAgo = prices.length >= 8 ? prices[prices.length - 8]?.[1] : null
+			const return7d =
+				typeof price7dAgo === 'number' && price7dAgo !== 0 ? (currentPrice - price7dAgo) / price7dAgo : null
+
+			// For 30d: compare current with ~30 days ago (first entry)
+			const price30dAgo = prices[0]?.[1]
+			const return30d =
+				typeof price30dAgo === 'number' && price30dAgo !== 0 ? (currentPrice - price30dAgo) / price30dAgo : null
+
+			const returnValue = { return1d, return7d, return30d }
+			ethReturnsCache = { value: returnValue, timestamp: Date.now() }
+			return returnValue
+		} catch (error) {
+			console.error('Unable to fetch ETH returns', error)
+			ethReturnsCache = { value: null, timestamp: Date.now() }
+			return null
+		} finally {
+			ethReturnsPromise = null
+		}
+	})()
+
+	return ethReturnsPromise
+}
+
+const formatSignedUsdCompact = (value: number | null | undefined) => {
+	if (value == null || Number.isNaN(value)) return '—'
+	const abs = Math.abs(value)
+	const base = formattedNum(abs, true)
+	const sign = value > 0 ? '+' : value < 0 ? '-' : ''
+	return `${sign}${base}`
+}
+
+const createAttributionTooltip = (
+	tvlNow: number | null,
+	tvlPrev: number | null,
+	priceReturn: number | null,
+	period: '1D' | '7D' | '30D'
+) => {
+	const tvlDelta = tvlNow != null && tvlPrev != null ? tvlNow - tvlPrev : null
+	const tvlPct = tvlDelta != null && tvlPrev && tvlPrev !== 0 ? (tvlDelta / tvlPrev) * 100 : null
+
+	const estimatedPriceImpact = tvlPrev && priceReturn != null ? tvlPrev * priceReturn : null
+	const impliedNetInflows = tvlDelta != null && estimatedPriceImpact != null ? tvlDelta - estimatedPriceImpact : null
+	const canShowAttribution = tvlPrev && tvlPrev !== 0
+	const shouldShowAttribution = canShowAttribution && priceReturn != null
+
+	const changeLine =
+		tvlDelta != null && tvlPct != null
+			? `${formatSignedUsdCompact(tvlDelta)} (${formattedPercent(tvlPct, false, 400, true)})`
+			: 'Data unavailable'
+
+	const attribution = shouldShowAttribution ? (
+		<div className="mt-1 flex flex-col gap-1 text-xs text-(--text-secondary)">
+			<div className="text-[11px] font-semibold tracking-wide text-(--text-disabled) uppercase">
+				Estimated Attribution
+			</div>
+			<div className="flex flex-col gap-1">
+				<div className="flex items-center justify-between gap-2">
+					<span>Implied Net Inflows</span>
+					<span className="font-medium">{formatSignedUsdCompact(impliedNetInflows)}</span>
+				</div>
+				<div className="flex items-center justify-between gap-2">
+					<span>Price Impact</span>
+					<span className="font-medium">{formatSignedUsdCompact(estimatedPriceImpact)}</span>
+				</div>
+			</div>
+			<div className="text-[10px] leading-relaxed text-(--text-disabled)">
+				ⓘ Estimated using ETH {period.toLowerCase()} return as proxy. Actual asset composition and protocol-specific
+				events may cause deviations.
+			</div>
+		</div>
+	) : null
+
+	const tooltipContent = (
+		<div className="flex min-w-[150px] flex-col gap-1">
+			<div className="text-xs font-semibold text-(--text-secondary)">TVL Change ({period})</div>
+			<div className="text-sm font-semibold text-(--text-primary)">{changeLine}</div>
+			{canShowAttribution ? (
+				(attribution ?? <div className="text-xs text-(--text-disabled)">Price proxy unavailable</div>)
+			) : (
+				<div className="text-xs text-(--text-disabled)">Data unavailable</div>
+			)}
+		</div>
+	)
+
+	return tooltipContent
+}
+
 export interface CustomColumnDef {
 	name: string
 	formula: string
@@ -59,6 +187,18 @@ export const ChainProtocolsTable = ({
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
 	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const [ethReturns, setEthReturns] = useState<EthReturns | null | undefined>(undefined)
+
+	useEffect(() => {
+		let mounted = true
+		getEthReturns().then((val) => {
+			if (!mounted) return
+			setEthReturns(val)
+		})
+		return () => {
+			mounted = false
+		}
+	}, [])
 
 	const finalProtocols = useMemo(() => {
 		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })
@@ -210,6 +350,8 @@ export const ChainProtocolsTable = ({
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
+	const columns = useMemo(() => buildColumns(ethReturns), [ethReturns])
+
 	const customColumnDefs = useMemo(() => {
 		return customColumns.map((col, idx) => {
 			const columnId = `custom_formula_${idx}`
@@ -306,7 +448,7 @@ export const ChainProtocolsTable = ({
 					]
 				: [])
 		],
-		[customColumnDefs]
+		[columns, customColumnDefs]
 	)
 
 	const instance = useReactTable({
@@ -604,7 +746,7 @@ const columnOptions = [
 
 const columnHelper = createColumnHelper<IProtocol>()
 
-const columns: ColumnDef<IProtocol>[] = [
+const buildColumns = (ethReturns: EthReturns | null | undefined): ColumnDef<IProtocol>[] => [
 	{
 		id: 'name',
 		header: 'Name',
@@ -719,7 +861,23 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
 				id: 'change_1d',
 				header: '1d Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue, row }) => {
+					const pctChange = formattedPercent(getValue())
+					const tvlNow = row.original.tvl?.default?.tvl ?? null
+					const tvlPrevDay = row.original.tvl?.default?.tvlPrevDay ?? null
+					const priceReturn = ethReturns?.return1d ?? null
+
+					const tooltipContent = createAttributionTooltip(tvlNow, tvlPrevDay, priceReturn, '1D')
+
+					return (
+						<span className="inline-flex items-center gap-1">
+							<span>{pctChange}</span>
+							<Tooltip content={tooltipContent} placement="top" className="cursor-help text-(--text-disabled)">
+								<Icon name="circle-help" width={14} height={14} />
+							</Tooltip>
+						</span>
+					)
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -731,7 +889,23 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
 				id: 'change_7d',
 				header: '7d Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue, row }) => {
+					const pctChange = formattedPercent(getValue())
+					const tvlNow = row.original.tvl?.default?.tvl ?? null
+					const tvlPrevWeek = row.original.tvl?.default?.tvlPrevWeek ?? null
+					const priceReturn = ethReturns?.return7d ?? null
+
+					const tooltipContent = createAttributionTooltip(tvlNow, tvlPrevWeek, priceReturn, '7D')
+
+					return (
+						<span className="inline-flex items-center gap-1">
+							<span>{pctChange}</span>
+							<Tooltip content={tooltipContent} placement="top" className="cursor-help text-(--text-disabled)">
+								<Icon name="circle-help" width={14} height={14} />
+							</Tooltip>
+						</span>
+					)
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
@@ -743,7 +917,23 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
 				id: 'change_1m',
 				header: '1m Change',
-				cell: ({ getValue }) => <>{formattedPercent(getValue())}</>,
+				cell: ({ getValue, row }) => {
+					const pctChange = formattedPercent(getValue())
+					const tvlNow = row.original.tvl?.default?.tvl ?? null
+					const tvlPrevMonth = row.original.tvl?.default?.tvlPrevMonth ?? null
+					const priceReturn = ethReturns?.return30d ?? null
+
+					const tooltipContent = createAttributionTooltip(tvlNow, tvlPrevMonth, priceReturn, '30D')
+
+					return (
+						<span className="inline-flex items-center gap-1">
+							<span>{pctChange}</span>
+							<Tooltip content={tooltipContent} placement="top" className="cursor-help text-(--text-disabled)">
+								<Icon name="circle-help" width={14} height={14} />
+							</Tooltip>
+						</span>
+					)
+				},
 				sortUndefined: 'last',
 				sortingFn: 'alphanumericFalsyLast' as any,
 				meta: {
