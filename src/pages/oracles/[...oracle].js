@@ -42,7 +42,7 @@ export async function getStaticPaths() {
 	let i = 0
 	for (const oracle in oracles) {
 		if (i >= 10) break
-		paths.push({ params: { oracle } })
+		paths.push({ params: { oracle: [oracle] } })
 		i++
 	}
 

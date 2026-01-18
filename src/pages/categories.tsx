@@ -140,16 +140,28 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	// Combined loop: ensure category exists AND build finalCategories
 	for (const cat of categoryKeys) {
 		if (!categories[cat]) {
-			categories[cat] = { name: cat, protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
+			categories[cat] = {
+				name: cat,
+				protocols: 0,
+				tvl: 0,
+				tvlPrevDay: 0,
+				tvlPrevWeek: 0,
+				tvlPrevMonth: 0,
+				revenue: 0,
+				extraTvls: Object.fromEntries(
+					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+				)
+			}
 		}
 
 		const subRows = []
-		for (const tag in tagsByCategory[cat]) {
+		const tags = tagsByCategory[cat] ?? {}
+		for (const tag in tags) {
 			subRows.push({
-				...tagsByCategory[cat][tag],
-				change_1d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevDay),
-				change_7d: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevWeek),
-				change_1m: getPercentChange(tagsByCategory[cat][tag].tvl, tagsByCategory[cat][tag].tvlPrevMonth),
+				...tags[tag],
+				change_1d: getPercentChange(tags[tag].tvl, tags[tag].tvlPrevDay),
+				change_7d: getPercentChange(tags[tag].tvl, tags[tag].tvlPrevWeek),
+				change_1m: getPercentChange(tags[tag].tvl, tags[tag].tvlPrevMonth),
 				description: protocolCategories[tag]?.description ?? ''
 			})
 		}

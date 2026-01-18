@@ -54,9 +54,11 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 		const serverWatchlist = userConfig[watchlistKey]
 
 		let hasServerWatchlist = false
-		for (const _ in serverWatchlist) {
-			hasServerWatchlist = true
-			break
+		if (serverWatchlist) {
+			for (const _ in serverWatchlist) {
+				hasServerWatchlist = true
+				break
+			}
 		}
 		if (serverWatchlist && hasServerWatchlist) {
 			hasInitialized.current = true

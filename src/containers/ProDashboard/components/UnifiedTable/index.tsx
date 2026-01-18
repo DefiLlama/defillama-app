@@ -32,6 +32,7 @@ const arraysEqual = (a: string[], b: string[]) => {
 	return true
 }
 
+// Count keys in 'a' while comparing values, then verify 'b' has the same count
 const recordsEqual = (a: Record<string, boolean>, b: Record<string, boolean>) => {
 	let count = 0
 	for (const key in a) {

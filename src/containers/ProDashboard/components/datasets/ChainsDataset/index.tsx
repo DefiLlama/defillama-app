@@ -308,9 +308,11 @@ export function ChainsDataset({
 		}
 
 		let hasSavedVisibility = false
-		for (const _ in savedColumnVisibility) {
-			hasSavedVisibility = true
-			break
+		if (savedColumnVisibility) {
+			for (const _ in savedColumnVisibility) {
+				hasSavedVisibility = true
+				break
+			}
 		}
 		let hasCurrentVisibility = false
 		for (const _ in columnVisibility) {

@@ -201,9 +201,11 @@ export const formatChainsData = ({
 			topTokenDepositedUsd = 0,
 			topTokenWithdrawnUsd = 0
 		let hasDeposited = false
-		for (const _ in totalTokensDeposited) {
-			hasDeposited = true
-			break
+		if (totalTokensDeposited) {
+			for (const _ in totalTokensDeposited) {
+				hasDeposited = true
+				break
+			}
 		}
 		if (totalTokensDeposited && hasDeposited) {
 			let topKey = ''
@@ -220,9 +222,11 @@ export const formatChainsData = ({
 			}
 		}
 		let hasWithdrawn = false
-		for (const _ in totalTokensWithdrawn) {
-			hasWithdrawn = true
-			break
+		if (totalTokensWithdrawn) {
+			for (const _ in totalTokensWithdrawn) {
+				hasWithdrawn = true
+				break
+			}
 		}
 		if (totalTokensWithdrawn && hasWithdrawn) {
 			let topKey = ''

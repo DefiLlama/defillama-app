@@ -215,12 +215,15 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	const groupAllocation = useMemo(() => {
 		const finalAllocation = tokenAllocation?.final
+		if (!finalAllocation) {
+			return []
+		}
 		let hasFinalAllocation = false
 		for (const _ in finalAllocation) {
 			hasFinalAllocation = true
 			break
 		}
-		if (!finalAllocation || !hasFinalAllocation) {
+		if (!hasFinalAllocation) {
 			return []
 		}
 		const result: { name: string; value: number }[] = []
