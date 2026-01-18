@@ -21,8 +21,8 @@ import { formatColumnOrder } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import {
-	DEFI_CHAINS_SETTINGS,
-	isDefiChainsKey,
+	CHAINS_CATEGORY_GROUP_SETTINGS,
+	isChainsCategoryGroupKey,
 	subscribeToLocalStorage,
 	useLocalStorageSettingsManager
 } from '~/contexts/LocalStorage'
@@ -89,9 +89,7 @@ export function ChainsByCategoryTable({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width
-			? (chainsTableColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = width ? (chainsTableColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder) : defaultOrder
 
 		instance.setColumnOrder(order)
 	}, [width, instance])
@@ -128,7 +126,7 @@ export function ChainsByCategoryTable({
 
 	const clearAllAggrOptions = () => {
 		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			if (selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
@@ -137,7 +135,7 @@ export function ChainsByCategoryTable({
 
 	const toggleAllAggrOptions = () => {
 		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			if (!selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
@@ -147,7 +145,7 @@ export function ChainsByCategoryTable({
 	const addAggrOption: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
 		const nextSelectedKeys = typeof selectedKeys === 'function' ? selectedKeys(selectedAggregateTypes) : selectedKeys
 		const selectedKeysSet = new Set(nextSelectedKeys)
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = selectedKeysSet.has(item.key)
 			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
@@ -156,8 +154,8 @@ export function ChainsByCategoryTable({
 	}
 
 	const addOnlyOneAggrOption = (newOption: string) => {
-		if (!isDefiChainsKey(newOption)) return
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		if (!isChainsCategoryGroupKey(newOption)) return
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = item.key === newOption
 			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
@@ -166,7 +164,7 @@ export function ChainsByCategoryTable({
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
 	const prepareCsv = React.useCallback(() => {
@@ -218,7 +216,7 @@ export function ChainsByCategoryTable({
 					<div className="flex w-full items-center gap-2 sm:w-auto">
 						{showByGroup ? (
 							<SelectWithCombobox
-								allValues={DEFI_CHAINS_SETTINGS}
+								allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 								selectedValues={selectedAggregateTypes}
 								setSelectedValues={addAggrOption}
 								selectOnlyOne={addOnlyOneAggrOption}

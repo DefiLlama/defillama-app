@@ -5,7 +5,11 @@ import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { DEFI_CHAINS_SETTINGS, DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	CHAINS_CATEGORY_GROUP_SETTINGS,
+	TVL_SETTINGS_KEYS,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formatNum, getPercentChange, toNiceCsvDate } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
@@ -114,7 +118,7 @@ const useFormatChartData = ({
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const data = React.useMemo(() => {
 		const charts: ILineAndBarChartProps['charts'] = {}
-		const toggledTvlSettings = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key])
+		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 		const recentTvlByChain: Record<string, number> = {}
 
 		for (const chain in tvlChartsByChain['tvl']) {
@@ -172,10 +176,10 @@ export const useGroupAndFormatChains = ({
 
 	return React.useMemo(() => {
 		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy
-		const toggledTvlSettings = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key])
-		const toggledChainsGroupbyParent = DEFI_CHAINS_SETTINGS.filter((item) => chainsGroupbyParent[item.key]).map(
-			(item) => item.key
-		)
+		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
+		const toggledChainsGroupbyParent = CHAINS_CATEGORY_GROUP_SETTINGS.filter(
+			(item) => chainsGroupbyParent[item.key]
+		).map((item) => item.key)
 		const { minTvl, maxTvl } = JSON.parse(minMaxTvl)
 		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 

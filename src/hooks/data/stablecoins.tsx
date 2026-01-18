@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
-import { isDefiChainsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
 
 interface IPegged {
@@ -190,7 +190,7 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 
 			let addedChildren = false
 			for (const type in groupData[parentName]) {
-				if (!isDefiChainsKey(type) || groupsEnabled[type] !== true) {
+				if (!isChainsCategoryGroupKey(type) || groupsEnabled[type] !== true) {
 					continue
 				}
 				for (const child of groupData[parentName][type]) {

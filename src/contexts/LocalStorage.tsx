@@ -36,7 +36,7 @@ const {
 } = WATCHLIST_KEYS
 
 // DEFI
-export const DEFI_SETTINGS = {
+export const TVL_SETTINGS = {
 	POOL2: 'pool2',
 	STAKING: 'staking',
 	BORROWED: 'borrowed',
@@ -102,7 +102,7 @@ export const NFT_SETTINGS = {
 	HIDE_LAST_DAY: 'HIDE_LAST_DAY'
 } as const
 
-export const DEFI_CHAINS_SETTINGS = [
+export const CHAINS_CATEGORY_GROUP_SETTINGS = [
 	{
 		name: 'L2',
 		key: 'L2'
@@ -135,32 +135,32 @@ export const LIQS_SETTINGS = {
 // BRIDGES
 export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
 
-export type DefiSettingKey = (typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS]
+export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
 export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
 export type StablecoinsSettingKey = (typeof STABLECOINS_SETTINGS)[keyof typeof STABLECOINS_SETTINGS]
 export type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
 export type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
 export type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
-export type DefiChainsKey = (typeof DEFI_CHAINS_SETTINGS)[number]['key']
+export type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
 
 export type SettingKey =
-	| DefiSettingKey
+	| TvlSettingsKey
 	| FeesSettingKey
 	| StablecoinsSettingKey
 	| NftSettingKey
 	| LiquidationsSettingKey
 	| BridgesSettingKey
-	| DefiChainsKey
+	| ChainsCategoryGroupKey
 
 export type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
-	? DefiSettingKey
+	? TvlSettingsKey
 	: T extends 'fees'
 		? FeesSettingKey
 		: T extends 'tvl_fees'
-			? DefiSettingKey | FeesSettingKey
+			? TvlSettingsKey | FeesSettingKey
 			: T extends 'tvl_chains'
-				? DefiChainsKey
+				? ChainsCategoryGroupKey
 				: T extends 'stablecoins'
 					? StablecoinsSettingKey
 					: T extends 'nfts'
@@ -197,10 +197,10 @@ type AppStorage = SettingsStore & {
 	[CHAINS_SELECTED_PORTFOLIO]?: string
 }
 
-const DEFI_CHAINS_KEYS = DEFI_CHAINS_SETTINGS.map((g) => g.key) as DefiChainsKey[]
-const DEFI_CHAINS_KEYS_SET = new Set<string>(DEFI_CHAINS_KEYS)
-export const DEFI_SETTINGS_KEYS = valuesOf(DEFI_SETTINGS)
-export const DEFI_SETTINGS_KEYS_SET = new Set<string>(DEFI_SETTINGS_KEYS)
+const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.key) as ChainsCategoryGroupKey[]
+const CHAINS_CATEGORY_GROUP_KEYS_SET = new Set<string>(CHAINS_CATEGORY_GROUP_KEYS)
+export const TVL_SETTINGS_KEYS = valuesOf(TVL_SETTINGS)
+export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
 export const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
 export const FEES_SETTINGS_KEYS_SET = new Set<string>(FEES_SETTINGS_KEYS)
 export const STABLECOINS_SETTINGS_KEYS = valuesOf(STABLECOINS_SETTINGS)
@@ -208,9 +208,10 @@ export const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
 export const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
 export const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
 
-export const isDefiSettingKey = (value: string): value is DefiSettingKey => DEFI_SETTINGS_KEYS_SET.has(value)
+export const isTvlSettingsKey = (value: string): value is TvlSettingsKey => TVL_SETTINGS_KEYS_SET.has(value)
 export const isFeesSettingKey = (value: string): value is FeesSettingKey => FEES_SETTINGS_KEYS_SET.has(value)
-export const isDefiChainsKey = (value: string): value is DefiChainsKey => DEFI_CHAINS_KEYS_SET.has(value)
+export const isChainsCategoryGroupKey = (value: string): value is ChainsCategoryGroupKey =>
+	CHAINS_CATEGORY_GROUP_KEYS_SET.has(value)
 
 export function subscribeToLocalStorage(callback: () => void) {
 	// Listen for localStorage changes (for other settings)
@@ -324,13 +325,13 @@ export type TSETTINGTYPE =
 function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 	switch (type) {
 		case 'tvl':
-			return DEFI_SETTINGS_KEYS as KeysFor<T>[]
+			return TVL_SETTINGS_KEYS as KeysFor<T>[]
 		case 'fees':
 			return FEES_SETTINGS_KEYS as KeysFor<T>[]
 		case 'tvl_fees':
-			return [...DEFI_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS] as KeysFor<T>[]
+			return [...TVL_SETTINGS_KEYS, ...FEES_SETTINGS_KEYS] as KeysFor<T>[]
 		case 'tvl_chains':
-			return DEFI_CHAINS_KEYS as KeysFor<T>[]
+			return CHAINS_CATEGORY_GROUP_KEYS as KeysFor<T>[]
 		case 'stablecoins':
 			return STABLECOINS_SETTINGS_KEYS as KeysFor<T>[]
 		case 'nfts':

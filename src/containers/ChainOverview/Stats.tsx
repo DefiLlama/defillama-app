@@ -19,7 +19,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { DEFI_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
@@ -167,7 +167,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			}
 
 			try {
-				const enabledParams = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key]).map((key) => `${key}=true`)
+				const enabledParams = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key]).map((key) => `${key}=true`)
 				const url = `https://api.llama.fi/simpleChainDataset/${
 					chainsNamesMap[props.metadata.name] || props.metadata.name
 				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')

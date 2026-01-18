@@ -10,7 +10,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
-import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 		const extraTvls = {}
 
-		for (const extra of DEFI_SETTINGS_KEYS) {
+		for (const extra of TVL_SETTINGS_KEYS) {
 			if (!EXCLUDED_EXTRAS.has(extra) && p.chainTvls[extra]) {
 				extraTvls[extra] = p.chainTvls[extra]
 			}
@@ -67,7 +67,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tvlPrevMonth: 0,
 				revenue: 0,
 				extraTvls: Object.fromEntries(
-					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+					TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 				)
 			}
 		}
@@ -88,7 +88,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 						tvlPrevMonth: 0,
 						revenue: 0,
 						extraTvls: Object.fromEntries(
-							DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+							TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 						)
 					}
 				}
@@ -149,7 +149,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tvlPrevMonth: 0,
 				revenue: 0,
 				extraTvls: Object.fromEntries(
-					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+					TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 				)
 			}
 		}
@@ -190,7 +190,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				}
 			}
 			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
-			for (const extra of DEFI_SETTINGS_KEYS) {
+			for (const extra of TVL_SETTINGS_KEYS) {
 				if (EXCLUDED_EXTRAS.has(extra)) {
 					continue
 				}
@@ -236,7 +236,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		setSelectedCategories([category])
 	}
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const enabledTvls = React.useMemo(() => DEFI_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key]), [extaTvlsEnabled])
+	const enabledTvls = React.useMemo(() => TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key]), [extaTvlsEnabled])
 
 	const charts = React.useMemo(() => {
 		const selectedCategoriesSet = new Set(selectedCategories)

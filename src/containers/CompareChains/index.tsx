@@ -5,7 +5,7 @@ import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { Select } from '~/components/Select'
-import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { Stats } from '../ChainOverview/Stats'
@@ -288,7 +288,7 @@ const formatTvlChart = ({
 	tvlSettings: Record<string, boolean>
 	extraTvlCharts: IChainOverviewData['extraTvlCharts']
 }) => {
-	const toggledTvlSettings = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key])
+	const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 	if (toggledTvlSettings.length === 0) {
 		const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)

@@ -15,7 +15,11 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
-import { DEFI_CHAINS_SETTINGS, isDefiChainsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	CHAINS_CATEGORY_GROUP_SETTINGS,
+	isChainsCategoryGroupKey,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import {
 	assetsByChainColumnOrders,
@@ -64,13 +68,9 @@ export function PeggedAssetsTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width
-			? (assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = width ? (assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder) : defaultOrder
 
-		const cSize = width
-			? assetsColumnSizesKeys.find((size) => width > Number(size))
-			: assetsColumnSizesKeys[0]
+		const cSize = width ? assetsColumnSizesKeys.find((size) => width > Number(size)) : assetsColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsColumnSizes[cSize])
 
@@ -158,9 +158,7 @@ export function PeggedAssetByChainTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width
-			? (assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = width ? (assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder) : defaultOrder
 
 		const cSize = width
 			? assetsByChainColumnSizesKeys.find((size) => width > Number(size))
@@ -253,7 +251,7 @@ export function PeggedChainsTable({ data }) {
 
 	const clearAllAggrOptions = () => {
 		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			if (selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
@@ -262,7 +260,7 @@ export function PeggedChainsTable({ data }) {
 
 	const toggleAllAggrOptions = () => {
 		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			if (!selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
@@ -271,7 +269,7 @@ export function PeggedChainsTable({ data }) {
 
 	const addAggrOption = (selectedKeys: string[]) => {
 		const selectedSet = new Set(selectedKeys)
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = selectedSet.has(item.key)
 			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
@@ -280,8 +278,8 @@ export function PeggedChainsTable({ data }) {
 	}
 
 	const addOnlyOneAggrOption = (newOption: string) => {
-		if (!isDefiChainsKey(newOption)) return
-		for (const item of DEFI_CHAINS_SETTINGS) {
+		if (!isChainsCategoryGroupKey(newOption)) return
+		for (const item of CHAINS_CATEGORY_GROUP_SETTINGS) {
 			const shouldEnable = item.key === newOption
 			if (groupTvls[item.key] !== shouldEnable) {
 				updater(item.key)
@@ -290,7 +288,7 @@ export function PeggedChainsTable({ data }) {
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return DEFI_CHAINS_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
 	}, [groupTvls])
 
 	return (
@@ -313,8 +311,8 @@ export function PeggedChainsTable({ data }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-					<SelectWithCombobox
-						allValues={DEFI_CHAINS_SETTINGS}
+				<SelectWithCombobox
+					allValues={CHAINS_CATEGORY_GROUP_SETTINGS}
 					selectedValues={selectedAggregateTypes}
 					setSelectedValues={addAggrOption}
 					selectOnlyOne={addOnlyOneAggrOption}

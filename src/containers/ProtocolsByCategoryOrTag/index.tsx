@@ -9,7 +9,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formatNum, formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { protocolCategories } from './constants'
@@ -43,7 +43,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 
 	const { finalProtocols, charts } = useMemo(() => {
-		const toggledSettings = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key])
+		const toggledSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
 

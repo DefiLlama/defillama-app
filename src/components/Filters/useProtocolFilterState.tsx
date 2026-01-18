@@ -1,16 +1,16 @@
 import { useMemo } from 'react'
 import {
-	isDefiSettingKey,
+	isTvlSettingsKey,
 	isFeesSettingKey,
-	type DefiSettingKey,
+	type TvlSettingsKey,
 	type FeesSettingKey,
 	updateAllSettingsInLsAndUrl,
 	useLocalStorageSettingsManager
 } from '~/contexts/LocalStorage'
 import { feesOptions } from './options'
 
-const isMetricSettingKey = (value: string): value is DefiSettingKey | FeesSettingKey =>
-	isDefiSettingKey(value) || isFeesSettingKey(value)
+const isMetricSettingKey = (value: string): value is TvlSettingsKey | FeesSettingKey =>
+	isTvlSettingsKey(value) || isFeesSettingKey(value)
 
 export function useProtocolsFilterState(options: { key: string; name: string }[]) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -18,11 +18,11 @@ export function useProtocolsFilterState(options: { key: string; name: string }[]
 
 	const selectedValues = useMemo(() => {
 		const filters = options.map((o) => o.key).filter(isMetricSettingKey)
-		return filters.filter((key) => (isDefiSettingKey(key) ? extraTvlsEnabled[key] : extraFeesEnabled[key]))
+		return filters.filter((key) => (isTvlSettingsKey(key) ? extraTvlsEnabled[key] : extraFeesEnabled[key]))
 	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
 	const setSelectedValues = (values: string[]) => {
-		const newValues: Partial<Record<DefiSettingKey | FeesSettingKey, boolean>> = {}
+		const newValues: Partial<Record<TvlSettingsKey | FeesSettingKey, boolean>> = {}
 		for (const o of options) {
 			if (!isMetricSettingKey(o.key)) continue
 			newValues[o.key] = values.includes(o.key)
@@ -67,7 +67,7 @@ export function useTvlAndFeesFilterState({
 	const selectedValues = filters.filter((key) => toggledKeys[key])
 
 	const setSelectedValues = (values: string[]) => {
-		const newValues: Partial<Record<DefiSettingKey | FeesSettingKey, boolean>> = {}
+		const newValues: Partial<Record<TvlSettingsKey | FeesSettingKey, boolean>> = {}
 		for (const o of options) {
 			if (!isMetricSettingKey(o.key)) continue
 			newValues[o.key] = values.includes(o.key)

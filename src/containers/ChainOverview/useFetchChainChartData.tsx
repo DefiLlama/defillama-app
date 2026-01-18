@@ -12,7 +12,7 @@ import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
-import { DEFI_SETTINGS_KEYS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
@@ -288,7 +288,7 @@ export const useFetchChainChartData = ({
 	})
 
 	const { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled } = useMemo(() => {
-		const toggledTvlSettings = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key])
+		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledTvlSettings.length === 0) {
 			const { totalValueUSD, tvlPrevDay } = getTvl24hChange(tvlChart)
