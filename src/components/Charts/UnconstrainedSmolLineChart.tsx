@@ -3,9 +3,9 @@ import { GridComponent, MarkLineComponent, TooltipComponent } from 'echarts/comp
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { useEffect, useId, useRef } from 'react'
-import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 
 echarts.use([SVGRenderer, LineChart, TooltipComponent, GridComponent, MarkLineComponent])
@@ -32,8 +32,9 @@ export function UnconstrainedSmolLineChart({
 	useEffect(() => {
 		if (!series?.length || series.length < 8) return
 
-		const instance =
-			echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
 		chartRef.current = instance
 
 		instance.setOption({
@@ -188,7 +189,7 @@ export function UnconstrainedSmolLineChart({
 			chartRef.current = null
 			instance.dispose()
 		}
-	}, [id, series, color, isThemeDark, name, extraData.lastEvent])
+	}, [id, series, color, isThemeDark, name, extraData?.lastEvent])
 
 	return (
 		<div className="relative overflow-visible">

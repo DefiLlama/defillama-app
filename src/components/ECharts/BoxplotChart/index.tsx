@@ -13,7 +13,7 @@ import {
 import * as echarts from 'echarts/core'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 
@@ -31,6 +31,9 @@ echarts.use([
 	UniversalTransition
 ])
 
+// Register transform once at module level
+echarts.registerTransform(aggregate)
+
 export interface IChartProps {
 	chartData: any
 }
@@ -44,15 +47,17 @@ export default function BoxplotChart({ chartData }: IChartProps) {
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	// transform chartData into required structure
-	const data = chartData.map((p) => [p.apy, p.projectName])
-	data.unshift(['APY', 'Project'])
-
-	// Register transform func
-	echarts.registerTransform(aggregate)
+	// Memoize data to prevent effect re-running on every render
+	const data = useMemo(() => {
+		const rows = chartData.map((p) => [p.apy, p.projectName])
+		rows.unshift(['APY', 'Project'])
+		return rows
+	}, [chartData])
 
 	useEffect(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
 		const option = {
