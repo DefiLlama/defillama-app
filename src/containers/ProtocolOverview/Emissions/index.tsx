@@ -215,15 +215,25 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 
 	const groupAllocation = useMemo(() => {
 		const finalAllocation = tokenAllocation?.final
-		if (!finalAllocation || Object.keys(finalAllocation).length === 0) {
+		if (!finalAllocation) {
 			return []
 		}
-		return Object.entries(finalAllocation)
-			.filter(([_, value]) => Number(value) > 0)
-			.map(([name, value]) => ({
-				name: name,
-				value: Number(value)
-			}))
+		let hasFinalAllocation = false
+		for (const _ in finalAllocation) {
+			hasFinalAllocation = true
+			break
+		}
+		if (!hasFinalAllocation) {
+			return []
+		}
+		const result: { name: string; value: number }[] = []
+		for (const name in finalAllocation) {
+			const value = Number(finalAllocation[name])
+			if (value > 0) {
+				result.push({ name, value })
+			}
+		}
+		return result
 	}, [tokenAllocation])
 
 	const pieChartDataAllocation = useMemo(

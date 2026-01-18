@@ -113,9 +113,10 @@ export const AVAILABLE_FUNCTIONS = [
 export const AVAILABLE_FIELDS = Object.keys(FIELD_ALIASES)
 
 // Pre-computed RegExp patterns for each alias to avoid creating RegExp objects inside loops
-const ALIAS_REGEX_MAP: Record<keyof typeof FIELD_ALIASES, RegExp> = Object.fromEntries(
-	Object.keys(FIELD_ALIASES).map((alias) => [alias, new RegExp(`\\b${alias}\\b`, 'g')])
-) as Record<keyof typeof FIELD_ALIASES, RegExp>
+const ALIAS_REGEX_MAP: Record<keyof typeof FIELD_ALIASES, RegExp> = {} as Record<keyof typeof FIELD_ALIASES, RegExp>
+for (const alias in FIELD_ALIASES) {
+	ALIAS_REGEX_MAP[alias as keyof typeof FIELD_ALIASES] = new RegExp(`\\b${alias}\\b`, 'g')
+}
 
 export function replaceAliases(formula: string): string {
 	let result = formula

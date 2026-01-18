@@ -95,7 +95,11 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const config = builder.config
 	const [showColors, setShowColors] = useState(false)
 	const seriesColors = config.seriesColors ?? EMPTY_SERIES_COLORS
-	const hasCustomSeriesColors = Object.keys(seriesColors).length > 0
+	let hasCustomSeriesColors = false
+	for (const _ in seriesColors) {
+		hasCustomSeriesColors = true
+		break
+	}
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
 	const resolveFilterMode = (value?: 'include' | 'exclude', fallback?: 'include' | 'exclude') => {
 		if (value === 'include' || value === 'exclude') return value
@@ -456,9 +460,13 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	)
 
 	const handleResetAllSeriesColors = useCallback(() => {
-		if (!builder.config.seriesColors || Object.keys(builder.config.seriesColors).length === 0) {
-			return
+		if (!builder.config.seriesColors) return
+		let hasColors = false
+		for (const _ in builder.config.seriesColors) {
+			hasColors = true
+			break
 		}
+		if (!hasColors) return
 		updateSeriesColors({})
 	}, [builder.config.seriesColors, updateSeriesColors])
 

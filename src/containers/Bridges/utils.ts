@@ -200,25 +200,47 @@ export const formatChainsData = ({
 			topTokenWithdrawnSymbol = null,
 			topTokenDepositedUsd = 0,
 			topTokenWithdrawnUsd = 0
-		if (totalTokensDeposited && Object.keys(totalTokensDeposited).length) {
-			const topTokenDeposited = Object.entries(totalTokensDeposited)
-				.sort((a, b) => {
-					return b[1].usdValue - a[1].usdValue
-				})
-				.slice(0, 1)[0]
-			const topDepositTokenData = topTokenDeposited[1]
-			topTokenDepositedSymbol = topDepositTokenData.symbol
-			topTokenDepositedUsd = topDepositTokenData.usdValue
+		let hasDeposited = false
+		if (totalTokensDeposited) {
+			for (const _ in totalTokensDeposited) {
+				hasDeposited = true
+				break
+			}
 		}
-		if (totalTokensWithdrawn && Object.keys(totalTokensWithdrawn).length) {
-			const topTokenWithdrawn = Object.entries(totalTokensWithdrawn)
-				.sort((a, b) => {
-					return b[1].usdValue - a[1].usdValue
-				})
-				.slice(0, 1)[0]
-			const topWithdrawnTokenData = topTokenWithdrawn[1]
-			topTokenWithdrawnSymbol = topWithdrawnTokenData.symbol
-			topTokenWithdrawnUsd = topWithdrawnTokenData.usdValue
+		if (totalTokensDeposited && hasDeposited) {
+			let topKey = ''
+			let topUsd = -Infinity
+			for (const key in totalTokensDeposited) {
+				if (totalTokensDeposited[key].usdValue > topUsd) {
+					topUsd = totalTokensDeposited[key].usdValue
+					topKey = key
+				}
+			}
+			if (topKey) {
+				topTokenDepositedSymbol = totalTokensDeposited[topKey].symbol
+				topTokenDepositedUsd = totalTokensDeposited[topKey].usdValue
+			}
+		}
+		let hasWithdrawn = false
+		if (totalTokensWithdrawn) {
+			for (const _ in totalTokensWithdrawn) {
+				hasWithdrawn = true
+				break
+			}
+		}
+		if (totalTokensWithdrawn && hasWithdrawn) {
+			let topKey = ''
+			let topUsd = -Infinity
+			for (const key in totalTokensWithdrawn) {
+				if (totalTokensWithdrawn[key].usdValue > topUsd) {
+					topUsd = totalTokensWithdrawn[key].usdValue
+					topKey = key
+				}
+			}
+			if (topKey) {
+				topTokenWithdrawnSymbol = totalTokensWithdrawn[topKey].symbol
+				topTokenWithdrawnUsd = totalTokensWithdrawn[topKey].usdValue
+			}
 		}
 
 		return {

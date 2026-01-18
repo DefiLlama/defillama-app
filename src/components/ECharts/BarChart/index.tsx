@@ -44,17 +44,27 @@ export default function BarChart({
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
 		const values = stacks || {}
 
-		if ((!values || Object.keys(values).length === 0) && customLegendOptions) {
+		let hasValues = false
+		for (const _ in values) {
+			hasValues = true
+			break
+		}
+		if (!hasValues && customLegendOptions) {
 			for (const name of customLegendOptions) {
 				values[name] = 'stackA'
 			}
 		}
 
-		const selectedStacks = Object.keys(values).filter((s) =>
-			legendOptions && customLegendName ? legendOptions.includes(s) : true
-		)
+		const keys: string[] = []
+		const selected: string[] = []
+		for (const s in values) {
+			keys.push(s)
+			if (!legendOptions || !customLegendName || legendOptions.includes(s)) {
+				selected.push(s)
+			}
+		}
 
-		return { defaultStacks: values, stackKeys: Object.keys(values), selectedStacks }
+		return { defaultStacks: values, stackKeys: keys, selectedStacks: selected }
 	}, [stacks, customLegendOptions, customLegendName, legendOptions])
 
 	const hideLegend = hideDefaultLegend || stackKeys.length < 2

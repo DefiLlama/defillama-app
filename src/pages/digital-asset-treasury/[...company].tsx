@@ -85,10 +85,11 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const chartByAsset = Object.keys(data.assets).map((assetKey) => {
+		const chartByAsset = []
+		for (const assetKey in data.assets) {
 			let totalAmount = 0
 			const assetMeta = data.assetsMeta[assetKey]
-			return {
+			chartByAsset.push({
 				asset: assetKey,
 				name: assetMeta.name,
 				ticker: assetMeta.ticker,
@@ -108,8 +109,8 @@ export const getStaticProps = withPerformanceLogging(
 						avg_price,
 						usd_value
 					])
-			}
-		})
+			})
+		}
 
 		const mNAVChart: ILineAndBarChartProps['charts'] = {
 			'Realized mNAV': {
@@ -199,6 +200,39 @@ export const getStaticProps = withPerformanceLogging(
 			volume
 		])
 
+		// Compute sorted assets
+		const assetEntries: [string, typeof data.assets[string]][] = []
+		for (const key in data.assets) {
+			assetEntries.push([key, data.assets[key]])
+		}
+		assetEntries.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
+		const sortedAssetTickers: string[] = []
+		for (const [asset] of assetEntries) {
+			sortedAssetTickers.push(data.assetsMeta[asset].ticker)
+		}
+
+		// Compute assets breakdown
+		const assetsBreakdownData: Array<{
+			name: string
+			ticker: string
+			amount: number
+			cost: number | null
+			usdValue: number | null
+			avgPrice: number | null
+		}> = []
+		for (const asset in data.assets) {
+			const { amount, cost, usdValue, avgPrice } = data.assets[asset]
+			assetsBreakdownData.push({
+				name: data.assetsMeta[asset].name,
+				ticker: data.assetsMeta[asset].ticker,
+				amount: amount,
+				cost: cost ?? null,
+				usdValue: usdValue ?? null,
+				avgPrice: avgPrice ?? null
+			})
+		}
+		assetsBreakdownData.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0))
+
 		return {
 			props: {
 				name: data.name,
@@ -213,19 +247,8 @@ export const getStaticProps = withPerformanceLogging(
 				realized_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][7] : null,
 				realistic_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][8] : null,
 				max_mNAV: data.stats.length > 0 ? data.stats[data.stats.length - 1][9] : null,
-				assets: Object.entries(data.assets)
-					.sort((a, b) => (b[1].usdValue ?? 0) - (a[1].usdValue ?? 0))
-					.map(([asset]) => data.assetsMeta[asset].ticker),
-				assetsBreakdown: Object.entries(data.assets)
-					.map(([asset, { amount, cost, usdValue, avgPrice }]) => ({
-						name: data.assetsMeta[asset].name,
-						ticker: data.assetsMeta[asset].ticker,
-						amount: amount,
-						cost: cost ?? null,
-						usdValue: usdValue ?? null,
-						avgPrice: avgPrice ?? null
-					}))
-					.sort((a, b) => (b.usdValue ?? 0) - (a.usdValue ?? 0)),
+				assets: sortedAssetTickers,
+				assetsBreakdown: assetsBreakdownData,
 				chartByAsset,
 				mNAVChart: data.stats.length > 0 ? mNAVChart : null,
 				fdChart: data.stats.length > 0 ? fdChart : null,

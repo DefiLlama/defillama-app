@@ -17,23 +17,27 @@ export async function getBridgedTVLByChain(chain?: string) {
 
 	const tokenInflowNames = new Set<string>()
 	for (const inflow of inflows) {
-		for (const token of Object.keys(inflow)) {
+		for (const token in inflow) {
 			if (token !== 'date') {
 				tokenInflowNames.add(token)
 			}
 		}
 	}
 
+	const assetEntries: [string, any][] = []
+	for (const key in assets ?? {}) {
+		assetEntries.push([key, assets[key]])
+	}
+	assetEntries.sort(
+		(a, b) => Number(b[1].total?.total?.split('.')?.[0] ?? 0) - Number(a[1].total?.total?.split('.')?.[0] ?? 0)
+	)
+	const chainLinks: { label: string; to: string }[] = [{ label: 'All', to: '/bridged' }]
+	for (const [assetKey] of assetEntries) {
+		chainLinks.push({ label: assetKey, to: `/bridged/${slug(assetKey)}` })
+	}
+
 	return {
-		chains: [
-			{ label: 'All', to: '/bridged' },
-			...Object.entries(assets ?? {})
-				.sort(
-					(a: any, b: any) =>
-						Number(b[1].total?.total?.split('.')?.[0] ?? 0) - Number(a[1].total?.total?.split('.')?.[0] ?? 0)
-				)
-				.map((asset) => ({ label: asset[0], to: `/bridged/${slug(asset[0])}` }))
-		],
+		chains: chainLinks,
 		assets,
 		flows1d,
 		chainData,

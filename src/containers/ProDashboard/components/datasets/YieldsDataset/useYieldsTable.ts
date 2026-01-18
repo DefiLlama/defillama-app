@@ -268,7 +268,14 @@ export function useYieldsTable({
 	)
 
 	React.useEffect(() => {
-		if ((!initialColumnVisibility || Object.keys(initialColumnVisibility).length === 0) && table) {
+		let hasInitialVisibility = false
+		if (initialColumnVisibility) {
+			for (const _ in initialColumnVisibility) {
+				hasInitialVisibility = true
+				break
+			}
+		}
+		if ((!initialColumnVisibility || !hasInitialVisibility) && table) {
 			applyPreset('essential')
 		}
 	}, [initialColumnVisibility, table, applyPreset])

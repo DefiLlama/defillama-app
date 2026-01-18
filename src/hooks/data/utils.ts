@@ -196,7 +196,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 			}
 		}
 		if (obj?.oraclesByChain) {
-			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+			for (const k in obj.oraclesByChain as Record<string, string[]>) {
 				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
 				for (const o of obj.oraclesByChain[k] || []) {
 					set.add(o)

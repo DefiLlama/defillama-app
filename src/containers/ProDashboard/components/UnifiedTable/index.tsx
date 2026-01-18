@@ -26,23 +26,35 @@ import { sanitizeRowHeaders } from './utils/rowHeaders'
 
 const arraysEqual = (a: string[], b: string[]) => {
 	if (a.length !== b.length) return false
-	return a.every((value, index) => value === b[index])
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+	return true
 }
 
+// Count keys in 'a' while comparing values, then verify 'b' has the same count
 const recordsEqual = (a: Record<string, boolean>, b: Record<string, boolean>) => {
-	const aKeys = Object.keys(a)
-	const bKeys = Object.keys(b)
-	if (aKeys.length !== bKeys.length) return false
-	return aKeys.every((key) => a[key] === b[key])
+	let count = 0
+	for (const key in a) {
+		if (a[key] !== b[key]) return false
+		count++
+	}
+	for (const _ in b) {
+		if (--count < 0) return false
+	}
+	return count === 0
 }
 
 const sortingEquals = (a: SortingState, b: SortingState) => {
 	if (a.length !== b.length) return false
-	return a.every((value, index) => {
-		const other = b[index]
-		if (!other) return false
-		return value.id === other.id && Boolean(value.desc) === Boolean(other.desc)
-	})
+	for (let i = 0; i < a.length; i++) {
+		const value = a[i]
+		const other = b[i]
+		if (!other || value.id !== other.id || Boolean(value.desc) !== Boolean(other.desc)) {
+			return false
+		}
+	}
+	return true
 }
 
 const CSV_PERCENT_COLUMNS = new Set([
@@ -102,14 +114,16 @@ const PROTOCOL_GROUPING_OPTIONS: RowGroupingOption[] = [
 ]
 
 const rowHeadersMatch = (a: UnifiedRowHeaderType[], b: UnifiedRowHeaderType[]) => {
-	if (a.length !== b.length) {
-		return false
+	if (a.length !== b.length) return false
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
 	}
-	return a.every((value, index) => value === b[index])
+	return true
 }
 
 const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
 	const result: Record<string, unknown> = {}
+	let hasKeys = false
 	for (const key in filters) {
 		const value = filters[key]
 		if (value === undefined || value === null) {
@@ -118,29 +132,29 @@ const sanitizeFilters = (filters: TableFilters): TableFilters | undefined => {
 		if (typeof value === 'boolean') {
 			if (value === true) {
 				result[key] = value
+				hasKeys = true
 			}
 			continue
 		}
 		if (typeof value === 'string') {
 			if (value.trim().length > 0) {
 				result[key] = value
+				hasKeys = true
 			}
 			continue
 		}
 		if (Array.isArray(value)) {
 			if (value.length > 0) {
 				result[key] = value
+				hasKeys = true
 			}
 			continue
 		}
 		result[key] = value
+		hasKeys = true
 	}
 
-	if (!Object.keys(result).length) {
-		return undefined
-	}
-
-	return result as TableFilters
+	return hasKeys ? (result as TableFilters) : undefined
 }
 
 const metricFromColumn = (columnId: string) => columnId
@@ -367,7 +381,15 @@ export const UnifiedTable = memo(function UnifiedTable({
 		if (!canEditFilters) {
 			return
 		}
-		if (!config.filters || !Object.keys(config.filters).length) {
+		if (!config.filters) {
+			return
+		}
+		let hasFilters = false
+		for (const _ in config.filters) {
+			hasFilters = true
+			break
+		}
+		if (!hasFilters) {
 			return
 		}
 		persistConfigChanges({ filters: undefined })

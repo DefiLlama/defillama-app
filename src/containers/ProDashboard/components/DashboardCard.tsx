@@ -60,9 +60,10 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 
 		const summary = sorted.map(([type, count]) => `${count} ${type}`).join(', ')
 
-		if (Object.keys(counts).length > 3) {
-			const remaining = Object.keys(counts).length - 3
-			return `${summary} +${remaining} more`
+		let countsLength = 0
+		for (const _ in counts) countsLength++
+		if (countsLength > 3) {
+			return `${summary} +${countsLength - 3} more`
 		}
 
 		return summary

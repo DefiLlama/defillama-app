@@ -150,20 +150,28 @@ const getDangerousPositionsAmount = (
 	if (!selectedSeries) {
 		dangerousPositionsAmount = data.dangerousPositionsAmount
 	} else if (stackBy === 'chains') {
-		for (const chain of Object.keys(selectedSeries).filter((chain) => selectedSeries[chain])) {
+		for (const chain in selectedSeries) {
+			if (!selectedSeries[chain]) continue
 			const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
 			const binSize = data.chartDataBins.chains[_chain]?.binSize ?? 0
-			dangerousPositionsAmount += Object.entries(data.chartDataBins.chains[_chain]?.bins ?? {})
-				.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-				.reduce((acc, [, value]) => acc + value['usd'], 0)
+			const bins = data.chartDataBins.chains[_chain]?.bins ?? {}
+			for (const bin in bins) {
+				if (binSize * parseInt(bin) >= priceThreshold) {
+					dangerousPositionsAmount += bins[bin]['usd']
+				}
+			}
 		}
 	} else {
-		for (const protocol of Object.keys(selectedSeries).filter((protocol) => selectedSeries[protocol])) {
+		for (const protocol in selectedSeries) {
+			if (!selectedSeries[protocol]) continue
 			const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
 			const binSize = data.chartDataBins.protocols[_protocol]?.binSize ?? 0
-			dangerousPositionsAmount += Object.entries(data.chartDataBins.protocols[_protocol]?.bins ?? {})
-				.filter(([bin]) => binSize * parseInt(bin) >= priceThreshold)
-				.reduce((acc, [, value]) => acc + value['usd'], 0)
+			const bins = data.chartDataBins.protocols[_protocol]?.bins ?? {}
+			for (const bin in bins) {
+				if (binSize * parseInt(bin) >= priceThreshold) {
+					dangerousPositionsAmount += bins[bin]['usd']
+				}
+			}
 		}
 	}
 	return dangerousPositionsAmount

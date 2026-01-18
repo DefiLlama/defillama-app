@@ -307,10 +307,22 @@ export function ChainsDataset({
 			instance.setColumnOrder(defaultOrder)
 		}
 
-		if (savedColumnVisibility && Object.keys(savedColumnVisibility).length > 0) {
+		let hasSavedVisibility = false
+		if (savedColumnVisibility) {
+			for (const _ in savedColumnVisibility) {
+				hasSavedVisibility = true
+				break
+			}
+		}
+		let hasCurrentVisibility = false
+		for (const _ in columnVisibility) {
+			hasCurrentVisibility = true
+			break
+		}
+		if (savedColumnVisibility && hasSavedVisibility) {
 			setColumnVisibility(savedColumnVisibility)
 			instance.setColumnVisibility(savedColumnVisibility)
-		} else if (Object.keys(columnVisibility).length === 0 && selectedPreset === 'essential') {
+		} else if (!hasCurrentVisibility && selectedPreset === 'essential') {
 			const presetColumns = columnPresets['essential']
 			if (presetColumns) {
 				const allColumns = instance.getAllColumns()
