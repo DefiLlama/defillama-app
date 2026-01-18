@@ -153,8 +153,8 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 				const agg = tmp[slug]
 				const builderMetrics = new Set<BuilderMetric>()
 				for (const metric in PROTOCOL_FLAG_BY_BUILDER_METRIC) {
-					const flagKey = PROTOCOL_FLAG_BY_BUILDER_METRIC[metric]
-					if (agg.flags?.[flagKey]) builderMetrics.add(metric)
+					const flagKey = PROTOCOL_FLAG_BY_BUILDER_METRIC[metric as BuilderMetric]
+					if (agg.flags?.[flagKey]) builderMetrics.add(metric as BuilderMetric)
 				}
 				const record: ProtocolRecord = {
 					slug,
