@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -131,58 +131,61 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const handleSubscribe = async (
-		paymentMethod: 'stripe' | 'llamapay',
-		type: 'api' | 'llamafeed',
-		onSuccess?: (checkoutUrl: string) => void,
-		billingInterval: 'year' | 'month' = 'month',
-		useEmbedded: boolean = false,
-		isTrial: boolean = false
-	) => {
-		if (!isAuthenticated) {
-			toast.error('Please sign in to subscribe')
-			return
-		}
-
-		try {
-			if (paymentMethod === 'stripe') {
-				setIsPayingWithStripe(true)
-			} else {
-				setIsPayingWithLlamapay(true)
+	const handleSubscribe = useCallback(
+		async (
+			paymentMethod: 'stripe' | 'llamapay',
+			type: 'api' | 'llamafeed',
+			onSuccess?: (checkoutUrl: string) => void,
+			billingInterval: 'year' | 'month' = 'month',
+			useEmbedded: boolean = false,
+			isTrial: boolean = false
+		) => {
+			if (!isAuthenticated) {
+				toast.error('Please sign in to subscribe')
+				return
 			}
 
-			const subscriptionData: SubscriptionRequest = {
-				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
-				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
-				provider: paymentMethod,
-				subscriptionType: type || 'api',
-				billingInterval,
-				isTrial
+			try {
+				if (paymentMethod === 'stripe') {
+					setIsPayingWithStripe(true)
+				} else {
+					setIsPayingWithLlamapay(true)
+				}
+
+				const subscriptionData: SubscriptionRequest = {
+					redirectUrl: `${window.location.origin}/subscription?subscription=success`,
+					cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
+					provider: paymentMethod,
+					subscriptionType: type || 'api',
+					billingInterval,
+					isTrial
+				}
+
+				queryClient.setQueryData(['subscription', user?.id], defaultInactiveSubscription)
+				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+
+				const result = await createSubscription.mutateAsync(subscriptionData)
+
+				// For embedded mode, return the result instead of redirecting
+				if (useEmbedded) {
+					return result
+				}
+
+				// Navigate to checkout URL in same window
+				if (result.checkoutUrl) {
+					onSuccess?.(result.checkoutUrl)
+					window.location.href = result.checkoutUrl
+				}
+			} catch (error) {
+				console.log('Subscription error:', error)
+				throw error
+			} finally {
+				setIsPayingWithStripe(false)
+				setIsPayingWithLlamapay(false)
 			}
-
-			queryClient.setQueryData(['subscription', user?.id, type], defaultInactiveSubscription)
-			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-
-			const result = await createSubscription.mutateAsync(subscriptionData)
-
-			// For embedded mode, return the result instead of redirecting
-			if (useEmbedded) {
-				return result
-			}
-
-			// Navigate to checkout URL in same window
-			if (result.checkoutUrl) {
-				onSuccess?.(result.checkoutUrl)
-				window.location.href = result.checkoutUrl
-			}
-		} catch (error) {
-			console.log('Subscription error:', error)
-			throw error
-		} finally {
-			setIsPayingWithStripe(false)
-			setIsPayingWithLlamapay(false)
-		}
-	}
+		},
+		[isAuthenticated, queryClient, user?.id, createSubscription]
+	)
 
 	const subscriptionQuery = useQuery({
 		queryKey: ['subscription', user?.id],
@@ -235,7 +238,11 @@ export const useSubscribe = () => {
 				const newApiKey = data.apiKey?.api_key ?? null
 				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
 				if (newApiKey !== currentApiKey) {
-					window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					if (newApiKey === null) {
+						window.localStorage.removeItem(API_KEY_LOCAL_STORAGE_KEY)
+					} else {
+						window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					}
 					window.dispatchEvent(new Event(API_KEY_CHANGE_LISTENER_KEY))
 				}
 				return newApiKey
@@ -259,7 +266,11 @@ export const useSubscribe = () => {
 				const newApiKey = data.apiKey ?? null
 				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
 				if (newApiKey !== currentApiKey) {
-					window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					if (newApiKey === null) {
+						window.localStorage.removeItem(API_KEY_LOCAL_STORAGE_KEY)
+					} else {
+						window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+					}
 					window.dispatchEvent(new Event(API_KEY_CHANGE_LISTENER_KEY))
 				}
 				return newApiKey
@@ -282,14 +293,6 @@ export const useSubscribe = () => {
 	} = useQuery<Credits>({
 		queryKey: ['credits', user?.id, apiKey],
 		queryFn: async () => {
-			if (!isAuthenticated) {
-				throw new Error('Not authenticated')
-			}
-
-			if (router.pathname !== '/account') {
-				return { credits: 0, maxCredits: 0, monthKey: '' }
-			}
-
 			const data = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
 				method: 'GET'
 			})
@@ -337,7 +340,7 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const createPortalSession = async () => {
+	const createPortalSession = useCallback(async () => {
 		if (!isAuthenticated) {
 			return null
 		}
@@ -351,16 +354,16 @@ export const useSubscribe = () => {
 		} catch {
 			return null
 		}
-	}
+	}, [isAuthenticated, createPortalSessionMutation])
 
-	const getPortalSessionUrl = async () => {
+	const getPortalSessionUrl = useCallback(async () => {
 		if (!isAuthenticated) {
 			throw new Error('Not authenticated')
 		}
 
 		const url = await createPortalSessionMutation.mutateAsync()
 		return url
-	}
+	}, [isAuthenticated, createPortalSessionMutation])
 
 	const enableOverageMutation = useMutation({
 		mutationFn: async () => {
@@ -385,7 +388,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: () => {
 			toast.success('Overage has been enabled successfully')
-			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id, 'api'] })
+			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
@@ -393,7 +396,7 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const enableOverage = async () => {
+	const enableOverage = useCallback(async () => {
 		if (!isAuthenticated) {
 			toast.error('Please sign in to enable overage')
 			return
@@ -409,7 +412,7 @@ export const useSubscribe = () => {
 		} catch (error) {
 			console.log('Enable overage error:', error)
 		}
-	}
+	}, [isAuthenticated, apiSubscription.status, enableOverageMutation])
 
 	return {
 		handleSubscribe,
