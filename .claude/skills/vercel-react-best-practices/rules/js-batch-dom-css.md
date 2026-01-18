@@ -13,11 +13,11 @@ Avoid changing styles one property at a time. Group multiple CSS changes togethe
 
 ```typescript
 function updateElementStyles(element: HTMLElement) {
-	// Each line triggers a reflow
-	element.style.width = '100px'
-	element.style.height = '200px'
-	element.style.backgroundColor = 'blue'
-	element.style.border = '1px solid black'
+  // Each line triggers a reflow
+  element.style.width = '100px'
+  element.style.height = '200px'
+  element.style.backgroundColor = 'blue'
+  element.style.border = '1px solid black'
 }
 ```
 
@@ -42,7 +42,7 @@ function updateElementStyles(element: HTMLElement) {
 
 ```typescript
 function updateElementStyles(element: HTMLElement) {
-	element.style.cssText = `
+  element.style.cssText = `
     width: 100px;
     height: 200px;
     background-color: blue;
@@ -56,22 +56,26 @@ function updateElementStyles(element: HTMLElement) {
 ```tsx
 // Incorrect: changing styles one by one
 function Box({ isHighlighted }: { isHighlighted: boolean }) {
-	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		if (ref.current && isHighlighted) {
-			ref.current.style.width = '100px'
-			ref.current.style.height = '200px'
-			ref.current.style.backgroundColor = 'blue'
-		}
-	}, [isHighlighted])
-
-	return <div ref={ref}>Content</div>
+  const ref = useRef<HTMLDivElement>(null)
+  
+  useEffect(() => {
+    if (ref.current && isHighlighted) {
+      ref.current.style.width = '100px'
+      ref.current.style.height = '200px'
+      ref.current.style.backgroundColor = 'blue'
+    }
+  }, [isHighlighted])
+  
+  return <div ref={ref}>Content</div>
 }
 
 // Correct: toggle class
 function Box({ isHighlighted }: { isHighlighted: boolean }) {
-	return <div className={isHighlighted ? 'highlighted-box' : ''}>Content</div>
+  return (
+    <div className={isHighlighted ? 'highlighted-box' : ''}>
+      Content
+    </div>
+  )
 }
 ```
 
