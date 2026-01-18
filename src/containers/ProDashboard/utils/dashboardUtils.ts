@@ -7,7 +7,13 @@ export function cleanItemsForSaving(items: DashboardItemConfig[]): DashboardItem
 	return items.map((item) => {
 		if (item.kind === 'chart') {
 			// Remove runtime properties from chart config
-			const { data: _data, isLoading: _isLoading, hasError: _hasError, refetch: _refetch, ...chartConfigToSave } = item as ChartConfig
+			const {
+				data: _data,
+				isLoading: _isLoading,
+				hasError: _hasError,
+				refetch: _refetch,
+				...chartConfigToSave
+			} = item as ChartConfig
 			return chartConfigToSave
 		} else if (item.kind === 'table') {
 			// Table configs don't have runtime data to remove

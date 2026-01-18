@@ -127,7 +127,10 @@ export function DiscoverySection({
 					className="no-scrollbar flex snap-x snap-mandatory items-stretch gap-4 overflow-x-auto pb-2 md:snap-none"
 				>
 					{dashboards.map((dashboard) => (
-						<div key={dashboard.id} className="w-[300px] shrink-0 snap-start scroll-ml-4 md:w-[320px] md:snap-align-none">
+						<div
+							key={dashboard.id}
+							className="w-[300px] shrink-0 snap-start scroll-ml-4 md:w-[320px] md:snap-align-none"
+						>
 							<DashboardCard dashboard={dashboard} onTagClick={onTagClick} viewMode="grid" className="h-full" />
 						</div>
 					))}

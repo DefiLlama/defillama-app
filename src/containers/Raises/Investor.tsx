@@ -57,9 +57,7 @@ function RaisesTable({ raises, prepareCsv }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width
-			? (raisesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = raisesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder
 
 		instance.setColumnOrder(order)
 	}, [width, instance])

@@ -4,7 +4,15 @@ import { getTvlSplitData } from '~/server/protocolSplit/tvlSplit'
 
 async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { chains, limit = '10', categories, groupByParent, filterMode, chainFilterMode, categoryFilterMode } = req.query
+		const {
+			chains,
+			limit = '10',
+			categories,
+			groupByParent,
+			filterMode,
+			chainFilterMode,
+			categoryFilterMode
+		} = req.query
 
 		let chainsArray = chains ? (chains as string).split(',').filter(Boolean) : []
 		if (chainsArray.length === 0 || chainsArray.some((c) => c.toLowerCase() === 'all')) {
@@ -21,7 +29,14 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 		const chainMode = resolveMode(chainFilterMode as string | undefined, filterMode as string | undefined)
 		const categoryMode = resolveMode(categoryFilterMode as string | undefined, filterMode as string | undefined)
 
-		const result = await getTvlSplitData(chainsArray, categoriesArray, topN, shouldGroupByParent, chainMode, categoryMode)
+		const result = await getTvlSplitData(
+			chainsArray,
+			categoriesArray,
+			topN,
+			shouldGroupByParent,
+			chainMode,
+			categoryMode
+		)
 
 		res.status(200).json(result)
 	} catch (error) {
@@ -35,8 +50,16 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { dataType, chains, limit = '10', categories, groupByParent, filterMode, chainFilterMode, categoryFilterMode } =
-			req.query
+		const {
+			dataType,
+			chains,
+			limit = '10',
+			categories,
+			groupByParent,
+			filterMode,
+			chainFilterMode,
+			categoryFilterMode
+		} = req.query
 		const metric = dataType as string
 
 		if (metric === 'tvl') {

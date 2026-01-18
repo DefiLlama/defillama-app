@@ -13,15 +13,15 @@ Move `await` operations into the branches where they're actually used to avoid b
 
 ```typescript
 async function handleRequest(userId: string, skipProcessing: boolean) {
-  const userData = await fetchUserData(userId)
-  
-  if (skipProcessing) {
-    // Returns immediately but still waited for userData
-    return { skipped: true }
-  }
-  
-  // Only this branch uses userData
-  return processUserData(userData)
+	const userData = await fetchUserData(userId)
+
+	if (skipProcessing) {
+		// Returns immediately but still waited for userData
+		return { skipped: true }
+	}
+
+	// Only this branch uses userData
+	return processUserData(userData)
 }
 ```
 
@@ -29,14 +29,14 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
 
 ```typescript
 async function handleRequest(userId: string, skipProcessing: boolean) {
-  if (skipProcessing) {
-    // Returns immediately without waiting
-    return { skipped: true }
-  }
-  
-  // Fetch only when needed
-  const userData = await fetchUserData(userId)
-  return processUserData(userData)
+	if (skipProcessing) {
+		// Returns immediately without waiting
+		return { skipped: true }
+	}
+
+	// Fetch only when needed
+	const userData = await fetchUserData(userId)
+	return processUserData(userData)
 }
 ```
 
@@ -45,35 +45,35 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
 ```typescript
 // Incorrect: always fetches permissions
 async function updateResource(resourceId: string, userId: string) {
-  const permissions = await fetchPermissions(userId)
-  const resource = await getResource(resourceId)
-  
-  if (!resource) {
-    return { error: 'Not found' }
-  }
-  
-  if (!permissions.canEdit) {
-    return { error: 'Forbidden' }
-  }
-  
-  return await updateResourceData(resource, permissions)
+	const permissions = await fetchPermissions(userId)
+	const resource = await getResource(resourceId)
+
+	if (!resource) {
+		return { error: 'Not found' }
+	}
+
+	if (!permissions.canEdit) {
+		return { error: 'Forbidden' }
+	}
+
+	return await updateResourceData(resource, permissions)
 }
 
 // Correct: fetches only when needed
 async function updateResource(resourceId: string, userId: string) {
-  const resource = await getResource(resourceId)
-  
-  if (!resource) {
-    return { error: 'Not found' }
-  }
-  
-  const permissions = await fetchPermissions(userId)
-  
-  if (!permissions.canEdit) {
-    return { error: 'Forbidden' }
-  }
-  
-  return await updateResourceData(resource, permissions)
+	const resource = await getResource(resourceId)
+
+	if (!resource) {
+		return { error: 'Not found' }
+	}
+
+	const permissions = await fetchPermissions(userId)
+
+	if (!permissions.canEdit) {
+		return { error: 'Forbidden' }
+	}
+
+	return await updateResourceData(resource, permissions)
 }
 ```
 

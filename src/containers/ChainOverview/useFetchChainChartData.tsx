@@ -12,6 +12,7 @@ import { CACHE_SERVER, CHAINS_ASSETS_CHART, RAISES_API } from '~/constants'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { getAdapterChainChartData, getAdapterProtocolChartData } from '~/containers/DimensionAdapters/queries'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
+import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import { getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { ChainChartLabels } from './constants'
@@ -289,9 +290,7 @@ export const useFetchChainChartData = ({
 	})
 
 	const { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled } = useMemo(() => {
-		const toggledTvlSettings = Object.entries(tvlSettings)
-			.filter(([_key, value]) => value)
-			.map(([key]) => key)
+		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledTvlSettings.length === 0) {
 			const { totalValueUSD, tvlPrevDay } = getTvl24hChange(tvlChart)
@@ -299,6 +298,8 @@ export const useFetchChainChartData = ({
 			const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
 			return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
 		}
+
+		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 
 		const store: Record<string, number> = {}
 		for (const [date, tvl] of tvlChart) {
@@ -310,7 +311,7 @@ export const useFetchChainChartData = ({
 		}
 
 		// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
-		if (toggledTvlSettings.includes('liquidstaking') && toggledTvlSettings.includes('doublecounted')) {
+		if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
 			for (const date in store) {
 				store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 			}

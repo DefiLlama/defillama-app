@@ -24,9 +24,7 @@ export const withPerformanceLogging = <T extends object>(
 
 				if (elapsed > 10_000) {
 					await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [Date.now(), `${elapsed}ms`])
-					postRuntimeLogs(
-						`[PAGE_BUILD] [${elapsed}ms] < ${filename} >` + (params ? ' ' + JSON.stringify(params) : '')
-					)
+					postRuntimeLogs(`[PAGE_BUILD] [${elapsed}ms] < ${filename} >` + (params ? ' ' + JSON.stringify(params) : ''))
 				}
 
 				return props

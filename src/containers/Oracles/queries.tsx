@@ -1,7 +1,7 @@
 import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import { ORACLE_API, PROTOCOLS_API } from '~/constants'
 import { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
-import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -120,7 +120,7 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		const latestTvlByChain: Record<string, number> = {}
 		for (const oracle in latestOracleTvlByChain) {
 			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS_SET.has(ochain)) {
+				if (!ochain.includes('-') && !TVL_SETTINGS_KEYS_SET.has(ochain)) {
 					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
 				}
 			}
@@ -246,7 +246,7 @@ export async function getOraclePageDataByChain(chain: string) {
 		const latestTvlByChain: Record<string, number> = {}
 		for (const oracle in latestOracleTvlByChain) {
 			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !DEFI_SETTINGS_KEYS_SET.has(ochain)) {
+				if (!ochain.includes('-') && !TVL_SETTINGS_KEYS_SET.has(ochain)) {
 					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
 				}
 			}

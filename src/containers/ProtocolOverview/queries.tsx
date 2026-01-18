@@ -21,7 +21,7 @@ import {
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
-import { DEFI_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, firstDayOfMonth, firstDayOfQuarter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
@@ -121,7 +121,7 @@ export const getProtocolMetrics = ({
 		if (goodChart) {
 			tvlChartExist = true
 		}
-		if (chain.includes('-') || chain === 'offers' || DEFI_SETTINGS_KEYS_SET.has(chain)) {
+		if (chain.includes('-') || chain === 'offers' || TVL_SETTINGS_KEYS_SET.has(chain)) {
 			continue
 		}
 		if (goodChart) {
@@ -667,7 +667,7 @@ export const getProtocolOverviewPageData = async ({
 			if (chainOrTvlKey.includes('-') || chainOrTvlKey === 'offers') continue
 			if (!protocolData.chainTvls[chainOrTvlKey].tvl?.length) continue
 
-			if (DEFI_SETTINGS_KEYS_SET.has(chainOrTvlKey)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chainOrTvlKey)) {
 				if (!extraTvlCharts[chainOrTvlKey]) {
 					extraTvlCharts[chainOrTvlKey] = {}
 				}
@@ -691,7 +691,7 @@ export const getProtocolOverviewPageData = async ({
 	const chains = []
 	for (const chain in protocolData.currentChainTvls ?? {}) {
 		if (chain.includes('-') || chain === 'offers') continue
-		if (DEFI_SETTINGS_KEYS_SET.has(chain)) continue
+		if (TVL_SETTINGS_KEYS_SET.has(chain)) continue
 		if (protocolData.currentChainTvls[chain] != null) {
 			chains.push([chain, protocolData.currentChainTvls[chain]])
 		}

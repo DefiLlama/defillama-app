@@ -112,7 +112,7 @@ export const PeggedAssetInfo = ({
 		[chainsData, chainsUnique]
 	)
 
-	const extraPeggeds = [UNRELEASED]
+	const extraPeggeds = [UNRELEASED] as const
 	const [extraPeggedsEnabled, updater] = useLocalStorageSettingsManager('stablecoins')
 
 	const chainTotals = useCalcCirculating(chainCirculatings)

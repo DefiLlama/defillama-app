@@ -96,12 +96,12 @@ export function TableWithSearch({
 
 	React.useEffect(() => {
 		if (columnSizes && Array.isArray(columnSizes)) {
-			const colSize = width ? columnSizes.find((size) => width > +size[0]) : columnSizes[0]
+			const colSize = columnSizes.find((size) => width > +size[0]) ?? columnSizes[0]
 			instance.setColumnSizing(colSize[1])
 		}
 
 		if (columnOrders && Array.isArray(columnOrders)) {
-			const colOrder = width ? columnOrders.find((size) => width > +size[0]) : columnOrders[0]
+			const colOrder = columnOrders.find((size) => width > +size[0]) ?? columnOrders[0]
 			instance.setColumnOrder(colOrder[1])
 		}
 	}, [instance, width, columnOrders, columnSizes])

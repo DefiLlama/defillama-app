@@ -1,4 +1,4 @@
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { ChainChartLabels } from './constants'
 
 export interface IChainMetadata {
@@ -138,7 +138,7 @@ export interface ILiteProtocol {
 	tvlPrevWeek: number
 	tvlPrevMonth: number
 	chainTvls: Record<
-		(typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS],
+		(typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS],
 		{
 			tvl: number
 			tvlPrevDay: number
@@ -174,7 +174,7 @@ export interface ILiteParentProtocol {
 	mcap: number
 }
 
-export type TVL_TYPES = (typeof DEFI_SETTINGS)[keyof typeof DEFI_SETTINGS] | 'default' | 'excludeParent'
+export type TVL_TYPES = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS] | 'default' | 'excludeParent'
 
 export interface IChildProtocol {
 	name: string

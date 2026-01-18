@@ -162,7 +162,19 @@ export default function PieChart({
 			instance.dispose()
 			handleChartReady(null)
 		}
-	}, [id, series, isDark, title, valueSymbol, showLegend, chartData, legendPosition, legendTextStyle, isSmall, handleChartReady])
+	}, [
+		id,
+		series,
+		isDark,
+		title,
+		valueSymbol,
+		showLegend,
+		chartData,
+		legendPosition,
+		legendTextStyle,
+		isSmall,
+		handleChartReady
+	])
 
 	return (
 		<div className="relative" {...props}>

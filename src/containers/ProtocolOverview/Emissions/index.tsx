@@ -6,6 +6,7 @@ import sum from 'lodash/sum'
 import Link from 'next/link'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useGeckoId, useGetProtocolEmissions, usePriceChart } from '~/api/categories/protocols/client'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LazyChart } from '~/components/LazyChart'
@@ -17,7 +18,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import Pagination from './Pagination'
 import { IEmission } from './types'
 
@@ -282,14 +282,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const pieChartLegendPosition = useMemo(() => {
-		if (!width) return { left: 'right', orient: 'vertical' as const }
 		if (width < 640) return { left: 'center', top: 'bottom', orient: 'horizontal' as const }
 		return { left: 'right', top: 'center', orient: 'vertical' as const }
 	}, [width])
 
 	const pieChartLegendTextStyle = useMemo(
 		() => ({
-			fontSize: !width ? 20 : width < 640 ? 12 : 20
+			fontSize: width < 640 ? 12 : 20
 		}),
 		[width]
 	)

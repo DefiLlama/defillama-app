@@ -3,12 +3,11 @@ import { matchSorter } from 'match-sorter'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
+import type { SelectOption, SelectValues } from './selectTypes'
 import { Tooltip } from './Tooltip'
 
 interface ISelectWithCombobox {
-	allValues:
-		| Array<{ key: string; name: string; help?: string; isCustom?: boolean; customIndex?: number }>
-		| Array<string>
+	allValues: SelectValues
 	selectedValues: Array<string>
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string>>>
 	label: string
@@ -48,12 +47,12 @@ export function SelectWithCombobox({
 		if (!deferredSearchValue) return allValues
 
 		if (valuesAreAnArrayOfStrings) {
-			return matchSorter(allValues as Array<string>, deferredSearchValue, {
+			return matchSorter(allValues as ReadonlyArray<string>, deferredSearchValue, {
 				threshold: matchSorter.rankings.CONTAINS
 			})
 		}
 
-		return matchSorter(allValues as Array<{ name: string }>, deferredSearchValue, {
+		return matchSorter(allValues as ReadonlyArray<SelectOption>, deferredSearchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

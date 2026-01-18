@@ -5,7 +5,11 @@ import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { ILineAndBarChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	CHAINS_CATEGORY_GROUP_SETTINGS,
+	TVL_SETTINGS_KEYS,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formatNum, getPercentChange, toNiceCsvDate } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
@@ -114,9 +118,7 @@ const useFormatChartData = ({
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const data = React.useMemo(() => {
 		const charts: ILineAndBarChartProps['charts'] = {}
-		const toggledTvlSettings = Object.entries(tvlSettings)
-			.filter(([_, value]) => value)
-			.map(([key]) => key)
+		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 		const recentTvlByChain: Record<string, number> = {}
 
 		for (const chain in tvlChartsByChain['tvl']) {
@@ -174,13 +176,12 @@ export const useGroupAndFormatChains = ({
 
 	return React.useMemo(() => {
 		const showByGroup = ['All', 'Non-EVM'].includes(category) && !hideGroupBy
-		const toggledTvlSettings = Object.entries(tvlSettings)
-			.filter(([_, value]) => value)
-			.map(([key]) => key)
-		const toggledChainsGroupbyParent = Object.entries(chainsGroupbyParent)
-			.filter(([_, value]) => value)
-			.map(([key]) => key)
+		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
+		const toggledChainsGroupbyParent = CHAINS_CATEGORY_GROUP_SETTINGS.filter(
+			(item) => chainsGroupbyParent[item.key]
+		).map((item) => item.key)
 		const { minTvl, maxTvl } = JSON.parse(minMaxTvl)
+		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 
 		const data = chains
 			.map((chain) => {
@@ -196,7 +197,7 @@ export const useGroupAndFormatChains = ({
 					finalTvlPrevMonth = (finalTvlPrevMonth ?? 0) + (chain.extraTvl?.[key]?.tvlPrevMonth ?? 0)
 				}
 
-				if (['doublecounted', 'liquidstaking'].every((key) => toggledTvlSettings.includes(key))) {
+				if (toggledTvlSettingsSet.has('doublecounted') && toggledTvlSettingsSet.has('liquidstaking')) {
 					finalTvl = (finalTvl ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvl ?? 0)
 					finalTvlPrevDay = (finalTvlPrevDay ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvlPrevDay ?? 0)
 					finalTvlPrevWeek = (finalTvlPrevWeek ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvlPrevWeek ?? 0)

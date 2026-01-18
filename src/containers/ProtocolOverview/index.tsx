@@ -11,7 +11,12 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	TVL_SETTINGS_KEYS_SET,
+	FEES_SETTINGS,
+	isTvlSettingsKey,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
@@ -161,7 +166,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 		const oracleTvsByChainMap = {}
 
 		for (const chain in props.currentTvlByChain ?? {}) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					toggleOptions.push(option)
@@ -176,7 +181,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
@@ -188,7 +194,7 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 
 		// Process oracle TVS by chain
 		for (const chain in props.oracleTvs ?? {}) {
-			if (DEFI_SETTINGS_KEYS_SET.has(chain)) {
+			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
 				const option = tvlOptionsMap.get(chain as any)
 				if (option && chain !== 'offers') {
 					if (!toggleOptions.some((o) => o.key === option.key)) {
@@ -205,7 +211,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
 				continue
 			}

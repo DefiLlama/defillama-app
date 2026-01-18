@@ -10,9 +10,9 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import * as React from 'react'
-import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { ICollectionScatterChartProps } from './types'
 

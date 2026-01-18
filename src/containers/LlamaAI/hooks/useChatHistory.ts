@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useState, useSyncExternalStore } from 'react'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useMedia } from '~/hooks/useMedia'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
@@ -308,13 +309,12 @@ export function useChatHistory() {
 
 	const toggleSidebar = useCallback(() => {
 		const currentVisible = localStorage.getItem('llamaai-sidebar-hidden') === 'true'
-		localStorage.setItem('llamaai-sidebar-hidden', String(!currentVisible))
-		window.dispatchEvent(new Event('chatHistorySidebarChange'))
+		setStorageItem('llamaai-sidebar-hidden', String(!currentVisible))
 	}, [])
 
 	const sidebarHidden = useSyncExternalStore(
-		subscribeToChatHistorySidebar,
-		() => localStorage.getItem('llamaai-sidebar-hidden') ?? 'true',
+		(callback) => subscribeToStorageKey('llamaai-sidebar-hidden', callback),
+		() => getStorageItem('llamaai-sidebar-hidden', 'true') ?? 'true',
 		() => 'true'
 	)
 
@@ -342,13 +342,5 @@ export function useChatHistory() {
 		isRestoringSession,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending
-	}
-}
-
-function subscribeToChatHistorySidebar(callback: () => void) {
-	window.addEventListener('chatHistorySidebarChange', callback)
-
-	return () => {
-		window.removeEventListener('chatHistorySidebarChange', callback)
 	}
 }

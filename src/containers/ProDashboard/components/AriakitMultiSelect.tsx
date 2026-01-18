@@ -1,17 +1,12 @@
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
+import type { MultiSelectOption } from '~/components/selectTypes'
 import { LoadingSpinner } from './LoadingSpinner'
-
-export interface MultiSelectOption {
-	value: string
-	label: string
-	disabled?: boolean
-}
 
 interface AriakitMultiSelectProps {
 	label: string
-	options: MultiSelectOption[]
+	options: ReadonlyArray<MultiSelectOption>
 	selectedValues: string[]
 	onChange: (values: string[]) => void
 	placeholder?: string

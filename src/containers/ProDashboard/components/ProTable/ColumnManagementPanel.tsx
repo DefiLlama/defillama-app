@@ -175,15 +175,7 @@ export function ColumnManagementPanel({
 	}, [customColumnsForStandardView, percentageShareColumns])
 
 	// Helper component for column buttons
-	const ColumnButton = ({
-		column,
-		isActive,
-		isCustom
-	}: {
-		column: any
-		isActive: boolean
-		isCustom?: boolean
-	}) => {
+	const ColumnButton = ({ column, isActive, isCustom }: { column: any; isActive: boolean; isCustom?: boolean }) => {
 		const description = isCustom
 			? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
 			: metricDescriptions[column.key] || ''
@@ -390,9 +382,7 @@ export function ColumnManagementPanel({
 										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
 										if (!column) return null
 										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
-										return (
-											<ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} />
-										)
+										return <ColumnButton key={columnKey} column={column} isActive={true} isCustom={isCustom} />
 									})}
 							</div>
 						</div>

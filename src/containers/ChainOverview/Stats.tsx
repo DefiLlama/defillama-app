@@ -19,7 +19,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
@@ -167,12 +167,10 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			}
 
 			try {
+				const enabledParams = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key]).map((key) => `${key}=true`)
 				const url = `https://api.llama.fi/simpleChainDataset/${
 					chainsNamesMap[props.metadata.name] || props.metadata.name
-				}?${Object.entries(tvlSettings)
-					.filter((t) => t[1] === true)
-					.map((t) => `${t[0]}=true`)
-					.join('&')}`.replaceAll(' ', '%20')
+				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
 
 				const response = await fetch(url)
 

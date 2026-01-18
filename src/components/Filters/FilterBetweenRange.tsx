@@ -156,7 +156,7 @@ function Form({
 			<div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row">
 				<button
 					type="reset"
-					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-black/5 px-4 text-sm font-medium whitespace-nowrap transition-colors hover:bg-black/10 disabled:opacity-50 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:bg-white/20"
+					className="inline-flex h-9 w-full items-center justify-center rounded-md bg-black/5 px-4 text-sm font-medium whitespace-nowrap hover:bg-black/10 disabled:opacity-50 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:focus-visible:bg-white/20"
 				>
 					Clear
 				</button>
