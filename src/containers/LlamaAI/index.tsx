@@ -903,13 +903,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setMessages((prev) => [...result.messages, ...prev])
 			setPaginationState(result.pagination)
 
-			setTimeout(() => {
+			// Use RAF to batch layout reads/writes with browser paint cycle
+			requestAnimationFrame(() => {
 				if (scrollContainer) {
+					// Batch read: get both values in single layout calculation
 					const newScrollHeight = scrollContainer.scrollHeight
-					const heightDifference = newScrollHeight - previousScrollHeight
-					scrollContainer.scrollTop = scrollContainer.scrollTop + heightDifference
+					const currentScrollTop = scrollContainer.scrollTop
+					// Single write after reads
+					scrollContainer.scrollTop = currentScrollTop + (newScrollHeight - previousScrollHeight)
 				}
-			}, 0)
+			})
 		} catch (error) {
 			console.log('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
