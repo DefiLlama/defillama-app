@@ -79,7 +79,10 @@ export function YieldsColumnManagementPanel({
 		const result: string[] = []
 		for (const key of yieldsColumnKeys) {
 			const metadata = yieldsColumnMetadata[key]
-			if (metadata.name.toLowerCase().includes(lowerSearch) || metadata.description.toLowerCase().includes(lowerSearch)) {
+			if (
+				metadata.name.toLowerCase().includes(lowerSearch) ||
+				metadata.description.toLowerCase().includes(lowerSearch)
+			) {
 				result.push(key)
 			}
 		}

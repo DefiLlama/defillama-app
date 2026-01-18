@@ -378,16 +378,16 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							<p className="text-red-500">To reduce costs, please filter further.</p>
 						) : null}
 						{paymentLink ? (
-								<>
-									<button
-										onClick={() => window.open(paymentLink, '_blank')}
-										disabled={isSubmitting}
-										className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
-									>
-										{isSubmitting ? 'Processing...' : 'Go to Payment'}
-									</button>
-								</>
-							) : null}
+							<>
+								<button
+									onClick={() => window.open(paymentLink, '_blank')}
+									disabled={isSubmitting}
+									className="w-full rounded-md bg-(--primary) px-6 py-2 text-lg font-semibold text-white disabled:bg-(--bg-tertiary) disabled:text-(--text-tertiary)"
+								>
+									{isSubmitting ? 'Processing...' : 'Go to Payment'}
+								</button>
+							</>
+						) : null}
 					</div>
 				</div>
 			</div>

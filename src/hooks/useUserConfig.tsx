@@ -1,14 +1,65 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import {
+	readAppStorage,
+	readAppStorageRaw,
+	subscribeToLocalStorage,
+	THEME_SYNC_KEY,
+	WATCHLIST_KEYS,
+	type AppStorage,
+	type WatchlistStore,
+	writeAppStorage
+} from '~/contexts/LocalStorage'
+import { subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
-const DEFILLAMA = 'DEFILLAMA'
 const SYNC_DEBOUNCE_MS = 2000
+type UserConfig = Partial<AppStorage>
 
-type UserConfig = Record<string, any>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
+	if (!isRecord(value)) return null
+
+	const normalized: WatchlistStore = {}
+	for (const [portfolio, protocols] of Object.entries(value)) {
+		if (!isRecord(protocols)) continue
+		const normalizedProtocols: Record<string, string> = {}
+		for (const [slug, name] of Object.entries(protocols)) {
+			if (typeof name === 'string') {
+				normalizedProtocols[slug] = name
+			}
+		}
+		if (Object.keys(normalizedProtocols).length > 0) {
+			normalized[portfolio] = normalizedProtocols
+		}
+	}
+
+	return Object.keys(normalized).length > 0 ? normalized : null
+}
+
+const mergeWatchlists = (local: WatchlistStore | null, remote: WatchlistStore | null): WatchlistStore | null => {
+	if (!local && !remote) return null
+	if (!local) return remote
+	if (!remote) return local
+
+	const merged: WatchlistStore = { ...remote }
+	for (const [portfolio, protocols] of Object.entries(local)) {
+		merged[portfolio] = { ...(remote[portfolio] ?? {}), ...protocols }
+	}
+
+	return merged
+}
+
+const mergeSelectedPortfolio = (local: unknown, remote: unknown): string | undefined => {
+	if (typeof local === 'string' && local.length > 0) return local
+	if (typeof remote === 'string' && remote.length > 0) return remote
+	return undefined
+}
 
 export function useUserConfig() {
 	const { isAuthenticated, authorizedFetch } = useAuthContext()
@@ -23,7 +74,7 @@ export function useUserConfig() {
 		try {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
 			if (response?.ok) {
-				const config = await response.json()
+				const config: UserConfig = await response.json()
 
 				let hasConfig = false
 				for (const _ in config) {
@@ -33,12 +84,39 @@ export function useUserConfig() {
 				if (hasConfig) {
 					isSyncingRef.current = true
 
-					const currentLocal = localStorage.getItem(DEFILLAMA)
-					const localSettings = currentLocal ? JSON.parse(currentLocal) : {}
-					const mergedSettings = { ...localSettings, ...config }
+					const localSettings = readAppStorage()
+					const mergedSettings: AppStorage = { ...localSettings, ...config }
 
-					localStorage.setItem(DEFILLAMA, JSON.stringify(mergedSettings))
-					window.dispatchEvent(new Event('storage'))
+					const watchlistKeys = [
+						WATCHLIST_KEYS.DEFI_WATCHLIST,
+						WATCHLIST_KEYS.YIELDS_WATCHLIST,
+						WATCHLIST_KEYS.CHAINS_WATCHLIST
+					] as const
+
+					for (const key of watchlistKeys) {
+						const merged = mergeWatchlists(
+							normalizeWatchlistStore(localSettings[key]),
+							normalizeWatchlistStore(config[key])
+						)
+						if (merged) {
+							mergedSettings[key] = merged
+						}
+					}
+
+					const selectedKeys = [
+						WATCHLIST_KEYS.DEFI_SELECTED_PORTFOLIO,
+						WATCHLIST_KEYS.YIELDS_SELECTED_PORTFOLIO,
+						WATCHLIST_KEYS.CHAINS_SELECTED_PORTFOLIO
+					] as const
+
+					for (const key of selectedKeys) {
+						const mergedSelected = mergeSelectedPortfolio(localSettings[key], config[key])
+						if (mergedSelected) {
+							mergedSettings[key] = mergedSelected
+						}
+					}
+
+					writeAppStorage(mergedSettings)
 
 					setTimeout(() => {
 						isSyncingRef.current = false
@@ -120,11 +198,10 @@ export function useUserConfig() {
 		() =>
 			debounce(async () => {
 				try {
-					const currentSettings = localStorage.getItem(DEFILLAMA)
+					const currentSettings = readAppStorageRaw()
 					if (!currentSettings) return
 
-					const settings = JSON.parse(currentSettings)
-					await saveConfigAsyncRef.current(settings)
+					await saveConfigAsyncRef.current(readAppStorage())
 				} catch (error) {
 					console.log('Failed to sync settings:', error)
 				}
@@ -147,12 +224,12 @@ export function useUserConfig() {
 			return
 		}
 
-		window.addEventListener('storage', onStorageChange)
-		window.addEventListener('themeChange', onStorageChange)
+		const unsubscribeLocalStorage = subscribeToLocalStorage(onStorageChange)
+		const unsubscribeTheme = subscribeToStorageKey(THEME_SYNC_KEY, onStorageChange)
 
 		return () => {
-			window.removeEventListener('storage', onStorageChange)
-			window.removeEventListener('themeChange', onStorageChange)
+			unsubscribeLocalStorage()
+			unsubscribeTheme()
 			syncSettings.cancel()
 		}
 	}, [isAuthenticated, syncSettings])

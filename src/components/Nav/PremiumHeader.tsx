@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { BasicLink } from '~/components/Link'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 export const PremiumHeader = () => {
 	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()

@@ -6,7 +6,7 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
-import { DEFI_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -78,8 +78,8 @@ export default function ChainChartPage(props) {
 
 		const tvlSettings = {}
 
-		for (const setting in DEFI_SETTINGS) {
-			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+		for (const setting in TVL_SETTINGS) {
+			tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
 		}
 
 		const toggledCharts = props.charts.filter((tchart, index) =>

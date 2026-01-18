@@ -60,7 +60,8 @@ const COMMIT_COMMENT = process.argv[6]
 const COMMIT_AUTHOR = process.argv[7]
 const COMMIT_HASH = process.argv[8]
 
-let buildSummary = BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
+let buildSummary =
+	BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
 buildSummary += `\n📅 Build started at ${START_TIME}`
 if (BUILD_ID) {
 	buildSummary += `\n📦 Build ID: ${BUILD_ID}`

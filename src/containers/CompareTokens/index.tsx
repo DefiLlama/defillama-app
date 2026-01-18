@@ -26,10 +26,7 @@ export function CompareTokens({
 		[coinsData]
 	)
 	const protocolsByGeckoId = useMemo(
-		() =>
-			new Map<string, (typeof protocols)[number]>(
-				protocols.filter((p) => p.geckoId).map((p) => [p.geckoId!, p])
-			),
+		() => new Map<string, (typeof protocols)[number]>(protocols.filter((p) => p.geckoId).map((p) => [p.geckoId!, p])),
 		[protocols]
 	)
 	const protocolsByName = useMemo(

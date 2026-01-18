@@ -1,9 +1,9 @@
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import {
 	BAR_CHARTS,
@@ -430,7 +430,18 @@ export default function ChainLineBarChart({
 				onReady(null)
 			}
 		}
-	}, [id, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady, isThemeDark, chartData, hideDataZoom])
+	}, [
+		id,
+		defaultChartSettings,
+		series,
+		chartOptions,
+		unlockTokenSymbol,
+		allYAxis,
+		onReady,
+		isThemeDark,
+		chartData,
+		hideDataZoom
+	])
 
 	return (
 		<div

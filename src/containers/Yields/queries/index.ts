@@ -45,9 +45,7 @@ export async function getYieldPageData() {
 
 		if (rewardTokens?.length) {
 			let priceChainName = p.chain.toLowerCase()
-			priceChainName = priceChainMappingKeys.has(priceChainName)
-				? priceChainMapping[priceChainName]
-				: priceChainName
+			priceChainName = priceChainMappingKeys.has(priceChainName) ? priceChainMapping[priceChainName] : priceChainName
 
 			// using coingecko ids for projects on Neo, otherwise empty object
 			pricesList.push(
@@ -65,9 +63,7 @@ export async function getYieldPageData() {
 		let priceChainName = p.chain.toLowerCase()
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
 
-		priceChainName = priceChainMappingKeys.has(priceChainName)
-			? priceChainMapping[priceChainName]
-			: priceChainName
+		priceChainName = priceChainMappingKeys.has(priceChainName) ? priceChainMapping[priceChainName] : priceChainName
 
 		p['rewardTokensSymbols'] =
 			p.chain === 'Neo'

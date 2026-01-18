@@ -298,10 +298,7 @@ const proposalsSnapshotColumns: ColumnDef<IProposal>[] = [
 		id: 'state',
 		accessorFn: (row) => (row.state === 'closed' ? 0 : 1),
 		cell: (info) => (
-			<span
-				data-isactive={info.getValue() !== 0}
-				className="text-(--error) data-[isactive=true]:text-(--success)"
-			>
+			<span data-isactive={info.getValue() !== 0} className="text-(--error) data-[isactive=true]:text-(--success)">
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>
 		),

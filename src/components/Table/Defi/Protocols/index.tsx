@@ -17,7 +17,7 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
-import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { alphanumericFalsyLast } from '../../utils'
 import {
@@ -509,8 +509,8 @@ export function ProtocolsByChainTable({
 	useStickyHeader?: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
@@ -518,25 +518,21 @@ export function ProtocolsByChainTable({
 
 	const clearAllOptions = () => {
 		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 	const toggleAllOptions = () => {
 		const ops = JSON.stringify(Object.fromEntries(protocolsByChainTableColumns.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 
 	const addOption = (newOptions) => {
 		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, newOptions.includes(col.key)]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const addOnlyOneOption = (newOption) => {
 		const ops = Object.fromEntries(protocolsByChainTableColumns.map((col) => [col.key, col.key === newOption]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 	const setFilter = (key) => (newState) => {
 		const newOptions = Object.fromEntries(
@@ -550,8 +546,7 @@ export function ProtocolsByChainTable({
 			toggleAllOptions()
 			setFilterState(null)
 		} else {
-			window.localStorage.setItem(optionsKey, JSON.stringify(newOptions))
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(optionsKey, JSON.stringify(newOptions))
 			setFilterState(newState)
 		}
 	}
@@ -654,11 +649,9 @@ export function ProtocolsTableWithSearch({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width
-			? (columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = width ? columnSizesKeys.find((size) => width > Number(size)) : columnSizesKeys[0]
+		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
 

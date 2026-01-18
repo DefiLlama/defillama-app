@@ -6,7 +6,7 @@ import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/
 import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import { IProtocolMetadata, IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
-import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -86,8 +86,8 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 
 		const tvlSettings = {}
 
-		for (const setting in DEFI_SETTINGS) {
-			tvlSettings[DEFI_SETTINGS[setting]] = queryParams[`include_${DEFI_SETTINGS[setting]}_in_tvl`]
+		for (const setting in TVL_SETTINGS) {
+			tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
 		}
 
 		const feesSettings = {}

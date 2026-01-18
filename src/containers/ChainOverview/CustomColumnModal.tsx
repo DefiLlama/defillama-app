@@ -234,7 +234,7 @@ export function CustomColumnModal({
 				<Ariakit.Dialog className="dialog gap-3" unmountOnHide>
 					<Ariakit.DialogDismiss
 						onClick={dialogStore.toggle}
-						className="absolute top-3 right-3 rounded-lg p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--divider) hover:text-(--text-primary)"
+						className="absolute top-3 right-3 rounded-lg p-1.5 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
 						aria-label="Close modal"
 					>
 						<Icon name="x" height={20} width={20} />
@@ -370,13 +370,13 @@ export function CustomColumnModal({
 					</div>
 					<div className="mt-4 flex justify-end gap-2">
 						<button
-							className="rounded-lg bg-transparent px-4 py-2 text-(--text-secondary) transition-colors hover:bg-(--btn-hover-bg)"
+							className="rounded-lg bg-transparent px-4 py-2 text-(--text-secondary) hover:bg-(--btn-hover-bg)"
 							onClick={dialogStore.toggle}
 						>
 							Cancel
 						</button>
 						<button
-							className="rounded-lg bg-(--primary) px-4 py-2 text-white shadow-md transition-colors hover:bg-(--primary-hover)"
+							className="rounded-lg bg-(--primary) px-4 py-2 text-white shadow-md hover:bg-(--primary-hover)"
 							onClick={handleSave}
 						>
 							Save

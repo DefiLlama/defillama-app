@@ -167,7 +167,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
-				? filteredOnChainMarketcapForAsset > 0 || filteredActiveMarketcapForAsset > 0 || filteredDeFiActiveTvlForAsset > 0
+				? filteredOnChainMarketcapForAsset > 0 ||
+					filteredActiveMarketcapForAsset > 0 ||
+					filteredDeFiActiveTvlForAsset > 0
 				: true
 
 			// Use filtered values if chain is selected, otherwise use totals
@@ -225,9 +227,9 @@ export async function getRWAAssetsOverview(selectedChain?: string): Promise<IRWA
 				},
 				defiActiveTvl: {
 					total: effectiveDeFiActiveTvl,
-					breakdown: Object.entries(isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown).sort(
-						(a, b) => b[1] - a[1]
-					)
+					breakdown: Object.entries(
+						isChainFiltered ? finalDeFiActiveTvlBreakdownFiltered : finalDeFiActiveTvlBreakdown
+					).sort((a, b) => b[1] - a[1])
 				}
 			}
 

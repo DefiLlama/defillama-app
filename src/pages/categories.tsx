@@ -10,7 +10,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { CATEGORY_API, PROTOCOLS_API } from '~/constants'
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
-import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 		const extraTvls = {}
 
-		for (const extra of DEFI_SETTINGS_KEYS) {
+		for (const extra of TVL_SETTINGS_KEYS) {
 			if (!EXCLUDED_EXTRAS.has(extra) && p.chainTvls[extra]) {
 				extraTvls[extra] = p.chainTvls[extra]
 			}
@@ -67,7 +67,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tvlPrevMonth: 0,
 				revenue: 0,
 				extraTvls: Object.fromEntries(
-					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+					TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 				)
 			}
 		}
@@ -88,7 +88,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 						tvlPrevMonth: 0,
 						revenue: 0,
 						extraTvls: Object.fromEntries(
-							DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+							TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 						)
 					}
 				}
@@ -149,7 +149,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				tvlPrevMonth: 0,
 				revenue: 0,
 				extraTvls: Object.fromEntries(
-					DEFI_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
+					TVL_SETTINGS_KEYS.map((key) => [key, { tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }])
 				)
 			}
 		}
@@ -190,7 +190,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 				}
 			}
 			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
-			for (const extra of DEFI_SETTINGS_KEYS) {
+			for (const extra of TVL_SETTINGS_KEYS) {
 				if (EXCLUDED_EXTRAS.has(extra)) {
 					continue
 				}
@@ -236,18 +236,11 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		setSelectedCategories([category])
 	}
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const enabledTvls = React.useMemo(() => TVL_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key]), [extaTvlsEnabled])
 
 	const charts = React.useMemo(() => {
 		const selectedCategoriesSet = new Set(selectedCategories)
-
-		let hasEnabledTvl = false
-		for (const key in extaTvlsEnabled) {
-			if (extaTvlsEnabled[key] === true) {
-				hasEnabledTvl = true
-				break
-			}
-		}
-		if (!hasEnabledTvl) {
+		if (enabledTvls.length === 0) {
 			if (selectedCategories.length === categories.length) {
 				return chartData
 			}
@@ -260,13 +253,6 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 			}
 
 			return charts
-		}
-
-		const enabledTvls: string[] = []
-		for (const key in extaTvlsEnabled) {
-			if (extaTvlsEnabled[key] === true) {
-				enabledTvls.push(key)
-			}
 		}
 
 		const charts = {}
@@ -286,16 +272,9 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		}
 
 		return charts
-	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
+	}, [chartData, selectedCategories, categories, extraTvlCharts, enabledTvls])
 
 	const finalCategoriesList = React.useMemo(() => {
-		const enabledTvls: string[] = []
-		for (const key in extaTvlsEnabled) {
-			if (extaTvlsEnabled[key] === true) {
-				enabledTvls.push(key)
-			}
-		}
-
 		if (enabledTvls.length === 0) {
 			return tableData
 		}
@@ -359,7 +338,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		}
 
 		return finalList
-	}, [tableData, extaTvlsEnabled])
+	}, [tableData, enabledTvls])
 
 	return (
 		<Layout

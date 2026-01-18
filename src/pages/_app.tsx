@@ -8,9 +8,9 @@ import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
 import { useEffect } from 'react'
-import { useMedia } from '~/hooks/useMedia'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
 
 NProgress.configure({ showSpinner: false })
 

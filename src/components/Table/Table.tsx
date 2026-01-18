@@ -5,8 +5,8 @@ import * as React from 'react'
 import { useEffect, useEffectEvent, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { useMedia } from '~/hooks/useMedia'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { useMedia } from '~/hooks/useMedia'
 import { Tooltip } from '../Tooltip'
 
 interface ITableProps {

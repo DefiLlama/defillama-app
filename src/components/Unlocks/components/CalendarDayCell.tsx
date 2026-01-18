@@ -46,7 +46,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 
 	const textColorClassToday = 'text-(--blue)'
 
-	const cellClasses = `h-24 w-full relative border transition-colors duration-150 ease-in-out ${
+	const cellClasses = `h-24 w-full relative border hover:brightness-110 ${
 		isToday ? 'border-(--blue)' : 'border-(--divider)'
 	} ${!dayInfo.isCurrentMonth ? 'bg-(--bg-card) opacity-60 hover:opacity-80' : 'hover:brightness-110'}`
 

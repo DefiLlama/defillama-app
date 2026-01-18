@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { IProtocolPageMetrics } from './types'
@@ -67,7 +67,7 @@ export function ProtocolOverviewLayout({
 	seoKeywords?: string
 }) {
 	const metricFiltersLabel = useMemo(() => {
-		const hasTvl = toggleOptions?.some((option) => DEFI_SETTINGS_KEYS_SET.has(option.key))
+		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
 		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS_SET.has(option.key))
 
 		if (hasTvl && hasFees) {

@@ -605,7 +605,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								]}
 								selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
 								setSelectedValues={(value) => {
-								handleHideOthersChange(builder.id, value !== 'All')
+									handleHideOthersChange(builder.id, value !== 'All')
 								}}
 								label={config.hideOthers ? `Top ${config.limit}` : 'All'}
 								labelType="none"
@@ -719,8 +719,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						}
 					}
 					if (config.chartType === 'treemap') {
-						const treemapSummary =
-							treemapMode === 'latest' ? 'Latest' : treemapMode === 'sum7d' ? '7D' : '30D'
+						const treemapSummary = treemapMode === 'latest' ? 'Latest' : treemapMode === 'sum7d' ? '7D' : '30D'
 						parts.push(treemapSummary)
 					} else if (timePeriod && timePeriod !== 'all') {
 						parts.push(timePeriod.toUpperCase())
