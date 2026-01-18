@@ -307,7 +307,7 @@ export const useSubscribe = () => {
 		retry: false
 	})
 
-	const createPortalSessionMutation = useMutation({
+	const { mutateAsync: createPortalSessionAsync, isPending: isPortalSessionLoading } = useMutation({
 		mutationFn: async () => {
 			if (!isAuthenticated) {
 				throw new Error('Not authenticated')
@@ -346,7 +346,7 @@ export const useSubscribe = () => {
 		}
 
 		try {
-			const url = await createPortalSessionMutation.mutateAsync()
+			const url = await createPortalSessionAsync()
 			if (url) {
 				window.location.href = url
 			}
@@ -354,16 +354,16 @@ export const useSubscribe = () => {
 		} catch {
 			return null
 		}
-	}, [isAuthenticated, createPortalSessionMutation])
+	}, [isAuthenticated, createPortalSessionAsync])
 
 	const getPortalSessionUrl = useCallback(async () => {
 		if (!isAuthenticated) {
 			throw new Error('Not authenticated')
 		}
 
-		const url = await createPortalSessionMutation.mutateAsync()
+		const url = await createPortalSessionAsync()
 		return url
-	}, [isAuthenticated, createPortalSessionMutation])
+	}, [isAuthenticated, createPortalSessionAsync])
 
 	const enableOverageMutation = useMutation({
 		mutationFn: async () => {
@@ -431,7 +431,7 @@ export const useSubscribe = () => {
 		refetchCredits,
 		getPortalSessionUrl,
 		createPortalSession,
-		isPortalSessionLoading: createPortalSessionMutation.isPending,
+		isPortalSessionLoading,
 		enableOverage,
 		isEnableOverageLoading: enableOverageMutation.isPending,
 		apiSubscription: apiSubscription,
