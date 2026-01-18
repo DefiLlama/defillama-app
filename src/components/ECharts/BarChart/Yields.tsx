@@ -9,8 +9,9 @@ import {
 import * as echarts from 'echarts/core'
 import { UniversalTransition } from 'echarts/features'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 
 echarts.use([
 	ToolboxComponent,
@@ -32,15 +33,14 @@ export default function BarChartYields({ chartData }: IChartProps) {
 	const id = useId()
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
+	// Stable resize listener - never re-attaches when chartInstance changes
+	useChartResize(chartRef)
 
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
 		const option = {
 			color: ['#66c2a5', '#fc8d62'],
@@ -155,19 +155,13 @@ export default function BarChartYields({ chartData }: IChartProps) {
 				}
 			]
 		}
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark])
+	}, [id, chartData, isDark])
 
 	return (
 		<div className="relative flex flex-col items-end rounded-md bg-(--cards-bg) p-3">

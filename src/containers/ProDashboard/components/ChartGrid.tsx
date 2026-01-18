@@ -2,6 +2,7 @@ import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, us
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useMedia } from '~/hooks/useMedia'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
 import {
@@ -317,7 +318,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 	const { getCurrentRatingSession, autoSkipOlderSessionsForRating, submitRating, skipRating } =
 		useProDashboardDashboard()
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
-	const [isSmallScreen, setIsSmallScreen] = useState(false)
+	const isSmallScreen = useMedia('(max-width: 768px)')
 
 	const currentRatingSession = getCurrentRatingSession()
 	const currentSessionId = currentRatingSession?.sessionId
@@ -327,17 +328,6 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 			autoSkipOlderSessionsForRating()
 		}
 	}, [currentSessionId, autoSkipOlderSessionsForRating])
-
-	useEffect(() => {
-		const checkScreenSize = () => {
-			setIsSmallScreen(window.innerWidth <= 768)
-		}
-
-		checkScreenSize()
-		window.addEventListener('resize', checkScreenSize)
-
-		return () => window.removeEventListener('resize', checkScreenSize)
-	}, [])
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {

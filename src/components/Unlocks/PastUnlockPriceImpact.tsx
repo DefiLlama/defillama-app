@@ -195,8 +195,8 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 												</span>
 												<span className="flex items-center justify-between gap-2 text-(--text-tertiary)">
 													<span>
-														{percentage && formattedNum(percentage)}%{' '}
-														{percentageFloat && <>({formattedNum(percentageFloat)}% of float)</>}
+														{percentage != null ? formattedNum(percentage) : null}%{' '}
+														{percentageFloat != null ? <>({formattedNum(percentageFloat)}% of float)</> : null}
 													</span>
 													<span>
 														{formattedNum(item.amount)} {impact.symbol}

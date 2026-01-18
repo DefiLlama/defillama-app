@@ -1,7 +1,8 @@
 import { DatasetComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { abbreviateNumber } from '~/utils'
 import type { IMultiSeriesChart2Props } from '../types'
 import { formatTooltipChartDate, useDefaults } from '../useDefaults'
@@ -28,6 +29,10 @@ export default function MultiSeriesChart2({
 	const id = useId()
 
 	const [isThemeDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		isThemeDark,
@@ -155,18 +160,13 @@ export default function MultiSeriesChart2({
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
 		if (onReady) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		// override default chart settings
@@ -225,7 +225,7 @@ export default function MultiSeriesChart2({
 
 		const shouldHideDataZoom = data.length < 2 || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
 			tooltip: {
@@ -283,7 +283,7 @@ export default function MultiSeriesChart2({
 		})
 
 		if (alwaysShowTooltip) {
-			chartInstance.dispatchAction({
+			instance.dispatchAction({
 				type: 'showTip',
 				// index of series, which is optional when trigger of tooltip is axis
 				seriesIndex: 0,
@@ -294,8 +294,8 @@ export default function MultiSeriesChart2({
 				position: [60, 0]
 			})
 
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
+			instance.on('globalout', () => {
+				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
 					seriesIndex: 0,
@@ -308,18 +308,12 @@ export default function MultiSeriesChart2({
 			})
 		}
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,

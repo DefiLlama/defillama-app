@@ -1,5 +1,5 @@
 import debounce from 'lodash/debounce'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useUserConfig } from './useUserConfig'
@@ -37,6 +37,13 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 			}, SYNC_DEBOUNCE_MS),
 		[isAuthenticated, saveUserConfig]
 	)
+
+	// useEffectEvent to trigger sync - always calls latest syncToServer without being a dependency
+	const onSync = useEffectEvent(() => {
+		if (isAuthenticated) {
+			syncToServer()
+		}
+	})
 
 	// Initialize from server config on mount
 	useEffect(() => {
@@ -86,51 +93,41 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const addProtocol = useCallback(
 		(name: string) => {
 			localWatchlist.addProtocol(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			onSync()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist]
 	)
 
 	const removeProtocol = useCallback(
 		(name: string) => {
 			localWatchlist.removeProtocol(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			onSync()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist]
 	)
 
 	const addPortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.addPortfolio(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			onSync()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist]
 	)
 
 	const removePortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.removePortfolio(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			onSync()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist]
 	)
 
 	const setSelectedPortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.setSelectedPortfolio(name)
-			if (isAuthenticated) {
-				syncToServer()
-			}
+			onSync()
 		},
-		[localWatchlist, isAuthenticated, syncToServer]
+		[localWatchlist]
 	)
 
 	useEffect(() => {

@@ -4,6 +4,7 @@ import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { slug, toNiceCsvDate } from '~/utils'
 import type { ILineAndBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -31,9 +32,12 @@ export default function LineAndBarChart({
 	const id = useId()
 	const shouldEnableExport = enableImageExport ?? !!title
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const chartInstanceRef = useRef<echarts.ECharts | null>(null)
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
 	const [isThemeDark] = useDarkModeManager()
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		isThemeDark,
@@ -165,23 +169,17 @@ export default function LineAndBarChart({
 		return series
 	}, [charts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
-		chartInstanceRef.current = chartInstance
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
 		if (shouldEnableExport) {
-			handleChartReady(chartInstance)
+			handleChartReady(instance)
 		}
 
 		if (onReady) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		// override default chart settings
@@ -240,7 +238,7 @@ export default function LineAndBarChart({
 
 		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend }),
 			graphic,
 			tooltip,
@@ -266,7 +264,7 @@ export default function LineAndBarChart({
 		})
 
 		if (alwaysShowTooltip) {
-			chartInstance.dispatchAction({
+			instance.dispatchAction({
 				type: 'showTip',
 				// index of series, which is optional when trigger of tooltip is axis
 				seriesIndex: 0,
@@ -277,8 +275,8 @@ export default function LineAndBarChart({
 				position: [60, 0]
 			})
 
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
+			instance.on('globalout', () => {
+				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
 					seriesIndex: 0,
@@ -291,16 +289,9 @@ export default function LineAndBarChart({
 			})
 		}
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
-			chartInstanceRef.current = null
+			chartRef.current = null
+			instance.dispose()
 			if (shouldEnableExport) {
 				handleChartReady(null)
 			}
@@ -309,7 +300,7 @@ export default function LineAndBarChart({
 			}
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,

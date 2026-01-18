@@ -12,7 +12,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
@@ -42,7 +42,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 
 	const { handleTableFiltersChange } = useProDashboardEditorActions()
 	const { data, isLoading, error } = useHoldersRevenueData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
 	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
@@ -181,7 +181,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [instance, windowSize])
+	}, [instance, width])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

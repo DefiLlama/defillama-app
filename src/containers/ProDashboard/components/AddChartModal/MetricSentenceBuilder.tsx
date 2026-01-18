@@ -11,6 +11,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useMedia } from '~/hooks/useMedia'
 import { Switch } from '~/components/Switch'
 import { useAppMetadata } from '../../AppMetadataContext'
 import type { Chain, MetricAggregator, MetricWindow, Protocol } from '../../types'
@@ -62,10 +63,11 @@ interface MetricSentenceBuilderProps {
 	onShowSparklineChange: (value: boolean) => void
 }
 
-const getTokenWidth = (token: Exclude<ActiveToken, null>): number => {
-	const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+const getTokenWidth = (token: Exclude<ActiveToken, null>, isMobile: boolean): number => {
 	if (isMobile) {
-		return Math.min(window.innerWidth - 32, token === 'subject' ? 340 : 280)
+		// Use window.innerWidth for dynamic sizing when popover opens (one-time read, not subscribed)
+		const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 320
+		return Math.min(viewportWidth - 32, token === 'subject' ? 340 : 280)
 	}
 	switch (token) {
 		case 'aggregator':
@@ -131,8 +133,9 @@ export function MetricSentenceBuilder({
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>(metricSubjectType)
+	const isMobile = useMedia('(max-width: 639px)')
 	const popover = usePopoverStore({
-		placement: typeof window !== 'undefined' && window.innerWidth < 640 ? 'bottom' : 'right-start'
+		placement: isMobile ? 'bottom' : 'right-start'
 	})
 	const subjectCombobox = useComboboxStore({ resetValueOnHide: true })
 	const anchorRefs = useRef<Record<Exclude<ActiveToken, null>, HTMLButtonElement | null>>({
@@ -354,12 +357,12 @@ export function MetricSentenceBuilder({
 				setSubjectTab(metricSubjectType)
 			}
 
-			setPopoverWidth(getTokenWidth(token))
+			setPopoverWidth(getTokenWidth(token, isMobile))
 			setActiveToken(token)
 			popover.setAnchorElement(anchor)
 			popover.setOpen(true)
 		},
-		[activeToken, closePopover, metricSubjectType, popover]
+		[activeToken, closePopover, isMobile, metricSubjectType, popover]
 	)
 
 	const handleChainSelect = useCallback(

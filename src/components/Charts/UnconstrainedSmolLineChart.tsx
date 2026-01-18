@@ -2,7 +2,8 @@ import { LineChart } from 'echarts/charts'
 import { GridComponent, MarkLineComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
@@ -23,16 +24,19 @@ export function UnconstrainedSmolLineChart({
 }) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
-	}, [id])
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
 		if (!series?.length || series.length < 8) return
 
-		const chartInstance = createInstance()
-		chartInstance.setOption({
+		const instance =
+			echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+		chartRef.current = instance
+
+		instance.setOption({
 			animation: false,
 			grid: {
 				left: 0,
@@ -180,17 +184,11 @@ export function UnconstrainedSmolLineChart({
 			}
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series, color, isThemeDark, name, extraData.lastEvent])
+	}, [id, series, color, isThemeDark, name, extraData.lastEvent])
 
 	return (
 		<div className="relative overflow-visible">

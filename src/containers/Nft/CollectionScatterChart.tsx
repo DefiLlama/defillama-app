@@ -10,6 +10,7 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import * as React from 'react'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
@@ -33,6 +34,10 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = React.useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const createInstance = React.useCallback(() => {
 		const instance = echarts.getInstanceByDom(document.getElementById(id))
@@ -41,7 +46,8 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	}, [id])
 
 	React.useEffect(() => {
-		const chartInstance = createInstance()
+		const instance = createInstance()
+		chartRef.current = instance
 
 		const series =
 			sales.length > 0
@@ -228,17 +234,11 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 			series: series
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
 	}, [id, sales, volume, createInstance, isDark, isSmall, salesMedian1d])
 

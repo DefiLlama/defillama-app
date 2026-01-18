@@ -59,7 +59,7 @@ export const forksColumn: ColumnDef<IForksRow>[] = [
 		accessorKey: 'ftot',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -519,7 +519,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'marketShare',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -593,7 +593,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
@@ -605,7 +605,7 @@ export const LSDColumn: ColumnDef<ILSDRow>[] = [
 		accessorKey: 'fee',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value && value.toFixed(2) + '%'}</>
+			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end',

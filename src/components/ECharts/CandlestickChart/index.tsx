@@ -10,9 +10,10 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { oldBlue } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { ICandlestickChartProps } from '../types'
 import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../useDefaults'
@@ -42,6 +43,10 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const overlays = useMemo(() => indicators.filter((i) => i.category === 'overlay'), [indicators])
 	const panels = useMemo(() => indicators.filter((i) => i.category === 'panel'), [indicators])
@@ -357,31 +362,21 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 		return result
 	}, [isThemeDark, overlays, panels])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
-		chartInstance.setOption({
+		instance.setOption({
 			...defaultChartSettings,
 			dataset: { source: data },
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [createInstance, series, data, defaultChartSettings])
+	}, [id, series, data, defaultChartSettings])
 
 	return <div id={id} style={{ height: `${chartHeight}px` }}></div>
 }

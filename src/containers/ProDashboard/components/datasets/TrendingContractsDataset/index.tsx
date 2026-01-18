@@ -14,7 +14,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { TagGroup } from '~/components/TagGroup'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -55,7 +55,7 @@ export function TrendingContractsDataset({
 	const { data, isLoading, error } = useTrendingContractsData(activeChain, timeframe)
 	const results = data?.results ?? []
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: results,
@@ -94,7 +94,7 @@ export function TrendingContractsDataset({
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [contractSearch, setContractSearch] = React.useState('')
 

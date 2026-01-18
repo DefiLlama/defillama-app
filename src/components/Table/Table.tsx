@@ -2,9 +2,10 @@ import { flexRender, RowData, Table } from '@tanstack/react-table'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { useMedia } from '~/hooks/useMedia'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '../Tooltip'
 
@@ -42,6 +43,7 @@ export function VirtualTable({
 	...props
 }: ITableProps) {
 	const router = useRouter()
+	const isSmallScreen = useMedia('(max-width: 768px)')
 	const tableContainerRef = useRef<HTMLTableSectionElement>(null)
 	const { rows } = instance.getRowModel()
 
@@ -69,20 +71,23 @@ export function VirtualTable({
 
 	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
-	useEffect(() => {
-		function focusSearchBar(e: KeyboardEvent) {
-			if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
-				toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
-					id: 'native-search-warn',
-					icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
-				})
-			}
+	// useEffectEvent for keyboard handler - reads skipVirtualization without re-subscribing
+	const onKeyDown = useEffectEvent((e: KeyboardEvent) => {
+		if (!skipVirtualization && (e.ctrlKey || e.metaKey) && e.code === 'KeyF') {
+			toast.error("Native browser search isn't well supported, please use search boxes / ctrl-k / cmd-k instead", {
+				id: 'native-search-warn',
+				icon: <Icon name="alert-triangle" color="red" height={16} width={16} style={{ flexShrink: 0 }} />
+			})
 		}
-		window.addEventListener('keydown', focusSearchBar)
-		return () => window.removeEventListener('keydown', focusSearchBar)
-	}, [skipVirtualization])
+	})
 
-	const onScrollOrResize = React.useCallback(() => {
+	useEffect(() => {
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [])
+
+	// useEffectEvent for scroll/resize - always reads latest props without re-subscribing
+	const onScrollOrResize = useEffectEvent(() => {
 		if (!useStickyHeader) return
 
 		const tableWrapperEl = document.getElementById('table-wrapper')
@@ -127,14 +132,33 @@ export function VirtualTable({
 				tableHeaderDuplicate.style.cssText = 'height: 0px;'
 			}
 		}
-	}, [instance, skipVirtualization, useStickyHeader])
+	})
+
+	// useEffectEvent for table scroll - reads skipVirtualization without re-subscribing
+	const onTableScroll = useEffectEvent((tableWrapperEl: HTMLElement, isMobile: boolean) => {
+		const scrollLeft = tableWrapperEl.scrollLeft
+
+		// Sync header horizontal scroll
+		if (tableHeaderRef.current) {
+			if (!skipVirtualization) {
+				tableHeaderRef.current.scrollLeft = scrollLeft
+			} else {
+				tableHeaderRef.current.scrollLeft = 0
+			}
+		}
+
+		// Sync sticky scrollbar (desktop only)
+		if (!isMobile && stickyScrollbarRef.current) {
+			stickyScrollbarRef.current.scrollLeft = scrollLeft
+		}
+	})
 
 	// Consolidated scroll/resize handlers with RAF optimization
 	useEffect(() => {
 		const tableWrapperEl = document.getElementById('table-wrapper')
 		if (!tableWrapperEl) return
 
-		const isMobile = window.innerWidth <= 768 || 'ontouchstart' in window
+		const isMobile = isSmallScreen || 'ontouchstart' in window
 		const stickyScrollbar = stickyScrollbarRef.current // Capture ref value for cleanup
 		let scrollRaf: number | null = null
 		let resizeTimeout: ReturnType<typeof setTimeout>
@@ -146,21 +170,7 @@ export function VirtualTable({
 
 			scrollRaf = requestAnimationFrame(() => {
 				scrollRaf = null
-				const scrollLeft = tableWrapperEl.scrollLeft
-
-				// Sync header horizontal scroll
-				if (tableHeaderRef.current) {
-					if (!skipVirtualization) {
-						tableHeaderRef.current.scrollLeft = scrollLeft
-					} else {
-						tableHeaderRef.current.scrollLeft = 0
-					}
-				}
-
-				// Sync sticky scrollbar (desktop only)
-				if (!isMobile && stickyScrollbarRef.current) {
-					stickyScrollbarRef.current.scrollLeft = scrollLeft
-				}
+				onTableScroll(tableWrapperEl, isMobile)
 			})
 		}
 
@@ -257,7 +267,7 @@ export function VirtualTable({
 				stickyScrollbar.removeEventListener('scroll', handleStickyScroll)
 			}
 		}
-	}, [skipVirtualization, onScrollOrResize, totalTableWidth, rows.length])
+	}, [totalTableWidth, rows.length, isSmallScreen])
 
 	if (hasNoVisibleColumns) {
 		return (

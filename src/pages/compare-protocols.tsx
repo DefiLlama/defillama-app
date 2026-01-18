@@ -235,11 +235,11 @@ export default function CompareProtocols({
 						)}
 					</div>
 
-					{protocolsTableData.length && (
+					{protocolsTableData.length > 0 ? (
 						<div>
 							<ChainProtocolsTable protocols={protocolsTableData} useStickyHeader={false} />
 						</div>
-					)}
+					) : null}
 				</div>
 			) : (
 				<div className="flex min-h-[362px] items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">

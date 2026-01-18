@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { TableFilters } from '../../../types'
@@ -43,7 +43,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 
 	const { handleTableFiltersChange } = useProDashboardEditorActions()
 	const { data, isLoading, error } = useRevenueData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const [showFilterModal, setShowFilterModal] = React.useState(false)
 	const [includeCategories, setIncludeCategories] = React.useState<string[]>(filters?.categories || [])
@@ -182,7 +182,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

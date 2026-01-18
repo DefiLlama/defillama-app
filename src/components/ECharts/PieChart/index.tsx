@@ -2,10 +2,11 @@ import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
 import type { IPieChartProps } from '../types'
@@ -43,6 +44,10 @@ export default function PieChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 	const exportFilename = imageExportFilename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = imageExportTitle || title
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const series = useMemo(() => {
 		const total = chartData.reduce((acc, item) => acc + item.value, 0)
@@ -94,15 +99,10 @@ export default function PieChart({
 		return series
 	}, [isDark, showLegend, chartData, radius, stackColors, isSmall])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
 		const graphic = {
 			type: 'image',
@@ -116,7 +116,7 @@ export default function PieChart({
 			top: '160px'
 		}
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip: {
 				trigger: 'item',
@@ -153,32 +153,14 @@ export default function PieChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		handleChartReady(chartInstance)
-
-		window.addEventListener('resize', resize)
+		handleChartReady(instance)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			handleChartReady(null)
 		}
-	}, [
-		createInstance,
-		series,
-		isDark,
-		title,
-		valueSymbol,
-		showLegend,
-		chartData,
-		legendPosition,
-		legendTextStyle,
-		isSmall,
-		handleChartReady
-	])
+	}, [id, series, isDark, title, valueSymbol, showLegend, chartData, legendPosition, legendTextStyle, isSmall, handleChartReady])
 
 	return (
 		<div className="relative" {...props}>

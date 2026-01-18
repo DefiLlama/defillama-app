@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import { AUTH_SERVER } from '~/constants'
 import pb from '~/utils/pocketbase'
 import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
@@ -59,7 +59,8 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 
 	const pendingDataRef = useRef<PendingSaveData | null>(null)
 
-	const flushPendingSave = useCallback(() => {
+	// useEffectEvent ensures we always call the latest flush logic without re-subscribing listeners
+	const onFlushPendingSave = useEffectEvent(() => {
 		if (autoSaveTimeoutRef.current) {
 			clearTimeout(autoSaveTimeoutRef.current)
 			autoSaveTimeoutRef.current = null
@@ -80,14 +81,14 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 			})
 			pendingDataRef.current = null
 		}
-	}, [])
+	})
 
 	useEffect(() => {
-		const handlePageHide = () => flushPendingSave()
-		const handleBeforeUnload = () => flushPendingSave()
+		const handlePageHide = () => onFlushPendingSave()
+		const handleBeforeUnload = () => onFlushPendingSave()
 		const handleVisibilityChange = () => {
 			if (document.visibilityState === 'hidden') {
-				flushPendingSave()
+				onFlushPendingSave()
 			}
 		}
 
@@ -96,12 +97,12 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 		document.addEventListener('visibilitychange', handleVisibilityChange)
 
 		return () => {
-			flushPendingSave()
+			onFlushPendingSave()
 			window.removeEventListener('pagehide', handlePageHide)
 			window.removeEventListener('beforeunload', handleBeforeUnload)
 			document.removeEventListener('visibilitychange', handleVisibilityChange)
 		}
-	}, [flushPendingSave])
+	}, [])
 
 	const autoSave = useCallback((newItems: DashboardItemConfig[], overrides?: AutoSaveOverrides) => {
 		const {

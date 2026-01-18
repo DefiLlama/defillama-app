@@ -1,5 +1,6 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
@@ -29,6 +30,10 @@ export default function ChainLineBarChart({
 }) {
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -113,17 +118,12 @@ export default function ChainLineBarChart({
 		}
 	}, [chartData, isThemeDark, isCumulative])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 		if (onReady) {
-			onReady(chartInstance)
+			onReady(instance)
 		}
 
 		for (const option in chartOptions) {
@@ -404,7 +404,7 @@ export default function ChainLineBarChart({
 			finalYAxis.push(yAxis)
 		}
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip,
 			grid: {
@@ -421,20 +421,14 @@ export default function ChainLineBarChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 			if (onReady) {
 				onReady(null)
 			}
 		}
-	}, [createInstance, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady, isThemeDark, chartData, hideDataZoom])
+	}, [id, defaultChartSettings, series, chartOptions, unlockTokenSymbol, allYAxis, onReady, isThemeDark, chartData, hideDataZoom])
 
 	return (
 		<div

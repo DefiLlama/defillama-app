@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 
@@ -117,6 +117,14 @@ export function useUserConfig() {
 		[mutation]
 	)
 
+	// useEffectEvent ensures we call the latest syncSettings without re-subscribing listeners
+	const onStorageChange = useEffectEvent(() => {
+		if (isSyncingRef.current || !hasInitializedRef.current) {
+			return
+		}
+		syncSettings()
+	})
+
 	useEffect(() => {
 		if (!isAuthenticated) {
 			hasInitializedRef.current = false
@@ -124,19 +132,12 @@ export function useUserConfig() {
 			return
 		}
 
-		const handleStorageChange = () => {
-			if (isSyncingRef.current || !hasInitializedRef.current) {
-				return
-			}
-			syncSettings()
-		}
-
-		window.addEventListener('storage', handleStorageChange)
-		window.addEventListener('themeChange', handleStorageChange)
+		window.addEventListener('storage', onStorageChange)
+		window.addEventListener('themeChange', onStorageChange)
 
 		return () => {
-			window.removeEventListener('storage', handleStorageChange)
-			window.removeEventListener('themeChange', handleStorageChange)
+			window.removeEventListener('storage', onStorageChange)
+			window.removeEventListener('themeChange', onStorageChange)
 			syncSettings.cancel()
 		}
 	}, [isAuthenticated, syncSettings])

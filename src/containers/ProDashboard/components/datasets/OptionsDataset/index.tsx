@@ -13,7 +13,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -34,7 +34,7 @@ export function OptionsDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error, refetch: _refetch } = useOptionsData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: data || [],
@@ -81,7 +81,7 @@ export function OptionsDataset({ chains }: { chains?: string[] }) {
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
 		instance.setColumnVisibility(defaultVisibility)
-	}, [windowSize, chains, instance])
+	}, [width, chains, instance])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

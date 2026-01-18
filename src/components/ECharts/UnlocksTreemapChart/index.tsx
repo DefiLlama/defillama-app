@@ -3,9 +3,10 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum, tokenIconUrl } from '~/utils'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
@@ -50,6 +51,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const currentYear = filterYear || dayjs().year()
 
@@ -308,14 +313,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 		return []
 	}, [unlocksData, currentYear, timeView, isDark, selectedDate])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
-		const chartInstance = createInstance()
-		if (!chartInstance) return
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		if (!instance) return
+		chartRef.current = instance
 
 		const option = {
 			title: {
@@ -473,19 +474,13 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 			]
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance?.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, chartDataTree, createInstance, isDark, timeView, selectedDate])
+	}, [id, chartDataTree, isDark, timeView, selectedDate])
 
 	const goToPrevMonth = () => setSelectedDate((d) => d.subtract(1, 'month'))
 	const goToNextMonth = () => setSelectedDate((d) => d.add(1, 'month'))

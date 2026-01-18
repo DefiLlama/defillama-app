@@ -12,8 +12,9 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import type { IScatterChartProps } from '../types'
 
@@ -50,15 +51,14 @@ export default function ScatterChart({
 	const id = useId()
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	useEffect(() => {
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
 		let series = []
 		const isYieldData = chartData.length > 0 && chartData[0].projectName !== undefined
@@ -269,31 +269,13 @@ export default function ScatterChart({
 			series: series
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [
-		id,
-		chartData,
-		createInstance,
-		isDark,
-		tooltipFormatter,
-		xAxisLabel,
-		yAxisLabel,
-		valueSymbol,
-		title,
-		showLabels,
-		entityType
-	])
+	}, [id, chartData, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
 
 	return (
 		<div>

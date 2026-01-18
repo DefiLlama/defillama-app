@@ -27,7 +27,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
@@ -299,15 +299,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
+		const colSize = width ? columnSizes.find((size) => width > +size[0]) : columnSizes[0]
 
 		if (colSize) {
 			instance.setColumnSizing(colSize[1])
 		}
-	}, [instance, windowSize])
+	}, [instance, width])
 
 	const prepareCsv = useCallback(() => {
 		const tableRows = instance.getSortedRowModel().rows

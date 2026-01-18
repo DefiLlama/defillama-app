@@ -92,8 +92,14 @@ export function FilterBetweenRange({
 					<Form
 						min={min}
 						max={max}
-						onSubmit={onSubmit}
-						onClear={onClear}
+						onSubmit={(e) => {
+							onSubmit(e)
+							popover.hide()
+						}}
+						onClear={() => {
+							onClear()
+							popover.hide()
+						}}
 						minLabel={minLabel}
 						maxLabel={maxLabel}
 						minInputProps={minInputProps}

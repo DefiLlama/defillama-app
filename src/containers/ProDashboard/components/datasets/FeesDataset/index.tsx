@@ -12,7 +12,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -32,7 +32,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 	})
 
 	const { data, isLoading, error } = useFeesData(chains)
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: data || [],
@@ -70,7 +70,7 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [instance, windowSize])
+	}, [instance, width])
 
 	const [protocolName, setProtocolName] = React.useState('')
 

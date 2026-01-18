@@ -1,7 +1,8 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -34,6 +35,10 @@ export default function AreaChart({
 	const chartsStack = stacks || customLegendOptions
 
 	const [isThemeDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -289,15 +294,10 @@ export default function AreaChart({
 		expandTo100Percent
 	])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		chartRef.current = instance
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -309,7 +309,7 @@ export default function AreaChart({
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic,
 			tooltip,
 			grid: {
@@ -352,18 +352,12 @@ export default function AreaChart({
 			series
 		})
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,
