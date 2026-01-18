@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { getStorageItem, removeStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 
@@ -60,15 +61,6 @@ const defaultInactiveSubscription: Subscription = {
 }
 
 const API_KEY_LOCAL_STORAGE_KEY = 'pro_apikey'
-const API_KEY_CHANGE_LISTENER_KEY = 'apiKeyChange'
-
-function subscribeToApiKeyInLocalStorage(callback: () => void) {
-	window.addEventListener(API_KEY_CHANGE_LISTENER_KEY, callback)
-
-	return () => {
-		window.removeEventListener(API_KEY_CHANGE_LISTENER_KEY, callback)
-	}
-}
 
 async function fetchSubscription({ isAuthenticated }: { isAuthenticated: boolean }): Promise<Subscription> {
 	if (!isAuthenticated) {
@@ -236,14 +228,13 @@ export const useSubscribe = () => {
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 				const newApiKey = data.apiKey?.api_key ?? null
-				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
+				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
 				if (newApiKey !== currentApiKey) {
 					if (newApiKey === null) {
-						window.localStorage.removeItem(API_KEY_LOCAL_STORAGE_KEY)
+						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
 					} else {
-						window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
 					}
-					window.dispatchEvent(new Event(API_KEY_CHANGE_LISTENER_KEY))
 				}
 				return newApiKey
 			} catch (error) {
@@ -264,14 +255,13 @@ export const useSubscribe = () => {
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 				const newApiKey = data.apiKey ?? null
-				const currentApiKey = window.localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY)
+				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
 				if (newApiKey !== currentApiKey) {
 					if (newApiKey === null) {
-						window.localStorage.removeItem(API_KEY_LOCAL_STORAGE_KEY)
+						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
 					} else {
-						window.localStorage.setItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
+						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
 					}
-					window.dispatchEvent(new Event(API_KEY_CHANGE_LISTENER_KEY))
 				}
 				return newApiKey
 			} catch (error) {
@@ -281,8 +271,8 @@ export const useSubscribe = () => {
 	})
 
 	const apiKey = useSyncExternalStore(
-		subscribeToApiKeyInLocalStorage,
-		() => localStorage.getItem(API_KEY_LOCAL_STORAGE_KEY) ?? null,
+		(callback) => subscribeToStorageKey(API_KEY_LOCAL_STORAGE_KEY, callback),
+		() => getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null),
 		() => null
 	)
 

@@ -7,7 +7,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
-import { subscribeToPinnedMetrics } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
@@ -224,8 +224,8 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 	totalTrackedByMetric: any
 }) {
 	const pinnedMetrics = useSyncExternalStore(
-		subscribeToPinnedMetrics,
-		() => localStorage.getItem('pinned-metrics') ?? '[]',
+		(callback) => subscribeToStorageKey('pinned-metrics', callback),
+		() => getStorageItem('pinned-metrics', '[]') ?? '[]',
 		() => '[]'
 	)
 
@@ -282,7 +282,7 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 					<button
 						onClick={(e) => {
 							const currentPinnedMetrics = JSON.parse(window.localStorage.getItem('pinned-metrics') || '[]')
-							window.localStorage.setItem(
+							setStorageItem(
 								'pinned-metrics',
 								JSON.stringify(
 									currentPinnedMetrics.includes(page.route)
@@ -290,7 +290,6 @@ export const LinkToMetricOrToolPage = React.memo(function LinkToMetricOrToolPage
 										: [...currentPinnedMetrics, page.route]
 								)
 							)
-							window.dispatchEvent(new Event('pinnedMetricsChange'))
 							e.preventDefault()
 							e.stopPropagation()
 						}}

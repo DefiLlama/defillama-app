@@ -3,23 +3,17 @@ import { useRouter } from 'next/router'
 import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { TimePeriod } from '../ProDashboardAPIContext'
 import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import { DashboardItemConfig } from '../types'
-
-function subscribeToLiteDashboardsChange(callback: () => void) {
-	window.addEventListener('liteDashboardsChange', callback)
-	return () => {
-		window.removeEventListener('liteDashboardsChange', callback)
-	}
-}
 
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
 	const liteDashboardsInStorage = useSyncExternalStore(
-		subscribeToLiteDashboardsChange,
-		() => window.localStorage.getItem('lite-dashboards') ?? '[]',
+		(callback) => subscribeToStorageKey('lite-dashboards', callback),
+		() => getStorageItem('lite-dashboards', '[]') ?? '[]',
 		() => '[]'
 	)
 
@@ -33,15 +27,13 @@ export function useGetLiteDashboards() {
 			if (!isAuthenticated) return []
 			try {
 				const data = await dashboardAPI.listLiteDashboards(authorizedFetch)
-				window.localStorage.setItem('lite-dashboards', JSON.stringify(data))
+				setStorageItem('lite-dashboards', JSON.stringify(data))
 				return data
 			} catch (error) {
 				console.log('Failed to load lite dashboards:', error)
-				window.localStorage.setItem('lite-dashboards', '[]')
+				setStorageItem('lite-dashboards', '[]')
 
 				return []
-			} finally {
-				window.dispatchEvent(new Event('liteDashboardsChange'))
 			}
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours

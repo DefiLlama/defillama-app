@@ -25,7 +25,8 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
-import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
+import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
@@ -58,14 +59,14 @@ export const ChainProtocolsTable = ({
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
 	const columnsInStorage = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(tableColumnOptionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(tableColumnOptionsKey, callback),
+		() => getStorageItem(tableColumnOptionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
 	const filterState = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(tableFilterStateKey) ?? null,
+		(callback) => subscribeToStorageKey(tableFilterStateKey, callback),
+		() => getStorageItem(tableFilterStateKey, null),
 		() => null
 	)
 
@@ -78,8 +79,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(tableColumnOptionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(tableColumnOptionsKey, ops)
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
 		}
@@ -93,8 +93,7 @@ export const ChainProtocolsTable = ({
 				])
 			)
 		)
-		window.localStorage.setItem(tableColumnOptionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(tableColumnOptionsKey, ops)
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(JSON.parse(ops))
 		}
@@ -145,8 +144,7 @@ export const ChainProtocolsTable = ({
 					ops[key] = false
 				}
 			}
-			localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-			window.dispatchEvent(new Event('storage'))
+			setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 			if (instance && instance.setColumnVisibility) {
 				instance.setColumnVisibility(ops)
 			}
@@ -170,12 +168,10 @@ export const ChainProtocolsTable = ({
 	const addColumn = (newColumns) => {
 		const allKeys = mergedColumns.map((col) => col.key)
 		const ops = Object.fromEntries(allKeys.map((key) => [key, newColumns.includes(key)]))
-		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
+		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
-		} else {
-			window.dispatchEvent(new Event('storage'))
 		}
 	}
 
@@ -183,12 +179,9 @@ export const ChainProtocolsTable = ({
 		const ops = Object.fromEntries(
 			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption])
 		)
-		window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
-		} else {
-			window.dispatchEvent(new Event('storage'))
 		}
 	}
 
@@ -351,12 +344,12 @@ export const ChainProtocolsTable = ({
 
 		if (columnsInStorage === JSON.stringify(newColumns)) {
 			toggleAllColumns()
-			window.localStorage.setItem(tableFilterStateKey, null)
+		setStorageItem(tableFilterStateKey, 'null')
 			instance.setSorting([{ id: 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		} else {
-			window.localStorage.setItem(tableColumnOptionsKey, JSON.stringify(newColumns))
-			window.localStorage.setItem(tableFilterStateKey, newState)
+		setStorageItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+		setStorageItem(tableFilterStateKey, newState)
 			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		}

@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
-import { readAppStorage, readAppStorageRaw, writeAppStorage } from '~/contexts/LocalStorage'
+import { readAppStorage, readAppStorageRaw, subscribeToLocalStorage, THEME_SYNC_KEY, writeAppStorage } from '~/contexts/LocalStorage'
+import { subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 
@@ -37,7 +38,6 @@ export function useUserConfig() {
 					const mergedSettings = { ...localSettings, ...config }
 
 					writeAppStorage(mergedSettings)
-					window.dispatchEvent(new Event('storage'))
 
 					setTimeout(() => {
 						isSyncingRef.current = false
@@ -145,12 +145,12 @@ export function useUserConfig() {
 			return
 		}
 
-		window.addEventListener('storage', onStorageChange)
-		window.addEventListener('themeChange', onStorageChange)
+		const unsubscribeLocalStorage = subscribeToLocalStorage(onStorageChange)
+		const unsubscribeTheme = subscribeToStorageKey(THEME_SYNC_KEY, onStorageChange)
 
 		return () => {
-			window.removeEventListener('storage', onStorageChange)
-			window.removeEventListener('themeChange', onStorageChange)
+			unsubscribeLocalStorage()
+			unsubscribeTheme()
 			syncSettings.cancel()
 		}
 	}, [isAuthenticated, syncSettings])

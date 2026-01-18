@@ -20,12 +20,8 @@ import { VirtualTable } from '~/components/Table/Table'
 import { formatColumnOrder } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import {
-	CHAINS_CATEGORY_GROUP_SETTINGS,
-	isChainsCategoryGroupKey,
-	subscribeToLocalStorage,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
+import { CHAINS_CATEGORY_GROUP_SETTINGS, isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { definitions } from '~/public/definitions'
@@ -45,8 +41,8 @@ export function ChainsByCategoryTable({
 	showByGroup: boolean
 }) {
 	const columnsInStorage = React.useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => localStorage.getItem(optionsKey) ?? defaultColumns,
+		(callback) => subscribeToStorageKey(optionsKey, callback),
+		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
 
@@ -96,25 +92,21 @@ export function ChainsByCategoryTable({
 
 	const clearAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 	const toggleAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, true])))
-		window.localStorage.setItem(optionsKey, ops)
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, ops)
 	}
 
 	const addColumn = (newOptions) => {
 		const ops = Object.fromEntries(columnOptions.map((col) => [col.key, newOptions.includes(col.key)]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const addOnlyOneColumn = (newOption) => {
 		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
-		window.localStorage.setItem(optionsKey, JSON.stringify(ops))
-		window.dispatchEvent(new Event('storage'))
+		setStorageItem(optionsKey, JSON.stringify(ops))
 	}
 
 	const selectedColumns = instance

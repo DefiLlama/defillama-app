@@ -82,7 +82,6 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 				[watchlistKey]: mergedWatchlist
 			}
 			writeAppStorage(updatedData)
-			window.dispatchEvent(new Event('storage'))
 
 			setTimeout(() => {
 				isSyncing.current = false

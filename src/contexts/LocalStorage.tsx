@@ -2,8 +2,16 @@ import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
+import {
+	getStorageItem,
+	notifyKeyChange,
+	setStorageItem,
+	subscribeToStorageKey
+} from './localStorageStore'
 
 const DEFILLAMA = 'DEFILLAMA' as const
+const PINNED_METRICS_KEY = 'pinned-metrics' as const
+export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
 export const DARK_MODE = 'DARK_MODE' as const
@@ -214,37 +222,22 @@ export const isChainsCategoryGroupKey = (value: string): value is ChainsCategory
 	CHAINS_CATEGORY_GROUP_KEYS_SET.has(value)
 
 export function subscribeToLocalStorage(callback: () => void) {
-	// Listen for localStorage changes (for other settings)
-	window.addEventListener('storage', callback)
-
-	// Listen for theme changes
-	window.addEventListener('themeChange', callback)
-
-	return () => {
-		window.removeEventListener('storage', callback)
-		window.removeEventListener('themeChange', callback)
-	}
+	return subscribeToStorageKey(DEFILLAMA, callback)
 }
 
 export function subscribeToPinnedMetrics(callback: () => void) {
-	window.addEventListener('pinnedMetricsChange', callback)
-
-	return () => {
-		window.removeEventListener('pinnedMetricsChange', callback)
-	}
+	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
 }
 
 const toggleDarkMode = () => {
 	const isDarkMode = getThemeCookie() === 'dark'
 	setThemeCookie(!isDarkMode)
-	// Dispatch both storage event (for localStorage) and a custom theme event
-	window.dispatchEvent(new Event('storage'))
-	window.dispatchEvent(new CustomEvent('themeChange'))
+	notifyKeyChange(THEME_SYNC_KEY)
 }
 
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
-		subscribeToLocalStorage,
+		(callback) => subscribeToStorageKey(THEME_SYNC_KEY, callback),
 		() => getThemeCookie() ?? 'dark',
 		() => 'dark'
 	)
@@ -264,10 +257,23 @@ export function useDarkModeManager() {
 	return [isDarkMode, toggleDarkMode] as [boolean, () => void]
 }
 
-export const readAppStorageRaw = () => localStorage.getItem(DEFILLAMA)
-export const readAppStorage = (): AppStorage => JSON.parse(readAppStorageRaw() ?? '{}') as AppStorage
+export const readAppStorageRaw = () => getStorageItem(DEFILLAMA)
+const isAppStorage = (value: unknown): value is AppStorage =>
+	typeof value === 'object' && value !== null && !Array.isArray(value)
+
+export const readAppStorage = (): AppStorage => {
+	const raw = readAppStorageRaw()
+	if (!raw) return {}
+
+	try {
+		const parsed: unknown = JSON.parse(raw)
+		return isAppStorage(parsed) ? parsed : {}
+	} catch {
+		return {}
+	}
+}
 export const writeAppStorage = (next: AppStorage) => {
-	localStorage.setItem(DEFILLAMA, JSON.stringify(next))
+	setStorageItem(DEFILLAMA, JSON.stringify(next))
 }
 
 const updateSetting = (key: string) => {
@@ -286,8 +292,6 @@ const updateSetting = (key: string) => {
 	window.history.pushState({}, '', url)
 
 	writeAppStorage({ ...(current as AppStorage), [key]: newState })
-
-	window.dispatchEvent(new Event('storage'))
 }
 
 export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boolean>>) => {
@@ -306,8 +310,6 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 	window.history.pushState({}, '', url)
 
 	writeAppStorage({ ...(current as AppStorage), ...keys })
-
-	window.dispatchEvent(new Event('storage'))
 }
 
 export type TSETTINGTYPE =
@@ -382,13 +384,12 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 export const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
 	const current = readAppStorage()
 	writeAppStorage({ ...(current as AppStorage), ...keys })
-	window.dispatchEvent(new Event('storage'))
 }
 
 export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<SettingKey, boolean>>) => void] {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
 	const toggledSettings = useMemo(() => JSON.parse(store) as SettingsStore, [store])
@@ -400,7 +401,7 @@ export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<Se
 export function useYieldFilters() {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
 
@@ -414,7 +415,6 @@ export function useYieldFilters() {
 				...parsedStore,
 				[YIELDS_SAVED_FILTERS]: { ...savedFilters, [name]: filters }
 			})
-			window.dispatchEvent(new Event('storage'))
 		},
 		deleteFilter: (name: string) => {
 			const newFilters = { ...savedFilters }
@@ -423,7 +423,6 @@ export function useYieldFilters() {
 				...parsedStore,
 				[YIELDS_SAVED_FILTERS]: newFilters
 			})
-			window.dispatchEvent(new Event('storage'))
 		}
 	}
 }
@@ -431,7 +430,7 @@ export function useYieldFilters() {
 export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
 	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
@@ -467,7 +466,6 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 					[watchlistKey]: newWatchlist,
 					[selectedPortfolioKey]: name
 				})
-				window.dispatchEvent(new Event('storage'))
 			},
 			removePortfolio: (name: string) => {
 				const currentStore = readAppStorage()
@@ -491,7 +489,6 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 					[watchlistKey]: newWatchlist,
 					[selectedPortfolioKey]: DEFAULT_PORTFOLIO_NAME
 				})
-				window.dispatchEvent(new Event('storage'))
 			},
 			setSelectedPortfolio: (name: string) => {
 				const currentStore = readAppStorage()
@@ -499,7 +496,6 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 					...(currentStore as AppStorage),
 					[selectedPortfolioKey]: name
 				})
-				window.dispatchEvent(new Event('storage'))
 			},
 			addProtocol: (name: string) => {
 				const currentStore = readAppStorage()
@@ -521,7 +517,6 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 					...(currentStore as AppStorage),
 					[watchlistKey]: newWatchlist
 				})
-				window.dispatchEvent(new Event('storage'))
 			},
 			removeProtocol: (name: string) => {
 				const currentStore = readAppStorage()
@@ -541,7 +536,6 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 					...(currentStore as AppStorage),
 					[watchlistKey]: newWatchlist
 				})
-				window.dispatchEvent(new Event('storage'))
 			}
 		}
 	}, [parsedStore, type])
@@ -550,7 +544,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 export function useCustomColumns() {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
 	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
@@ -559,22 +553,18 @@ export function useCustomColumns() {
 
 	function setCustomColumns(cols: CustomColumnDef[]) {
 		writeAppStorage({ ...parsedStore, [CUSTOM_COLUMNS]: cols })
-		window.dispatchEvent(new Event('storage'))
 	}
 
 	function addCustomColumn(col: CustomColumnDef) {
 		setCustomColumns([...customColumns, col])
-		window.dispatchEvent(new Event('storage'))
 	}
 
 	function editCustomColumn(index: number, col: CustomColumnDef) {
 		setCustomColumns(customColumns.map((c, i) => (i === index ? col : c)))
-		window.dispatchEvent(new Event('storage'))
 	}
 
 	function deleteCustomColumn(index: number) {
 		setCustomColumns(customColumns.filter((_, i) => i !== index))
-		window.dispatchEvent(new Event('storage'))
 	}
 
 	return {
@@ -589,7 +579,7 @@ export function useCustomColumns() {
 export function useLlamaAIWelcome(): [boolean, () => void] {
 	const store = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => localStorage.getItem(DEFILLAMA) ?? '{}',
+		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
 		() => '{}'
 	)
 
@@ -598,7 +588,6 @@ export function useLlamaAIWelcome(): [boolean, () => void] {
 
 	const setShown = () => {
 		writeAppStorage({ ...parsedStore, [LLAMA_AI_WELCOME_SHOWN]: true })
-		window.dispatchEvent(new Event('storage'))
 	}
 
 	return [shown, setShown]
