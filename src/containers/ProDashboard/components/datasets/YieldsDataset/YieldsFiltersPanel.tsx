@@ -44,6 +44,11 @@ export function YieldsFiltersPanel({
 }: YieldsFiltersPanelProps) {
 	const [localFilters, setLocalFilters] = React.useState<YieldsFilters>(filters)
 
+	const tokenOptions = React.useMemo(
+		() => availableTokens.map((token) => ({ value: token, label: token })),
+		[availableTokens]
+	)
+
 	React.useEffect(() => {
 		setLocalFilters(filters)
 	}, [filters])
@@ -299,7 +304,7 @@ export function YieldsFiltersPanel({
 
 						<AriakitVirtualizedMultiSelect
 							label="Pool Tokens"
-							options={availableTokens.map((token) => ({ value: token, label: token }))}
+							options={tokenOptions}
 							selectedValues={localFilters.tokens || []}
 							onChange={(values) => updateFilter('tokens', values.length > 0 ? values : undefined)}
 							placeholder="Select tokens..."

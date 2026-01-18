@@ -41,6 +41,11 @@ const UNLOCK_TYPES = [
 	'uncategorized'
 ]
 
+const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
+	name: type.charAt(0).toUpperCase() + type.slice(1),
+	key: type
+}))
+
 export const UnlocksTable = ({
 	protocols,
 	showOnlyWatchlist,
@@ -378,7 +383,7 @@ export const UnlocksTable = ({
 				/>
 
 				<SelectWithCombobox
-					allValues={UNLOCK_TYPES.map((type) => ({ name: type.charAt(0).toUpperCase() + type.slice(1), key: type }))}
+					allValues={UNLOCK_TYPE_OPTIONS}
 					selectedValues={selectedUnlockTypes}
 					setSelectedValues={setSelectedUnlockTypes}
 					selectOnlyOne={(value) => setSelectedUnlockTypes([value])}

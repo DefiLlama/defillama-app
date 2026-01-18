@@ -1027,7 +1027,7 @@ export const getProtocolOverviewPageData = async ({
 				: null,
 		isCEX,
 		hasKeyMetrics,
-		competitors: Array.from(competitorsSet).map((protocolName) => competitorsMap.get(protocolName)),
+		competitors: Array.from(competitorsSet).map((protocolName) => competitorsMap.get(protocolName)).filter(Boolean) as { name: string; tvl: number }[],
 		hacks,
 		chartDenominations,
 		availableCharts,

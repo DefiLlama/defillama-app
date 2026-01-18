@@ -23,6 +23,9 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { trendingContractsColumns } from './columns'
 import { useTrendingContractsData } from './useTrendingContractsData'
 
+const TIME_VALUES = ['1d', '7d', '30d'] as const
+const CHAIN_VALUES = ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'] as const
+
 interface TrendingContractsDatasetProps {
 	chain?: string
 	timeframe?: string
@@ -155,7 +158,7 @@ export function TrendingContractsDataset({
 									onTimeframeChange(val)
 								}
 							}}
-							values={['1d', '7d', '30d']}
+							values={TIME_VALUES}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>
@@ -167,7 +170,7 @@ export function TrendingContractsDataset({
 									onChainChange(val)
 								}
 							}}
-							values={['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base']}
+							values={CHAIN_VALUES}
 							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
 							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
 						/>

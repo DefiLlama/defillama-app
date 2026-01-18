@@ -165,6 +165,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 			}))
 	}, [protocols])
 
+	const chainCategoryOptions = useMemo(
+		() => (chainCategoriesList || []).map((c) => ({ value: c, label: c })),
+		[chainCategoriesList]
+	)
+
 	const metricOptions = useMemo(() => {
 		return METRIC_OPTIONS.filter(
 			(option) =>
@@ -716,10 +721,7 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 									</div>
 									<AriakitMultiSelect
 										label="Chain Categories"
-										options={(chainCategoriesList || []).map((c) => ({
-											value: c,
-											label: c
-										}))}
+										options={chainCategoryOptions}
 										selectedValues={chartBuilder.chainCategories || []}
 										onChange={handleChainCategoriesChange}
 										placeholder={

@@ -339,29 +339,27 @@ export const getProtocolEmissons = async (protocolName: string) => {
 			upcomingEvent = [{ timestamp: null }]
 		}
 
-		const chartData = {
-			documented: Object.entries(protocolEmissions['documented']).map(
-				([date, values]: [string, { [key: string]: number }]) => ({
-					date,
-					...values
-				})
-			),
-			realtime: Object.entries(protocolEmissions['realtime']).map(
-				([date, values]: [string, { [key: string]: number }]) => ({
-					date,
-					...values
-				})
-			)
+		const documentedChart: Array<{ date: string; [key: string]: number | string }> = []
+		for (const date in protocolEmissions['documented']) {
+			documentedChart.push({ date, ...protocolEmissions['documented'][date] })
 		}
+		const realtimeChart: Array<{ date: string; [key: string]: number | string }> = []
+		for (const date in protocolEmissions['realtime']) {
+			realtimeChart.push({ date, ...protocolEmissions['realtime'][date] })
+		}
+		const chartData = { documented: documentedChart, realtime: realtimeChart }
 
-		const pieChartData = {
-			documented: Object.entries(chartData.documented[chartData.documented.length - 1] || {})
-				.filter(([key]) => key !== 'date')
-				.map(([name, value]) => ({ name, value })),
-			realtime: Object.entries(chartData.realtime[chartData.realtime.length - 1] || {})
-				.filter(([key]) => key !== 'date')
-				.map(([name, value]) => ({ name, value }))
+		const documentedPie: Array<{ name: string; value: number | string }> = []
+		const lastDocumented = chartData.documented[chartData.documented.length - 1] || {}
+		for (const key in lastDocumented) {
+			if (key !== 'date') documentedPie.push({ name: key, value: lastDocumented[key] })
 		}
+		const realtimePie: Array<{ name: string; value: number | string }> = []
+		const lastRealtime = chartData.realtime[chartData.realtime.length - 1] || {}
+		for (const key in lastRealtime) {
+			if (key !== 'date') realtimePie.push({ name: key, value: lastRealtime[key] })
+		}
+		const pieChartData = { documented: documentedPie, realtime: realtimePie }
 
 		const stackColors = { documented: {}, realtime: {} }
 
@@ -554,11 +552,15 @@ export async function getAirdropDirectoryData() {
 	const airdrops = await fetchJson('https://airdrops.llama.fi/config')
 
 	const now = Date.now()
-	return Object.values(airdrops).filter((i: { endTime?: number; isActive: boolean; page?: string }) => {
-		if (i.isActive === false || !i.page) return false
-		if (!i.endTime) return true
-		return i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now
-	})
+	const result: Array<{ endTime?: number; isActive: boolean; page?: string }> = []
+	for (const key in airdrops) {
+		const i = airdrops[key] as { endTime?: number; isActive: boolean; page?: string }
+		if (i.isActive === false || !i.page) continue
+		if (!i.endTime || (i.endTime < 1e12 ? i.endTime * 1000 > now : i.endTime > now)) {
+			result.push(i)
+		}
+	}
+	return result
 }
 
 export function formatGovernanceData(data: {
@@ -573,39 +575,40 @@ export function formatGovernanceData(data: {
 		}
 	}
 }) {
-	const proposals = Object.values(data.proposals).map((proposal) => {
+	const proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string; winningChoice: string; winningPerc: string }> = []
+	for (const proposal of data.proposals) {
 		const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
-
-		return {
+		proposals.push({
 			...proposal,
 			winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
 			winningPerc:
 				totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
-		}
-	})
+		})
+	}
 
-	const activity = Object.entries(data.stats.months || {}).map(([date, values]) => ({
-		date: Math.floor(new Date(date).getTime() / 1000),
-		Total: values.total || 0,
-		Successful: values.successful || 0
-	}))
-
-	const maxVotes = Object.entries(data.stats.months || {}).map(([date, values]) => {
-		let maxVotes = 0
+	const activity: Array<{ date: number; Total: number; Successful: number }> = []
+	const maxVotes: Array<{ date: number; 'Max Votes': string }> = []
+	const statsMonths = data.stats.months || {}
+	for (const date in statsMonths) {
+		const values = statsMonths[date]
+		activity.push({
+			date: Math.floor(new Date(date).getTime() / 1000),
+			Total: values.total || 0,
+			Successful: values.successful || 0
+		})
+		let maxVotesValue = 0
 		for (const proposal of values.proposals ?? []) {
 			const votes = proposals.find((p) => p.id === proposal)?.['scores_total'] ?? 0
-
-			if (votes > maxVotes) {
-				maxVotes = votes
+			if (votes > maxVotesValue) {
+				maxVotesValue = votes
 			}
 		}
-
-		return {
+		maxVotes.push({
 			date: Math.floor(new Date(date).getTime() / 1000),
-			'Max Votes': maxVotes.toFixed(2)
-		}
-	})
+			'Max Votes': maxVotesValue.toFixed(2)
+		})
+	}
 
 	return { maxVotes, activity, proposals }
 }

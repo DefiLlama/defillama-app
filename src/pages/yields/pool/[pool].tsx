@@ -579,7 +579,7 @@ const PageView = (_props) => {
 									chartData={areaChartDataBorrow}
 									title="Pool Liquidity"
 									customLegendName="Filter"
-									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+									customLegendOptions={LIQUIDITY_LEGEND_OPTIONS}
 									valueSymbol="$"
 									stackColors={liquidityChartColors}
 									enableImageExport={true}
@@ -684,6 +684,8 @@ const liquidityChartColors = {
 	Borrowed: CHART_COLORS[1],
 	Available: CHART_COLORS[2]
 }
+
+const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 const barChartStacks = {
 	Base: 'a',

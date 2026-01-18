@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -15,35 +15,30 @@ interface ClassificationItemProps {
 	description?: string
 }
 
+// Styling helpers for boolean classification items
+const getBooleanContainerClasses = (positive: boolean): string =>
+	positive ? 'border-green-600/30 bg-green-600/10' : 'border-red-600/30 bg-red-600/10'
+
+const getBooleanTextClasses = (positive: boolean): string =>
+	positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'
+
 const ClassificationItem = ({ label, value, positive, description }: ClassificationItemProps) => {
 	if (value == null && positive == null) return null
 
 	const isBoolean = positive != null
 	const displayValue = isBoolean ? (positive ? 'Yes' : 'No') : value
 
+	const containerClasses = isBoolean ? getBooleanContainerClasses(positive!) : 'border-(--cards-border) bg-(--cards-bg)'
+	const textClasses = isBoolean ? getBooleanTextClasses(positive!) : 'text-(--text-label)'
+
 	return (
-		<div
-			className={`flex items-start justify-between gap-2 rounded-md border p-2 ${
-				isBoolean
-					? positive
-						? 'border-green-600/30 bg-green-600/10'
-						: 'border-red-600/30 bg-red-600/10'
-					: 'border-(--cards-border) bg-(--cards-bg)'
-			}`}
-		>
+		<div className={`flex items-start justify-between gap-2 rounded-md border p-2 ${containerClasses}`}>
 			<div className="flex flex-col gap-1">
-				<span
-					className={`font-medium ${isBoolean ? (positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400') : 'text-(--text-label)'}`}
-				>
-					{label}
-				</span>
+				<span className={`font-medium ${textClasses}`}>{label}</span>
 				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
 			</div>
 			{isBoolean ? (
-				<Icon
-					name={positive ? 'check-circle' : 'x'}
-					className={`h-5 w-5 shrink-0 ${positive ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}
-				/>
+				<Icon name={positive ? 'check-circle' : 'x'} className={`h-5 w-5 shrink-0 ${getBooleanTextClasses(positive!)}`} />
 			) : (
 				<span className="font-medium">{displayValue}</span>
 			)}
@@ -145,6 +140,11 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			? asset.attestationLinks
 			: [asset.attestationLinks]
 		: []
+
+	const contractsEntries = useMemo(
+		() => (asset.contracts ? Object.entries(asset.contracts) : []),
+		[asset.contracts]
+	)
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -342,10 +342,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</SectionCard>
 
 					{/* Contracts */}
-					{asset.contracts && (
+					{contractsEntries.length > 0 && (
 						<SectionCard title="Contracts">
 							<div className="grid grid-cols-2 gap-2">
-								{Object.entries(asset.contracts).map(([chain, contracts]) => (
+								{contractsEntries.map(([chain, contracts]) => (
 									<Fragment key={`${asset.name}-contracts-${chain}`}>
 										{contracts.map((contract) => (
 											<ContractItem

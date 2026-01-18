@@ -14,7 +14,7 @@ import { useMemo } from 'react'
 import { useMedia } from '~/hooks/useMedia'
 import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from './formatters'
 
-const CHART_SYMBOLS = {
+const CHART_SYMBOLS: Record<string, string> = {
 	'Active Addresses': '',
 	'Returning Addresses': '',
 	'New Addresses': '',
@@ -32,6 +32,21 @@ const CHART_SYMBOLS = {
 	'Contributors Commits': '',
 	Commits: '',
 	'Devs Commits': ''
+}
+
+// Helper to get the symbol for a series name in tooltip
+const getSeriesSymbol = (
+	seriesName: string,
+	valueSymbol: string,
+	unlockTokenSymbol: string
+): string => {
+	if (seriesName === 'Unlocks') return unlockTokenSymbol
+	if (seriesName.includes('Users')) return 'Addresses'
+	if (seriesName.includes('Addresses')) return ''
+	if (seriesName.includes('Transactions')) return 'TXs'
+	if (seriesName === 'TVL' && valueSymbol !== '$') return valueSymbol
+	if (seriesName in CHART_SYMBOLS) return CHART_SYMBOLS[seriesName]
+	return valueSymbol
 }
 
 echarts.use([
@@ -109,7 +124,13 @@ export function useDefaults({
 				}
 			: {}
 
-		const gridTop = valueSymbol === '%' ? 20 : hideLegend ? 0 : isSmall ? 60 : 10
+		const getGridTop = (): number => {
+			if (valueSymbol === '%') return 20
+			if (hideLegend) return 0
+			if (isSmall) return 60
+			return 10
+		}
+		const gridTop = getGridTop()
 
 		const grid = {
 			left: 20,
@@ -161,22 +182,7 @@ export function useDefaults({
 						curr.marker +
 						curr.seriesName +
 						'&nbsp;&nbsp;' +
-						formatTooltipValue(
-							curr.value[1],
-							curr.seriesName === 'Unlocks'
-								? unlockTokenSymbol
-								: curr.seriesName.includes('Users')
-									? 'Addresses'
-									: curr.seriesName.includes('Addresses')
-										? ''
-										: curr.seriesName.includes('Transactions')
-											? 'TXs'
-											: curr.seriesName === 'TVL' && valueSymbol !== '$'
-												? valueSymbol
-												: Object.keys(CHART_SYMBOLS).includes(curr.seriesName)
-													? CHART_SYMBOLS[curr.seriesName]
-													: valueSymbol
-						) +
+						formatTooltipValue(curr.value[1], getSeriesSymbol(curr.seriesName, valueSymbol, unlockTokenSymbol)) +
 						'</li>')
 				}, '')
 

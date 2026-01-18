@@ -281,13 +281,7 @@ export async function handleFetchResponse(res: Response): Promise<any> {
 	if (responseText) {
 		try {
 			const errorResponse = JSON.parse(responseText)
-			if (errorResponse.error) {
-				errorMessage = errorResponse.error
-			} else if (errorResponse.message) {
-				errorMessage = errorResponse.message
-			} else {
-				errorMessage = responseText
-			}
+			errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
 		} catch {
 			errorMessage = responseText
 		}
@@ -308,13 +302,7 @@ export async function handleSimpleFetchResponse(res: Response): Promise<Response
 		if (responseText) {
 			try {
 				const errorResponse = JSON.parse(responseText)
-				if (errorResponse.error) {
-					errorMessage = errorResponse.error
-				} else if (errorResponse.message) {
-					errorMessage = errorResponse.message
-				} else {
-					errorMessage = responseText
-				}
+				errorMessage = errorResponse.error ?? errorResponse.message ?? responseText
 			} catch {
 				errorMessage = responseText
 			}

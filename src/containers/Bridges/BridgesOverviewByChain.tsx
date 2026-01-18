@@ -16,6 +16,10 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 
 const NetflowChart = React.lazy(() => import('~/components/ECharts/BarChart/NetflowChart')) as React.FC<any>
 
+const NET_FLOW_LEGEND_OPTIONS: string[] = ['Net Flow']
+const INFLOWS_OUTFLOWS_LEGEND_OPTIONS: string[] = ['Inflows', 'Outflows']
+const INFLOWS_OUTFLOWS_STACKS = { Inflows: 'stackA', Outflows: 'stackA' }
+
 export function BridgesOverviewByChain({
 	selectedChain = 'All',
 	chains = [],
@@ -101,49 +105,69 @@ export function BridgesOverviewByChain({
 	}, [filteredBridges, messagingProtocols, bridgeNameToChartDataIndex, chartDataByBridge])
 
 	const prepareChartCsv = React.useCallback(() => {
-		let rows = []
-		let fileName = 'bridge-chart-data.csv'
+		type CsvConfig = {
+			filename: string
+			headers: string[]
+			getData: () => Array<(string | number)[]>
+		}
 
-		if (selectedChain === 'All' && chartView === 'volume') {
-			fileName = 'bridge-volume-data.csv'
-			// For volume chart
-			rows = [['Timestamp', 'Date', 'Volume']]
-			for (const entry of chainVolumeData) {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
+		const getChartCsvConfig = (): CsvConfig => {
+			// Handle "All chains" volume view
+			if (selectedChain === 'All' && chartView === 'volume') {
+				return {
+					filename: 'bridge-volume-data.csv',
+					headers: ['Timestamp', 'Date', 'Volume'],
+					getData: () => chainVolumeData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.volume])
+				}
 			}
-		} else if (chartType === 'Bridge Volume') {
-			fileName = `${selectedChain}-bridge-volume.csv`
-			rows = [['Timestamp', 'Date', 'Volume']]
-			for (const entry of chainVolumeData) {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry.volume])
-			}
-		} else if (chartType === 'Net Flow') {
-			fileName = `${selectedChain}-netflow.csv`
-			rows = [['Timestamp', 'Date', 'Net Flow']]
-			for (const entry of chainNetFlowData) {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry['Net Flow']])
-			}
-		} else if (chartType === 'Net Flow (%)') {
-			fileName = `${selectedChain}-netflow-percentage.csv`
-			rows = [['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)']]
-			for (const entry of chainPercentageNet) {
-				rows.push([entry.date, toNiceCsvDate(entry.date), entry.Inflows, entry.Outflows])
-			}
-		} else if (chartType === '24h Tokens Deposited') {
-			fileName = `${selectedChain}-tokens-deposited.csv`
-			rows = [['Token', 'Amount']]
-			for (const entry of tokenDeposits) {
-				rows.push([entry.name, entry.value])
-			}
-		} else if (chartType === '24h Tokens Withdrawn') {
-			fileName = `${selectedChain}-tokens-withdrawn.csv`
-			rows = [['Token', 'Amount']]
-			for (const entry of tokenWithdrawals) {
-				rows.push([entry.name, entry.value])
+
+			// Handle specific chart types
+			switch (chartType) {
+				case 'Bridge Volume':
+					return {
+						filename: `${selectedChain}-bridge-volume.csv`,
+						headers: ['Timestamp', 'Date', 'Volume'],
+						getData: () => chainVolumeData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.volume])
+					}
+				case 'Net Flow':
+					return {
+						filename: `${selectedChain}-netflow.csv`,
+						headers: ['Timestamp', 'Date', 'Net Flow'],
+						getData: () => chainNetFlowData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry['Net Flow']])
+					}
+				case 'Net Flow (%)':
+					return {
+						filename: `${selectedChain}-netflow-percentage.csv`,
+						headers: ['Timestamp', 'Date', 'Inflows (%)', 'Outflows (%)'],
+						getData: () =>
+							chainPercentageNet.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.Inflows, entry.Outflows])
+					}
+				case '24h Tokens Deposited':
+					return {
+						filename: `${selectedChain}-tokens-deposited.csv`,
+						headers: ['Token', 'Amount'],
+						getData: () => tokenDeposits.map((entry) => [entry.name, entry.value])
+					}
+				case '24h Tokens Withdrawn':
+					return {
+						filename: `${selectedChain}-tokens-withdrawn.csv`,
+						headers: ['Token', 'Amount'],
+						getData: () => tokenWithdrawals.map((entry) => [entry.name, entry.value])
+					}
+				default:
+					return {
+						filename: 'bridge-chart-data.csv',
+						headers: [],
+						getData: () => []
+					}
 			}
 		}
 
-		return { filename: fileName, rows }
+		const config = getChartCsvConfig()
+		return {
+			filename: config.filename,
+			rows: config.headers.length > 0 ? [config.headers, ...config.getData()] : []
+		}
 	}, [
 		selectedChain,
 		chartView,
@@ -258,7 +282,7 @@ export function BridgesOverviewByChain({
 										title=""
 										hideDefaultLegend={true}
 										customLegendName="Volume"
-										customLegendOptions={['Net Flow']}
+										customLegendOptions={NET_FLOW_LEGEND_OPTIONS}
 									/>
 								</React.Suspense>
 							)}
@@ -268,10 +292,10 @@ export function BridgesOverviewByChain({
 										chartData={chainPercentageNet}
 										title=""
 										valueSymbol="%"
-										stacks={{ Inflows: 'stackA', Outflows: 'stackA' }}
+										stacks={INFLOWS_OUTFLOWS_STACKS}
 										hideDefaultLegend={true}
 										customLegendName="Volume"
-										customLegendOptions={['Inflows', 'Outflows']}
+										customLegendOptions={INFLOWS_OUTFLOWS_LEGEND_OPTIONS}
 									/>
 								</React.Suspense>
 							)}

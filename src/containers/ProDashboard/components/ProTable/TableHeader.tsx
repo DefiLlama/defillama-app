@@ -49,7 +49,11 @@ export function TableHeader({
 	const [showCustomViewDropdown, setShowCustomViewDropdown] = React.useState(false)
 	const dropdownRef = React.useRef<HTMLDivElement>(null)
 
-	const activeCustomView = customViews.find((v) => v.id === activePreset)
+	const activeCustomView = React.useMemo(
+		() => customViews.find((v) => v.id === activePreset),
+		[customViews, activePreset]
+	)
+	const existingViewNames = React.useMemo(() => customViews.map((v) => v.name), [customViews])
 	const datasetPresets = React.useMemo(
 		() =>
 			columnPresets.filter(
@@ -282,7 +286,7 @@ export function TableHeader({
 						onSaveView(name)
 						setShowSaveModal(false)
 					}}
-					existingViewNames={customViews.map((v) => v.name)}
+					existingViewNames={existingViewNames}
 				/>
 			)}
 		</div>

@@ -92,20 +92,28 @@ export const LinksWithDropdown = React.memo(function LinksWithDropdown({
 		}
 	}, [calcOverflowIndex])
 
+	const isActiveLinkInList = useMemo(
+		() => !!links.find((link) => link.label === activeLink),
+		[links, activeLink]
+	)
+
+	const { hasOverflow, isLinkInDropdown } = useMemo(() => {
+		const hasOverflow = overflowIndex !== null && typeof overflowIndex === 'number' && overflowIndex > 0
+		const isLinkInDropdown = hasOverflow && !!links.slice(overflowIndex).find((link) => link.label === activeLink)
+		return { hasOverflow, isLinkInDropdown }
+	}, [overflowIndex, links, activeLink])
+
 	// For narrow screens, show only the dropdown
 	if (overflowIndex === 'renderMenu') {
 		return (
 			<OtherLinks
 				name={alternativeOthersText ?? 'Others'}
-				isActive={!!links.find((link) => link.label === activeLink)}
+				isActive={isActiveLinkInList}
 				options={links}
 				className="w-full justify-between"
 			/>
 		)
 	}
-
-	const hasOverflow = overflowIndex !== null && overflowIndex > 0
-	const isLinkInDropdown = hasOverflow && !!links.slice(overflowIndex).find((link) => link.label === activeLink)
 
 	return (
 		<>

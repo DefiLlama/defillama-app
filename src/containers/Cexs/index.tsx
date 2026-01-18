@@ -12,6 +12,16 @@ import { fetchJson } from '~/utils/async'
 import { DateFilter } from './DateFilter'
 import { ICex } from './types'
 
+const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
+
+// Helper to get color class based on positive/negative value
+const getValueColorClass = (value: number | null | undefined): string => {
+	if (value == null) return ''
+	if (value < 0) return 'text-(--error)'
+	if (value > 0) return 'text-(--success)'
+	return ''
+}
+
 const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 	let loadingToastId
 	try {
@@ -89,7 +99,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 				customFilters={
 					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
 				}
-				sortingState={[{ id: 'cleanAssetsTvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
@@ -149,20 +159,17 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
+			if (info.getValue() == null) return null
+
+			const helperText =
+				coinSymbol === undefined
+					? `Original TVL doesn't contain any coin issued by this CEX`
+					: `This excludes all TVL from ${coinSymbol}, which is a token issued by this CEX`
+
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{info.getValue() != null ? (
-						<>
-							{coinSymbol === undefined ? (
-								<QuestionHelper text={`Original TVL doesn't contain any coin issued by this CEX`} />
-							) : (
-								<QuestionHelper
-									text={`This excludes all TVL from ${info.row.original.coinSymbol}, which is a token issued by this CEX`}
-								/>
-							)}
-							<span>{formattedNum(info.getValue(), true)}</span>
-						</>
-					) : null}
+					<QuestionHelper text={helperText} />
+					<span>{formattedNum(info.getValue(), true)}</span>
 				</span>
 			)
 		},
@@ -178,11 +185,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'inflows_24h',
 		size: 120,
 		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
+			<span className={getValueColorClass(info.getValue() as number)}>
 				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
@@ -196,11 +199,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'inflows_1w',
 		size: 120,
 		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
+			<span className={getValueColorClass(info.getValue() as number)}>
 				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
@@ -214,11 +213,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'inflows_1m',
 		size: 120,
 		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
+			<span className={getValueColorClass(info.getValue() as number)}>
 				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),
@@ -263,11 +258,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorFn: (row) => row.customRange ?? undefined,
 		size: 200,
 		cell: (info) => (
-			<span
-				className={`${
-					(info.getValue() as number) < 0 ? 'text-(--error)' : (info.getValue() as number) > 0 ? 'text-(--success)' : ''
-				}`}
-			>
+			<span className={getValueColorClass(info.getValue() as number)}>
 				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
 			</span>
 		),

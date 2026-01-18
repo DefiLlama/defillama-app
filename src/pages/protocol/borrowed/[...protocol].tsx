@@ -87,7 +87,11 @@ export default function Protocols(props) {
 	const { chainsSplit, chainsUnique } = React.useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
-		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
+		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (key !== 'date') chainsUnique.push(key)
+		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls])
 	const protocolSlug = slug(props.name || 'protocol')

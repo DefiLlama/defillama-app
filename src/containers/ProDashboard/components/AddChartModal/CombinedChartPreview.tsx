@@ -5,6 +5,11 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
+const CHART_OPTIONS = {
+	xAxis: { show: true },
+	yAxis: { show: true }
+}
+
 interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
@@ -124,14 +129,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 					groupBy={mapGroupingToGroupBy(previewGrouping)}
 					hideDataZoom={true}
 					height="450px"
-					chartOptions={{
-						xAxis: {
-							show: true
-						},
-						yAxis: {
-							show: true
-						}
-					}}
+					chartOptions={CHART_OPTIONS}
 				/>
 			</Suspense>
 		</div>

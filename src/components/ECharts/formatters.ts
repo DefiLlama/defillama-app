@@ -27,22 +27,28 @@ export function formatTooltipChartDate(
 ) {
 	const date = new Date(value)
 
-	return groupBy === 'monthly'
-		? `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
-		: groupBy === 'quarterly'
-			? getQuarterDateRange(value)
-			: groupBy === 'weekly'
-				? getStartAndEndDayOfTheWeek(value)
-				: date.getUTCHours() !== 0 && !hideTime
-					? `${date.toLocaleDateString(undefined, {
-							year: 'numeric',
-							month: '2-digit',
-							day: '2-digit',
-							hour: '2-digit',
-							minute: '2-digit',
-							timeZone: 'UTC'
-						})}`
-					: `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+	switch (groupBy) {
+		case 'monthly':
+			return `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
+		case 'quarterly':
+			return getQuarterDateRange(value)
+		case 'weekly':
+			return getStartAndEndDayOfTheWeek(value)
+		default: {
+			// daily
+			if (date.getUTCHours() !== 0 && !hideTime) {
+				return date.toLocaleDateString(undefined, {
+					year: 'numeric',
+					month: '2-digit',
+					day: '2-digit',
+					hour: '2-digit',
+					minute: '2-digit',
+					timeZone: 'UTC'
+				})
+			}
+			return `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+		}
+	}
 }
 
 export function formatChartEmphasisDate(value: number) {

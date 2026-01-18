@@ -29,12 +29,15 @@ const CATEGORY_ORDER: FilterPresetCategory[] = [
 	'category'
 ]
 
-const normalizeEntries = (filters: Partial<TableFilters>) => {
-	return Object.entries(filters).filter(([_, value]) => {
-		if (value === undefined || value === null) return false
-		if (Array.isArray(value)) return value.length > 0
-		return true
-	})
+const normalizeEntries = (filters: Partial<TableFilters>): Array<[string, unknown]> => {
+	const result: Array<[string, unknown]> = []
+	for (const key in filters) {
+		const value = filters[key]
+		if (value === undefined || value === null) continue
+		if (Array.isArray(value) && value.length === 0) continue
+		result.push([key, value])
+	}
+	return result
 }
 
 const filtersEqual = (current: TableFilters, presetFilters: Partial<TableFilters>) => {

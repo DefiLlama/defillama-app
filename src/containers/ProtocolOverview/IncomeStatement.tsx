@@ -9,6 +9,8 @@ import { IProtocolOverviewPageData } from './types'
 const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
 
 const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as const
+const EMPTY_BREAKDOWN_LABELS: string[] = []
+const EMPTY_BREAKDOWN_METHODOLOGY: Record<string, string> = {}
 
 export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
@@ -375,6 +377,16 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 	}, [sankeyGroupBy, selectedSankeyPeriod, props.incomeStatement, props.metrics?.incentives])
 
+	const { sankeyPeriodSelectOptions, sankeyPeriodLabel } = useMemo(() => {
+		return {
+			sankeyPeriodSelectOptions: sankeyPeriodOptions.map((option, idx) => ({
+				key: option.key,
+				name: idx === 0 ? `${option.label} *` : option.label
+			})),
+			sankeyPeriodLabel: sankeyPeriodOptions.find((o) => o.key === validSankeyPeriod)?.label ?? 'Select Period'
+		}
+	}, [sankeyPeriodOptions, validSankeyPeriod])
+
 	return (
 		<div className="col-span-full flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<div className="flex flex-wrap items-center justify-between gap-1">
@@ -501,8 +513,8 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 							label="Earnings"
 							methodology={props.incomeStatement?.methodology?.['Earnings'] ?? ''}
 							tableHeaders={tableHeaders}
-							breakdownByLabels={[]}
-							breakdownMethodology={{}}
+							breakdownByLabels={EMPTY_BREAKDOWN_LABELS}
+							breakdownMethodology={EMPTY_BREAKDOWN_METHODOLOGY}
 						/>
 						<IncomeStatementByLabel
 							protocolName={props.name}
@@ -567,13 +579,10 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 									</div>
 									{sankeyPeriodOptions.length > 0 && (
 										<Select
-											allValues={sankeyPeriodOptions.map((option, idx) => ({
-												key: option.key,
-												name: idx === 0 ? `${option.label} *` : option.label
-											}))}
+											allValues={sankeyPeriodSelectOptions}
 											selectedValues={validSankeyPeriod ?? ''}
 											setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
-											label={sankeyPeriodOptions.find((o) => o.key === validSankeyPeriod)?.label ?? 'Select Period'}
+											label={sankeyPeriodLabel}
 											labelType="none"
 											triggerProps={{
 												className:

@@ -69,7 +69,11 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				return acc
 			}, {})
 
-			const latestTimestamp = Math.max(...Object.keys(eventsByTimestamp).map(Number))
+			let latestTimestamp = -Infinity
+			for (const ts in eventsByTimestamp) {
+				const num = Number(ts)
+				if (num > latestTimestamp) latestTimestamp = num
+			}
 			const latestEvent = eventsByTimestamp[latestTimestamp]
 
 			const unlockValue = latestEvent.totalTokens * protocol.tPrice

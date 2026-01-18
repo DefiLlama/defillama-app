@@ -241,6 +241,17 @@ function PortfolioNotifications({
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
+	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
+		const protocols = preferences?.settings?.protocols
+		const chains = preferences?.settings?.chains
+		return {
+			protocolsCount: protocols ? Object.keys(protocols).length : 0,
+			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
+			chainsCount: chains ? Object.keys(chains).length : 0,
+			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+		}
+	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
+
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
 			protocolMetrics: [] as string[],
@@ -383,22 +394,18 @@ function PortfolioNotifications({
 				{preferences?.settings && (
 					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
 						<div className="space-y-1 text-xs text-(--text-secondary)">
-							{preferences.settings.protocols && Object.keys(preferences.settings.protocols).length > 0 && (
+							{protocolsCount > 0 && (
 								<div>
-									<span className="font-medium">
-										Tracking {Object.keys(preferences.settings.protocols).length} protocol(s)
-									</span>
+									<span className="font-medium">Tracking {protocolsCount} protocol(s)</span>
 									{' - '}
-									<span>{Object.values(preferences.settings.protocols)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+									<span>{protocolsFirstMetrics}</span>
 								</div>
 							)}
-							{preferences.settings.chains && Object.keys(preferences.settings.chains).length > 0 && (
+							{chainsCount > 0 && (
 								<div>
-									<span className="font-medium">
-										Tracking {Object.keys(preferences.settings.chains).length} chain(s)
-									</span>
+									<span className="font-medium">Tracking {chainsCount} chain(s)</span>
 									{' - '}
-									<span>{Object.values(preferences.settings.chains)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+									<span>{chainsFirstMetrics}</span>
 								</div>
 							)}
 							<div className="mt-1 text-xs opacity-75">

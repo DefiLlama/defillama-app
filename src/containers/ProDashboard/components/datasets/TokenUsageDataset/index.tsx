@@ -86,6 +86,11 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 
 	const tokenSymbols = useMemo(() => config.tokenSymbols ?? [], [config.tokenSymbols])
 
+	const tokenSymbolSelectValue = useMemo(
+		() => tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol })),
+		[tokenSymbols]
+	)
+
 	useEffect(() => {
 		setLocalIncludeCex(config.includeCex ?? false)
 	}, [config.includeCex])
@@ -480,7 +485,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						<div className="order-2 w-full sm:order-1 sm:w-64 lg:w-96">
 							<ReactSelect
 								placeholder="Add or remove tokens (max 4)..."
-								value={tokenSymbols.map((symbol) => ({ label: symbol.toUpperCase(), value: symbol }))}
+								value={tokenSymbolSelectValue}
 								onChange={handleTokenChange}
 								options={tokenSearchInput ? tokenOptions : defaultTokens}
 								onInputChange={(value) => setTokenSearchInput(value)}

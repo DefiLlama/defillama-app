@@ -76,6 +76,11 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 	const includeCategoriesSet = React.useMemo(() => new Set(includeCategories), [includeCategories])
 	const excludeCategoriesSet = React.useMemo(() => new Set(excludeCategories), [excludeCategories])
 
+	const { filteredIncludeCategories, filteredExcludeCategories } = React.useMemo(() => ({
+		filteredIncludeCategories: includeCategories.filter((cat) => availableCategoriesSet.has(cat)),
+		filteredExcludeCategories: excludeCategories.filter((cat) => availableCategoriesSet.has(cat))
+	}), [includeCategories, excludeCategories, availableCategoriesSet])
+
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 		return data.filter((row: any) => {
@@ -298,8 +303,8 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 				onApply={(include, exclude) => handleApplyCategoryFilters(include, exclude)}
 				onClear={handleClearCategoryFilters}
 				categories={availableCategories}
-				initialInclude={includeCategories.filter((cat) => availableCategories.includes(cat))}
-				initialExclude={excludeCategories.filter((cat) => availableCategories.includes(cat))}
+				initialInclude={filteredIncludeCategories}
+				initialExclude={filteredExcludeCategories}
 			/>
 		</div>
 	)

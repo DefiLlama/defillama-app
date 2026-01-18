@@ -17,6 +17,8 @@ const AreaChart = React.lazy(() => import('~/components/ECharts/AreaChart')) as 
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart'))
 
+const TOTAL_LEGEND_OPTIONS: string[] = ['Total']
+
 export const getStaticProps = withPerformanceLogging(
 	'cex/stablecoins/[...cex]',
 	async ({
@@ -145,6 +147,11 @@ export default function CEXStablecoins(props: {
 		return breakdown.sort((a, b) => b.value - a.value)
 	}, [data])
 
+	const totalStablecoinsChartData = React.useMemo(
+		() => data?.totalStablecoins?.map(({ date, value }) => ({ date, Total: value })) ?? [],
+		[data?.totalStablecoins]
+	)
+
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -197,10 +204,10 @@ export default function CEXStablecoins(props: {
 							<LazyChart className="relative col-span-full flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2 xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 								<React.Suspense fallback={<></>}>
 									<AreaChart
-										chartData={data.totalStablecoins.map(({ date, value }) => ({ date, Total: value }))}
+										chartData={totalStablecoinsChartData}
 										title="Total Stablecoin in CEX"
 										customLegendName="Stablecoins"
-										customLegendOptions={['Total']}
+										customLegendOptions={TOTAL_LEGEND_OPTIONS}
 										valueSymbol="$"
 									/>
 								</React.Suspense>

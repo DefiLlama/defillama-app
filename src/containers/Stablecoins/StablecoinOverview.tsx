@@ -41,6 +41,8 @@ const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
 	Area: 'chainMcaps'
 }
 
+const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
+
 export default function PeggedContainer(props) {
 	let { name, symbol } = props.peggedAssetData
 	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
@@ -382,7 +384,7 @@ export const PeggedAssetInfo = ({
 					<TagGroup
 						setValue={setChartType}
 						selectedValue={chartType}
-						values={['Total Circ', 'Pie', 'Dominance', 'Area']}
+						values={CHART_TYPE_VALUES}
 						className="m-2 max-sm:w-full"
 						triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 					/>

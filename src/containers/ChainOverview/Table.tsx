@@ -407,14 +407,14 @@ export const ChainProtocolsTable = ({
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+					values={TABLE_CATEGORIES_VALUES}
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
+					values={TABLE_PERIODS_VALUES}
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
@@ -483,6 +483,9 @@ enum TABLE_PERIODS {
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
+
+const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
 const columnOptions = [
 	{ name: 'Name', key: 'name' },

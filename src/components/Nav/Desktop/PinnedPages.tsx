@@ -46,6 +46,8 @@ export const PinnedPages = React.memo(function PinnedPages({
 		[pinnedPages]
 	)
 
+	const sortableItems = React.useMemo(() => pinnedPages.map(({ route }) => route), [pinnedPages])
+
 	return (
 		<div className="group/pinned flex flex-col">
 			<div
@@ -71,7 +73,7 @@ export const PinnedPages = React.memo(function PinnedPages({
 				onDragEnd={handleDragEnd}
 				modifiers={[restrictToVerticalAxis, restrictToParentElement]}
 			>
-				<SortableContext items={pinnedPages.map(({ route }) => route)} strategy={verticalListSortingStrategy}>
+				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
 					<div className="flex flex-col">
 						{pinnedPages.map((page) => (
 							<PinnedPageRow

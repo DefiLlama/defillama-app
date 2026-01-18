@@ -1606,6 +1606,8 @@ const SmolStats = ({
 	openSmolStatsSummaryByDefault?: boolean
 	dataType: string
 }) => {
+	const restOfData = useMemo(() => data.slice(1), [data])
+
 	if (data.length === 0) return null
 
 	if (data.length === 1) {
@@ -1654,7 +1656,7 @@ const SmolStats = ({
 				<span className="font-jetbrains ml-auto">{formatPrice(data[0].value)}</span>
 			</summary>
 			<div className="mb-3 flex flex-col">
-				{data.slice(1).map((metric) => (
+				{restOfData.map((metric) => (
 					<p
 						className="justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none"
 						key={`${metric.name}-${metric.value}-${protocolName}`}

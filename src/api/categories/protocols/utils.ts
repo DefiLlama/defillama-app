@@ -134,9 +134,13 @@ export const formatProtocolsData = ({
 						p.extraTvl[prop].tvlPrevMonth += protocol.chainTvls[sectionName].tvlPrevMonth
 					}
 
-					p.chains = Object.keys(protocol.oraclesByChain).filter((chain) =>
-						protocol.oraclesByChain[chain].includes(oracle)
-					)
+					const filteredChains: string[] = []
+					for (const chain in protocol.oraclesByChain) {
+						if (protocol.oraclesByChain[chain].includes(oracle)) {
+							filteredChains.push(chain)
+						}
+					}
+					p.chains = filteredChains
 				} else {
 					if (TVL_SETTINGS_KEYS_SET.has(sectionName) || sectionName === 'excludeParent') {
 						p.extraTvl[sectionName] = protocol.chainTvls[sectionName]
