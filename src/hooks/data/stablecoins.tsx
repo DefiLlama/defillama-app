@@ -258,9 +258,11 @@ export const useGroupBridgeData = (chains: IPegged[], bridgeInfoObject: BridgeIn
 					: '100%'
 				: null
 			let hasParentBridges = false
-			for (const _ in parentBridges) {
-				hasParentBridges = true
-				break
+			if (parentBridges) {
+				for (const _ in parentBridges) {
+					hasParentBridges = true
+					break
+				}
 			}
 			if (!parentBridges || !hasParentBridges) {
 				finalData[parent.name] = {

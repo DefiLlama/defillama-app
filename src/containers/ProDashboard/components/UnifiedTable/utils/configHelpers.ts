@@ -56,9 +56,11 @@ export function getDefaultColumnVisibility(
 		}
 	} else {
 		let hasColumnVisibility = false
-		for (const _ in config.columnVisibility) {
-			hasColumnVisibility = true
-			break
+		if (config.columnVisibility) {
+			for (const _ in config.columnVisibility) {
+				hasColumnVisibility = true
+				break
+			}
 		}
 		if (config.columnVisibility && hasColumnVisibility) {
 			visibility = {

@@ -236,9 +236,16 @@ export async function getPrevChartData(symbol: string, totalBins = TOTAL_BINS, t
 	let dangerousPositionsAmount = 0
 	const dangerousPositionsAmountByProtocol: { [protocol: string]: number } = {}
 	const dangerousPositionsAmountByChain: { [chain: string]: number } = {}
+	for (const protocol of protocols) {
+		dangerousPositionsAmountByProtocol[protocol] = 0
+	}
+	for (const chain of chains) {
+		dangerousPositionsAmountByChain[chain] = 0
+	}
 	for (const p of dangerousPositions) {
 		dangerousPositionsAmount += p.collateralValue
-		dangerousPositionsAmountByProtocol[p.protocol] = (dangerousPositionsAmountByProtocol[p.protocol] ?? 0) + p.collateralValue
+		dangerousPositionsAmountByProtocol[p.protocol] =
+			(dangerousPositionsAmountByProtocol[p.protocol] ?? 0) + p.collateralValue
 		dangerousPositionsAmountByChain[p.chain] = (dangerousPositionsAmountByChain[p.chain] ?? 0) + p.collateralValue
 	}
 
