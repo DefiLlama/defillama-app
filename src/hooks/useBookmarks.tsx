@@ -13,37 +13,34 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const isSyncing = useRef(false)
 	const hasInitialized = useRef(false)
 
-	// Debounced sync function to save to server
-	const syncToServer = useMemo(
-		() =>
-			debounce(async () => {
-				if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
+	const syncToServer = useEffectEvent(async () => {
+		if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
 
-				try {
-					isSyncing.current = true
-					// Get current localStorage data
-					const localData = localStorage.getItem('DEFILLAMA')
-					if (!localData) return
+		try {
+			isSyncing.current = true
+			// Get current localStorage data
+			const localData = localStorage.getItem('DEFILLAMA')
+			if (!localData) return
 
-					const parsed = JSON.parse(localData)
-					await saveUserConfig(parsed)
-				} catch (error) {
-					console.log('Failed to sync watchlist to server:', error)
-				} finally {
-					setTimeout(() => {
-						isSyncing.current = false
-					}, 100)
-				}
-			}, SYNC_DEBOUNCE_MS),
-		[isAuthenticated, saveUserConfig]
-	)
-
-	// useEffectEvent to trigger sync - always calls latest syncToServer without being a dependency
-	const onSync = useEffectEvent(() => {
-		if (isAuthenticated) {
-			syncToServer()
+			const parsed = JSON.parse(localData)
+			await saveUserConfig(parsed)
+		} catch (error) {
+			console.log('Failed to sync watchlist to server:', error)
+		} finally {
+			setTimeout(() => {
+				isSyncing.current = false
+			}, 100)
 		}
 	})
+
+	// Debounced sync function to save to server
+	const debouncedSyncToServer = useMemo(
+		() =>
+			debounce(() => {
+				void syncToServer()
+			}, SYNC_DEBOUNCE_MS),
+		[]
+	)
 
 	// Initialize from server config on mount
 	useEffect(() => {
@@ -100,48 +97,48 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const addProtocol = useCallback(
 		(name: string) => {
 			localWatchlist.addProtocol(name)
-			onSync()
+			debouncedSyncToServer()
 		},
-		[localWatchlist]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const removeProtocol = useCallback(
 		(name: string) => {
 			localWatchlist.removeProtocol(name)
-			onSync()
+			debouncedSyncToServer()
 		},
-		[localWatchlist]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const addPortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.addPortfolio(name)
-			onSync()
+			debouncedSyncToServer()
 		},
-		[localWatchlist]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const removePortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.removePortfolio(name)
-			onSync()
+			debouncedSyncToServer()
 		},
-		[localWatchlist]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	const setSelectedPortfolio = useCallback(
 		(name: string) => {
 			localWatchlist.setSelectedPortfolio(name)
-			onSync()
+			debouncedSyncToServer()
 		},
-		[localWatchlist]
+		[localWatchlist, debouncedSyncToServer]
 	)
 
 	useEffect(() => {
 		return () => {
-			syncToServer.cancel()
+			debouncedSyncToServer.cancel()
 		}
-	}, [syncToServer])
+	}, [debouncedSyncToServer])
 
 	return {
 		...localWatchlist,

@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 
@@ -97,44 +97,44 @@ export const RecommendedPrompts = ({
 
 	const store = Ariakit.useTabStore({ defaultSelectedId: 'none' })
 
-	useEffect(() => {
-		const hideTabPanel = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				store.setSelectedId('none')
-			}
-		}
-
-		window.addEventListener('keydown', hideTabPanel)
-
-		return () => {
-			window.removeEventListener('keydown', hideTabPanel)
-		}
-	}, [store])
-
-	useEffect(() => {
-		const hideTabPanelOnClickOutside = (event: MouseEvent) => {
-			const target = event.target as HTMLElement
-
-			// Check if the clicked element or any of its ancestors has role="tab" or role="tabpanel"
-			let element: HTMLElement | null = target
-			while (element) {
-				const role = element.getAttribute('role')
-				if (role === 'tab' || role === 'tabpanel') {
-					return
-				}
-				element = element.parentElement
-			}
-
-			// If we get here, the click was not on a tab or tabpanel, so close
+	const onHideTabPanel = useEffectEvent((event: KeyboardEvent) => {
+		if (event.key === 'Escape') {
 			store.setSelectedId('none')
 		}
+	})
 
-		window.addEventListener('click', hideTabPanelOnClickOutside)
+	useEffect(() => {
+		window.addEventListener('keydown', onHideTabPanel)
 
 		return () => {
-			window.removeEventListener('click', hideTabPanelOnClickOutside)
+			window.removeEventListener('keydown', onHideTabPanel)
 		}
-	}, [store])
+	}, [])
+
+	const onHideTabPanelOnClickOutside = useEffectEvent((event: MouseEvent) => {
+		const target = event.target as HTMLElement
+
+		// Check if the clicked element or any of its ancestors has role="tab" or role="tabpanel"
+		let element: HTMLElement | null = target
+		while (element) {
+			const role = element.getAttribute('role')
+			if (role === 'tab' || role === 'tabpanel') {
+				return
+			}
+			element = element.parentElement
+		}
+
+		// If we get here, the click was not on a tab or tabpanel, so close
+		store.setSelectedId('none')
+	})
+
+	useEffect(() => {
+		window.addEventListener('click', onHideTabPanelOnClickOutside)
+
+		return () => {
+			window.removeEventListener('click', onHideTabPanelOnClickOutside)
+		}
+	}, [])
 
 	const categories = isResearchMode ? [researchCategory] : promptCategories
 

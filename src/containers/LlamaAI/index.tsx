@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -970,45 +970,49 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setDroppedFiles(null)
 	}, [])
 
+	const onCheckScrollState = useEffectEvent(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		if (rafIdRef.current) {
+			cancelAnimationFrame(rafIdRef.current)
+		}
+
+		rafIdRef.current = requestAnimationFrame(() => {
+			const activeContainer = scrollContainerRef.current
+			if (!activeContainer) return
+			const { scrollTop, scrollHeight, clientHeight } = activeContainer
+
+			const scrollBottom = Math.ceil(scrollTop + clientHeight)
+			const threshold = scrollHeight - 150
+			const isAtBottom = scrollBottom >= threshold
+			const hasScrollableContent = scrollHeight > clientHeight
+
+			if (isAutoScrollingRef.current && hasScrollableContent) {
+				activeContainer.scrollTop = scrollHeight
+				setTimeout(() => {
+					isAutoScrollingRef.current = false
+				}, 300)
+				return
+			}
+
+			shouldAutoScrollRef.current = isAtBottom
+
+			const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
+			setShowScrollToBottom(shouldShowButton)
+
+			if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
+				handleLoadMoreMessages()
+			}
+		})
+	})
+
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
 
-		const checkScrollState = () => {
-			if (rafIdRef.current) {
-				cancelAnimationFrame(rafIdRef.current)
-			}
-
-			rafIdRef.current = requestAnimationFrame(() => {
-				if (!container) return
-				const { scrollTop, scrollHeight, clientHeight } = container
-
-				const scrollBottom = Math.ceil(scrollTop + clientHeight)
-				const threshold = scrollHeight - 150
-				const isAtBottom = scrollBottom >= threshold
-				const hasScrollableContent = scrollHeight > clientHeight
-
-				if (isAutoScrollingRef.current && hasScrollableContent) {
-					container.scrollTop = scrollHeight
-					setTimeout(() => {
-						isAutoScrollingRef.current = false
-					}, 300)
-					return
-				}
-
-				shouldAutoScrollRef.current = isAtBottom
-
-				const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
-				setShowScrollToBottom(shouldShowButton)
-
-				if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
-					handleLoadMoreMessages()
-				}
-			})
-		}
-
-		const throttledScroll = throttle(checkScrollState, 150)
-		const debouncedResize = debounce(checkScrollState, 100)
+		const throttledScroll = throttle(onCheckScrollState, 150)
+		const debouncedResize = debounce(onCheckScrollState, 100)
 
 		if ('ResizeObserver' in window) {
 			resizeObserverRef.current = new ResizeObserver(debouncedResize)
@@ -1016,12 +1020,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		container.addEventListener('scroll', throttledScroll, { passive: true })
-		container.addEventListener('scrollend', checkScrollState, { passive: true })
-		checkScrollState()
+		container.addEventListener('scrollend', onCheckScrollState, { passive: true })
+		onCheckScrollState()
 
 		return () => {
 			container.removeEventListener('scroll', throttledScroll)
-			container.removeEventListener('scrollend', checkScrollState)
+			container.removeEventListener('scrollend', onCheckScrollState)
 			if (resizeObserverRef.current) {
 				resizeObserverRef.current.disconnect()
 			}
@@ -1029,7 +1033,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				cancelAnimationFrame(rafIdRef.current)
 			}
 		}
-	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, handleLoadMoreMessages, isStreaming])
+	}, [])
 
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingResponse || isStreaming)) {
