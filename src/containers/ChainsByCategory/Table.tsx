@@ -122,43 +122,47 @@ export function ChainsByCategoryTable({
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const clearAllAggrOptions = () => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
 		for (const item of DEFI_CHAINS_SETTINGS) {
-			if (selectedAggregateTypes.includes(item.key)) {
+			if (selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
 		}
 	}
 
 	const toggleAllAggrOptions = () => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
 		for (const item of DEFI_CHAINS_SETTINGS) {
-			if (!selectedAggregateTypes.includes(item.key)) {
+			if (!selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
 		}
 	}
 
 	const addAggrOption = (selectedKeys) => {
+		const selectedKeysSet = new Set(selectedKeys)
 		for (const item in groupTvls) {
 			// toggle on
-			if (!groupTvls[item] && selectedKeys.includes(item)) {
+			if (!groupTvls[item] && selectedKeysSet.has(item)) {
 				updater(item)
 			}
 
 			// toggle off
-			if (groupTvls[item] && !selectedKeys.includes(item)) {
+			if (groupTvls[item] && !selectedKeysSet.has(item)) {
 				updater(item)
 			}
 		}
 	}
 
 	const addOnlyOneAggrOption = (newOption) => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
 		for (const item of DEFI_CHAINS_SETTINGS) {
 			if (item.key === newOption) {
-				if (!selectedAggregateTypes.includes(item.key)) {
+				if (!selectedAggregateTypesSet.has(item.key)) {
 					updater(item.key)
 				}
 			} else {
-				if (selectedAggregateTypes.includes(item.key)) {
+				if (selectedAggregateTypesSet.has(item.key)) {
 					updater(item.key)
 				}
 			}

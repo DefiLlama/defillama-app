@@ -95,23 +95,37 @@ export function VirtualTable({
 			tableWrapperEl.getBoundingClientRect().top <= 20 &&
 			tableHeaderDuplicate
 		) {
-			// Batch DOM writes
+			// Batch DOM reads first
 			const scrollLeft = tableWrapperEl.scrollLeft
 			const offsetWidth = tableWrapperEl.offsetWidth
 			const headerHeight = instance.getHeaderGroups().length * 45
 
-			tableHeaderRef.current.style.position = 'fixed'
-			tableHeaderRef.current.style.top = '0px'
-			tableHeaderRef.current.style.width = `${offsetWidth}px`
-			tableHeaderRef.current.style['overflow-x'] = 'overlay'
-			tableHeaderDuplicate.style.height = `${headerHeight}px`
+			// Batch DOM writes using cssText for single reflow
+			tableHeaderRef.current.style.cssText = `
+				display: flex;
+				flex-direction: column;
+				z-index: 10;
+				position: fixed;
+				top: 0px;
+				width: ${offsetWidth}px;
+				overflow-x: overlay;
+			`
+			tableHeaderDuplicate.style.cssText = `height: ${headerHeight}px;`
 			tableHeaderRef.current.scrollLeft = scrollLeft
 		} else if (tableHeaderRef.current) {
 			const offsetWidth = tableWrapperEl?.offsetWidth || 0
-			tableHeaderRef.current.style.position = 'relative'
-			tableHeaderRef.current.style.width = `${offsetWidth}px`
-			tableHeaderRef.current.style['overflow-x'] = 'initial'
-			tableHeaderDuplicate.style.height = '0px'
+			// Batch DOM writes using cssText for single reflow
+			tableHeaderRef.current.style.cssText = `
+				display: flex;
+				flex-direction: column;
+				z-index: 10;
+				position: relative;
+				width: ${offsetWidth}px;
+				overflow-x: initial;
+			`
+			if (tableHeaderDuplicate) {
+				tableHeaderDuplicate.style.cssText = 'height: 0px;'
+			}
 		}
 	}, [instance, skipVirtualization, useStickyHeader])
 
@@ -168,13 +182,36 @@ export function VirtualTable({
 					const isTableBelowViewport = tableRect.top > window.innerHeight
 
 					if (hasHorizontalScroll && isTableAboveViewport && !isTableBelowViewport) {
-						// Batch all DOM writes together
-						stickyScrollbarRef.current.style.display = 'block'
-						stickyScrollbarRef.current.style.width = `${tableWrapperEl.offsetWidth}px`
-						stickyScrollbarRef.current.style.left = `${tableRect.left}px`
-						stickyScrollbarContentRef.current.style.width = `${tableWrapperEl.scrollWidth}px`
+						// Batch DOM reads first
+						const scrollbarWidth = tableWrapperEl.offsetWidth
+						const scrollbarLeft = tableRect.left
+						const contentWidth = tableWrapperEl.scrollWidth
+
+						// Batch DOM writes using cssText for single reflow
+						stickyScrollbarRef.current.style.cssText = `
+							position: fixed;
+							bottom: 0;
+							height: 12px;
+							overflow-x: auto;
+							overflow-y: hidden;
+							z-index: 999;
+							background-color: var(--cards-bg);
+							display: block;
+							width: ${scrollbarWidth}px;
+							left: ${scrollbarLeft}px;
+						`
+						stickyScrollbarContentRef.current.style.cssText = `height: 1px; width: ${contentWidth}px;`
 					} else {
-						stickyScrollbarRef.current.style.display = 'none'
+						stickyScrollbarRef.current.style.cssText = `
+							position: fixed;
+							bottom: 0;
+							height: 12px;
+							overflow-x: auto;
+							overflow-y: hidden;
+							z-index: 999;
+							background-color: var(--cards-bg);
+							display: none;
+						`
 					}
 				}
 			})

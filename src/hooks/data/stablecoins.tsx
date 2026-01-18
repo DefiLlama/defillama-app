@@ -147,9 +147,23 @@ export const useCalcGroupExtraPeggedByDay = (chains) => {
 	return { data, daySum, dataWithExtraPeggedAndDominanceByDay }
 }
 
-export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainPegged[] => {
+interface IChainData {
+	name: string
+	mcap: number | null
+	unreleased: number | null
+	bridgedTo: number | null
+	minted: number | null
+	dominance?: { name: string; value: number } | null
+	mcaptvl?: number | null
+	subRows?: IChainData[]
+}
+
+export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData): GroupChainPegged[] => {
 	const [groupsEnabled] = useLocalStorageSettingsManager('tvl_chains')
 	const data: GroupChainPegged[] = useMemo(() => {
+		// Build lookup map for O(1) access by name
+		const chainsByName = new Map<string, IChainData>(chains.map((item) => [item.name, item]))
+
 		const finalData = {}
 		const addedChains = []
 		for (const parentName in groupData) {
@@ -162,7 +176,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 
 			finalData[parentName] = {}
 
-			const parentData = chains.find((item) => item.name === parentName)
+			const parentData = chainsByName.get(parentName)
 			if (parentData) {
 				mcap = parentData.mcap || null
 				unreleased = parentData.unreleased || null
@@ -180,7 +194,7 @@ export const useGroupChainsPegged = (chains, groupData: IGroupData): GroupChainP
 			for (const type in groupData[parentName]) {
 				if (groupsEnabled[type] === true) {
 					for (const child of groupData[parentName][type]) {
-						const childData = chains.find((item) => item.name === child)
+						const childData = chainsByName.get(child)
 
 						const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 

@@ -99,9 +99,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 			}
 		}
 
-		events.sort((a, b) => a.date.valueOf() - b.date.valueOf())
-
-		return events
+		return events.toSorted((a, b) => a.date.valueOf() - b.date.valueOf())
 	}, [currentDate, viewMode, unlocksData, precomputedData])
 
 	const { weeklyChartData, monthlyChartData } = useUnlockChartData({
@@ -297,7 +295,7 @@ const chartOptions = {
 
 			const validParams = params
 				.filter((param) => param.value && param.value[1] > 0)
-				.sort((a, b) => b.value[1] - a.value[1])
+				.toSorted((a, b) => b.value[1] - a.value[1])
 
 			if (validParams.length === 0) {
 				tooltipContent += 'No unlocks'

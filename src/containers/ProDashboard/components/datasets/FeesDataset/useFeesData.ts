@@ -10,7 +10,7 @@ export function useFeesData(chains?: string[]) {
 			? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}`
 			: ''
 
-	const sortedChains = chains ? [...chains].sort() : []
+	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
 		queryKey: ['fees-overview', sortedChains.join(',')],

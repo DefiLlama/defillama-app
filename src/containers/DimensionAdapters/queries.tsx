@@ -859,11 +859,18 @@ export const getAdapterByChainPageData = async ({
 		const pf = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 		const ps = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
 
+		let topProtocol = parentProtocols[protocol][0]
+		for (const p of parentProtocols[protocol]) {
+			if ((p.total24h ?? 0) > (topProtocol.total24h ?? 0)) {
+				topProtocol = p
+			}
+		}
+
 		protocols[protocol] = {
 			name: protocol,
 			slug: slug(protocol),
 			logo: tokenIconUrl(protocol),
-			category: parentProtocols[protocol].sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))[0].category ?? null,
+			category: topProtocol.category ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
 			total24h,
 			total7d,

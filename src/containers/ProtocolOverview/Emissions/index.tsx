@@ -108,6 +108,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		if (categoriesFromData.length > 0) {
 			setSelectedCategories((current) => {
 				const newCategories = categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+				if (current.length !== newCategories.length) return newCategories
 				return isEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
 			})
 		}
