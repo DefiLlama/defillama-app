@@ -1,19 +1,30 @@
 import { useMemo } from 'react'
-import { updateAllSettingsInLsAndUrl, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	isDefiSettingKey,
+	isFeesSettingKey,
+	type DefiSettingKey,
+	type FeesSettingKey,
+	updateAllSettingsInLsAndUrl,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { feesOptions } from './options'
 
-export function useProtocolsFilterState(options) {
+const isMetricSettingKey = (value: string): value is DefiSettingKey | FeesSettingKey =>
+	isDefiSettingKey(value) || isFeesSettingKey(value)
+
+export function useProtocolsFilterState(options: { key: string; name: string }[]) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
 
 	const selectedValues = useMemo(() => {
-		const filters = options.map((o) => o.key)
-		return filters.filter((key) => extraTvlsEnabled[key] || extraFeesEnabled[key])
+		const filters = options.map((o) => o.key).filter(isMetricSettingKey)
+		return filters.filter((key) => (isDefiSettingKey(key) ? extraTvlsEnabled[key] : extraFeesEnabled[key]))
 	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
-	const setSelectedValues = (values) => {
-		const newValues = {}
+	const setSelectedValues = (values: string[]) => {
+		const newValues: Partial<Record<DefiSettingKey | FeesSettingKey, boolean>> = {}
 		for (const o of options) {
+			if (!isMetricSettingKey(o.key)) continue
 			newValues[o.key] = values.includes(o.key)
 		}
 		updateAllSettingsInLsAndUrl(newValues)
@@ -29,8 +40,8 @@ export function useFeesFilterState(_props?: { [key: string]: any }) {
 
 	const selectedValues = filters.filter((key) => extraTvlsEnabled[key])
 
-	const setSelectedValues = (values) => {
-		const newValues = {}
+	const setSelectedValues = (values: string[]) => {
+		const newValues: Partial<Record<FeesSettingKey, boolean>> = {}
 		for (const o of feesOptions) {
 			newValues[o.key] = values.includes(o.key)
 		}
@@ -51,13 +62,14 @@ export function useTvlAndFeesFilterState({
 }) {
 	const [toggledKeys] = useLocalStorageSettingsManager('tvl_fees')
 
-	const filters = options.map((o) => o.key)
+	const filters = options.map((o) => o.key).filter(isMetricSettingKey)
 
 	const selectedValues = filters.filter((key) => toggledKeys[key])
 
-	const setSelectedValues = (values) => {
-		const newValues = {}
+	const setSelectedValues = (values: string[]) => {
+		const newValues: Partial<Record<DefiSettingKey | FeesSettingKey, boolean>> = {}
 		for (const o of options) {
+			if (!isMetricSettingKey(o.key)) continue
 			newValues[o.key] = values.includes(o.key)
 		}
 		updateAllSettingsInLsAndUrl(newValues)

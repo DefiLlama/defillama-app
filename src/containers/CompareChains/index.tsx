@@ -5,7 +5,7 @@ import * as React from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/MultiSelectCombobox'
 import { Select } from '~/components/Select'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { Stats } from '../ChainOverview/Stats'
@@ -288,9 +288,7 @@ const formatTvlChart = ({
 	tvlSettings: Record<string, boolean>
 	extraTvlCharts: IChainOverviewData['extraTvlCharts']
 }) => {
-	const toggledTvlSettings = Object.entries(tvlSettings)
-		.filter(([_key, value]) => value)
-		.map(([key]) => key)
+	const toggledTvlSettings = DEFI_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 	if (toggledTvlSettings.length === 0) {
 		const totalValueUSD = getPrevTvlFromChart(tvlChart, 0)
@@ -299,6 +297,8 @@ const formatTvlChart = ({
 		const change24h = getPercentChange(totalValueUSD, tvlPrevDay)
 		return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
 	}
+
+	const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 
 	const store: Record<string, number> = {}
 	for (const [date, tvl] of tvlChart) {
@@ -310,7 +310,7 @@ const formatTvlChart = ({
 	}
 
 	// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
-	if (toggledTvlSettings.includes('liquidstaking') && toggledTvlSettings.includes('doublecounted')) {
+	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
 		for (const date in store) {
 			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 		}

@@ -244,7 +244,7 @@ export function AddToDashboardModal({
 		>
 			<div className="mb-4 flex items-center justify-between">
 				<h2 className="pro-text1 text-base font-semibold">Add to Dashboard</h2>
-				<Ariakit.DialogDismiss className="pro-hover-bg pro-text2 rounded-md p-1 transition-colors">
+				<Ariakit.DialogDismiss className="pro-hover-bg pro-text2 rounded-md p-1">
 					<Icon name="x" height={18} width={18} />
 				</Ariakit.DialogDismiss>
 			</div>
@@ -276,7 +276,7 @@ export function AddToDashboardModal({
 								key={dashboard.id}
 								type="button"
 								onClick={() => handleSelectDashboard(dashboard.id)}
-								className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors ${
+								className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
 									selectedDashboardId === dashboard.id ? 'bg-(--primary)/10 text-(--primary)' : 'pro-text1 pro-hover-bg'
 								}`}
 							>
@@ -314,7 +314,7 @@ export function AddToDashboardModal({
 					<button
 						type="button"
 						onClick={handleCreateNew}
-						className="pro-text2 hover:pro-text1 pro-hover-bg flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+						className="pro-text2 hover:pro-text1 pro-hover-bg flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm"
 					>
 						<Icon name="plus" className="h-4 w-4" />
 						<span>Create new dashboard</span>
@@ -345,7 +345,7 @@ export function AddToDashboardModal({
 			<div className="flex gap-2">
 				<Ariakit.DialogDismiss
 					disabled={isAdding}
-					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-3 py-2 text-sm transition-colors disabled:opacity-50"
+					className="pro-border pro-text2 hover:pro-text1 pro-hover-bg flex-1 rounded-md border px-3 py-2 text-sm disabled:opacity-50"
 				>
 					Cancel
 				</Ariakit.DialogDismiss>
@@ -353,7 +353,7 @@ export function AddToDashboardModal({
 					type="button"
 					onClick={handleAdd}
 					disabled={isAdding || !canSubmit}
-					className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+					className={`flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
 						canSubmit ? 'pro-btn-purple' : 'pro-border pro-text3 cursor-not-allowed border'
 					}`}
 				>

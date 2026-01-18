@@ -20,7 +20,12 @@ import { VirtualTable } from '~/components/Table/Table'
 import { formatColumnOrder } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_CHAINS_SETTINGS, subscribeToLocalStorage, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import {
+	DEFI_CHAINS_SETTINGS,
+	isDefiChainsKey,
+	subscribeToLocalStorage,
+	useLocalStorageSettingsManager
+} from '~/contexts/LocalStorage'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { definitions } from '~/public/definitions'
@@ -139,32 +144,23 @@ export function ChainsByCategoryTable({
 		}
 	}
 
-	const addAggrOption = (selectedKeys) => {
-		const selectedKeysSet = new Set(selectedKeys)
-		for (const item in groupTvls) {
-			// toggle on
-			if (!groupTvls[item] && selectedKeysSet.has(item)) {
-				updater(item)
-			}
-
-			// toggle off
-			if (groupTvls[item] && !selectedKeysSet.has(item)) {
-				updater(item)
+	const addAggrOption: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
+		const nextSelectedKeys = typeof selectedKeys === 'function' ? selectedKeys(selectedAggregateTypes) : selectedKeys
+		const selectedKeysSet = new Set(nextSelectedKeys)
+		for (const item of DEFI_CHAINS_SETTINGS) {
+			const shouldEnable = selectedKeysSet.has(item.key)
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
 			}
 		}
 	}
 
-	const addOnlyOneAggrOption = (newOption) => {
-		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
+	const addOnlyOneAggrOption = (newOption: string) => {
+		if (!isDefiChainsKey(newOption)) return
 		for (const item of DEFI_CHAINS_SETTINGS) {
-			if (item.key === newOption) {
-				if (!selectedAggregateTypesSet.has(item.key)) {
-					updater(item.key)
-				}
-			} else {
-				if (selectedAggregateTypesSet.has(item.key)) {
-					updater(item.key)
-				}
+			const shouldEnable = item.key === newOption
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
 			}
 		}
 	}

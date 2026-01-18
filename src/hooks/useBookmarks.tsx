@@ -1,7 +1,7 @@
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useWatchlistManager } from '~/contexts/LocalStorage'
+import { readAppStorage, readAppStorageRaw, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
 import { useUserConfig } from './useUserConfig'
 
 const SYNC_DEBOUNCE_MS = 1000
@@ -19,11 +19,10 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 		try {
 			isSyncing.current = true
 			// Get current localStorage data
-			const localData = localStorage.getItem('DEFILLAMA')
+			const localData = readAppStorageRaw()
 			if (!localData) return
 
-			const parsed = JSON.parse(localData)
-			await saveUserConfig(parsed)
+			await saveUserConfig(readAppStorage())
 		} catch (error) {
 			console.log('Failed to sync watchlist to server:', error)
 		} finally {
@@ -62,8 +61,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 			isSyncing.current = true
 
 			// Merge server data with local data
-			const localData = localStorage.getItem('DEFILLAMA')
-			const localParsed = localData ? JSON.parse(localData) : {}
+			const localParsed = readAppStorage()
 			const localWatchlistData = localParsed[watchlistKey] || { main: {} }
 
 			// Deep merge watchlists
@@ -83,7 +81,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 				...localParsed,
 				[watchlistKey]: mergedWatchlist
 			}
-			localStorage.setItem('DEFILLAMA', JSON.stringify(updatedData))
+			writeAppStorage(updatedData)
 			window.dispatchEvent(new Event('storage'))
 
 			setTimeout(() => {

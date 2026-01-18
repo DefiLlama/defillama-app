@@ -25,7 +25,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
-import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { subscribeToLocalStorage, useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug, toNumberOrNullFromQueryParam } from '~/utils'
@@ -34,13 +34,6 @@ import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
-
-export interface CustomColumnDef {
-	name: string
-	formula: string
-	formatType: 'auto' | 'number' | 'usd' | 'percent' | 'string' | 'boolean'
-	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
-}
 
 export const ChainProtocolsTable = ({
 	protocols,

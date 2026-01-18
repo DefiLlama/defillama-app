@@ -15,7 +15,7 @@ import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
-import { DEFI_CHAINS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { DEFI_CHAINS_SETTINGS, isDefiChainsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import {
 	assetsByChainColumnOrders,
@@ -252,45 +252,39 @@ export function PeggedChainsTable({ data }) {
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const clearAllAggrOptions = () => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
 		for (const item of DEFI_CHAINS_SETTINGS) {
-			if (selectedAggregateTypes.includes(item.key)) {
+			if (selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
 		}
 	}
 
 	const toggleAllAggrOptions = () => {
+		const selectedAggregateTypesSet = new Set(selectedAggregateTypes)
 		for (const item of DEFI_CHAINS_SETTINGS) {
-			if (!selectedAggregateTypes.includes(item.key)) {
+			if (!selectedAggregateTypesSet.has(item.key)) {
 				updater(item.key)
 			}
 		}
 	}
 
-	const addAggrOption = (selectedKeys) => {
-		for (const item in groupTvls) {
-			// toggle on
-			if (!groupTvls[item] && selectedKeys.includes(item)) {
-				updater(item)
-			}
-
-			// toggle off
-			if (groupTvls[item] && !selectedKeys.includes(item)) {
-				updater(item)
+	const addAggrOption = (selectedKeys: string[]) => {
+		const selectedSet = new Set(selectedKeys)
+		for (const item of DEFI_CHAINS_SETTINGS) {
+			const shouldEnable = selectedSet.has(item.key)
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
 			}
 		}
 	}
 
-	const addOnlyOneAggrOption = (newOption) => {
+	const addOnlyOneAggrOption = (newOption: string) => {
+		if (!isDefiChainsKey(newOption)) return
 		for (const item of DEFI_CHAINS_SETTINGS) {
-			if (item.key === newOption) {
-				if (!selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
-			} else {
-				if (selectedAggregateTypes.includes(item.key)) {
-					updater(item.key)
-				}
+			const shouldEnable = item.key === newOption
+			if (groupTvls[item.key] !== shouldEnable) {
+				updater(item.key)
 			}
 		}
 	}
@@ -319,8 +313,8 @@ export function PeggedChainsTable({ data }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<SelectWithCombobox
-					allValues={DEFI_CHAINS_SETTINGS}
+					<SelectWithCombobox
+						allValues={DEFI_CHAINS_SETTINGS}
 					selectedValues={selectedAggregateTypes}
 					setSelectedValues={addAggrOption}
 					selectOnlyOne={addOnlyOneAggrOption}

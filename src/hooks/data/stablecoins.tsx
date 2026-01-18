@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
-import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { isDefiChainsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
 
 interface IPegged {
@@ -66,8 +66,6 @@ type DataValue = number | null
 interface IGroupData {
 	[key: string]: Record<string, string[]>
 }
-
-type ChainTvlsByDay = [string, IChainTvl]
 
 export const useCalcCirculating = (filteredPeggedAssets: IPegged[]) => {
 	const [extraPeggedEnabled] = useLocalStorageSettingsManager('stablecoins')
@@ -192,35 +190,36 @@ export const useGroupChainsPegged = (chains: IChainData[], groupData: IGroupData
 
 			let addedChildren = false
 			for (const type in groupData[parentName]) {
-				if (groupsEnabled[type] === true) {
-					for (const child of groupData[parentName][type]) {
-						const childData = chainsByName.get(child)
+				if (!isDefiChainsKey(type) || groupsEnabled[type] !== true) {
+					continue
+				}
+				for (const child of groupData[parentName][type]) {
+					const childData = chainsByName.get(child)
 
-						const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
+					const alreadyAdded = (finalData[parentName].subRows ?? []).find((p) => p.name === child)
 
-						if (childData && alreadyAdded === undefined) {
-							mcap += childData.mcap
-							unreleased += childData.unreleased
-							bridgedTo += childData.bridgedTo
-							minted += childData.minted
-							dominance = null
-							mcaptvl = null
-							const subChains = finalData[parentName].subRows || []
+					if (childData && alreadyAdded === undefined) {
+						mcap += childData.mcap
+						unreleased += childData.unreleased
+						bridgedTo += childData.bridgedTo
+						minted += childData.minted
+						dominance = null
+						mcaptvl = null
+						const subChains = finalData[parentName].subRows || []
 
-							finalData[parentName] = {
-								...finalData[parentName],
-								mcap,
-								unreleased,
-								bridgedTo,
-								minted,
-								dominance,
-								mcaptvl: mcaptvl !== null ? +formatNum(+mcaptvl) : null,
-								name: parentName,
-								subRows: [...subChains, childData]
-							}
-							addedChains.push(child)
-							addedChildren = true
+						finalData[parentName] = {
+							...finalData[parentName],
+							mcap,
+							unreleased,
+							bridgedTo,
+							minted,
+							dominance,
+							mcaptvl: mcaptvl !== null ? +formatNum(+mcaptvl) : null,
+							name: parentName,
+							subRows: [...subChains, childData]
 						}
+						addedChains.push(child)
+						addedChildren = true
 					}
 				}
 			}

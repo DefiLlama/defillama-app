@@ -1,6 +1,7 @@
-import { DEFI_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS, FEES_SETTINGS, type DefiSettingKey, type FeesSettingKey } from '~/contexts/LocalStorage'
+import type { ToggleOption } from './types'
 
-export const tvlOptions = [
+export const tvlOptions: Array<ToggleOption<DefiSettingKey>> = [
 	{
 		name: 'Staking',
 		key: DEFI_SETTINGS.STAKING,
@@ -38,7 +39,7 @@ export const tvlOptions = [
 	}
 ]
 
-export const feesOptions = [
+export const feesOptions: Array<ToggleOption<FeesSettingKey>> = [
 	{ name: 'Bribes', key: FEES_SETTINGS.BRIBES, help: null },
 	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]

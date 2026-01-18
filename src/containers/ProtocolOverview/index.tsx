@@ -11,7 +11,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { DEFI_SETTINGS_KEYS_SET, FEES_SETTINGS, isDefiSettingKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { ProtocolChart } from './Chart/ProtocolChart'
@@ -176,7 +176,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isDefiSettingKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + props.currentTvlByChain[chain]
 				continue
 			}
@@ -205,7 +206,8 @@ function useFinalTVL(props: IProtocolOverviewPageData) {
 				continue
 			}
 
-			if (extraTvlsEnabled[extraTvlKey.toLowerCase()]) {
+			const normalizedExtraKey = extraTvlKey.toLowerCase()
+			if (isDefiSettingKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
 				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + props.oracleTvs[chain]
 				continue
 			}

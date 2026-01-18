@@ -39,7 +39,7 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 							target="_blank"
 							className="text-sm font-medium text-(--link-text)"
 						>
-							<div className="cursor-pointer rounded-md bg-(--bg-card) p-2 text-xs shadow-xs transition-colors duration-150 ease-in-out hover:bg-(--bg-muted)">
+							<div className="cursor-pointer rounded-md bg-(--bg-card) p-2 text-xs shadow-xs hover:bg-(--bg-muted)">
 								<div className="mb-0.5 flex items-start justify-between gap-1">
 									<div className="flex min-w-0 shrink items-center gap-1.5 font-medium text-(--text-primary)">
 										<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />

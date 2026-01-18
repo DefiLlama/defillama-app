@@ -3,9 +3,10 @@ import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
 import { Tooltip } from './Tooltip'
+import type { SelectValues } from './selectTypes'
 
 interface ISelect {
-	allValues: ReadonlyArray<{ key: string; name: string; help?: string }> | ReadonlyArray<string>
+	allValues: SelectValues
 	selectedValues: Array<string> | string
 	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
 	label: React.ReactNode

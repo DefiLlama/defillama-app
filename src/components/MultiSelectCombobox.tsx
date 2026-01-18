@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from './Icon'
+import type { MultiSelectOption } from './selectTypes'
 
 export const MultiSelectCombobox = ({
 	data,
@@ -9,7 +10,7 @@ export const MultiSelectCombobox = ({
 	selectedValues,
 	setSelectedValues
 }: {
-	data: Array<{ label: string; value: string; logo?: string }>
+	data: ReadonlyArray<MultiSelectOption>
 	placeholder: string
 	selectedValues: string[]
 	setSelectedValues: (values: string[]) => void

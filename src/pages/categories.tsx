@@ -236,18 +236,11 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		setSelectedCategories([category])
 	}
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const enabledTvls = React.useMemo(() => DEFI_SETTINGS_KEYS.filter((key) => extaTvlsEnabled[key]), [extaTvlsEnabled])
 
 	const charts = React.useMemo(() => {
 		const selectedCategoriesSet = new Set(selectedCategories)
-
-		let hasEnabledTvl = false
-		for (const key in extaTvlsEnabled) {
-			if (extaTvlsEnabled[key] === true) {
-				hasEnabledTvl = true
-				break
-			}
-		}
-		if (!hasEnabledTvl) {
+		if (enabledTvls.length === 0) {
 			if (selectedCategories.length === categories.length) {
 				return chartData
 			}
@@ -260,13 +253,6 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 			}
 
 			return charts
-		}
-
-		const enabledTvls: string[] = []
-		for (const key in extaTvlsEnabled) {
-			if (extaTvlsEnabled[key] === true) {
-				enabledTvls.push(key)
-			}
 		}
 
 		const charts = {}
@@ -286,16 +272,9 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		}
 
 		return charts
-	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
+	}, [chartData, selectedCategories, categories, extraTvlCharts, enabledTvls])
 
 	const finalCategoriesList = React.useMemo(() => {
-		const enabledTvls: string[] = []
-		for (const key in extaTvlsEnabled) {
-			if (extaTvlsEnabled[key] === true) {
-				enabledTvls.push(key)
-			}
-		}
-
 		if (enabledTvls.length === 0) {
 			return tableData
 		}
@@ -359,7 +338,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		}
 
 		return finalList
-	}, [tableData, extaTvlsEnabled])
+	}, [tableData, enabledTvls])
 
 	return (
 		<Layout

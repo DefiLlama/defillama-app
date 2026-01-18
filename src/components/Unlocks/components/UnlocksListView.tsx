@@ -42,7 +42,7 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 								target="_blank"
 								className="text-sm font-medium text-(--link-text)"
 							>
-								<div className="flex cursor-pointer items-center justify-between rounded-sm bg-(--bg-card) p-3 shadow-xs transition-colors duration-150 ease-in-out hover:bg-(--bg-muted)">
+								<div className="flex cursor-pointer items-center justify-between rounded-sm bg-(--bg-card) p-3 shadow-xs hover:bg-(--bg-muted)">
 									<span className="flex items-center gap-3 text-sm font-medium text-(--text-primary)">
 										<TokenLogo logo={tokenIconUrl(event.protocol)} size={20} />
 										{event.protocol}

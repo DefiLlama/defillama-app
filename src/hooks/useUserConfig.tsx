@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import { readAppStorage, readAppStorageRaw, writeAppStorage } from '~/contexts/LocalStorage'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
-const DEFILLAMA = 'DEFILLAMA'
 const SYNC_DEBOUNCE_MS = 2000
 
 type UserConfig = Record<string, any>
@@ -33,11 +33,10 @@ export function useUserConfig() {
 				if (hasConfig) {
 					isSyncingRef.current = true
 
-					const currentLocal = localStorage.getItem(DEFILLAMA)
-					const localSettings = currentLocal ? JSON.parse(currentLocal) : {}
+					const localSettings = readAppStorage()
 					const mergedSettings = { ...localSettings, ...config }
 
-					localStorage.setItem(DEFILLAMA, JSON.stringify(mergedSettings))
+					writeAppStorage(mergedSettings)
 					window.dispatchEvent(new Event('storage'))
 
 					setTimeout(() => {
@@ -120,11 +119,10 @@ export function useUserConfig() {
 		() =>
 			debounce(async () => {
 				try {
-					const currentSettings = localStorage.getItem(DEFILLAMA)
+					const currentSettings = readAppStorageRaw()
 					if (!currentSettings) return
 
-					const settings = JSON.parse(currentSettings)
-					await saveConfigAsyncRef.current(settings)
+					await saveConfigAsyncRef.current(readAppStorage())
 				} catch (error) {
 					console.log('Failed to sync settings:', error)
 				}

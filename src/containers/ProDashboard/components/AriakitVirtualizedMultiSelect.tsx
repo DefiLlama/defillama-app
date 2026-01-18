@@ -3,26 +3,19 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import type { MultiSelectOption } from '~/components/selectTypes'
 import { LoadingSpinner } from './LoadingSpinner'
-
-export interface VirtualizedMultiSelectOption {
-	value: string
-	label: string
-	logo?: string
-	disabled?: boolean
-	isChild?: boolean
-}
 
 interface AriakitVirtualizedMultiSelectProps {
 	label: string
-	options: VirtualizedMultiSelectOption[]
+	options: ReadonlyArray<MultiSelectOption>
 	selectedValues: string[]
 	onChange: (values: string[]) => void
 	placeholder?: string
 	isLoading?: boolean
 	className?: string
 	maxSelections?: number
-	renderIcon?: (option: VirtualizedMultiSelectOption) => string | null
+	renderIcon?: (option: MultiSelectOption) => string | null
 	onSearchChange?: (value: string) => void
 }
 

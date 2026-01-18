@@ -493,7 +493,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					<div className="order-1 flex items-center gap-2 md:order-0">
 						<button
 							onClick={goToPrevMonth}
-							className="rounded-md p-1.5 text-(--text-secondary) transition-colors hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Previous Month"
 						>
 							←
@@ -504,7 +504,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						</span>
 						<button
 							onClick={goToNextMonth}
-							className="rounded-md p-1.5 text-(--text-secondary) transition-colors hover:bg-(--bg-glass) hover:text-(--text-primary)"
+							className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--bg-glass) hover:text-(--text-primary)"
 							aria-label="Next Month"
 						>
 							→
