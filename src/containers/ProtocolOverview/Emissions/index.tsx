@@ -282,14 +282,13 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const pieChartLegendPosition = useMemo(() => {
-		if (!width) return { left: 'right', orient: 'vertical' as const }
 		if (width < 640) return { left: 'center', top: 'bottom', orient: 'horizontal' as const }
 		return { left: 'right', top: 'center', orient: 'vertical' as const }
 	}, [width])
 
 	const pieChartLegendTextStyle = useMemo(
 		() => ({
-			fontSize: !width ? 20 : width < 640 ? 12 : 20
+			fontSize: width < 640 ? 12 : 20
 		}),
 		[width]
 	)

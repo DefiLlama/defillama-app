@@ -69,7 +69,7 @@ export function RecentlyListedProtocolsTable({
 	})
 
 	React.useEffect(() => {
-		const cSize = width ? columnSizesKeys.find((size) => width > Number(size)) : columnSizesKeys[0]
+		const cSize = columnSizesKeys.find((size) => width > Number(size)) ?? columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
 	}, [width, instance])

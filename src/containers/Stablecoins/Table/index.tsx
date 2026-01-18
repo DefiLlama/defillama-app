@@ -68,9 +68,9 @@ export function PeggedAssetsTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width ? (assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder) : defaultOrder
+		const order = assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = width ? assetsColumnSizesKeys.find((size) => width > Number(size)) : assetsColumnSizesKeys[0]
+		const cSize = assetsColumnSizesKeys.find((size) => width > Number(size)) ?? assetsColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsColumnSizes[cSize])
 
@@ -158,11 +158,9 @@ export function PeggedAssetByChainTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width ? (assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder) : defaultOrder
+		const order = assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder
 
-		const cSize = width
-			? assetsByChainColumnSizesKeys.find((size) => width > Number(size))
-			: assetsByChainColumnSizesKeys[0]
+		const cSize = assetsByChainColumnSizesKeys.find((size) => width > Number(size)) ?? assetsByChainColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsByChainColumnSizes[cSize])
 
