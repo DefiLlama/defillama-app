@@ -119,6 +119,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
+	// Memoize filter arrays as Sets for O(1) lookups
+	const selectedCategoriesSet = useMemo(() => new Set(selectedCategories), [selectedCategories])
+	const selectedAssetClassesSet = useMemo(() => new Set(selectedAssetClasses), [selectedAssetClasses])
+	const selectedRwaClassificationsSet = useMemo(() => new Set(selectedRwaClassifications), [selectedRwaClassifications])
+	const selectedAccessModelsSet = useMemo(() => new Set(selectedAccessModels), [selectedAccessModels])
+	const selectedIssuersSet = useMemo(() => new Set(selectedIssuers), [selectedIssuers])
+
 	// Non-RWA Stablecoins
 	// Crypto-collateralized stablecoin (non-RWA)
 	const filteredAssets = useMemo(() => {
@@ -163,22 +170,22 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			}
 
 			return (
-				(asset.category?.length ? asset.category.some((category) => selectedCategories.includes(category)) : true) &&
+				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
 				(asset.assetClass?.length
-					? asset.assetClass.some((assetClass) => selectedAssetClasses.includes(assetClass))
+					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
-				(asset.rwaClassification ? selectedRwaClassifications.includes(asset.rwaClassification) : true) &&
-				(asset.accessModel ? selectedAccessModels.includes(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuers.includes(asset.issuer) : true)
+				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
+				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
+				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true)
 			)
 		})
 	}, [
 		props.assets,
-		selectedCategories,
-		selectedAssetClasses,
-		selectedRwaClassifications,
-		selectedAccessModels,
-		selectedIssuers,
+		selectedCategoriesSet,
+		selectedAssetClassesSet,
+		selectedRwaClassificationsSet,
+		selectedAccessModelsSet,
+		selectedIssuersSet,
 		includeStablecoins,
 		includeGovernance,
 		minDefiActiveTvlToOnChainPct,
@@ -228,7 +235,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
 			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
-			const selectedCategoriesSet = new Set(selectedCategories)
 
 			for (const asset of filteredAssets) {
 				for (const category of asset.category ?? []) {
@@ -262,7 +268,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				defiActiveTvlPieChartData: toSortedChartData('defi'),
 				pieChartStackColors
 			}
-		}, [filteredAssets, props.categories, selectedCategories])
+		}, [filteredAssets, props.categories, selectedCategoriesSet])
 
 	const assetsData = useMemo(() => {
 		if (!deferredSearchValue) return filteredAssets

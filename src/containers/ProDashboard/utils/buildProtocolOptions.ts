@@ -48,8 +48,8 @@ export function buildProtocolOptions(
 	const options: Array<{ value: string; label: string; logo?: string; isChild?: boolean; id?: string }> = []
 	const parentToChildrenMap = new Map<string, string[]>()
 
-	const parentIds = Array.from(childrenByParentId.keys())
-	for (const parentId of parentIds) {
+	const parentIdsSet = new Set(childrenByParentId.keys())
+	for (const parentId of parentIdsSet) {
 		const pp = parentMetaById.get(parentId)
 		const children = (childrenByParentId.get(parentId) || []).slice().sort(sortByTvlThenName)
 		const parentName = pp?.name || children[0]?.name?.split(' - ')[0] || String(parentId)
@@ -81,7 +81,7 @@ export function buildProtocolOptions(
 	}
 
 	const solo = protocols
-		.filter((p) => !p.parentProtocol && !parentIds.includes(String(p.defillamaId)))
+		.filter((p) => !p.parentProtocol && !parentIdsSet.has(String(p.defillamaId)))
 		.slice()
 		.sort(sortByTvlThenName)
 

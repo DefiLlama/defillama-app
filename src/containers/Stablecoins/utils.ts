@@ -236,8 +236,9 @@ export const formatPeggedAssetsData = ({
 	let filteredPeggedAssets = [...peggedAssets]
 
 	if (chain) {
+		const sluggedChain = slug(chain)
 		filteredPeggedAssets = filteredPeggedAssets.filter(({ chains = [] }) =>
-			chains.map((c) => slug(c)).includes(slug(chain))
+			chains.some((c) => slug(c) === sluggedChain)
 		)
 	}
 

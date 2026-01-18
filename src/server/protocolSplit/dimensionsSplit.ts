@@ -180,6 +180,7 @@ export const getDimensionsSplitData = async ({
 
 	const chainsArray = chains.length > 0 ? chains : ['all']
 	const categoriesArray = (categories || []).map((cat) => cat.toLowerCase())
+	const categoriesSet = new Set(categoriesArray)
 
 	const chainResults = await fetchChainResults(chainsArray, metric)
 
@@ -249,11 +250,11 @@ export const getDimensionsSplitData = async ({
 
 	let protocolEntries = Object.entries(lastDayProtocols).map(([name, value]) => ({ name, value: value as number }))
 
-	if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
+	if (categoriesSet.size > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
 		if (categoryFilterMode === 'exclude') {
-			protocolEntries = protocolEntries.filter((p) => !categoriesArray.includes(getCategory(p.name)))
+			protocolEntries = protocolEntries.filter((p) => !categoriesSet.has(getCategory(p.name)))
 		} else {
-			protocolEntries = protocolEntries.filter((p) => categoriesArray.includes(getCategory(p.name)))
+			protocolEntries = protocolEntries.filter((p) => categoriesSet.has(getCategory(p.name)))
 		}
 	}
 
@@ -332,12 +333,12 @@ export const getDimensionsSplitData = async ({
 
 		for (const protocolName in protocols) {
 			const value = protocols[protocolName]
-			if (categoriesArray.length > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
+			if (categoriesSet.size > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
 				const cat = getCategory(protocolName)
 				if (categoryFilterMode === 'exclude') {
-					if (categoriesArray.includes(cat)) continue
+					if (categoriesSet.has(cat)) continue
 				} else {
-					if (!categoriesArray.includes(cat)) continue
+					if (!categoriesSet.has(cat)) continue
 				}
 			}
 

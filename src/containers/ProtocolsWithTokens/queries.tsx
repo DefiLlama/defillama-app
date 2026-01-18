@@ -48,6 +48,8 @@ export async function getProtocolsMarketCapsByChain({
 		parentProtocols: Array<{ id: string; name: string; chains: Array<string>; mcap?: number }>
 	} = await fetchJson(PROTOCOLS_API)
 
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
+
 	const finalProtocols = []
 	const finalParentProtocols = {}
 	const categories = new Set<string>()
@@ -76,7 +78,7 @@ export async function getProtocolsMarketCapsByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
@@ -124,6 +126,9 @@ export async function getProtocolsFDVsByChain({
 		Array<IResponseCGMarketsAPI>
 	] = await Promise.all([fetchJson(PROTOCOLS_API), getAllCGTokensList()])
 
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
+	const tokenListMap = new Map(tokenList.map((t) => [t.id, t]))
+
 	const finalProtocols = []
 	const finalParentProtocols = {}
 	const categories = new Set<string>()
@@ -131,7 +136,7 @@ export async function getProtocolsFDVsByChain({
 	for (const protocol of protocols) {
 		if (excludeCategories.has(protocol.category ?? '')) continue
 
-		const fdv = protocol.geckoId ? tokenList.find((t) => t.id === protocol.geckoId)?.['fully_diluted_valuation'] : null
+		const fdv = protocol.geckoId ? tokenListMap.get(protocol.geckoId)?.['fully_diluted_valuation'] : null
 
 		if (protocol.category) {
 			categories.add(protocol.category)
@@ -154,13 +159,13 @@ export async function getProtocolsFDVsByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
 			)
 
-			const fdv = p.gecko_id ? tokenList.find((t) => t.id === p.gecko_id)?.['fully_diluted_valuation'] : null
+			const fdv = p.gecko_id ? tokenListMap.get(p.gecko_id)?.['fully_diluted_valuation'] : null
 
 			finalProtocols.push({
 				name: p.name,
@@ -205,6 +210,8 @@ export async function getProtocolsTokenPricesByChain({
 		parentProtocols: Array<{ id: string; name: string; chains: Array<string>; gecko_id?: string }>
 	} = await fetchJson(PROTOCOLS_API)
 
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
+
 	const finalProtocols = []
 	const finalParentProtocols = {}
 	const categories = new Set<string>()
@@ -247,7 +254,7 @@ export async function getProtocolsTokenPricesByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))
@@ -306,6 +313,8 @@ export async function getProtocolsAdjustedFDVsByChain({
 			}
 		>
 	] = await Promise.all([fetchJson(PROTOCOLS_API), fetchJson(EMISSION_SUPPLY_METRICS)])
+
+	const parentProtocolsMap = new Map(parentProtocols.map((p) => [p.id, p]))
 
 	const finalProtocols = []
 	const finalParentProtocols = {}
@@ -367,7 +376,7 @@ export async function getProtocolsAdjustedFDVsByChain({
 	}
 
 	for (const parent in finalParentProtocols) {
-		const p = parentProtocols.find((p) => p.id === parent)
+		const p = parentProtocolsMap.get(parent)
 		if (p) {
 			const categories = Array.from(
 				new Set(finalParentProtocols[parent].filter((p) => p.category).map((p) => p.category))

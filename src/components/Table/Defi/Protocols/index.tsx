@@ -612,16 +612,14 @@ export function ProtocolsTableWithSearch({
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const width = useBreakpointWidth()
 
-	const columnsData = React.useMemo(
-		() =>
-			addlColumns || removeColumns
-				? [
-						...(columnsToUse as any).filter((c) => !(removeColumns ?? []).includes((c as any).accessorKey)),
-						...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
-					]
-				: columnsToUse,
-		[addlColumns, removeColumns, columnsToUse]
-	)
+	const columnsData = React.useMemo(() => {
+		if (!addlColumns && !removeColumns) return columnsToUse
+		const removeColumnsSet = removeColumns ? new Set(removeColumns) : null
+		return [
+			...(columnsToUse as any).filter((c) => !removeColumnsSet || !removeColumnsSet.has((c as any).accessorKey)),
+			...(addlColumns ?? []).map((x) => protocolAddlColumns[x])
+		]
+	}, [addlColumns, removeColumns, columnsToUse])
 
 	const instance = useReactTable({
 		data,

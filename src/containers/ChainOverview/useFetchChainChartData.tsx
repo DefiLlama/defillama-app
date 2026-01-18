@@ -76,18 +76,20 @@ export const useFetchChainChartData = ({
 	toggledCharts: Array<ChainChartLabels>
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 }) => {
+	const toggledChartsSet = useMemo(() => new Set(toggledCharts), [toggledCharts])
+
 	const denominationGeckoId =
 		denomination !== 'USD' ||
-		toggledCharts.includes('Token Price') ||
-		toggledCharts.includes('Token Mcap') ||
-		toggledCharts.includes('Token Volume')
+		toggledChartsSet.has('Token Price') ||
+		toggledChartsSet.has('Token Mcap') ||
+		toggledChartsSet.has('Token Volume')
 			? chainGeckoId
 			: null
 
 	const isDenominationEnabled = denomination !== 'USD' && !!chainGeckoId
-	const isTokenPriceEnabled = toggledCharts.includes('Token Price')
-	const isTokenMcapEnabled = toggledCharts.includes('Token Mcap')
-	const isTokenVolumeEnabled = toggledCharts.includes('Token Volume')
+	const isTokenPriceEnabled = toggledChartsSet.has('Token Price')
+	const isTokenMcapEnabled = toggledChartsSet.has('Token Mcap')
+	const isTokenVolumeEnabled = toggledChartsSet.has('Token Volume')
 
 	// date in the chart is in ms
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<{
@@ -113,7 +115,7 @@ export const useFetchChainChartData = ({
 		enabled: !!denominationGeckoId
 	})
 
-	const isChainFeesEnabled = toggledCharts.includes('Chain Fees')
+	const isChainFeesEnabled = toggledChartsSet.has('Chain Fees')
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainFees', selectedChain, isChainFeesEnabled],
 		queryFn: () =>
@@ -129,7 +131,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainFeesEnabled
 	})
 
-	const isChainRevenueEnabled = toggledCharts.includes('Chain Revenue')
+	const isChainRevenueEnabled = toggledChartsSet.has('Chain Revenue')
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainRevenue', selectedChain, isChainRevenueEnabled],
 		queryFn: () =>
@@ -146,7 +148,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainRevenueEnabled
 	})
 
-	const isDexVolumeEnabled = toggledCharts.includes('DEXs Volume')
+	const isDexVolumeEnabled = toggledChartsSet.has('DEXs Volume')
 	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['dexVolume', selectedChain, isDexVolumeEnabled],
 		queryFn: () =>
@@ -162,7 +164,7 @@ export const useFetchChainChartData = ({
 		enabled: isDexVolumeEnabled
 	})
 
-	const isPerpsVolumeEnabled = toggledCharts.includes('Perps Volume')
+	const isPerpsVolumeEnabled = toggledChartsSet.has('Perps Volume')
 	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['perpVolume', selectedChain, isPerpsVolumeEnabled],
 		queryFn: () =>
@@ -178,7 +180,7 @@ export const useFetchChainChartData = ({
 		enabled: isPerpsVolumeEnabled
 	})
 
-	const isChainAppFeesEnabled = toggledCharts.includes('App Fees')
+	const isChainAppFeesEnabled = toggledChartsSet.has('App Fees')
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chainAppFees', selectedChain, isChainAppFeesEnabled],
 		queryFn: () =>
@@ -195,7 +197,7 @@ export const useFetchChainChartData = ({
 		enabled: isChainAppFeesEnabled
 	})
 
-	const isChainAppRevenueEnabled = toggledCharts.includes('App Revenue')
+	const isChainAppRevenueEnabled = toggledChartsSet.has('App Revenue')
 	const { data: chainAppRevenueDataChart = null, isLoading: fetchingChainAppRevenue } = useQuery<
 		Array<[number, number]>
 	>({
@@ -215,23 +217,23 @@ export const useFetchChainChartData = ({
 	})
 
 	const { data: stablecoinsChartData = null, isLoading: fetchingStablecoinsChartDataByChain } =
-		useGetStabelcoinsChartDataByChain(toggledCharts.includes('Stablecoins Mcap') ? selectedChain : null)
+		useGetStabelcoinsChartDataByChain(toggledChartsSet.has('Stablecoins Mcap') ? selectedChain : null)
 
 	const { data: inflowsChartData = null, isLoading: fetchingInflowsChartData } = useGetBridgeChartDataByChain(
-		toggledCharts.includes('Net Inflows') ? selectedChain : null
+		toggledChartsSet.has('Net Inflows') ? selectedChain : null
 	)
 
 	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
-		toggledCharts.includes('Active Addresses') ? `chain$${selectedChain}` : null
+		toggledChartsSet.has('Active Addresses') ? `chain$${selectedChain}` : null
 	)
 	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
-		toggledCharts.includes('New Addresses') ? `chain$${selectedChain}` : null
+		toggledChartsSet.has('New Addresses') ? `chain$${selectedChain}` : null
 	)
 	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
-		toggledCharts.includes('Transactions') ? `chain$${selectedChain}` : null
+		toggledChartsSet.has('Transactions') ? `chain$${selectedChain}` : null
 	)
 
-	const isBridgedTvlEnabled = toggledCharts.includes('Bridged TVL')
+	const isBridgedTvlEnabled = toggledChartsSet.has('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
 		queryFn: isBridgedTvlEnabled ? () => fetchJson(`${CHAINS_ASSETS_CHART}/${selectedChain}`) : () => null,
@@ -241,7 +243,7 @@ export const useFetchChainChartData = ({
 		enabled: isBridgedTvlEnabled
 	})
 
-	const isRaisesEnabled = toggledCharts.includes('Raises')
+	const isRaisesEnabled = toggledChartsSet.has('Raises')
 	const { data: raisesData = null, isLoading: fetchingRaises } = useQuery<Array<[number, number]>>({
 		queryKey: ['raisesChart', selectedChain, isRaisesEnabled],
 		queryFn: () =>
@@ -267,7 +269,7 @@ export const useFetchChainChartData = ({
 		enabled: isRaisesEnabled
 	})
 
-	const isChainIncentivesEnabled = toggledCharts.includes('Token Incentives')
+	const isChainIncentivesEnabled = toggledChartsSet.has('Token Incentives')
 	const { data: chainIncentivesData = null, isLoading: fetchingChainIncentives } = useQuery({
 		queryKey: ['chainIncentives', selectedChain, isChainIncentivesEnabled],
 		queryFn: () =>
@@ -400,7 +402,7 @@ export const useFetchChainChartData = ({
 			}
 		}
 
-		if (toggledCharts.includes('TVL')) {
+		if (toggledChartsSet.has('TVL')) {
 			const chartName: ChainChartLabels = 'TVL' as const
 			charts[chartName] = formatLineChart({
 				data: finalTvlChart,
@@ -599,7 +601,7 @@ export const useFetchChainChartData = ({
 			loadingCharts: ''
 		}
 	}, [
-		toggledCharts,
+		toggledChartsSet,
 		isGovTokensEnabled,
 		fetchingDenominationPriceHistory,
 		isDenominationEnabled,

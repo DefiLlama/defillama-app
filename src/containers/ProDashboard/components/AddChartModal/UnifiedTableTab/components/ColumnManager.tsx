@@ -190,18 +190,24 @@ export function ColumnManager({
 
 	const selectedColumns = useMemo(() => {
 		const selected: string[] = []
+		const addedIds = new Set<string>()
 		for (const id of columnOrder) {
 			if (id === 'name') continue
 			if (!allColumnIds.has(id)) continue
-			if (visibleSet.has(id)) selected.push(id)
+			if (visibleSet.has(id)) {
+				selected.push(id)
+				addedIds.add(id)
+			}
 		}
 		for (const meta of allColumns) {
 			if (meta.id === 'name') continue
-			if (selected.includes(meta.id)) continue
+			if (addedIds.has(meta.id)) continue
 			if (visibleSet.has(meta.id)) selected.push(meta.id)
 		}
 		return selected
 	}, [allColumns, allColumnIds, columnOrder, visibleSet])
+
+	const selectedColumnsSet = useMemo(() => new Set(selectedColumns), [selectedColumns])
 
 	const filteredColumns = useMemo(() => {
 		const term = search.trim().toLowerCase()
@@ -220,12 +226,13 @@ export function ColumnManager({
 
 	const applyChanges = useCallback(
 		(nextSelected: string[]) => {
-			const remaining = allColumns.map((c) => c.id).filter((id) => id !== 'name' && !nextSelected.includes(id))
+			const nextSelectedSet = new Set(nextSelected)
+			const remaining = allColumns.map((c) => c.id).filter((id) => id !== 'name' && !nextSelectedSet.has(id))
 			const nextOrder: ColumnOrderState = ['name', ...nextSelected, ...remaining]
 			const nextVisibility: VisibilityState = { name: true }
 			for (const column of allColumns) {
 				if (column.id === 'name') continue
-				nextVisibility[column.id] = nextSelected.includes(column.id)
+				nextVisibility[column.id] = nextSelectedSet.has(column.id)
 			}
 			onChange(nextOrder, nextVisibility)
 		},
@@ -235,14 +242,14 @@ export function ColumnManager({
 	const handleToggleColumn = useCallback(
 		(id: string) => {
 			if (id === 'name') return
-			const isSelected = selectedColumns.includes(id)
+			const isSelected = selectedColumnsSet.has(id)
 			if (isSelected) {
 				applyChanges(selectedColumns.filter((c) => c !== id))
 			} else {
 				applyChanges([...selectedColumns, id])
 			}
 		},
-		[selectedColumns, applyChanges]
+		[selectedColumns, selectedColumnsSet, applyChanges]
 	)
 
 	const handleRemoveColumn = useCallback(
@@ -880,7 +887,7 @@ export function ColumnManager({
 					) : (
 						<div className="flex flex-col gap-1">
 							{filteredColumns.map((column) => {
-								const isSelected = selectedColumns.includes(column.id)
+								const isSelected = selectedColumnsSet.has(column.id)
 								return (
 									<button
 										key={column.id}

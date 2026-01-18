@@ -124,17 +124,22 @@ export function SelectItemsStep() {
 			.map((cat) => ({ value: cat, label: cat }))
 	}, [protocols])
 
+	const selectedCategoriesSet = useMemo(() => new Set(selectedCategories), [selectedCategories])
+
 	const filteredOptions = useMemo(() => {
 		let filtered: Option[] = options
 
-		if (selectedCategories.length > 0) {
+		if (selectedCategoriesSet.size > 0) {
 			if (state.comparisonType === 'chains') {
 				filtered = filtered.filter((o) => {
-					return selectedCategories.some((cat) => chainCategoryData?.get(cat)?.has(o.value))
+					for (const cat of selectedCategoriesSet) {
+						if (chainCategoryData?.get(cat)?.has(o.value)) return true
+					}
+					return false
 				})
 			} else {
 				const matchingProtocols = protocols
-					.filter((p) => p.category && selectedCategories.includes(p.category))
+					.filter((p) => p.category && selectedCategoriesSet.has(p.category))
 					.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
 
 				filtered = matchingProtocols.map((protocol) => ({
@@ -151,7 +156,7 @@ export function SelectItemsStep() {
 		}
 
 		return filtered
-	}, [options, search, selectedCategories, state.comparisonType, chainCategoryData, protocols])
+	}, [options, search, selectedCategoriesSet, state.comparisonType, chainCategoryData, protocols])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,
@@ -170,12 +175,16 @@ export function SelectItemsStep() {
 		actions.toggleSelectedItem(item)
 	}
 
+	const optionsMap = useMemo(() => new Map(options.map((o) => [o.value, o])), [options])
+
 	const selectedLabels = useMemo(() => {
 		return state.selectedItems.map((item) => {
-			const option = options.find((o) => o.value === item)
+			const option = optionsMap.get(item)
 			return { value: item, label: option?.label || item, logo: option?.logo }
 		})
-	}, [state.selectedItems, options])
+	}, [state.selectedItems, optionsMap])
+
+	const selectedItemsSet = useMemo(() => new Set(state.selectedItems), [state.selectedItems])
 
 	useEffect(() => {
 		setSelectedCategories([])
@@ -294,12 +303,12 @@ export function SelectItemsStep() {
 						>
 							{virtualizer.getVirtualItems().map((virtualRow) => {
 								const option = filteredOptions[virtualRow.index]
-								const isDirectlySelected = state.selectedItems.includes(option.value)
+								const isDirectlySelected = selectedItemsSet.has(option.value)
 								const isParentSelected =
-									option.isChild && option.parentSlug && state.selectedItems.includes(option.parentSlug)
+									option.isChild && option.parentSlug && selectedItemsSet.has(option.parentSlug)
 								const isSelected = isDirectlySelected || isParentSelected
 								const isDisabledByParent = isParentSelected && !isDirectlySelected
-								const isDisabledByLimit = !isSelected && state.selectedItems.length >= 10
+								const isDisabledByLimit = !isSelected && selectedItemsSet.size >= 10
 								const isDisabled = isDisabledByParent || isDisabledByLimit
 
 								return (

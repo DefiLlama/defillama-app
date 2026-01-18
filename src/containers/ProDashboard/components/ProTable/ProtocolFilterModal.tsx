@@ -164,6 +164,11 @@ export function ProtocolFilterModal({
 		}))
 	}, [categories])
 
+	const selectedProtocolsSet = React.useMemo(() => new Set(selectedProtocols), [selectedProtocols])
+	const selectedCategoriesSet = React.useMemo(() => new Set(selectedCategories), [selectedCategories])
+	const selectedExcludedCategoriesSet = React.useMemo(() => new Set(selectedExcludedCategories), [selectedExcludedCategories])
+	const selectedOraclesSet = React.useMemo(() => new Set(selectedOracles), [selectedOracles])
+
 	return (
 		<Ariakit.DialogProvider
 			open={isOpen}
@@ -194,7 +199,7 @@ export function ProtocolFilterModal({
 						<ReactSelect
 							isMulti
 							options={oracleOptions}
-							value={oracleOptions.filter((opt) => selectedOracles.includes(opt.value))}
+							value={oracleOptions.filter((opt) => selectedOraclesSet.has(opt.value))}
 							onChange={(sel: any) => {
 								setSelectedOracles(sel ? sel.map((s: any) => s.value) : [])
 							}}
@@ -213,8 +218,8 @@ export function ProtocolFilterModal({
 						<label className="pro-text2 mb-2 block text-sm font-medium">Include Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions.filter((opt) => !selectedExcludedCategories.includes(opt.value))}
-							value={categoryOptions.filter((opt) => selectedCategories.includes(opt.value))}
+							options={categoryOptions.filter((opt) => !selectedExcludedCategoriesSet.has(opt.value))}
+							value={categoryOptions.filter((opt) => selectedCategoriesSet.has(opt.value))}
 							onChange={(sel: any) => {
 								setSelectedCategories(sel ? sel.map((s: any) => s.value) : [])
 							}}
@@ -234,8 +239,8 @@ export function ProtocolFilterModal({
 						<label className="pro-text2 mb-2 block text-sm font-medium">Exclude Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions.filter((opt) => !selectedCategories.includes(opt.value))}
-							value={categoryOptions.filter((opt) => selectedExcludedCategories.includes(opt.value))}
+							options={categoryOptions.filter((opt) => !selectedCategoriesSet.has(opt.value))}
+							value={categoryOptions.filter((opt) => selectedExcludedCategoriesSet.has(opt.value))}
 							onChange={(sel: any) => {
 								setSelectedExcludedCategories(sel ? sel.map((s: any) => s.value) : [])
 							}}
@@ -258,7 +263,7 @@ export function ProtocolFilterModal({
 						<ReactSelect
 							isMulti
 							options={protocolOptions}
-							value={protocolOptions.filter((opt) => selectedProtocols.includes(opt.value))}
+							value={protocolOptions.filter((opt) => selectedProtocolsSet.has(opt.value))}
 							onChange={(sel: any, action: any) => {
 								if (!action) {
 									setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])

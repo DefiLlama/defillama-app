@@ -603,6 +603,8 @@ export const getProtocolOverviewPageData = async ({
 		protocolData.tokenCGData
 	)
 
+	const protocolChainsSet = new Set(protocolData.chains ?? [])
+
 	const competitors =
 		liteProtocolsData && protocolData.category
 			? liteProtocolsData.protocols
@@ -611,7 +613,7 @@ export const getProtocolOverviewPageData = async ({
 							return (
 								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
 								p.name.toLowerCase() !== protocolData.name?.toLowerCase() &&
-								p.chains.some((c) => protocolData.chains.includes(c))
+								p.chains.some((c) => protocolChainsSet.has(c))
 							)
 						} else return false
 					})
@@ -630,6 +632,7 @@ export const getProtocolOverviewPageData = async ({
 			: []
 
 	const competitorsSet = new Set<string>()
+	const competitorsMap = new Map(competitors.map((p) => [p.name, p]))
 
 	const protocolsWithCommonChains = [...competitors].sort((a, b) => b.commonChains - a.commonChains).slice(0, 5)
 
@@ -1024,7 +1027,7 @@ export const getProtocolOverviewPageData = async ({
 				: null,
 		isCEX,
 		hasKeyMetrics,
-		competitors: Array.from(competitorsSet).map((protocolName) => competitors.find((p) => p.name === protocolName)),
+		competitors: Array.from(competitorsSet).map((protocolName) => competitorsMap.get(protocolName)),
 		hacks,
 		chartDenominations,
 		availableCharts,
