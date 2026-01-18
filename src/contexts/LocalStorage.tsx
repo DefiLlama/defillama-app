@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
@@ -198,6 +199,7 @@ export type AppStorage = SettingsStore & {
 	[DEFI_SELECTED_PORTFOLIO]?: string
 	[YIELDS_SELECTED_PORTFOLIO]?: string
 	[CHAINS_SELECTED_PORTFOLIO]?: string
+	tableViews?: CustomView[]
 }
 
 const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.key) as ChainsCategoryGroupKey[]
