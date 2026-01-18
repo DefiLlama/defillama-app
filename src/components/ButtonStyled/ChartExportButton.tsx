@@ -368,19 +368,12 @@ export const ChartExportButton = memo(function ChartExportButton({
 		}
 	}
 
-	const baseClassName =
-		className ??
-		'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md px-1.5 py-1 text-xs disabled:text-(--text-disabled)'
-
-	// temporary change to attract attention to the button
-	const highlightClassName = '!border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white'
-
 	return (
 		<>
 			<button
 				data-umami-event="image-export"
 				data-umami-event-page={router.pathname}
-				className={`${baseClassName} ${highlightClassName}`}
+				className={`${className ?? 'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md px-1.5 py-1 text-xs disabled:text-(--text-disabled)'} !border-1 !border-blue-500 !text-blue-500 hover:!text-white focus-visible:!text-white`}
 				onClick={handleImageExport}
 				data-loading={isClient ? isLoading : true}
 				disabled={isClient ? isLoading || !chartInstance : true}

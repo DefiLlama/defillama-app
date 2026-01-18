@@ -154,6 +154,12 @@ export function BridgesOverviewByChain({
 						headers: ['Token', 'Amount'],
 						getData: () => tokenWithdrawals.map((entry) => [entry.name, entry.value])
 					}
+				case 'Inflows':
+					return {
+						filename: `${selectedChain}-inflows.csv`,
+						headers: ['Timestamp', 'Date', 'Volume'],
+						getData: () => chainVolumeData.map((entry) => [entry.date, toNiceCsvDate(entry.date), entry.volume])
+					}
 				default:
 					return {
 						filename: 'bridge-chart-data.csv',

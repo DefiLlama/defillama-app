@@ -575,12 +575,13 @@ export function formatGovernanceData(data: {
 		}
 	}
 }) {
-	const proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string; winningChoice: string; winningPerc: string }> = []
+	const proposals: Array<{ scores: Array<number>; choices: Array<string>; id: string; totalVotes: number; winningChoice: string; winningPerc: string }> = []
 	for (const proposal of data.proposals) {
 		const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
 		proposals.push({
 			...proposal,
+			totalVotes,
 			winningChoice: winningScore ? proposal.choices[proposal.scores.findIndex((x) => x === winningScore)] : '',
 			winningPerc:
 				totalVotes && winningScore ? `(${Number(((winningScore / totalVotes) * 100).toFixed(2))}% of votes)` : ''
@@ -599,7 +600,7 @@ export function formatGovernanceData(data: {
 		})
 		let maxVotesValue = 0
 		for (const proposal of values.proposals ?? []) {
-			const votes = proposals.find((p) => p.id === proposal)?.['scores_total'] ?? 0
+			const votes = proposals.find((p) => p.id === proposal)?.totalVotes ?? 0
 			if (votes > maxVotesValue) {
 				maxVotesValue = votes
 			}

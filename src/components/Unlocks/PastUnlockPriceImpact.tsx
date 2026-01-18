@@ -70,7 +70,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			}, {})
 
 			let latestTimestamp = -Infinity
-			for (const ts in eventsByTimestamp) {
+			for (const ts of Object.keys(eventsByTimestamp)) {
 				const num = Number(ts)
 				if (num > latestTimestamp) latestTimestamp = num
 			}

@@ -191,7 +191,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 						noOfTokens: events.map((x: any) => x.noOfTokens),
 						timestamp: ts,
 						price: tokenPrice,
-						symbol: tokenPrice?.symbol,
+						symbol: data.tokenPrice?.symbol,
 						mcap: tokenMcap,
 						maxSupply: data.meta?.maxSupply,
 						name: data.name,
@@ -200,7 +200,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 					}}
 				/>
 			)),
-		[sortedEvents, tokenPrice, tokenMcap, data.meta?.maxSupply, data.name]
+		[sortedEvents, tokenPrice, tokenMcap, data.meta?.maxSupply, data.name, data.tokenPrice?.symbol]
 	)
 
 	const chartData = useMemo(() => {

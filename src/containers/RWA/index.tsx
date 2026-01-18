@@ -863,20 +863,34 @@ const columns: ColumnDef<IRWAAssetsOverview['assets'][0]>[] = [
 				| 'Custodial Only'
 				| 'Unknown'
 			const valueDescription = definitions.accessModel.values?.[value]
-			const colorClass = clsx(
-				value === 'Permissioned' && 'text-(--warning)',
-				value === 'Permissionless' && 'text-(--success)',
-				value === 'Non-transferable' && 'text-(--error)',
-				value === 'Custodial Only' && 'text-(--error)'
-			)
 			if (valueDescription) {
 				return (
-					<Tooltip content={valueDescription} className={`justify-end underline decoration-dotted ${colorClass}`}>
+					<Tooltip
+						content={valueDescription}
+						className={clsx(
+							'justify-end underline decoration-dotted',
+							value === 'Permissioned' && 'text-(--warning)',
+							value === 'Permissionless' && 'text-(--success)',
+							value === 'Non-transferable' && 'text-(--error)',
+							value === 'Custodial Only' && 'text-(--error)'
+						)}
+					>
 						{value}
 					</Tooltip>
 				)
 			}
-			return <span className={colorClass}>{value}</span>
+			return (
+				<span
+					className={clsx(
+						value === 'Permissioned' && 'text-(--warning)',
+						value === 'Permissionless' && 'text-(--success)',
+						value === 'Non-transferable' && 'text-(--error)',
+						value === 'Custodial Only' && 'text-(--error)'
+					)}
+				>
+					{value}
+				</span>
+			)
 		},
 		size: 180,
 		meta: {

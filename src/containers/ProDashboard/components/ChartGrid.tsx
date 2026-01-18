@@ -374,14 +374,13 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 					const fallbackSpan: StoredColSpan = item.kind === 'metric' ? spanOptions[0] : 1
 					const storedColSpan = normalizeStoredColSpan(item.colSpan, fallbackSpan)
 					const effectiveColSpan = getEffectiveColSpan(storedColSpan)
-					const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
 
 					return (
 						<div
 							key={`${item.id}-${item.colSpan}${
 								item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 							}`}
-							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 						>
 							<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 						</div>
@@ -405,14 +404,13 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 							const expandTarget = getNextStoredColSpan(storedColSpan, spanOptions)
 							const disableShrink = shrinkTarget === storedColSpan
 							const disableExpand = expandTarget === storedColSpan
-							const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
 
 							return (
 								<div
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
-									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
 										<Tooltip

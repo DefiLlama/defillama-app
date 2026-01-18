@@ -19,8 +19,8 @@ type ViewType = (typeof VIEW_TYPES)[number]
 const METRIC_TYPES = ['Volume', 'Transactions'] as const
 type MetricType = (typeof METRIC_TYPES)[number]
 
-const SPLIT_LEGEND_OPTIONS = ['Deposits', 'Withdrawals'] as const
-const COMBINED_LEGEND_OPTIONS = ['Total'] as const
+const SPLIT_LEGEND_OPTIONS = ['Deposits', 'Withdrawals']
+const COMBINED_LEGEND_OPTIONS = ['Total']
 const SPLIT_STACKS = { Deposits: 'metric', Withdrawals: 'metric' }
 const SPLIT_STACK_COLORS = { Deposits: '#3b82f6', Withdrawals: '#ef4444' }
 const COMBINED_STACK_COLORS = { Total: '#22c55e' }

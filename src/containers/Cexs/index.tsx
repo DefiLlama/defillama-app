@@ -14,14 +14,6 @@ import { ICex } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
 
-// Helper to get color class based on positive/negative value
-const getValueColorClass = (value: number | null | undefined): string => {
-	if (value == null) return ''
-	if (value < 0) return 'text-(--error)'
-	if (value > 0) return 'text-(--success)'
-	return ''
-}
-
 const getOutflowsByTimerange = async (startTime, endTime, cexData) => {
 	let loadingToastId
 	try {
@@ -184,11 +176,14 @@ const columns: ColumnDef<ICex>[] = [
 		header: '24h Inflows',
 		accessorKey: 'inflows_24h',
 		size: 120,
-		cell: (info) => (
-			<span className={getValueColorClass(info.getValue() as number)}>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -198,11 +193,14 @@ const columns: ColumnDef<ICex>[] = [
 		header: '7d Inflows',
 		accessorKey: 'inflows_1w',
 		size: 120,
-		cell: (info) => (
-			<span className={getValueColorClass(info.getValue() as number)}>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -212,11 +210,14 @@ const columns: ColumnDef<ICex>[] = [
 		header: '1m Inflows',
 		accessorKey: 'inflows_1m',
 		size: 120,
-		cell: (info) => (
-			<span className={getValueColorClass(info.getValue() as number)}>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'
@@ -257,11 +258,14 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'customRange',
 		accessorFn: (row) => row.customRange ?? undefined,
 		size: 200,
-		cell: (info) => (
-			<span className={getValueColorClass(info.getValue() as number)}>
-				{info.getValue() != null ? formattedNum(info.getValue(), true) : ''}
-			</span>
-		),
+		cell: (info) => {
+			const value = info.getValue() as number | null
+			return (
+				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+					{value != null ? formattedNum(value, true) : ''}
+				</span>
+			)
+		},
 		sortUndefined: 'last',
 		meta: {
 			align: 'end'

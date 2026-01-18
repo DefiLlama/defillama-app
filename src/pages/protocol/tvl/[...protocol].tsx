@@ -95,6 +95,7 @@ export default function Protocols(props) {
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
 		const chainsUnique: string[] = []
 		for (const key in lastEntry) {
+			if (!Object.prototype.hasOwnProperty.call(lastEntry, key)) continue
 			if (key !== 'date') chainsUnique.push(key)
 		}
 		return { chainsSplit, chainsUnique }

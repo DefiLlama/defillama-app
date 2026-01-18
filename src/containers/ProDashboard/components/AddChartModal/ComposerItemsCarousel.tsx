@@ -17,6 +17,13 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 		[composerItems]
 	)
 
+	const currentItem = validItems[currentIndex]
+
+	const chartPreviewData = useMemo(
+		() => (currentItem?.data || []).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]] as [number, number]),
+		[currentItem?.data]
+	)
+
 	const handlePrevious = () => {
 		setCurrentIndex((prev) => (prev - 1 + validItems.length) % validItems.length)
 	}
@@ -36,16 +43,10 @@ export function ComposerItemsCarousel({ composerItems }: ComposerItemsCarouselPr
 		)
 	}
 
-	const currentItem = validItems[currentIndex]
 	const chartType = CHART_TYPES[currentItem.type]
 	const itemName = currentItem.protocol
 		? getProtocolInfo(currentItem.protocol)?.name || currentItem.protocol
 		: currentItem.chain || ''
-
-	const chartPreviewData = useMemo(
-		() => (currentItem.data || []).map((d) => [typeof d[0] === 'string' ? Number(d[0]) : d[0], d[1]] as [number, number]),
-		[currentItem.data]
-	)
 
 	return (
 		<div className="flex h-full flex-col">
