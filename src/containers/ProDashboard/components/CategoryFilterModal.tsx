@@ -56,6 +56,9 @@ export function CategoryFilterModal({
 		[categories]
 	)
 
+	const selectedIncludeSet = React.useMemo(() => new Set(selectedInclude), [selectedInclude])
+	const selectedExcludeSet = React.useMemo(() => new Set(selectedExclude), [selectedExclude])
+
 	const hasSelections = selectedInclude.length > 0 || selectedExclude.length > 0
 
 	return (
@@ -87,8 +90,8 @@ export function CategoryFilterModal({
 						<label className="pro-text2 mb-2 block text-sm font-medium">Include Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions.filter((opt) => !selectedExclude.includes(opt.value))}
-							value={categoryOptions.filter((opt) => selectedInclude.includes(opt.value))}
+							options={categoryOptions.filter((opt) => !selectedExcludeSet.has(opt.value))}
+							value={categoryOptions.filter((opt) => selectedIncludeSet.has(opt.value))}
 							onChange={(selection: any) => {
 								setSelectedInclude(selection ? selection.map((item: any) => item.value) : [])
 							}}
@@ -107,8 +110,8 @@ export function CategoryFilterModal({
 						<label className="pro-text2 mb-2 block text-sm font-medium">Exclude Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions.filter((opt) => !selectedInclude.includes(opt.value))}
-							value={categoryOptions.filter((opt) => selectedExclude.includes(opt.value))}
+							options={categoryOptions.filter((opt) => !selectedIncludeSet.has(opt.value))}
+							value={categoryOptions.filter((opt) => selectedExcludeSet.has(opt.value))}
 							onChange={(selection: any) => {
 								setSelectedExclude(selection ? selection.map((item: any) => item.value) : [])
 							}}

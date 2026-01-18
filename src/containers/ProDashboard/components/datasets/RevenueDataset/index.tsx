@@ -65,30 +65,35 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 		return Array.from(unique).sort((a, b) => a.localeCompare(b))
 	}, [data])
 
+	const availableCategoriesSet = React.useMemo(() => new Set(availableCategories), [availableCategories])
+
 	React.useEffect(() => {
-		if (!availableCategories.length) return
-		setIncludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
-		setExcludeCategories((prev) => prev.filter((cat) => availableCategories.includes(cat)))
-	}, [availableCategories])
+		if (!availableCategoriesSet.size) return
+		setIncludeCategories((prev) => prev.filter((cat) => availableCategoriesSet.has(cat)))
+		setExcludeCategories((prev) => prev.filter((cat) => availableCategoriesSet.has(cat)))
+	}, [availableCategoriesSet])
+
+	const includeCategoriesSet = React.useMemo(() => new Set(includeCategories), [includeCategories])
+	const excludeCategoriesSet = React.useMemo(() => new Set(excludeCategories), [excludeCategories])
 
 	const filteredData = React.useMemo(() => {
 		if (!data) return []
 		return data.filter((row: any) => {
 			const category = row?.category ?? ''
-			if (includeCategories.length > 0 && !includeCategories.includes(category)) {
+			if (includeCategoriesSet.size > 0 && !includeCategoriesSet.has(category)) {
 				return false
 			}
-			if (excludeCategories.length > 0 && excludeCategories.includes(category)) {
+			if (excludeCategoriesSet.size > 0 && excludeCategoriesSet.has(category)) {
 				return false
 			}
 			return true
 		})
-	}, [data, includeCategories, excludeCategories])
+	}, [data, includeCategoriesSet, excludeCategoriesSet])
 
 	const handleApplyCategoryFilters = React.useCallback(
 		(include: string[], exclude: string[]) => {
-			const sanitizedInclude = include.filter((cat) => availableCategories.includes(cat))
-			const sanitizedExclude = exclude.filter((cat) => availableCategories.includes(cat))
+			const sanitizedInclude = include.filter((cat) => availableCategoriesSet.has(cat))
+			const sanitizedExclude = exclude.filter((cat) => availableCategoriesSet.has(cat))
 			setIncludeCategories(sanitizedInclude)
 			setExcludeCategories(sanitizedExclude)
 			if (tableId) {
@@ -98,7 +103,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 				})
 			}
 		},
-		[availableCategories, handleTableFiltersChange, tableId]
+		[availableCategoriesSet, handleTableFiltersChange, tableId]
 	)
 
 	const handleClearCategoryFilters = React.useCallback(() => {

@@ -59,7 +59,8 @@ export const formatBridgesData = ({
 	let filteredBridges = [...bridges]
 
 	if (chain) {
-		filteredBridges = filteredBridges.filter(({ chains = [] }) => chains.map((c) => slug(c)).includes(slug(chain)))
+		const sluggedChain = slug(chain)
+		filteredBridges = filteredBridges.filter(({ chains = [] }) => chains.some((c) => slug(c) === sluggedChain))
 	}
 
 	filteredBridges = filteredBridges.map((bridge) => {

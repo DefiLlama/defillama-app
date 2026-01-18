@@ -256,7 +256,9 @@ export const getProtocolEmissons = async (protocolName: string) => {
 		const realTimeData = res.realTimeData ?? {}
 
 		const protocolEmissions = { documented: {}, realtime: {} }
-		const emissionCategories = { documented: [], realtime: [] }
+		const emissionCategories = { documented: [] as string[], realtime: [] as string[] }
+		const seenDocumentedLabels = new Set<string>()
+		const seenRealtimeLabels = new Set<string>()
 
 		const prices = await fetchJson(`${COINS_PRICES_API}/current/${metadata.token}?searchWidth=4h`).catch((err) => {
 			console.log(err)
@@ -271,10 +273,11 @@ export const getProtocolEmissons = async (protocolName: string) => {
 				.map((l) => capitalizeFirstLetter(l))
 				.join(' ')
 
-			if (emissionCategories['documented'].includes(label)) {
+			if (seenDocumentedLabels.has(label)) {
 				continue
 			}
 
+			seenDocumentedLabels.add(label)
 			emissionCategories['documented'].push(label)
 
 			for (const value of emission.data) {
@@ -295,10 +298,11 @@ export const getProtocolEmissons = async (protocolName: string) => {
 				.map((l) => capitalizeFirstLetter(l))
 				.join(' ')
 
-			if (emissionCategories['realtime'].includes(label)) {
+			if (seenRealtimeLabels.has(label)) {
 				continue
 			}
 
+			seenRealtimeLabels.add(label)
 			emissionCategories['realtime'].push(label)
 
 			for (const value of emission.data) {
@@ -436,10 +440,11 @@ export async function getLSDPageData() {
 
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => slug(p))
+	const lsdProtocolsSlugSet = new Set(lsdProtocolsSlug)
 	const history = await Promise.all(lsdProtocolsSlug.map((p) => fetchJson(`${PROTOCOL_API}/${p}`)))
 
 	let lsdApy = pools
-		.filter((p) => lsdProtocolsSlug.includes(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
+		.filter((p) => lsdProtocolsSlugSet.has(p.project) && p.chain === 'Ethereum' && p.symbol.includes('ETH'))
 		.concat(pools.find((i) => i.project === 'crypto.com-staked-eth'))
 		.filter(Boolean)
 		.map((p) => ({
