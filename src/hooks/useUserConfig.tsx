@@ -91,7 +91,11 @@ export function useUserConfig() {
 		refetchOnWindowFocus: true
 	})
 
-	const mutation = useMutation<UserConfig, Error, UserConfig>({
+	const {
+		mutateAsync: saveConfigAsync,
+		isPending: isSavingConfig,
+		isError: isErrorSavingConfig
+	} = useMutation<UserConfig, Error, UserConfig>({
 		mutationFn: saveConfig,
 		onSuccess: (savedConfig) => {
 			queryClient.setQueryData(USER_CONFIG_QUERY_KEY, savedConfig)
@@ -101,6 +105,12 @@ export function useUserConfig() {
 		}
 	})
 
+	const saveConfigAsyncRef = useRef(saveConfigAsync)
+
+	useEffect(() => {
+		saveConfigAsyncRef.current = saveConfigAsync
+	}, [saveConfigAsync])
+
 	const syncSettings = useMemo(
 		() =>
 			debounce(async () => {
@@ -109,12 +119,12 @@ export function useUserConfig() {
 					if (!currentSettings) return
 
 					const settings = JSON.parse(currentSettings)
-					await mutation.mutateAsync(settings)
+					await saveConfigAsyncRef.current(settings)
 				} catch (error) {
 					console.log('Failed to sync settings:', error)
 				}
 			}, SYNC_DEBOUNCE_MS),
-		[mutation]
+		[]
 	)
 
 	// useEffectEvent ensures we call the latest syncSettings without re-subscribing listeners
@@ -146,9 +156,9 @@ export function useUserConfig() {
 		userConfig,
 		isLoadingConfig,
 		isErrorLoadingConfig,
-		saveUserConfig: mutation.mutateAsync,
-		isSavingConfig: mutation.isPending,
-		isErrorSavingConfig: mutation.isError,
+		saveUserConfig: saveConfigAsync,
+		isSavingConfig,
+		isErrorSavingConfig,
 		refetchConfig
 	}
 }

@@ -100,7 +100,7 @@ export function useChatHistory() {
 		}
 	})
 
-	const restoreSessionMutation = useMutation({
+	const { mutateAsync: restoreSessionAsync, isPending: isRestoringSession } = useMutation({
 		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
 			try {
 				const params = new URLSearchParams()
@@ -214,7 +214,7 @@ export function useChatHistory() {
 	const restoreSession = useCallback(
 		async (sessionId: string, limit: number = 10) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
+				const result = await restoreSessionAsync({ sessionId, limit })
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
@@ -236,13 +236,13 @@ export function useChatHistory() {
 				}
 			}
 		},
-		[restoreSessionMutation]
+		[restoreSessionAsync]
 	)
 
 	const loadMoreMessages = useCallback(
 		async (sessionId: string, cursor: number) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, cursor })
+				const result = await restoreSessionAsync({ sessionId, limit: 10, cursor })
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
@@ -263,7 +263,7 @@ export function useChatHistory() {
 				}
 			}
 		},
-		[restoreSessionMutation]
+		[restoreSessionAsync]
 	)
 
 	const moveSessionToTop = useCallback(
@@ -339,7 +339,7 @@ export function useChatHistory() {
 		decrementResearchUsage,
 		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebar,
 		isCreatingSession: createSessionMutation.isPending,
-		isRestoringSession: restoreSessionMutation.isPending,
+		isRestoringSession,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending
 	}
