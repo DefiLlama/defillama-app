@@ -21,7 +21,9 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		else params.delete('minApy')
 		if (maxApy) params.set('maxApy', maxApy)
 		else params.delete('maxApy')
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {

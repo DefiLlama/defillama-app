@@ -24,7 +24,9 @@ export function AvailableRange({
 		else params.delete('minAvailable')
 		if (maxAvailable) params.set('maxAvailable', maxAvailable)
 		else params.delete('maxAvailable')
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minAvailable, maxAvailable } = router.query

@@ -20,8 +20,9 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 
 	useEffect(() => {
 		// create instance
-		const instance =
-			echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
 		chartRef.current = instance
 
 		instance.setOption({
@@ -146,8 +147,9 @@ export function SmolLineChart({
 
 	useEffect(() => {
 		// create instance
-		const instance =
-			echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
 		chartRef.current = instance
 
 		instance.setOption({
@@ -251,8 +253,9 @@ export function SmolBarChart({
 
 	useEffect(() => {
 		// create instance
-		const instance =
-			echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
 		chartRef.current = instance
 
 		instance.setOption({
@@ -380,8 +383,9 @@ export function UpcomingUnlocksChart({
 
 	useEffect(() => {
 		// create instance
-		const instance =
-			echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id), null, { renderer: 'svg' })
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'svg' })
 		chartRef.current = instance
 
 		instance.setOption({

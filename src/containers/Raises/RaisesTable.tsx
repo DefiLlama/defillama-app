@@ -43,7 +43,7 @@ export function RaisesTable({ raises, prepareCsv }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = width
-			? (raisesColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
+			? (raisesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		instance.setColumnOrder(order)

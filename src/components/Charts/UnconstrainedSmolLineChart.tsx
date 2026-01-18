@@ -186,8 +186,8 @@ export function UnconstrainedSmolLineChart({
 		})
 
 		return () => {
-			chartRef.current = null
 			instance.dispose()
+			chartRef.current = null
 		}
 	}, [id, series, color, isThemeDark, name, extraData?.lastEvent])
 

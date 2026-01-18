@@ -42,7 +42,9 @@ export const LiquidationsChart = ({ chartData, uid, bobo }: { chartData: ChartDa
 
 	useEffect(() => {
 		setSelectedSeries(null)
-		const instance = echarts.getInstanceByDom(document.getElementById(uid)) || echarts.init(document.getElementById(uid))
+		const el = document.getElementById(uid)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 		const option = getOption(chartData, stackBy, isSmall, isDark, isLiqsUsingUsd, isLiqsCumulative)
 		instance.on('legendselectchanged', (params: any) => {

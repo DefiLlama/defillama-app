@@ -36,14 +36,10 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const createInstance = React.useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	React.useEffect(() => {
-		const instance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
 		const series = [
@@ -235,7 +231,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 			chartRef.current = null
 			instance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark, isSmall])
+	}, [id, chartData, isDark, isSmall])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }

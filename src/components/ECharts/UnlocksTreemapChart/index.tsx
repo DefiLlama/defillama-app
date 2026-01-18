@@ -314,8 +314,9 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	}, [unlocksData, currentYear, timeView, isDark, selectedDate])
 
 	useEffect(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
-		if (!instance) return
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
 		const option = {

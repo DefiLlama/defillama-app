@@ -133,7 +133,9 @@ export default function SankeyChart({
 	}, [nodes, links, nodeColors, nodeAlign, orient, isDark, isSmall, valueSymbol, nodeMetadata])
 
 	useEffect(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id)) || echarts.init(document.getElementById(id))
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
 		const graphic = {

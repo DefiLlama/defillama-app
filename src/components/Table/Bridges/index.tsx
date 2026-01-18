@@ -67,11 +67,11 @@ export function BridgesTable({ data, searchValue = '', onSearchChange: _onSearch
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = width
-			? (bridgesColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
+			? (bridgesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = width
-			? columnSizesKeys.find((size) => width > Number(size))
+			? columnSizesKeys.find((size) => width >= Number(size))
 			: columnSizesKeys[0]
 
 		instance.setColumnSizing(bridgesColumnSizes[cSize])
@@ -188,11 +188,11 @@ export function BridgesLargeTxsTable({ data }) {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
 		const order = width
-			? (largeTxsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
+			? (largeTxsColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		const cSize = width
-			? columnSizesKeys.find((size) => width > Number(size))
+			? columnSizesKeys.find((size) => width >= Number(size))
 			: columnSizesKeys[0]
 
 		instance.setColumnSizing(largeTxsColumnSizes[cSize])

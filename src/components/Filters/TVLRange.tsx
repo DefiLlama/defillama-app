@@ -26,7 +26,9 @@ export function TVLRange({
 		else params.delete('minTvl')
 		if (maxTvl) params.set('maxTvl', maxTvl)
 		else params.delete('maxTvl')
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minTvl, maxTvl } = router.query

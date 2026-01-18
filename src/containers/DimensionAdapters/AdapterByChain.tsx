@@ -260,8 +260,8 @@ export function AdapterByChain(props: IProps) {
 	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = width ? columnSizes.find((size) => width > +size[0]) : columnSizes[0]
-		const colOrder = width ? columnOrders.find((size) => width > +size[0]) : columnOrders[0]
+		const colSize = columnSizes.find((size) => width >= Number(size[0])) ?? columnSizes[columnSizes.length - 1]
+		const colOrder = columnOrders.find((size) => width >= Number(size[0])) ?? columnOrders[columnOrders.length - 1]
 		instance.setColumnOrder(colOrder[1])
 		instance.setColumnSizing(colSize[1])
 	}, [instance, width])

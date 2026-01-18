@@ -302,7 +302,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = width ? columnSizes.find((size) => width > +size[0]) : columnSizes[0]
+		const colSize = columnSizes.find(([bp]) => width >= Number(bp)) ?? columnSizes[columnSizes.length - 1]
 
 		if (colSize) {
 			instance.setColumnSizing(colSize[1])

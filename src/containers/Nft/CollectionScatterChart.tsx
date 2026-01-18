@@ -39,14 +39,10 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const createInstance = React.useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	React.useEffect(() => {
-		const instance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
 
 		const series =
@@ -240,7 +236,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 			chartRef.current = null
 			instance.dispose()
 		}
-	}, [id, sales, volume, createInstance, isDark, isSmall, salesMedian1d])
+	}, [id, sales, volume, isDark, isSmall, salesMedian1d])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }
