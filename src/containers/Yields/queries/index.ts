@@ -34,6 +34,7 @@ export async function getYieldPageData() {
 		avalanche: 'avax',
 		gnosis: 'xdai'
 	}
+	const priceChainMappingKeys = new Set(Object.keys(priceChainMapping))
 
 	// get Price data
 	//
@@ -44,7 +45,7 @@ export async function getYieldPageData() {
 
 		if (rewardTokens?.length) {
 			let priceChainName = p.chain.toLowerCase()
-			priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
+			priceChainName = priceChainMappingKeys.has(priceChainName)
 				? priceChainMapping[priceChainName]
 				: priceChainName
 
@@ -64,7 +65,7 @@ export async function getYieldPageData() {
 		let priceChainName = p.chain.toLowerCase()
 		const rewardTokens = p.rewardTokens?.filter((t) => !!t)
 
-		priceChainName = Object.keys(priceChainMapping).includes(priceChainName)
+		priceChainName = priceChainMappingKeys.has(priceChainName)
 			? priceChainMapping[priceChainName]
 			: priceChainName
 

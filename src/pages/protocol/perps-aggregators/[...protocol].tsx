@@ -57,16 +57,16 @@ export const getStaticProps = withPerformanceLogging(
 			totalAllTime: adapterData.totalAllTime ?? null
 		}
 
-		const linkedProtocols = (adapterData?.linkedProtocols ?? []).slice(1)
+		const linkedProtocolsSet = new Set((adapterData?.linkedProtocols ?? []).slice(1))
 		const linkedProtocolsWithAdapterData = []
 		if (protocolData.isParentProtocol) {
 			for (const key in protocolMetadata) {
-				if (linkedProtocols.length === 0) break
-				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
+				if (linkedProtocolsSet.size === 0) break
+				if (linkedProtocolsSet.has(protocolMetadata[key].displayName)) {
 					if (protocolMetadata[key].perpsAggregators) {
 						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
 					}
-					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
+					linkedProtocolsSet.delete(protocolMetadata[key].displayName)
 				}
 			}
 		}

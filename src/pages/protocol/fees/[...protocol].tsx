@@ -124,20 +124,20 @@ export const getStaticProps = withPerformanceLogging(
 			totalAllTime: tokenTaxData?.totalAllTime ?? null
 		}
 
-		const linkedProtocols = (feesData?.linkedProtocols ?? []).slice(1)
+		const linkedProtocolsSet = new Set((feesData?.linkedProtocols ?? []).slice(1))
 		const linkedProtocolsWithFeesData = []
 		const linkedProtocolsWithRevenueData = []
 		if (protocolData.isParentProtocol) {
 			for (const key in protocolMetadata) {
-				if (linkedProtocols.length === 0) break
-				if (linkedProtocols.includes(protocolMetadata[key].displayName)) {
+				if (linkedProtocolsSet.size === 0) break
+				if (linkedProtocolsSet.has(protocolMetadata[key].displayName)) {
 					if (protocolMetadata[key].fees) {
 						linkedProtocolsWithFeesData.push(protocolMetadata[key])
 					}
 					if (protocolMetadata[key].revenue) {
 						linkedProtocolsWithRevenueData.push(protocolMetadata[key])
 					}
-					linkedProtocols.splice(linkedProtocols.indexOf(protocolMetadata[key].displayName), 1)
+					linkedProtocolsSet.delete(protocolMetadata[key].displayName)
 				}
 			}
 		}

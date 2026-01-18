@@ -94,6 +94,9 @@ export const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 	}
 }
 
+// Build chart lookup map for O(1) access
+const chartsMap = new Map(supportedCharts.map((c) => [c.key, c]))
+
 const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 	if (!chainsData || !chainsData.length || !chainsData.every(Boolean)) return []
 
@@ -102,7 +105,7 @@ const formatChartData = (chainsData: any, selectedCharts: string[]) => {
 	let colors = getNDistinctColors(selectedCharts.length * chainsData.length)
 	let colorIndex = 0
 	for (const chart of selectedCharts) {
-		const targetChart = supportedCharts.find((c) => c.key === chart)
+		const targetChart = chartsMap.get(chart)
 		if (!targetChart) continue
 
 		const dateInMs = chart === 'tvlChart'
@@ -140,7 +143,7 @@ const ChartFilters = () => {
 	const { selectedValues, setSelectedValues } = useChainsChartFilterState()
 
 	const selectedChartsNames = React.useMemo(() => {
-		return selectedValues.map((value) => supportedCharts.find((chart) => chart.key === value)?.name ?? '')
+		return selectedValues.map((value) => chartsMap.get(value)?.name ?? '')
 	}, [selectedValues])
 
 	return (

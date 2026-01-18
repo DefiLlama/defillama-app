@@ -264,16 +264,16 @@ async function getTvlProtocolChainData(
 			}
 		}
 
-		series.sort((a, b) => {
+		const sortedSeries = series.toSorted((a, b) => {
 			const lastA = a.data[a.data.length - 1]?.[1] || 0
 			const lastB = b.data[b.data.length - 1]?.[1] || 0
 			return lastB - lastA
 		})
 
-		const topSeries = series.slice(0, Math.min(topN, series.length))
-		const othersSeries = series.slice(Math.min(topN, series.length))
+		const topSeries = sortedSeries.slice(0, Math.min(topN, sortedSeries.length))
+		const othersSeries = sortedSeries.slice(Math.min(topN, sortedSeries.length))
 
-		const totalSeries = Array.from(sumSeriesByTimestamp(series.map((s) => s.data)).entries()).sort(
+		const totalSeries = Array.from(sumSeriesByTimestamp(sortedSeries.map((s) => s.data)).entries()).sort(
 			(a, b) => a[0] - b[0]
 		) as [number, number][]
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(topSeries, totalSeries)
@@ -296,8 +296,8 @@ async function getTvlProtocolChainData(
 				metric: 'TVL',
 				chains: availableChains,
 				totalChains: availableChains.length,
-				topN: Math.min(topN, series.length),
-				othersCount: Math.max(0, series.length - Math.min(topN, series.length))
+				topN: Math.min(topN, sortedSeries.length),
+				othersCount: Math.max(0, sortedSeries.length - Math.min(topN, sortedSeries.length))
 			}
 		}
 	} catch (error) {
@@ -407,7 +407,7 @@ async function getDimensionsProtocolChainData(
 
 		for (const chain of chainDataMap.keys()) {
 			const data = chainDataMap.get(chain)!
-			const sortedData = data.sort((a, b) => a[0] - b[0])
+			const sortedData = data.toSorted((a, b) => a[0] - b[0])
 			series.push({
 				name: chain,
 				data: filterOutToday(sortedData),
@@ -416,18 +416,18 @@ async function getDimensionsProtocolChainData(
 			colorIndex++
 		}
 
-		series.sort((a, b) => {
+		const sortedSeries = series.toSorted((a, b) => {
 			const lastA = a.data[a.data.length - 1]?.[1] || 0
 			const lastB = b.data[b.data.length - 1]?.[1] || 0
 			return lastB - lastA
 		})
 
-		const availableChains = series.map((s) => s.name)
+		const availableChains = sortedSeries.map((s) => s.name)
 
-		const topSeries = series.slice(0, Math.min(topN, series.length))
-		const othersSeries = series.slice(Math.min(topN, series.length))
+		const topSeries = sortedSeries.slice(0, Math.min(topN, sortedSeries.length))
+		const othersSeries = sortedSeries.slice(Math.min(topN, sortedSeries.length))
 
-		const totalSeries = Array.from(sumSeriesByTimestamp(series.map((s) => s.data)).entries()).sort(
+		const totalSeries = Array.from(sumSeriesByTimestamp(sortedSeries.map((s) => s.data)).entries()).sort(
 			(a, b) => a[0] - b[0]
 		) as [number, number][]
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(topSeries, totalSeries)
@@ -450,8 +450,8 @@ async function getDimensionsProtocolChainData(
 				metric: config.metricName,
 				chains: availableChains,
 				totalChains: availableChains.length,
-				topN: Math.min(topN, series.length),
-				othersCount: Math.max(0, series.length - Math.min(topN, series.length))
+				topN: Math.min(topN, sortedSeries.length),
+				othersCount: Math.max(0, sortedSeries.length - Math.min(topN, sortedSeries.length))
 			}
 		}
 	} catch (error) {

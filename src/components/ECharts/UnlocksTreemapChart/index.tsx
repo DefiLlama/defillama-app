@@ -143,7 +143,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 							}
 						}
 					})
-					.sort((a, b) => b.value - a.value)
+					.toSorted((a, b) => b.value - a.value)
 				return protocolsData
 			} else {
 				return []
@@ -212,10 +212,10 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						})
 					}
 
-					monthNode.children.sort((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
 					return monthNode
 				})
-				.sort((a, b) => b.value - a.value)
+				.toSorted((a, b) => b.value - a.value)
 		}
 
 		if (timeView === 'All Years') {
@@ -293,11 +293,11 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 						})
 					}
 
-					monthNode.children.sort((a, b) => b.value - a.value)
+					monthNode.children = monthNode.children.toSorted((a, b) => b.value - a.value)
 					yearNode.children.push(monthNode)
 				}
 
-				yearNode.children.sort((a, b) => b.value - a.value)
+				yearNode.children = yearNode.children.toSorted((a, b) => b.value - a.value)
 				treeData.push(yearNode)
 			}
 

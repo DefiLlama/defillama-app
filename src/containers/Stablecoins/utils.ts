@@ -19,6 +19,32 @@ export const getStablecoinDominance = (topToken, totalMcap) => {
 	} else return null
 }
 
+const BACKFILLED_CHAINS = new Set([
+	'All',
+	'Ethereum',
+	'BSC',
+	'Avalanche',
+	'Arbitrum',
+	'Optimism',
+	'Fantom',
+	'Polygon',
+	'Gnosis',
+	'Celo',
+	'Harmony',
+	'Moonriver',
+	'Aztec',
+	'Loopring',
+	'Starknet',
+	'ZKsync',
+	'Boba',
+	'Metis',
+	'Moonbeam',
+	'Syscoin',
+	'OKExChain',
+	'IoTeX',
+	'Heco'
+])
+
 export const buildStablecoinChartData = ({
 	chartDataByAssetOrChain,
 	assetsOrChainsList,
@@ -37,31 +63,9 @@ export const buildStablecoinChartData = ({
 	doublecountedIds?: Array<number>
 }) => {
 	if (selectedChain === null) return {}
-	const backfilledChains = [
-		'All',
-		'Ethereum',
-		'BSC',
-		'Avalanche',
-		'Arbitrum',
-		'Optimism',
-		'Fantom',
-		'Polygon',
-		'Gnosis',
-		'Celo',
-		'Harmony',
-		'Moonriver',
-		'Aztec',
-		'Loopring',
-		'Starknet',
-		'ZKsync',
-		'Boba',
-		'Metis',
-		'Moonbeam',
-		'Syscoin',
-		'OKExChain',
-		'IoTeX',
-		'Heco'
-	]
+	const filteredIndexesSet = new Set(filteredIndexes)
+	const doublecountedIdsSet = new Set(doublecountedIds)
+
 	let unformattedAreaData = {}
 	let unformattedTotalData = {}
 	let stackedDatasetObject = {}
@@ -71,7 +75,7 @@ export const buildStablecoinChartData = ({
 	if (chartDataByAssetOrChain) {
 		for (let i = 0; i < chartDataByAssetOrChain.length; i++) {
 			const charts = chartDataByAssetOrChain[i]
-			if (!charts || !charts.length || !filteredIndexes.includes(i) || doublecountedIds.includes(i)) continue
+			if (!charts || !charts.length || !filteredIndexesSet.has(i) || doublecountedIdsSet.has(i)) continue
 			for (let j = 0; j < charts.length; j++) {
 				const chart = charts[j]
 				const mcap = getPrevStablecoinTotalFromChart([chart], 0, issuanceType) // 'issuanceType' and 'mcap' here are 'circulating' values on /stablecoin pages, and 'mcap' otherwise
@@ -79,7 +83,7 @@ export const buildStablecoinChartData = ({
 				const assetOrChain = assetsOrChainsList[i]
 				const date = chart.date
 				if (mcap) {
-					if (backfilledChains.includes(selectedChain) || date > 1652241600) {
+					if (BACKFILLED_CHAINS.has(selectedChain) || date > 1652241600) {
 						// for individual chains data is currently only backfilled to May 11, 2022
 						unformattedAreaData[date] = unformattedAreaData[date] || {}
 						unformattedAreaData[date][assetsOrChainsList[i]] = mcap
@@ -316,7 +320,7 @@ export const formatPeggedAssetsData = ({
 	})
 
 	if (chain) {
-		filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+		filteredPeggedAssets = filteredPeggedAssets.toSorted((a, b) => b.mcap - a.mcap)
 	}
 
 	return filteredPeggedAssets
@@ -366,7 +370,7 @@ export const formatPeggedChainsData = ({
 		return chainData
 	})
 
-	filteredPeggedAssets = filteredPeggedAssets.sort((a, b) => b.mcap - a.mcap)
+	filteredPeggedAssets = filteredPeggedAssets.toSorted((a, b) => b.mcap - a.mcap)
 
 	return filteredPeggedAssets
 }

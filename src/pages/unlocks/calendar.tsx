@@ -121,7 +121,7 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 	}
 
 	for (const date in unlocksData) {
-		unlocksData[date].events.sort((a, b) => b.value - a.value)
+		unlocksData[date].events = unlocksData[date].events.toSorted((a, b) => b.value - a.value)
 	}
 
 	const currentYear = new Date().getFullYear()
@@ -162,8 +162,8 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 			}
 		}
 
-		events.sort((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf())
-		precomputedData.listEvents[startDateKey] = events
+		const sortedEvents = events.toSorted((a, b) => dayjs(a.date).valueOf() - dayjs(b.date).valueOf())
+		precomputedData.listEvents[startDateKey] = sortedEvents
 	}
 
 	return {

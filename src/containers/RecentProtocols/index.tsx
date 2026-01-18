@@ -47,7 +47,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 	const { selectedChains, data } = useMemo(() => {
 		const selectedChains = getSelectedChainFilters(chain, chainList)
 
-		const _chainsToSelect = selectedChains.map((t) => t.toLowerCase())
+		const _chainsToSelectSet = new Set(selectedChains.map((t) => t.toLowerCase()))
 
 		const isValidTvlRange = minTvl != null && maxTvl != null
 
@@ -64,7 +64,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 				for (const chain of protocol.chains) {
 					// filter if a protocol has at least of one selected chain
 					if (!includesChain) {
-						includesChain = _chainsToSelect.includes(chain.toLowerCase())
+						includesChain = _chainsToSelectSet.has(chain.toLowerCase())
 					}
 				}
 
@@ -81,7 +81,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 
 				for (const chainName of p.chains) {
 					// continue if chainsToSelect does not include chainName
-					if (!_chainsToSelect.includes(chainName.toLowerCase())) {
+					if (!_chainsToSelectSet.has(chainName.toLowerCase())) {
 						continue
 					}
 
@@ -91,7 +91,7 @@ export function RecentProtocols({ protocols, chainList, forkedList, claimableAir
 							: sectionName.toLowerCase()
 
 						// add only if chainsToSelect includes sanitisedChainName and chainName equals sanitisedChainName
-						if (_chainsToSelect.includes(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
+						if (_chainsToSelectSet.has(_sanitisedChainName) && chainName.toLowerCase() === _sanitisedChainName) {
 							const _values = p.chainTvls[sectionName]
 
 							// only add tvl values where chainName is strictly equal to sectionName, else check if its extraTvl and add

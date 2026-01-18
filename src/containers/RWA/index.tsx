@@ -228,10 +228,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { totalOnChainRwaPieChartData, activeMarketcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
 			const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
+			const selectedCategoriesSet = new Set(selectedCategories)
 
 			for (const asset of filteredAssets) {
 				for (const category of asset.category ?? []) {
-					if (!category || !selectedCategories.includes(category)) continue
+					if (!category || !selectedCategoriesSet.has(category)) continue
 
 					const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
 					prev.onChain += asset.onChainMarketcap.total

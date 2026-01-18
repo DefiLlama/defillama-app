@@ -302,8 +302,8 @@ export const getDimensionsSplitData = async ({
 			}
 		}
 	} else {
-		protocolEntries.sort((a, b) => b.value - a.value)
-		topProtocols = protocolEntries.slice(0, topN).map((p) => p.name)
+		const sortedProtocolEntries = protocolEntries.toSorted((a, b) => b.value - a.value)
+		topProtocols = sortedProtocolEntries.slice(0, topN).map((p) => p.name)
 		topProtocolsSet = new Set(topProtocols)
 
 		for (const entry of protocolEntries) {

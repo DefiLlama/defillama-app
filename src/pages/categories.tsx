@@ -16,6 +16,8 @@ import { formattedNum, formattedPercent, getNDistinctColors, getPercentChange, s
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EXCLUDED_EXTRAS = new Set(['doublecounted', 'liquidstaking'])
+
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
 ) as React.FC<ILineAndBarChartProps>
@@ -50,7 +52,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 		const extraTvls = {}
 
 		for (const extra of DEFI_SETTINGS_KEYS) {
-			if (!['doublecounted', 'liquidstaking'].includes(extra) && p.chainTvls[extra]) {
+			if (!EXCLUDED_EXTRAS.has(extra) && p.chainTvls[extra]) {
 				extraTvls[extra] = p.chainTvls[extra]
 			}
 		}
@@ -172,7 +174,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 			}
 			chartData[cat].data.push([+date * 1e3, chart[date]?.[cat]?.tvl ?? null])
 			for (const extra of DEFI_SETTINGS_KEYS) {
-				if (['doublecounted', 'liquidstaking'].includes(extra)) {
+				if (EXCLUDED_EXTRAS.has(extra)) {
 					continue
 				}
 
@@ -193,7 +195,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	return {
 		props: {
 			categories: Object.keys(protocolsByCategory),
-			tableData: finalCategories.sort((a, b) => b.tvl - a.tvl),
+			tableData: finalCategories.toSorted((a, b) => b.tvl - a.tvl),
 			chartData,
 			extraTvlCharts
 		},
@@ -201,7 +203,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 	}
 })
 
-const finalTvlOptions = tvlOptions.filter((e) => !['liquidstaking', 'doublecounted'].includes(e.key))
+const finalTvlOptions = tvlOptions.filter((e) => !EXCLUDED_EXTRAS.has(e.key))
 
 const pageName = ['Protocol Categories']
 
@@ -219,6 +221,8 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	const [extaTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const charts = React.useMemo(() => {
+		const selectedCategoriesSet = new Set(selectedCategories)
+
 		if (!Object.values(extaTvlsEnabled).some((e) => e === true)) {
 			if (selectedCategories.length === categories.length) {
 				return chartData
@@ -226,7 +230,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 
 			const charts = {}
 			for (const cat in chartData) {
-				if (selectedCategories.includes(cat)) {
+				if (selectedCategoriesSet.has(cat)) {
 					charts[cat] = chartData[cat]
 				}
 			}
@@ -241,7 +245,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 		const charts = {}
 
 		for (const cat in chartData) {
-			if (selectedCategories.includes(cat)) {
+			if (selectedCategoriesSet.has(cat)) {
 				const data = chartData[cat].data.map(([date, val], _index) => {
 					const extraTvls = enabledTvls.map((e) => extraTvlCharts?.[cat]?.[e]?.[date] ?? 0)
 					return [date, val + extraTvls.reduce((a, b) => a + b, 0)]

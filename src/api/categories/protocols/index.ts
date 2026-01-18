@@ -44,7 +44,7 @@ export const getAllProtocolEmissionsWithHistory = async ({
 						filteredEvents = filteredEvents.filter((e) => e.timestamp <= endDate)
 					}
 
-					filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
+					filteredEvents = filteredEvents.toSorted((a, b) => a.timestamp - b.timestamp)
 
 					const coin = coinPrices[`coingecko:${protocol.gecko_id}`]
 
@@ -108,18 +108,27 @@ export const getAllProtocolEmissions = async ({
 		for (const protocol of res) {
 			if (!getHistoricalPrices) continue
 			if (!protocol.gecko_id) continue
-			let lastEventTimestamp = protocol.events
-				?.filter(
-					(e) =>
-						e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60 &&
-						e.category !== 'noncirculating' &&
-						e.category !== 'farming'
-				)
-				.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
+			let lastEventTimestamp: number | undefined
+			for (const e of protocol.events ?? []) {
+				if (
+					e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60 &&
+					e.category !== 'noncirculating' &&
+					e.category !== 'farming'
+				) {
+					if (lastEventTimestamp === undefined || e.timestamp > lastEventTimestamp) {
+						lastEventTimestamp = e.timestamp
+					}
+				}
+			}
 
 			if (!lastEventTimestamp) continue
 
-			const earliestEvent = protocol.events?.sort((a, b) => a.timestamp - b.timestamp)[0]?.timestamp
+			let earliestEvent: number | undefined
+			for (const e of protocol.events ?? []) {
+				if (earliestEvent === undefined || e.timestamp < earliestEvent) {
+					earliestEvent = e.timestamp
+				}
+			}
 
 			if (lastEventTimestamp === earliestEvent) continue
 
@@ -147,9 +156,14 @@ export const getAllProtocolEmissions = async ({
 						}))
 					}
 					let event = protocol.events?.find((e) => e.timestamp >= Date.now() / 1000)
-					let lastEventTimestamp = protocol.events
-						?.filter((e) => e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60)
-						.sort((a, b) => b.timestamp - a.timestamp)[0]?.timestamp
+					let lastEventTimestamp: number | undefined
+					for (const e of protocol.events ?? []) {
+						if (e.timestamp < Date.now() / 1000 - 7 * 24 * 60 * 60) {
+							if (lastEventTimestamp === undefined || e.timestamp > lastEventTimestamp) {
+								lastEventTimestamp = e.timestamp
+							}
+						}
+					}
 
 					let lastEvent = []
 					let upcomingEvent = []
@@ -555,7 +569,7 @@ export function formatGovernanceData(data: {
 	}
 }) {
 	const proposals = Object.values(data.proposals).map((proposal) => {
-		const winningScore = [...proposal.scores].sort((a, b) => b - a)[0]
+		const winningScore = proposal.scores.length > 0 ? Math.max(...proposal.scores) : undefined
 		const totalVotes = proposal.scores.reduce((acc, curr) => (acc += curr), 0)
 
 		return {
