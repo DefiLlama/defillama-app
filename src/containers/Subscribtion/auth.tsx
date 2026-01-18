@@ -448,7 +448,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		onSuccess: async () => {
 			try {
 				await pb.collection('users').authRefresh()
-			} catch { /* ignore refresh error */ }
+			} catch {
+				/* ignore refresh error */
+			}
 			toast.success('Wallet linked successfully')
 		},
 		onError: (error) => {

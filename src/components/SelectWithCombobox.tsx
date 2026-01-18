@@ -3,8 +3,8 @@ import { matchSorter } from 'match-sorter'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
-import { Tooltip } from './Tooltip'
 import type { SelectOption, SelectValues } from './selectTypes'
+import { Tooltip } from './Tooltip'
 
 interface ISelectWithCombobox {
 	allValues: SelectValues
@@ -52,7 +52,7 @@ export function SelectWithCombobox({
 			})
 		}
 
-			return matchSorter(allValues as ReadonlyArray<SelectOption>, deferredSearchValue, {
+		return matchSorter(allValues as ReadonlyArray<SelectOption>, deferredSearchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})

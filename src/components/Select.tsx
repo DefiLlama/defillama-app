@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
 import { Icon } from './Icon'
 import { NestedMenu, NestedMenuItem } from './NestedMenu'
-import { Tooltip } from './Tooltip'
 import type { SelectValues } from './selectTypes'
+import { Tooltip } from './Tooltip'
 
 interface ISelect {
 	allValues: SelectValues

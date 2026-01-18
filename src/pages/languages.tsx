@@ -85,7 +85,15 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 
 const pageName = ['TVL', 'by', 'Smart Contract Languages']
 
-export default function Protocols({ langs, langsUnique, langsDominance, osUnique, osLangs: _osLangs, osDominance, colors }) {
+export default function Protocols({
+	langs,
+	langsUnique,
+	langsDominance,
+	osUnique,
+	osLangs: _osLangs,
+	osDominance,
+	colors
+}) {
 	return (
 		<Layout
 			title={`Languages - DefiLlama`}

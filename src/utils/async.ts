@@ -154,8 +154,7 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 	}
 
 	// Periodic cleanup (time-throttled to avoid running on every call)
-	const shouldCleanup =
-		recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
+	const shouldCleanup = recentErrors.size > 500 && now - lastCleanupTime >= CLEANUP_INTERVAL_MS
 	if (shouldCleanup || recentErrors.size >= DEDUP_MAX_ENTRIES) {
 		lastCleanupTime = now
 		const cutoff = now - DEDUP_WINDOW_MS

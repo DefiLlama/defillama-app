@@ -9,10 +9,10 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useContext, useEffect, useRef } from 'react'
-import { useChartResize } from '~/hooks/useChartResize'
 import { LiquidationsContext } from '~/containers/Liquidations/context'
 import { ChartData } from '~/containers/Liquidations/utils'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import { getOption, useStackBy } from './utils'
 

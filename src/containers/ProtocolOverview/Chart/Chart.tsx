@@ -1,9 +1,9 @@
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { useChartResize } from '~/hooks/useChartResize'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, ProtocolChartsLabels, yAxisByChart } from './constants'
 

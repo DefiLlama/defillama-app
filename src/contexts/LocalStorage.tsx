@@ -2,12 +2,7 @@ import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
-import {
-	getStorageItem,
-	notifyKeyChange,
-	setStorageItem,
-	subscribeToStorageKey
-} from './localStorageStore'
+import { getStorageItem, notifyKeyChange, setStorageItem, subscribeToStorageKey } from './localStorageStore'
 
 const DEFILLAMA = 'DEFILLAMA' as const
 const PINNED_METRICS_KEY = 'pinned-metrics' as const

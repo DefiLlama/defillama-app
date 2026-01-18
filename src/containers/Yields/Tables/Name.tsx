@@ -200,7 +200,14 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 	)
 }
 
-export function FRStrategyRoute({ project1, airdropProject1, project2, airdropProject2: _airdropProject2, chain, index }) {
+export function FRStrategyRoute({
+	project1,
+	airdropProject1,
+	project2,
+	airdropProject2: _airdropProject2,
+	chain,
+	index
+}) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)

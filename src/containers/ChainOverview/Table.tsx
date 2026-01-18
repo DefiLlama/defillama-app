@@ -176,9 +176,7 @@ export const ChainProtocolsTable = ({
 	}
 
 	const addOnlyOneColumn = (newOption) => {
-		const ops = Object.fromEntries(
-			instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption])
-		)
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, col.id === newOption]))
 		setStorageItem(tableColumnOptionsKey, JSON.stringify(ops))
 		if (instance && instance.setColumnVisibility) {
 			instance.setColumnVisibility(ops)
@@ -344,12 +342,12 @@ export const ChainProtocolsTable = ({
 
 		if (columnsInStorage === JSON.stringify(newColumns)) {
 			toggleAllColumns()
-		setStorageItem(tableFilterStateKey, 'null')
+			setStorageItem(tableFilterStateKey, 'null')
 			instance.setSorting([{ id: 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		} else {
-		setStorageItem(tableColumnOptionsKey, JSON.stringify(newColumns))
-		setStorageItem(tableFilterStateKey, newState)
+			setStorageItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+			setStorageItem(tableFilterStateKey, newState)
 			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
 			// window.dispatchEvent(new Event('storage'))
 		}

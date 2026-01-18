@@ -201,7 +201,7 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		// Compute sorted assets
-		const assetEntries: [string, typeof data.assets[string]][] = []
+		const assetEntries: [string, (typeof data.assets)[string]][] = []
 		for (const key in data.assets) {
 			assetEntries.push([key, data.assets[key]])
 		}

@@ -367,8 +367,8 @@ async function getDimensionsProtocolChainData(
 
 			for (const chain in chainData) {
 				const versions = (chainData as Record<string, any>)[chain]
-			if (chains && chains.length > 0) {
-				if (chainFilterMode === 'include') {
+				if (chains && chains.length > 0) {
+					if (chainFilterMode === 'include') {
 						if (!chains.includes(chain)) continue
 					} else {
 						if (excludeSet.has(chain)) continue
@@ -377,7 +377,7 @@ async function getDimensionsProtocolChainData(
 
 				if (allowSlugsFromCategories && allowSlugsFromCategories.size > 0) {
 					const chainSlug = toDimensionsSlug(chain)
-				if (chainCategoryFilterMode === 'include') {
+					if (chainCategoryFilterMode === 'include') {
 						if (!allowSlugsFromCategories.has(chainSlug)) continue
 					} else {
 						if (allowSlugsFromCategories.has(chainSlug)) continue
@@ -1093,7 +1093,13 @@ export const getProtocolChainSplitData = async ({
 
 	if (CHAIN_ONLY_METRICS.has(metricStr)) {
 		if (metricStr === 'stablecoins') {
-			return getAllProtocolsTopChainsStablecoinsData(topN, chains, chainFilterMode, chainCategoryFilterMode, chainCategories)
+			return getAllProtocolsTopChainsStablecoinsData(
+				topN,
+				chains,
+				chainFilterMode,
+				chainCategoryFilterMode,
+				chainCategories
+			)
 		}
 		return getAllProtocolsTopChainsChainFeesData(
 			metricStr as 'chain-fees' | 'chain-revenue',
@@ -1124,7 +1130,15 @@ export const getProtocolChainSplitData = async ({
 	if (metricStr === 'tvl') {
 		return getTvlProtocolChainData(protocolStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
 	}
-	return getDimensionsProtocolChainData(protocolStr, metricStr, chains, topN, chainFilterMode, chainCategoryFilterMode, chainCategories)
+	return getDimensionsProtocolChainData(
+		protocolStr,
+		metricStr,
+		chains,
+		topN,
+		chainFilterMode,
+		chainCategoryFilterMode,
+		chainCategories
+	)
 }
 
 async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {

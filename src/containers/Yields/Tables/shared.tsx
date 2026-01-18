@@ -60,9 +60,7 @@ export const YieldsTableWrapper = ({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = width
-			? (columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
-			: defaultOrder
+		const order = width ? (columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder) : defaultOrder
 
 		const cSize = width ? columnSizesKeys.find((size) => width > Number(size)) : columnSizesKeys[0]
 

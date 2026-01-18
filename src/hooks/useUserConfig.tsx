@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef } from 'react'
-import { readAppStorage, readAppStorageRaw, subscribeToLocalStorage, THEME_SYNC_KEY, writeAppStorage } from '~/contexts/LocalStorage'
+import {
+	readAppStorage,
+	readAppStorageRaw,
+	subscribeToLocalStorage,
+	THEME_SYNC_KEY,
+	writeAppStorage
+} from '~/contexts/LocalStorage'
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'

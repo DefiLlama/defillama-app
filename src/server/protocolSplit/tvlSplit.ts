@@ -359,10 +359,9 @@ export const getTvlSplitData = async (
 				return summed
 			})
 		)
-		const sumExcludedCatsAcrossChains = Array.from(sumSeriesByTimestamp(perCatPerExcluded).entries()).sort((a, b) => a[0] - b[0]) as [
-			number,
-			number
-		][]
+		const sumExcludedCatsAcrossChains = Array.from(sumSeriesByTimestamp(perCatPerExcluded).entries()).sort(
+			(a, b) => a[0] - b[0]
+		) as [number, number][]
 		return subtractSeries(series, sumExcludedCatsAcrossChains)
 	}
 

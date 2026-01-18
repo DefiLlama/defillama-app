@@ -151,7 +151,7 @@ export const removeStorageItem = (key: string) => {
 	notifyKeyChange(key)
 }
 
-export const getStorageJSON = <T,>(key: string, fallback: T) => {
+export const getStorageJSON = <T>(key: string, fallback: T) => {
 	const raw = getStorageItem(key, null)
 	if (!raw) return fallback
 	try {

@@ -3,10 +3,10 @@ import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { SVGRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { CHART_COLORS, purple } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum, slug } from '~/utils'
 
 echarts.use([SVGRenderer, LineChart, BarChart, TooltipComponent, GridComponent])
@@ -379,7 +379,6 @@ export function UpcomingUnlocksChart({
 			}
 		]
 	}, [data, tokens, name])
-
 
 	useEffect(() => {
 		// create instance
