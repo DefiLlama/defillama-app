@@ -219,7 +219,7 @@ export const PeggedAssetInfo = ({
 									<span className="font-jetbrains">{price === null ? '-' : formattedNum(price, true)}</span>
 								</p>
 
-								{totalCirculating && (
+								{totalCirculating != null ? (
 									<table className="w-full border-collapse text-base">
 										<caption className="pb-1 text-left text-xs text-(--text-label)">Issuance Stats</caption>
 										<tbody>
@@ -229,7 +229,7 @@ export const PeggedAssetInfo = ({
 											</tr>
 										</tbody>
 									</table>
-								)}
+								) : null}
 
 								{extraPeggeds.length > 0 && (
 									<table className="w-full border-collapse text-base">

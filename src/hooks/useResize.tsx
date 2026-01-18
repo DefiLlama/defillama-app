@@ -6,6 +6,7 @@ export const useResize = (myRef: React.RefObject<HTMLDivElement>) => {
 
 	useEffect(() => {
 		const handleResize = () => {
+			// Ref objects are stable - reading .current always gets the latest value
 			if (myRef.current) {
 				setWidth(myRef.current.offsetWidth)
 				setHeight(myRef.current.offsetHeight)
@@ -19,7 +20,8 @@ export const useResize = (myRef: React.RefObject<HTMLDivElement>) => {
 		return () => {
 			window.removeEventListener('resize', handleResize)
 		}
-	}, [myRef])
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- Ref object is stable, no need to include in deps
+	}, [])
 
 	return { width, height }
 }

@@ -422,10 +422,10 @@ const Breakdown = ({
 	return (
 		<span className="flex flex-col gap-1 border-l-3 pl-1 text-xs" style={{ borderColor: data.color }}>
 			<span>{name}</span>
-			{data.amount && <span>{`Amount: ${formattedNum(data.amount, false)} ${data.ticker}`}</span>}
-			{data.usdValue && <span>{`Today's Value: ${formattedNum(data.usdValue, true)}`}</span>}
-			{data.cost && <span>{`Cost Basis: ${formattedNum(data.cost, true)}`}</span>}
-			{data.avgPrice && <span>{`Average Purchase Price: ${formattedNum(data.avgPrice, true)}`}</span>}
+			{data.amount != null ? <span>{`Amount: ${formattedNum(data.amount, false)} ${data.ticker}`}</span> : null}
+			{data.usdValue != null ? <span>{`Today's Value: ${formattedNum(data.usdValue, true)}`}</span> : null}
+			{data.cost != null ? <span>{`Cost Basis: ${formattedNum(data.cost, true)}`}</span> : null}
+			{data.avgPrice != null ? <span>{`Average Purchase Price: ${formattedNum(data.avgPrice, true)}`}</span> : null}
 		</span>
 	)
 }

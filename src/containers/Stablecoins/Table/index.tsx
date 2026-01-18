@@ -16,7 +16,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { DEFI_CHAINS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import {
 	assetsByChainColumnOrders,
 	assetsByChainColumnSizes,
@@ -38,7 +38,7 @@ export function PeggedAssetsTable({ data }) {
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -64,18 +64,18 @@ export function PeggedAssetsTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (assetsColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
+		const order = width
+			? (assetsColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
-		const cSize = windowSize.width
-			? assetsColumnSizesKeys.find((size) => windowSize.width > Number(size))
+		const cSize = width
+			? assetsColumnSizesKeys.find((size) => width > Number(size))
 			: assetsColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsColumnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 
@@ -128,7 +128,7 @@ export function PeggedAssetByChainTable({ data }) {
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -158,18 +158,18 @@ export function PeggedAssetByChainTable({ data }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (assetsByChainColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
+		const order = width
+			? (assetsByChainColumnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
-		const cSize = windowSize.width
-			? assetsByChainColumnSizesKeys.find((size) => windowSize.width > Number(size))
+		const cSize = width
+			? assetsByChainColumnSizesKeys.find((size) => width > Number(size))
 			: assetsByChainColumnSizesKeys[0]
 
 		instance.setColumnSizing(assetsByChainColumnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 

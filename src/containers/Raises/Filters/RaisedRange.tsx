@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function RaisedRange({
@@ -19,35 +19,21 @@ export function RaisedRange({
 		const minRaised = form.min?.value
 		const maxRaised = form.max?.value
 
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minRaised,
-					maxRaised
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		if (minRaised) params.set('minRaised', minRaised)
+		else params.delete('minRaised')
+		if (maxRaised) params.set('maxRaised', maxRaised)
+		else params.delete('maxRaised')
+		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {
-		const { minRaised: _minRaised, maxRaised: _maxRaised, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		params.delete('minRaised')
+		params.delete('maxRaised')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minRaised, maxRaised } = router.query

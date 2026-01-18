@@ -1,22 +1,10 @@
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 
 export function LTV({ placeholder }: { placeholder: string }) {
-	const router = useRouter()
-
 	const setLTV = (value) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					customLTV: value
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		params.set('customLTV', value)
+		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
 	}
 
 	const onChange = (e) => {

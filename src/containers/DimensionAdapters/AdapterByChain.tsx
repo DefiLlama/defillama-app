@@ -25,7 +25,7 @@ import { alphanumericFalsyLast } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
@@ -257,14 +257,14 @@ export function AdapterByChain(props: IProps) {
 		return () => clearTimeout(id)
 	}, [projectName, instance])
 
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		const colSize = windowSize.width ? columnSizes.find((size) => windowSize.width > +size[0]) : columnSizes[0]
-		const colOrder = windowSize.width ? columnOrders.find((size) => windowSize.width > +size[0]) : columnOrders[0]
+		const colSize = columnSizes.find((size) => width >= Number(size[0])) ?? columnSizes[columnSizes.length - 1]
+		const colOrder = columnOrders.find((size) => width >= Number(size[0])) ?? columnOrders[columnOrders.length - 1]
 		instance.setColumnOrder(colOrder[1])
 		instance.setColumnSizing(colSize[1])
-	}, [instance, windowSize])
+	}, [instance, width])
 
 	const prepareCsv = useCallback(() => {
 		const header = [

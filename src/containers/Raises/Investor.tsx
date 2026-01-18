@@ -17,7 +17,7 @@ import { LazyChart } from '~/components/LazyChart'
 import { raisesColumnOrders, raisesColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
 import { RaisesFilters } from '~/containers/Raises/Filters'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { prepareRaisesCsv } from './download'
@@ -35,7 +35,7 @@ function RaisesTable({ raises, prepareCsv }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: raises,
@@ -57,12 +57,12 @@ function RaisesTable({ raises, prepareCsv }) {
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (raisesColumnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
+		const order = width
+			? (raisesColumnOrders.find(([size]) => width >= size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 

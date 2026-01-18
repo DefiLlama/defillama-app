@@ -294,14 +294,14 @@ function CreateDashboardModalContent({
 
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
-		if (trimmedTag && !tags.includes(trimmedTag)) {
-			setTags([...tags, trimmedTag])
+		if (trimmedTag) {
+			setTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		setTags(tags.filter((t) => t !== tag))
+		setTags((prev) => prev.filter((t) => t !== tag))
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {

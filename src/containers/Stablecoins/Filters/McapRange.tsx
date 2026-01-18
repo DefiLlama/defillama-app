@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 
 export function McapRange({
@@ -17,35 +17,21 @@ export function McapRange({
 		const minMcap = form.min?.value
 		const maxMcap = form.max?.value
 
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minMcap,
-					maxMcap
-				}
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		if (minMcap) params.set('minMcap', minMcap)
+		else params.delete('minMcap')
+		if (maxMcap) params.set('maxMcap', maxMcap)
+		else params.delete('maxMcap')
+		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
 	}
 
 	const handleClear = () => {
-		const { minMcap: _minMcap, maxMcap: _maxMcap, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		const params = new URLSearchParams(window.location.search)
+		params.delete('minMcap')
+		params.delete('maxMcap')
+		const queryString = params.toString()
+		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+		Router.push(newUrl, undefined, { shallow: true })
 	}
 
 	const { minMcap, maxMcap } = router.query

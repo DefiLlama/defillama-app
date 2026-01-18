@@ -18,7 +18,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { subscribeToLocalStorage } from '~/contexts/LocalStorage'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { alphanumericFalsyLast } from '../../utils'
 import {
 	columnOrders,
@@ -615,7 +615,7 @@ export function ProtocolsTableWithSearch({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const columnsData = React.useMemo(
 		() =>
@@ -654,18 +654,16 @@ export function ProtocolsTableWithSearch({
 	React.useEffect(() => {
 		const defaultOrder = instance.getAllLeafColumns().map((d) => d.id)
 
-		const order = windowSize.width
-			? (columnOrders.find(([size]) => windowSize.width > size)?.[1] ?? defaultOrder)
+		const order = width
+			? (columnOrders.find(([size]) => width > size)?.[1] ?? defaultOrder)
 			: defaultOrder
 
-		const cSize = windowSize.width
-			? columnSizesKeys.find((size) => windowSize.width > Number(size))
-			: columnSizesKeys[0]
+		const cSize = width ? columnSizesKeys.find((size) => width > Number(size)) : columnSizesKeys[0]
 
 		instance.setColumnSizing(columnSizes[cSize])
 
 		instance.setColumnOrder(order)
-	}, [windowSize, instance])
+	}, [width, instance])
 
 	const [projectName, setProjectName] = React.useState('')
 

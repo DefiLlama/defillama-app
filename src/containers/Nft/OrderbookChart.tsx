@@ -10,6 +10,7 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import * as React from 'react'
+import { useChartResize } from '~/hooks/useChartResize'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import type { IOrderBookChartProps } from './types'
@@ -30,15 +31,16 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
 	const [isDark] = useDarkModeManager()
+	const chartRef = React.useRef<echarts.ECharts | null>(null)
 
-	const createInstance = React.useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	React.useEffect(() => {
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
 		const series = [
 			{
@@ -223,19 +225,13 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 			series: series
 		}
 
-		chartInstance.setOption(option)
-
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
+		instance.setOption(option)
 
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
-	}, [id, chartData, createInstance, isDark, isSmall])
+	}, [id, chartData, isDark, isSmall])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }

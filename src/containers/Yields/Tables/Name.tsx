@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 interface INameYieldPoolProps {
@@ -41,20 +41,8 @@ export function NameYieldPool({
 	poolMeta
 }: INameYieldPoolProps) {
 	const tokenUrl = strategy ? `/yields/strategy/${configID}` : `/yields/pool/${configID}`
-	const windowSize = useWindowSize()
-	const mc =
-		maxCharacters ??
-		(windowSize?.width >= 1720
-			? 36
-			: windowSize?.width >= 1640
-				? 32
-				: windowSize?.width >= 1600
-					? 28
-					: windowSize?.width >= 1536
-						? 16
-						: windowSize?.width >= 1280
-							? 12
-							: 10)
+	const width = useBreakpointWidth()
+	const mc = maxCharacters ?? (width >= 1536 ? 20 : width >= 1280 ? 12 : 10)
 
 	return (
 		<span className="flex items-center gap-2">

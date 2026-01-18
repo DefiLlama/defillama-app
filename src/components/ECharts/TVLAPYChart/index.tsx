@@ -1,6 +1,7 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import type { IChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
@@ -34,6 +35,10 @@ export default function AreaChart({
 	const chartsStack = stacks || customLegendOptions
 
 	const [isThemeDark] = useDarkModeManager()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+
+	// Stable resize listener - never re-attaches when dependencies change
+	useChartResize(chartRef)
 
 	const defaultChartSettings = useDefaults({
 		color,
@@ -96,17 +101,14 @@ export default function AreaChart({
 		return Object.values(series)
 	}, [chartData, chartsStack, color, customLegendName, isThemeDark, stackColors])
 
-	const createInstance = useCallback(() => {
-		const instance = echarts.getInstanceByDom(document.getElementById(id))
-
-		return instance || echarts.init(document.getElementById(id))
-	}, [id])
-
 	useEffect(() => {
 		// create instance
-		const chartInstance = createInstance()
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		chartRef.current = instance
 
-		onReady?.(chartInstance)
+		onReady?.(instance)
 
 		for (const option in chartOptions) {
 			if (defaultChartSettings[option]) {
@@ -120,7 +122,7 @@ export default function AreaChart({
 
 		const shouldHideDataZoom = series.every((s) => s.data.length < 2) || hideDataZoom
 
-		chartInstance.setOption({
+		instance.setOption({
 			graphic: { ...graphic },
 			tooltip: alwaysShowTooltip
 				? {
@@ -194,7 +196,7 @@ export default function AreaChart({
 		})
 
 		if (alwaysShowTooltip && series && series.length > 0 && series[0]?.data?.length > 0) {
-			chartInstance.dispatchAction({
+			instance.dispatchAction({
 				type: 'showTip',
 				// index of series, which is optional when trigger of tooltip is axis
 				seriesIndex: 0,
@@ -205,8 +207,8 @@ export default function AreaChart({
 				position: [60, 0]
 			})
 
-			chartInstance.on('globalout', () => {
-				chartInstance.dispatchAction({
+			instance.on('globalout', () => {
+				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
 					seriesIndex: 0,
@@ -219,18 +221,12 @@ export default function AreaChart({
 			})
 		}
 
-		function resize() {
-			chartInstance.resize()
-		}
-
-		window.addEventListener('resize', resize)
-
 		return () => {
-			window.removeEventListener('resize', resize)
-			chartInstance.dispose()
+			chartRef.current = null
+			instance.dispose()
 		}
 	}, [
-		createInstance,
+		id,
 		defaultChartSettings,
 		series,
 		chartOptions,

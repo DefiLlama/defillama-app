@@ -12,7 +12,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -32,7 +32,7 @@ export function CexDataset() {
 	})
 
 	const { data, isLoading, error } = useCexData()
-	const windowSize = useWindowSize()
+	const width = useBreakpointWidth()
 
 	const filteredData = React.useMemo(() => {
 		return data?.filter((d) => d.cleanTvl > 0) || []
@@ -75,7 +75,7 @@ export function CexDataset() {
 
 		instance.setColumnSizing(defaultSizing)
 		instance.setColumnOrder(defaultOrder)
-	}, [instance, windowSize])
+	}, [instance, width])
 
 	const [exchangeName, setExchangeName] = React.useState('')
 

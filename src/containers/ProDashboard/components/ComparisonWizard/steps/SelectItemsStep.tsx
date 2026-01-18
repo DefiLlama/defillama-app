@@ -163,15 +163,11 @@ export function SelectItemsStep() {
 	const typeLabel = state.comparisonType === 'chains' ? 'Chains' : 'Protocols'
 
 	const handleToggle = (value: string) => {
-		if (state.selectedItems.includes(value)) {
-			actions.setSelectedItems(state.selectedItems.filter((i) => i !== value))
-		} else if (state.selectedItems.length < 10) {
-			actions.setSelectedItems([...state.selectedItems, value])
-		}
+		actions.toggleSelectedItem(value, 10)
 	}
 
 	const handleRemoveItem = (item: string) => {
-		actions.setSelectedItems(state.selectedItems.filter((i) => i !== item))
+		actions.toggleSelectedItem(item)
 	}
 
 	const selectedLabels = useMemo(() => {

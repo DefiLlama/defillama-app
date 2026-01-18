@@ -15,7 +15,7 @@ import { Switch } from '~/components/Switch'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/ProtocolOverview/Emissions/UpcomingEvent'
-import useWindowSize from '~/hooks/useWindowSize'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import Pagination from './Pagination'
@@ -88,7 +88,7 @@ const unlockedPieChartStackColors = {
 }
 
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
-	const { width } = useWindowSize()
+	const width = useBreakpointWidth()
 	const [dataType, setDataType] = useState<DataType>('documented')
 	const [isPriceEnabled, setIsPriceEnabled] = useState(false)
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
