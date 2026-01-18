@@ -49,8 +49,8 @@ const getLiquidableChangesRatio = (
 		}
 	} else {
 		if (stackBy === 'chains') {
-			const filteredChains = Object.keys(selectedSeries).filter((chain) => selectedSeries[chain])
-			for (const chain of filteredChains) {
+			for (const chain in selectedSeries) {
+				if (!selectedSeries[chain]) continue
 				const _chain = PROTOCOL_NAMES_MAP_REVERSE[chain]
 				if (!prevData.totalLiquidables.chains[_chain]) {
 					continue
@@ -59,8 +59,8 @@ const getLiquidableChangesRatio = (
 				prev += prevData.totalLiquidables.chains[_chain]
 			}
 		} else {
-			const filteredProtocols = Object.keys(selectedSeries).filter((protocol) => selectedSeries[protocol])
-			for (const protocol of filteredProtocols) {
+			for (const protocol in selectedSeries) {
+				if (!selectedSeries[protocol]) continue
 				const _protocol = PROTOCOL_NAMES_MAP_REVERSE[protocol]
 				if (!prevData.totalLiquidables.protocols[_protocol]) {
 					continue

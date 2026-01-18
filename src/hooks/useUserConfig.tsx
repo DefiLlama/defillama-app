@@ -25,7 +25,12 @@ export function useUserConfig() {
 			if (response?.ok) {
 				const config = await response.json()
 
-				if (Object.keys(config).length > 0) {
+				let hasConfig = false
+				for (const _ in config) {
+					hasConfig = true
+					break
+				}
+				if (hasConfig) {
 					isSyncingRef.current = true
 
 					const currentLocal = localStorage.getItem(DEFILLAMA)

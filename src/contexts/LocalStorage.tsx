@@ -416,7 +416,12 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				const newWatchlist = { ...watchlist }
 				delete newWatchlist[name]
 
-				if (Object.keys(newWatchlist).length === 0) {
+				let hasKeys = false
+				for (const _ in newWatchlist) {
+					hasKeys = true
+					break
+				}
+				if (!hasKeys) {
 					newWatchlist[DEFAULT_PORTFOLIO_NAME] = {}
 				}
 

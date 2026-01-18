@@ -532,7 +532,12 @@ export const getProtocolOverviewPageData = async ({
 					for (const date in data.chainChart) {
 						tvs = data.chainChart[date]?.[oracleName] ?? {}
 					}
-					if (Object.keys(tvs).length === 0) return null
+					let hasTvs = false
+					for (const _ in tvs) {
+						hasTvs = true
+						break
+					}
+					if (!hasTvs) return null
 					return tvs
 				})
 			: null

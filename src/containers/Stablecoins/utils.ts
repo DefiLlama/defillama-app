@@ -156,7 +156,12 @@ export const buildStablecoinChartData = ({
 				zeroUsdInfows++
 			}
 
-			if (Object.keys(tokenDayDifference)?.length === 0) {
+			let hasTokenDayDifference = false
+			for (const _ in tokenDayDifference) {
+				hasTokenDayDifference = true
+				break
+			}
+			if (!hasTokenDayDifference) {
 				zeroTokenInflows++
 			}
 

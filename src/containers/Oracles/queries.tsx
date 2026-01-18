@@ -107,7 +107,9 @@ export async function getOraclePageData(oracle = null, chain = null) {
 		const oraclesProtocols: IOracleProtocols = {}
 
 		for (const orc in oraclesTVS) {
-			oraclesProtocols[orc] = Object.keys(oraclesTVS[orc] || {}).length
+			let count = 0
+			for (const _ in oraclesTVS[orc] || {}) count++
+			oraclesProtocols[orc] = count
 		}
 
 		const latestOracleTvlByChain = Object.entries(chainChart)[Object.entries(chainChart).length - 1][1] as Record<
@@ -174,7 +176,7 @@ export async function getOraclePageDataByChain(chain: string) {
 				extraTvl: {}
 			}
 
-			for (const oracleKey of Object.keys(oraclesTVS)) {
+			for (const oracleKey in oraclesTVS) {
 				const protocolData = oraclesTVS[oracleKey]?.[protocol.name]
 				if (protocolData) {
 					for (const key in protocolData) {

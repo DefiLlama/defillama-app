@@ -115,10 +115,17 @@ const breakdownColor = (type) => {
 export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
 
-	const allAssets = Object.keys(res.assetMetadata).sort(
-		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-	)
-	const colorByAsset = {}
+	// Build array with cached values to avoid lookups during sort
+	const assetEntries: [string, number][] = []
+	for (const key in res.assetMetadata) {
+		assetEntries.push([key, res.assetMetadata[key].totalUsdValue ?? 0])
+	}
+	assetEntries.sort((a, b) => b[1] - a[1])
+	const allAssets: string[] = []
+	for (const [key] of assetEntries) {
+		allAssets.push(key)
+	}
+	const colorByAsset: Record<string, string> = {}
 	let i = 0
 	const colors = getNDistinctColors(allAssets.length + 7).filter((color) => color !== '#673AB7')
 	for (const asset in res.assetMetadata) {
@@ -223,9 +230,16 @@ export interface IDATOverviewDataByAssetProps {
 
 export async function getDATOverviewDataByAsset(asset: string): Promise<IDATOverviewDataByAssetProps | null> {
 	const res: IDATInstitutions = await fetchJson(`${TRADFI_API}/institutions`)
-	const allAssets = Object.keys(res.assetMetadata).sort(
-		(a, b) => (res.assetMetadata[b].totalUsdValue ?? 0) - (res.assetMetadata[a].totalUsdValue ?? 0)
-	)
+	// Build array with cached values to avoid lookups during sort
+	const assetEntries: [string, number][] = []
+	for (const key in res.assetMetadata) {
+		assetEntries.push([key, res.assetMetadata[key].totalUsdValue ?? 0])
+	}
+	assetEntries.sort((a, b) => b[1] - a[1])
+	const allAssets: string[] = []
+	for (const [key] of assetEntries) {
+		allAssets.push(key)
+	}
 	const metadata = res.assetMetadata[asset]
 	const institutions = res.assets[asset]
 

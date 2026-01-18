@@ -228,7 +228,7 @@ async function getTvlProtocolChainData(
 		if (chainCategories && chainCategories.length > 0) {
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
 		}
-		for (const chainKey of Object.keys(chainTvls)) {
+		for (const chainKey in chainTvls) {
 			if (keysToSkip.some((key) => chainKey.includes(`-${key}`) || chainKey === key)) {
 				continue
 			}

@@ -123,7 +123,7 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 		if (protocolsRaw) {
 			const tmp: Record<string, { flags: any; chains: Set<string>; displayName?: string }> = {}
 
-			for (const key of Object.keys(protocolsRaw)) {
+			for (const key in protocolsRaw) {
 				const item = protocolsRaw[key]
 				if (!item || typeof item !== 'object') continue
 				const slug: string | undefined = item.name
@@ -133,7 +133,7 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 					tmp[slug] = { flags: {}, chains: new Set<string>(), displayName: undefined }
 				}
 
-				for (const k of Object.keys(item)) {
+				for (const k in item) {
 					const v = (item as any)[k]
 					if (k === 'chains' && Array.isArray(v)) {
 						for (const c of v) {
@@ -149,10 +149,10 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 				}
 			}
 
-			for (const slug of Object.keys(tmp)) {
+			for (const slug in tmp) {
 				const agg = tmp[slug]
 				const builderMetrics = new Set<BuilderMetric>()
-				for (const metric of Object.keys(PROTOCOL_FLAG_BY_BUILDER_METRIC) as BuilderMetric[]) {
+				for (const metric in PROTOCOL_FLAG_BY_BUILDER_METRIC) {
 					const flagKey = PROTOCOL_FLAG_BY_BUILDER_METRIC[metric]
 					if (agg.flags?.[flagKey]) builderMetrics.add(metric)
 				}
@@ -169,7 +169,7 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 		}
 
 		if (chainsRaw) {
-			for (const key of Object.keys(chainsRaw)) {
+			for (const key in chainsRaw) {
 				const item = chainsRaw[key]
 				if (!item || typeof item !== 'object') continue
 				const name: string | undefined = item.name

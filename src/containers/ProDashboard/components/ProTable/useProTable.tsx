@@ -143,9 +143,9 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 			for (const o of obj.oracles as string[]) oracleSet.add(o)
 		}
 		if (obj?.oraclesByChain) {
-			for (const k of Object.keys(obj.oraclesByChain as Record<string, string[]>)) {
+			for (const k in obj.oraclesByChain as Record<string, string[]>) {
 				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
-				;for (const o of (obj.oraclesByChain[k] || []) as string[]) set.add(o)
+				for (const o of (obj.oraclesByChain[k] || []) as string[]) set.add(o)
 			}
 		}
 	}
@@ -153,9 +153,11 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 	for (const subRow of filteredSubRows) addOracles(subRow)
 
 	const aggregatedOraclesByChain: Record<string, string[]> = {}
+	let hasAggregatedOracles = false
 	for (const k in oraclesByChainAgg) {
 		const v = oraclesByChainAgg[k]
 		aggregatedOraclesByChain[k] = Array.from(v).sort((a, b) => a.localeCompare(b))
+		hasAggregatedOracles = true
 	}
 
 	return {
@@ -189,7 +191,7 @@ function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
 		mcaptvl,
 		subRows: filteredSubRows,
 		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
-		oraclesByChain: Object.keys(aggregatedOraclesByChain).length ? aggregatedOraclesByChain : parent.oraclesByChain
+		oraclesByChain: hasAggregatedOracles ? aggregatedOraclesByChain : parent.oraclesByChain
 	}
 }
 
@@ -401,7 +403,12 @@ export function useProTable(
 	React.useEffect(() => {
 		if (options?.initialActiveViewId && customViews.length > 0) {
 			const view = customViews.find((v) => v.id === options.initialActiveViewId)
-			if (view && !columnOrder.length && !Object.keys(columnVisibility).length) {
+			let hasVisibility = false
+			for (const _ in columnVisibility) {
+				hasVisibility = true
+				break
+			}
+			if (view && !columnOrder.length && !hasVisibility) {
 				setColumnOrder(view.columnOrder)
 				setColumnVisibility(view.columnVisibility)
 				setCustomColumns(view.customColumns || [])
@@ -1080,9 +1087,12 @@ export function useProTable(
 	}, [table, leafVisibilityKey])
 
 	const toggleColumnVisibility = (columnKey: string, isVisible: boolean) => {
-		const newOptions = Object.keys(currentColumns).filter((key) =>
-			key === columnKey ? isVisible : currentColumns[key]
-		)
+		const newOptions: string[] = []
+		for (const key in currentColumns) {
+			if (key === columnKey ? isVisible : currentColumns[key]) {
+				newOptions.push(key)
+			}
+		}
 
 		addOption(newOptions)
 		setSelectedPreset(null)

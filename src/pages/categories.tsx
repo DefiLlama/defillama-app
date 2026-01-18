@@ -123,15 +123,26 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 		}
 	}
 
+	// Build categoryKeys array once and use for all subsequent iterations
+	const categoryKeys: string[] = []
 	for (const cat in protocolsByCategory) {
-		if (!categories[cat]) {
-			categories[cat] = { name: cat, protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
-		}
+		categoryKeys.push(cat)
+	}
+
+	const allColors = getNDistinctColors(categoryKeys.length)
+	const categoryColors: Record<string, string> = {}
+	for (let i = 0; i < categoryKeys.length; i++) {
+		categoryColors[categoryKeys[i]] = allColors[i]
 	}
 
 	const finalCategories = []
 
-	for (const cat in protocolsByCategory) {
+	// Combined loop: ensure category exists AND build finalCategories
+	for (const cat of categoryKeys) {
+		if (!categories[cat]) {
+			categories[cat] = { name: cat, protocols: 0, tvl: 0, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0, revenue: 0 }
+		}
+
 		const subRows = []
 		for (const tag in tagsByCategory[cat]) {
 			subRows.push({
@@ -154,15 +165,9 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	const chartData = {}
 	const extraTvlCharts = {}
-	const categoryKeys = Object.keys(protocolsByCategory)
-	const allColors = getNDistinctColors(categoryKeys.length)
-	const categoryColors: Record<string, string> = {}
-	for (let i = 0; i < categoryKeys.length; i++) {
-		categoryColors[categoryKeys[i]] = allColors[i]
-	}
 
 	for (const date in chart) {
-		for (const cat in protocolsByCategory) {
+		for (const cat of categoryKeys) {
 			if (!chartData[cat]) {
 				chartData[cat] = {
 					name: cat,
@@ -194,7 +199,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 
 	return {
 		props: {
-			categories: Object.keys(protocolsByCategory),
+			categories: categoryKeys,
 			tableData: finalCategories.toSorted((a, b) => b.tvl - a.tvl),
 			chartData,
 			extraTvlCharts
@@ -223,7 +228,14 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	const charts = React.useMemo(() => {
 		const selectedCategoriesSet = new Set(selectedCategories)
 
-		if (!Object.values(extaTvlsEnabled).some((e) => e === true)) {
+		let hasEnabledTvl = false
+		for (const key in extaTvlsEnabled) {
+			if (extaTvlsEnabled[key] === true) {
+				hasEnabledTvl = true
+				break
+			}
+		}
+		if (!hasEnabledTvl) {
 			if (selectedCategories.length === categories.length) {
 				return chartData
 			}
@@ -238,9 +250,12 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 			return charts
 		}
 
-		const enabledTvls = Object.entries(extaTvlsEnabled)
-			.filter((e) => e[1] === true)
-			.map((e) => e[0])
+		const enabledTvls: string[] = []
+		for (const key in extaTvlsEnabled) {
+			if (extaTvlsEnabled[key] === true) {
+				enabledTvls.push(key)
+			}
+		}
 
 		const charts = {}
 
@@ -262,9 +277,12 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 	}, [chartData, selectedCategories, categories, extraTvlCharts, extaTvlsEnabled])
 
 	const finalCategoriesList = React.useMemo(() => {
-		const enabledTvls = Object.entries(extaTvlsEnabled)
-			.filter((e) => e[1] === true)
-			.map((e) => e[0])
+		const enabledTvls: string[] = []
+		for (const key in extaTvlsEnabled) {
+			if (extaTvlsEnabled[key] === true) {
+				enabledTvls.push(key)
+			}
+		}
 
 		if (enabledTvls.length === 0) {
 			return tableData

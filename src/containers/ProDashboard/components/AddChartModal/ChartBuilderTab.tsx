@@ -273,7 +273,11 @@ export const ChartBuilderTab = memo(function ChartBuilderTab({
 	})
 
 	const seriesColors = useRef<Record<string, string>>(chartBuilder.seriesColors || {})
-	const hasCustomSeriesColors = Object.keys(seriesColors.current).length > 0
+	let hasCustomSeriesColors = false
+	for (const _ in seriesColors.current) {
+		hasCustomSeriesColors = true
+		break
+	}
 
 	const visibleSeries = useMemo(() => {
 		if (!previewData?.series) {

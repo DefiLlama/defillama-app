@@ -53,7 +53,12 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 			type === 'defi' ? 'DEFI_WATCHLIST' : type === 'chains' ? 'CHAINS_WATCHLIST' : 'YIELDS_WATCHLIST'
 		const serverWatchlist = userConfig[watchlistKey]
 
-		if (serverWatchlist && Object.keys(serverWatchlist).length > 0) {
+		let hasServerWatchlist = false
+		for (const _ in serverWatchlist) {
+			hasServerWatchlist = true
+			break
+		}
+		if (serverWatchlist && hasServerWatchlist) {
 			hasInitialized.current = true
 			isSyncing.current = true
 
@@ -64,7 +69,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 
 			// Deep merge watchlists
 			const mergedWatchlist = { ...localWatchlistData }
-			for (const portfolio of Object.keys(serverWatchlist)) {
+			for (const portfolio in serverWatchlist) {
 				if (!mergedWatchlist[portfolio]) {
 					mergedWatchlist[portfolio] = {}
 				}

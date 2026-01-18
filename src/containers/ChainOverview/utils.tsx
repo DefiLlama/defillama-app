@@ -64,7 +64,11 @@ export function groupByTimeFrame(data, timeFrame) {
 		{} as Record<number, number[]>
 	)
 
-	return Object.entries(groupedData)
+	const result: [string, number[]][] = []
+	for (const key in groupedData) {
+		result.push([key, groupedData[key]])
+	}
+	return result
 }
 
 export function cumulativeSum(data) {
@@ -86,7 +90,9 @@ export function cumulativeSum(data) {
 export function formatChainAssets(chainAsset: IChainAsset | null) {
 	if (!chainAsset) return null
 
-	return Object.entries(chainAsset).reduce((acc, [type, asset]) => {
+	const acc = {} as IFormattedChainAsset
+	for (const type in chainAsset) {
+		const asset = chainAsset[type]
 		const formatted = {} as any
 		formatted.total = Number(asset.total.split('.')[0])
 		const breakdown = {}
@@ -95,6 +101,6 @@ export function formatChainAssets(chainAsset: IChainAsset | null) {
 		}
 		formatted.breakdown = breakdown
 		acc[type] = formatted
-		return acc
-	}, {} as IFormattedChainAsset)
+	}
+	return acc
 }

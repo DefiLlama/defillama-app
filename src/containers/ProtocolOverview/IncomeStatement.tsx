@@ -219,7 +219,12 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 		}
 
 		// Only add fee breakdown nodes if breakdown labels are available
-		if (Object.keys(grossProtocolRevenueByLabelData).length > 0) {
+		let hasGrossRevenueBreakdown = false
+		for (const _ in grossProtocolRevenueByLabelData) {
+			hasGrossRevenueBreakdown = true
+			break
+		}
+		if (hasGrossRevenueBreakdown) {
 			nodes.push({
 				name: 'Gross Protocol Revenue',
 				color: COLORS.gray,
@@ -263,7 +268,12 @@ export const IncomeStatement = (props: IProtocolOverviewPageData) => {
 			links.push({ source: 'Gross Protocol Revenue', target: 'Cost of Revenue', value: costOfRevenue })
 
 			// Only add cost breakdown if labels are available
-			if (Object.keys(costOfRevenueByLabelData).length > 0) {
+			let hasCostBreakdown = false
+			for (const _ in costOfRevenueByLabelData) {
+				hasCostBreakdown = true
+				break
+			}
+			if (hasCostBreakdown) {
 				for (const label in costOfRevenueByLabelData) {
 					const value = costOfRevenueByLabelData[label]
 					if (value > 0) {

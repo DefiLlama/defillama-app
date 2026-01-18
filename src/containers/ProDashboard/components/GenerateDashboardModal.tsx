@@ -99,7 +99,12 @@ export function GenerateDashboardModal({
 		if (aiDescriptionError) newErrors.aiDescription = aiDescriptionError
 
 		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
+		let hasErrors = false
+		for (const _ in newErrors) {
+			hasErrors = true
+			break
+		}
+		return !hasErrors
 	}
 
 	const handleFieldBlur = (field: keyof typeof touchedFields) => {
