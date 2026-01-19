@@ -346,6 +346,32 @@ export const useSubscribe = () => {
 		}
 	}, [isAuthenticated, createPortalSessionAsync])
 
+	const endTrialSubscription = useCallback(async () => {
+		if (!isAuthenticated) {
+			throw new Error('Not authenticated')
+		}
+
+		try {
+			const response = await authorizedFetch(`${AUTH_SERVER}/subscription/end-trial`, {
+				method: 'POST'
+			})
+
+			if (!response.ok) {
+				throw new Error('Failed to end trial subscription')
+			}
+
+			toast.success('Trial upgrade successful')
+
+			await queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+			await queryClient.invalidateQueries({ queryKey: ['subscription'] })
+
+			return response.json()
+		} catch (error) {
+			console.log('End trial subscription error:', error)
+			throw error
+		}
+	}, [isAuthenticated, authorizedFetch, queryClient])
+
 	const getPortalSessionUrl = useCallback(async () => {
 		if (!isAuthenticated) {
 			throw new Error('Not authenticated')
@@ -421,6 +447,7 @@ export const useSubscribe = () => {
 		refetchCredits,
 		getPortalSessionUrl,
 		createPortalSession,
+		endTrialSubscription,
 		isPortalSessionLoading,
 		enableOverage,
 		isEnableOverageLoading: enableOverageMutation.isPending,
