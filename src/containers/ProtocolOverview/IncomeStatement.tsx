@@ -21,6 +21,7 @@ interface IncomeStatementProps {
 	view?: IncomeStatementView
 	anchorId?: string
 	className?: string
+	showTitles?: boolean
 }
 
 export const IncomeStatement = ({
@@ -29,7 +30,8 @@ export const IncomeStatement = ({
 	hasIncentives = false,
 	view = 'both',
 	anchorId,
-	className
+	className,
+	showTitles = true
 }: IncomeStatementProps) => {
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [sankeyGroupBy, setSankeyGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
@@ -413,6 +415,7 @@ export const IncomeStatement = ({
 			}`}
 		>
 			<div className="flex flex-wrap items-center justify-between gap-1">
+			{showTitles ? (
 				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id={headerId}>
 					Income Statement for {name}
 					<a
@@ -423,6 +426,7 @@ export const IncomeStatement = ({
 					/>
 					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
+			) : null}
 				{showTable ? (
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 						{incomeStatementGroupByOptions.map((groupOption) => (
@@ -585,7 +589,7 @@ export const IncomeStatement = ({
 								nodes={sankeyData.nodes}
 								links={sankeyData.links}
 								height="450px"
-								title="Income Flow Visualization"
+								title={showTitles ? 'Income Flow Visualization' : undefined}
 								enableImageExport
 								imageExportFilename={`${name}-income-statement`}
 								imageExportTitle={`Income Statement for ${name}`}

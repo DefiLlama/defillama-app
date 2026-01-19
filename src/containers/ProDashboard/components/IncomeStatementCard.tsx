@@ -74,7 +74,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 							{displayName?.charAt(0)?.toUpperCase()}
 						</div>
 					)}
-					<h3 className="text-base font-semibold">{displayName}</h3>
+					<h3 className="text-base font-semibold">{displayName} Income statement</h3>
 				</div>
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{(['table', 'sankey'] as ViewMode[]).map((mode) => (
@@ -111,6 +111,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 							view={view}
 							anchorId={`income-statement-${config.protocol}`}
 							className="border-none bg-transparent p-0"
+							showTitles={false}
 						/>
 					</div>
 				)}
