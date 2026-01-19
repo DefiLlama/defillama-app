@@ -113,6 +113,7 @@ export default function ChainChartPage(props) {
 		denomination,
 		selectedChain,
 		tvlChart: props.tvlChart,
+		tvlChartSummary: props.tvlChartSummary,
 		extraTvlCharts: props.extraTvlChart,
 		tvlSettings,
 		chainGeckoId,

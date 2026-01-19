@@ -33,6 +33,13 @@ export interface IChainOverviewData {
 	metadata: IChainMetadata
 	protocols: Array<IProtocol>
 	tvlChart: Array<[number, number]>
+	/** Pre-computed TVL values to avoid client-side iteration */
+	tvlChartSummary: {
+		totalValueUSD: number | null
+		tvlPrevDay: number | null
+		valueChange24hUSD: number | null
+		change24h: number | null
+	}
 	extraTvlCharts: {
 		staking: Record<string, number>
 		borrowed: Record<string, number>

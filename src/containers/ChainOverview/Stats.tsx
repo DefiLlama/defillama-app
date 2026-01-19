@@ -107,6 +107,7 @@ export const Stats = memo(function Stats(props: IStatsProps) {
 			denomination,
 			selectedChain: props.metadata.name,
 			tvlChart: props.tvlChart,
+			tvlChartSummary: props.tvlChartSummary,
 			extraTvlCharts: props.extraTvlCharts,
 			tvlSettings,
 			chainGeckoId,

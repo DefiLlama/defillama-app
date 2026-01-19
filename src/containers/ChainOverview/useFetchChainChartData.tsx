@@ -61,6 +61,7 @@ export const useFetchChainChartData = ({
 	denomination,
 	selectedChain,
 	tvlChart,
+	tvlChartSummary,
 	extraTvlCharts,
 	tvlSettings,
 	chainGeckoId,
@@ -70,6 +71,12 @@ export const useFetchChainChartData = ({
 	denomination: string
 	selectedChain: string
 	tvlChart: Array<[number, number]>
+	tvlChartSummary: {
+		totalValueUSD: number | null
+		tvlPrevDay: number | null
+		valueChange24hUSD: number | null
+		change24h: number | null
+	}
 	extraTvlCharts: Record<string, Record<string, number>>
 	tvlSettings: Record<string, boolean>
 	chainGeckoId?: string
@@ -293,10 +300,13 @@ export const useFetchChainChartData = ({
 		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 
 		if (toggledTvlSettings.length === 0) {
-			const { totalValueUSD, tvlPrevDay } = getTvl24hChange(tvlChart)
-			const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
-			const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
-			return { finalTvlChart: tvlChart, totalValueUSD, valueChange24hUSD, change24h }
+			// Use pre-computed values from server to avoid client-side iteration
+			return {
+				finalTvlChart: tvlChart,
+				totalValueUSD: tvlChartSummary.totalValueUSD,
+				valueChange24hUSD: tvlChartSummary.valueChange24hUSD,
+				change24h: tvlChartSummary.change24h
+			}
 		}
 
 		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
@@ -328,7 +338,7 @@ export const useFetchChainChartData = ({
 		const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
 		const isGovTokensEnabled = !!tvlSettings?.govtokens
 		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
-	}, [tvlChart, extraTvlCharts, tvlSettings])
+	}, [tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings])
 
 	const chartData = useMemo(() => {
 		const charts: { [key in ChainChartLabels]?: Array<[number, number]> } = {}
