@@ -6,11 +6,14 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
-import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
+
+const EMPTY_DASHBOARDS: Dashboard[] = []
+const EMPTY_UNSUPPORTED_METRICS: string[] = []
 
 interface AddToDashboardModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -57,12 +60,13 @@ export function AddToDashboardModal({
 	dialogStore,
 	chartConfig,
 	llamaAIChart,
-	unsupportedMetrics = []
+	unsupportedMetrics = EMPTY_UNSUPPORTED_METRICS
 }: AddToDashboardModalProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const { data: dashboards = [], isLoading: isLoadingDashboards } = useGetLiteDashboards()
+	const { data: dashboardsData, isLoading: isLoadingDashboards } = useGetLiteDashboards()
+	const dashboards = dashboardsData ?? EMPTY_DASHBOARDS
 
 	const [search, setSearch] = useState('')
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)

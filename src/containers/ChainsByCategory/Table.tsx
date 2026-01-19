@@ -178,7 +178,7 @@ export function ChainsByCategoryTable({
 				if (!cell) return ''
 
 				const value = cell.getValue()
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 
 				return value
 			})

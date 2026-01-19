@@ -7,6 +7,8 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 export const getStaticProps = withPerformanceLogging(
 	'protocol/bridges/[...protocol]',
 	async ({
@@ -59,7 +61,7 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			metrics={props.metrics}
 			tab="bridges"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<BridgeContainerOnClient protocol={props.name} />

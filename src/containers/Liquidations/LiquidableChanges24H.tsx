@@ -72,5 +72,5 @@ const getLiquidableChangesRatio = (
 	}
 
 	const changesRatio = (current - prev) / prev
-	return isNaN(changesRatio) ? 0 : changesRatio
+	return Number.isNaN(changesRatio) ? 0 : changesRatio
 }

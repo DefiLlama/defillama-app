@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchJson } from '~/utils/async'
 
-interface TokenUsageData {
+export interface TokenUsageData {
 	name: string
 	category: string
 	amountUsd: number

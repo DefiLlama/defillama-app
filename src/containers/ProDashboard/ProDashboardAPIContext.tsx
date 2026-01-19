@@ -22,6 +22,7 @@ import {
 	ChartBuilderConfig,
 	ChartConfig,
 	DashboardItemConfig,
+	MultiChartConfig,
 	MetricConfig,
 	Protocol,
 	StoredColSpan,
@@ -32,6 +33,35 @@ import { useDashboardActions } from './useDashboardActions'
 import { cleanItemsForSaving } from './utils/dashboardUtils'
 
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect
+const EMPTY_PROTOCOLS: Protocol[] = []
+const EMPTY_CHAINS: Chain[] = []
+const EMPTY_CHART_DATA: ChartConfig['data'] = []
+const NOOP = () => {}
+
+type ChartCacheEntry = {
+	itemRef: ChartConfig
+	data: ChartConfig['data']
+	isLoading: boolean
+	hasError: boolean
+	refetch: () => void
+	derived: ChartConfig
+}
+
+type MultiCacheEntry = {
+	itemRef: MultiChartConfig
+	itemsRef: ChartConfig[]
+	derived: MultiChartConfig
+}
+
+const shallowArrayEqual = <T,>(a: T[] | null | undefined, b: T[] | null | undefined) => {
+	if (a === b) return true
+	if (!a || !b) return false
+	if (a.length !== b.length) return false
+	for (let index = 0; index < a.length; index++) {
+		if (a[index] !== b[index]) return false
+	}
+	return true
+}
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
@@ -255,9 +285,11 @@ export function ProDashboardAPIProvider({
 	initialDashboardId?: string
 }) {
 	const { isAuthenticated, user } = useAuthContext()
-	const { data: { protocols = [], chains: rawChains = [] } = {}, isLoading: protocolsLoading } = useProtocolsAndChains()
+	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains()
 
-	const chains = useMemo(() => rawChains as Chain[], [rawChains])
+	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
+	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
+	const chains = rawChains as Chain[]
 
 	const [state, dispatch] = useReducer(dashboardReducer, initialDashboardId, initDashboardState)
 
@@ -842,38 +874,102 @@ export function ProDashboardAPIProvider({
 		return map
 	}, [allChartItems, chartQueries])
 
-	const chartsWithData: DashboardItemConfig[] = useMemo(
-		() =>
-			items.map((item) => {
-				if (item.kind === 'chart') {
-					const query = queryById.get(item.id)
-					return {
+	const chartItemCacheRef = useRef<Map<string, ChartCacheEntry>>(new Map())
+	const multiItemCacheRef = useRef<Map<string, MultiCacheEntry>>(new Map())
+	const chartsWithDataRef = useRef<DashboardItemConfig[] | null>(null)
+
+	const chartsWithData: DashboardItemConfig[] = useMemo(() => {
+		const chartCache = chartItemCacheRef.current
+		const multiCache = multiItemCacheRef.current
+		const nextChartsWithData: DashboardItemConfig[] = []
+		const nextChartIds = new Set<string>()
+		const nextMultiIds = new Set<string>()
+
+		const resolveChartItem = (chartItem: ChartConfig, query: any) => {
+			const data = query?.data ?? EMPTY_CHART_DATA
+			const isLoading = query?.isLoading ?? false
+			const hasError = query?.isError ?? false
+			const refetch = query?.refetch ?? NOOP
+			const cached = chartCache.get(chartItem.id)
+
+			if (
+				cached &&
+				cached.itemRef === chartItem &&
+				cached.data === data &&
+				cached.isLoading === isLoading &&
+				cached.hasError === hasError &&
+				cached.refetch === refetch
+			) {
+				return cached.derived
+			}
+
+			const derived = {
+				...chartItem,
+				data,
+				isLoading,
+				hasError,
+				refetch
+			}
+			chartCache.set(chartItem.id, { itemRef: chartItem, data, isLoading, hasError, refetch, derived })
+			return derived
+		}
+
+		for (const item of items) {
+			if (item.kind === 'chart') {
+				nextChartIds.add(item.id)
+				const query = queryById.get(item.id)
+				nextChartsWithData.push(resolveChartItem(item, query))
+				continue
+			}
+
+			if (item.kind === 'multi') {
+				nextMultiIds.add(item.id)
+				const processedItems = item.items.map((nestedChart) => {
+					nextChartIds.add(nestedChart.id)
+					const query = queryById.get(nestedChart.id)
+					return resolveChartItem(nestedChart, query)
+				})
+
+				const cachedMulti = multiCache.get(item.id)
+				const itemsRef =
+					cachedMulti && shallowArrayEqual(cachedMulti.itemsRef, processedItems) ? cachedMulti.itemsRef : processedItems
+
+				if (cachedMulti && cachedMulti.itemRef === item && cachedMulti.itemsRef === itemsRef) {
+					nextChartsWithData.push(cachedMulti.derived)
+				} else {
+					const derivedMulti = {
 						...item,
-						data: query?.data || [],
-						isLoading: query?.isLoading || false,
-						hasError: query?.isError || false,
-						refetch: query?.refetch || (() => {})
+						items: itemsRef
 					}
-				} else if (item.kind === 'multi') {
-					const processedItems = item.items.map((nestedChart) => {
-						const query = queryById.get(nestedChart.id)
-						return {
-							...nestedChart,
-							data: query?.data || [],
-							isLoading: query?.isLoading || false,
-							hasError: query?.isError || false,
-							refetch: query?.refetch || (() => {})
-						}
-					})
-					return {
-						...item,
-						items: processedItems
-					}
+					multiCache.set(item.id, { itemRef: item, itemsRef, derived: derivedMulti })
+					nextChartsWithData.push(derivedMulti)
 				}
-				return item
-			}),
-		[items, queryById]
-	)
+				continue
+			}
+
+			nextChartsWithData.push(item)
+		}
+
+		for (const id of chartCache.keys()) {
+			if (!nextChartIds.has(id)) {
+				chartCache.delete(id)
+			}
+		}
+
+		for (const id of multiCache.keys()) {
+			if (!nextMultiIds.has(id)) {
+				multiCache.delete(id)
+			}
+		}
+
+		const previousChartsWithData = chartsWithDataRef.current
+		if (previousChartsWithData && shallowArrayEqual(previousChartsWithData, nextChartsWithData)) {
+			return previousChartsWithData
+		}
+
+		chartsWithDataRef.current = nextChartsWithData
+		return nextChartsWithData
+	}, [items, queryById])
 
 	const handlersRef = useRef<{
 		handleAddChart: typeof handleAddChart

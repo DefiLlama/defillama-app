@@ -31,6 +31,7 @@ export const getStaticProps = withPerformanceLogging('lsd', async () => {
 
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 type GroupByType = (typeof GROUP_BY)[number]
+const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
 const PageView = ({
 	areaChartData,
@@ -173,7 +174,7 @@ const PageView = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 				header="Liquid Staking Protocols"
-				sortingState={[{ id: 'stakedEth', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
@@ -249,13 +250,13 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 				if (i > 0 && date(arr[i - 1]) == date(t)) {
 					return { value: 0 }
 				}
-				// get all ETH related token keys
-				const ethKeys = Object.keys(t.tokens).filter((k) => k.includes('ETH'))
-
 				// sum up all ETH token values
-				const totalEthValue = ethKeys.reduce((sum, key) => {
-					return sum + t.tokens[key]
-				}, 0)
+				let totalEthValue = 0
+				for (const key in t.tokens) {
+					if (key.includes('ETH')) {
+						totalEthValue += t.tokens[key]
+					}
+				}
 
 				//
 				return {
@@ -332,8 +333,12 @@ async function getChartData({ chartData, lsdRates, lsdApy, lsdColors }) {
 			const lastTokens30d = p.tokens.find((x) => x.date === offset30d)?.tokens
 
 			const getETH = (obj: any) => {
-				const potentialETH = Object.keys(obj).filter((k) => k.includes('ETH'))
-				const eth = potentialETH.reduce((max, item) => (obj[item] > max ? obj[item] : max), 0)
+				let eth = 0
+				for (const key in obj) {
+					if (key.includes('ETH') && obj[key] > eth) {
+						eth = obj[key]
+					}
+				}
 				return eth
 			}
 

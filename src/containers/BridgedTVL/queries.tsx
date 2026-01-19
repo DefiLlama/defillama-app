@@ -13,7 +13,16 @@ export async function getBridgedTVLByChain(chain?: string) {
 					.catch(() => [])
 			: []
 	])
-	const chainData = chain ? (Object.entries(assets ?? {}).find((a) => slug(a[0]) === slug(chain))?.[1] ?? null) : null
+	let chainData = null
+	if (chain) {
+		const targetSlug = slug(chain)
+		for (const key in assets ?? {}) {
+			if (slug(key) === targetSlug) {
+				chainData = assets[key]
+				break
+			}
+		}
+	}
 
 	const tokenInflowNames = new Set<string>()
 	for (const inflow of inflows) {

@@ -10,6 +10,7 @@ import { reactSelectStyles } from '../../utils/reactSelectStyles'
 import { ProtocolOption } from '../ProtocolOption'
 
 const CustomProtocolOption = ProtocolOption as any
+const EMPTY_FILTERS: string[] = []
 
 function VirtualizedMenuList(props: any) {
 	const { options, children, maxHeight } = props
@@ -93,10 +94,10 @@ export function ProtocolFilterModal({
 
 	React.useEffect(() => {
 		if (isOpen) {
-			setSelectedProtocols(currentFilters.protocols || [])
-			setSelectedCategories(currentFilters.categories || [])
-			setSelectedExcludedCategories(currentFilters.excludedCategories || [])
-			setSelectedOracles(currentFilters.oracles || [])
+			setSelectedProtocols(currentFilters.protocols ?? EMPTY_FILTERS)
+			setSelectedCategories(currentFilters.categories ?? EMPTY_FILTERS)
+			setSelectedExcludedCategories(currentFilters.excludedCategories ?? EMPTY_FILTERS)
+			setSelectedOracles(currentFilters.oracles ?? EMPTY_FILTERS)
 		}
 	}, [isOpen, currentFilters])
 
@@ -169,6 +170,32 @@ export function ProtocolFilterModal({
 	const selectedExcludedCategoriesSet = React.useMemo(() => new Set(selectedExcludedCategories), [selectedExcludedCategories])
 	const selectedOraclesSet = React.useMemo(() => new Set(selectedOracles), [selectedOracles])
 
+	const {
+		oraclesValue,
+		includeCategoryOptions,
+		includeCategoryValue,
+		excludeCategoryOptions,
+		excludeCategoryValue,
+		protocolsValue
+	} = React.useMemo(() => {
+		return {
+			oraclesValue: oracleOptions.filter((opt) => selectedOraclesSet.has(opt.value)),
+			includeCategoryOptions: categoryOptions.filter((opt) => !selectedExcludedCategoriesSet.has(opt.value)),
+			includeCategoryValue: categoryOptions.filter((opt) => selectedCategoriesSet.has(opt.value)),
+			excludeCategoryOptions: categoryOptions.filter((opt) => !selectedCategoriesSet.has(opt.value)),
+			excludeCategoryValue: categoryOptions.filter((opt) => selectedExcludedCategoriesSet.has(opt.value)),
+			protocolsValue: protocolOptions.filter((opt) => selectedProtocolsSet.has(opt.value))
+		}
+	}, [
+		oracleOptions,
+		categoryOptions,
+		protocolOptions,
+		selectedOraclesSet,
+		selectedCategoriesSet,
+		selectedExcludedCategoriesSet,
+		selectedProtocolsSet
+	])
+
 	return (
 		<Ariakit.DialogProvider
 			open={isOpen}
@@ -199,7 +226,7 @@ export function ProtocolFilterModal({
 						<ReactSelect
 							isMulti
 							options={oracleOptions}
-							value={oracleOptions.filter((opt) => selectedOraclesSet.has(opt.value))}
+							value={oraclesValue}
 							onChange={(sel: any) => {
 								setSelectedOracles(sel ? sel.map((s: any) => s.value) : [])
 							}}
@@ -218,8 +245,8 @@ export function ProtocolFilterModal({
 						<label className="pro-text2 mb-2 block text-sm font-medium">Include Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions.filter((opt) => !selectedExcludedCategoriesSet.has(opt.value))}
-							value={categoryOptions.filter((opt) => selectedCategoriesSet.has(opt.value))}
+							options={includeCategoryOptions}
+							value={includeCategoryValue}
 							onChange={(sel: any) => {
 								setSelectedCategories(sel ? sel.map((s: any) => s.value) : [])
 							}}
@@ -239,8 +266,8 @@ export function ProtocolFilterModal({
 						<label className="pro-text2 mb-2 block text-sm font-medium">Exclude Categories</label>
 						<ReactSelect
 							isMulti
-							options={categoryOptions.filter((opt) => !selectedCategoriesSet.has(opt.value))}
-							value={categoryOptions.filter((opt) => selectedExcludedCategoriesSet.has(opt.value))}
+							options={excludeCategoryOptions}
+							value={excludeCategoryValue}
 							onChange={(sel: any) => {
 								setSelectedExcludedCategories(sel ? sel.map((s: any) => s.value) : [])
 							}}
@@ -263,7 +290,7 @@ export function ProtocolFilterModal({
 						<ReactSelect
 							isMulti
 							options={protocolOptions}
-							value={protocolOptions.filter((opt) => selectedProtocolsSet.has(opt.value))}
+							value={protocolsValue}
 							onChange={(sel: any, action: any) => {
 								if (!action) {
 									setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])

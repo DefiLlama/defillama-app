@@ -48,14 +48,14 @@ const parseStringNumber = (value: any): number => {
 
 	if (typeof value === 'string') {
 		const parsed = parseFloat(value)
-		return isNaN(parsed) ? 0 : parsed
+		return Number.isNaN(parsed) ? 0 : parsed
 	}
 
 	return 0
 }
 
 const formatPrecisionPercentage = (value: number): string => {
-	if (value === null || value === undefined || isNaN(value)) {
+	if (value == null || Number.isNaN(value)) {
 		return '0%'
 	}
 
@@ -91,21 +91,21 @@ const validateChartData = (
 	const uniqueData = data.filter((item, index, self) => index === self.findIndex((t) => t[0] === item[0]))
 
 	const validData = uniqueData.filter(([x, y]) => {
-		if (x === null || x === undefined) {
+		if (x == null) {
 			return false
 		}
 
 		// Accept strings for categorical charts
 		if (typeof x === 'string' && x.length > 0) {
-			return typeof y === 'number' && !isNaN(y)
+			return typeof y === 'number' && !Number.isNaN(y)
 		}
 
 		// Accept numbers for time-series charts
 		if (typeof x === 'number') {
 			if (chartType === 'area' || chartType === 'line') {
-				return y === null || y === undefined || (typeof y === 'number' && !isNaN(y))
+				return y == null || (typeof y === 'number' && !Number.isNaN(y))
 			}
-			return typeof y === 'number' && !isNaN(y)
+			return typeof y === 'number' && !Number.isNaN(y)
 		}
 
 		return false
@@ -125,12 +125,12 @@ const convertToUnixTimestamp = (timestamp: any): number => {
 
 	if (typeof timestamp === 'string') {
 		const date = new Date(timestamp)
-		if (!isNaN(date.getTime())) {
+		if (!Number.isNaN(date.getTime())) {
 			return Math.floor(date.getTime() / 1000)
 		}
 
 		const parsed = parseInt(timestamp)
-		if (!isNaN(parsed)) {
+		if (!Number.isNaN(parsed)) {
 			return parsed.toString().length <= 10 ? parsed : Math.floor(parsed / 1000)
 		}
 	}
@@ -235,7 +235,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 				const entitySlug = entityName.toLowerCase().replace(/\s+/g, '-')
 				return [xValue, yValue, entityName, entitySlug]
 			})
-			.filter(([x, y]) => !isNaN(x as number) && !isNaN(y as number))
+			.filter(([x, y]) => !Number.isNaN(x as number) && !Number.isNaN(y as number))
 
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField

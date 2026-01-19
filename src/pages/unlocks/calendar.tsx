@@ -53,7 +53,7 @@ export const getStaticProps = withPerformanceLogging('unlocks-calendar', async (
 	}
 
 	for (const protocol of data ?? []) {
-		if (!protocol.events || protocol.tPrice === null || protocol.tPrice === undefined) {
+		if (!protocol.events || protocol.tPrice == null) {
 			continue
 		}
 

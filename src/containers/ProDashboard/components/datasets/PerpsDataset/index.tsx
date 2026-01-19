@@ -22,6 +22,8 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { perpsDatasetColumns } from './columns'
 import { usePerpsData } from './usePerpsData'
 
+const EMPTY_DATA: any[] = []
+
 export function PerpsDataset({ chains }: { chains?: string[] }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'total24h', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -37,7 +39,7 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: perpsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -56,7 +58,8 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {

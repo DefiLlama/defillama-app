@@ -1,5 +1,6 @@
 import { Icon, IIcon } from '~/components/Icon'
 import { useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
+import { Dashboard } from '../services/DashboardAPI'
 import { DiscoverySection } from './DiscoverySection'
 
 interface SectionConfig {
@@ -10,6 +11,7 @@ interface SectionConfig {
 }
 
 const TRENDING_TAGS = ['DeFi', 'NFT', 'L2', 'Stablecoins', 'DEX', 'Lending', 'Bridges', 'Staking']
+const EMPTY_DASHBOARDS: Dashboard[] = []
 
 const SECTIONS: SectionConfig[] = [
 	{
@@ -62,7 +64,7 @@ export function DashboardBrowse({ onTagClick }: DashboardBrowseProps) {
 						key={section.key}
 						title={section.title}
 						icon={section.icon}
-						dashboards={categoryData?.dashboards || []}
+						dashboards={categoryData?.dashboards ?? EMPTY_DASHBOARDS}
 						isLoading={categoryData?.isLoading ?? true}
 						seeAllHref={section.seeAllHref}
 						onTagClick={onTagClick}

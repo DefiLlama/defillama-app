@@ -7,6 +7,8 @@ import { ProTableCSVButton } from './CsvButton'
 import { CustomViewModal } from './CustomViewModal'
 import { ColumnPresetDefinition } from './useProTable'
 
+const EMPTY_CUSTOM_VIEWS: CustomView[] = []
+
 interface TableHeaderProps {
 	chains: string[]
 	columnPresets: ColumnPresetDefinition[]
@@ -34,7 +36,7 @@ export function TableHeader({
 	setShowColumnPanel,
 	downloadCSV,
 	colSpan = 2,
-	customViews = [],
+	customViews = EMPTY_CUSTOM_VIEWS,
 	onSaveView,
 	onLoadView,
 	onDeleteView
@@ -49,11 +51,15 @@ export function TableHeader({
 	const [showCustomViewDropdown, setShowCustomViewDropdown] = React.useState(false)
 	const dropdownRef = React.useRef<HTMLDivElement>(null)
 
-	const activeCustomView = customViews.find((v) => v.id === activePreset)
+	const activeCustomView = React.useMemo(
+		() => customViews.find((v) => v.id === activePreset),
+		[customViews, activePreset]
+	)
+	const existingViewNames = React.useMemo(() => customViews.map((v) => v.name), [customViews])
 	const datasetPresets = React.useMemo(
 		() =>
 			columnPresets.filter(
-				(preset) => preset.group === 'dataset' || preset.group === undefined || preset.group === null
+				(preset) => preset.group === 'dataset' || preset.group == null
 			),
 		[columnPresets]
 	)
@@ -282,7 +288,7 @@ export function TableHeader({
 						onSaveView(name)
 						setShowSaveModal(false)
 					}}
-					existingViewNames={customViews.map((v) => v.name)}
+					existingViewNames={existingViewNames}
 				/>
 			)}
 		</div>

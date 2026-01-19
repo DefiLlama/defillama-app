@@ -67,7 +67,14 @@ function processGroupedChartData(
 		for (const group in categoriesBreakdown) {
 			const categories = categoriesBreakdown[group]
 			groupedEntry[group] = categories.reduce((sum, category) => {
-				const actualKey = Object.keys(entry).find((key) => key.toLowerCase() === category.toLowerCase())
+				let actualKey: string | undefined
+				const lowerCategory = category.toLowerCase()
+				for (const key in entry) {
+					if (key.toLowerCase() === lowerCategory) {
+						actualKey = key
+						break
+					}
+				}
 				const value = actualKey ? Number(entry[actualKey]) || 0 : 0
 				return sum + value
 			}, 0)
@@ -87,6 +94,12 @@ const unlockedPieChartStackColors = {
 	Locked: '#ff4e21'
 }
 
+const EMPTY_STRING_LIST: string[] = []
+const EMPTY_STACK_COLORS: Record<string, string> = {}
+const EMPTY_ALLOCATION: Record<string, number> = {}
+const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
+const EMPTY_CHART_DATA: any[] = []
+
 const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmissionsPage?: boolean }) => {
 	const width = useBreakpointWidth()
 	const [dataType, setDataType] = useState<DataType>('documented')
@@ -94,15 +107,26 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	const [allocationMode, setAllocationMode] = useState<'current' | 'standard'>('current')
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
 
-	const categoriesFromData = useMemo(() => data.categories?.[dataType] || [], [data.categories, dataType])
-	const stackColors = useMemo(() => data.stackColors?.[dataType] || {}, [data.stackColors, dataType])
+	const categoriesFromData = useMemo(
+		() => data.categories?.[dataType] ?? EMPTY_STRING_LIST,
+		[data.categories, dataType]
+	)
+	const stackColors = useMemo(() => data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS, [data.stackColors, dataType])
 	const tokenAllocation = useMemo(
-		() => data.tokenAllocation?.[dataType] || { current: {}, final: {} },
+		() => data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION,
 		[data.tokenAllocation, dataType]
 	)
-	const rawChartData = useMemo(() => data.chartData?.[dataType] || [], [data.chartData, dataType])
-	const pieChartData = useMemo(() => data.pieChartData?.[dataType] || [], [data.pieChartData, dataType])
-	const hallmarks = useMemo(() => data.hallmarks?.[dataType] || [], [data.hallmarks, dataType])
+	const tokenAllocationCurrentChunks = useMemo(
+		() => chunk(Object.entries(tokenAllocation.current ?? EMPTY_ALLOCATION)),
+		[tokenAllocation.current]
+	)
+	const tokenAllocationFinalChunks = useMemo(
+		() => chunk(Object.entries(tokenAllocation.final ?? EMPTY_ALLOCATION)),
+		[tokenAllocation.final]
+	)
+	const rawChartData = useMemo(() => data.chartData?.[dataType] ?? EMPTY_CHART_DATA, [data.chartData, dataType])
+	const pieChartData = useMemo(() => data.pieChartData?.[dataType] ?? EMPTY_CHART_DATA, [data.pieChartData, dataType])
+	const hallmarks = useMemo(() => data.hallmarks?.[dataType] ?? EMPTY_CHART_DATA, [data.hallmarks, dataType])
 
 	useEffect(() => {
 		if (categoriesFromData.length > 0) {
@@ -165,6 +189,28 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		})
 		return index === -1 ? 0 : index
 	}, [sortedEvents])
+
+	const paginationItems = useMemo(
+		() =>
+			sortedEvents.map(([ts, events]: any) => (
+				<UpcomingEvent
+					key={ts}
+					{...{
+						event: events,
+						noOfTokens: events.map((x: any) => x.noOfTokens),
+						timestamp: ts,
+						price: tokenPrice,
+						symbol: data.tokenPrice?.symbol,
+						mcap: tokenMcap,
+						maxSupply: data.meta?.maxSupply,
+						name: data.name,
+						tooltipStyles: { position: 'relative', top: 0 },
+						isProtocolPage: true
+					}}
+				/>
+			)),
+		[sortedEvents, tokenPrice, tokenMcap, data.meta?.maxSupply, data.name, data.tokenPrice?.symbol]
+	)
 
 	const chartData = useMemo(() => {
 		return rawChartData
@@ -255,7 +301,12 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 		let stacks = selectedCategories
 		if ((!stacks || stacks.length === 0) && displayData && displayData.length > 0) {
 			const first = displayData[0]
-			stacks = Object.keys(first).filter((k) => k !== 'date' && k !== 'Price' && k !== 'Market Cap')
+			stacks = []
+			for (const k in first) {
+				if (k !== 'date' && k !== 'Price' && k !== 'Market Cap') {
+					stacks.push(k)
+				}
+			}
 		}
 		const extendedColors = getExtendedColors(stackColors, isPriceEnabled)
 		return {
@@ -294,11 +345,11 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 	)
 
 	const hasGroupAllocationData = useMemo(() => {
-		return (
-			data.categoriesBreakdown &&
-			typeof data.categoriesBreakdown === 'object' &&
-			Object.keys(data.categoriesBreakdown).length > 0
-		)
+		if (!data.categoriesBreakdown || typeof data.categoriesBreakdown !== 'object') return false
+		for (const _ in data.categoriesBreakdown) {
+			return true
+		}
+		return false
 	}, [data.categoriesBreakdown])
 
 	const prepareCsv = useMemo(() => {
@@ -308,7 +359,10 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			}
 
 			const firstRow = displayData[0]
-			const columns = Object.keys(firstRow).filter((key) => key !== 'date')
+			const columns: string[] = []
+			for (const key in firstRow) {
+				if (key !== 'date') columns.push(key)
+			}
 			const headers = ['Date', ...columns]
 
 			const rows: string[][] = [headers]
@@ -517,16 +571,14 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 			</div>
 
 			<div>
-				{data.token &&
-				Object.entries(tokenAllocation.current || {}).length &&
-				Object.entries(tokenAllocation.final || {}).length ? (
+				{data.token && tokenAllocationCurrentChunks.length > 0 && tokenAllocationFinalChunks.length > 0 ? (
 					<div className="flex h-full w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<h1 className="text-center text-xl font-semibold">Token Allocation</h1>
 						<div className="flex w-full flex-col gap-2 text-base">
 							<h4 className="text-base text-(--text-form)">Current</h4>
 
 							<div className="flex flex-wrap justify-between">
-								{chunk(Object.entries(tokenAllocation.current)).map((currentChunk) =>
+								{tokenAllocationCurrentChunks.map((currentChunk) =>
 									currentChunk.map(([cat, perc]) => (
 										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
@@ -537,7 +589,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 							<h4 className="text-base text-(--text-form)">Final</h4>
 
 							<div className="flex flex-wrap justify-between">
-								{chunk(Object.entries(tokenAllocation.final)).map((currentChunk) =>
+								{tokenAllocationFinalChunks.map((currentChunk) =>
 									currentChunk.map(([cat, perc]) => (
 										<p className="text-base" key={cat}>{`${capitalizeFirstLetter(cat)} - ${perc}%`}</p>
 									))
@@ -552,26 +604,7 @@ const ChartContainer = ({ data, isEmissionsPage }: { data: IEmission; isEmission
 				<div className="flex w-full flex-col items-center justify-start rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<h1 className="text-center text-xl font-semibold">Unlock Events</h1>
 
-					<Pagination
-						startIndex={upcomingEventIndex}
-						items={sortedEvents.map(([ts, events]: any) => (
-							<UpcomingEvent
-								key={ts}
-								{...{
-									event: events,
-									noOfTokens: events.map((x) => x.noOfTokens),
-									timestamp: ts,
-									price: tokenPrice,
-									symbol: tokenPrice?.symbol,
-									mcap: tokenMcap,
-									maxSupply: data.meta.maxSupply,
-									name: data.name,
-									tooltipStyles: { position: 'relative', top: 0 },
-									isProtocolPage: true
-								}}
-							/>
-						))}
-					/>
+					<Pagination startIndex={upcomingEventIndex} items={paginationItems} />
 				</div>
 			) : null}
 

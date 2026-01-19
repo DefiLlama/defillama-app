@@ -25,6 +25,8 @@ interface StablecoinsDatasetProps {
 	chain: string
 }
 
+const EMPTY_DATA: any[] = []
+
 export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'mcap', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -39,7 +41,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: stablecoinsDatasetColumns as ColumnDef<any>[],
 		state: {
 			sorting,
@@ -56,7 +58,8 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
 
 	React.useEffect(() => {

@@ -306,7 +306,7 @@ export async function getLatestChartData(symbol: string, totalBins = TOTAL_BINS)
 }
 
 export function getReadableValue(value: number) {
-	if (typeof value !== 'number' || isNaN(value) || value === 0) return '0'
+	if (typeof value !== 'number' || Number.isNaN(value) || value === 0) return '0'
 
 	if (Math.abs(value) < 1000) {
 		return value.toPrecision(4)

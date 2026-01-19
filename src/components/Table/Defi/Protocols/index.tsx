@@ -47,6 +47,9 @@ export enum TABLE_PERIODS {
 	ONE_MONTH = '1m'
 }
 
+export const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+export const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
+
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
@@ -563,12 +566,12 @@ export function ProtocolsByChainTable({
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+					values={TABLE_CATEGORIES_VALUES}
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
+					values={TABLE_PERIODS_VALUES}
 				/>
 				<SelectWithCombobox
 					allValues={protocolsByChainTableColumns}

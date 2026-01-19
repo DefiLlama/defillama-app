@@ -17,6 +17,7 @@ import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EXCLUDED_EXTRAS = new Set(['doublecounted', 'liquidstaking'])
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 const LineAndBarChart = React.lazy(
 	() => import('~/components/ECharts/LineAndBarChart')
@@ -382,7 +383,7 @@ export default function Protocols({ categories, tableData, chartData, extraTvlCh
 					columns={categoriesColumn}
 					columnToSearch={'name'}
 					placeholder={'Search category...'}
-					sortingState={[{ id: 'tvl', desc: true }]}
+					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
 		</Layout>

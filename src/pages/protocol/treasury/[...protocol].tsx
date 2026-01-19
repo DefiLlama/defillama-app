@@ -14,6 +14,8 @@ import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -120,7 +122,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="treasury"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h2 className="group relative flex items-center gap-1 text-base font-semibold" id="treasury">

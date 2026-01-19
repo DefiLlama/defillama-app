@@ -36,6 +36,7 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 })
 
 const pageName = ['Chains', 'ranked by', 'NFT Volume']
+const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
 export default function NftsOnAllChains(props) {
 	return (
@@ -52,7 +53,7 @@ export default function NftsOnAllChains(props) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'total24h', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

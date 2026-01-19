@@ -7,6 +7,9 @@ import { InlineSuggestions } from './InlineSuggestions'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ResearchProgress } from './ResearchProgress'
 
+const EMPTY_CHARTS: any[] = []
+const EMPTY_CHART_DATA: any[] = []
+
 interface PromptResponseProps {
 	response?: {
 		answer: string
@@ -230,8 +233,8 @@ export const PromptResponse = memo(function PromptResponse({
 				)}
 				{(isAnalyzingForCharts || isGeneratingCharts || hasChartError) && !streamingResponse?.includes('[CHART:') && (
 					<ChartRenderer
-						charts={[]}
-						chartData={[]}
+						charts={EMPTY_CHARTS}
+						chartData={EMPTY_CHART_DATA}
 						isLoading={isAnalyzingForCharts || isGeneratingCharts}
 						isAnalyzing={isAnalyzingForCharts}
 						hasError={hasChartError}

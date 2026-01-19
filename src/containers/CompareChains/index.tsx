@@ -189,6 +189,8 @@ export function CompareChains({ chains }) {
 			.map((chain) => ({ value: chain, label: chain }))
 	}, [router.query])
 
+	const selectedChainValues = React.useMemo(() => selectedChains.map((chain) => chain.value), [selectedChains])
+
 	const tvlCharts = React.useMemo(() => {
 		const charts = {}
 		for (const chainData of data) {
@@ -218,7 +220,7 @@ export function CompareChains({ chains }) {
 					<MultiSelectCombobox
 						data={chains}
 						placeholder="Select Chains..."
-						selectedValues={selectedChains.map((chain) => chain.value)}
+						selectedValues={selectedChainValues}
 						setSelectedValues={(values) => {
 							updateRoute('chains', values, router)
 						}}

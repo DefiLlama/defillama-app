@@ -16,7 +16,7 @@ export function evaluateFormula(formula: string, row: IProtocol): { value: numbe
 }
 
 export function getSortableValue(value: any, formatType: string): number | string | boolean | null {
-	if (value === null || value === undefined || value === '') {
+	if (value == null || value === '') {
 		return null
 	}
 

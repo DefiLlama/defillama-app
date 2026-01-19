@@ -24,6 +24,7 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 })
 
 const pageName = ['Chains', 'ranked by', 'REV']
+const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
@@ -42,7 +43,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
-				sortingState={[{ id: 'total24h', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

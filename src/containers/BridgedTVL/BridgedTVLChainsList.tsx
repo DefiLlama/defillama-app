@@ -7,6 +7,8 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 
+const DEFAULT_SORTING_STATE = [{ id: 'total', desc: true }]
+
 export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 	const data = Object.keys(assets)
 		.map((name) => {
@@ -53,7 +55,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 						<CSVDownloadButton prepareCsv={prepareCsv} smol />
 					</>
 				}
-				sortingState={[{ id: 'total', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)

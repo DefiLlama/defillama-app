@@ -21,6 +21,9 @@ import { useAuthContext } from '../Subscribtion/auth'
 import { WatchListTabs } from '../Yields/Watchlist'
 import { chainMetrics, protocolMetrics } from './constants'
 
+const EMPTY_PROTOCOLS: IProtocol[] = []
+const EMPTY_CHAINS: Array<{ name: string }> = []
+
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
@@ -50,9 +53,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	} = useBookmarks('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
+		const resolvedProtocols = protocols ?? EMPTY_PROTOCOLS
 		return {
-			protocolOptions: (protocols || []).map((c) => ({ key: c.name, name: c.name })),
-			savedProtocolsList: protocols.filter(
+			protocolOptions: resolvedProtocols.map((c) => ({ key: c.name, name: c.name })),
+			savedProtocolsList: resolvedProtocols.filter(
 				(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
 			),
 			selectedProtocolNames: Array.from(savedProtocols)
@@ -80,9 +84,10 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	}
 
 	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
+		const resolvedChains = chains ?? EMPTY_CHAINS
 		return {
-			chainOptions: (chains || []).map((c) => ({ key: c.name, name: c.name })),
-			savedChainsList: chains.filter((c) => savedChains.has(c.name)),
+			chainOptions: resolvedChains.map((c) => ({ key: c.name, name: c.name })),
+			savedChainsList: resolvedChains.filter((c) => savedChains.has(c.name)),
 			selectedChainNames: Array.from(savedChains)
 		}
 	}, [chains, savedChains])
@@ -241,6 +246,17 @@ function PortfolioNotifications({
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
+	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
+		const protocols = preferences?.settings?.protocols
+		const chains = preferences?.settings?.chains
+		return {
+			protocolsCount: protocols ? Object.keys(protocols).length : 0,
+			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
+			chainsCount: chains ? Object.keys(chains).length : 0,
+			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+		}
+	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
+
 	const formStore = Ariakit.useFormStore({
 		defaultValues: {
 			protocolMetrics: [] as string[],
@@ -383,22 +399,18 @@ function PortfolioNotifications({
 				{preferences?.settings && (
 					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
 						<div className="space-y-1 text-xs text-(--text-secondary)">
-							{preferences.settings.protocols && Object.keys(preferences.settings.protocols).length > 0 && (
+							{protocolsCount > 0 && (
 								<div>
-									<span className="font-medium">
-										Tracking {Object.keys(preferences.settings.protocols).length} protocol(s)
-									</span>
+									<span className="font-medium">Tracking {protocolsCount} protocol(s)</span>
 									{' - '}
-									<span>{Object.values(preferences.settings.protocols)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+									<span>{protocolsFirstMetrics}</span>
 								</div>
 							)}
-							{preferences.settings.chains && Object.keys(preferences.settings.chains).length > 0 && (
+							{chainsCount > 0 && (
 								<div>
-									<span className="font-medium">
-										Tracking {Object.keys(preferences.settings.chains).length} chain(s)
-									</span>
+									<span className="font-medium">Tracking {chainsCount} chain(s)</span>
 									{' - '}
-									<span>{Object.values(preferences.settings.chains)[0]?.map(mapAPIMetricToUI).join(', ')}</span>
+									<span>{chainsFirstMetrics}</span>
 								</div>
 							)}
 							<div className="mt-1 text-xs opacity-75">

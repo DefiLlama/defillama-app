@@ -31,6 +31,7 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
 const TVLAPYChart = lazy(() => import('~/components/ECharts/TVLAPYChart')) as React.FC<IChartProps>
+const EMPTY_CHART_DATA: any[] = []
 
 const getRatingColor = (rating) => {
 	switch (rating?.toLowerCase()) {
@@ -115,7 +116,7 @@ const PageView = (_props) => {
 		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
-		for (const item of chart?.data ?? []) {
+	for (const item of chart?.data ?? EMPTY_CHART_DATA) {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		}
 
@@ -161,14 +162,14 @@ const PageView = (_props) => {
 	}
 
 	const {
-		finalChartData = [],
-		barChartData = [],
-		areaChartData = [],
+		finalChartData = EMPTY_CHART_DATA,
+		barChartData = EMPTY_CHART_DATA,
+		areaChartData = EMPTY_CHART_DATA,
 		// borrow stuff
-		barChartDataSupply: _barChartDataSupply = [],
-		barChartDataBorrow = [],
-		areaChartDataBorrow = [],
-		netBorrowChartData = []
+		barChartDataSupply: _barChartDataSupply = EMPTY_CHART_DATA,
+		barChartDataBorrow = EMPTY_CHART_DATA,
+		areaChartDataBorrow = EMPTY_CHART_DATA,
+		netBorrowChartData = EMPTY_CHART_DATA
 	} = useMemo(() => {
 		if (!chart) return {}
 
@@ -196,7 +197,7 @@ const PageView = (_props) => {
 			avg7Days[i]?.toFixed(2) ?? null
 		])
 
-		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? []
+		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? EMPTY_CHART_DATA
 
 		const barChartData = dataBar.length
 			? dataBar.map((item) => ({ date: item[0], Base: item[3], Reward: item[4] }))
@@ -228,22 +229,22 @@ const PageView = (_props) => {
 				: ((-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null)
 		])
 
-		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? []
+		const dataBarSupply = dataBorrow?.filter((t) => t[4] !== null || t[5] !== null) ?? EMPTY_CHART_DATA
 		const barChartDataSupply = dataBarSupply.length
 			? dataBarSupply.map((item) => ({ date: item[0], Base: item[4], Reward: item[5] }))
 			: []
 
-		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? []
+		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? EMPTY_CHART_DATA
 		const barChartDataBorrow = dataBarBorrow.length
 			? dataBarBorrow.map((item) => ({ date: item[0], Base: item[6], Reward: item[7] }))
 			: []
 
-		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? []
+		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? EMPTY_CHART_DATA
 		const areaChartDataBorrow = dataArea.length
 			? dataArea.map((t) => ({ date: t[0], Supplied: t[1], Borrowed: t[2], Available: t[3] }))
 			: []
 
-		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? []
+		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? EMPTY_CHART_DATA
 		const netBorrowChartData = dataNetBorrowArea.length ? dataNetBorrowArea.map((t) => [t[0], t[8]]) : []
 
 		return {
@@ -579,7 +580,7 @@ const PageView = (_props) => {
 									chartData={areaChartDataBorrow}
 									title="Pool Liquidity"
 									customLegendName="Filter"
-									customLegendOptions={['Supplied', 'Borrowed', 'Available']}
+									customLegendOptions={LIQUIDITY_LEGEND_OPTIONS}
 									valueSymbol="$"
 									stackColors={liquidityChartColors}
 									enableImageExport={true}
@@ -684,6 +685,8 @@ const liquidityChartColors = {
 	Borrowed: CHART_COLORS[1],
 	Available: CHART_COLORS[2]
 }
+
+const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 const barChartStacks = {
 	Base: 'a',

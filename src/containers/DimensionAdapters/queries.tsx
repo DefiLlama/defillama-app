@@ -134,8 +134,11 @@ async function getChainMapping() {
 }
 
 function getInternalChainName(displayChain: string, chainMapping: Record<string, string>) {
-	const mapped = Object.entries(chainMapping).find(([display]) => display === displayChain)?.[1]
-	if (mapped) return mapped
+	for (const display in chainMapping) {
+		if (display === displayChain) {
+			return chainMapping[display]
+		}
+	}
 	return slug(displayChain)
 }
 

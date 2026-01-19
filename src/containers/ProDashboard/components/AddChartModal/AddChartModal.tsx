@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useMemo } from 'react'
 import { ChartTab } from './ChartTab'
 import { LlamaAITab } from './LlamaAITab'
 import { MetricTab } from './MetricTab'
@@ -10,6 +11,20 @@ import { AddChartModalProps, CombinedTableType } from './types'
 import { UnifiedTableTab } from './UnifiedTableTab'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
+import type { VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+
+const EMPTY_CHAIN_OPTIONS: VirtualizedSelectOption[] = []
+const EMPTY_CHART_TYPES: string[] = []
+const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
+	'protocols',
+	'stablecoins',
+	'cex',
+	'token-usage',
+	'yields',
+	'trending-contracts',
+	'chains'
+]
+const PRIMARY_TABLE_TYPES_SET = new Set(PRIMARY_TABLE_TYPES)
 
 export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSection }: AddChartModalProps) {
 	const { state, actions, computed } = useModalActions(editItem, isOpen, onClose)
@@ -22,21 +37,14 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 		}
 	}
 
-	const availableChartTypes: string[] = []
 	const chartTypesLoading = false
 
 	const composerItemsWithData = useComposerItemsData(state.composerItems, computed.timePeriod)
 
-	const primaryTableTypes: CombinedTableType[] = [
-		'protocols',
-		'stablecoins',
-		'cex',
-		'token-usage',
-		'yields',
-		'trending-contracts',
-		'chains'
-	]
-	const legacyTableTypes = primaryTableTypes.includes(state.selectedTableType) ? [] : [state.selectedTableType]
+	const legacyTableTypes = useMemo(
+		() => (PRIMARY_TABLE_TYPES_SET.has(state.selectedTableType) ? [] : [state.selectedTableType]),
+		[state.selectedTableType]
+	)
 
 	return (
 		<Ariakit.DialogProvider
@@ -73,7 +81,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedYieldPool={state.selectedYieldPool}
 							chainOptions={computed.chainOptions}
 							protocolOptions={computed.protocolOptions}
-							availableChartTypes={availableChartTypes}
+							availableChartTypes={EMPTY_CHART_TYPES}
 							chartTypesLoading={chartTypesLoading}
 							protocolsLoading={computed.protocolsLoading}
 							unifiedChartName={state.unifiedChartName}
@@ -162,7 +170,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 					{state.selectedMainTab === 'table' && (
 						<UnifiedTableTab
 							onClose={onClose}
-							chainOptions={computed.chainOptions ?? []}
+							chainOptions={computed.chainOptions ?? EMPTY_CHAIN_OPTIONS}
 							editItem={editItem?.kind === 'unified-table' ? editItem : undefined}
 							initialFocusSection={editItem?.kind === 'unified-table' ? initialUnifiedFocusSection : undefined}
 							selectedTableType={state.selectedTableType}

@@ -36,6 +36,8 @@ import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
 
+const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
+
 export const ChainProtocolsTable = ({
 	protocols,
 	sampleRow = sampleProtocol,
@@ -368,7 +370,7 @@ export const ChainProtocolsTable = ({
 				if (!cell) return ''
 
 				const value = cell.getValue()
-				if (value === null || value === undefined) return ''
+				if (value == null) return ''
 
 				if (col.id === 'name') {
 					return `"${row.original.name}"`
@@ -407,14 +409,14 @@ export const ChainProtocolsTable = ({
 				<TagGroup
 					setValue={setFilter('category')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_CATEGORIES) as Array<string>}
+					values={TABLE_CATEGORIES_VALUES}
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
 					selectedValue={filterState}
-					values={Object.values(TABLE_PERIODS) as Array<string>}
+					values={TABLE_PERIODS_VALUES}
 					className="max-sm:w-full"
 					triggerClassName="inline-flex max-sm:flex-1 items-center justify-center whitespace-nowrap"
 				/>
@@ -455,7 +457,7 @@ export const ChainProtocolsTable = ({
 				onSave={handleSaveCustomColumn}
 				sampleRow={sampleRow}
 				key={`custom-index-${customColumnModalEditIndex}`}
-				{...(customColumnModalInitialValues || {})}
+				{...(customColumnModalInitialValues ?? EMPTY_CUSTOM_COLUMN_VALUES)}
 			/>
 		</div>
 	)
@@ -483,6 +485,9 @@ enum TABLE_PERIODS {
 	SEVEN_DAYS = '7d',
 	ONE_MONTH = '1m'
 }
+
+const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
+const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
 
 const columnOptions = [
 	{ name: 'Name', key: 'name' },

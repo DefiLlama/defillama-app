@@ -21,6 +21,8 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 const CHART_TYPES = ['Inflows', 'Volume', 'Tokens To', 'Tokens From'] as const
 type ChartType = (typeof CHART_TYPES)[number]
 
+const GROUP_BY_VALUES = ['daily', 'weekly', 'monthly'] as const
+
 const BridgeInfo = ({
 	displayName,
 	logo,
@@ -198,7 +200,7 @@ const BridgeInfo = ({
 							<TagGroup
 								selectedValue={groupBy}
 								setValue={(v) => setGroupBy(v as any)}
-								values={['daily', 'weekly', 'monthly'] as const}
+								values={GROUP_BY_VALUES}
 								className="ml-auto"
 							/>
 						)}

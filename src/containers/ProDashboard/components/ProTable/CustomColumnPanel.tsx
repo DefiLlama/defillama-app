@@ -132,57 +132,65 @@ export function CustomColumnPanel({
 
 	// Sample data for live preview
 	const sampleData = React.useMemo(() => {
+		// Fixed sample values for known keys
+		const FIXED_SAMPLE_VALUES: Record<string, number> = {
+			tvl: 1500000000, // 1.5B
+			mcap: 2000000000, // 2B
+			fees_24h: 250000, // 250K
+			fees_7d: 1750000, // 1.75M
+			revenue_24h: 150000, // 150K
+			revenue_7d: 1050000, // 1.05M
+			volume_24h: 50000000, // 50M
+			volume_7d: 350000000, // 350M
+			change_1d: 5.2,
+			change_7d: -12.8
+		}
+
+		// Pattern-based sample value generation for unknown keys
+		const SAMPLE_PATTERNS: Array<{ test: RegExp; getValue: () => number }> = [
+			{ test: /tvl|mcap/, getValue: () => Math.floor(Math.random() * 5000000000) },
+			{ test: /volume/, getValue: () => Math.floor(Math.random() * 100000000) },
+			{ test: /fees|revenue/, getValue: () => Math.floor(Math.random() * 2000000) },
+			{ test: /change/, getValue: () => (Math.random() - 0.5) * 40 }
+		]
+
+		const getSampleValue = (key: string): number => {
+			if (key in FIXED_SAMPLE_VALUES) return FIXED_SAMPLE_VALUES[key]
+			const pattern = SAMPLE_PATTERNS.find((p) => p.test.test(key))
+			if (pattern) return pattern.getValue()
+			return Math.floor(Math.random() * 1000000) // Default up to 1M
+		}
+
 		const sample: Record<string, number> = {}
 		for (const variable of availableVariables) {
-			// Create realistic sample data
-			switch (variable.key) {
-				case 'tvl':
-					sample[variable.key] = 1500000000 // 1.5B
-					break
-				case 'mcap':
-					sample[variable.key] = 2000000000 // 2B
-					break
-				case 'fees_24h':
-					sample[variable.key] = 250000 // 250K
-					break
-				case 'fees_7d':
-					sample[variable.key] = 1750000 // 1.75M
-					break
-				case 'revenue_24h':
-					sample[variable.key] = 150000 // 150K
-					break
-				case 'revenue_7d':
-					sample[variable.key] = 1050000 // 1.05M
-					break
-				case 'volume_24h':
-					sample[variable.key] = 50000000 // 50M
-					break
-				case 'volume_7d':
-					sample[variable.key] = 350000000 // 350M
-					break
-				case 'change_1d':
-					sample[variable.key] = 5.2
-					break
-				case 'change_7d':
-					sample[variable.key] = -12.8
-					break
-				default:
-					// Generate realistic random numbers based on the variable name
-					if (variable.key.includes('tvl') || variable.key.includes('mcap')) {
-						sample[variable.key] = Math.floor(Math.random() * 5000000000) // Up to 5B
-					} else if (variable.key.includes('volume')) {
-						sample[variable.key] = Math.floor(Math.random() * 100000000) // Up to 100M
-					} else if (variable.key.includes('fees') || variable.key.includes('revenue')) {
-						sample[variable.key] = Math.floor(Math.random() * 2000000) // Up to 2M
-					} else if (variable.key.includes('change')) {
-						sample[variable.key] = (Math.random() - 0.5) * 40 // -20% to +20%
-					} else {
-						sample[variable.key] = Math.floor(Math.random() * 1000000) // Default up to 1M
-					}
-			}
+			sample[variable.key] = getSampleValue(variable.key)
 		}
 		return sample
 	}, [availableVariables])
+
+	// Format number for display - hoisted above sampleDataPreview to avoid TDZ
+	const formatPreviewNumber = React.useCallback((value: number | null): string => {
+		if (value == null) return '-'
+
+		if (Math.abs(value) >= 1e9) {
+			return `$${(value / 1e9).toFixed(2)}B`
+		} else if (Math.abs(value) >= 1e6) {
+			return `$${(value / 1e6).toFixed(2)}M`
+		} else if (Math.abs(value) >= 1e3) {
+			return `$${(value / 1e3).toFixed(2)}K`
+		} else {
+			return value.toFixed(2)
+		}
+	}, [])
+
+	const sampleDataPreview = React.useMemo(
+		() =>
+			Object.entries(sampleData)
+				.slice(0, 3)
+				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+				.join(', '),
+		[sampleData, formatPreviewNumber]
+	)
 
 	const validateExpression = (expression: string): { isValid: boolean; error?: string } => {
 		if (!expression.trim()) {
@@ -367,21 +375,6 @@ export function CustomColumnPanel({
 		}
 	}, [newColumnExpression, sampleData])
 
-	// Format number for display
-	const formatPreviewNumber = (value: number | null): string => {
-		if (value === null || value === undefined) return '-'
-
-		if (Math.abs(value) >= 1e9) {
-			return `$${(value / 1e9).toFixed(2)}B`
-		} else if (Math.abs(value) >= 1e6) {
-			return `$${(value / 1e6).toFixed(2)}M`
-		} else if (Math.abs(value) >= 1e3) {
-			return `$${(value / 1e3).toFixed(2)}K`
-		} else {
-			return value.toFixed(2)
-		}
-	}
-
 	const handleMouseDown = (e: React.MouseEvent) => {
 		// Prevent drag events from bubbling up to dashboard
 		e.stopPropagation()
@@ -523,12 +516,7 @@ export function CustomColumnPanel({
 								</div>
 								{liveValidation.isValid && (
 									<div className="pro-text3 mt-1 text-xs">
-										Using sample data:{' '}
-										{Object.entries(sampleData)
-											.slice(0, 3)
-											.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
-											.join(', ')}
-										...
+										Using sample data: {sampleDataPreview}...
 									</div>
 								)}
 							</div>

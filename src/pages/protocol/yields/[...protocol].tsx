@@ -9,6 +9,8 @@ import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const EMPTY_TOGGLE_OPTIONS = []
+
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[...protocol]',
 	async ({
@@ -88,7 +90,7 @@ export default function Protocols(props) {
 			metrics={props.metrics}
 			tab="yields"
 			warningBanners={props.warningBanners}
-			toggleOptions={[]}
+			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
 			<ProtocolPools
 				data={props.yields}

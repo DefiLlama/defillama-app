@@ -1,6 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
-import { lazy, memo, Suspense, useCallback, useEffect, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -320,6 +320,8 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
 	const isSmallScreen = useMedia('(max-width: 768px)')
 
+	const sortableItemIds = useMemo(() => chartsWithData.map((c) => c.id), [chartsWithData])
+
 	const currentRatingSession = getCurrentRatingSession()
 	const currentSessionId = currentRatingSession?.sessionId
 
@@ -372,14 +374,13 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 					const fallbackSpan: StoredColSpan = item.kind === 'metric' ? spanOptions[0] : 1
 					const storedColSpan = normalizeStoredColSpan(item.colSpan, fallbackSpan)
 					const effectiveColSpan = getEffectiveColSpan(storedColSpan)
-					const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
 
 					return (
 						<div
 							key={`${item.id}-${item.colSpan}${
 								item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 							}`}
-							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 						>
 							<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
 						</div>
@@ -392,7 +393,7 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 	return (
 		<>
 			<DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-				<SortableContext items={chartsWithData.map((c) => c.id)} strategy={rectSortingStrategy}>
+				<SortableContext items={sortableItemIds} strategy={rectSortingStrategy}>
 					<div className="grid grid-flow-dense grid-cols-1 gap-2 lg:grid-cols-4">
 						{chartsWithData.map((item) => {
 							const spanOptions = item.kind === 'metric' ? METRIC_COL_SPANS : STORED_COL_SPANS
@@ -403,14 +404,13 @@ export const ChartGrid = memo(function ChartGrid({ onAddChartClick, onEditItem }
 							const expandTarget = getNextStoredColSpan(storedColSpan, spanOptions)
 							const disableShrink = shrinkTarget === storedColSpan
 							const disableExpand = expandTarget === storedColSpan
-							const largeColClass = COL_SPAN_CLASS_MAP[effectiveColSpan]
 
 							return (
 								<div
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
-									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${largeColClass}`}
+									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
 										<Tooltip

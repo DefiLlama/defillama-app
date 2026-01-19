@@ -76,6 +76,8 @@ const inflowsChartOptions = {
 const MCAP_STACKS = ['Mcap']
 const CIRC_STACKS = ['Circulating']
 const EMPTY_HALLMARKS: [number, string][] = []
+const EMPTY_CHAIN_LIST: StablecoinChainInfo[] = []
+const EMPTY_ASSET_LIST: StablecoinAssetInfo[] = []
 
 export function StablecoinsChartTab({
 	selectedStablecoinChain,
@@ -91,8 +93,10 @@ export function StablecoinsChartTab({
 	onSelectedStablecoinAssetIdChange,
 	onSelectedStablecoinAssetChartTypeChange
 }: StablecoinsChartTabProps) {
-	const { data: chainsList = [], isLoading: chainsLoading } = useStablecoinChainsList()
-	const { data: assetsList = [], isLoading: assetsLoading } = useStablecoinAssetsList()
+	const { data: chainsListData, isLoading: chainsLoading } = useStablecoinChainsList()
+	const { data: assetsListData, isLoading: assetsLoading } = useStablecoinAssetsList()
+	const chainsList = chainsListData ?? EMPTY_CHAIN_LIST
+	const assetsList = assetsListData ?? EMPTY_ASSET_LIST
 
 	const chainOptions: VirtualizedSelectOption[] = useMemo(() => {
 		const options: VirtualizedSelectOption[] = [{ value: 'All', label: 'All Chains', icon: '🌐' }]

@@ -42,6 +42,7 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 })
 
 const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
+const DEFAULT_SORTING_STATE = [{ id: 'netTreasury', desc: true }]
 
 const NetProjectTreasuries = (props) => {
 	return (
@@ -58,7 +59,7 @@ const NetProjectTreasuries = (props) => {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				sortingState={[{ id: 'netTreasury', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)

@@ -22,6 +22,65 @@ import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { chainsDatasetColumns } from './columns'
 import { useChainsData } from './useChainsData'
 
+const EMPTY_DATA: any[] = []
+const CHAIN_COLUMN_PRESETS: Record<string, string[]> = {
+	essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
+	defi: [
+		'name',
+		'protocols',
+		'tvl',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'bridgedTvl',
+		'stablesMcap',
+		'mcaptvl',
+		'mcap'
+	],
+	volume: [
+		'name',
+		'tvl',
+		'totalVolume24h',
+		'totalVolume30d',
+		'totalFees24h',
+		'totalFees30d',
+		'totalAppRevenue24h',
+		'totalAppRevenue30d',
+		'totalRevenue30d',
+		'users',
+		'nftVolume'
+	],
+	advanced: [
+		'name',
+		'protocols',
+		'users',
+		'change_1d',
+		'change_7d',
+		'change_1m',
+		'tvl',
+		'bridgedTvl',
+		'stablesMcap',
+		'totalVolume24h',
+		'totalVolume30d',
+		'totalFees24h',
+		'totalFees30d',
+		'totalAppRevenue24h',
+		'totalAppRevenue30d',
+		'totalRevenue30d',
+		'mcaptvl',
+		'mcap',
+		'nftVolume'
+	],
+	shares: [
+		'name',
+		'tvl_share',
+		'stablesMcap_share',
+		'totalVolume24h_share',
+		'totalFees24h_share',
+		'totalAppRevenue24h_share'
+	]
+}
+
 interface ChainsDatasetProps {
 	category?: string
 	tableId?: string
@@ -102,7 +161,7 @@ export function ChainsDataset({
 				},
 				cell: ({ getValue }) => {
 					const value = getValue() as number | null
-					if (value === null || value === undefined) return <span className="pro-text2">-</span>
+					if (value == null) return <span className="pro-text2">-</span>
 
 					return <span className="pro-text2">{value.toFixed(2)}%</span>
 				},
@@ -123,7 +182,7 @@ export function ChainsDataset({
 	}, [percentageShareColumns])
 
 	const instance = useReactTable({
-		data: data || [],
+		data: data ?? EMPTY_DATA,
 		columns: allColumns,
 		state: {
 			sorting,
@@ -142,73 +201,13 @@ export function ChainsDataset({
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
 	})
-
-	const columnPresets = React.useMemo(
-		() => ({
-			essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
-			defi: [
-				'name',
-				'protocols',
-				'tvl',
-				'change_1d',
-				'change_7d',
-				'change_1m',
-				'bridgedTvl',
-				'stablesMcap',
-				'mcaptvl',
-				'mcap'
-			],
-			volume: [
-				'name',
-				'tvl',
-				'totalVolume24h',
-				'totalVolume30d',
-				'totalFees24h',
-				'totalFees30d',
-				'totalAppRevenue24h',
-				'totalAppRevenue30d',
-				'totalRevenue30d',
-				'users',
-				'nftVolume'
-			],
-			advanced: [
-				'name',
-				'protocols',
-				'users',
-				'change_1d',
-				'change_7d',
-				'change_1m',
-				'tvl',
-				'bridgedTvl',
-				'stablesMcap',
-				'totalVolume24h',
-				'totalVolume30d',
-				'totalFees24h',
-				'totalFees30d',
-				'totalAppRevenue24h',
-				'totalAppRevenue30d',
-				'totalRevenue30d',
-				'mcaptvl',
-				'mcap',
-				'nftVolume'
-			],
-			shares: [
-				'name',
-				'tvl_share',
-				'stablesMcap_share',
-				'totalVolume24h_share',
-				'totalFees24h_share',
-				'totalAppRevenue24h_share'
-			]
-		}),
-		[]
-	)
 
 	const applyPreset = React.useCallback(
 		(preset: string) => {
-			const presetColumns = columnPresets[preset]
+			const presetColumns = CHAIN_COLUMN_PRESETS[preset as keyof typeof CHAIN_COLUMN_PRESETS]
 			if (presetColumns) {
 				const allColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
@@ -228,7 +227,7 @@ export function ChainsDataset({
 				}
 			}
 		},
-		[columnPresets, instance, uniqueTableId, handleTableColumnsChange]
+		[instance, uniqueTableId, handleTableColumnsChange]
 	)
 
 	const toggleColumnVisibility = React.useCallback(
@@ -323,7 +322,7 @@ export function ChainsDataset({
 			setColumnVisibility(savedColumnVisibility)
 			instance.setColumnVisibility(savedColumnVisibility)
 		} else if (!hasCurrentVisibility && selectedPreset === 'essential') {
-			const presetColumns = columnPresets['essential']
+			const presetColumns = CHAIN_COLUMN_PRESETS.essential
 			if (presetColumns) {
 				const allColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
@@ -337,7 +336,7 @@ export function ChainsDataset({
 			}
 		}
 		// oxlint-disable-next-line react/exhaustive-deps
-	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, columnPresets, instance])
+	}, [savedColumnOrder, savedColumnVisibility, selectedPreset, instance])
 
 	const handleExportCSV = React.useCallback(() => {
 		const headers = instance
@@ -351,7 +350,7 @@ export function ChainsDataset({
 				.filter((col) => col.id !== 'expand')
 				.map((col) => {
 					const value = row.getValue(col.id)
-					if (value === null || value === undefined) return ''
+					if (value == null) return ''
 					if (typeof value === 'object') return JSON.stringify(value)
 					return String(value)
 				})
@@ -405,7 +404,7 @@ export function ChainsDataset({
 				<ChainsTableHeader
 					selectedPreset="essential"
 					setSelectedPreset={() => {}}
-					columnPresets={columnPresets}
+					columnPresets={CHAIN_COLUMN_PRESETS}
 					applyPreset={() => {}}
 					showColumnSelector={false}
 					setShowColumnSelector={() => {}}
@@ -426,7 +425,7 @@ export function ChainsDataset({
 				<ChainsTableHeader
 					selectedPreset="essential"
 					setSelectedPreset={() => {}}
-					columnPresets={columnPresets}
+					columnPresets={CHAIN_COLUMN_PRESETS}
 					applyPreset={() => {}}
 					showColumnSelector={false}
 					setShowColumnSelector={() => {}}
@@ -445,7 +444,7 @@ export function ChainsDataset({
 			<ChainsTableHeader
 				selectedPreset={selectedPreset}
 				setSelectedPreset={setSelectedPreset}
-				columnPresets={columnPresets}
+				columnPresets={CHAIN_COLUMN_PRESETS}
 				applyPreset={applyPreset}
 				showColumnSelector={showColumnPanel}
 				setShowColumnSelector={setShowColumnPanel}

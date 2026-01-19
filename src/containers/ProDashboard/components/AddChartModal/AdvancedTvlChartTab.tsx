@@ -55,6 +55,16 @@ const inflowsChartOptions = {
 
 const TVL_STACKS = ['TVL']
 const EMPTY_HALLMARKS: [number, string][] = []
+const EMPTY_CHART_DATA: any[] = []
+const EMPTY_STACKS: string[] = []
+const EMPTY_ADDL_DATA: {
+	tokensUnique?: string[]
+	tokenBreakdownUSD?: any[]
+	tokenBreakdownPieChart?: any[]
+	tokenBreakdown?: any[]
+	usdInflows?: any[]
+	tokenInflows?: any[]
+} = {}
 
 export function AdvancedTvlChartTab({
 	selectedAdvancedTvlProtocol,
@@ -67,9 +77,7 @@ export function AdvancedTvlChartTab({
 	protocolsLoading
 }: AdvancedTvlChartTabProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
-	const filteredProtocolOptions = useMemo(() => {
-		return protocolOptions
-	}, [protocolOptions])
+	const filteredProtocolOptions = protocolOptions
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
@@ -87,12 +95,24 @@ export function AdvancedTvlChartTab({
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
 		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
-		const chainsUnique = Object.keys(chainsSplit[chainsSplit.length - 1] ?? {}).filter((c) => c !== 'date')
+		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
+		const chainsUnique: string[] = []
+		for (const key in lastEntry) {
+			if (!Object.prototype.hasOwnProperty.call(lastEntry, key)) continue
+			if (key !== 'date') chainsUnique.push(key)
+		}
 		return { chainsSplit, chainsUnique }
 	}, [historicalChainTvls, extraTvlsEnabled])
 
 	const { tokensUnique, tokenBreakdownUSD, tokenBreakdownPieChart, tokenBreakdown, usdInflows, tokenInflows } =
-		addlData ?? {}
+		addlData ?? EMPTY_ADDL_DATA
+	const resolvedTokensUnique = tokensUnique ?? EMPTY_STACKS
+	const resolvedTokenBreakdownUSD = tokenBreakdownUSD ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdownPieChart = tokenBreakdownPieChart ?? EMPTY_CHART_DATA
+	const resolvedTokenBreakdown = tokenBreakdown ?? EMPTY_CHART_DATA
+	const resolvedUsdInflows = usdInflows ?? EMPTY_CHART_DATA
+	const resolvedTokenInflows = tokenInflows ?? EMPTY_CHART_DATA
+	const resolvedChainsSplit = chainsSplit ?? EMPTY_CHART_DATA
 
 	const availableChartTypes = useMemo(() => {
 		const available = new Set<string>(['tvl'])
@@ -156,7 +176,7 @@ export function AdvancedTvlChartTab({
 
 		switch (selectedAdvancedTvlChartType) {
 			case 'tvl': {
-				const tvlData = basicTvlData?.map(([ts, val]) => ({ date: ts, TVL: val })) ?? []
+				const tvlData = basicTvlData ? basicTvlData.map(([ts, val]) => ({ date: ts, TVL: val })) : EMPTY_CHART_DATA
 				return (
 					<Suspense
 						fallback={
@@ -189,7 +209,7 @@ export function AdvancedTvlChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={chainsSplit ?? []}
+							chartData={resolvedChainsSplit}
 							stacks={chainsUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
@@ -209,8 +229,8 @@ export function AdvancedTvlChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={tokenBreakdownUSD ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={resolvedTokenBreakdownUSD}
+							stacks={resolvedTokensUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hideGradient={true}
@@ -227,7 +247,7 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<PieChart chartData={tokenBreakdownPieChart ?? []} />
+						<PieChart chartData={resolvedTokenBreakdownPieChart} />
 					</Suspense>
 				)
 			case 'tokenBalances':
@@ -241,8 +261,8 @@ export function AdvancedTvlChartTab({
 					>
 						<AreaChart
 							title=""
-							chartData={tokenBreakdown ?? []}
-							stacks={tokensUnique ?? []}
+							chartData={resolvedTokenBreakdown}
+							stacks={resolvedTokensUnique}
 							hideDefaultLegend={true}
 							hideGradient={true}
 							chartOptions={chartOptions}
@@ -258,7 +278,7 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={usdInflows ?? []} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
+					<BarChart chartData={resolvedUsdInflows} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
 					</Suspense>
 				)
 			case 'tokenInflows':
@@ -271,11 +291,11 @@ export function AdvancedTvlChartTab({
 						}
 					>
 						<BarChart
-							chartData={tokenInflows ?? []}
+							chartData={resolvedTokenInflows}
 							title=""
 							hideDefaultLegend={true}
 							customLegendName="Token"
-							customLegendOptions={tokensUnique ?? []}
+							customLegendOptions={resolvedTokensUnique}
 							chartOptions={inflowsChartOptions}
 						/>
 					</Suspense>

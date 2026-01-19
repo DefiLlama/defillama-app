@@ -55,6 +55,7 @@ export async function getStaticPaths() {
 }
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
+const DEFAULT_SORTING_STATE = [{ id: 'totalAssetAmount', desc: true }]
 
 const prepareAssetBreakdownCsv = (
 	institutions: IDATOverviewDataByAssetProps['institutions'],
@@ -180,7 +181,7 @@ export default function TreasuriesByAsset({
 				columns={columns({ name: metadata.name, symbol: metadata.ticker })}
 				placeholder="Search institutions"
 				columnToSearch="name"
-				sortingState={[{ id: 'totalAssetAmount', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 				customFilters={
 					<CSVDownloadButton
 						prepareCsv={() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)}

@@ -62,6 +62,7 @@ export async function getStaticProps() {
 }
 
 const pageName = ['Safe Harbor Agreements']
+const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 export default function SafeHarborAgreements({ protocols }) {
 	return (
@@ -78,7 +79,7 @@ export default function SafeHarborAgreements({ protocols }) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
-				sortingState={[{ id: 'tvl', desc: true }]}
+				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
