@@ -741,6 +741,7 @@ const IncomeStatementByLabel = ({
 													}
 													groupBy={groupBy}
 													dataType={dataType}
+													label={breakdownlabel}
 												/>
 											}
 											className="justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
@@ -764,7 +765,8 @@ const PerformanceTooltipContent = ({
 	currentValue,
 	previousValue,
 	groupBy,
-	dataType
+	dataType,
+	label
 }: {
 	currentValue: number
 	previousValue: number
@@ -777,6 +779,7 @@ const PerformanceTooltipContent = ({
 		| 'earnings'
 		| 'token holder net income'
 		| 'others token holder flows'
+	label?: string
 }) => {
 	if (previousValue == null) return null
 	const valueChange = currentValue - previousValue
@@ -785,6 +788,7 @@ const PerformanceTooltipContent = ({
 		percentageChange > 0
 			? `+${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
 			: `${percentageChange.toLocaleString(undefined, { maximumFractionDigits: 2 })}%`
+	const displayLabel = label ? label.toLowerCase() : dataType
 	return (
 		<p className="text-xs">
 			<span className={`${percentageChange > 0 ? 'text-(--success)' : 'text-(--error)'}`}>
@@ -792,7 +796,7 @@ const PerformanceTooltipContent = ({
 			</span>{' '}
 			<span>
 				compared to previous {groupBy === 'Yearly' ? 'year' : groupBy === 'Quarterly' ? 'quarter' : 'month'} total{' '}
-				{dataType}
+				{displayLabel}
 			</span>
 		</p>
 	)
