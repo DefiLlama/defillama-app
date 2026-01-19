@@ -63,6 +63,41 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [router])
 
+	// Handle ChunkLoadError - refresh page when chunks fail to load (e.g., after deployment)
+	useEffect(() => {
+		const handleError = (event: ErrorEvent) => {
+			if (event.error?.name === 'ChunkLoadError') {
+				// Avoid infinite reload loop by checking sessionStorage
+				const reloadKey = 'chunk-error-reload'
+				if (!sessionStorage.getItem(reloadKey)) {
+					sessionStorage.setItem(reloadKey, '1')
+					window.location.reload()
+				}
+			}
+		}
+
+		const handleRouteError = (err: Error) => {
+			if (err.name === 'ChunkLoadError') {
+				const reloadKey = 'chunk-error-reload'
+				if (!sessionStorage.getItem(reloadKey)) {
+					sessionStorage.setItem(reloadKey, '1')
+					window.location.reload()
+				}
+			}
+		}
+
+		window.addEventListener('error', handleError)
+		router.events.on('routeChangeError', handleRouteError)
+
+		// Clear the reload flag on successful page load
+		sessionStorage.removeItem('chunk-error-reload')
+
+		return () => {
+			window.removeEventListener('error', handleError)
+			router.events.off('routeChangeError', handleRouteError)
+		}
+	}, [router])
+
 	const { userHash, email } = useUserHash()
 	const isDesktop = useMedia('(min-width: 769px)')
 
