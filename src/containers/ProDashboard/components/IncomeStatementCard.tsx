@@ -49,7 +49,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 	const { data: incomeStatement, isLoading, isError } = useQuery({
 		queryKey: ['income-statement', config.protocol],
 		queryFn: () => getProtocolIncomeStatement({ metadata }),
-		enabled: Boolean(config.protocol && displayName),
+		enabled: Boolean(config.protocol && displayName && metadata.fees && metadata.revenue),
 		staleTime: 60 * 60 * 1000
 	})
 
@@ -62,6 +62,8 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 
 	const hasIncentives = Boolean(record?.flags?.incentives || record?.flags?.emissions)
 	const iconUrl = getItemIconUrl('protocol', protocolInfo, config.protocol)
+	const isWaitingForMetadata = !metadata.fees || !metadata.revenue
+	const showLoader = isLoading || isWaitingForMetadata
 
 	return (
 		<div className="flex min-h-[360px] flex-col p-2">
@@ -91,7 +93,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 				</div>
 			</div>
 			<div className="flex min-h-0 flex-1 flex-col">
-				{isLoading ? (
+				{showLoader ? (
 					<div className="flex flex-1 items-center justify-center">
 						<LoadingSpinner />
 					</div>
