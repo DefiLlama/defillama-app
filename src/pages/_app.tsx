@@ -7,17 +7,32 @@ import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useUserHash } from '~/containers/Subscribtion/auth'
 import { useMedia } from '~/hooks/useMedia'
 
 NProgress.configure({ showSpinner: false })
 
+const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
+
+const isChunkLoadError = (error: unknown) => {
+	if (!error) return false
+	if (typeof error === 'object' && 'name' in error && (error as { name?: string }).name === 'ChunkLoadError') {
+		return true
+	}
+
+	const message = String((error as { message?: string })?.message ?? error)
+	return (
+		message.includes('ChunkLoadError') || message.includes('Loading chunk') || message.includes('Failed to load chunk')
+	)
+}
+
 const client = new QueryClient()
 
 function App({ Component, pageProps }: AppProps) {
 	const router = useRouter()
+	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {
 		const handleRouteChange = () => {
@@ -36,6 +51,10 @@ function App({ Component, pageProps }: AppProps) {
 	useEffect(() => {
 		const handleRouteChange = () => {
 			NProgress.done()
+			if (typeof window !== 'undefined') {
+				sessionStorage.removeItem(CHUNK_LOAD_ERROR_KEY)
+			}
+			reloadInProgressRef.current = false
 		}
 
 		router.events.on('routeChangeComplete', handleRouteChange)
@@ -44,6 +63,51 @@ function App({ Component, pageProps }: AppProps) {
 		// from the event with the `off` method:
 		return () => {
 			router.events.off('routeChangeComplete', handleRouteChange)
+		}
+	}, [router])
+
+	useEffect(() => {
+		const reloadOnce = (url?: string) => {
+			if (typeof window === 'undefined') return
+			if (reloadInProgressRef.current) return
+
+			const targetUrl = url ?? window.location.href
+			const lastReloadUrl = sessionStorage.getItem(CHUNK_LOAD_ERROR_KEY)
+			if (lastReloadUrl === targetUrl) return
+
+			reloadInProgressRef.current = true
+			sessionStorage.setItem(CHUNK_LOAD_ERROR_KEY, targetUrl)
+			if (url) {
+				window.location.assign(url)
+			} else {
+				window.location.reload()
+			}
+		}
+
+		const handleRouteChangeError = (error: unknown, url: string) => {
+			NProgress.done()
+			if (!isChunkLoadError(error)) return
+			reloadOnce(url)
+		}
+
+		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+			if (!isChunkLoadError(event.reason)) return
+			reloadOnce()
+		}
+
+		const handleError = (event: ErrorEvent) => {
+			if (!isChunkLoadError(event.error ?? event.message)) return
+			reloadOnce()
+		}
+
+		router.events.on('routeChangeError', handleRouteChangeError)
+		window.addEventListener('unhandledrejection', handleUnhandledRejection)
+		window.addEventListener('error', handleError)
+
+		return () => {
+			router.events.off('routeChangeError', handleRouteChangeError)
+			window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+			window.removeEventListener('error', handleError)
 		}
 	}, [router])
 
@@ -60,41 +124,6 @@ function App({ Component, pageProps }: AppProps) {
 
 		return () => {
 			router.events.off('routeChangeComplete', handleRouteChange)
-		}
-	}, [router])
-
-	// Handle ChunkLoadError - refresh page when chunks fail to load (e.g., after deployment)
-	useEffect(() => {
-		const handleError = (event: ErrorEvent) => {
-			if (event.error?.name === 'ChunkLoadError') {
-				// Avoid infinite reload loop by checking sessionStorage
-				const reloadKey = 'chunk-error-reload'
-				if (!sessionStorage.getItem(reloadKey)) {
-					sessionStorage.setItem(reloadKey, '1')
-					window.location.reload()
-				}
-			}
-		}
-
-		const handleRouteError = (err: Error) => {
-			if (err.name === 'ChunkLoadError') {
-				const reloadKey = 'chunk-error-reload'
-				if (!sessionStorage.getItem(reloadKey)) {
-					sessionStorage.setItem(reloadKey, '1')
-					window.location.reload()
-				}
-			}
-		}
-
-		window.addEventListener('error', handleError)
-		router.events.on('routeChangeError', handleRouteError)
-
-		// Clear the reload flag on successful page load
-		sessionStorage.removeItem('chunk-error-reload')
-
-		return () => {
-			window.removeEventListener('error', handleError)
-			router.events.off('routeChangeError', handleRouteError)
 		}
 	}, [router])
 
