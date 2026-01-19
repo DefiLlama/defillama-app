@@ -10,18 +10,16 @@ import {
 	SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { startTransition, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
@@ -99,24 +97,11 @@ export function ChainsByAdapter(props: IProps) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	useEffect(() => {
-		startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
-
-	const width = useBreakpointWidth()
-
-	useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			width
-		})
-	}, [instance, width])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnSizes
+	})
 
 	const prepareCsv = useCallback(() => {
 		const header = ['Chain', 'Total 1d', 'Total 1m']

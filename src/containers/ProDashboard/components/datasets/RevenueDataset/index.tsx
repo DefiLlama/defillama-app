@@ -13,6 +13,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
+import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
@@ -203,19 +204,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 		instance.setColumnOrder(defaultOrder)
 	}, [width, instance])
 
-	const [protocolName, setProtocolName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(protocolName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [protocolName, instance])
+	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (

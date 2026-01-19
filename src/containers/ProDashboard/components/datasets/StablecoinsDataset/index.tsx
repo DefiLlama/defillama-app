@@ -12,8 +12,8 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -79,14 +79,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		instance.setColumnOrder(defaultOrder)
 	}, [instance, width])
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (

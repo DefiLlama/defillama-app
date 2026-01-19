@@ -17,7 +17,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { sortColumnSizesAndOrders } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -28,8 +28,6 @@ import {
 } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
 
@@ -55,7 +53,6 @@ export function ChainsByCategoryTable({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -76,22 +73,11 @@ export function ChainsByCategoryTable({
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
-
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnOrders: chainsTableColumnOrders,
-			width
-		})
-	}, [instance, width])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnOrders: chainsTableColumnOrders
+	})
 
 	const clearAllColumns = () => {
 		const ops = JSON.stringify(Object.fromEntries(columnOptions.map((option) => [option.key, false])))

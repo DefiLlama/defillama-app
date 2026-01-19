@@ -9,6 +9,7 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '../../utils'
 import type { INftMarketplace } from '../types'
 import { columns } from './columns'
 
@@ -30,15 +31,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [collectionName, setCollectionName] = React.useState('')
-
-	React.useEffect(() => {
-		const collectionsColumns = instance.getColumn('exchangeName')
-		const id = setTimeout(() => {
-			collectionsColumns.setFilterValue(collectionName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [collectionName, instance])
+	const [collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<>

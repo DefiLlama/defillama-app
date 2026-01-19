@@ -15,9 +15,9 @@ import { prepareChartCsv } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
-import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, formattedNum, slug, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
 import { HacksFilters } from './filters'
@@ -49,14 +49,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	const prepareCsv = React.useCallback(() => {
 		try {

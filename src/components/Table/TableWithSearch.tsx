@@ -14,9 +14,7 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
-import { alphanumericFalsyLast, sortColumnSizesAndOrders } from './utils'
+import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from './utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
 
 interface ITableWithSearchProps {
@@ -80,25 +78,9 @@ export function TableWithSearch({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
 
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn(columnToSearch)?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance, columnToSearch])
-
-	const width = useBreakpointWidth()
-
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			columnOrders,
-			width
-		})
-	}, [instance, width, columnOrders, columnSizes])
+	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

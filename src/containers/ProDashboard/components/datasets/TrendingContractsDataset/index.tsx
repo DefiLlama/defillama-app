@@ -13,6 +13,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
@@ -111,19 +112,7 @@ export function TrendingContractsDataset({
 		instance.setColumnOrder(defaultOrder)
 	}, [width, instance])
 
-	const [contractSearch, setContractSearch] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('contract')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(contractSearch)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [contractSearch, instance])
+	const [contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
 
 	if (isLoading) {
 		return (

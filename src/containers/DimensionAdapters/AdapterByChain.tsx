@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
@@ -21,13 +21,11 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { chainCharts } from '../ChainOverview/constants'
@@ -245,26 +243,12 @@ export function AdapterByChain(props: IProps) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	useEffect(() => {
-		startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
-
-	const width = useBreakpointWidth()
-
-	useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			columnOrders,
-			width
-		})
-	}, [instance, width])
-
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnSizes,
+		columnOrders
+	})
 	const prepareCsv = useCallback(() => {
 		const header = [
 			'Protocol',

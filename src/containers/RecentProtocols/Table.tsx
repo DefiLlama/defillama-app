@@ -20,9 +20,7 @@ import { Switch } from '~/components/Switch'
 import { columnSizes, protocolsColumns } from '~/components/Table/Defi/Protocols/columns'
 import { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { VirtualTable } from '~/components/Table/Table'
-import { sortColumnSizesAndOrders } from '~/components/Table/utils'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
+import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { formattedNum, toNiceDaysAgo } from '~/utils'
 
 export function RecentlyListedProtocolsTable({
@@ -45,7 +43,6 @@ export function RecentlyListedProtocolsTable({
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const width = useBreakpointWidth()
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
@@ -70,22 +67,9 @@ export function RecentlyListedProtocolsTable({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			width
-		})
-	}, [instance, width])
+	useSortColumnSizesAndOrders({ instance, columnSizes })
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	const selectChain = (newChain) => {
 		router.push(

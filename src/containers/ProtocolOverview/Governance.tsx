@@ -14,6 +14,7 @@ import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { formattedNum, toNiceDayMonthAndYear } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -42,15 +43,7 @@ export function GovernanceTable({ data, governanceType, filters = null }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [proposalname, setProposalName] = React.useState('')
-
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('title')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(proposalname)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [proposalname, instance])
+	const [proposalname, setProposalName] = useTableSearch({ instance, columnToSearch: 'title' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

@@ -18,9 +18,7 @@ import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
-import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '../../utils'
+import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '../../utils'
 import {
 	columnOrders,
 	columnSizes,
@@ -602,7 +600,6 @@ export function ProtocolsTableWithSearch({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const width = useBreakpointWidth()
 
 	const columnsData = React.useMemo(() => {
 		if (!addlColumns && !removeColumns) return columnsToUse
@@ -636,23 +633,12 @@ export function ProtocolsTableWithSearch({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			columnOrders,
-			width
-		})
-	}, [instance, width])
-
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnSizes,
+		columnOrders
+	})
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

@@ -1,4 +1,7 @@
-import type { ColumnOrderState, ColumnSizingState } from '@tanstack/react-table'
+import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react-table'
+import { startTransition, useEffect, useState } from 'react'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { useDebounce } from '~/hooks/useDebounce'
 
 export type BreakpointMap<T> = Record<number, T>
 export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
@@ -98,7 +101,7 @@ export function alphanumericFalsyLast(rowA, rowB, columnId, sorting) {
 }
 
 // Utility function to sort column sizes and orders based on width
-export function sortColumnSizesAndOrders({
+function sortColumnSizesAndOrders({
 	instance,
 	columnSizes,
 	columnOrders,
@@ -140,4 +143,45 @@ export function sortColumnSizesAndOrders({
 			instance.setColumnOrder(order)
 		}
 	}
+}
+
+export function useTableSearch<T>({
+	instance,
+	columnToSearch
+}: {
+	instance: Table<T>
+	columnToSearch: string
+}): [string, (value: string) => void] {
+	const [search, setSearch] = useState('')
+	const debouncedSearch = useDebounce(search, 200)
+
+	useEffect(() => {
+		const column = instance.getColumn(columnToSearch)
+		if (!column) return
+
+		const currentValue = column.getFilterValue()
+		if (currentValue === debouncedSearch) return
+
+		startTransition(() => {
+			column.setFilterValue(debouncedSearch)
+		})
+	}, [debouncedSearch, instance, columnToSearch])
+
+	return [search, setSearch]
+}
+
+export function useSortColumnSizesAndOrders({
+	instance,
+	columnSizes,
+	columnOrders
+}: {
+	instance: ColumnTableInstance
+	columnSizes?: ColumnSizesByBreakpoint | null
+	columnOrders?: ColumnOrdersByBreakpoint | null
+}) {
+	const width = useBreakpointWidth()
+
+	useEffect(() => {
+		sortColumnSizesAndOrders({ instance, columnSizes, columnOrders, width })
+	}, [instance, columnSizes, columnOrders, width])
 }

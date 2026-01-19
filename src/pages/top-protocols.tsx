@@ -14,10 +14,10 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -161,8 +161,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	}, [uniqueCategories])
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-	const [searchValue, setSearchValue] = React.useState('')
-	const debouncedSearch = useDebounce(searchValue, 200)
 
 	const table = useReactTable({
 		data,
@@ -176,12 +174,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	React.useEffect(() => {
-		const column = table.getColumn('chain')
-		if (!column) return
-
-		column.setFilterValue({ search: debouncedSearch, selected: selectedChains })
-	}, [debouncedSearch, selectedChains, table])
+	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'name' })
 
 	const clearChainSelection = React.useCallback(() => {
 		const { chain: _chain, ...queries } = router.query

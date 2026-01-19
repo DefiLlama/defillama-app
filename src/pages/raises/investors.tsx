@@ -14,6 +14,7 @@ import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { RAISES_API } from '~/constants'
 import { IRaises } from '~/containers/ChainOverview/types'
@@ -335,8 +336,6 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 			.sort((a, b) => b.deals - a.deals)
 	}, [investors, selectedPeriod])
 
-	const [investorName, setInvestorName] = React.useState('')
-
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const instance = useReactTable({
@@ -353,13 +352,7 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	React.useEffect(() => {
-		const projectsColumns = instance.getColumn('name')
-		const id = setTimeout(() => {
-			projectsColumns.setFilterValue(investorName)
-		}, 200)
-		return () => clearTimeout(id)
-	}, [investorName, instance])
+	const [investorName, setInvestorName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<Layout

@@ -12,8 +12,8 @@ import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { governanceColumns } from '~/components/Table/Defi/columns'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { GOVERNANCE_COMPOUND_API, GOVERNANCE_SNAPSHOT_API, GOVERNANCE_TALLY_API } from '~/constants'
-import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { capitalizeFirstLetter } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -59,14 +59,7 @@ export default function Governance({ data }) {
 		getRowCanExpand: () => true
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<Layout

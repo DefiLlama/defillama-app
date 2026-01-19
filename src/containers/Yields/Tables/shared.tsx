@@ -9,9 +9,8 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { VirtualTable } from '~/components/Table/Table'
-import { sortColumnSizesAndOrders } from '~/components/Table/utils'
+import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 
 interface IYieldsTableWrapper {
 	data: any
@@ -38,8 +37,6 @@ export const YieldsTableWrapper = ({
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 
-	const width = useBreakpointWidth()
-
 	const instance = useReactTable({
 		data,
 		columns,
@@ -57,14 +54,7 @@ export const YieldsTableWrapper = ({
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			columnOrders,
-			width
-		})
-	}, [instance, width, columnSizes, columnOrders])
+	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
 	return (
 		<span className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

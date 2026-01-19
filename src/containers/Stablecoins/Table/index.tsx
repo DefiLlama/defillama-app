@@ -14,14 +14,12 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import { alphanumericFalsyLast, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
 	isChainsCategoryGroupKey,
 	useLocalStorageSettingsManager
 } from '~/contexts/LocalStorage'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { useDebounce } from '~/hooks/useDebounce'
 import {
 	assetsByChainColumnOrders,
 	assetsByChainColumnSizes,
@@ -38,8 +36,6 @@ export function PeggedAssetsTable({ data }) {
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-
-	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data,
@@ -62,23 +58,8 @@ export function PeggedAssetsTable({ data }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes: assetsColumnSizes,
-			columnOrders: assetsColumnOrders,
-			width
-		})
-	}, [instance, width])
-
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({ instance, columnSizes: assetsColumnSizes, columnOrders: assetsColumnOrders })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -113,8 +94,6 @@ export function PeggedAssetByChainTable({ data }) {
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-	const width = useBreakpointWidth()
-
 	const instance = useReactTable({
 		data,
 		columns: peggedAssetsByChainColumns,
@@ -140,23 +119,12 @@ export function PeggedAssetByChainTable({ data }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	React.useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes: assetsByChainColumnSizes,
-			columnOrders: assetsByChainColumnOrders,
-			width
-		})
-	}, [instance, width])
-
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	useSortColumnSizesAndOrders({
+		instance,
+		columnSizes: assetsByChainColumnSizes,
+		columnOrders: assetsByChainColumnOrders
+	})
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -210,14 +178,7 @@ export function PeggedChainsTable({ data }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = React.useState('')
-	const debouncedProjectName = useDebounce(projectName, 200)
-
-	React.useEffect(() => {
-		React.startTransition(() => {
-			instance.getColumn('name')?.setFilterValue(debouncedProjectName)
-		})
-	}, [debouncedProjectName, instance])
+	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 

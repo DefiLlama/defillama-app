@@ -13,6 +13,7 @@ import {
 	VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { downloadCSV } from '~/utils'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { yieldsDatasetColumns } from './columns'
@@ -375,17 +376,7 @@ export function useYieldsTable({
 	// 	downloadCSV('yields-data.csv', csvContent, { addTimestamp: true })
 	// }
 
-	const [poolName, setPoolName] = React.useState('')
-	React.useEffect(() => {
-		const columns = table.getColumn('pool')
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(poolName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [poolName, table])
+	const [poolName, setPoolName] = useTableSearch({ instance: table, columnToSearch: 'pool' })
 
 	const availableChains = React.useMemo(() => {
 		if (!data) return []

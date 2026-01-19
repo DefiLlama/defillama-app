@@ -12,6 +12,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { downloadCSV } from '~/utils'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -80,19 +81,7 @@ export function CexDataset() {
 		instance.setColumnOrder(defaultOrder)
 	}, [instance, width])
 
-	const [exchangeName, setExchangeName] = React.useState('')
-
-	React.useEffect(() => {
-		const columns = instance.getColumn('name')
-
-		const id = setTimeout(() => {
-			if (columns) {
-				columns.setFilterValue(exchangeName)
-			}
-		}, 200)
-
-		return () => clearTimeout(id)
-	}, [exchangeName, instance])
+	const [exchangeName, setExchangeName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (

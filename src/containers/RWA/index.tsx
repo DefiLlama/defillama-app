@@ -14,7 +14,7 @@ import {
 import clsx from 'clsx'
 import { matchSorter } from 'match-sorter'
 import { NextRouter, useRouter } from 'next/router'
-import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
@@ -24,11 +24,10 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
-import { alphanumericFalsyLast, sortColumnSizesAndOrders } from '~/components/Table/utils'
+import { alphanumericFalsyLast, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
 import { IRWAAssetsOverview } from './queries'
@@ -306,15 +305,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const width = useBreakpointWidth()
-
-	useEffect(() => {
-		sortColumnSizesAndOrders({
-			instance,
-			columnSizes,
-			width
-		})
-	}, [instance, width])
+	useSortColumnSizesAndOrders({ instance, columnSizes })
 
 	const prepareCsv = useCallback(() => {
 		const tableRows = instance.getSortedRowModel().rows
